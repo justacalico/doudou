@@ -3,9 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../services/jellyfin_service.dart';
+import '../services/audio_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
+  AudioPlayerService? _audioService;
   
   bool _isLoggedIn = false;
   bool _isLoading = false;
@@ -20,6 +22,7 @@ class AppState extends ChangeNotifier {
   List<Album> get albums => _albums;
   List<Artist> get artists => _artists;
   JellyfinService get jellyfinService => _jellyfinService;
+  AudioPlayerService? get audioService => _audioService;
 
   AppState() {
     _loadSavedServer();
@@ -35,6 +38,10 @@ class AppState extends ChangeNotifier {
         final server = JellyfinServer.fromJson(serverData);
         _jellyfinService.setServer(server);
         _isLoggedIn = true;
+        
+        // Initialize audio service
+        _audioService = AudioPlayerService(_jellyfinService);
+        
         notifyListeners();
         
         // Load initial data
@@ -61,6 +68,10 @@ class AppState extends ChangeNotifier {
       
       if (success) {
         _isLoggedIn = true;
+        
+        // Initialize audio service after successful login
+        _audioService = AudioPlayerService(_jellyfinService);
+        
         await _saveServer();
         await loadLibraryData();
         _setLoading(false);
@@ -80,6 +91,10 @@ class AppState extends ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jellyfin_server');
+    
+    // Dispose audio service
+    _audioService?.dispose();
+    _audioService = null;
     
     _isLoggedIn = false;
     _albums.clear();
@@ -117,6 +132,54 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError('Failed to load tracks: ${e.toString()}');
       return [];
+    }
+  }
+
+  // Audio playback methods
+  Future<void> playTrack(Track track) async {
+    if (_audioService != null) {
+      await _audioService!.playTrack(track);
+      notifyListeners();
+    }
+  }
+
+  Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
+    if (_audioService != null) {
+      await _audioService!.playPlaylist(tracks, startIndex);
+      notifyListeners();
+    }
+  }
+
+  Future<void> playPause() async {
+    if (_audioService != null) {
+      // Get the current player state
+      final playerState = await _audioService!.playerStateStream.first;
+      if (playerState.playing) {
+        await _audioService!.pause();
+      } else {
+        await _audioService!.play();
+      }
+      notifyListeners();
+    }
+  }
+
+  Future<void> skipToNext() async {
+    if (_audioService != null) {
+      await _audioService!.skipToNext();
+      notifyListeners();
+    }
+  }
+
+  Future<void> skipToPrevious() async {
+    if (_audioService != null) {
+      await _audioService!.skipToPrevious();
+      notifyListeners();
+    }
+  }
+
+  Future<void> seekTo(Duration position) async {
+    if (_audioService != null) {
+      await _audioService!.seek(position);
     }
   }
 

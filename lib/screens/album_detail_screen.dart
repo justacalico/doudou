@@ -208,10 +208,13 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   }
 
   void _playTrack(Track track, int index) {
-    // TODO: Implement track playback
+    final appState = context.read<AppState>();
+    appState.playPlaylist(tracks, index);
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Playing: ${track.name}'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -224,10 +227,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   void _shuffleAllTracks() {
     if (tracks.isNotEmpty) {
-      // TODO: Implement shuffle playback
+      final appState = context.read<AppState>();
+      final shuffledTracks = List<Track>.from(tracks)..shuffle();
+      appState.playPlaylist(shuffledTracks, 0);
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Shuffle playback - Coming soon!'),
+          content: Text('Playing shuffled playlist'),
+          duration: Duration(seconds: 2),
         ),
       );
     }

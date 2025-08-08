@@ -14,20 +14,20 @@ dependencies:
   dio: ^5.4.0
   
   # Audio playback
-  just_audio: ^0.9.35
-  audio_service: ^0.18.12
+  just_audio: ^0.10.4
+  audio_service: ^0.18.18
   
   # State management
-  provider: ^6.1.1
+  provider: ^6.1.5
   
   # UI components
-  cached_network_image: ^3.3.0
+  cached_network_image: ^3.4.1
   
   # Storage
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.3
   
   # Icons
-  cupertino_icons: ^1.0.6
+  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
