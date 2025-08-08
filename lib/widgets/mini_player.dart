@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:audio_service/audio_service.dart';
+import 'package:provider/provider.dart';
+import 'package:just_audio/just_audio.dart';
+import '../providers/app_state.dart';
 import '../screens/now_playing_screen.dart';
 
 class MiniPlayer extends StatelessWidget {
@@ -7,11 +9,12 @@ class MiniPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<MediaItem?>(
-      stream: AudioService.currentMediaItemStream,
-      builder: (context, snapshot) {
-        final mediaItem = snapshot.data;
-        if (mediaItem == null) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final audioService = appState.audioService;
+        final currentTrack = audioService?.currentTrack;
+        
+        if (currentTrack == null) {
           return const SizedBox.shrink();
         }
 
@@ -45,9 +48,13 @@ class MiniPlayer extends StatelessWidget {
                         width: 50,
                         height: 50,
                         color: Colors.grey[300],
-                        child: mediaItem.artUri != null
+                        child: currentTrack.imageUrl != null
                             ? Image.network(
-                                mediaItem.artUri.toString(),
+                                appState.jellyfinService.getImageUrl(
+                                  currentTrack.imageUrl!,
+                                  width: 100,
+                                  height: 100,
+                                ),
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Icon(Icons.music_note);
@@ -65,7 +72,7 @@ class MiniPlayer extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            mediaItem.title,
+                            currentTrack.name,
                             style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 14,
@@ -73,10 +80,10 @@ class MiniPlayer extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (mediaItem.artist != null) ...[
+                          if (currentTrack.artistName != null) ...[
                             const SizedBox(height: 2),
                             Text(
-                              mediaItem.artist!,
+                              currentTrack.artistName!,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
@@ -90,15 +97,14 @@ class MiniPlayer extends StatelessWidget {
                     ),
                     
                     // Play/Pause Button
-                    StreamBuilder<PlaybackState>(
-                      stream: AudioService.playbackStateStream,
+                    StreamBuilder(
+                      stream: audioService?.playerStateStream,
                       builder: (context, snapshot) {
-                        final playbackState = snapshot.data;
-                        final isPlaying = playbackState?.playing ?? false;
-                        final processingState = playbackState?.processingState ?? AudioProcessingState.idle;
+                        final isPlaying = audioService?.isPlaying ?? false;
+                        final processingState = audioService?.playerState.processingState;
                         
-                        if (processingState == AudioProcessingState.loading ||
-                            processingState == AudioProcessingState.buffering) {
+                        if (processingState == ProcessingState.loading ||
+                            processingState == ProcessingState.buffering) {
                           return const SizedBox(
                             width: 40,
                             height: 40,
@@ -118,11 +124,7 @@ class MiniPlayer extends StatelessWidget {
                             size: 28,
                           ),
                           onPressed: () {
-                            if (isPlaying) {
-                              AudioService.pause();
-                            } else {
-                              AudioService.play();
-                            }
+                            appState.playPause();
                           },
                         );
                       },

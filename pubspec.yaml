@@ -15,7 +15,6 @@ dependencies:
   
   # Audio playback
   just_audio: ^0.10.4
-  audio_service: ^0.18.18
   
   # State management
   provider: ^6.1.5

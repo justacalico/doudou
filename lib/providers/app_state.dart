@@ -42,6 +42,11 @@ class AppState extends ChangeNotifier {
         // Initialize audio service
         _audioService = AudioPlayerService(_jellyfinService);
         
+        // Listen to audio service changes and notify listeners
+        _audioService!.addListener(() {
+          notifyListeners();
+        });
+        
         notifyListeners();
         
         // Load initial data
@@ -71,6 +76,11 @@ class AppState extends ChangeNotifier {
         
         // Initialize audio service after successful login
         _audioService = AudioPlayerService(_jellyfinService);
+        
+        // Listen to audio service changes and notify listeners
+        _audioService!.addListener(() {
+          notifyListeners();
+        });
         
         await _saveServer();
         await loadLibraryData();

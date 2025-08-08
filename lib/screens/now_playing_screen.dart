@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:audio_service/audio_service.dart';
+import 'package:provider/provider.dart';
+import 'package:just_audio/just_audio.dart';
+import '../providers/app_state.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -18,11 +20,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: StreamBuilder<MediaItem?>(
-        stream: AudioService.currentMediaItemStream,
-        builder: (context, snapshot) {
-          final mediaItem = snapshot.data;
-          if (mediaItem == null) {
+      body: Consumer<AppState>(
+        builder: (context, appState, child) {
+          final audioService = appState.audioService;
+          final currentTrack = audioService?.currentTrack;
+          
+          if (currentTrack == null) {
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -49,7 +52,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                   width: 300,
                   height: 300,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.3),
@@ -59,30 +62,34 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: mediaItem.artUri != null
+                    borderRadius: BorderRadius.circular(20),
+                    child: currentTrack.imageUrl != null
                         ? Image.network(
-                            mediaItem.artUri.toString(),
+                            appState.jellyfinService.getImageUrl(
+                              currentTrack.imageUrl!,
+                              width: 600,
+                              height: 600,
+                            ),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[300],
-                                child: const Icon(Icons.music_note, size: 100),
+                                child: const Icon(Icons.album, size: 120),
                               );
                             },
                           )
                         : Container(
                             color: Colors.grey[300],
-                            child: const Icon(Icons.music_note, size: 100),
+                            child: const Icon(Icons.album, size: 120),
                           ),
                   ),
                 ),
                 
                 const SizedBox(height: 40),
                 
-                // Track Info
+                // Track info
                 Text(
-                  mediaItem.title,
+                  currentTrack.name,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -91,20 +98,21 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
-                if (mediaItem.artist != null)
+                
+                if (currentTrack.artistName != null)
                   Text(
-                    mediaItem.artist!,
+                    currentTrack.artistName!,
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey[600],
                     ),
                     textAlign: TextAlign.center,
                   ),
-                if (mediaItem.album != null) ...[
+                
+                if (currentTrack.albumName != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    mediaItem.album!,
+                    currentTrack.albumName!,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[500],
@@ -115,12 +123,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 
                 const SizedBox(height: 40),
                 
-                // Progress Bar
+                // Progress slider
                 StreamBuilder<Duration>(
-                  stream: AudioService.positionStream,
+                  stream: audioService?.positionStream ?? Stream.value(Duration.zero),
                   builder: (context, snapshot) {
                     final position = snapshot.data ?? Duration.zero;
-                    final duration = mediaItem.duration ?? Duration.zero;
+                    final duration = audioService?.duration ?? Duration.zero;
                     
                     return Column(
                       children: [
@@ -132,8 +140,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             final newPosition = Duration(
                               milliseconds: (value * duration.inMilliseconds).round(),
                             );
-                            AudioService.customAction('seek', {'position': newPosition.inMilliseconds});
+                            appState.seekTo(newPosition);
                           },
+                          activeColor: Colors.deepPurple,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -152,67 +161,53 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 
                 const SizedBox(height: 20),
                 
-                // Control Buttons
-                StreamBuilder<PlaybackState>(
-                  stream: AudioService.playbackStateStream,
+                // Control buttons
+                StreamBuilder(
+                  stream: audioService?.playerStateStream,
                   builder: (context, snapshot) {
-                    final playbackState = snapshot.data;
-                    final isPlaying = playbackState?.playing ?? false;
-                    final processingState = playbackState?.processingState ?? AudioProcessingState.idle;
+                    final isPlaying = audioService?.isPlaying ?? false;
+                    final processingState = audioService?.playerState.processingState;
                     
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
-                          iconSize: 48,
-                          icon: const Icon(Icons.skip_previous),
-                          onPressed: () => AudioService.skipToPrevious(),
+                          icon: const Icon(Icons.skip_previous, size: 40),
+                          onPressed: audioService?.hasPrevious == true
+                              ? () => appState.skipToPrevious()
+                              : null,
                         ),
                         Container(
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
                             color: Colors.deepPurple,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.deepPurple.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
+                            borderRadius: BorderRadius.circular(40),
                           ),
-                          child: processingState == AudioProcessingState.loading ||
-                                  processingState == AudioProcessingState.buffering
+                          child: processingState == ProcessingState.loading ||
+                                  processingState == ProcessingState.buffering
                               ? const Center(
-                                  child: SizedBox(
-                                    width: 30,
-                                    height: 30,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
                                   ),
                                 )
                               : IconButton(
-                                  iconSize: 40,
                                   icon: Icon(
                                     isPlaying ? Icons.pause : Icons.play_arrow,
+                                    size: 40,
                                     color: Colors.white,
                                   ),
                                   onPressed: () {
-                                    if (isPlaying) {
-                                      AudioService.pause();
-                                    } else {
-                                      AudioService.play();
-                                    }
+                                    appState.playPause();
                                   },
                                 ),
                         ),
                         IconButton(
-                          iconSize: 48,
-                          icon: const Icon(Icons.skip_next),
-                          onPressed: () => AudioService.skipToNext(),
+                          icon: const Icon(Icons.skip_next, size: 40),
+                          onPressed: audioService?.hasNext == true
+                              ? () => appState.skipToNext()
+                              : null,
                         ),
                       ],
                     );
@@ -236,8 +231,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
     
     if (hours > 0) {
       return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
-    } else {
-      return '${twoDigits(minutes)}:${twoDigits(seconds)}';
     }
+    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 }
