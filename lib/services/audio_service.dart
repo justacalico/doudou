@@ -76,23 +76,59 @@ class AudioPlayerService extends ChangeNotifier {
     final track = _playlist[_currentIndex];
     _currentTrack = track;
     
-    final streamUrl = _jellyfinService.getStreamUrl(track.id);
+    // Try multiple stream URLs in order of preference
+    final streamUrls = [
+      _jellyfinService.getStreamUrl(track.id),
+      _jellyfinService.getDirectStreamUrl(track.id),
+      _jellyfinService.getUniversalStreamUrl(track.id),
+    ];
     
-    try {
-      await _player.setUrl(streamUrl);
-      await _player.play();
-      notifyListeners();
+    bool playbackSucceeded = false;
+    
+    for (int i = 0; i < streamUrls.length; i++) {
+      final streamUrl = streamUrls[i];
+      final streamType = ['stream', 'direct', 'universal'][i];
       
-      if (kDebugMode) {
-        print('Playing track: ${track.name}');
-        print('Stream URL: $streamUrl');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error playing track: $e');
-        print('Stream URL: $streamUrl');
+      try {
+        if (kDebugMode) {
+          print('Attempting to play track: ${track.name} using $streamType URL');
+          print('Stream URL: $streamUrl');
+        }
+        
+        await _player.setUrl(streamUrl);
+        await _player.play();
+        playbackSucceeded = true;
+        
+        if (kDebugMode) {
+          print('Successfully started playing: ${track.name} using $streamType URL');
+        }
+        break; // Success! Exit the loop
+        
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to play with $streamType URL: $e');
+          
+          // Try to provide more specific error information
+          if (e.toString().contains('Cleartext')) {
+            print('SOLUTION: This is a cleartext HTTP issue. Make sure network security config allows HTTP traffic.');
+          } else if (e.toString().contains('extractors')) {
+            print('SOLUTION: Audio format not supported. Check Jellyfin transcoding settings.');
+          } else if (e.toString().contains('Connection')) {
+            print('SOLUTION: Network connection issue. Check server URL and connectivity.');
+          }
+        }
+        
+        // If this was the last URL to try, we've failed completely
+        if (i == streamUrls.length - 1) {
+          if (kDebugMode) {
+            print('All stream URLs failed for track: ${track.name}');
+          }
+        }
       }
     }
+    
+    // Always notify listeners whether we succeeded or failed
+    notifyListeners();
   }
 
   // Getters

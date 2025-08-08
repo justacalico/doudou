@@ -151,6 +151,35 @@ class JellyfinService {
   String getStreamUrl(String itemId) {
     if (_server == null) return '';
     
+    // Use the stream endpoint with specific parameters for better compatibility
+    final params = {
+      'UserId': _server!.userId,
+      'DeviceId': 'doudou-flutter',
+      'api_key': _server!.accessToken,
+      'Container': 'mp3,aac,m4a,flac,webm,mp4,ogg', // Specify supported containers
+      'AudioCodec': 'mp3,aac,flac,vorbis,opus',      // Specify supported codecs
+      'AudioBitRate': '128000',                       // Set reasonable bitrate
+      'MaxAudioChannels': '2',                        // Stereo
+      'TranscodingContainer': 'mp3',                  // Fallback container
+      'TranscodingProtocol': 'http',                  // Use HTTP protocol
+    };
+    
+    final queryString = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    
+    return '${_server!.serverUrl}/Audio/$itemId/stream?$queryString';
+  }
+
+  String getDirectStreamUrl(String itemId) {
+    if (_server == null) return '';
+    
+    // Alternative: direct download URL (no transcoding)
+    return '${_server!.serverUrl}/Items/$itemId/Download?api_key=${_server!.accessToken}';
+  }
+
+  String getUniversalStreamUrl(String itemId) {
+    if (_server == null) return '';
+    
+    // Alternative: universal endpoint with minimal params
     return '${_server!.serverUrl}/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
   }
 
