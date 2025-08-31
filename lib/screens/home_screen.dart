@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
+import 'home_content.dart';
 import 'albums_tab.dart';
 import 'artists_tab.dart';
 import 'now_playing_screen.dart';
@@ -19,15 +20,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         backgroundColor: const Color(0xFF1C1C1E), // Dark background like in image
-        activeColor: CupertinoColors.systemRed, // Red for active Library tab
+        activeColor: CupertinoColors.systemRed, // Red for active tab
         inactiveColor: CupertinoColors.systemGrey,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.house),
+            icon: Icon(CupertinoIcons.house_fill),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.music_note),
+            icon: Icon(CupertinoIcons.music_note_list),
             label: 'Library',
           ),
           BottomNavigationBarItem(
@@ -43,14 +44,16 @@ class _HomeScreenState extends State<HomeScreen> {
       tabBuilder: (context, index) {
         Widget content;
         String title;
+        bool showNavBar = true;
         
         switch (index) {
           case 0:
-            content = const AlbumsTab();
+            content = const HomeContent();
             title = 'Home';
+            showNavBar = false; // Home has custom header
             break;
           case 1:
-            content = const ArtistsTab();
+            content = const AlbumsTab();
             title = 'Library';
             break;
           case 2:
@@ -62,17 +65,18 @@ class _HomeScreenState extends State<HomeScreen> {
             title = 'Search';
             break;
           default:
-            content = const AlbumsTab();
+            content = const HomeContent();
             title = 'Home';
+            showNavBar = false;
         }
         
         return CupertinoPageScaffold(
           backgroundColor: const Color(0xFF000000), // Dark background
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: showNavBar ? CupertinoNavigationBar(
             middle: Text(title, style: const TextStyle(color: CupertinoColors.white)),
             backgroundColor: const Color(0xFF1C1C1E),
             border: null,
-            trailing: index <= 1 ? Row(
+            trailing: index == 1 ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CupertinoButton(
@@ -97,14 +101,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ) : null,
-          ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Expanded(child: content),
-                const MiniPlayer(),
-              ],
-            ),
+          ) : null,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: content,
+              ),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: MiniPlayer(),
+              ),
+            ],
           ),
         );
       },
