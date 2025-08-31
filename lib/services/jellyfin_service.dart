@@ -211,5 +211,24 @@ class JellyfinService {
     return '${_server!.serverUrl}/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
   }
 
+  Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final method = isFavorite ? 'DELETE' : 'POST';
+      final response = await _dio.request(
+        '/Users/${_server!.userId}/FavoriteItems/$itemId',
+        options: Options(method: method),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error toggling favorite: $e');
+      }
+      return false;
+    }
+  }
+
   JellyfinServer? get currentServer => _server;
 }
