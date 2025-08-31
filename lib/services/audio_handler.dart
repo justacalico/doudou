@@ -574,10 +574,64 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Update audio service queue
           queue.add(_playlist.map(_trackToMediaItem).toList());
           
-          // Restore position but don't auto-play
-          final savedPosition = prefs.getInt('playback_position') ?? 0;
-          if (savedPosition > 0) {
-            await _player.seek(Duration(milliseconds: savedPosition));
+          // Update current media item
+          mediaItem.add(_trackToMediaItem(_currentTrack!));
+          
+          // Prepare the audio source without playing
+          try {
+            final streamUrls = [
+              _jellyfinService.getStreamUrl(_currentTrack!.id),
+              _jellyfinService.getDirectStreamUrl(_currentTrack!.id),
+              _jellyfinService.getUniversalStreamUrl(_currentTrack!.id),
+            ];
+            
+            bool loaded = false;
+            for (final streamUrl in streamUrls) {
+              try {
+                await _player.setUrl(streamUrl);
+                loaded = true;
+                break;
+              } catch (e) {
+                if (kDebugMode) {
+                  print('Failed to load stream URL for restored track: $e');
+                }
+              }
+            }
+            
+            if (loaded) {
+              // Restore position
+              final savedPosition = prefs.getInt('playback_position') ?? 0;
+              if (savedPosition > 0) {
+                await _player.seek(Duration(milliseconds: savedPosition));
+              }
+              
+              // Update playback state to show the restored track as paused
+              playbackState.add(playbackState.value.copyWith(
+                controls: [
+                  MediaControl.skipToPrevious,
+                  MediaControl.play,
+                  MediaControl.skipToNext,
+                ],
+                systemActions: const {
+                  MediaAction.seek,
+                  MediaAction.seekForward,
+                  MediaAction.seekBackward,
+                },
+                androidCompactActionIndices: const [0, 1, 2],
+                processingState: AudioProcessingState.ready,
+                playing: false,
+                updatePosition: Duration(milliseconds: savedPosition),
+                queueIndex: _currentIndex,
+              ));
+              
+              if (kDebugMode) {
+                print('Successfully restored playback state: ${_currentTrack!.name}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error preparing restored track: $e');
+            }
           }
         }
       }
