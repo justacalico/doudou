@@ -91,16 +91,18 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
       child: SafeArea(
         child: Stack(
           children: [
-            // Background gradient
+            // Background gradient with deeper blacks for OLED
             Container(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.center,
-                  radius: 1.0,
+                  radius: 1.2,
                   colors: [
-                    const Color(0xFF1a1a2e).withOpacity(0.3),
+                    const Color(0xFF0a0a0a),
+                    const Color(0xFF000000),
                     const Color(0xFF000000),
                   ],
+                  stops: const [0.0, 0.7, 1.0],
                 ),
               ),
             ),
@@ -279,84 +281,128 @@ class CircularVisualizerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2;
-    final innerRadius = radius * 0.3;
+    final innerRadius = radius * 0.25;
     final barCount = barHeights.length;
 
-    // Draw outer circle (subtle border)
-    final borderPaint = Paint()
-      ..color = const Color(0xFF8E8E93).withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    canvas.drawCircle(center, radius - 10, borderPaint);
+    // Draw background glow effect
+    if (isPlaying) {
+      final glowPaint = Paint()
+        ..color = const Color(0xFF007AFF).withOpacity(0.1)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, radius + 20, glowPaint);
+    }
 
-    // Draw inner circle
+    // Draw the vibrant gradient ring
+    final ringWidth = 8.0;
+    final ringRadius = radius - 30;
+    
+    // Create gradient colors for the ring
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = ringWidth
+      ..strokeCap = StrokeCap.round;
+
+    // Draw gradient ring segments
+    for (int i = 0; i < 360; i += 2) {
+      final angle = (i * pi) / 180;
+      final intensity = barHeights[(i ~/ (360 / barCount)) % barCount];
+      
+      // Create rainbow gradient effect
+      final hue = (i + (isPlaying ? DateTime.now().millisecondsSinceEpoch / 20 : 0)) % 360;
+      final saturation = isPlaying ? 0.8 + intensity * 0.2 : 0.3;
+      final brightness = isPlaying ? 0.7 + intensity * 0.3 : 0.4;
+      
+      final color = HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+      ringPaint.color = color;
+      
+      final startAngle = angle - 0.02;
+      final endAngle = angle + 0.02;
+      
+      final startX = center.dx + cos(startAngle) * ringRadius;
+      final startY = center.dy + sin(startAngle) * ringRadius;
+      final endX = center.dx + cos(endAngle) * ringRadius;
+      final endY = center.dy + sin(endAngle) * ringRadius;
+      
+      canvas.drawLine(Offset(startX, startY), Offset(endX, endY), ringPaint);
+    }
+
+    // Draw inner black circle for OLED contrast
     final innerCirclePaint = Paint()
-      ..color = const Color(0xFF1C1C1E).withOpacity(0.6)
+      ..color = const Color(0xFF000000)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, innerRadius, innerCirclePaint);
 
-    // Draw bars
+    // Draw subtle inner ring
+    final innerRingPaint = Paint()
+      ..color = isPlaying 
+          ? const Color(0xFFFFFFFF).withOpacity(0.2)
+          : const Color(0xFF8E8E93).withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(center, innerRadius, innerRingPaint);
+
+    // Draw animated bars extending outward
     for (int i = 0; i < barCount; i++) {
-      final angle = (i / barCount) * 2 * pi - pi / 2; // Start from top
-      final barHeight = barHeights[i] * (radius - innerRadius - 20);
+      final angle = (i / barCount) * 2 * pi - pi / 2;
+      final intensity = barHeights[i];
+      final barLength = intensity * 40; // Longer bars for better effect
       
       // Calculate positions
-      final startRadius = innerRadius + 10;
-      final endRadius = startRadius + barHeight;
+      final startRadius = ringRadius + 15;
+      final endRadius = startRadius + barLength;
       
       final startX = center.dx + cos(angle) * startRadius;
       final startY = center.dy + sin(angle) * startRadius;
       final endX = center.dx + cos(angle) * endRadius;
       final endY = center.dy + sin(angle) * endRadius;
 
-      // Calculate bar color based on height (intensity)
-      double intensity = barHeights[i];
-      Color barColor;
+      // Create dynamic color based on position and intensity
+      final hue = (i * (360 / barCount) + (isPlaying ? DateTime.now().millisecondsSinceEpoch / 30 : 0)) % 360;
+      final saturation = isPlaying ? 0.9 : 0.3;
+      final brightness = isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2;
       
-      if (isPlaying) {
-        if (intensity > 0.7) {
-          barColor = Color.lerp(
-            const Color(0xFF30D158), 
-            const Color(0xFFFFFFFF), 
-            (intensity - 0.7) / 0.3
-          )!;
-        } else if (intensity > 0.4) {
-          barColor = Color.lerp(
-            const Color(0xFF007AFF), 
-            const Color(0xFF30D158), 
-            (intensity - 0.4) / 0.3
-          )!;
-        } else {
-          barColor = Color.lerp(
-            const Color(0xFF007AFF).withOpacity(0.6), 
-            const Color(0xFF007AFF), 
-            intensity / 0.4
-          )!;
-        }
-      } else {
-        barColor = const Color(0xFF8E8E93).withOpacity(0.3 + intensity * 0.3);
+      final barColor = HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+
+      // Add glow effect for playing state
+      if (isPlaying && intensity > 0.5) {
+        final glowPaint = Paint()
+          ..color = barColor.withOpacity(0.3)
+          ..strokeWidth = 8
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+          
+        canvas.drawLine(Offset(startX, startY), Offset(endX, endY), glowPaint);
       }
 
-      // Draw the bar
+      // Draw the main bar
       final barPaint = Paint()
         ..color = barColor
-        ..strokeWidth = 3
+        ..strokeWidth = 4
         ..strokeCap = StrokeCap.round;
 
-      canvas.drawLine(
-        Offset(startX, startY),
-        Offset(endX, endY),
-        barPaint,
-      );
+      canvas.drawLine(Offset(startX, startY), Offset(endX, endY), barPaint);
     }
 
-    // Draw center point
-    final centerPaint = Paint()
-      ..color = isPlaying 
-          ? const Color(0xFFFFFFFF).withOpacity(0.8)
-          : const Color(0xFF8E8E93).withOpacity(0.5)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 4, centerPaint);
+    // Draw center indicator
+    if (isPlaying) {
+      // Animated center point with glow
+      final centerGlowPaint = Paint()
+        ..color = const Color(0xFFFFFFFF).withOpacity(0.6)
+        ..style = PaintingStyle.fill
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      canvas.drawCircle(center, 8, centerGlowPaint);
+      
+      final centerPaint = Paint()
+        ..color = const Color(0xFFFFFFFF)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, 4, centerPaint);
+    } else {
+      // Simple center point when paused
+      final centerPaint = Paint()
+        ..color = const Color(0xFF8E8E93).withOpacity(0.6)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, 3, centerPaint);
+    }
   }
 
   @override
