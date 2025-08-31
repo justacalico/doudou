@@ -114,9 +114,9 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jellyfin_server');
     
-    // Dispose audio service
-    _audioService?.dispose();
-    _audioService = null;
+    // Dispose audio handler
+    _audioHandler?.dispose();
+    _audioHandler = null;
     
     _isLoggedIn = false;
     _albums.clear();
