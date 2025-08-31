@@ -1,4 +1,4 @@
-package com.example.doudou
+package gitlab.httpanimations.doudou
 
 import com.ryanheise.audioservice.AudioServiceActivity
 
