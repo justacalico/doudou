@@ -307,21 +307,6 @@ class CircularVisualizerPainter extends CustomPainter {
       final endX = center.dx + cos(angle) * endRadius;
       final endY = center.dy + sin(angle) * endRadius;
 
-      // Create gradient for each bar
-      final gradient = LinearGradient(
-        begin: Alignment.centerRadius,
-        end: Alignment.centerRadius,
-        colors: isPlaying ? [
-          const Color(0xFF007AFF).withOpacity(0.8),
-          const Color(0xFF30D158).withOpacity(0.9),
-          const Color(0xFFFFFFFF).withOpacity(0.7),
-        ] : [
-          const Color(0xFF8E8E93).withOpacity(0.3),
-          const Color(0xFF8E8E93).withOpacity(0.5),
-          const Color(0xFF8E8E93).withOpacity(0.3),
-        ],
-      );
-
       // Calculate bar color based on height (intensity)
       double intensity = barHeights[i];
       Color barColor;
