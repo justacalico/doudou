@@ -67,6 +67,7 @@ class Track {
   final int? duration; // in milliseconds
   final int? trackNumber;
   final String? imageUrl;
+  final bool isFavorite;
 
   Track({
     required this.id,
@@ -77,6 +78,7 @@ class Track {
     this.duration,
     this.trackNumber,
     this.imageUrl,
+    this.isFavorite = false,
   });
 
   factory Track.fromJson(Map<String, dynamic> json) {
@@ -93,6 +95,7 @@ class Track {
       imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
           ? json['Id'] // We'll construct the full URL in the service
           : json['AlbumId'], // Fallback to album image
+      isFavorite: json['UserData']?['IsFavorite'] ?? false,
     );
   }
 }
