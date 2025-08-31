@@ -14,7 +14,7 @@ class AlbumsTab extends StatelessWidget {
       builder: (context, appState, child) {
         if (appState.isLoading && appState.albums.isEmpty) {
           return const Center(
-            child: CupertinoActivityIndicator(),
+            child: CupertinoActivityIndicator(color: CupertinoColors.white),
           );
         }
 
@@ -23,41 +23,44 @@ class AlbumsTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.music_albums, size: 64, color: CupertinoColors.secondaryLabel),
+                Icon(CupertinoIcons.music_albums, size: 64, color: CupertinoColors.systemGrey),
                 SizedBox(height: 16),
                 Text(
                   'No albums found',
-                  style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
+                  style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
                 ),
               ],
             ),
           );
         }
 
-        return CustomScrollView(
-          slivers: [
-            CupertinoSliverRefreshControl(
-              onRefresh: () => appState.loadLibraryData(),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final album = appState.albums[index];
-                    return AlbumCard(album: album);
-                  },
-                  childCount: appState.albums.length,
+        return Container(
+          color: const Color(0xFF000000), // Dark background
+          child: CustomScrollView(
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () => appState.loadLibraryData(),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.8,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final album = appState.albums[index];
+                      return AlbumCard(album: album);
+                    },
+                    childCount: appState.albums.length,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -85,10 +88,10 @@ class AlbumCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+          color: const Color(0xFF1C1C1E), // Dark card background
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.1),
+              color: CupertinoColors.black.withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
