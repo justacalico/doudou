@@ -8,8 +8,11 @@ class AudioPlayerService extends ChangeNotifier {
   final JellyfinService _jellyfinService;
   
   List<Track> _playlist = [];
+  List<Track> _queue = [];
   int _currentIndex = 0;
   Track? _currentTrack;
+  bool _isShuffled = false;
+  List<Track> _originalPlaylist = [];
 
   AudioPlayerService(this._jellyfinService) {
     _init();
