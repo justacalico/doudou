@@ -239,16 +239,4 @@ class _LyricsOverlayState extends State<LyricsOverlay>
       },
     );
   }
-
-  /// Show the lyrics overlay as a modal popup
-  static void show(BuildContext context, String trackName, String artistName) {
-    showCupertinoModalPopup(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.3),
-      builder: (context) => LyricsOverlay(
-        trackName: trackName,
-        artistName: artistName,
-      ),
-    );
-  }
 }
