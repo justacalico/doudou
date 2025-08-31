@@ -144,6 +144,7 @@ class PlaylistsView extends StatelessWidget {
     Navigator.of(context).pop();
     
     // Show loading indicator
+    if (!context.mounted) return;
     showCupertinoDialog(
       context: context,
       barrierDismissible: false,
@@ -162,10 +163,12 @@ class PlaylistsView extends StatelessWidget {
       final success = await appState.createPlaylist(name);
       
       // Close loading dialog
+      if (!context.mounted) return;
       Navigator.of(context).pop();
       
       if (success) {
         // Show success message
+        if (!context.mounted) return;
         showCupertinoDialog(
           context: context,
           builder: (BuildContext context) {
@@ -185,6 +188,7 @@ class PlaylistsView extends StatelessWidget {
         );
       } else {
         // Show error message
+        if (!context.mounted) return;
         showCupertinoDialog(
           context: context,
           builder: (BuildContext context) {
@@ -205,9 +209,11 @@ class PlaylistsView extends StatelessWidget {
       }
     } catch (e) {
       // Close loading dialog
+      if (!context.mounted) return;
       Navigator.of(context).pop();
       
       // Show error message
+      if (!context.mounted) return;
       showCupertinoDialog(
         context: context,
         builder: (BuildContext context) {
