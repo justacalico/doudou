@@ -232,6 +232,11 @@ class LibraryContent extends StatelessWidget {
 
         return CustomScrollView(
           slivers: [
+            CupertinoSliverRefreshControl(
+              onRefresh: () async {
+                await appState.loadLibraryData();
+              },
+            ),
             SliverPadding(
               padding: const EdgeInsets.all(16.0),
               sliver: SliverGrid(
