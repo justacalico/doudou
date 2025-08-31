@@ -90,15 +90,25 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Search Bar
-                      CupertinoSearchTextField(
-                        controller: _searchController,
-                        placeholder: 'Songs, artists, or albums',
-                        style: const TextStyle(color: Color(0xFFFFFFFF)),
-                        placeholderStyle: const TextStyle(color: CupertinoColors.systemGrey2),
-                        backgroundColor: const Color(0xFF1C1C1E),
-                        onChanged: (value) => _performSearch(value, appState),
-                        onSubmitted: (value) => _performSearch(value, appState),
-                        autofocus: false,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF000000),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: const Color(0xFF2C2C2E),
+                            width: 1,
+                          ),
+                        ),
+                        child: CupertinoSearchTextField(
+                          controller: _searchController,
+                          placeholder: 'Songs, artists, or albums',
+                          style: const TextStyle(color: Color(0xFFFFFFFF)),
+                          placeholderStyle: const TextStyle(color: CupertinoColors.systemGrey2),
+                          backgroundColor: Colors.transparent,
+                          onChanged: (value) => _performSearch(value, appState),
+                          onSubmitted: (value) => _performSearch(value, appState),
+                          autofocus: false,
+                        ),
                       ),
                     ],
                   ),
