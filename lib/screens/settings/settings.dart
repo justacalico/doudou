@@ -237,21 +237,44 @@ class SettingsScreen extends StatelessWidget {
                 // Logout Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFFF453A),
+                          Color(0xFFFF2D92),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF453A).withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                     child: CupertinoButton(
                       onPressed: () => _showLogoutDialog(context, appState),
-                      color: const Color(0xFFFF453A),
-                      borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      borderRadius: BorderRadius.circular(16),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(CupertinoIcons.square_arrow_left, color: CupertinoColors.white),
-                          SizedBox(width: 8),
+                          Icon(
+                            CupertinoIcons.square_arrow_left, 
+                            color: Color(0xFFFFFFFF),
+                            size: 20,
+                          ),
+                          SizedBox(width: 12),
                           Text(
                             'Logout',
                             style: TextStyle(
-                              color: CupertinoColors.white,
-                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFFFFFFF),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
                             ),
                           ),
                         ],
