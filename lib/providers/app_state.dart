@@ -47,13 +47,15 @@ class AppState extends ChangeNotifier {
         _jellyfinService.setServer(server);
         _isLoggedIn = true;
         
-        // Initialize audio service
-        _audioService = AudioPlayerService(_jellyfinService);
-        
-        // Listen to audio service changes and notify listeners
-        _audioService!.addListener(() {
-          notifyListeners();
-        });
+        // Initialize audio handler
+        _audioHandler = await AudioService.init(
+          builder: () => DoudouAudioHandler(_jellyfinService),
+          config: const AudioServiceConfig(
+            androidNotificationChannelId: 'com.example.doudou.channel.audio',
+            androidNotificationChannelName: 'Doudou Music',
+            androidNotificationOngoing: true,
+          ),
+        );
         
         notifyListeners();
         
