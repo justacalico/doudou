@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/jellyfin_models.dart';
@@ -37,105 +37,106 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
     
-    return Scaffold(
-      body: CustomScrollView(
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.deepPurple.withOpacity(0.8),
-                      Colors.deepPurple.withOpacity(0.6),
-                    ],
-                  ),
+          CupertinoSliverNavigationBar(
+            largeTitle: Text(widget.album.name),
+            backgroundColor: CupertinoColors.systemPurple.resolveFrom(context),
+            stretch: true,
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    CupertinoColors.systemPurple.withOpacity(0.8),
+                    CupertinoColors.systemPurple.withOpacity(0.6),
+                  ],
                 ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 200,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: widget.album.imageUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl: appState.jellyfinService.getImageUrl(
-                                      widget.album.imageUrl!,
-                                      width: 400,
-                                      height: 400,
-                                    ),
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(
-                                      color: Colors.grey[300],
-                                      child: const Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    ),
-                                    errorWidget: (context, url, error) => Container(
-                                      color: Colors.grey[300],
-                                      child: const Icon(Icons.album, size: 80),
-                                    ),
-                                  )
-                                : Container(
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.album, size: 80),
-                                  ),
-                          ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: CupertinoColors.black.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: widget.album.imageUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: appState.jellyfinService.getImageUrl(
+                                    widget.album.imageUrl!,
+                                    width: 400,
+                                    height: 400,
+                                  ),
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: CupertinoColors.systemGrey4.resolveFrom(context),
+                                    child: const Center(
+                                      child: CupertinoActivityIndicator(),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    color: CupertinoColors.systemGrey4.resolveFrom(context),
+                                    child: const Icon(CupertinoIcons.music_albums, size: 80),
+                                  ),
+                                )
+                              : Container(
+                                  color: CupertinoColors.systemGrey4.resolveFrom(context),
+                                  child: const Icon(CupertinoIcons.music_albums, size: 80),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.album.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: CupertinoColors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (widget.album.artistName != null) ...[
+                        const SizedBox(height: 8),
                         Text(
-                          widget.album.name,
+                          widget.album.artistName!,
                           style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            fontSize: 18,
+                            color: CupertinoColors.white,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (widget.album.artistName != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.album.artistName!,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.white70,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                        if (widget.album.year != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.album.year.toString(),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white60,
-                            ),
-                          ),
-                        ],
                       ],
-                    ),
+                      if (widget.album.year != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.album.year.toString(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: CupertinoColors.white,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -144,7 +145,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           if (isLoading)
             const SliverFillRemaining(
               child: Center(
-                child: CircularProgressIndicator(),
+                child: CupertinoActivityIndicator(),
               ),
             )
           else if (tracks.isEmpty)
@@ -153,11 +154,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.music_off, size: 64, color: Colors.grey),
+                    Icon(CupertinoIcons.music_note, size: 64, color: CupertinoColors.secondaryLabel),
                     SizedBox(height: 16),
                     Text(
                       'No tracks found',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                      style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
                     ),
                   ],
                 ),
@@ -172,20 +173,34 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () => _playAllTracks(),
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('Play All'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
-                              foregroundColor: Colors.white,
+                          Expanded(
+                            child: CupertinoButton(
+                              onPressed: () => _playAllTracks(),
+                              color: CupertinoColors.systemPurple,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.play_arrow, color: CupertinoColors.white),
+                                  SizedBox(width: 8),
+                                  Text('Play All', style: TextStyle(color: CupertinoColors.white)),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(width: 16),
-                          OutlinedButton.icon(
-                            onPressed: () => _shuffleAllTracks(),
-                            icon: const Icon(Icons.shuffle),
-                            label: const Text('Shuffle'),
+                          Expanded(
+                            child: CupertinoButton(
+                              onPressed: () => _shuffleAllTracks(),
+                              color: CupertinoColors.systemBackground,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.shuffle, color: CupertinoColors.systemPurple.resolveFrom(context)),
+                                  const SizedBox(width: 8),
+                                  Text('Shuffle', style: TextStyle(color: CupertinoColors.systemPurple.resolveFrom(context))),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -211,12 +226,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     final appState = context.read<AppState>();
     appState.playPlaylist(tracks, index);
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Playing: ${track.name}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    _showSnackBar('Playing: ${track.name}');
   }
 
   void _playAllTracks() {
@@ -231,13 +241,24 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       final shuffledTracks = List<Track>.from(tracks)..shuffle();
       appState.playPlaylist(shuffledTracks, 0);
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Playing shuffled playlist'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _showSnackBar('Playing shuffled playlist');
     }
+  }
+
+  void _showSnackBar(String message) {
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => CupertinoAlertDialog(
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -255,44 +276,51 @@ class TrackListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Center(
-          child: Text(
-            track.trackNumber?.toString() ?? trackNumber.toString(),
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: CupertinoListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemGrey5.resolveFrom(context),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text(
+              track.trackNumber?.toString() ?? trackNumber.toString(),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
             ),
           ),
         ),
+        title: Text(
+          track.name,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: track.artistName != null
+            ? Text(
+                track.artistName!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
+        trailing: track.duration != null
+            ? Text(
+                _formatDuration(Duration(milliseconds: track.duration!)),
+                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+              )
+            : null,
+        onTap: onTap,
       ),
-      title: Text(
-        track.name,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: track.artistName != null
-          ? Text(
-              track.artistName!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      trailing: track.duration != null
-          ? Text(
-              _formatDuration(Duration(milliseconds: track.duration!)),
-              style: TextStyle(color: Colors.grey[600]),
-            )
-          : null,
-      onTap: onTap,
     );
   }
 
