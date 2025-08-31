@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'screens/login_screen.dart';
@@ -17,11 +17,11 @@ class DoudouApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: MaterialApp(
+      child: CupertinoApp(
         title: 'Doudou - Jellyfin Music Player',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
+        theme: const CupertinoThemeData(
+          primaryColor: CupertinoColors.systemPurple,
+          scaffoldBackgroundColor: CupertinoColors.systemBackground,
         ),
         home: Consumer<AppState>(
           builder: (context, appState, child) {
