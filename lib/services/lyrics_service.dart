@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class LyricsService {
@@ -68,7 +69,9 @@ class LyricsService {
       
       return null;
     } catch (e) {
-      print('Error fetching lyrics: $e');
+      if (kDebugMode) {
+        print('Error fetching lyrics: $e');
+      }
       return null;
     }
   }
