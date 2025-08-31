@@ -351,26 +351,7 @@ class LibraryContent extends StatelessWidget {
   }
 
   Widget _buildPlaylistsPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            CupertinoIcons.music_note_list,
-            size: 64,
-            color: CupertinoColors.systemGrey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Playlists Coming Soon',
-            style: TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-        ],
-      ),
-    );
+    return const PlaylistsView();
   }
 
   Widget _buildCollectionsPage() {
