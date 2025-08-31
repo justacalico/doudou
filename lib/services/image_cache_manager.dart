@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 class ImageCacheManager {
@@ -34,23 +34,22 @@ class ImageCacheManager {
     await instance.emptyCache();
   }
   
-  // Get cache size
+  // Get cache size (simplified version)
   static Future<int> getCacheSize() async {
-    final cacheDir = await getTemporaryDirectory();
-    final cacheFolder = p.join(cacheDir.path, key);
-    
     try {
-      final directory = await instance.store.fileDir;
-      int size = 0;
+      final cacheDir = await getTemporaryDirectory();
+      final files = await instance.store.retrieveFileInfos();
       
-      await for (final file in directory.list(recursive: true)) {
-        if (file is File) {
+      int totalSize = 0;
+      for (final fileInfo in files) {
+        final file = File(fileInfo.file.path);
+        if (await file.exists()) {
           final stat = await file.stat();
-          size += stat.size;
+          totalSize += stat.size.round();
         }
       }
       
-      return size;
+      return totalSize;
     } catch (e) {
       return 0;
     }
