@@ -184,40 +184,16 @@ class ArtistCard extends StatelessWidget {
               width: 1,
             ),
           ),
-          child: ClipOval(
-            child: artist.imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: appState.jellyfinService.getImageUrl(
-                      artist.imageUrl!,
-                      width: 112,
-                      height: 112,
-                    ),
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: const Color(0xFF1C1C1E),
-                      child: const Center(
-                        child: CupertinoActivityIndicator(
-                          color: Color(0xFF8E8E93),
-                        ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFF1C1C1E),
-                      child: const Icon(
-                        CupertinoIcons.person,
-                        color: Color(0xFF8E8E93),
-                        size: 28,
-                      ),
-                    ),
+          child: ArtistImageWidget(
+            imageUrl: artist.imageUrl != null
+                ? appState.jellyfinService.getImageUrl(
+                    artist.imageUrl!,
+                    width: 112,
+                    height: 112,
                   )
-                : Container(
-                    color: const Color(0xFF1C1C1E),
-                    child: const Icon(
-                      CupertinoIcons.person,
-                      color: Color(0xFF8E8E93),
-                      size: 28,
-                    ),
-                  ),
+                : null,
+            size: 56,
+            isCircular: true,
           ),
         ),
         title: Text(
