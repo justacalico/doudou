@@ -36,6 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(CupertinoIcons.search),
             label: 'Search',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.settings),
+            label: 'Settings',
+          ),
         ],
       ),
       tabBuilder: (context, index) {
@@ -61,6 +65,11 @@ class _HomeScreenState extends State<HomeScreen> {
           case 3:
             content = _buildComingSoonTab('Search');
             title = 'Search';
+            break;
+          case 4:
+            content = const SettingsScreen();
+            title = 'Settings';
+            showNavBar = false; // Settings has custom header
             break;
           default:
             content = const HomeContent();
