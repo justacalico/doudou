@@ -60,20 +60,90 @@ class ArtistsTab extends StatelessWidget {
         }
 
         return Container(
-          color: const Color(0xFF000000), // Dark background
-          child: CustomScrollView(
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () => appState.loadLibraryData(),
+          color: const Color(0xFF000000), // Pure black background for OLED
+          child: Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () => appState.loadLibraryData(),
+                  ),
+                  // Header section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title section
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF32D74B).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFF32D74B).withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.person_2_fill,
+                                  color: Color(0xFF32D74B),
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Artists',
+                                      style: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFFFFFF),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${appState.artists.length} artist${appState.artists.length == 1 ? '' : 's'}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xFF8E8E93),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final artist = appState.artists[index];
+                        return ArtistCard(artist: artist);
+                      },
+                      childCount: appState.artists.length,
+                    ),
+                  ),
+                  // Add bottom padding for mini player
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 100),
+                  ),
+                ],
               ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final artist = appState.artists[index];
-                    return ArtistCard(artist: artist);
-                  },
-                  childCount: appState.artists.length,
-                ),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: MiniPlayer(),
               ),
             ],
           ),
