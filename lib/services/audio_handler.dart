@@ -151,6 +151,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  Future<void> _handleTrackCompletion() async {
+    if (_isHandlingCompletion) return; // Prevent race conditions
+    
+    _isHandlingCompletion = true;
+    
+    try {
+      // Add a small delay to ensure the completion is properly processed
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Double-check we're still in completed state
+      if (_player.processingState == ProcessingState.completed) {
+        if (kDebugMode) {
+          print('Track completed: ${_currentTrack?.name}, advancing to next');
+        }
+        await skipToNext();
+      }
+    } finally {
+      _isHandlingCompletion = false;
+    }
+  }
+
   @override
   Future<void> skipToPrevious() async {
     final now = DateTime.now();
