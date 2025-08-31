@@ -114,6 +114,7 @@ class AppState extends ChangeNotifier {
     _albums.clear();
     _artists.clear();
     _tracks.clear();
+    _playlists.clear();
     _clearError();
     
     notifyListeners();
