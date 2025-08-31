@@ -77,7 +77,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.volume_up,
-                          title: 'Crossfade',
+                          title: 'Smart Crossfade',
                           subtitle: 'Disabled',
                           onTap: () => _showCrossfadeDialog(context),
                         ),
