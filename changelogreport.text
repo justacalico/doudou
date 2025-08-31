@@ -10,8 +10,6 @@
 - Made the albus page in the new oled theme.
 - Updated the theme for the artits detailed page.
 
-## Removed
-
 ## Fixed
 - Fixed queue having overflow issues.
 - Fixed caching songs still having to be loaded.
