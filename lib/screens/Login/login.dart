@@ -166,6 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     ),
+                    
+                    // Add bottom spacing to ensure content doesn't get cut off
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                   ],
                 ),
               );
