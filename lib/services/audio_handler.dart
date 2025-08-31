@@ -175,7 +175,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       album: track.albumName,
       title: track.name,
       artist: track.artistName,
-      duration: track.duration,
+      duration: track.duration != null ? Duration(milliseconds: track.duration!) : null,
       artUri: track.imageUrl != null 
           ? Uri.parse(_jellyfinService.getImageUrl(track.imageUrl!, width: 300, height: 300))
           : null,
