@@ -127,6 +127,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_currentIndex < _playlist.length - 1) {
       _currentIndex++;
       await _playCurrentTrack();
+      await _savePlaybackState();
     }
   }
 
@@ -135,6 +136,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_currentIndex > 0) {
       _currentIndex--;
       await _playCurrentTrack();
+      await _savePlaybackState();
     }
   }
 
@@ -143,6 +145,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (index >= 0 && index < _playlist.length) {
       _currentIndex = index;
       await _playCurrentTrack();
+      await _savePlaybackState();
     }
   }
 
