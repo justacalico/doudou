@@ -272,7 +272,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                           processingState == ProcessingState.buffering
                                       ? const Center(
                                           child: CupertinoActivityIndicator(
-                                            color: CupertinoColors.black,
+                                            color: const Color(0xFF000000),
                                           ),
                                         )
                                       : CupertinoButton(
