@@ -124,14 +124,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
-                                        color: const Color(0xFF4A4A4A),
-                                        child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                                        color: const Color(0xFF1C1C1E),
+                                        child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey2),
                                       );
                                     },
                                   )
                                 : Container(
-                                    color: const Color(0xFF4A4A4A),
-                                    child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                                    color: const Color(0xFF1C1C1E),
+                                    child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey2),
                                   ),
                           ),
                         ),
