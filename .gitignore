@@ -44,3 +44,14 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 android/.kotlin/sessions/kotlin-compiler-10660279334386424812.salive
+
+# Signing files - NEVER commit these
+*.jks
+*.keystore
+key.properties
+signing.properties
+
+# Privacy and legal documents (generated)
+docs/
+privacy-policy.html
+terms-of-service.html
