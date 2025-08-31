@@ -187,8 +187,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             onPressed: () async {
                               if (_artistTracks.isNotEmpty) {
                                 final shuffledTracks = List<Track>.from(_artistTracks)..shuffle();
-                                await appState.playTrack(shuffledTracks.first);
-                                appState.setQueue(shuffledTracks);
+                                await appState.audioHandler?.playPlaylist(shuffledTracks, 0);
                               }
                             },
                             child: const Row(
