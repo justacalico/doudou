@@ -104,7 +104,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           placeholder: 'Songs, artists, or albums',
                           style: const TextStyle(color: Color(0xFFFFFFFF)),
                           placeholderStyle: const TextStyle(color: CupertinoColors.systemGrey2),
-                          backgroundColor: Colors.transparent,
+                          backgroundColor: const Color(0x00000000),
                           onChanged: (value) => _performSearch(value, appState),
                           onSubmitted: (value) => _performSearch(value, appState),
                           autofocus: false,
