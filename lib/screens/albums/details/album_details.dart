@@ -27,6 +27,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   Future<void> _loadTracks() async {
     final appState = context.read<AppState>();
     
+    // Ensure tracks are loaded first
+    if (appState.tracks.isEmpty && !appState.isLoading) {
+      await appState.loadLibraryData();
+    }
+    
     try {
       // First try to get tracks from the API
       final albumTracks = await appState.getAlbumTracks(widget.album.id);
@@ -59,7 +64,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       });
     } catch (e) {
       // Fallback to filtering existing tracks if API call fails
-      final appState = context.read<AppState>();
       final allTracks = appState.tracks;
       final filteredTracks = allTracks.where((track) => 
         track.albumId == widget.album.id || 
