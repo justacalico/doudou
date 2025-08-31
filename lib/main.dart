@@ -27,6 +27,28 @@ class DoudouApp extends StatelessWidget {
           ),
           home: Consumer<AppState>(
             builder: (context, appState, child) {
+              // Show loading screen while initializing
+              if (!appState.isInitialized) {
+                return const CupertinoPageScaffold(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CupertinoActivityIndicator(radius: 20),
+                        SizedBox(height: 16),
+                        Text(
+                          'Loading...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: CupertinoColors.secondaryLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              
               if (appState.isLoggedIn) {
                 return const HomeScreen();
               } else {
