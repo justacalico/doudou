@@ -325,6 +325,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                         case AudioServiceRepeatMode.one:
                                           await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
                                           break;
+                                        case AudioServiceRepeatMode.group:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                          break;
                                       }
                                     }
                                   },
