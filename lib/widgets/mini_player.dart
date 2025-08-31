@@ -116,7 +116,7 @@ class MiniPlayer extends StatelessWidget {
                             onPressed: () {
                               appState.playPause();
                             },
-                            child: Container(
+                            child: SizedBox(
                               width: 32,
                               height: 32,
                               child: processingState == ProcessingState.loading ||
