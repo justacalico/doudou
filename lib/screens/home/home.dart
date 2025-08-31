@@ -27,49 +27,79 @@ class HomeContent extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Container(
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8B2635),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Shuffle all',
-                                    style: TextStyle(
-                                      color: CupertinoColors.white,
-                                      fontWeight: FontWeight.w600,
+                            child: CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                await appState.shuffleAllTracks();
+                              },
+                              child: Container(
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B2635),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Shuffle all',
+                                      style: TextStyle(
+                                        color: CupertinoColors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Container(
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8B2635),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(CupertinoIcons.heart, color: CupertinoColors.white, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Shuffle favorites',
-                                    style: TextStyle(
-                                      color: CupertinoColors.white,
-                                      fontWeight: FontWeight.w600,
+                            child: CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                final favoriteCount = appState.favoriteTracks.length;
+                                if (favoriteCount > 0) {
+                                  await appState.shuffleFavoriteTracks();
+                                } else {
+                                  // Show a message if no favorites
+                                  showCupertinoDialog(
+                                    context: context,
+                                    builder: (BuildContext context) => CupertinoAlertDialog(
+                                      title: const Text('No Favorites'),
+                                      content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
+                                      actions: <CupertinoDialogAction>[
+                                        CupertinoDialogAction(
+                                          child: const Text('OK'),
+                                          onPressed: () => Navigator.of(context).pop(),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                  );
+                                }
+                              },
+                              child: Container(
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B2635),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(CupertinoIcons.heart, color: CupertinoColors.white, size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Shuffle favorites',
+                                      style: TextStyle(
+                                        color: CupertinoColors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
