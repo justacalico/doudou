@@ -411,6 +411,50 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _preloadNextTracks();
   }
 
+  void unshuffle() {
+    // Since we don't store the original playlist, we'll just disable shuffle mode
+    _isShuffled = false;
+    
+    if (kDebugMode) {
+      print('Unshuffle called - shuffle mode disabled');
+    }
+  }
+
+  void clearQueue() {
+    _playlist.clear();
+    _queue.clear();
+    _currentIndex = 0;
+    _currentTrack = null;
+    _isShuffled = false;
+    
+    // Clear preloaded players
+    _clearPreloadedPlayers();
+    
+    // Update audio service
+    queue.add(<MediaItem>[]);
+    mediaItem.add(null);
+    
+    stop();
+  }
+
+  void removeFromQueue(int index) {
+    if (index < 0 || index >= _queue.length || index == _currentIndex) return;
+    
+    _queue.removeAt(index);
+    _playlist.removeAt(index);
+    
+    // Adjust current index if needed
+    if (index < _currentIndex) {
+      _currentIndex--;
+    }
+    
+    // Update audio service queue
+    queue.add(_playlist.map(_trackToMediaItem).toList());
+    
+    // Clean up preloaded players
+    _cleanupOldPreloadedPlayers();
+  }
+
   void setSmartCrossfade(bool enabled) {
     _smartCrossfadeEnabled = enabled;
     
