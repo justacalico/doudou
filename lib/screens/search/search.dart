@@ -97,6 +97,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         backgroundColor: const Color(0xFF1C1C1E),
                         onChanged: (value) => _performSearch(value, appState),
                         onSubmitted: (value) => _performSearch(value, appState),
+                        autofocus: false,
                       ),
                     ],
                   ),
