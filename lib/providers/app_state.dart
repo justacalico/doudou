@@ -371,6 +371,22 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<bool> createPlaylist(String name) async {
+    try {
+      final newPlaylist = await _jellyfinService.createPlaylist(name);
+      if (newPlaylist != null) {
+        // Add the new playlist to the local list
+        _playlists.add(newPlaylist);
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _setError('Failed to create playlist: ${e.toString()}');
+      return false;
+    }
+  }
+
   Future<void> _saveServer() async {
     final server = _jellyfinService.currentServer;
     if (server != null) {
