@@ -350,23 +350,27 @@ class SettingsScreen extends StatelessWidget {
       padding: EdgeInsets.zero,
       onPressed: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF2C2C2E),
-                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF3A3A3C),
+                  width: 1,
+                ),
               ),
               child: Icon(
                 icon,
-                color: CupertinoColors.systemGrey,
-                size: 18,
+                color: const Color(0xFF007AFF), // Blue accent
+                size: 20,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,26 +378,33 @@ class SettingsScreen extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFFFFFFF), // Pure white text
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      color: CupertinoColors.systemGrey,
-                      fontSize: 14,
+                      color: Color(0xFFAAAAAA), // Lighter gray
+                      fontSize: 15,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              CupertinoIcons.forward,
-              color: CupertinoColors.systemGrey2,
-              size: 16,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                CupertinoIcons.chevron_right,
+                color: Color(0xFF666666),
+                size: 16,
+              ),
             ),
           ],
         ),
