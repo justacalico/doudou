@@ -283,20 +283,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final track = _playlist[_currentIndex];
     _currentTrack = track;
     
+    if (kDebugMode) {
+      print('Playing track ${_currentIndex + 1}/${_playlist.length}: ${track.name}');
+    }
+    
     // Update current media item
     mediaItem.add(_trackToMediaItem(track));
+    
+    // Stop current player first to ensure clean state
+    await _player.stop();
+    await Future.delayed(const Duration(milliseconds: 100));
     
     // Check if we have a preloaded player for this track
     if (_preloadedPlayers.containsKey(track.id)) {
       final preloadedPlayer = _preloadedPlayers.remove(track.id);
       if (preloadedPlayer != null) {
         try {
-          // Stop current player
-          await _player.stop();
-          
-          // Add a small delay to ensure the stop completes
-          await Future.delayed(const Duration(milliseconds: 50));
-          
           // Check if the preloaded player is ready
           if (preloadedPlayer.audioSource != null && 
               preloadedPlayer.processingState == ProcessingState.ready) {
@@ -306,25 +308,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await _player.play();
             
             if (kDebugMode) {
-              print('Playing preloaded track: ${track.name}');
+              print('Successfully playing preloaded track: ${track.name}');
             }
+            
+            // Dispose the preloaded player
+            preloadedPlayer.dispose();
+            
+            // Preload next tracks after successful play
+            _preloadNextTracks();
+            return;
+            
           } else {
             // Preloaded player not ready, fall back to normal loading
             if (kDebugMode) {
-              print('Preloaded player not ready, falling back to normal loading for: ${track.name}');
+              print('Preloaded player not ready for: ${track.name}');
             }
-            await _loadAndPlayTrack(track);
+            preloadedPlayer.dispose();
           }
-          
-          // Dispose the preloaded player
-          preloadedPlayer.dispose();
-          
-          // Preload next tracks after successful play
-          _preloadNextTracks();
-          return;
         } catch (e) {
           if (kDebugMode) {
-            print('Failed to play preloaded track, falling back to normal loading: $e');
+            print('Failed to play preloaded track: $e');
           }
           // Dispose the preloaded player and fall back to normal loading
           preloadedPlayer.dispose();
