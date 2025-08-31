@@ -306,10 +306,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 ),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () {}, // Repeat placeholder
-                                  child: const Icon(
-                                    CupertinoIcons.repeat,
-                                    color: CupertinoColors.systemGrey2,
+                                  onPressed: () {
+                                    final audioHandler = appState.audioHandler;
+                                    if (audioHandler != null) {
+                                      // Cycle through repeat modes: off -> all -> one -> off
+                                      switch (audioHandler.loopMode) {
+                                        case LoopMode.off:
+                                          audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                          break;
+                                        case LoopMode.all:
+                                          audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                          break;
+                                        case LoopMode.one:
+                                          audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                          break;
+                                      }
+                                    }
+                                  },
+                                  child: Icon(
+                                    audioHandler?.loopMode == LoopMode.one 
+                                        ? CupertinoIcons.repeat_1
+                                        : CupertinoIcons.repeat,
+                                    color: audioHandler?.loopMode == LoopMode.off
+                                        ? CupertinoColors.systemGrey2
+                                        : const Color(0xFFFF453A),
                                     size: 28,
                                   ),
                                 ),
