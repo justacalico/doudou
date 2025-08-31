@@ -125,7 +125,7 @@ class QueueScreen extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${queue.length} song${queue.length == 1 ? '' : 's'}',
+                        '${queueTracks.length} song${queueTracks.length == 1 ? '' : 's'}',
                         style: const TextStyle(
                           color: CupertinoColors.systemGrey,
                           fontSize: 14,
@@ -138,9 +138,9 @@ class QueueScreen extends StatelessWidget {
                 // Queue list
                 Expanded(
                   child: ListView.builder(
-                    itemCount: queue.length,
+                    itemCount: queueTracks.length,
                     itemBuilder: (context, index) {
-                      final track = queue[index];
+                      final track = queueTracks[index];
                       final isCurrentTrack = index == currentIndex;
                       
                       return QueueTrackItem(
