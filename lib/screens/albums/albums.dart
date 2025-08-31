@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import 'album_details.dart';
+import 'albumDetails.dart';
 
 class AlbumsTab extends StatelessWidget {
   const AlbumsTab({super.key});
