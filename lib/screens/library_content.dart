@@ -349,43 +349,6 @@ class LibraryContent extends StatelessWidget {
     );
   }
 
-  Widget _buildSongsPage() {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Songs will be loaded from your albums',
-                      style: TextStyle(
-                        color: CupertinoColors.systemGrey,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    CupertinoButton.filled(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Navigate to Albums to see songs
-                        _navigateToSection(context, 'Albums');
-                      },
-                      child: const Text('Browse Albums'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildPlaylistsPage() {
     return const Center(
       child: Column(
