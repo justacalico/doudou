@@ -2,6 +2,26 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../models/jellyfin_models.dart';
 
+// Network error types for better error handling
+enum NetworkErrorType {
+  connectionTimeout,
+  serverError,
+  unauthorized,
+  notFound,
+  noInternet,
+  unknown
+}
+
+class NetworkException implements Exception {
+  final String message;
+  final NetworkErrorType type;
+  
+  NetworkException(this.message, this.type);
+  
+  @override
+  String toString() => message;
+}
+
 class JellyfinService {
   late Dio _dio;
   JellyfinServer? _server;
@@ -9,20 +29,74 @@ class JellyfinService {
   JellyfinService() {
     _dio = Dio();
     
-    // Configure timeouts and retry options
+    // Configure timeouts for better network handling
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     _dio.options.sendTimeout = const Duration(seconds: 30);
     
-    // Add retry interceptor for network resilience
-    _dio.interceptors.add(RetryInterceptor(
-      dio: _dio,
-      retries: 2,
-      retryDelays: const [
-        Duration(seconds: 1),
-        Duration(seconds: 3),
-      ],
+    // Add error handling interceptor
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (error, handler) {
+        final networkError = _handleDioError(error);
+        handler.reject(DioException(
+          requestOptions: error.requestOptions,
+          error: networkError,
+          message: networkError.message,
+        ));
+      },
     ));
+  }
+  
+  NetworkException _handleDioError(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return NetworkException(
+          'Connection timeout. Please check your network connection and server availability.',
+          NetworkErrorType.connectionTimeout,
+        );
+      case DioExceptionType.badResponse:
+        switch (error.response?.statusCode) {
+          case 401:
+            return NetworkException(
+              'Invalid username or password. Please check your credentials.',
+              NetworkErrorType.unauthorized,
+            );
+          case 404:
+            return NetworkException(
+              'Server not found. Please check your server URL.',
+              NetworkErrorType.notFound,
+            );
+          case 500:
+          case 502:
+          case 503:
+            return NetworkException(
+              'Server error. Please try again later or contact your server administrator.',
+              NetworkErrorType.serverError,
+            );
+          default:
+            return NetworkException(
+              'Server returned error ${error.response?.statusCode}. Please try again.',
+              NetworkErrorType.serverError,
+            );
+        }
+      case DioExceptionType.cancel:
+        return NetworkException(
+          'Request was cancelled.',
+          NetworkErrorType.unknown,
+        );
+      case DioExceptionType.connectionError:
+        return NetworkException(
+          'Unable to connect to server. Please check your network connection and server URL.',
+          NetworkErrorType.noInternet,
+        );
+      default:
+        return NetworkException(
+          'Network error: ${error.message ?? 'Unknown error occurred'}',
+          NetworkErrorType.unknown,
+        );
+    }
   }
 
   void setServer(JellyfinServer server) {
