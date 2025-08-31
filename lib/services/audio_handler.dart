@@ -157,7 +157,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _clearPreloadedPlayers();
     
     _playlist = tracks;
-    _originalPlaylist = List.from(tracks);
     _queue = List.from(tracks);
     _currentIndex = startIndex.clamp(0, tracks.length - 1);
     _isShuffled = false;
