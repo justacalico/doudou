@@ -255,8 +255,12 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
+            color: const Color(0xFF000000),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF2C2C2E),
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
