@@ -245,14 +245,15 @@ class _LyricsOverlayState extends State<LyricsOverlay>
                                   )
                                 : SingleChildScrollView(
                                     padding: const EdgeInsets.all(20),
-                                    child: Text(
+                                    child: SelectableText(
                                       _lyrics,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
-                                        height: 1.6,
+                                        height: 1.8,
+                                        letterSpacing: 0.2,
                                       ),
-                                      textAlign: TextAlign.center,
+                                      textAlign: TextAlign.left,
                                     ),
                                   ),
                           ),
