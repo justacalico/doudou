@@ -335,7 +335,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               },
                               child: const Icon(
                                 CupertinoIcons.list_bullet,
-                                color: CupertinoColors.white,
+                                color: Color(0xFFFFFFFF),
                                 size: 24,
                               ),
                             ),
