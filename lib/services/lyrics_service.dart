@@ -2,6 +2,25 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+class LyricsLine {
+  final Duration timestamp;
+  final String text;
+  
+  LyricsLine({required this.timestamp, required this.text});
+}
+
+class LyricsResult {
+  final String plainLyrics;
+  final List<LyricsLine>? syncedLyrics;
+  final bool hasSyncedLyrics;
+  
+  LyricsResult({
+    required this.plainLyrics,
+    this.syncedLyrics,
+    this.hasSyncedLyrics = false,
+  });
+}
+
 class LyricsService {
   static const String _baseUrl = 'https://lrclib.net/api';
   
