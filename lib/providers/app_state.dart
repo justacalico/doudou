@@ -99,7 +99,7 @@ class AppState extends ChangeNotifier {
               _audioHandler = await AudioService.init(
                 builder: () => DoudouAudioHandler(_jellyfinService),
                 config: const AudioServiceConfig(
-                  androidNotificationChannelId: 'com.example.doudou.channel.audio',
+                  androidNotificationChannelId: 'gitlab.httpanimations.doudou.channel.audio',
                   androidNotificationChannelName: 'Doudou Music',
                   androidNotificationOngoing: true,
                 ),
@@ -167,7 +167,7 @@ class AppState extends ChangeNotifier {
           _audioHandler = await AudioService.init(
             builder: () => DoudouAudioHandler(_jellyfinService),
             config: const AudioServiceConfig(
-              androidNotificationChannelId: 'com.example.doudou.channel.audio',
+              androidNotificationChannelId: 'gitlab.httpanimations.doudou.channel.audio',
               androidNotificationChannelName: 'Doudou Music',
               androidNotificationOngoing: true,
             ),
