@@ -568,6 +568,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         _currentIndex = prefs.getInt('current_index') ?? 0;
         _isShuffled = prefs.getBool('is_shuffled') ?? false;
+        final wasPlaying = prefs.getBool('was_playing') ?? false;
         
         if (_playlist.isNotEmpty && _currentIndex < _playlist.length) {
           _currentTrack = _playlist[_currentIndex];
@@ -578,7 +579,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Update current media item
           mediaItem.add(_trackToMediaItem(_currentTrack!));
           
-          // Prepare the audio source without playing
+          // Prepare the audio source
           try {
             final streamUrls = [
               _jellyfinService.getStreamUrl(_currentTrack!.id),
@@ -606,11 +607,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 await _player.seek(Duration(milliseconds: savedPosition));
               }
               
-              // Update playback state to show the restored track as paused
+              // Resume playing if it was playing before
+              if (wasPlaying) {
+                await _player.play();
+                if (kDebugMode) {
+                  print('Automatically resumed playback: ${_currentTrack!.name}');
+                }
+              }
+              
+              // Update playback state
               playbackState.add(playbackState.value.copyWith(
                 controls: [
                   MediaControl.skipToPrevious,
-                  MediaControl.play,
+                  wasPlaying ? MediaControl.pause : MediaControl.play,
                   MediaControl.skipToNext,
                 ],
                 systemActions: const {
@@ -620,7 +629,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 },
                 androidCompactActionIndices: const [0, 1, 2],
                 processingState: AudioProcessingState.ready,
-                playing: false,
+                playing: wasPlaying,
                 updatePosition: Duration(milliseconds: savedPosition),
                 queueIndex: _currentIndex,
               ));
