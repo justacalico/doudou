@@ -18,8 +18,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
       backgroundColor: const Color(0xFF2D2D2D), // Dark background like in the image
       child: Consumer<AppState>(
         builder: (context, appState, child) {
-          final audioService = appState.audioService;
-          final currentTrack = audioService?.currentTrack;
+          final audioHandler = appState.audioHandler;
+          final currentTrack = audioHandler?.currentTrack;
           
           if (currentTrack == null) {
             return const Center(
