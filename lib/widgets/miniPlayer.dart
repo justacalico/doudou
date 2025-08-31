@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../providers/app_state.dart';
-import '../screens/controller/nowPlaying.dart';
+import '../screens/Controller/nowPlaying.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
