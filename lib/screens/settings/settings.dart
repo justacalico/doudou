@@ -643,20 +643,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: const Text('Clear Cache'),
-        content: const Text('This will remove all cached music and images. They will be re-downloaded when needed.'),
+        content: const Text('Choose what type of cache to clear:\n\n• Data Cache: Albums, artists, tracks, playlists\n• Image Cache: Downloaded artwork\n• All Cache: Everything'),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             child: const Text('Cancel'),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CupertinoDialogAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _clearDataCache(context);
+            },
+            child: const Text('Clear Data'),
+          ),
+          CupertinoDialogAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _clearImageCache(context);
+            },
+            child: const Text('Clear Images'),
+          ),
+          CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Implement cache clearing
-              _showCacheClearedDialog(context);
+              _clearAllCache(context);
             },
-            child: const Text('Clear Cache'),
+            child: const Text('Clear All'),
           ),
         ],
       ),
