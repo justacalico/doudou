@@ -357,6 +357,39 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleNormalizeVolume(bool enabled) async {
+    _normalizeVolumeEnabled = enabled;
+    
+    // TODO: Update the audio handler with the new normalize volume setting
+    // _audioHandler?.setNormalizeVolume(enabled);
+    
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('normalize_volume_enabled', enabled);
+    
+    notifyListeners();
+  }
+
+  Future<void> toggleOledDarkMode(bool enabled) async {
+    _oledDarkModeEnabled = enabled;
+    
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('oled_dark_mode_enabled', enabled);
+    
+    notifyListeners();
+  }
+
+  Future<void> toggleShowAlbumArt(bool enabled) async {
+    _showAlbumArtEnabled = enabled;
+    
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_album_art_enabled', enabled);
+    
+    notifyListeners();
+  }
+
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? false;
