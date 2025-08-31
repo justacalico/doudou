@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import '../Controller/nowPlaying.dart';
 
 class PlaylistsView extends StatelessWidget {
   const PlaylistsView({super.key});
