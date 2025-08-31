@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../Artists/artists.dart';
-import '../albums/details/albumDetails.dart';
+import '../Albums/details/albumDetails.dart';
 import '../Songs/songs.dart';
 
 class LibraryContent extends StatelessWidget {
