@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../providers/app_state.dart';
@@ -13,14 +13,12 @@ class NowPlayingScreen extends StatefulWidget {
 class _NowPlayingScreenState extends State<NowPlayingScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Now Playing'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Now Playing'),
+        backgroundColor: CupertinoColors.systemBackground,
       ),
-      body: Consumer<AppState>(
+      child: Consumer<AppState>(
         builder: (context, appState, child) {
           final audioService = appState.audioService;
           final currentTrack = audioService?.currentTrack;
@@ -30,11 +28,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.music_off, size: 64, color: Colors.grey),
+                  Icon(CupertinoIcons.music_note, size: 64, color: CupertinoColors.secondaryLabel),
                   SizedBox(height: 16),
                   Text(
                     'No music playing',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
                   ),
                 ],
               ),
@@ -55,7 +53,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: CupertinoColors.black.withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -73,14 +71,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.album, size: 120),
+                                color: CupertinoColors.systemGrey4.resolveFrom(context),
+                                child: const Icon(CupertinoIcons.music_albums, size: 120),
                               );
                             },
                           )
                         : Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.album, size: 120),
+                            color: CupertinoColors.systemGrey4.resolveFrom(context),
+                            child: const Icon(CupertinoIcons.music_albums, size: 120),
                           ),
                   ),
                 ),
@@ -104,7 +102,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     currentTrack.artistName!,
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.grey[600],
+                      color: CupertinoColors.secondaryLabel.resolveFrom(context),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -115,7 +113,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     currentTrack.albumName!,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey[500],
+                      color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -132,7 +130,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     
                     return Column(
                       children: [
-                        Slider(
+                        CupertinoSlider(
                           value: duration.inMilliseconds > 0
                               ? position.inMilliseconds / duration.inMilliseconds
                               : 0.0,
@@ -142,7 +140,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             );
                             appState.seekTo(newPosition);
                           },
-                          activeColor: Colors.deepPurple,
+                          activeColor: CupertinoColors.systemPurple,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -171,43 +169,54 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.skip_previous, size: 40),
+                        CupertinoButton(
                           onPressed: audioService?.hasPrevious == true
                               ? () => appState.skipToPrevious()
                               : null,
+                          child: Icon(
+                            CupertinoIcons.backward_fill,
+                            size: 40,
+                            color: audioService?.hasPrevious == true 
+                                ? CupertinoColors.label.resolveFrom(context)
+                                : CupertinoColors.quaternaryLabel.resolveFrom(context),
+                          ),
                         ),
                         Container(
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: Colors.deepPurple,
+                            color: CupertinoColors.systemPurple.resolveFrom(context),
                             borderRadius: BorderRadius.circular(40),
                           ),
                           child: processingState == ProcessingState.loading ||
                                   processingState == ProcessingState.buffering
                               ? const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 3,
+                                  child: CupertinoActivityIndicator(
+                                    color: CupertinoColors.white,
                                   ),
                                 )
-                              : IconButton(
-                                  icon: Icon(
-                                    isPlaying ? Icons.pause : Icons.play_arrow,
-                                    size: 40,
-                                    color: Colors.white,
-                                  ),
+                              : CupertinoButton(
                                   onPressed: () {
                                     appState.playPause();
                                   },
+                                  child: Icon(
+                                    isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_arrow_solid,
+                                    size: 40,
+                                    color: CupertinoColors.white,
+                                  ),
                                 ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.skip_next, size: 40),
+                        CupertinoButton(
                           onPressed: audioService?.hasNext == true
                               ? () => appState.skipToNext()
                               : null,
+                          child: Icon(
+                            CupertinoIcons.forward_fill,
+                            size: 40,
+                            color: audioService?.hasNext == true 
+                                ? CupertinoColors.label.resolveFrom(context)
+                                : CupertinoColors.quaternaryLabel.resolveFrom(context),
+                          ),
                         ),
                       ],
                     );
