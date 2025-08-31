@@ -5,8 +5,27 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../albums/details/album_details.dart';
 
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  List<Album>? _shuffledAlbums;
+  List<Album>? _continueListeningAlbums;
+  List<Album>? _madeForYouAlbums;
+
+  void _initializeAlbumLists(List<Album> allAlbums) {
+    if (_shuffledAlbums == null || _shuffledAlbums!.isEmpty) {
+      _shuffledAlbums = List<Album>.from(allAlbums)..shuffle();
+      _continueListeningAlbums = List<Album>.from(_shuffledAlbums!).take(4).toList();
+      _madeForYouAlbums = allAlbums.length > 10 
+          ? allAlbums.skip(6).take(4).toList() 
+          : List<Album>.from(_shuffledAlbums!).skip(2).take(4).toList();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
