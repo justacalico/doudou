@@ -168,6 +168,9 @@ class AppState extends ChangeNotifier {
       if (success) {
         _isLoggedIn = true;
         
+        // Initialize cache service first
+        await _cacheService.initialize();
+        
         // Try to initialize audio handler after successful login
         try {
           _audioHandler = await AudioService.init(
