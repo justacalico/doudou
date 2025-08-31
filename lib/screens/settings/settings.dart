@@ -676,12 +676,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showCacheClearedDialog(BuildContext context) {
+  void _showCacheClearedDialog(BuildContext context, String type) {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: const Text('Cache Cleared'),
-        content: const Text('Cache has been successfully cleared.'),
+        content: Text('$type cache has been successfully cleared.'),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _clearDataCache(BuildContext context) async {
+    final appState = context.read<AppState>();
+    try {
+      await appState.clearDataCache();
+      _showCacheClearedDialog(context, 'Data');
+    } catch (e) {
+      _showErrorDialog(context, 'Failed to clear data cache: $e');
+    }
+  }
+
+  void _clearImageCache(BuildContext context) async {
+    final appState = context.read<AppState>();
+    try {
+      await appState.clearImageCache();
+      _showCacheClearedDialog(context, 'Image');
+    } catch (e) {
+      _showErrorDialog(context, 'Failed to clear image cache: $e');
+    }
+  }
+
+  void _clearAllCache(BuildContext context) async {
+    final appState = context.read<AppState>();
+    try {
+      await appState.clearAllCache();
+      _showCacheClearedDialog(context, 'All');
+    } catch (e) {
+      _showErrorDialog(context, 'Failed to clear cache: $e');
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             child: const Text('OK'),
