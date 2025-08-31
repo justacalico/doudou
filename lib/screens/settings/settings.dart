@@ -483,8 +483,8 @@ class SettingsScreen extends StatelessWidget {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Crossfade'),
-        content: const Text('Crossfade duration between tracks.'),
+        title: const Text('Smart Crossfade'),
+        content: const Text('Smart crossfade duration between tracks.'),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             isDefaultAction: true,
