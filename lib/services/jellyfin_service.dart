@@ -283,5 +283,19 @@ class JellyfinService {
     }
   }
 
+  Future<bool> validateCredentials() async {
+    if (_server == null) return false;
+
+    try {
+      final response = await _dio.get('/Users/${_server!.userId}');
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error validating credentials: $e');
+      }
+      return false;
+    }
+  }
+
   JellyfinServer? get currentServer => _server;
 }
