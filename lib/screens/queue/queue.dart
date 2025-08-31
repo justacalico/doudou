@@ -21,10 +21,10 @@ class QueueScreen extends StatelessWidget {
       ),
       child: Consumer<AppState>(
         builder: (context, appState, child) {
-          final audioService = appState.audioService;
-          final queue = audioService?.queue ?? [];
-          final currentIndex = audioService?.currentIndex ?? 0;
-          final isShuffled = audioService?.isShuffled ?? false;
+          final audioHandler = appState.audioHandler;
+          final queue = audioHandler?.queue ?? [];
+          final currentIndex = audioHandler?.currentIndex ?? 0;
+          final isShuffled = audioHandler?.isShuffled ?? false;
 
           if (queue.isEmpty) {
             return const Center(
@@ -61,9 +61,9 @@ class QueueScreen extends StatelessWidget {
                         child: CupertinoButton.filled(
                           onPressed: () {
                             if (isShuffled) {
-                              audioService?.unshuffle();
+                              audioHandler?.unshuffle();
                             } else {
-                              audioService?.shuffle();
+                              audioHandler?.shuffle();
                             }
                           },
                           child: Row(
@@ -93,7 +93,7 @@ class QueueScreen extends StatelessWidget {
                         child: CupertinoButton(
                           color: const Color(0xFF2C2C2E),
                           onPressed: () {
-                            audioService?.clearQueue();
+                            audioHandler?.clearQueue();
                             Navigator.pop(context);
                           },
                           child: const Row(
@@ -154,7 +154,7 @@ class QueueScreen extends StatelessWidget {
                           }
                         },
                         onRemove: isCurrentTrack ? null : () {
-                          audioService?.removeFromQueue(index);
+                          audioHandler?.removeFromQueue(index);
                         },
                       );
                     },
