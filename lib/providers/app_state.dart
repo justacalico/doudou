@@ -10,6 +10,7 @@ import '../services/cache_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
+  final CacheService _cacheService = CacheService.instance;
   DoudouAudioHandler? _audioHandler;
   
   bool _isLoggedIn = false;
