@@ -190,6 +190,12 @@ class SettingsScreen extends StatelessWidget {
                           onTap: () => _showLicensesDialog(context),
                         ),
                         _buildSettingTile(
+                          icon: CupertinoIcons.link,
+                          title: 'GitLab Repository',
+                          subtitle: 'View source code and contribute',
+                          onTap: () => _openGitLabPage(context),
+                        ),
+                        _buildSettingTile(
                           icon: CupertinoIcons.heart,
                           title: 'Support Development',
                           subtitle: 'Help support this project',
