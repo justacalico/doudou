@@ -1,0 +1,473 @@
+import 'dart:async';
+import 'package:audio_service/audio_service.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:flutter/foundation.dart';
+import '../models/jellyfin_models.dart';
+import 'jellyfin_service.dart';
+
+class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
+  final AudioPlayer _player = AudioPlayer();
+  final JellyfinService _jellyfinService;
+  
+  List<Track> _playlist = [];
+  List<Track> _queue = [];
+  int _currentIndex = 0;
+  Track? _currentTrack;
+  bool _isShuffled = false;
+  List<Track> _originalPlaylist = [];
+  bool _smartCrossfadeEnabled = false;
+  final Duration _crossfadeDuration = const Duration(seconds: 3);
+  
+  // Preloading and caching
+  final Map<String, AudioPlayer> _preloadedPlayers = {};
+  final Set<String> _preloadingTracks = {};
+  static const int _maxPreloadedTracks = 3;
+
+  DoudouAudioHandler(this._jellyfinService) {
+    _init();
+  }
+
+  void _init() {
+    // Listen to player state changes and update audio service
+    _player.playerStateStream.listen((playerState) {
+      final isPlaying = playerState.playing;
+      final processingState = _mapProcessingState(playerState.processingState);
+      
+      playbackState.add(playbackState.value.copyWith(
+        controls: [
+          MediaControl.skipToPrevious,
+          if (isPlaying) MediaControl.pause else MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActionIndices: const [0, 1, 2],
+        processingState: processingState,
+        playing: isPlaying,
+        updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
+        speed: _player.speed,
+        queueIndex: _currentIndex,
+      ));
+    });
+
+    // Listen to position changes
+    _player.positionStream.listen((position) {
+      playbackState.add(playbackState.value.copyWith(
+        updatePosition: position,
+      ));
+    });
+
+    // Auto-play next track when current track completes
+    _player.playerStateStream.listen((state) {
+      if (state.processingState == ProcessingState.completed) {
+        skipToNext();
+      }
+    });
+
+    // Set initial playback state
+    playbackState.add(PlaybackState(
+      controls: [
+        MediaControl.skipToPrevious,
+        MediaControl.play,
+        MediaControl.skipToNext,
+      ],
+      systemActions: const {
+        MediaAction.seek,
+        MediaAction.seekForward,
+        MediaAction.seekBackward,
+      },
+      androidCompactActionIndices: const [0, 1, 2],
+      processingState: AudioProcessingState.idle,
+      playing: false,
+    ));
+  }
+
+  AudioProcessingState _mapProcessingState(ProcessingState state) {
+    switch (state) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
+  }
+
+  // Audio Service Methods
+  @override
+  Future<void> play() => _player.play();
+
+  @override
+  Future<void> pause() => _player.pause();
+
+  @override
+  Future<void> stop() async {
+    await _player.stop();
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.idle,
+      playing: false,
+    ));
+  }
+
+  @override
+  Future<void> seek(Duration position) => _player.seek(position);
+
+  @override
+  Future<void> skipToNext() async {
+    if (_currentIndex < _playlist.length - 1) {
+      _currentIndex++;
+      await _playCurrentTrack();
+    }
+  }
+
+  @override
+  Future<void> skipToPrevious() async {
+    if (_currentIndex > 0) {
+      _currentIndex--;
+      await _playCurrentTrack();
+    }
+  }
+
+  @override
+  Future<void> skipToQueueItem(String mediaId) async {
+    final index = _playlist.indexWhere((track) => track.id == mediaId);
+    if (index != -1) {
+      _currentIndex = index;
+      await _playCurrentTrack();
+    }
+  }
+
+  // Custom methods for the app
+  Future<void> playTrack(Track track) async {
+    _playlist = [track];
+    _currentIndex = 0;
+    await _playCurrentTrack();
+  }
+
+  Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
+    if (tracks.isEmpty) return;
+    
+    // Clear existing preloaded tracks
+    _clearPreloadedPlayers();
+    
+    _playlist = tracks;
+    _originalPlaylist = List.from(tracks);
+    _queue = List.from(tracks);
+    _currentIndex = startIndex.clamp(0, tracks.length - 1);
+    _isShuffled = false;
+    
+    // Update audio service queue
+    queue.add(_playlist.map(_trackToMediaItem).toList());
+    
+    await _playCurrentTrack();
+  }
+
+  MediaItem _trackToMediaItem(Track track) {
+    return MediaItem(
+      id: track.id,
+      album: track.albumName,
+      title: track.name,
+      artist: track.artistName,
+      duration: track.duration,
+      artUri: track.imageUrl != null 
+          ? Uri.parse(_jellyfinService.getImageUrl(track.imageUrl!, width: 300, height: 300))
+          : null,
+    );
+  }
+
+  Future<void> _playCurrentTrack() async {
+    if (_playlist.isEmpty || _currentIndex >= _playlist.length) return;
+
+    final track = _playlist[_currentIndex];
+    _currentTrack = track;
+    
+    // Update current media item
+    mediaItem.add(_trackToMediaItem(track));
+    
+    // Check if we have a preloaded player for this track
+    if (_preloadedPlayers.containsKey(track.id)) {
+      final preloadedPlayer = _preloadedPlayers.remove(track.id);
+      if (preloadedPlayer != null) {
+        // Stop current player and start preloaded one
+        await _player.stop();
+        
+        // Copy the loaded state from preloaded player to main player
+        if (preloadedPlayer.audioSource != null) {
+          await _player.setAudioSource(preloadedPlayer.audioSource!);
+          await _player.play();
+        }
+        
+        // Dispose the preloaded player
+        preloadedPlayer.dispose();
+        
+        if (kDebugMode) {
+          print('Playing preloaded track: ${track.name}');
+        }
+        
+        // Preload next tracks after successful play
+        _preloadNextTracks();
+        return;
+      }
+    }
+    
+    // Fallback to normal loading if no preloaded version
+    await _loadAndPlayTrack(track);
+    
+    // Preload next tracks after successful play
+    _preloadNextTracks();
+  }
+
+  Future<void> _loadAndPlayTrack(Track track) async {
+    // Try multiple stream URLs in order of preference
+    final streamUrls = [
+      _jellyfinService.getStreamUrl(track.id),
+      _jellyfinService.getDirectStreamUrl(track.id),
+      _jellyfinService.getUniversalStreamUrl(track.id),
+    ];
+    
+    for (int i = 0; i < streamUrls.length; i++) {
+      final streamUrl = streamUrls[i];
+      final streamType = ['stream', 'direct', 'universal'][i];
+      
+      try {
+        if (kDebugMode) {
+          print('Attempting to play track: ${track.name} using $streamType URL');
+        }
+        
+        await _player.setUrl(streamUrl);
+        await _player.play();
+        
+        if (kDebugMode) {
+          print('Successfully started playing: ${track.name} using $streamType URL');
+        }
+        break; // Success! Exit the loop
+        
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to play with $streamType URL: $e');
+        }
+        
+        // If this was the last URL to try, we've failed completely
+        if (i == streamUrls.length - 1) {
+          if (kDebugMode) {
+            print('All stream URLs failed for track: ${track.name}');
+          }
+        }
+      }
+    }
+  }
+
+  void _preloadNextTracks() async {
+    if (!_smartCrossfadeEnabled) return;
+    
+    // Clean up old preloaded players first
+    _cleanupOldPreloadedPlayers();
+    
+    // Preload next few tracks in the queue
+    for (int i = 1; i <= _maxPreloadedTracks; i++) {
+      final nextIndex = _currentIndex + i;
+      if (nextIndex < _playlist.length) {
+        final track = _playlist[nextIndex];
+        _preloadTrack(track);
+      }
+    }
+  }
+
+  void _preloadTrack(Track track) async {
+    // Don't preload if already preloaded or currently preloading
+    if (_preloadedPlayers.containsKey(track.id) || _preloadingTracks.contains(track.id)) {
+      return;
+    }
+    
+    _preloadingTracks.add(track.id);
+    
+    try {
+      final player = AudioPlayer();
+      
+      // Try multiple stream URLs in order of preference
+      final streamUrls = [
+        _jellyfinService.getStreamUrl(track.id),
+        _jellyfinService.getDirectStreamUrl(track.id),
+        _jellyfinService.getUniversalStreamUrl(track.id),
+      ];
+      
+      bool loaded = false;
+      for (final streamUrl in streamUrls) {
+        try {
+          await player.setUrl(streamUrl);
+          // Preload by seeking to the beginning but don't play
+          await player.seek(Duration.zero);
+          
+          _preloadedPlayers[track.id] = player;
+          loaded = true;
+          
+          if (kDebugMode) {
+            print('Successfully preloaded track: ${track.name}');
+          }
+          break;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to preload track ${track.name}: $e');
+          }
+        }
+      }
+      
+      if (!loaded) {
+        player.dispose();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error preloading track ${track.name}: $e');
+      }
+    } finally {
+      _preloadingTracks.remove(track.id);
+    }
+  }
+
+  void _clearPreloadedPlayers() {
+    for (final player in _preloadedPlayers.values) {
+      player.dispose();
+    }
+    _preloadedPlayers.clear();
+    _preloadingTracks.clear();
+    
+    if (kDebugMode) {
+      print('Cleared all preloaded players');
+    }
+  }
+
+  void _cleanupOldPreloadedPlayers() {
+    final currentTrackId = _currentTrack?.id;
+    final upcomingTrackIds = <String>{};
+    
+    // Collect IDs of upcoming tracks
+    for (int i = 1; i <= _maxPreloadedTracks; i++) {
+      final nextIndex = _currentIndex + i;
+      if (nextIndex < _playlist.length) {
+        upcomingTrackIds.add(_playlist[nextIndex].id);
+      }
+    }
+    
+    // Remove preloaded players that are no longer needed
+    final keysToRemove = <String>[];
+    for (final trackId in _preloadedPlayers.keys) {
+      if (trackId != currentTrackId && !upcomingTrackIds.contains(trackId)) {
+        keysToRemove.add(trackId);
+      }
+    }
+    
+    for (final trackId in keysToRemove) {
+      final player = _preloadedPlayers.remove(trackId);
+      player?.dispose();
+      if (kDebugMode) {
+        print('Cleaned up preloaded player for track: $trackId');
+      }
+    }
+  }
+
+  void addToQueue(Track track) {
+    _queue.add(track);
+    _playlist.add(track);
+    
+    // Update audio service queue
+    queue.add(_playlist.map(_trackToMediaItem).toList());
+    
+    // Trigger preloading if this track is within preload range
+    if (_smartCrossfadeEnabled && _playlist.length - _currentIndex <= _maxPreloadedTracks + 1) {
+      _preloadTrack(track);
+    }
+  }
+
+  void shuffle() {
+    if (_playlist.length <= 1) return;
+    
+    // Clear preloaded players since order will change
+    _clearPreloadedPlayers();
+    
+    _isShuffled = true;
+    final currentTrack = _playlist[_currentIndex];
+    
+    // Remove current track from shuffling
+    final remainingTracks = List<Track>.from(_playlist);
+    remainingTracks.removeAt(_currentIndex);
+    
+    // Shuffle remaining tracks
+    remainingTracks.shuffle();
+    
+    // Create new playlist with current track first, then shuffled tracks
+    _playlist = [currentTrack, ...remainingTracks];
+    _queue = List.from(_playlist);
+    _currentIndex = 0;
+    
+    // Update audio service queue
+    queue.add(_playlist.map(_trackToMediaItem).toList());
+    
+    // Restart preloading with new order
+    _preloadNextTracks();
+  }
+
+  void setSmartCrossfade(bool enabled) {
+    _smartCrossfadeEnabled = enabled;
+    
+    if (enabled) {
+      // Enable crossfade with 3-second duration
+      _player.setVolume(1.0);
+      
+      // Start preloading next tracks
+      _preloadNextTracks();
+      
+      if (kDebugMode) {
+        print('Smart crossfade enabled with ${_crossfadeDuration.inSeconds}s duration');
+      }
+    } else {
+      // Disable crossfade and clear preloaded tracks
+      _clearPreloadedPlayers();
+      
+      if (kDebugMode) {
+        print('Smart crossfade disabled');
+      }
+    }
+  }
+
+  // Getters
+  Track? get currentTrack => _currentTrack;
+  List<Track> get playlist => _playlist;
+  List<Track> get queueTracks => _queue;
+  List<Track> get upNext => _currentIndex < _queue.length - 1 
+      ? _queue.sublist(_currentIndex + 1) 
+      : [];
+  int get currentIndex => _currentIndex;
+  bool get isPlaying => _player.playing;
+  bool get hasNext => _currentIndex < _playlist.length - 1;
+  bool get hasPrevious => _currentIndex > 0;
+  bool get isShuffled => _isShuffled;
+  int get queueLength => _queue.length;
+  bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
+  
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<Duration?> get durationStream => _player.durationStream;
+  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
+  
+  Duration get position => _player.position;
+  Duration? get duration => _player.duration;
+  PlayerState get playerState => _player.playerState;
+
+  @override
+  Future<void> onTaskRemoved() async {
+    // Handle task removal (app swiped away)
+    await stop();
+  }
+
+  void dispose() {
+    _clearPreloadedPlayers();
+    _player.dispose();
+  }
+}
