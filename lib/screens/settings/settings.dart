@@ -562,6 +562,40 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _openGitLabPage(BuildContext context) async {
+    const url = 'https://gitlab.com/HttpAnimations/doudou';
+    try {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (context.mounted) {
+        _showCupertinoDialog(
+          context: context,
+          title: 'GitLab Repository',
+          content: 'The GitLab URL has been copied to your clipboard!\n\n$url\n\nYou can now paste it into your browser to visit the repository.',
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showCupertinoDialog(
+          context: context,
+          title: 'Error',
+          content: 'Failed to copy URL to clipboard. Please visit: $url',
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      }
+    }
+  }
+
   void _showSupportDialog(BuildContext context) {
     showCupertinoDialog(
       context: context,
