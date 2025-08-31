@@ -15,7 +15,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFF2D2D2D), // Dark background like in the image
+      backgroundColor: const Color(0xFF000000), // Pure black for OLED
       child: Consumer<AppState>(
         builder: (context, appState, child) {
           final audioHandler = appState.audioHandler;
