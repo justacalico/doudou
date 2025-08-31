@@ -16,14 +16,23 @@ all: android ios
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-# Android build
+# Android build (unsigned/debug)
 .PHONY: android
 android: $(BUILD_DIR)
-	@echo "Building Android APK for version $(VERSION)..."
-	flutter build apk --release
-	@echo "Copying APK to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android.apk"
-	cp build/app/outputs/flutter-apk/app-release.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android.apk
-	@echo "Android build complete!"
+	@echo "Building unsigned Android APK for version $(VERSION)..."
+	flutter build apk --debug
+	@echo "Copying APK to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-debug.apk"
+	cp build/app/outputs/flutter-apk/app-debug.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-debug.apk
+	@echo "Unsigned Android build complete!"
+
+# Android release build (unsigned)
+.PHONY: android-release
+android-release: $(BUILD_DIR)
+	@echo "Building unsigned release Android APK for version $(VERSION)..."
+	flutter build apk --release --no-shrink
+	@echo "Copying APK to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-release-unsigned.apk"
+	cp build/app/outputs/flutter-apk/app-release.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-release-unsigned.apk
+	@echo "Unsigned release Android build complete!"
 
 # Android signed release build
 .PHONY: android-signed
