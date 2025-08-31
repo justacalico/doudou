@@ -4,7 +4,7 @@ import '../../providers/app_state.dart';
 import '../Artists/artists.dart';
 import '../Albums/details/album_details.dart';
 import '../Songs/songs.dart';
-import '../Playlists/playlists.dart';
+import '../playlists/playlists.dart';
 import '../Favorites/favorites.dart';
 
 class LibraryContent extends StatelessWidget {
