@@ -119,55 +119,38 @@ class LibraryContent extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 1),
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          decoration: const BoxDecoration(
-            color: Color(0xFF1C1C1E),
-            border: Border(
-              bottom: BorderSide(
-                color: Color(0xFF2C2C2E),
-                width: 0.5,
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                icon,
+                color: CupertinoColors.white,
+                size: 18,
               ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(
-                  icon,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
                   color: CupertinoColors.white,
-                  size: 18,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-              const Icon(
-                CupertinoIcons.chevron_right,
-                color: CupertinoColors.systemGrey3,
-                size: 16,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
