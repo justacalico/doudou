@@ -79,9 +79,9 @@ class SettingsScreen extends StatelessWidget {
                           icon: CupertinoIcons.volume_up,
                           title: 'Smart Crossfade',
                           subtitle: 'Smooth transitions between tracks',
-                          value: false,
+                          value: appState.smartCrossfadeEnabled,
                           onChanged: (value) {
-                            // TODO: Implement smart crossfade toggle
+                            appState.toggleSmartCrossfade(value);
                           },
                         ),
                         _buildSwitchTile(
