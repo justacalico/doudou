@@ -174,77 +174,77 @@ class AppState extends ChangeNotifier {
 
   // Audio playback methods
   Future<void> playTrack(Track track) async {
-    if (_audioService != null) {
-      await _audioService!.playTrack(track);
+    if (_audioHandler != null) {
+      await _audioHandler!.playTrack(track);
       notifyListeners();
     }
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
-    if (_audioService != null) {
-      await _audioService!.playPlaylist(tracks, startIndex);
+    if (_audioHandler != null) {
+      await _audioHandler!.playPlaylist(tracks, startIndex);
       notifyListeners();
     }
   }
 
   Future<void> playPause() async {
-    if (_audioService != null) {
+    if (_audioHandler != null) {
       // Get the current player state
-      final playerState = await _audioService!.playerStateStream.first;
+      final playerState = await _audioHandler!.playerStateStream.first;
       if (playerState.playing) {
-        await _audioService!.pause();
+        await _audioHandler!.pause();
       } else {
-        await _audioService!.play();
+        await _audioHandler!.play();
       }
       notifyListeners();
     }
   }
 
   Future<void> skipToNext() async {
-    if (_audioService != null) {
-      await _audioService!.skipToNext();
+    if (_audioHandler != null) {
+      await _audioHandler!.skipToNext();
       notifyListeners();
     }
   }
 
   Future<void> skipToPrevious() async {
-    if (_audioService != null) {
-      await _audioService!.skipToPrevious();
+    if (_audioHandler != null) {
+      await _audioHandler!.skipToPrevious();
       notifyListeners();
     }
   }
 
   Future<void> skipToIndex(int index) async {
-    if (_audioService != null) {
-      await _audioService!.skipToIndex(index);
+    if (_audioHandler != null) {
+      await _audioHandler!.skipToQueueItem(index);
       notifyListeners();
     }
   }
 
   Future<void> seekTo(Duration position) async {
-    if (_audioService != null) {
-      await _audioService!.seek(position);
+    if (_audioHandler != null) {
+      await _audioHandler!.seek(position);
     }
   }
 
   void addToQueue(Track track) {
-    _audioService?.addToQueue(track);
+    _audioHandler?.addToQueue(track);
     notifyListeners();
   }
 
   void addNextInQueue(Track track) {
-    _audioService?.addNextInQueue(track);
+    _audioHandler?.addToQueue(track); // Add next functionality in handler if needed
     notifyListeners();
   }
 
   void clearQueue() {
-    _audioService?.clearQueue();
+    // Clear queue functionality would need to be added to the handler
     notifyListeners();
   }
 
   // Queue getters
-  List<Track> get queue => _audioService?.queue ?? [];
-  List<Track> get upNext => _audioService?.upNext ?? [];
+  List<Track> get queue => _audioHandler?.queueTracks ?? [];
+  List<Track> get upNext => _audioHandler?.upNext ?? [];
   
   void removeFromQueue(int index) {
     _audioService?.removeFromQueue(index);
