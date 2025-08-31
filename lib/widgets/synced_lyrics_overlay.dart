@@ -404,7 +404,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
             
             return ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50), // Add more vertical padding
               itemCount: _lyricsResult!.syncedLyrics!.length,
               itemBuilder: (context, index) {
                 final line = _lyricsResult!.syncedLyrics![index];
@@ -413,32 +413,58 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                 
                 return Container(
                   key: _lineKeys[index],
-                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  margin: EdgeInsets.symmetric(
+                    vertical: isCurrentLine ? 12 : 6, // More spacing for current line
+                  ),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16, 
+                      vertical: isCurrentLine ? 16 : 12, // More padding for current line
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       color: isCurrentLine 
                           ? Colors.white.withOpacity(0.15)
                           : Colors.transparent,
                       border: isCurrentLine
-                          ? Border.all(color: Colors.white.withOpacity(0.3))
+                          ? Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 2, // Thicker border for current line
+                            )
+                          : null,
+                      boxShadow: isCurrentLine
+                          ? [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
                           : null,
                     ),
                     child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
                       style: TextStyle(
                         color: isCurrentLine
                             ? Colors.white
                             : isPastLine
-                                ? Colors.white.withOpacity(0.6)
-                                : Colors.white.withOpacity(0.8),
-                        fontSize: isCurrentLine ? 18 : 16,
-                        fontWeight: isCurrentLine ? FontWeight.w600 : FontWeight.normal,
+                                ? Colors.white.withOpacity(0.5)
+                                : Colors.white.withOpacity(0.7),
+                        fontSize: isCurrentLine ? 20 : 16, // Larger font for current line
+                        fontWeight: isCurrentLine ? FontWeight.w700 : FontWeight.normal,
                         height: 1.4,
+                        shadows: isCurrentLine
+                            ? [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Text(
                         line.text,
