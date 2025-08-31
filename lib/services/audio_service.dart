@@ -351,6 +351,18 @@ class AudioPlayerService extends ChangeNotifier {
     }
   }
 
+  void _clearPreloadedPlayers() {
+    for (final player in _preloadedPlayers.values) {
+      player.dispose();
+    }
+    _preloadedPlayers.clear();
+    _preloadingTracks.clear();
+    
+    if (kDebugMode) {
+      print('Cleared all preloaded players');
+    }
+  }
+
   void _cleanupOldPreloadedPlayers() {
     final currentTrackId = _currentTrack?.id;
     final upcomingTrackIds = <String>{};
