@@ -266,6 +266,27 @@ class AudioPlayerService extends ChangeNotifier {
   Duration? get duration => _player.duration;
   PlayerState get playerState => _player.playerState;
 
+  void setSmartCrossfade(bool enabled) {
+    _smartCrossfadeEnabled = enabled;
+    
+    if (enabled) {
+      // Enable crossfade with 3-second duration
+      _player.setVolume(1.0);
+      // Note: just_audio doesn't have built-in crossfade, but we can implement
+      // a basic version by controlling volume during track transitions
+      if (kDebugMode) {
+        print('Smart crossfade enabled with ${_crossfadeDuration.inSeconds}s duration');
+      }
+    } else {
+      // Disable crossfade
+      if (kDebugMode) {
+        print('Smart crossfade disabled');
+      }
+    }
+  }
+
+  bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
+
   @override
   void dispose() {
     _player.dispose();
