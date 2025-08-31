@@ -18,24 +18,61 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
-        backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+        backgroundColor: const Color(0xFF1C1C1E), // Dark background like in image
+        activeColor: CupertinoColors.systemRed, // Red for active Library tab
+        inactiveColor: CupertinoColors.systemGrey,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.music_albums),
-            label: 'Albums',
+            icon: Icon(CupertinoIcons.house),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.person_2),
-            label: 'Artists',
+            icon: Icon(CupertinoIcons.music_note),
+            label: 'Library',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.arrow_down_circle),
+            label: 'Downloads',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.search),
+            label: 'Search',
           ),
         ],
       ),
       tabBuilder: (context, index) {
+        Widget content;
+        String title;
+        
+        switch (index) {
+          case 0:
+            content = const AlbumsTab();
+            title = 'Home';
+            break;
+          case 1:
+            content = const ArtistsTab();
+            title = 'Library';
+            break;
+          case 2:
+            content = _buildComingSoonTab('Downloads');
+            title = 'Downloads';
+            break;
+          case 3:
+            content = _buildComingSoonTab('Search');
+            title = 'Search';
+            break;
+          default:
+            content = const AlbumsTab();
+            title = 'Home';
+        }
+        
         return CupertinoPageScaffold(
+          backgroundColor: const Color(0xFF000000), // Dark background
           navigationBar: CupertinoNavigationBar(
-            middle: const Text('Doudou'),
-            backgroundColor: CupertinoColors.systemPurple.resolveFrom(context),
-            trailing: Row(
+            middle: Text(title, style: const TextStyle(color: CupertinoColors.white)),
+            backgroundColor: const Color(0xFF1C1C1E),
+            border: null,
+            trailing: index <= 1 ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CupertinoButton(
@@ -59,20 +96,41 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ],
-            ),
+            ) : null,
           ),
           child: SafeArea(
             child: Column(
               children: [
-                Expanded(
-                  child: index == 0 ? const AlbumsTab() : const ArtistsTab(),
-                ),
+                Expanded(child: content),
                 const MiniPlayer(),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildComingSoonTab(String tabName) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            tabName == 'Downloads' ? CupertinoIcons.arrow_down_circle : CupertinoIcons.search,
+            size: 64,
+            color: CupertinoColors.systemGrey,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '$tabName Coming Soon',
+            style: const TextStyle(
+              fontSize: 18,
+              color: CupertinoColors.systemGrey,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
