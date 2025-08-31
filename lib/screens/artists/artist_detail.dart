@@ -155,9 +155,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             borderRadius: BorderRadius.circular(25),
                             onPressed: () async {
                               if (_artistTracks.isNotEmpty) {
-                                await appState.playTrack(_artistTracks.first);
-                                // Set the queue to all artist tracks
-                                appState.setQueue(_artistTracks);
+                                await appState.audioHandler?.playPlaylist(_artistTracks, 0);
                               }
                             },
                             child: const Row(
