@@ -396,13 +396,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
   }
 
   void _showLyricsOverlay(BuildContext context, dynamic currentTrack) {
-    showCupertinoModalPopup(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.3),
-      builder: (context) => _LyricsOverlay(
-        trackName: currentTrack.name,
-        artistName: currentTrack.artistName ?? 'Unknown Artist',
-      ),
+    LyricsOverlay.show(
+      context,
+      currentTrack.name,
+      currentTrack.artistName ?? 'Unknown Artist',
     );
   }
 
