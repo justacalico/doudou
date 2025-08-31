@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'screens/Login/login.dart';
-import 'screens/Controller/navbar.dart';
+import 'screens/controller/navbar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
