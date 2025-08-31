@@ -78,11 +78,11 @@ class _LyricsOverlayState extends State<LyricsOverlay>
       });
       
       // Fetch real lyrics from the API
-      final lyrics = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
+      final lyricsResult = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
       
       setState(() {
-        if (lyrics != null && lyrics.trim().isNotEmpty) {
-          _lyrics = lyrics;
+        if (lyricsResult != null && lyricsResult.plainLyrics.trim().isNotEmpty) {
+          _lyrics = lyricsResult.plainLyrics;
         } else {
           _lyrics = _getNoLyricsMessage();
         }
