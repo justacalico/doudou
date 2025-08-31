@@ -109,7 +109,9 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            tabName == 'Downloads' ? CupertinoIcons.arrow_down_circle : CupertinoIcons.search,
+            tabName == 'Downloads' 
+                ? CupertinoIcons.arrow_down_circle 
+                : CupertinoIcons.search,
             size: 64,
             color: CupertinoColors.systemGrey,
           ),
