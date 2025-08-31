@@ -22,23 +22,41 @@ class FavoritesView extends StatelessWidget {
         }
 
         if (favoriteTracks.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.heart, size: 64, color: CupertinoColors.systemGrey),
-                SizedBox(height: 16),
-                Text(
-                  'No favorite songs found',
-                  style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Add songs to favorites by tapping the heart icon',
-                  style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey2),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+          return Container(
+            color: const Color(0xFF000000), // Pure black for OLED
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.heart,
+                    size: 80,
+                    color: Color(0xFF333333),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'No favorite songs',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      'Songs you love will appear here. Tap the heart icon to add songs to your favorites.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF8E8E93),
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
