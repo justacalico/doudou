@@ -23,6 +23,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {};
   
+  // Completion tracking to prevent race conditions
+  bool _isHandlingCompletion = false;
+  
   // Skip-to-previous behavior tracking
   DateTime? _lastSkipToPreviousTime;
   static const Duration _skipToPreviousThreshold = Duration(seconds: 5);
@@ -72,8 +75,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Auto-play next track when current track completes
     _player.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed) {
-        skipToNext();
+      if (state.processingState == ProcessingState.completed && !_isHandlingCompletion) {
+        _handleTrackCompletion();
       }
     });
 
