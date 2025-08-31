@@ -13,7 +13,7 @@ class ArtistsTab extends StatelessWidget {
       builder: (context, appState, child) {
         if (appState.isLoading && appState.artists.isEmpty) {
           return const Center(
-            child: CupertinoActivityIndicator(),
+            child: CupertinoActivityIndicator(color: CupertinoColors.white),
           );
         }
 
@@ -22,32 +22,35 @@ class ArtistsTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.person_2, size: 64, color: CupertinoColors.secondaryLabel),
+                Icon(CupertinoIcons.person_2, size: 64, color: CupertinoColors.systemGrey),
                 SizedBox(height: 16),
                 Text(
                   'No artists found',
-                  style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
+                  style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
                 ),
               ],
             ),
           );
         }
 
-        return CustomScrollView(
-          slivers: [
-            CupertinoSliverRefreshControl(
-              onRefresh: () => appState.loadLibraryData(),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final artist = appState.artists[index];
-                  return ArtistCard(artist: artist);
-                },
-                childCount: appState.artists.length,
+        return Container(
+          color: const Color(0xFF000000), // Dark background
+          child: CustomScrollView(
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () => appState.loadLibraryData(),
               ),
-            ),
-          ],
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final artist = appState.artists[index];
+                    return ArtistCard(artist: artist);
+                  },
+                  childCount: appState.artists.length,
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
