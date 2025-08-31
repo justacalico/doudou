@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'screens/login/login.dart';
-import 'screens/bottom_bar.dart';
+import 'screens/controller/bottom_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
