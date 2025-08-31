@@ -34,8 +34,6 @@ android {
         release {
             // Signing configuration for release build
             signingConfig = signingConfigs.getByName("release")
-            minifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
