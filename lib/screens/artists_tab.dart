@@ -69,7 +69,7 @@ class ArtistCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        color: const Color(0xFF1C1C1E), // Dark card background
         borderRadius: BorderRadius.circular(12),
       ),
       child: CupertinoListTile(
@@ -89,25 +89,28 @@ class ArtistCard extends StatelessWidget {
                     ),
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      color: CupertinoColors.systemGrey4.resolveFrom(context),
-                      child: const Icon(CupertinoIcons.person),
+                      color: const Color(0xFF3A3A3C),
+                      child: const Icon(CupertinoIcons.person, color: CupertinoColors.systemGrey),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: CupertinoColors.systemGrey4.resolveFrom(context),
-                      child: const Icon(CupertinoIcons.person),
+                      color: const Color(0xFF3A3A3C),
+                      child: const Icon(CupertinoIcons.person, color: CupertinoColors.systemGrey),
                     ),
                   )
                 : Container(
-                    color: CupertinoColors.systemGrey4.resolveFrom(context),
-                    child: const Icon(CupertinoIcons.person),
+                    color: const Color(0xFF3A3A3C),
+                    child: const Icon(CupertinoIcons.person, color: CupertinoColors.systemGrey),
                   ),
           ),
         ),
         title: Text(
           artist.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            color: CupertinoColors.white, // White text
+          ),
         ),
-        trailing: const Icon(CupertinoIcons.forward, size: 16),
+        trailing: const Icon(CupertinoIcons.forward, size: 16, color: CupertinoColors.systemGrey),
         onTap: () {
           // TODO: Navigate to artist detail screen
           _showAlert(context, artist.name);
