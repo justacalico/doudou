@@ -137,9 +137,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   @override
-  Future<void> skipToQueueItem(String mediaId) async {
-    final index = _playlist.indexWhere((track) => track.id == mediaId);
-    if (index != -1) {
+  Future<void> skipToQueueItem(int index) async {
+    if (index >= 0 && index < _playlist.length) {
       _currentIndex = index;
       await _playCurrentTrack();
     }
