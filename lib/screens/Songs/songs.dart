@@ -195,113 +195,115 @@ class SongTile extends StatelessWidget {
                     // Album artwork
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: track.imageUrl != null
-                        ? CachedNetworkImage(
-                            imageUrl: appState.jellyfinService.getImageUrl(
-                              track.imageUrl!,
-                              width: 150,
-                              height: 150,
-                            ),
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: const Color(0xFF2C2C2E),
-                              child: const Icon(
-                                CupertinoIcons.music_note,
-                                color: CupertinoColors.systemGrey,
-                                size: 24,
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: track.imageUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: appState.jellyfinService.getImageUrl(
+                                  track.imageUrl!,
+                                  width: 150,
+                                  height: 150,
+                                ),
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: const Color(0xFF2C2C2E),
+                                  child: const Icon(
+                                    CupertinoIcons.music_note,
+                                    color: CupertinoColors.systemGrey,
+                                    size: 24,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  color: const Color(0xFF2C2C2E),
+                                  child: const Icon(
+                                    CupertinoIcons.music_note,
+                                    color: CupertinoColors.systemGrey,
+                                    size: 24,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                color: const Color(0xFF2C2C2E),
+                                child: const Icon(
+                                  CupertinoIcons.music_note,
+                                  color: CupertinoColors.systemGrey,
+                                  size: 24,
+                                ),
                               ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: const Color(0xFF2C2C2E),
-                              child: const Icon(
-                                CupertinoIcons.music_note,
-                                color: CupertinoColors.systemGrey,
-                                size: 24,
-                              ),
-                            ),
-                          )
-                        : Container(
-                            color: const Color(0xFF2C2C2E),
-                            child: const Icon(
-                              CupertinoIcons.music_note,
-                              color: CupertinoColors.systemGrey,
-                              size: 24,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Song info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        track.name,
-                        style: const TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (track.artistName != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          track.artistName!,
-                          style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
-                            fontSize: 14,
+                    ),
+                    const SizedBox(width: 12),
+                    // Song info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            track.name,
+                            style: const TextStyle(
+                              color: CupertinoColors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          if (track.artistName != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              track.artistName!,
+                              style: const TextStyle(
+                                color: CupertinoColors.systemGrey,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    // Duration and favorite
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (track.duration != null) ...[
+                          Text(
+                            _formatDuration(track.duration!),
+                            style: const TextStyle(
+                              color: CupertinoColors.systemGrey,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        // Favorite heart icon
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          minSize: 32,
+                          onPressed: () {
+                            appState.toggleFavorite(track);
+                          },
+                          child: Icon(
+                            track.isFavorite 
+                                ? CupertinoIcons.heart_fill 
+                                : CupertinoIcons.heart,
+                            color: track.isFavorite 
+                                ? CupertinoColors.systemRed 
+                                : CupertinoColors.systemGrey,
+                            size: 20,
+                          ),
                         ),
                       ],
-                    ],
-                  ),
-                ),
-                // Duration and favorite
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (track.duration != null) ...[
-                      Text(
-                        _formatDuration(track.duration!),
-                        style: const TextStyle(
-                          color: CupertinoColors.systemGrey,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    // Favorite heart icon
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      minSize: 32,
-                      onPressed: () {
-                        appState.toggleFavorite(track);
-                      },
-                      child: Icon(
-                        track.isFavorite 
-                            ? CupertinoIcons.heart_fill 
-                            : CupertinoIcons.heart,
-                        color: track.isFavorite 
-                            ? CupertinoColors.systemRed 
-                            : CupertinoColors.systemGrey,
-                        size: 20,
-                      ),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -310,5 +312,5 @@ class SongTile extends StatelessWidget {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  };
+  }
 }
