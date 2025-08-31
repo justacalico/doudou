@@ -125,13 +125,13 @@ class FavoritesView extends StatelessWidget {
 
   void _playTrack(BuildContext context, Track track, int index) {
     final appState = context.read<AppState>();
-    final favoriteTracks = appState.tracks.where((track) => track.isFavorite ?? false).toList();
+    final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
     appState.playPlaylist(favoriteTracks, index);
   }
 
   void _playAllFavorites(BuildContext context) {
     final appState = context.read<AppState>();
-    final favoriteTracks = appState.tracks.where((track) => track.isFavorite ?? false).toList();
+    final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
     
     if (favoriteTracks.isNotEmpty) {
       appState.playPlaylist(favoriteTracks, 0);
@@ -140,7 +140,7 @@ class FavoritesView extends StatelessWidget {
 
   void _shuffleFavorites(BuildContext context) {
     final appState = context.read<AppState>();
-    final favoriteTracks = appState.tracks.where((track) => track.isFavorite ?? false).toList();
+    final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
     
     if (favoriteTracks.isNotEmpty) {
       final shuffledTracks = List<Track>.from(favoriteTracks)..shuffle();
