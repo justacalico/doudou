@@ -265,7 +265,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                   width: 70,
                                   height: 70,
                                   decoration: const BoxDecoration(
-                                    color: CupertinoColors.white,
+                                    color: Color(0xFFFFFFFF),
                                     shape: BoxShape.circle,
                                   ),
                                   child: processingState == ProcessingState.loading ||
