@@ -194,6 +194,7 @@ help:
 	@echo "  macos           Build macOS package only"
 	@echo "  linux           Build Linux package only"
 	@echo "  generate-keystore  Generate new Android keystore (one-time setup)"
+	@echo "  setup-signing   Create setup script for environment variables"
 	@echo "  clean           Clean Flutter build directories"
 	@echo "  clean-all       Clean Flutter and version build directories"
 	@echo ""
