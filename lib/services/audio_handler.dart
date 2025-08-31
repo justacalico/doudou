@@ -353,13 +353,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _preloadNextTracks() async {
-    if (!_smartCrossfadeEnabled) return;
+    // Always preload next tracks for instant playback, regardless of crossfade setting
     
     // Clean up old preloaded players first
     _cleanupOldPreloadedPlayers();
     
-    // Preload next few tracks in the queue
-    for (int i = 1; i <= _maxPreloadedTracks; i++) {
+    // Preload next few tracks in the queue (limit to 3 for better performance)
+    const preloadCount = 3;
+    for (int i = 1; i <= preloadCount; i++) {
       final nextIndex = _currentIndex + i;
       if (nextIndex < _playlist.length) {
         final track = _playlist[nextIndex];
@@ -435,8 +436,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final currentTrackId = _currentTrack?.id;
     final upcomingTrackIds = <String>{};
     
-    // Collect IDs of upcoming tracks
-    for (int i = 1; i <= _maxPreloadedTracks; i++) {
+    // Collect IDs of upcoming tracks (next 3 tracks)
+    const preloadCount = 3;
+    for (int i = 1; i <= preloadCount; i++) {
       final nextIndex = _currentIndex + i;
       if (nextIndex < _playlist.length) {
         upcomingTrackIds.add(_playlist[nextIndex].id);
@@ -467,8 +469,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update audio service queue
     queue.add(_playlist.map(_trackToMediaItem).toList());
     
-    // Trigger preloading if this track is within preload range
-    if (_smartCrossfadeEnabled && _playlist.length - _currentIndex <= _maxPreloadedTracks + 1) {
+    // Always trigger preloading if this track is within preload range
+    if (_playlist.length - _currentIndex <= 4) { // Preload if within next 3 tracks
       _preloadTrack(track);
     }
   }
