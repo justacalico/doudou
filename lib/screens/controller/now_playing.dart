@@ -449,6 +449,60 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
     );
   }
 
+  void _addToExistingPlaylist(BuildContext context, dynamic playlist, dynamic currentTrack, AppState appState) async {
+    try {
+      final success = await appState.addToPlaylist(playlist.id, currentTrack.id);
+      
+      if (context.mounted) {
+        if (success) {
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Success'),
+              content: Text('Added "${currentTrack.name}" to "${playlist.name}".'),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to add "${currentTrack.name}" to "${playlist.name}".'),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('An error occurred: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
   void _createNewPlaylist(BuildContext context, dynamic currentTrack, AppState appState) {
     final TextEditingController controller = TextEditingController();
     
