@@ -98,6 +98,20 @@ class Track {
       isFavorite: json['UserData']?['IsFavorite'] ?? false,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Id': id,
+      'Name': name,
+      'Album': albumName,
+      'Artists': artistName?.split(', '),
+      'AlbumId': albumId,
+      'RunTimeTicks': duration != null ? duration! * 10000 : null,
+      'IndexNumber': trackNumber,
+      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
+      'UserData': {'IsFavorite': isFavorite},
+    };
+  }
 }
 
 class Artist {
