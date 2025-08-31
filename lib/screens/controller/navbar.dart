@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: const Color(0xFF000000), // Dark background
           navigationBar: showNavBar ? CupertinoNavigationBar(
             middle: Text(title, style: const TextStyle(color: CupertinoColors.white)),
-            backgroundColor: const Color(0xFF1C1C1E),
+            backgroundColor: const Color(0xFF000000), // True black for OLED
             border: null,
             trailing: null,
           ) : null,
