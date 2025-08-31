@@ -148,7 +148,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       
                       // Play All Button
                       if (_artistTracks.isNotEmpty)
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           child: CupertinoButton(
                             color: const Color(0xFF007AFF),
