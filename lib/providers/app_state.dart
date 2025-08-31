@@ -198,6 +198,32 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> toggleFavorite(Track track) async {
+    try {
+      final success = await _jellyfinService.toggleFavorite(track.id, track.isFavorite);
+      if (success) {
+        // Update the track in the local list
+        final index = _tracks.indexWhere((t) => t.id == track.id);
+        if (index != -1) {
+          _tracks[index] = Track(
+            id: track.id,
+            name: track.name,
+            albumName: track.albumName,
+            artistName: track.artistName,
+            albumId: track.albumId,
+            duration: track.duration,
+            trackNumber: track.trackNumber,
+            imageUrl: track.imageUrl,
+            isFavorite: !track.isFavorite,
+          );
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      _setError('Failed to toggle favorite: ${e.toString()}');
+    }
+  }
+
   Future<void> _saveServer() async {
     final server = _jellyfinService.currentServer;
     if (server != null) {
