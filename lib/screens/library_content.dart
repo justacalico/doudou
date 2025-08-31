@@ -202,6 +202,147 @@ class LibraryContent extends StatelessWidget {
     );
   }
 
+  Widget _buildAlbumsPage() {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final albums = appState.albums;
+        
+        if (albums.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.music_albums,
+                  size: 64,
+                  color: CupertinoColors.systemGrey,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No albums found',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(16.0),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final album = albums[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) => AlbumDetailScreen(album: album),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: const Color(0xFF2C2C2E),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: album.imageUrl != null
+                                    ? Image.network(
+                                        appState.jellyfinService.getImageUrl(
+                                          album.imageUrl!,
+                                          width: 300,
+                                          height: 300,
+                                        ),
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const Center(
+                                            child: Icon(
+                                              CupertinoIcons.music_note,
+                                              color: CupertinoColors.systemGrey,
+                                              size: 40,
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          CupertinoIcons.music_note,
+                                          color: CupertinoColors.systemGrey,
+                                          size: 40,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            album.name,
+                            style: const TextStyle(
+                              color: CupertinoColors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (album.artistName != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              album.artistName!,
+                              style: const TextStyle(
+                                color: CupertinoColors.systemGrey,
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          if (album.year != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              album.year.toString(),
+                              style: const TextStyle(
+                                color: CupertinoColors.systemGrey2,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                  childCount: albums.length,
+                ),
+              ),
+            ),
+            // Add a bit of bottom padding for scrolling
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildSongsPage() {
     return Consumer<AppState>(
       builder: (context, appState, child) {
