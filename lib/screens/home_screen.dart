@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import 'home_content.dart';
 import 'albums_tab.dart';
-import 'artists_tab.dart';
 import 'now_playing_screen.dart';
 import '../widgets/mini_player.dart';
 
