@@ -130,12 +130,14 @@ class AppState extends ChangeNotifier {
       final albumsFuture = _jellyfinService.getAlbums();
       final artistsFuture = _jellyfinService.getArtists();
       final tracksFuture = _jellyfinService.getAllTracks();
+      final playlistsFuture = _jellyfinService.getPlaylists();
       
-      final results = await Future.wait([albumsFuture, artistsFuture, tracksFuture]);
+      final results = await Future.wait([albumsFuture, artistsFuture, tracksFuture, playlistsFuture]);
       
       _albums = results[0] as List<Album>;
       _artists = results[1] as List<Artist>;
       _tracks = results[2] as List<Track>;
+      _playlists = results[3] as List<Playlist>;
       
       _setLoading(false);
     } catch (e) {
