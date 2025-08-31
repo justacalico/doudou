@@ -54,7 +54,7 @@ android-bundle: $(BUILD_DIR)
 	@if [ -z "$(KEY_PASSWORD)" ]; then echo "Error: KEY_PASSWORD not set"; exit 1; fi
 	@if [ -z "$(KEY_ALIAS)" ]; then echo "Error: KEY_ALIAS not set"; exit 1; fi
 	@if [ -z "$(KEYSTORE_PATH)" ]; then echo "Error: KEYSTORE_PATH not set"; exit 1; fi
-	@if [ ! -f "$(KEYSTORE_PATH)" ]; then echo "Error: Keystore file not found at $(KEYSTORE_PATH)"; exit 1; fi
+	@if [ ! -f "android/app/$(KEYSTORE_PATH)" ]; then echo "Error: Keystore file not found at android/app/$(KEYSTORE_PATH)"; exit 1; fi
 	@echo "Building App Bundle with keystore: $(KEYSTORE_PATH), alias: $(KEY_ALIAS)"
 	flutter build appbundle --release \
 		--dart-define=KEYSTORE_PASSWORD=$(KEYSTORE_PASSWORD) \
