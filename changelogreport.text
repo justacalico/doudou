@@ -14,3 +14,4 @@
 
 ## Fixed
 - Fixed queue having overflow issues.
+- Fixed caching songs still having to be loaded.
