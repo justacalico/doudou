@@ -26,12 +26,58 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   Future<void> _loadTracks() async {
     final appState = context.read<AppState>();
-    final albumTracks = await appState.getAlbumTracks(widget.album.id);
-
-    setState(() {
-      tracks = albumTracks;
-      isLoading = false;
-    });
+    
+    try {
+      // First try to get tracks from the API
+      final albumTracks = await appState.getAlbumTracks(widget.album.id);
+      
+      if (albumTracks.isNotEmpty) {
+        setState(() {
+          tracks = albumTracks;
+          isLoading = false;
+        });
+        return;
+      }
+      
+      // If no tracks from API, try filtering from existing tracks
+      final allTracks = appState.tracks;
+      final filteredTracks = allTracks.where((track) => 
+        track.albumId == widget.album.id || 
+        track.albumName?.toLowerCase() == widget.album.name.toLowerCase()
+      ).toList();
+      
+      // Sort by track number if available
+      filteredTracks.sort((a, b) {
+        final aTrackNum = a.trackNumber ?? 0;
+        final bTrackNum = b.trackNumber ?? 0;
+        return aTrackNum.compareTo(bTrackNum);
+      });
+      
+      setState(() {
+        tracks = filteredTracks;
+        isLoading = false;
+      });
+    } catch (e) {
+      // Fallback to filtering existing tracks if API call fails
+      final appState = context.read<AppState>();
+      final allTracks = appState.tracks;
+      final filteredTracks = allTracks.where((track) => 
+        track.albumId == widget.album.id || 
+        track.albumName?.toLowerCase() == widget.album.name.toLowerCase()
+      ).toList();
+      
+      // Sort by track number if available
+      filteredTracks.sort((a, b) {
+        final aTrackNum = a.trackNumber ?? 0;
+        final bTrackNum = b.trackNumber ?? 0;
+        return aTrackNum.compareTo(bTrackNum);
+      });
+      
+      setState(() {
+        tracks = filteredTracks;
+        isLoading = false;
+      });
+    }
   }
 
   @override
