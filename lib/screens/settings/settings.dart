@@ -88,9 +88,9 @@ class SettingsScreen extends StatelessWidget {
                           icon: CupertinoIcons.speaker_2,
                           title: 'Normalize Volume',
                           subtitle: 'Reduces volume differences between tracks',
-                          value: false,
+                          value: appState.normalizeVolumeEnabled,
                           onChanged: (value) {
-                            // TODO: Implement volume normalization
+                            appState.toggleNormalizeVolume(value);
                           },
                         ),
                       ],
