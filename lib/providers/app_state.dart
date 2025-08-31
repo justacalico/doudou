@@ -251,6 +251,29 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> shuffleAllTracks() async {
+    if (_tracks.isNotEmpty && _audioService != null) {
+      final shuffledTracks = List<Track>.from(_tracks);
+      shuffledTracks.shuffle();
+      await _audioService!.playPlaylist(shuffledTracks, 0);
+      _audioService!.shuffle(); // Enable shuffle mode
+      notifyListeners();
+    }
+  }
+
+  Future<void> shuffleFavoriteTracks() async {
+    final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
+    if (favoriteTracks.isNotEmpty && _audioService != null) {
+      final shuffledFavorites = List<Track>.from(favoriteTracks);
+      shuffledFavorites.shuffle();
+      await _audioService!.playPlaylist(shuffledFavorites, 0);
+      _audioService!.shuffle(); // Enable shuffle mode
+      notifyListeners();
+    }
+  }
+
+  List<Track> get favoriteTracks => _tracks.where((track) => track.isFavorite).toList();
+
   Future<void> toggleFavorite(Track track) async {
     try {
       final success = await _jellyfinService.toggleFavorite(track.id, track.isFavorite);
