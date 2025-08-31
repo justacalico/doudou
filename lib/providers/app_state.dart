@@ -155,6 +155,15 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<List<Track>> getPlaylistTracks(String playlistId) async {
+    try {
+      return await _jellyfinService.getPlaylistTracks(playlistId);
+    } catch (e) {
+      _setError('Failed to load playlist tracks: ${e.toString()}');
+      return [];
+    }
+  }
+
   // Audio playback methods
   Future<void> playTrack(Track track) async {
     if (_audioService != null) {
