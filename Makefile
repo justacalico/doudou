@@ -80,6 +80,30 @@ generate-keystore:
 	@echo "export KEY_ALIAS='doudou'"
 	@echo "export KEYSTORE_PATH='android/app/key.jks'"
 
+# Setup environment variables script
+.PHONY: setup-signing
+setup-signing:
+	@echo "Creating setup script for Android signing..."
+	@echo "#!/bin/bash" > setup-signing.sh
+	@echo "# Android Signing Environment Variables Setup" >> setup-signing.sh
+	@echo "# Edit the values below and run: source setup-signing.sh" >> setup-signing.sh
+	@echo "" >> setup-signing.sh
+	@echo "export KEYSTORE_PASSWORD='your_keystore_password_here'" >> setup-signing.sh
+	@echo "export KEY_PASSWORD='your_key_password_here'" >> setup-signing.sh
+	@echo "export KEY_ALIAS='doudou'" >> setup-signing.sh
+	@echo "export KEYSTORE_PATH='android/app/key.jks'" >> setup-signing.sh
+	@echo "" >> setup-signing.sh
+	@echo "echo 'Android signing environment variables set!'" >> setup-signing.sh
+	@echo "echo 'KEYSTORE_PATH: \$$KEYSTORE_PATH'" >> setup-signing.sh
+	@echo "echo 'KEY_ALIAS: \$$KEY_ALIAS'" >> setup-signing.sh
+	@chmod +x setup-signing.sh
+	@echo "Setup script created: setup-signing.sh"
+	@echo ""
+	@echo "To use:"
+	@echo "1. Edit setup-signing.sh with your actual passwords"
+	@echo "2. Run: source setup-signing.sh"
+	@echo "3. Run: make android-signed"
+
 # iOS build
 .PHONY: ios
 ios: $(BUILD_DIR)
