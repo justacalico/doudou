@@ -70,7 +70,7 @@ linux: $(BUILD_DIR)
 	@echo "Building Linux app for version $(VERSION)..."
 	flutter build linux --release
 	@echo "Creating tarball for Linux..."
-	cd build/linux/x64/release/bundle && tar -czvf $(ABS_BUILD_DIR)/cempedak-flutter-$(VERSION)-linux.tar.gz ./*
+	cd build/linux/x64/release/bundle && tar -czvf $(ABS_BUILD_DIR)/doudou-flutter-$(VERSION)-linux.tar.gz ./*
 	@echo "Linux build complete!"
 
 # Mobile builds only
@@ -99,7 +99,7 @@ clean-all: clean
 # Help
 .PHONY: help
 help:
-	@echo "Cempedak Flutter Build Makefile"
+	@echo "Doudou Flutter Build Makefile"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make [target]"
