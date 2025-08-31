@@ -83,7 +83,6 @@ class AudioPlayerService extends ChangeNotifier {
       _jellyfinService.getUniversalStreamUrl(track.id),
     ];
     
-    bool playbackSucceeded = false;
     
     for (int i = 0; i < streamUrls.length; i++) {
       final streamUrl = streamUrls[i];
@@ -97,7 +96,6 @@ class AudioPlayerService extends ChangeNotifier {
         
         await _player.setUrl(streamUrl);
         await _player.play();
-        playbackSucceeded = true;
         
         if (kDebugMode) {
           print('Successfully started playing: ${track.name} using $streamType URL');
