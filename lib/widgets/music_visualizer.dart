@@ -140,7 +140,7 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Circular visualizer
-                        Container(
+                        SizedBox(
                           width: 280,
                           height: 280,
                           child: CustomPaint(
