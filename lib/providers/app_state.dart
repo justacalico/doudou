@@ -261,22 +261,78 @@ class AppState extends ChangeNotifier {
     _clearError();
 
     try {
-      final albumsFuture = _jellyfinService.getAlbums();
-      final artistsFuture = _jellyfinService.getArtists();
-      final tracksFuture = _jellyfinService.getAllTracks();
-      final playlistsFuture = _jellyfinService.getPlaylists();
+      // Try to load from cache first
+      final cachedAlbums = await _cacheService.getCachedAlbums();
+      final cachedArtists = await _cacheService.getCachedArtists();
+      final cachedTracks = await _cacheService.getCachedTracks();
+      final cachedPlaylists = await _cacheService.getCachedPlaylists();
       
-      final results = await Future.wait([albumsFuture, artistsFuture, tracksFuture, playlistsFuture]);
+      bool hasValidCache = cachedAlbums != null && cachedArtists != null && 
+                          cachedTracks != null && cachedPlaylists != null;
       
-      _albums = results[0] as List<Album>;
-      _artists = results[1] as List<Artist>;
-      _tracks = results[2] as List<Track>;
-      _playlists = results[3] as List<Playlist>;
-      
-      _setLoading(false);
+      if (hasValidCache) {
+        // Use cached data
+        _albums = cachedAlbums!;
+        _artists = cachedArtists!;
+        _tracks = cachedTracks!;
+        _playlists = cachedPlaylists!;
+        
+        _setLoading(false);
+        
+        if (kDebugMode) {
+          print('Loaded library data from cache');
+        }
+        
+        // Load fresh data in background and update cache
+        _loadFreshDataInBackground();
+      } else {
+        // Load fresh data
+        await _loadFreshData();
+      }
     } catch (e) {
       _setError('Failed to load library: ${e.toString()}');
       _setLoading(false);
+    }
+  }
+  
+  Future<void> _loadFreshData() async {
+    final albumsFuture = _jellyfinService.getAlbums();
+    final artistsFuture = _jellyfinService.getArtists();
+    final tracksFuture = _jellyfinService.getAllTracks();
+    final playlistsFuture = _jellyfinService.getPlaylists();
+    
+    final results = await Future.wait([albumsFuture, artistsFuture, tracksFuture, playlistsFuture]);
+    
+    _albums = results[0] as List<Album>;
+    _artists = results[1] as List<Artist>;
+    _tracks = results[2] as List<Track>;
+    _playlists = results[3] as List<Playlist>;
+    
+    // Cache the fresh data
+    await Future.wait([
+      _cacheService.cacheAlbums(_albums),
+      _cacheService.cacheArtists(_artists),
+      _cacheService.cacheTracks(_tracks),
+      _cacheService.cachePlaylists(_playlists),
+    ]);
+    
+    _setLoading(false);
+    
+    if (kDebugMode) {
+      print('Loaded fresh library data and cached it');
+    }
+  }
+  
+  Future<void> _loadFreshDataInBackground() async {
+    try {
+      await _loadFreshData();
+      // Notify listeners to update UI with fresh data
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to load fresh data in background: $e');
+      }
+      // Don't show error to user since we have cached data
     }
   }
 
