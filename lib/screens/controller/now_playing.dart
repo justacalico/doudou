@@ -575,29 +575,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
         // Add the song to the new playlist
         final addSuccess = await appState.addToPlaylist(newPlaylist.id, currentTrack.id);
         
-        if (addSuccess) {
-          showCupertinoDialog(
-            context: context,
-            builder: (context) => CupertinoAlertDialog(
-              title: const Text('Success'),
-              content: Text('Created playlist "$playlistName" and added "${currentTrack.name}" to it.'),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          showCupertinoDialog(
-            context: context,
-            builder: (context) => CupertinoAlertDialog(
-              title: const Text('Partial Success'),
-              content: Text('Created playlist "$playlistName" but failed to add the song. You can add it manually from the playlists screen.'),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.pop(context),
+        if (context.mounted) {
+          if (addSuccess) {
+            showCupertinoDialog(
+              context: context,
+              builder: (context) => CupertinoAlertDialog(
+                title: const Text('Success'),
+                content: Text('Created playlist "$playlistName" and added "${currentTrack.name}" to it.'),
+                actions: [
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            showCupertinoDialog(
+              context: context,
+              builder: (context) => CupertinoAlertDialog(
+                title: const Text('Partial Success'),
+                content: Text('Created playlist "$playlistName" but failed to add the song. You can add it manually from the playlists screen.'),
+                actions: [
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.pop(context),
                   child: const Text('OK'),
                 ),
               ],
