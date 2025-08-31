@@ -124,9 +124,9 @@ class SettingsScreen extends StatelessWidget {
                           icon: CupertinoIcons.photo,
                           title: 'Show Album Art',
                           subtitle: 'Display album artwork in player',
-                          value: true,
+                          value: appState.showAlbumArtEnabled,
                           onChanged: (value) {
-                            // TODO: Implement album art toggle
+                            appState.toggleShowAlbumArt(value);
                           },
                         ),
                       ],
