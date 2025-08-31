@@ -15,6 +15,11 @@ class AudioPlayerService extends ChangeNotifier {
   List<Track> _originalPlaylist = [];
   bool _smartCrossfadeEnabled = false;
   final Duration _crossfadeDuration = const Duration(seconds: 3);
+  
+  // Preloading and caching
+  final Map<String, AudioPlayer> _preloadedPlayers = {};
+  final Set<String> _preloadingTracks = {};
+  static const int _maxPreloadedTracks = 3;
 
   AudioPlayerService(this._jellyfinService) {
     _init();
