@@ -82,6 +82,9 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
     
+    // Clear existing preloaded tracks
+    _clearPreloadedPlayers();
+    
     _playlist = tracks;
     _originalPlaylist = List.from(tracks);
     _queue = List.from(tracks);
