@@ -495,39 +495,17 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                     color: const Color(0xFF1C1C1E),
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                   ),
-                  child: album.imageUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: appState.jellyfinService.getImageUrl(
+                  child: AlbumArtWidget(
+                    imageUrl: album.imageUrl != null
+                        ? appState.jellyfinService.getImageUrl(
                             album.imageUrl!,
                             width: 320,
                             height: 320,
-                          ),
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: const Color(0xFF1C1C1E),
-                            child: const Center(
-                              child: CupertinoActivityIndicator(
-                                color: Color(0xFF8E8E93),
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFF1C1C1E),
-                            child: const Icon(
-                              CupertinoIcons.music_albums,
-                              color: Color(0xFF8E8E93),
-                              size: 40,
-                            ),
-                          ),
-                        )
-                      : Container(
-                          color: const Color(0xFF1C1C1E),
-                          child: const Icon(
-                            CupertinoIcons.music_albums,
-                            color: Color(0xFF8E8E93),
-                            size: 40,
-                          ),
-                        ),
+                          )
+                        : null,
+                    size: 160,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                  ),
                 ),
               ),
               // Album Info
