@@ -236,10 +236,16 @@ class AudioPlayerService extends ChangeNotifier {
   // Getters
   Track? get currentTrack => _currentTrack;
   List<Track> get playlist => _playlist;
+  List<Track> get queue => _queue;
+  List<Track> get upNext => _currentIndex < _queue.length - 1 
+      ? _queue.sublist(_currentIndex + 1) 
+      : [];
   int get currentIndex => _currentIndex;
   bool get isPlaying => _player.playing;
   bool get hasNext => _currentIndex < _playlist.length - 1;
   bool get hasPrevious => _currentIndex > 0;
+  bool get isShuffled => _isShuffled;
+  int get queueLength => _queue.length;
   
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
