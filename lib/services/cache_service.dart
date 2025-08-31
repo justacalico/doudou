@@ -15,7 +15,6 @@ class CacheService {
   SharedPreferences? _prefs;
   
   // Cache duration constants
-  static const Duration _defaultCacheDuration = Duration(hours: 24);
   static const Duration _albumsCacheDuration = Duration(hours: 12);
   static const Duration _artistsCacheDuration = Duration(hours: 12);
   static const Duration _tracksCacheDuration = Duration(hours: 6);
