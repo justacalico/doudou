@@ -42,21 +42,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
         slivers: [
           CupertinoSliverNavigationBar(
             largeTitle: Text(widget.album.name),
-            backgroundColor: CupertinoColors.systemPurple.resolveFrom(context),
+            backgroundColor: const Color(0xFF000000),
             stretch: true,
           ),
           SliverToBoxAdapter(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    CupertinoColors.systemPurple.withOpacity(0.8),
-                    CupertinoColors.systemPurple.withOpacity(0.6),
-                  ],
-                ),
-              ),
+              color: const Color(0xFF000000),
               child: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
