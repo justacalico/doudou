@@ -486,7 +486,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? false;
+    _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? true;
     _normalizeVolumeEnabled = prefs.getBool('normalize_volume_enabled') ?? false;
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
