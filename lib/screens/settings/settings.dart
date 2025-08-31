@@ -657,6 +657,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       imageSizeText = '0 MB';
     }
     
+    if (!mounted) return;
+    
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
