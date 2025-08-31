@@ -599,11 +599,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 actions: [
                   CupertinoDialogAction(
                     onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
         }
       } else if (context.mounted) {
         showCupertinoDialog(
