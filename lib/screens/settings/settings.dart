@@ -272,13 +272,14 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Text(
         title,
         style: const TextStyle(
-          color: CupertinoColors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+          color: Color(0xFFFFFFFF), // Pure white text
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
         ),
       ),
     );
