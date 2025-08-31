@@ -15,6 +15,7 @@ class AppState extends ChangeNotifier {
   List<Album> _albums = [];
   List<Artist> _artists = [];
   List<Track> _tracks = [];
+  List<Playlist> _playlists = [];
   
   // Getters
   bool get isLoggedIn => _isLoggedIn;
@@ -23,6 +24,7 @@ class AppState extends ChangeNotifier {
   List<Album> get albums => _albums;
   List<Artist> get artists => _artists;
   List<Track> get tracks => _tracks;
+  List<Playlist> get playlists => _playlists;
   JellyfinService get jellyfinService => _jellyfinService;
   AudioPlayerService? get audioService => _audioService;
 
