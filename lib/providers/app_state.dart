@@ -439,6 +439,15 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    try {
+      return await _jellyfinService.addToPlaylist(playlistId, trackId);
+    } catch (e) {
+      _setError('Failed to add to playlist: ${e.toString()}');
+      return false;
+    }
+  }
+
   Future<void> _saveServer() async {
     final server = _jellyfinService.currentServer;
     if (server != null) {
