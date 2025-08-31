@@ -11,23 +11,34 @@ class LibraryContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: const Color(0xFF000000),
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Library', style: TextStyle(color: CupertinoColors.white, fontSize: 34, fontWeight: FontWeight.bold)),
-        backgroundColor: Color(0xFF000000),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Library', style: TextStyle(color: CupertinoColors.white, fontSize: 34, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF000000),
         border: null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              CupertinoIcons.antenna_radiowaves_left_right,
-              color: CupertinoColors.systemRed,
-              size: 24,
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                // Cast/airplay functionality
+              },
+              child: const Icon(
+                CupertinoIcons.antenna_radiowaves_left_right,
+                color: CupertinoColors.systemRed,
+                size: 24,
+              ),
             ),
-            SizedBox(width: 16),
-            Icon(
-              CupertinoIcons.person_circle,
-              color: CupertinoColors.systemRed,
-              size: 24,
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                // Profile functionality
+              },
+              child: const Icon(
+                CupertinoIcons.person_circle,
+                color: CupertinoColors.systemRed,
+                size: 24,
+              ),
             ),
           ],
         ),
