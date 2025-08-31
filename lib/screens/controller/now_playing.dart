@@ -396,7 +396,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
   }
 
   void _showLyricsOverlay(BuildContext context, dynamic currentTrack) {
-    LyricsOverlay.show(
+    showLyricsOverlay(
       context,
       currentTrack.name,
       currentTrack.artistName ?? 'Unknown Artist',
