@@ -12,6 +12,7 @@ class AppState extends ChangeNotifier {
   
   bool _isLoggedIn = false;
   bool _isLoading = false;
+  bool _isInitialized = false;
   String? _errorMessage;
   List<Album> _albums = [];
   List<Artist> _artists = [];
