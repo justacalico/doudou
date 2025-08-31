@@ -26,6 +26,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   DoudouAudioHandler(this._jellyfinService) {
     _init();
+    _loadPlaybackState();
   }
 
   void _init() {
