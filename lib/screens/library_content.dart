@@ -166,7 +166,7 @@ class LibraryContent extends StatelessWidget {
         page = _buildAlbumsPage();
         break;
       case 'Songs':
-        page = _buildSongsPage();
+        page = const SongsView();
         break;
       case 'Playlists':
         page = _buildPlaylistsPage();
