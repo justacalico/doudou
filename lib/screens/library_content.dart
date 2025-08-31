@@ -162,7 +162,7 @@ class LibraryContent extends StatelessWidget {
         page = const ArtistsTab();
         break;
       case 'Albums':
-        page = const AlbumsTab();
+        page = _buildAlbumsPage();
         break;
       case 'Songs':
         page = _buildSongsPage();
@@ -180,7 +180,7 @@ class LibraryContent extends StatelessWidget {
         page = _buildFavoritesPage();
         break;
       default:
-        page = const AlbumsTab();
+        page = _buildAlbumsPage();
     }
 
     Navigator.push(
