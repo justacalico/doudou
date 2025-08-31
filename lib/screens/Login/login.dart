@@ -169,41 +169,84 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
+                    
+                    const SizedBox(height: 32),
+
                     // Error Message
                     if (appState.errorMessage != null)
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: CupertinoColors.systemRed.withOpacity(0.1),
-                          border: Border.all(color: CupertinoColors.systemRed.withOpacity(0.3)),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: CupertinoColors.systemRed.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
-                        child: Text(
-                          appState.errorMessage!,
-                          style: const TextStyle(color: CupertinoColors.systemRed),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    if (appState.errorMessage != null) const SizedBox(height: 16),
-
-                    // Login Button
-                    CupertinoButton(
-                      onPressed: appState.isLoading ? null : _login,
-                      color: CupertinoColors.systemPurple,
-                      borderRadius: BorderRadius.circular(8),
-                      child: appState.isLoading
-                          ? const CupertinoActivityIndicator(color: CupertinoColors.white)
-                          : const Text(
-                              'Login',
-                              style: TextStyle(
-                                color: CupertinoColors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                        child: Row(
+                          children: [
+                            Icon(
+                              CupertinoIcons.exclamationmark_triangle,
+                              color: CupertinoColors.systemRed,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                appState.errorMessage!,
+                                style: TextStyle(
+                                  color: CupertinoColors.systemRed,
+                                  fontSize: 15,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    if (appState.errorMessage != null) const SizedBox(height: 24),
+
+                    // Sign In Button
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      width: double.infinity,
+                      child: CupertinoButton.filled(
+                        onPressed: appState.isLoading ? null : _login,
+                        borderRadius: BorderRadius.circular(12),
+                        child: appState.isLoading
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CupertinoActivityIndicator(
+                                      color: CupertinoColors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Signing In...',
+                                    style: TextStyle(
+                                      color: CupertinoColors.white,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
                     ),
                     
-                    // Add bottom spacing to ensure content doesn't get cut off
+                    // Bottom spacing
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                   ],
                 ),
