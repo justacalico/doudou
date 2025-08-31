@@ -6,6 +6,7 @@ import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../services/jellyfin_service.dart';
 import '../services/audio_handler.dart';
+import '../services/cache_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
