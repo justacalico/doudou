@@ -59,6 +59,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     }
   }
 
+  void _playAllTracks(AppState appState) async {
+    if (_artistTracks.isNotEmpty) {
+      await appState.audioHandler?.playPlaylist(_artistTracks, 0);
+    }
+  }
+
+  void _shuffleTracks(AppState appState) async {
+    if (_artistTracks.isNotEmpty) {
+      final shuffledTracks = List<Track>.from(_artistTracks)..shuffle();
+      await appState.audioHandler?.playPlaylist(shuffledTracks, 0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
