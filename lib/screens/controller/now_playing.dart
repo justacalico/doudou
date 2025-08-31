@@ -283,7 +283,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                           child: Icon(
                                             isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_arrow_solid,
                                             size: 35,
-                                            color: CupertinoColors.black,
+                                            color: const Color(0xFF000000),
                                           ),
                                         ),
                                 ),
