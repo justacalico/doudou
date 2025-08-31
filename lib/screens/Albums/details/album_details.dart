@@ -240,17 +240,18 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 );
               }, childCount: tracks.length + 1),
             ),
+            ],
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MiniPlayer(),
+          ),
         ],
       ),
-      const Positioned(
-        left: 0,
-        right: 0,
-        bottom: 0,
-        child: MiniPlayer(),
-      ),
-    ],
-  );
-}
+    );
+  }
 
   void _playTrack(Track track, int index) {
     final appState = context.read<AppState>();
