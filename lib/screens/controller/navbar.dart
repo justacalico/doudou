@@ -64,8 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
             title = 'Downloads';
             break;
           case 3:
-            content = _buildComingSoonTab('Search');
+            content = const SearchScreen();
             title = 'Search';
+            showNavBar = false; // Search has custom header
             break;
           case 4:
             content = const SettingsScreen();
