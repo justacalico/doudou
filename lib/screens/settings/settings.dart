@@ -14,11 +14,13 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _appVersion = '...';
+  String _cacheSize = 'Calculating...';
 
   @override
   void initState() {
     super.initState();
     _loadAppVersion();
+    _loadCacheSize();
   }
 
   Future<void> _loadAppVersion() async {
@@ -30,6 +32,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       setState(() {
         _appVersion = 'Unknown';
+      });
+    }
+  }
+
+  Future<void> _loadCacheSize() async {
+    try {
+      final appState = context.read<AppState>();
+      final cacheStats = await appState.getCacheStats();
+      final dataCache = cacheStats['data_cache'] as Map<String, int>? ?? {};
+      final imageCacheSize = cacheStats['image_cache_size'] as int? ?? 0;
+      
+      int totalDataEntries = 0;
+      for (final count in dataCache.values) {
+        totalDataEntries += count;
+      }
+      
+      String sizeText = '';
+      if (imageCacheSize > 1024 * 1024) {
+        sizeText = '${(imageCacheSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+      } else if (imageCacheSize > 1024) {
+        sizeText = '${(imageCacheSize / 1024).toStringAsFixed(1)} KB';
+      } else {
+        sizeText = '$imageCacheSize bytes';
+      }
+      
+      setState(() {
+        _cacheSize = '$totalDataEntries items, $sizeText';
+      });
+    } catch (e) {
+      setState(() {
+        _cacheSize = 'Unknown';
       });
     }
   }
