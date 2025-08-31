@@ -311,27 +311,24 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                     final audioHandler = appState.audioHandler;
                                     if (audioHandler != null) {
                                       // Cycle through repeat modes: off -> all -> one -> off
-                                      switch (audioHandler.loopMode) {
-                                        case LoopMode.off:
-                                          audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                          break;
-                                        case LoopMode.all:
-                                          audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
-                                          break;
-                                        case LoopMode.one:
-                                          audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-                                          break;
-                                      }
+                                      audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
                                     }
                                   },
-                                  child: Icon(
-                                    audioHandler?.loopMode == LoopMode.one 
-                                        ? CupertinoIcons.repeat_1
-                                        : CupertinoIcons.repeat,
-                                    color: audioHandler?.loopMode == LoopMode.off
-                                        ? CupertinoColors.systemGrey2
-                                        : const Color(0xFFFF453A),
-                                    size: 28,
+                                  child: StreamBuilder<AudioServiceRepeatMode>(
+                                    stream: audioHandler?.playbackState.map((state) => state.repeatMode),
+                                    builder: (context, snapshot) {
+                                      final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
+                                      
+                                      return Icon(
+                                        repeatMode == AudioServiceRepeatMode.one 
+                                            ? CupertinoIcons.repeat_1
+                                            : CupertinoIcons.repeat,
+                                        color: repeatMode == AudioServiceRepeatMode.none
+                                            ? CupertinoColors.systemGrey2
+                                            : const Color(0xFFFF453A),
+                                        size: 28,
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
