@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import '../artists/artist_detail.dart';
+import '../artists/details/artist_detail.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});

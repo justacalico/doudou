@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../widgets/mini_player.dart';
-import 'artist_detail.dart';
+import 'details/artist_detail.dart';
 
 class ArtistsTab extends StatelessWidget {
   const ArtistsTab({super.key});

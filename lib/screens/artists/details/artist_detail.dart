@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_state.dart';
-import '../../models/jellyfin_models.dart';
+import '../../../providers/app_state.dart';
+import '../../../models/jellyfin_models.dart';
 
 class ArtistDetailScreen extends StatefulWidget {
   final Artist artist;
