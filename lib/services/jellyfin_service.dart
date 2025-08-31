@@ -405,6 +405,27 @@ class JellyfinService {
     return null;
   }
 
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.post(
+        '/Playlists/$playlistId/Items',
+        queryParameters: {
+          'Ids': trackId,
+          'UserId': _server!.userId,
+        },
+      );
+
+      return response.statusCode == 204; // Jellyfin returns 204 for successful additions
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error adding track to playlist: $e');
+      }
+      return false;
+    }
+  }
+
   Future<bool> validateCredentials() async {
     if (_server == null) return false;
 
