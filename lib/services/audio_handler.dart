@@ -168,6 +168,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     queue.add(_playlist.map(_trackToMediaItem).toList());
     
     await _playCurrentTrack();
+    
+    // Save the new playlist state
+    await _savePlaybackState();
   }
 
   MediaItem _trackToMediaItem(Track track) {
