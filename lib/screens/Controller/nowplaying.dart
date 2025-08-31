@@ -260,13 +260,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 ),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: audioService?.hasNext == true
+                                  onPressed: audioHandler?.hasNext == true
                                       ? () => appState.skipToNext()
                                       : null,
                                   child: Icon(
                                     CupertinoIcons.forward_fill,
                                     size: 40,
-                                    color: audioService?.hasNext == true 
+                                    color: audioHandler?.hasNext == true 
                                         ? CupertinoColors.white
                                         : CupertinoColors.systemGrey,
                                   ),
