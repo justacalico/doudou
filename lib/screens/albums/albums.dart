@@ -213,21 +213,15 @@ class AlbumCard extends StatelessWidget {
                     ),
                   ),
                   child: album.imageUrl != null
-                      ? CachedNetworkImage(
+                      ? AlbumArtwork(
                           imageUrl: appState.jellyfinService.getImageUrl(
                             album.imageUrl!,
                             width: 300,
                             height: 300,
                           ),
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: const Color(0xFF1C1C1E),
-                            child: const Center(
-                              child: CupertinoActivityIndicator(
-                                color: Color(0xFF8E8E93),
-                              ),
-                            ),
-                          ),
+                          size: 150,
+                          borderRadius: BorderRadius.circular(12),
+                        )
                           errorWidget: (context, url, error) => Container(
                             color: const Color(0xFF1C1C1E),
                             child: const Icon(
