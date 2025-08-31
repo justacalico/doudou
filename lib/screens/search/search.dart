@@ -376,7 +376,7 @@ class _SearchScreenState extends State<SearchScreen> {
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
-                  // TODO: Show track options (add to playlist, etc.)
+                  _showTrackOptions(context, track, appState);
                 },
                 child: const Icon(
                   CupertinoIcons.ellipsis,
