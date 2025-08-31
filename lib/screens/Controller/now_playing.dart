@@ -297,7 +297,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                           children: [
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () {}, // Queue/playlist
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => const QueueScreen(),
+                                  ),
+                                );
+                              },
                               child: const Icon(
                                 CupertinoIcons.list_bullet,
                                 color: CupertinoColors.white,
