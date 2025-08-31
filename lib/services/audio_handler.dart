@@ -266,25 +266,36 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_preloadedPlayers.containsKey(track.id)) {
       final preloadedPlayer = _preloadedPlayers.remove(track.id);
       if (preloadedPlayer != null) {
-        // Stop current player and start preloaded one
-        await _player.stop();
-        
-        // Copy the loaded state from preloaded player to main player
-        if (preloadedPlayer.audioSource != null) {
-          await _player.setAudioSource(preloadedPlayer.audioSource!);
-          await _player.play();
+        try {
+          // Stop current player and start preloaded one
+          await _player.stop();
+          
+          // Add a small delay to ensure the stop completes
+          await Future.delayed(const Duration(milliseconds: 100));
+          
+          // Copy the loaded state from preloaded player to main player
+          if (preloadedPlayer.audioSource != null) {
+            await _player.setAudioSource(preloadedPlayer.audioSource!);
+            await _player.play();
+          }
+          
+          // Dispose the preloaded player
+          preloadedPlayer.dispose();
+          
+          if (kDebugMode) {
+            print('Playing preloaded track: ${track.name}');
+          }
+          
+          // Preload next tracks after successful play
+          _preloadNextTracks();
+          return;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to play preloaded track, falling back to normal loading: $e');
+          }
+          // Dispose the preloaded player and fall back to normal loading
+          preloadedPlayer.dispose();
         }
-        
-        // Dispose the preloaded player
-        preloadedPlayer.dispose();
-        
-        if (kDebugMode) {
-          print('Playing preloaded track: ${track.name}');
-        }
-        
-        // Preload next tracks after successful play
-        _preloadNextTracks();
-        return;
       }
     }
     
