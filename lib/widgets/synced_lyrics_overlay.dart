@@ -122,16 +122,19 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     }
     
     if (newLineIndex != _currentLineIndex) {
-      setState(() {
-        _currentLineIndex = newLineIndex;
+      // Use post frame callback to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _currentLineIndex = newLineIndex;
+          });
+          
+          // Auto-scroll to current line
+          if (newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
+            _scrollToCurrentLine();
+          }
+        }
       });
-      
-      // Auto-scroll to current line
-      if (newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToCurrentLine();
-        });
-      }
     }
   }
 
