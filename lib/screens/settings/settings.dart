@@ -482,35 +482,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showCrossfadeDialog(BuildContext context) {
-    showCupertinoDialog(
-      context: context,
-      builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Smart Crossfade'),
-        content: const Text('Smart crossfade duration between tracks.'),
-        actions: <CupertinoDialogAction>[
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: const Text('Disabled'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            child: const Text('2 seconds'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            child: const Text('5 seconds'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showCacheDialog(BuildContext context) {
     showCupertinoDialog(
       context: context,
