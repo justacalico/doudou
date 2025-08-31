@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.doudou"
+    namespace = "gitlab.httpanimations.doudou"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
