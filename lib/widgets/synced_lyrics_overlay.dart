@@ -391,9 +391,10 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                 
                 return Container(
                   key: _lineKeys[index],
-                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -404,8 +405,9 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                           ? Border.all(color: Colors.white.withOpacity(0.3))
                           : null,
                     ),
-                    child: Text(
-                      line.text,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
                       style: TextStyle(
                         color: isCurrentLine
                             ? Colors.white
@@ -416,7 +418,12 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                         fontWeight: isCurrentLine ? FontWeight.w600 : FontWeight.normal,
                         height: 1.4,
                       ),
-                      textAlign: TextAlign.center,
+                      child: Text(
+                        line.text,
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 );
