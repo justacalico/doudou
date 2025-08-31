@@ -735,6 +735,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appState = context.read<AppState>();
     try {
       await appState.clearDataCache();
+      await _loadCacheSize(); // Refresh cache size display
       _showCacheClearedDialog(context, 'Data');
     } catch (e) {
       _showErrorDialog(context, 'Failed to clear data cache: $e');
@@ -745,6 +746,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appState = context.read<AppState>();
     try {
       await appState.clearImageCache();
+      await _loadCacheSize(); // Refresh cache size display
       _showCacheClearedDialog(context, 'Image');
     } catch (e) {
       _showErrorDialog(context, 'Failed to clear image cache: $e');
@@ -755,6 +757,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appState = context.read<AppState>();
     try {
       await appState.clearAllCache();
+      await _loadCacheSize(); // Refresh cache size display
       _showCacheClearedDialog(context, 'All');
     } catch (e) {
       _showErrorDialog(context, 'Failed to clear cache: $e');
@@ -765,6 +768,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appState = context.read<AppState>();
     try {
       await appState.cleanupExpiredCache();
+      await _loadCacheSize(); // Refresh cache size display
       showCupertinoDialog(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
