@@ -929,7 +929,12 @@ class _SearchScreenState extends State<SearchScreen> {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () {
-          // TODO: Navigate to artist details
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => ArtistDetailScreen(artist: artist),
+            ),
+          );
         },
         child: Container(
           padding: const EdgeInsets.all(12),
