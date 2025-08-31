@@ -61,6 +61,9 @@ class AppState extends ChangeNotifier {
           ),
         );
         
+        // Apply user settings to the audio handler
+        _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+        
         notifyListeners();
         
         // Load initial data
@@ -97,6 +100,9 @@ class AppState extends ChangeNotifier {
             androidNotificationOngoing: true,
           ),
         );
+        
+        // Apply user settings to the audio handler
+        _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
         
         await _saveServer();
         await loadLibraryData();
