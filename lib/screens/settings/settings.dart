@@ -560,7 +560,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: const Text('Support Development'),
-        content: const Text('Thank you for using Doudou! This app is open source and free to use. If you\'d like to support development, consider starring the project on GitHub or contributing to the codebase.'),
+        content: const Text('Thank you for using Doudou! This app is open source and free to use. If you\'d like to support development, consider starring the project on GitLab or contributing to the codebase. https://gitlab.com/HttpAnimations/doudou'),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             child: const Text('OK'),
