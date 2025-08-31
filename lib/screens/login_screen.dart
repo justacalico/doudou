@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 
@@ -25,8 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+      child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Consumer<AppState>(
@@ -39,79 +40,93 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     // App Logo/Title
                     const Icon(
-                      Icons.music_note,
+                      CupertinoIcons.music_note,
                       size: 80,
-                      color: Colors.deepPurple,
+                      color: CupertinoColors.systemPurple,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Doudou',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
+                        color: CupertinoColors.systemPurple.resolveFrom(context),
                       ),
                       textAlign: TextAlign.center,
                     ),
                     Text(
                       'Jellyfin Music Player',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.grey[600],
+                      style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                        color: CupertinoColors.secondaryLabel.resolveFrom(context),
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 48),
 
                     // Server URL Field
-                    TextFormField(
-                      controller: _serverController,
-                      decoration: const InputDecoration(
-                        labelText: 'Server URL',
-                        hintText: 'http://your-jellyfin-server:8096',
-                        prefixIcon: Icon(Icons.dns),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter server URL';
-                        }
-                        return null;
-                      },
-                      keyboardType: TextInputType.url,
+                    CupertinoFormSection(
+                      margin: EdgeInsets.zero,
+                      children: [
+                        CupertinoFormRow(
+                          prefix: const Icon(CupertinoIcons.globe),
+                          child: CupertinoTextFormFieldRow(
+                            controller: _serverController,
+                            placeholder: 'http://your-jellyfin-server:8096',
+                            prefix: const Text('Server URL'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter server URL';
+                              }
+                              return null;
+                            },
+                            keyboardType: TextInputType.url,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
 
                     // Username Field
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter username';
-                        }
-                        return null;
-                      },
+                    CupertinoFormSection(
+                      margin: EdgeInsets.zero,
+                      children: [
+                        CupertinoFormRow(
+                          prefix: const Icon(CupertinoIcons.person),
+                          child: CupertinoTextFormFieldRow(
+                            controller: _usernameController,
+                            placeholder: 'Username',
+                            prefix: const Text('Username'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter username';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
 
                     // Password Field
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: Icon(Icons.lock),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter password';
-                        }
-                        return null;
-                      },
-                      obscureText: true,
+                    CupertinoFormSection(
+                      margin: EdgeInsets.zero,
+                      children: [
+                        CupertinoFormRow(
+                          prefix: const Icon(CupertinoIcons.lock),
+                          child: CupertinoTextFormFieldRow(
+                            controller: _passwordController,
+                            placeholder: 'Password',
+                            prefix: const Text('Password'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter password';
+                              }
+                              return null;
+                            },
+                            obscureText: true,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 
@@ -120,38 +135,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          border: Border.all(color: Colors.red[300]!),
+                          color: CupertinoColors.systemRed.withOpacity(0.1),
+                          border: Border.all(color: CupertinoColors.systemRed.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           appState.errorMessage!,
-                          style: TextStyle(color: Colors.red[700]),
+                          style: const TextStyle(color: CupertinoColors.systemRed),
                           textAlign: TextAlign.center,
                         ),
                       ),
                     if (appState.errorMessage != null) const SizedBox(height: 16),
 
                     // Login Button
-                    ElevatedButton(
+                    CupertinoButton(
                       onPressed: appState.isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                      ),
+                      color: CupertinoColors.systemPurple,
+                      borderRadius: BorderRadius.circular(8),
                       child: appState.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
+                          ? const CupertinoActivityIndicator(color: CupertinoColors.white)
                           : const Text(
                               'Login',
-                              style: TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                color: CupertinoColors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                     ),
                   ],
