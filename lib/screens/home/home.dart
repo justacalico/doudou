@@ -245,9 +245,9 @@ class HomeContent extends StatelessWidget {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: appState.albums.length > 4 ? 4 : appState.albums.length,
+                    itemCount: madeForYouAlbums.length,
                     itemBuilder: (context, index) {
-                      final album = appState.albums[index];
+                      final album = madeForYouAlbums[index];
                       return _buildAlbumCard(context, album, appState);
                     },
                   ),
