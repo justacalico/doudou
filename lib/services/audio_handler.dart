@@ -610,6 +610,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               // Resume playing if it was playing before
               if (wasPlaying) {
                 await _player.play();
+                _startPeriodicSaving(); // Start saving state if we resumed playing
                 if (kDebugMode) {
                   print('Automatically resumed playback: ${_currentTrack!.name}');
                 }
