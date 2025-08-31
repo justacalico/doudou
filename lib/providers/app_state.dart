@@ -71,29 +71,36 @@ class AppState extends ChangeNotifier {
         
         // Test the connection with saved credentials
         try {
-          // Try to fetch a small amount of data to validate credentials
-          await _jellyfinService.getAlbums();
+          // Try to validate credentials
+          final isValid = await _jellyfinService.validateCredentials();
           
-          // If successful, we're logged in
-          _isLoggedIn = true;
-          
-          // Initialize audio handler
-          _audioHandler = await AudioService.init(
-            builder: () => DoudouAudioHandler(_jellyfinService),
-            config: const AudioServiceConfig(
-              androidNotificationChannelId: 'com.example.doudou.channel.audio',
-              androidNotificationChannelName: 'Doudou Music',
-              androidNotificationOngoing: true,
-            ),
-          );
-          
-          // Apply user settings to the audio handler
-          _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
-          
-          notifyListeners();
-          
-          // Load initial data
-          await loadLibraryData();
+          if (isValid) {
+            // If successful, we're logged in
+            _isLoggedIn = true;
+            
+            // Initialize audio handler
+            _audioHandler = await AudioService.init(
+              builder: () => DoudouAudioHandler(_jellyfinService),
+              config: const AudioServiceConfig(
+                androidNotificationChannelId: 'com.example.doudou.channel.audio',
+                androidNotificationChannelName: 'Doudou Music',
+                androidNotificationOngoing: true,
+              ),
+            );
+            
+            // Apply user settings to the audio handler
+            _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+            
+            notifyListeners();
+            
+            // Load initial data in background
+            loadLibraryData();
+          } else {
+            // Clear invalid credentials
+            await prefs.remove('jellyfin_server');
+            _isLoggedIn = false;
+            notifyListeners();
+          }
         } catch (authError) {
           if (kDebugMode) {
             print('Saved credentials are invalid: $authError');
