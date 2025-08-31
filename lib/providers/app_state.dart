@@ -33,6 +33,9 @@ class AppState extends ChangeNotifier {
   JellyfinService get jellyfinService => _jellyfinService;
   DoudouAudioHandler? get audioHandler => _audioHandler;
   bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
+  bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
+  bool get oledDarkModeEnabled => _oledDarkModeEnabled;
+  bool get showAlbumArtEnabled => _showAlbumArtEnabled;
 
   AppState() {
     _initializeApp();
@@ -357,5 +360,8 @@ class AppState extends ChangeNotifier {
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? false;
+    _normalizeVolumeEnabled = prefs.getBool('normalize_volume_enabled') ?? false;
+    _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
+    _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
   }
 }
