@@ -527,7 +527,7 @@ class _SearchScreenState extends State<SearchScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height * 0.7,
         decoration: const BoxDecoration(
           color: Color(0xFF000000),
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
