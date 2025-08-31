@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
-import '../services/jellyfin_service.dart';
+import '../services/jellyfinService.dart';
 import '../services/audioService.dart';
 
 class AppState extends ChangeNotifier {
