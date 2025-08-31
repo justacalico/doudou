@@ -138,16 +138,63 @@ class SongTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        return CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                // Album artwork
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          child: CupertinoContextMenu(
+            actions: [
+              CupertinoContextMenuAction(
+                child: const Row(
+                  children: [
+                    Icon(CupertinoIcons.add, size: 18),
+                    SizedBox(width: 8),
+                    Text('Add to Queue'),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.addToQueue(track);
+                },
+              ),
+              CupertinoContextMenuAction(
+                child: const Row(
+                  children: [
+                    Icon(CupertinoIcons.play_arrow, size: 18),
+                    SizedBox(width: 8),
+                    Text('Play Next'),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.addNextInQueue(track);
+                },
+              ),
+              CupertinoContextMenuAction(
+                child: Row(
+                  children: [
+                    Icon(
+                      track.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.toggleFavorite(track);
+                },
+              ),
+            ],
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: onTap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    // Album artwork
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
                   child: SizedBox(
                     width: 50,
                     height: 50,
