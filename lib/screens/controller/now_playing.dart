@@ -112,27 +112,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               ),
                             ],
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: currentTrack.imageUrl != null
-                                ? Image.network(
-                                    appState.jellyfinService.getImageUrl(
-                                      currentTrack.imageUrl!,
-                                      width: 800,
-                                      height: 800,
-                                    ),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: const Color(0xFF1C1C1E),
-                                        child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey2),
-                                      );
-                                    },
+                          child: AlbumArtWidget(
+                            imageUrl: currentTrack.imageUrl != null
+                                ? appState.jellyfinService.getImageUrl(
+                                    currentTrack.imageUrl!,
+                                    width: 800,
+                                    height: 800,
                                   )
-                                : Container(
-                                    color: const Color(0xFF1C1C1E),
-                                    child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey2),
-                                  ),
+                                : null,
+                            size: MediaQuery.of(context).size.width * 0.75,
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                       ),
