@@ -233,10 +233,10 @@ class FavoriteTrackListItem extends StatelessWidget {
               padding: EdgeInsets.zero,
               onPressed: () => _toggleFavorite(context, track),
               child: Icon(
-                track.isFavorite == true 
+                track.isFavorite 
                     ? CupertinoIcons.heart_fill
                     : CupertinoIcons.heart,
-                color: track.isFavorite == true 
+                color: track.isFavorite 
                     ? const Color(0xFFFF453A)
                     : CupertinoColors.systemGrey,
                 size: 20,
