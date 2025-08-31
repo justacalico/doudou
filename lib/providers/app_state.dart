@@ -1,7 +1,4 @@
-import 'packa  String? _errorMessage;
-  List<Album> _albums = [];
-  List<Artist> _artists = [];
-  List<Track> _tracks = [];lutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
@@ -17,7 +14,7 @@ class AppState extends ChangeNotifier {
   String? _errorMessage;
   List<Album> _albums = [];
   List<Artist> _artists = [];
-  final List<Track> _tracks = [];
+  List<Track> _tracks = [];
   
   // Getters
   bool get isLoggedIn => _isLoggedIn;
