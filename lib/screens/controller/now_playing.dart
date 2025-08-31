@@ -177,14 +177,20 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                           final position = snapshot.data ?? Duration.zero;
                           final duration = audioHandler?.duration ?? Duration.zero;
                           
+                          // Calculate slider value with bounds checking
+                          double sliderValue = 0.0;
+                          if (duration.inMilliseconds > 0) {
+                            sliderValue = position.inMilliseconds / duration.inMilliseconds;
+                            // Ensure the value is within valid bounds (0.0 to 1.0)
+                            sliderValue = sliderValue.clamp(0.0, 1.0);
+                          }
+                          
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 30),
                             child: Column(
                               children: [
                                 CupertinoSlider(
-                                  value: duration.inMilliseconds > 0
-                                      ? position.inMilliseconds / duration.inMilliseconds
-                                      : 0.0,
+                                  value: sliderValue,
                                   onChanged: (value) {
                                     final newPosition = Duration(
                                       milliseconds: (value * duration.inMilliseconds).round(),
