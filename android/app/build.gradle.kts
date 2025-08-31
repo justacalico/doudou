@@ -34,7 +34,7 @@ android {
         create("release") {
             keyAlias = System.getenv("KEY_ALIAS") ?: "doudou"
             keyPassword = System.getenv("KEY_PASSWORD") ?: ""
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "key.jks")
+            storeFile = file("key.jks")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
         }
     }
