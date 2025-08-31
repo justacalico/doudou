@@ -4,6 +4,7 @@
 - Added lyrics.
 - Added looping.
 - Added caching to images.
+- Abilty to go to the album page from a artist.
 
 ## Changed
 - Made the queue into a widget rather then a page.
