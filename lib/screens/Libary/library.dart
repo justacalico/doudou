@@ -402,25 +402,6 @@ class LibraryContent extends StatelessWidget {
   }
 
   Widget _buildFavoritesPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            CupertinoIcons.heart,
-            size: 64,
-            color: CupertinoColors.systemGrey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Favorites Coming Soon',
-            style: TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-        ],
-      ),
-    );
+    return const FavoritesView();
   }
 }
