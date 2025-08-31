@@ -177,4 +177,13 @@ class Playlist {
       trackCount: json['ChildCount'] ?? 0,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Id': id,
+      'Name': name,
+      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
+      'ChildCount': trackCount,
+    };
+  }
 }
