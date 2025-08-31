@@ -183,10 +183,14 @@ class AlbumCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFF1C1C1E), // Dark card background
+          color: const Color(0xFF000000), // Pure black background
+          border: Border.all(
+            color: const Color(0xFF1C1C1E),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.3),
+              color: const Color(0xFF000000).withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -199,35 +203,54 @@ class AlbumCard extends StatelessWidget {
             children: [
               Expanded(
                 flex: 3,
-                child: album.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: appState.jellyfinService.getImageUrl(
-                          album.imageUrl!,
-                          width: 300,
-                          height: 300,
-                        ),
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: CupertinoColors.systemGrey4.resolveFrom(context),
-                          child: const Center(
-                            child: CupertinoActivityIndicator(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1E),
+                    border: Border.all(
+                      color: const Color(0xFF2C2C2E),
+                      width: 1,
+                    ),
+                  ),
+                  child: album.imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: appState.jellyfinService.getImageUrl(
+                            album.imageUrl!,
+                            width: 300,
+                            height: 300,
+                          ),
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: const Color(0xFF1C1C1E),
+                            child: const Center(
+                              child: CupertinoActivityIndicator(
+                                color: Color(0xFF8E8E93),
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: const Color(0xFF1C1C1E),
+                            child: const Icon(
+                              CupertinoIcons.music_albums,
+                              size: 64,
+                              color: Color(0xFF8E8E93),
+                            ),
+                          ),
+                        )
+                      : Container(
+                          color: const Color(0xFF1C1C1E),
+                          child: const Icon(
+                            CupertinoIcons.music_albums,
+                            size: 64,
+                            color: Color(0xFF8E8E93),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          color: CupertinoColors.systemGrey4.resolveFrom(context),
-                          child: const Icon(CupertinoIcons.music_albums, size: 64),
-                        ),
-                      )
-                    : Container(
-                        color: CupertinoColors.systemGrey4.resolveFrom(context),
-                        child: const Icon(CupertinoIcons.music_albums, size: 64),
-                      ),
+                ),
               ),
               Expanded(
                 flex: 1,
                 child: Container(
-                  color: const Color(0xFF1C1C1E), // Dark background for text area
-                  padding: const EdgeInsets.all(8),
+                  color: const Color(0xFF000000), // Pure black background for text area
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -235,20 +258,22 @@ class AlbumCard extends StatelessWidget {
                       Text(
                         album.name,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: CupertinoColors.white, // White text
+                          color: Color(0xFFFFFFFF), // White text
+                          height: 1.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (album.artistName != null) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
                         Text(
                           album.artistName!,
                           style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
+                            color: Color(0xFF8E8E93),
                             fontSize: 12,
+                            height: 1.2,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -259,7 +284,7 @@ class AlbumCard extends StatelessWidget {
                         Text(
                           album.year.toString(),
                           style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
+                            color: Color(0xFF8E8E93),
                             fontSize: 11,
                           ),
                         ),
