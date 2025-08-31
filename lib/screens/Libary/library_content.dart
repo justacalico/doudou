@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_state.dart';
-import 'artists_tab.dart';
-import 'albums/albumDetails.dart';
-import 'songs/songs.dart';
+import '../../providers/app_state.dart';
+import '../artists_tab.dart';
+import '../albums/albumDetails.dart';
+import '../songs/songs.dart';
 
 class LibraryContent extends StatelessWidget {
   const LibraryContent({super.key});
