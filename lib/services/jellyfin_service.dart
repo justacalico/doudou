@@ -8,6 +8,21 @@ class JellyfinService {
 
   JellyfinService() {
     _dio = Dio();
+    
+    // Configure timeouts and retry options
+    _dio.options.connectTimeout = const Duration(seconds: 10);
+    _dio.options.receiveTimeout = const Duration(seconds: 30);
+    _dio.options.sendTimeout = const Duration(seconds: 30);
+    
+    // Add retry interceptor for network resilience
+    _dio.interceptors.add(RetryInterceptor(
+      dio: _dio,
+      retries: 2,
+      retryDelays: const [
+        Duration(seconds: 1),
+        Duration(seconds: 3),
+      ],
+    ));
   }
 
   void setServer(JellyfinServer server) {

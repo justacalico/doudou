@@ -50,8 +50,3 @@ android/.kotlin/sessions/kotlin-compiler-10660279334386424812.salive
 *.keystore
 key.properties
 signing.properties
-
-# Privacy and legal documents (generated)
-docs/
-privacy-policy.html
-terms-of-service.html
