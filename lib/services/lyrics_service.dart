@@ -25,8 +25,8 @@ class LyricsService {
   static const String _baseUrl = 'https://lrclib.net/api';
   
   /// Fetches lyrics for a given track and artist
-  /// Returns null if no lyrics are found
-  static Future<String?> fetchLyrics(String trackName, String artistName) async {
+  /// Returns LyricsResult with both plain and synced lyrics if available
+  static Future<LyricsResult?> fetchLyrics(String trackName, String artistName) async {
     try {
       // Clean up the track and artist names for better API matching
       final cleanTrack = _cleanString(trackName);
@@ -49,14 +49,22 @@ class LyricsService {
         if (results.isNotEmpty) {
           // Get the first result that has lyrics
           for (final result in results) {
-            if (result['plainLyrics'] != null && 
-                result['plainLyrics'].toString().trim().isNotEmpty) {
-              return result['plainLyrics'].toString();
+            final plainLyrics = result['plainLyrics']?.toString();
+            final syncedLyrics = result['syncedLyrics']?.toString();
+            
+            if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
+              return LyricsResult(
+                plainLyrics: plainLyrics,
+                syncedLyrics: syncedLyrics != null ? _parseSyncedLyrics(syncedLyrics) : null,
+                hasSyncedLyrics: syncedLyrics != null && syncedLyrics.trim().isNotEmpty,
+              );
             }
-            if (result['syncedLyrics'] != null && 
-                result['syncedLyrics'].toString().trim().isNotEmpty) {
-              // For synced lyrics, remove the timing information
-              return _cleanSyncedLyrics(result['syncedLyrics'].toString());
+            if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
+              return LyricsResult(
+                plainLyrics: _cleanSyncedLyrics(syncedLyrics),
+                syncedLyrics: _parseSyncedLyrics(syncedLyrics),
+                hasSyncedLyrics: true,
+              );
             }
           }
         }
@@ -75,14 +83,22 @@ class LyricsService {
       
       if (getResponse.statusCode == 200) {
         final data = json.decode(getResponse.body);
+        final plainLyrics = data['plainLyrics']?.toString();
+        final syncedLyrics = data['syncedLyrics']?.toString();
         
-        if (data['plainLyrics'] != null && 
-            data['plainLyrics'].toString().trim().isNotEmpty) {
-          return data['plainLyrics'].toString();
+        if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
+          return LyricsResult(
+            plainLyrics: plainLyrics,
+            syncedLyrics: syncedLyrics != null ? _parseSyncedLyrics(syncedLyrics) : null,
+            hasSyncedLyrics: syncedLyrics != null && syncedLyrics.trim().isNotEmpty,
+          );
         }
-        if (data['syncedLyrics'] != null && 
-            data['syncedLyrics'].toString().trim().isNotEmpty) {
-          return _cleanSyncedLyrics(data['syncedLyrics'].toString());
+        if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
+          return LyricsResult(
+            plainLyrics: _cleanSyncedLyrics(syncedLyrics),
+            syncedLyrics: _parseSyncedLyrics(syncedLyrics),
+            hasSyncedLyrics: true,
+          );
         }
       }
       
@@ -93,6 +109,36 @@ class LyricsService {
       }
       return null;
     }
+  }
+  
+  /// Parses synced lyrics into timestamped lines
+  static List<LyricsLine> _parseSyncedLyrics(String syncedLyrics) {
+    final lines = <LyricsLine>[];
+    final lrcPattern = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2})\](.*)');
+    
+    for (final line in syncedLyrics.split('\n')) {
+      final match = lrcPattern.firstMatch(line);
+      if (match != null) {
+        final minutes = int.parse(match.group(1)!);
+        final seconds = int.parse(match.group(2)!);
+        final centiseconds = int.parse(match.group(3)!);
+        final text = match.group(4)!.trim();
+        
+        if (text.isNotEmpty) {
+          final timestamp = Duration(
+            minutes: minutes,
+            seconds: seconds,
+            milliseconds: centiseconds * 10,
+          );
+          
+          lines.add(LyricsLine(timestamp: timestamp, text: text));
+        }
+      }
+    }
+    
+    // Sort by timestamp
+    lines.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return lines;
   }
   
   /// Cleans up synced lyrics by removing timing information
