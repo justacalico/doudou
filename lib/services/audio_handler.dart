@@ -22,7 +22,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Preloading and caching
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {};
-  static const int _maxPreloadedTracks = 10;
   
   // Skip-to-previous behavior tracking
   DateTime? _lastSkipToPreviousTime;
