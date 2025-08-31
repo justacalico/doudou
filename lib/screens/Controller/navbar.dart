@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../Home/home.dart';
-import '../Libary/library.dart';
+import '../libary/library.dart';
 import '../../widgets/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
