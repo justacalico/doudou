@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import 'albums_tab.dart';
@@ -14,79 +14,107 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _tabs = [
-    const AlbumsTab(),
-    const ArtistsTab(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Doudou'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<AppState>().loadLibraryData();
-            },
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'logout') {
-                context.read<AppState>().logout();
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _tabs[_currentIndex],
-          ),
-          const MiniPlayer(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.album),
+            icon: Icon(CupertinoIcons.music_albums),
             label: 'Albums',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(CupertinoIcons.person_2),
             label: 'Artists',
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const NowPlayingScreen(),
+      tabBuilder: (context, index) {
+        return CupertinoPageScaffold(
+          navigationBar: CupertinoNavigationBar(
+            middle: const Text('Doudou'),
+            backgroundColor: CupertinoColors.systemPurple.resolveFrom(context),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    context.read<AppState>().loadLibraryData();
+                  },
+                  child: const Icon(
+                    CupertinoIcons.refresh,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    _showActionSheet(context);
+                  },
+                  child: const Icon(
+                    CupertinoIcons.ellipsis,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+              ],
             ),
-          );
-        },
-        backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.music_note, color: Colors.white),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: index == 0 ? const AlbumsTab() : const ArtistsTab(),
+                ),
+                const MiniPlayer(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showActionSheet(BuildContext context) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                CupertinoPageRoute(
+                  builder: (context) => const NowPlayingScreen(),
+                ),
+              );
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.music_note),
+                SizedBox(width: 8),
+                Text('Now Playing'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AppState>().logout();
+            },
+            isDestructiveAction: true,
+            child: const Text('Logout'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: const Text('Cancel'),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }
