@@ -22,8 +22,12 @@ class MiniPlayer extends StatelessWidget {
           height: 70,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF2C2C2E), // Dark background like in image
+            color: const Color(0xFF000000), // Pure black for OLED
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF1C1C1E), // Subtle border for definition
+              width: 0.5,
+            ),
           ),
           child: GestureDetector(
             onTap: () {
