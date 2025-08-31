@@ -4,6 +4,7 @@ import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../widgets/mini_player.dart';
 import '../../../widgets/cached_image_widget.dart';
+import '../../albums/details/album_details.dart';
 
 class ArtistDetailScreen extends StatefulWidget {
   final Artist artist;
