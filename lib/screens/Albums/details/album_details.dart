@@ -26,7 +26,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   Future<void> _loadTracks() async {
     final appState = context.read<AppState>();
     final albumTracks = await appState.getAlbumTracks(widget.album.id);
-    
+
     setState(() {
       tracks = albumTracks;
       isLoading = false;
@@ -36,7 +36,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
-    
+
     return CupertinoPageScaffold(
       child: CustomScrollView(
         slivers: [
@@ -71,26 +71,37 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                           child: widget.album.imageUrl != null
                               ? CachedNetworkImage(
-                                  imageUrl: appState.jellyfinService.getImageUrl(
-                                    widget.album.imageUrl!,
-                                    width: 400,
-                                    height: 400,
-                                  ),
+                                  imageUrl: appState.jellyfinService
+                                      .getImageUrl(
+                                        widget.album.imageUrl!,
+                                        width: 400,
+                                        height: 400,
+                                      ),
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
-                                    color: CupertinoColors.systemGrey4.resolveFrom(context),
+                                    color: CupertinoColors.systemGrey4
+                                        .resolveFrom(context),
                                     child: const Center(
                                       child: CupertinoActivityIndicator(),
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) => Container(
-                                    color: CupertinoColors.systemGrey4.resolveFrom(context),
-                                    child: const Icon(CupertinoIcons.music_albums, size: 80),
-                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        color: CupertinoColors.systemGrey4
+                                            .resolveFrom(context),
+                                        child: const Icon(
+                                          CupertinoIcons.music_albums,
+                                          size: 80,
+                                        ),
+                                      ),
                                 )
                               : Container(
-                                  color: CupertinoColors.systemGrey4.resolveFrom(context),
-                                  child: const Icon(CupertinoIcons.music_albums, size: 80),
+                                  color: CupertinoColors.systemGrey4
+                                      .resolveFrom(context),
+                                  child: const Icon(
+                                    CupertinoIcons.music_albums,
+                                    size: 80,
+                                  ),
                                 ),
                         ),
                       ),
@@ -135,9 +146,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           if (isLoading)
             const SliverFillRemaining(
-              child: Center(
-                child: CupertinoActivityIndicator(),
-              ),
+              child: Center(child: CupertinoActivityIndicator()),
             )
           else if (tracks.isEmpty)
             const SliverFillRemaining(
@@ -145,11 +154,18 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(CupertinoIcons.music_note, size: 64, color: CupertinoColors.secondaryLabel),
+                    Icon(
+                      CupertinoIcons.music_note,
+                      size: 64,
+                      color: CupertinoColors.secondaryLabel,
+                    ),
                     SizedBox(height: 16),
                     Text(
                       'No tracks found',
-                      style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: CupertinoColors.secondaryLabel,
+                      ),
                     ),
                   ],
                 ),
@@ -157,56 +173,69 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
             )
           else
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CupertinoButton(
-                              onPressed: () => _playAllTracks(),
-                              color: const Color(0xFFFF453A),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(CupertinoIcons.play_arrow, color: CupertinoColors.white),
-                                  SizedBox(width: 8),
-                                  Text('Play All', style: TextStyle(color: CupertinoColors.white)),
-                                ],
-                              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoButton(
+                            onPressed: () => _playAllTracks(),
+                            color: const Color(0xFFFF453A),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.play_arrow,
+                                  color: CupertinoColors.white,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Play All',
+                                  style: TextStyle(
+                                    color: CupertinoColors.white,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: CupertinoButton(
-                              onPressed: () => _shuffleAllTracks(),
-                              color: CupertinoColors.systemBackground,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(CupertinoIcons.shuffle, color: const Color(0xFFFF453A)),
-                                  const SizedBox(width: 8),
-                                  Text('Shuffle', style: TextStyle(color: const Color(0xFFFF453A))),
-                                ],
-                              ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: CupertinoButton(
+                            onPressed: () => _shuffleAllTracks(),
+                            color: CupertinoColors.systemBackground,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.shuffle,
+                                  color: const Color(0xFFFF453A),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Shuffle',
+                                  style: TextStyle(
+                                    color: const Color(0xFFFF453A),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    );
-                  }
-                  
-                  final track = tracks[index - 1];
-                  return TrackListItem(
-                    track: track,
-                    trackNumber: index,
-                    onTap: () => _playTrack(track, index - 1),
+                        ),
+                      ],
+                    ),
                   );
-                },
-                childCount: tracks.length + 1,
-              ),
+                }
+
+                final track = tracks[index - 1];
+                return TrackListItem(
+                  track: track,
+                  trackNumber: index,
+                  onTap: () => _playTrack(track, index - 1),
+                );
+              }, childCount: tracks.length + 1),
             ),
         ],
       ),
@@ -216,8 +245,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   void _playTrack(Track track, int index) {
     final appState = context.read<AppState>();
     appState.playPlaylist(tracks, index);
-    
-    _showSnackBar('Playing: ${track.name}');
   }
 
   void _playAllTracks() {
@@ -231,8 +258,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       final appState = context.read<AppState>();
       final shuffledTracks = List<Track>.from(tracks)..shuffle();
       appState.playPlaylist(shuffledTracks, 0);
-      
-      _showSnackBar('Playing shuffled playlist');
     }
   }
 
@@ -307,7 +332,9 @@ class TrackListItem extends StatelessWidget {
         trailing: track.duration != null
             ? Text(
                 _formatDuration(Duration(milliseconds: track.duration!)),
-                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                style: TextStyle(
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
               )
             : null,
         onTap: onTap,
