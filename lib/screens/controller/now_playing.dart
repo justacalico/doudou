@@ -80,19 +80,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       // Album Art - responsive size (clickable)
                       GestureDetector(
                         onTap: () {
-                          // You can add full screen image view functionality here
-                          // For now, this is a placeholder for the full view
-                          showCupertinoDialog(
-                            context: context,
-                            builder: (context) => CupertinoAlertDialog(
-                              title: Text(currentTrack.name),
-                              content: Text('Full view for "${currentTrack.name}" by ${currentTrack.artistName ?? "Unknown Artist"}'),
-                              actions: [
-                                CupertinoDialogAction(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Close'),
-                                ),
-                              ],
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => MusicVisualizerScreen(
+                                trackName: currentTrack.name,
+                                artistName: currentTrack.artistName,
+                                imageUrl: currentTrack.imageUrl,
+                                isPlaying: audioHandler?.isPlaying ?? false,
+                              ),
                             ),
                           );
                         },
