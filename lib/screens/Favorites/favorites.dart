@@ -290,6 +290,7 @@ class FavoriteTrackListItem extends StatelessWidget {
           ],
         ),
         onTap: onTap,
+        ),
       ),
     );
   }
