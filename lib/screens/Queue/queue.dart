@@ -137,13 +137,7 @@ class QueueScreen extends StatelessWidget {
                 
                 // Queue list
                 Expanded(
-                  child: ReorderableListView.builder(
-                    onReorder: (oldIndex, newIndex) {
-                      // Prevent reordering the currently playing song
-                      if (oldIndex == currentIndex || newIndex == currentIndex) return;
-                      
-                      audioService?.reorderQueue(oldIndex, newIndex);
-                    },
+                  child: ListView.builder(
                     itemCount: queue.length,
                     itemBuilder: (context, index) {
                       final track = queue[index];
