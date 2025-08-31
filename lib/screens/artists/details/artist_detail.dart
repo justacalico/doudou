@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../widgets/mini_player.dart';
+import '../../../widgets/cached_image_widget.dart';
 
 class ArtistDetailScreen extends StatefulWidget {
   final Artist artist;
@@ -141,40 +141,16 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                 ),
                               ],
                             ),
-                            child: ClipOval(
-                              child: widget.artist.imageUrl != null
-                                  ? CachedNetworkImage(
-                                      imageUrl: appState.jellyfinService.getImageUrl(
-                                        widget.artist.imageUrl!,
-                                        width: 360,
-                                        height: 360,
-                                      ),
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => Container(
-                                        color: const Color(0xFF1C1C1E),
-                                        child: const Center(
-                                          child: CupertinoActivityIndicator(
-                                            color: Color(0xFF8E8E93),
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: (context, url, error) => Container(
-                                        color: const Color(0xFF1C1C1E),
-                                        child: const Icon(
-                                          CupertinoIcons.person,
-                                          color: Color(0xFF8E8E93),
-                                          size: 80,
-                                        ),
-                                      ),
+                            child: ArtistImageWidget(
+                              imageUrl: widget.artist.imageUrl != null
+                                  ? appState.jellyfinService.getImageUrl(
+                                      widget.artist.imageUrl!,
+                                      width: 360,
+                                      height: 360,
                                     )
-                                  : Container(
-                                      color: const Color(0xFF1C1C1E),
-                                      child: const Icon(
-                                        CupertinoIcons.person,
-                                        color: Color(0xFF8E8E93),
-                                        size: 80,
-                                      ),
-                                    ),
+                                  : null,
+                              size: 180,
+                              isCircular: true,
                             ),
                           ),
                           const SizedBox(height: 20),
