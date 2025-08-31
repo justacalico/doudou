@@ -247,32 +247,32 @@ class AppState extends ChangeNotifier {
   List<Track> get upNext => _audioHandler?.upNext ?? [];
   
   void removeFromQueue(int index) {
-    _audioService?.removeFromQueue(index);
+    // Remove from queue functionality would need to be added to the handler
     notifyListeners();
   }
   
   void reorderQueue(int oldIndex, int newIndex) {
-    _audioService?.reorderQueue(oldIndex, newIndex);
+    // Reorder queue functionality would need to be added to the handler
     notifyListeners();
   }
 
   Future<void> shuffleAllTracks() async {
-    if (_tracks.isNotEmpty && _audioService != null) {
+    if (_tracks.isNotEmpty && _audioHandler != null) {
       final shuffledTracks = List<Track>.from(_tracks);
       shuffledTracks.shuffle();
-      await _audioService!.playPlaylist(shuffledTracks, 0);
-      _audioService!.shuffle(); // Enable shuffle mode
+      await _audioHandler!.playPlaylist(shuffledTracks, 0);
+      _audioHandler!.shuffle(); // Enable shuffle mode
       notifyListeners();
     }
   }
 
   Future<void> shuffleFavoriteTracks() async {
     final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
-    if (favoriteTracks.isNotEmpty && _audioService != null) {
+    if (favoriteTracks.isNotEmpty && _audioHandler != null) {
       final shuffledFavorites = List<Track>.from(favoriteTracks);
       shuffledFavorites.shuffle();
-      await _audioService!.playPlaylist(shuffledFavorites, 0);
-      _audioService!.shuffle(); // Enable shuffle mode
+      await _audioHandler!.playPlaylist(shuffledFavorites, 0);
+      _audioHandler!.shuffle(); // Enable shuffle mode
       notifyListeners();
     }
   }
