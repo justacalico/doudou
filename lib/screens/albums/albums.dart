@@ -211,24 +211,17 @@ class AlbumCard extends StatelessWidget {
                       width: 1,
                     ),
                   ),
-                  child: album.imageUrl != null
-                      ? AlbumArtwork(
-                          imageUrl: appState.jellyfinService.getImageUrl(
+                  child: AlbumArtWidget(
+                    imageUrl: album.imageUrl != null
+                        ? appState.jellyfinService.getImageUrl(
                             album.imageUrl!,
                             width: 300,
                             height: 300,
-                          ),
-                          size: 150,
-                          borderRadius: BorderRadius.circular(12),
-                        )
-                      : Container(
-                          color: const Color(0xFF1C1C1E),
-                          child: const Icon(
-                            CupertinoIcons.music_albums,
-                            size: 64,
-                            color: Color(0xFF8E8E93),
-                          ),
-                        ),
+                          )
+                        : null,
+                    size: 150,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               Expanded(
