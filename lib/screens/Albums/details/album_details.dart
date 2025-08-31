@@ -261,21 +261,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     }
   }
 
-  void _showSnackBar(String message) {
-    showCupertinoDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => CupertinoAlertDialog(
-        content: Text(message),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('OK'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class TrackListItem extends StatelessWidget {
