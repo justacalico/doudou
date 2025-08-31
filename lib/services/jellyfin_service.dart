@@ -283,6 +283,39 @@ class JellyfinService {
     }
   }
 
+  Future<Playlist?> createPlaylist(String name) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.post(
+        '/Playlists',
+        data: {
+          'Name': name,
+          'MediaType': 'Audio',
+          'UserId': _server!.userId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final playlistId = response.data['Id'];
+        if (playlistId != null) {
+          // Return a new Playlist object
+          return Playlist(
+            id: playlistId,
+            name: name,
+            imageUrl: null,
+            trackCount: 0,
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error creating playlist: $e');
+      }
+    }
+    return null;
+  }
+
   Future<bool> validateCredentials() async {
     if (_server == null) return false;
 
