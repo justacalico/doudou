@@ -76,31 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
             middle: Text(title, style: const TextStyle(color: CupertinoColors.white)),
             backgroundColor: const Color(0xFF1C1C1E),
             border: null,
-            trailing: index == 1 ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    context.read<AppState>().loadLibraryData();
-                  },
-                  child: const Icon(
-                    CupertinoIcons.refresh,
-                    color: CupertinoColors.white,
-                  ),
-                ),
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    _showActionSheet(context);
-                  },
-                  child: const Icon(
-                    CupertinoIcons.ellipsis,
-                    color: CupertinoColors.white,
-                  ),
-                ),
-              ],
-            ) : null,
+            trailing: null,
           ) : null,
           child: Stack(
             children: [
