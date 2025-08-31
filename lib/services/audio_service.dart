@@ -113,7 +113,9 @@ class AudioPlayerService extends ChangeNotifier {
   void reorderQueue(int oldIndex, int newIndex) {
     if (oldIndex < 0 || oldIndex >= _queue.length || 
         newIndex < 0 || newIndex >= _queue.length ||
-        oldIndex == _currentIndex || newIndex == _currentIndex) return;
+        oldIndex == _currentIndex || newIndex == _currentIndex) {
+      return;
+    }
     
     final track = _queue.removeAt(oldIndex);
     _queue.insert(newIndex, track);
