@@ -381,6 +381,7 @@ class TrackListItem extends StatelessWidget {
               )
             : null,
         onTap: onTap,
+        ),
       ),
     );
   }
