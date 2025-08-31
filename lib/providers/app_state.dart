@@ -272,10 +272,10 @@ class AppState extends ChangeNotifier {
       
       if (hasValidCache) {
         // Use cached data
-        _albums = cachedAlbums!;
-        _artists = cachedArtists!;
-        _tracks = cachedTracks!;
-        _playlists = cachedPlaylists!;
+        _albums = cachedAlbums;
+        _artists = cachedArtists;
+        _tracks = cachedTracks;
+        _playlists = cachedPlaylists;
         
         _setLoading(false);
         
