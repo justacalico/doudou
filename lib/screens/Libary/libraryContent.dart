@@ -4,6 +4,7 @@ import '../../providers/app_state.dart';
 import '../Artists/artists.dart';
 import '../Albums/details/albumDetails.dart';
 import '../Songs/songs.dart';
+import '../Playlists/playlists.dart';
 
 class LibraryContent extends StatelessWidget {
   const LibraryContent({super.key});
