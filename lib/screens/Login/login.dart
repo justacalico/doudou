@@ -26,46 +26,57 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(context),
       resizeToAvoidBottomInset: true,
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Consumer<AppState>(
             builder: (context, appState, child) {
               return Form(
                 key: _formKey,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Add some top spacing
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                    
-                    // App Logo/Title
-                    const Icon(
-                      CupertinoIcons.music_note,
-                      size: 80,
-                      color: CupertinoColors.systemPurple,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Doudou',
-                      style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.systemPurple.resolveFrom(context),
+                    // Header section with logo and title
+                    Container(
+                      padding: const EdgeInsets.only(top: 60, bottom: 40),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemPurple,
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.music_note_2,
+                              size: 50,
+                              color: CupertinoColors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Welcome to Doudou',
+                            style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle.copyWith(
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              color: CupertinoColors.label.resolveFrom(context),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Sign in to your Jellyfin server',
+                            style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                              fontSize: 17,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    Text(
-                      'Jellyfin Music Player',
-                      style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-                        color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 48),
 
                     // Server URL Field
                     CupertinoFormSection(
