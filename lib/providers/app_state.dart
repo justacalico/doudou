@@ -44,8 +44,19 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _initializeApp() async {
-    await _loadUserSettings();
-    await _loadSavedServer();
+    _setLoading(true);
+    try {
+      await _loadUserSettings();
+      await _loadSavedServer();
+      _isInitialized = true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing app: $e');
+      }
+      _setError('Failed to initialize app: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
   }
 
   Future<void> _loadSavedServer() async {
