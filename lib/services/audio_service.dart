@@ -20,6 +20,11 @@ class AudioPlayerService extends ChangeNotifier {
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {};
   static const int _maxPreloadedTracks = 10;
+  
+  // Skip-to-previous behavior tracking
+  DateTime? _lastSkipToPreviousTime;
+  static const Duration _skipToPreviousThreshold = Duration(seconds: 5);
+  static const double _restartThresholdPercentage = 0.20; // 20% of song duration
 
   AudioPlayerService(this._jellyfinService) {
     _init();
