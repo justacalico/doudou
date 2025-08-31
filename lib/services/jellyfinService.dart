@@ -164,6 +164,59 @@ class JellyfinService {
     return [];
   }
 
+  Future<List<Playlist>> getPlaylists() async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: {
+          'IncludeItemTypes': 'Playlist',
+          'Recursive': true,
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,ChildCount',
+          'SortBy': 'SortName',
+          'SortOrder': 'Ascending',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Playlist.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching playlists: $e');
+      }
+    }
+    return [];
+  }
+
+  Future<List<Track>> getPlaylistTracks(String playlistId) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.get(
+        '/Playlists/$playlistId/Items',
+        queryParameters: {
+          'UserId': _server!.userId,
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,UserData',
+          'SortBy': 'SortName',
+          'SortOrder': 'Ascending',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Track.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching playlist tracks: $e');
+      }
+    }
+    return [];
+  }
+
   String getImageUrl(String itemId, {int? width, int? height}) {
     if (_server == null) return '';
     
