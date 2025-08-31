@@ -69,8 +69,109 @@ class AudioPlayerService extends ChangeNotifier {
     if (tracks.isEmpty) return;
     
     _playlist = tracks;
+    _originalPlaylist = List.from(tracks);
+    _queue = List.from(tracks);
     _currentIndex = startIndex.clamp(0, tracks.length - 1);
+    _isShuffled = false;
     await _playCurrentTrack();
+  }
+
+  void addToQueue(Track track) {
+    _queue.add(track);
+    _playlist.add(track);
+    notifyListeners();
+  }
+
+  void addNextInQueue(Track track) {
+    final insertIndex = _currentIndex + 1;
+    _queue.insert(insertIndex, track);
+    _playlist.insert(insertIndex, track);
+    notifyListeners();
+  }
+
+  void removeFromQueue(int index) {
+    if (index < 0 || index >= _queue.length || index == _currentIndex) return;
+    
+    _queue.removeAt(index);
+    _playlist.removeAt(index);
+    
+    // Adjust current index if needed
+    if (index < _currentIndex) {
+      _currentIndex--;
+    }
+    
+    notifyListeners();
+  }
+
+  void reorderQueue(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= _queue.length || 
+        newIndex < 0 || newIndex >= _queue.length ||
+        oldIndex == _currentIndex || newIndex == _currentIndex) return;
+    
+    final track = _queue.removeAt(oldIndex);
+    _queue.insert(newIndex, track);
+    
+    final playlistTrack = _playlist.removeAt(oldIndex);
+    _playlist.insert(newIndex, playlistTrack);
+    
+    // Adjust current index if needed
+    if (oldIndex < _currentIndex && newIndex >= _currentIndex) {
+      _currentIndex--;
+    } else if (oldIndex > _currentIndex && newIndex <= _currentIndex) {
+      _currentIndex++;
+    }
+    
+    notifyListeners();
+  }
+
+  void shuffle() {
+    if (_playlist.length <= 1) return;
+    
+    _isShuffled = true;
+    final currentTrack = _playlist[_currentIndex];
+    
+    // Remove current track from shuffling
+    final remainingTracks = List<Track>.from(_playlist);
+    remainingTracks.removeAt(_currentIndex);
+    
+    // Shuffle remaining tracks
+    remainingTracks.shuffle();
+    
+    // Create new playlist with current track first, then shuffled tracks
+    _playlist = [currentTrack, ...remainingTracks];
+    _queue = List.from(_playlist);
+    _currentIndex = 0;
+    
+    notifyListeners();
+  }
+
+  void unshuffle() {
+    if (!_isShuffled || _originalPlaylist.isEmpty) return;
+    
+    _isShuffled = false;
+    final currentTrack = _currentTrack;
+    
+    _playlist = List.from(_originalPlaylist);
+    _queue = List.from(_playlist);
+    
+    // Find the current track in the original playlist
+    if (currentTrack != null) {
+      _currentIndex = _playlist.indexWhere((track) => track.id == currentTrack.id);
+      if (_currentIndex == -1) _currentIndex = 0;
+    }
+    
+    notifyListeners();
+  }
+
+  void clearQueue() {
+    _playlist.clear();
+    _queue.clear();
+    _originalPlaylist.clear();
+    _currentIndex = 0;
+    _currentTrack = null;
+    _isShuffled = false;
+    _player.stop();
+    notifyListeners();
   }
 
   Future<void> _playCurrentTrack() async {
