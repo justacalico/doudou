@@ -214,9 +214,9 @@ class HomeContent extends StatelessWidget {
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                         ),
-                        itemCount: appState.albums.length > 4 ? 4 : appState.albums.length,
+                        itemCount: continueListeningAlbums.length,
                         itemBuilder: (context, index) {
-                          final album = appState.albums[index];
+                          final album = continueListeningAlbums[index];
                           return _buildContinueListeningCard(context, album, appState);
                         },
                       ),
