@@ -398,10 +398,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       bool loaded = false;
       for (final streamUrl in streamUrls) {
         try {
+          // Set URL and wait for it to be ready
           await player.setUrl(streamUrl);
-          // Preload by seeking to the beginning but don't play
-          await player.seek(Duration.zero);
           
+          // Wait for the player to be in ready state with a timeout
+          final completer = Completer<void>();
+          StreamSubscription? subscription;
+          
+          subscription = player.playerStateStream.listen((state) {
+            if (state.processingState == ProcessingState.ready) {
+              subscription?.cancel();
+              if (!completer.isCompleted) {
+                completer.complete();
+              }
+            }
+          });
+          
+          // Wait up to 5 seconds for the track to be ready
+          await completer.future.timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              subscription?.cancel();
+              throw TimeoutException('Track preloading timed out', const Duration(seconds: 5));
+            },
+          );
+          
+          // Successfully preloaded
           _preloadedPlayers[track.id] = player;
           loaded = true;
           
@@ -418,6 +440,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       if (!loaded) {
         player.dispose();
+        if (kDebugMode) {
+          print('Could not preload track: ${track.name}');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
