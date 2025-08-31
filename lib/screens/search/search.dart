@@ -169,7 +169,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSearchSuggestions(AppState appState) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,6 +221,8 @@ class _SearchScreenState extends State<SearchScreen> {
               _showArtists(context, appState);
             },
           ),
+          // Add bottom padding for keyboard space
+          const SizedBox(height: 100),
         ],
       ),
     );
