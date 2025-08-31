@@ -167,7 +167,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                           Expanded(
                             child: CupertinoButton(
                               onPressed: () => _playAllTracks(),
-                              color: CupertinoColors.systemPurple,
+                              color: const Color(0xFFFF453A),
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -186,9 +186,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(CupertinoIcons.shuffle, color: CupertinoColors.systemPurple.resolveFrom(context)),
+                                  Icon(CupertinoIcons.shuffle, color: const Color(0xFFFF453A)),
                                   const SizedBox(width: 8),
-                                  Text('Shuffle', style: TextStyle(color: CupertinoColors.systemPurple.resolveFrom(context))),
+                                  Text('Shuffle', style: TextStyle(color: const Color(0xFFFF453A))),
                                 ],
                               ),
                             ),
