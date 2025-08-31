@@ -37,293 +37,308 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           }
 
           return SafeArea(
-            child: Column(
-              children: [
-                // Top bar with chevron down and cast icon
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(context),
-                        child: const Icon(
-                          CupertinoIcons.chevron_down,
-                          color: CupertinoColors.white,
-                          size: 28,
-                        ),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {}, // Cast functionality placeholder
-                        child: const Icon(
-                          CupertinoIcons.antenna_radiowaves_left_right,
-                          color: CupertinoColors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ],
-                  ),
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                 ),
-                
-                const Spacer(),
-                
-                // Album Art - large and centered
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.85,
-                  height: MediaQuery.of(context).size.width * 0.85,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.5),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: currentTrack.imageUrl != null
-                        ? Image.network(
-                            appState.jellyfinService.getImageUrl(
-                              currentTrack.imageUrl!,
-                              width: 800,
-                              height: 800,
-                            ),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: const Color(0xFF4A4A4A),
-                                child: const Icon(CupertinoIcons.music_albums, size: 120, color: CupertinoColors.systemGrey),
-                              );
-                            },
-                          )
-                        : Container(
-                            color: const Color(0xFF4A4A4A),
-                            child: const Icon(CupertinoIcons.music_albums, size: 120, color: CupertinoColors.systemGrey),
-                          ),
-                  ),
-                ),
-                
-                const Spacer(),
-                
-                // Track info
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: IntrinsicHeight(
                   child: Column(
                     children: [
-                      Text(
-                        currentTrack.name,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: CupertinoColors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      if (currentTrack.artistName != null)
-                        Text(
-                          currentTrack.artistName!,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 40),
-                
-                // Progress slider
-                StreamBuilder<Duration>(
-                  stream: audioService?.positionStream ?? Stream.value(Duration.zero),
-                  builder: (context, snapshot) {
-                    final position = snapshot.data ?? Duration.zero;
-                    final duration = audioService?.duration ?? Duration.zero;
-                    
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      child: Column(
-                        children: [
-                          CupertinoSlider(
-                            value: duration.inMilliseconds > 0
-                                ? position.inMilliseconds / duration.inMilliseconds
-                                : 0.0,
-                            onChanged: (value) {
-                              final newPosition = Duration(
-                                milliseconds: (value * duration.inMilliseconds).round(),
-                              );
-                              appState.seekTo(newPosition);
-                            },
-                            activeColor: CupertinoColors.white,
-                            thumbColor: CupertinoColors.white,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _formatDuration(position),
-                                style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 16),
+                      // Top bar with chevron down and cast icon
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => Navigator.pop(context),
+                              child: const Icon(
+                                CupertinoIcons.chevron_down,
+                                color: CupertinoColors.white,
+                                size: 28,
                               ),
-                              Text(
-                                _formatDuration(duration),
-                                style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 16),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {}, // Cast functionality placeholder
+                              child: const Icon(
+                                CupertinoIcons.antenna_radiowaves_left_right,
+                                color: CupertinoColors.white,
+                                size: 28,
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
-                ),
-                
-                const SizedBox(height: 30),
-                
-                // Control buttons
-                StreamBuilder(
-                  stream: audioService?.playerStateStream,
-                  builder: (context, snapshot) {
-                    final isPlaying = audioService?.isPlaying ?? false;
-                    final processingState = audioService?.playerState.processingState;
-                    
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {}, // Shuffle placeholder
-                            child: const Icon(
-                              CupertinoIcons.shuffle,
-                              color: CupertinoColors.systemGrey,
-                              size: 32,
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Album Art - responsive size
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.75,
+                        height: MediaQuery.of(context).size.width * 0.75,
+                        constraints: const BoxConstraints(
+                          maxWidth: 320,
+                          maxHeight: 320,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: CupertinoColors.black.withOpacity(0.5),
+                              blurRadius: 30,
+                              offset: const Offset(0, 15),
                             ),
-                          ),
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: audioService?.hasPrevious == true
-                                ? () => appState.skipToPrevious()
-                                : null,
-                            child: Icon(
-                              CupertinoIcons.backward_fill,
-                              size: 50,
-                              color: audioService?.hasPrevious == true 
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.systemGrey,
-                            ),
-                          ),
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              color: CupertinoColors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: processingState == ProcessingState.loading ||
-                                    processingState == ProcessingState.buffering
-                                ? const Center(
-                                    child: CupertinoActivityIndicator(
-                                      color: CupertinoColors.black,
-                                    ),
-                                  )
-                                : CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: () {
-                                      appState.playPause();
-                                    },
-                                    child: Icon(
-                                      isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_arrow_solid,
-                                      size: 40,
-                                      color: CupertinoColors.black,
-                                    ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: currentTrack.imageUrl != null
+                              ? Image.network(
+                                  appState.jellyfinService.getImageUrl(
+                                    currentTrack.imageUrl!,
+                                    width: 800,
+                                    height: 800,
                                   ),
-                          ),
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: audioService?.hasNext == true
-                                ? () => appState.skipToNext()
-                                : null,
-                            child: Icon(
-                              CupertinoIcons.forward_fill,
-                              size: 50,
-                              color: audioService?.hasNext == true 
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.systemGrey,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: const Color(0xFF4A4A4A),
+                                      child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                                    );
+                                  },
+                                )
+                              : Container(
+                                  color: const Color(0xFF4A4A4A),
+                                  child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                                ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Track info
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        child: Column(
+                          children: [
+                            Text(
+                              currentTrack.name,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: CupertinoColors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {}, // Repeat placeholder
-                            child: const Icon(
-                              CupertinoIcons.repeat,
-                              color: CupertinoColors.systemGrey,
-                              size: 32,
+                            const SizedBox(height: 8),
+                            if (currentTrack.artistName != null)
+                              Text(
+                                currentTrack.artistName!,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Progress slider
+                      StreamBuilder<Duration>(
+                        stream: audioService?.positionStream ?? Stream.value(Duration.zero),
+                        builder: (context, snapshot) {
+                          final position = snapshot.data ?? Duration.zero;
+                          final duration = audioService?.duration ?? Duration.zero;
+                          
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: Column(
+                              children: [
+                                CupertinoSlider(
+                                  value: duration.inMilliseconds > 0
+                                      ? position.inMilliseconds / duration.inMilliseconds
+                                      : 0.0,
+                                  onChanged: (value) {
+                                    final newPosition = Duration(
+                                      milliseconds: (value * duration.inMilliseconds).round(),
+                                    );
+                                    appState.seekTo(newPosition);
+                                  },
+                                  activeColor: CupertinoColors.white,
+                                  thumbColor: CupertinoColors.white,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatDuration(position),
+                                      style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 14),
+                                    ),
+                                    Text(
+                                      _formatDuration(duration),
+                                      style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-                
-                const SizedBox(height: 40),
-                
-                // Bottom controls
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {}, // Queue/playlist
-                        child: const Icon(
-                          CupertinoIcons.list_bullet,
-                          color: CupertinoColors.white,
-                          size: 28,
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Control buttons
+                      StreamBuilder(
+                        stream: audioService?.playerStateStream,
+                        builder: (context, snapshot) {
+                          final isPlaying = audioService?.isPlaying ?? false;
+                          final processingState = audioService?.playerState.processingState;
+                          
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {}, // Shuffle placeholder
+                                  child: const Icon(
+                                    CupertinoIcons.shuffle,
+                                    color: CupertinoColors.systemGrey,
+                                    size: 28,
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: audioService?.hasPrevious == true
+                                      ? () => appState.skipToPrevious()
+                                      : null,
+                                  child: Icon(
+                                    CupertinoIcons.backward_fill,
+                                    size: 40,
+                                    color: audioService?.hasPrevious == true 
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                                Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: const BoxDecoration(
+                                    color: CupertinoColors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: processingState == ProcessingState.loading ||
+                                          processingState == ProcessingState.buffering
+                                      ? const Center(
+                                          child: CupertinoActivityIndicator(
+                                            color: CupertinoColors.black,
+                                          ),
+                                        )
+                                      : CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            appState.playPause();
+                                          },
+                                          child: Icon(
+                                            isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_arrow_solid,
+                                            size: 35,
+                                            color: CupertinoColors.black,
+                                          ),
+                                        ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: audioService?.hasNext == true
+                                      ? () => appState.skipToNext()
+                                      : null,
+                                  child: Icon(
+                                    CupertinoIcons.forward_fill,
+                                    size: 40,
+                                    color: audioService?.hasNext == true 
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {}, // Repeat placeholder
+                                  child: const Icon(
+                                    CupertinoIcons.repeat,
+                                    color: CupertinoColors.systemGrey,
+                                    size: 28,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Bottom controls
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {}, // Queue/playlist
+                              child: const Icon(
+                                CupertinoIcons.list_bullet,
+                                color: CupertinoColors.white,
+                                size: 24,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {}, // Heart/like
+                              child: const Icon(
+                                CupertinoIcons.heart,
+                                color: CupertinoColors.systemRed,
+                                size: 24,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {}, // Share/more
+                              child: const Icon(
+                                CupertinoIcons.square_arrow_up,
+                                color: CupertinoColors.white,
+                                size: 24,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {}, // More options
+                              child: const Icon(
+                                CupertinoIcons.ellipsis,
+                                color: CupertinoColors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {}, // Heart/like
-                        child: const Icon(
-                          CupertinoIcons.heart,
-                          color: CupertinoColors.systemRed,
-                          size: 28,
-                        ),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {}, // Share/more
-                        child: const Icon(
-                          CupertinoIcons.square_arrow_up,
-                          color: CupertinoColors.white,
-                          size: 28,
-                        ),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {}, // More options
-                        child: const Icon(
-                          CupertinoIcons.ellipsis,
-                          color: CupertinoColors.white,
-                          size: 28,
-                        ),
-                      ),
+                      
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
-                
-                const SizedBox(height: 30),
-              ],
+              ),
             ),
           );
         },
