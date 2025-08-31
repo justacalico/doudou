@@ -602,119 +602,244 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   Widget _buildTrackTile(Track track, AppState appState, int trackNumber) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: () async {
-        // Find the track index in the artist tracks list
-        final trackIndex = _artistTracks.indexOf(track);
-        if (trackIndex != -1) {
-          await appState.audioHandler?.playPlaylist(_artistTracks, trackIndex);
-        } else {
-          // Fallback to playing single track
-          await appState.playTrack(track);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF000000),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
           color: const Color(0xFF1C1C1E),
-          borderRadius: BorderRadius.circular(8),
+          width: 1,
         ),
-        child: Row(
-          children: [
-            // Track Number
-            Container(
-              width: 30,
-              alignment: Alignment.center,
-              child: Text(
-                trackNumber.toString(),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.systemGrey2,
+      ),
+      child: CupertinoContextMenu(
+        actions: [
+          CupertinoContextMenuAction(
+            child: const Row(
+              children: [
+                Icon(CupertinoIcons.add, size: 18, color: Color(0xFFFFFFFF)),
+                SizedBox(width: 8),
+                Text('Add to Queue', style: TextStyle(color: Color(0xFFFFFFFF))),
+              ],
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              appState.addToQueue(track);
+            },
+          ),
+          CupertinoContextMenuAction(
+            child: const Row(
+              children: [
+                Icon(CupertinoIcons.play_arrow, size: 18, color: Color(0xFFFFFFFF)),
+                SizedBox(width: 8),
+                Text('Play Next', style: TextStyle(color: Color(0xFFFFFFFF))),
+              ],
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              appState.addNextInQueue(track);
+            },
+          ),
+          CupertinoContextMenuAction(
+            child: Row(
+              children: [
+                Icon(
+                  track.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                  size: 18,
+                  color: track.isFavorite ? const Color(0xFFFF453A) : const Color(0xFFFFFFFF),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Text(
+                  track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+                  style: const TextStyle(color: Color(0xFFFFFFFF)),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            
-            // Album Art
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Container(
-                width: 50,
-                height: 50,
-                color: const Color(0xFF2C2C2E),
-                child: track.imageUrl != null
-                    ? Image.network(
-                        appState.jellyfinService.getImageUrl(
-                          track.imageUrl!,
-                          width: 100,
-                          height: 100,
-                        ),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            CupertinoIcons.music_note,
-                            color: CupertinoColors.systemGrey2,
-                            size: 20,
-                          );
-                        },
-                      )
-                    : const Icon(
-                        CupertinoIcons.music_note,
-                        color: CupertinoColors.systemGrey2,
-                        size: 20,
-                      ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            
-            // Track Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    track.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFFFFFFF),
+            onPressed: () {
+              Navigator.pop(context);
+              appState.toggleFavorite(track);
+            },
+          ),
+        ],
+        child: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () async {
+            final trackIndex = _artistTracks.indexOf(track);
+            if (trackIndex != -1) {
+              await appState.audioHandler?.playPlaylist(_artistTracks, trackIndex);
+            } else {
+              await appState.playTrack(track);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Track Number with play icon overlay
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1E),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFF2C2C2E),
+                      width: 1,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  if (track.albumName != null)
-                    Text(
-                      track.albumName!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.systemGrey2,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        trackNumber.toString(),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF8E8E93),
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                
+                // Album Art
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFF1C1C1E),
+                    border: Border.all(
+                      color: const Color(0xFF2C2C2E),
+                      width: 1,
                     ),
-                ],
-              ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: track.imageUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: appState.jellyfinService.getImageUrl(
+                              track.imageUrl!,
+                              width: 112,
+                              height: 112,
+                            ),
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: const Color(0xFF1C1C1E),
+                              child: const Center(
+                                child: CupertinoActivityIndicator(
+                                  color: Color(0xFF8E8E93),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: const Color(0xFF1C1C1E),
+                              child: const Icon(
+                                CupertinoIcons.music_note,
+                                color: Color(0xFF8E8E93),
+                                size: 24,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: const Color(0xFF1C1C1E),
+                            child: const Icon(
+                              CupertinoIcons.music_note,
+                              color: Color(0xFF8E8E93),
+                              size: 24,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                
+                // Track Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        track.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFFFFFFF),
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      if (track.albumName != null)
+                        Text(
+                          track.albumName!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF8E8E93),
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+                
+                // Duration and favorite button
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (track.duration != null)
+                      Text(
+                        _formatDuration(Duration(milliseconds: track.duration!)),
+                        style: const TextStyle(
+                          color: Color(0xFF8E8E93),
+                          fontSize: 13,
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => appState.toggleFavorite(track),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: track.isFavorite 
+                              ? const Color(0xFFFF453A).withOpacity(0.1)
+                              : const Color(0xFF1C1C1E),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: track.isFavorite 
+                                ? const Color(0xFFFF453A).withOpacity(0.3)
+                                : const Color(0xFF2C2C2E),
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          track.isFavorite 
+                              ? CupertinoIcons.heart_fill
+                              : CupertinoIcons.heart,
+                          color: track.isFavorite 
+                              ? const Color(0xFFFF453A)
+                              : const Color(0xFF8E8E93),
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            
-            // More Options
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                _showTrackOptions(context, track, appState);
-              },
-              child: const Icon(
-                CupertinoIcons.ellipsis,
-                color: CupertinoColors.systemGrey2,
-                size: 20,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 
   void _showTrackOptions(BuildContext context, Track track, AppState appState) {
