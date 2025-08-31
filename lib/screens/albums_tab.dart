@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/app_state.dart';
@@ -14,7 +14,7 @@ class AlbumsTab extends StatelessWidget {
       builder: (context, appState, child) {
         if (appState.isLoading && appState.albums.isEmpty) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CupertinoActivityIndicator(),
           );
         }
 
@@ -23,33 +23,41 @@ class AlbumsTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.album, size: 64, color: Colors.grey),
+                Icon(CupertinoIcons.music_albums, size: 64, color: CupertinoColors.secondaryLabel),
                 SizedBox(height: 16),
                 Text(
                   'No albums found',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
                 ),
               ],
             ),
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => appState.loadLibraryData(),
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.8,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+        return CustomScrollView(
+          slivers: [
+            CupertinoSliverRefreshControl(
+              onRefresh: () => appState.loadLibraryData(),
             ),
-            itemCount: appState.albums.length,
-            itemBuilder: (context, index) {
-              final album = appState.albums[index];
-              return AlbumCard(album: album);
-            },
-          ),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final album = appState.albums[index];
+                    return AlbumCard(album: album);
+                  },
+                  childCount: appState.albums.length,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -69,7 +77,7 @@ class AlbumCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
+          CupertinoPageRoute(
             builder: (context) => AlbumDetailScreen(album: album),
           ),
         );
@@ -77,9 +85,10 @@ class AlbumCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
+          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: CupertinoColors.black.withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -101,25 +110,25 @@ class AlbumCard extends StatelessWidget {
                         ),
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
-                          color: Colors.grey[300],
+                          color: CupertinoColors.systemGrey4.resolveFrom(context),
                           child: const Center(
-                            child: CircularProgressIndicator(),
+                            child: CupertinoActivityIndicator(),
                           ),
                         ),
                         errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.album, size: 64),
+                          color: CupertinoColors.systemGrey4.resolveFrom(context),
+                          child: const Icon(CupertinoIcons.music_albums, size: 64),
                         ),
                       )
                     : Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.album, size: 64),
+                        color: CupertinoColors.systemGrey4.resolveFrom(context),
+                        child: const Icon(CupertinoIcons.music_albums, size: 64),
                       ),
               ),
               Expanded(
                 flex: 1,
                 child: Container(
-                  color: Colors.white,
+                  color: CupertinoColors.systemBackground.resolveFrom(context),
                   padding: const EdgeInsets.all(8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +148,7 @@ class AlbumCard extends StatelessWidget {
                         Text(
                           album.artistName!,
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
                             fontSize: 12,
                           ),
                           maxLines: 1,
@@ -151,7 +160,7 @@ class AlbumCard extends StatelessWidget {
                         Text(
                           album.year.toString(),
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                             fontSize: 11,
                           ),
                         ),
