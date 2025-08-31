@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../artists/artists.dart';
 import '../albums/details/albumDetails.dart';
-import '../songs/songs.dart';
+import '../Songs/songs.dart';
 
 class LibraryContent extends StatelessWidget {
   const LibraryContent({super.key});
