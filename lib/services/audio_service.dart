@@ -200,10 +200,14 @@ class AudioPlayerService extends ChangeNotifier {
     if (_preloadedPlayers.containsKey(track.id)) {
       final preloadedPlayer = _preloadedPlayers.remove(track.id);
       if (preloadedPlayer != null) {
-        // Swap the preloaded player with the main player
+        // Stop current player and start preloaded one
         await _player.stop();
-        await _player.setUrl(preloadedPlayer.audioSource?.audioSource.uri.toString() ?? '');
-        await _player.play();
+        
+        // Copy the loaded state from preloaded player to main player
+        if (preloadedPlayer.audioSource != null) {
+          await _player.setAudioSource(preloadedPlayer.audioSource!);
+          await _player.play();
+        }
         
         // Dispose the preloaded player
         preloadedPlayer.dispose();
