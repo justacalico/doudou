@@ -157,17 +157,37 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     if (_currentLineIndex >= 0 && 
         _currentLineIndex < _lineKeys.length && 
         _scrollController.hasClients) {
-      final context = _lineKeys[_currentLineIndex].currentContext;
-      if (context != null) {
-        try {
-          Scrollable.ensureVisible(
-            context,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            alignment: 0.5, // Center the line
-          );
-        } catch (e) {
-          // Ignore scroll errors that might occur during rapid transitions
+      
+      // Calculate the scroll position to center the current line
+      final itemHeight = 70.0; // Approximate height of each lyrics line
+      final viewportHeight = _scrollController.position.viewportDimension;
+      final targetOffset = (_currentLineIndex * itemHeight) - (viewportHeight / 2) + (itemHeight / 2);
+      
+      // Clamp the offset to valid scroll range
+      final maxOffset = _scrollController.position.maxScrollExtent;
+      final minOffset = _scrollController.position.minScrollExtent;
+      final clampedOffset = targetOffset.clamp(minOffset, maxOffset);
+      
+      try {
+        _scrollController.animateTo(
+          clampedOffset,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      } catch (e) {
+        // Fallback to ensureVisible if animateTo fails
+        final context = _lineKeys[_currentLineIndex].currentContext;
+        if (context != null) {
+          try {
+            Scrollable.ensureVisible(
+              context,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              alignment: 0.5, // Center the line
+            );
+          } catch (e) {
+            // Ignore scroll errors that might occur during rapid transitions
+          }
         }
       }
     }
