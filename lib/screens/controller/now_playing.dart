@@ -106,9 +106,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: CupertinoColors.black.withOpacity(0.5),
-                                blurRadius: 30,
-                                offset: const Offset(0, 15),
+                                color: const Color(0xFF000000).withOpacity(0.8),
+                                blurRadius: 40,
+                                offset: const Offset(0, 20),
                               ),
                             ],
                           ),
