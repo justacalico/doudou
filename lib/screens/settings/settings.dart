@@ -75,11 +75,14 @@ class SettingsScreen extends StatelessWidget {
                           subtitle: 'High Quality',
                           onTap: () => _showAudioQualityDialog(context),
                         ),
-                        _buildSettingTile(
+                        _buildSwitchTile(
                           icon: CupertinoIcons.volume_up,
                           title: 'Smart Crossfade',
-                          subtitle: 'Disabled',
-                          onTap: () => _showCrossfadeDialog(context),
+                          subtitle: 'Smooth transitions between tracks',
+                          value: false,
+                          onChanged: (value) {
+                            // TODO: Implement smart crossfade toggle
+                          },
                         ),
                         _buildSwitchTile(
                           icon: CupertinoIcons.speaker_2,
