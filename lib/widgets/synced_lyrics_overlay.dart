@@ -42,6 +42,10 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   int _currentLineIndex = -1;
   final ScrollController _scrollController = ScrollController();
   final List<GlobalKey> _lineKeys = [];
+  
+  // Throttling for position updates
+  Duration _lastPosition = Duration.zero;
+  bool _isUpdatingLine = false;
 
   @override
   void initState() {
