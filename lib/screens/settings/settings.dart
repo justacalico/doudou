@@ -118,10 +118,14 @@ class SettingsScreen extends StatelessWidget {
                 // Display Settings Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF000000), // Pure black background
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF2C2C2E),
+                        width: 1,
+                      ),
                     ),
                     child: Column(
                       children: [
