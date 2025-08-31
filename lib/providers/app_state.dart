@@ -8,7 +8,7 @@ import '../services/audio_handler.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
-  AudioPlayerService? _audioService;
+  DoudouAudioHandler? _audioHandler;
   
   bool _isLoggedIn = false;
   bool _isLoading = false;
@@ -28,7 +28,7 @@ class AppState extends ChangeNotifier {
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
   JellyfinService get jellyfinService => _jellyfinService;
-  AudioPlayerService? get audioService => _audioService;
+  DoudouAudioHandler? get audioHandler => _audioHandler;
   bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
 
   AppState() {
