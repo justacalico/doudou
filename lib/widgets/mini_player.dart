@@ -12,7 +12,7 @@ class MiniPlayer extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
-        final currentTrack = audioService?.currentTrack;
+        final currentTrack = audioHandler?.currentTrack;
         
         if (currentTrack == null) {
           return const SizedBox.shrink();
