@@ -244,7 +244,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                     CupertinoIcons.shuffle,
                                     color: audioHandler?.isShuffled == true 
                                         ? const Color(0xFFFF453A)
-                                        : CupertinoColors.systemGrey,
+                                        : CupertinoColors.systemGrey2,
                                     size: 28,
                                   ),
                                 ),
@@ -257,8 +257,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                     CupertinoIcons.backward_fill,
                                     size: 40,
                                     color: audioHandler?.hasPrevious == true 
-                                        ? CupertinoColors.white
-                                        : CupertinoColors.systemGrey,
+                                        ? const Color(0xFFFFFFFF)
+                                        : CupertinoColors.systemGrey2,
                                   ),
                                 ),
                                 Container(
