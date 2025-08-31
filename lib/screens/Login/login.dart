@@ -78,16 +78,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    // Server URL Field
-                    CupertinoFormSection(
-                      margin: EdgeInsets.zero,
-                      children: [
-                        CupertinoFormRow(
-                          prefix: const Icon(CupertinoIcons.globe),
-                          child: CupertinoTextFormFieldRow(
+                    // Form fields section
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CupertinoFormSection.insetGrouped(
+                        header: Text(
+                          'Server Details',
+                          style: TextStyle(
+                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        children: [
+                          CupertinoTextFormFieldRow(
                             controller: _serverController,
+                            prefix: Icon(
+                              CupertinoIcons.globe,
+                              color: CupertinoColors.systemGrey.resolveFrom(context),
+                            ),
                             placeholder: 'http://your-jellyfin-server:8096',
-                            prefix: const Text('Server URL'),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter server URL';
@@ -95,44 +105,54 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                             keyboardType: TextInputType.url,
+                            autocorrect: false,
+                            style: TextStyle(
+                              color: CupertinoColors.label.resolveFrom(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CupertinoFormSection.insetGrouped(
+                        header: Text(
+                          'Account',
+                          style: TextStyle(
+                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Username Field
-                    CupertinoFormSection(
-                      margin: EdgeInsets.zero,
-                      children: [
-                        CupertinoFormRow(
-                          prefix: const Icon(CupertinoIcons.person),
-                          child: CupertinoTextFormFieldRow(
+                        children: [
+                          CupertinoTextFormFieldRow(
                             controller: _usernameController,
+                            prefix: Icon(
+                              CupertinoIcons.person,
+                              color: CupertinoColors.systemGrey.resolveFrom(context),
+                            ),
                             placeholder: 'Username',
-                            prefix: const Text('Username'),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter username';
                               }
                               return null;
                             },
+                            autocorrect: false,
+                            style: TextStyle(
+                              color: CupertinoColors.label.resolveFrom(context),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password Field
-                    CupertinoFormSection(
-                      margin: EdgeInsets.zero,
-                      children: [
-                        CupertinoFormRow(
-                          prefix: const Icon(CupertinoIcons.lock),
-                          child: CupertinoTextFormFieldRow(
+                          CupertinoTextFormFieldRow(
                             controller: _passwordController,
+                            prefix: Icon(
+                              CupertinoIcons.lock,
+                              color: CupertinoColors.systemGrey.resolveFrom(context),
+                            ),
                             placeholder: 'Password',
-                            prefix: const Text('Password'),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter password';
@@ -140,11 +160,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                             obscureText: true,
+                            autocorrect: false,
+                            style: TextStyle(
+                              color: CupertinoColors.label.resolveFrom(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 24),
 
                     // Error Message
                     if (appState.errorMessage != null)
