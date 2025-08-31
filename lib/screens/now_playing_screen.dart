@@ -153,26 +153,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 30),
                       child: Column(
                         children: [
-                          SliderTheme(
-                            data: SliderThemeData(
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                              activeTrackColor: CupertinoColors.white,
-                              inactiveTrackColor: CupertinoColors.systemGrey,
-                              thumbColor: CupertinoColors.white,
-                            ),
-                            child: Slider(
-                              value: duration.inMilliseconds > 0
-                                  ? position.inMilliseconds / duration.inMilliseconds
-                                  : 0.0,
-                              onChanged: (value) {
-                                final newPosition = Duration(
-                                  milliseconds: (value * duration.inMilliseconds).round(),
-                                );
-                                appState.seekTo(newPosition);
-                              },
-                            ),
+                          CupertinoSlider(
+                            value: duration.inMilliseconds > 0
+                                ? position.inMilliseconds / duration.inMilliseconds
+                                : 0.0,
+                            onChanged: (value) {
+                              final newPosition = Duration(
+                                milliseconds: (value * duration.inMilliseconds).round(),
+                              );
+                              appState.seekTo(newPosition);
+                            },
+                            activeColor: CupertinoColors.white,
+                            thumbColor: CupertinoColors.white,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
