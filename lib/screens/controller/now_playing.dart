@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:audio_service/audio_service.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/music_visualizer.dart';
 import '../../widgets/synced_lyrics_overlay.dart';
