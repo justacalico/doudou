@@ -126,12 +126,12 @@ class MiniPlayer extends StatelessWidget {
                               child: processingState == ProcessingState.loading ||
                                       processingState == ProcessingState.buffering
                                   ? const CupertinoActivityIndicator(
-                                      color: CupertinoColors.white,
+                                      color: Color(0xFFFFFFFF), // Pure white for OLED
                                     )
                                   : Icon(
                                       isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
                                       size: 24,
-                                      color: CupertinoColors.white,
+                                      color: const Color(0xFFFFFFFF), // Pure white for OLED
                                     ),
                             ),
                           ),
