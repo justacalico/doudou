@@ -121,3 +121,28 @@ class Artist {
     );
   }
 }
+
+class Playlist {
+  final String id;
+  final String name;
+  final String? imageUrl;
+  final int trackCount;
+
+  Playlist({
+    required this.id,
+    required this.name,
+    this.imageUrl,
+    required this.trackCount,
+  });
+
+  factory Playlist.fromJson(Map<String, dynamic> json) {
+    return Playlist(
+      id: json['Id'],
+      name: json['Name'],
+      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+          ? json['Id'] // We'll construct the full URL in the service
+          : null,
+      trackCount: json['ChildCount'] ?? 0,
+    );
+  }
+}
