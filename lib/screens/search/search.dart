@@ -993,7 +993,14 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Container(
                   width: 50,
                   height: 50,
-                  color: const Color(0xFF2C2C2E),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF000000),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: const Color(0xFF2C2C2E),
+                      width: 1,
+                    ),
+                  ),
                   child: artist.imageUrl != null
                       ? Image.network(
                           appState.jellyfinService.getImageUrl(
