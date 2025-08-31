@@ -48,7 +48,7 @@ class MiniPlayer extends StatelessWidget {
                     child: Container(
                       width: 50,
                       height: 50,
-                      color: const Color(0xFF4A4A4A),
+                      color: const Color(0xFF1C1C1E), // OLED-friendly dark grey
                       child: currentTrack.imageUrl != null
                           ? Image.network(
                               appState.jellyfinService.getImageUrl(
@@ -60,13 +60,13 @@ class MiniPlayer extends StatelessWidget {
                               errorBuilder: (context, error, stackTrace) {
                                 return const Icon(
                                   CupertinoIcons.music_note,
-                                  color: CupertinoColors.systemGrey,
+                                  color: CupertinoColors.systemGrey2,
                                 );
                               },
                             )
                           : const Icon(
                               CupertinoIcons.music_note,
-                              color: CupertinoColors.systemGrey,
+                              color: CupertinoColors.systemGrey2,
                             ),
                     ),
                   ),
