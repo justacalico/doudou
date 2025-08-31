@@ -266,24 +266,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final preloadedPlayer = _preloadedPlayers.remove(track.id);
       if (preloadedPlayer != null) {
         try {
-          // Stop current player and start preloaded one
+          // Stop current player
           await _player.stop();
           
           // Add a small delay to ensure the stop completes
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 50));
           
-          // Copy the loaded state from preloaded player to main player
-          if (preloadedPlayer.audioSource != null) {
+          // Check if the preloaded player is ready
+          if (preloadedPlayer.audioSource != null && 
+              preloadedPlayer.processingState == ProcessingState.ready) {
+            
+            // Set the same audio source on main player
             await _player.setAudioSource(preloadedPlayer.audioSource!);
             await _player.play();
+            
+            if (kDebugMode) {
+              print('Playing preloaded track: ${track.name}');
+            }
+          } else {
+            // Preloaded player not ready, fall back to normal loading
+            if (kDebugMode) {
+              print('Preloaded player not ready, falling back to normal loading for: ${track.name}');
+            }
+            await _loadAndPlayTrack(track);
           }
           
           // Dispose the preloaded player
           preloadedPlayer.dispose();
-          
-          if (kDebugMode) {
-            print('Playing preloaded track: ${track.name}');
-          }
           
           // Preload next tracks after successful play
           _preloadNextTracks();
@@ -298,7 +307,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Fallback to normal loading if no preloaded version
+    // Fallback to normal loading if no preloaded version or if preloaded failed
     await _loadAndPlayTrack(track);
     
     // Preload next tracks after successful play
