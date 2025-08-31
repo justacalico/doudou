@@ -25,7 +25,7 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
   late AnimationController _animationController;
   late Timer _timer;
   List<double> _barHeights = [];
-  final int _barCount = 32;
+  final int _barCount = 64; // Increased for smoother effect
   final Random _random = Random();
 
   @override
