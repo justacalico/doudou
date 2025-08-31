@@ -149,7 +149,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: CupertinoColors.white,
+                                color: Color(0xFFFFFFFF),
                               ),
                               textAlign: TextAlign.center,
                               maxLines: 2,
@@ -161,7 +161,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 currentTrack.artistName!,
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: CupertinoColors.systemGrey,
+                                  color: CupertinoColors.systemGrey2,
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
