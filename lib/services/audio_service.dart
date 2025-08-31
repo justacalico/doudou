@@ -159,6 +159,9 @@ class AudioPlayerService extends ChangeNotifier {
   void shuffle() {
     if (_playlist.length <= 1) return;
     
+    // Clear preloaded players since order will change
+    _clearPreloadedPlayers();
+    
     _isShuffled = true;
     final currentTrack = _playlist[_currentIndex];
     
@@ -174,11 +177,17 @@ class AudioPlayerService extends ChangeNotifier {
     _queue = List.from(_playlist);
     _currentIndex = 0;
     
+    // Restart preloading with new order
+    _preloadNextTracks();
+    
     notifyListeners();
   }
 
   void unshuffle() {
     if (!_isShuffled || _originalPlaylist.isEmpty) return;
+    
+    // Clear preloaded players since order will change
+    _clearPreloadedPlayers();
     
     _isShuffled = false;
     final currentTrack = _currentTrack;
@@ -192,6 +201,9 @@ class AudioPlayerService extends ChangeNotifier {
       if (_currentIndex == -1) _currentIndex = 0;
     }
     
+    // Restart preloading with original order
+    _preloadNextTracks();
+    
     notifyListeners();
   }
 
@@ -203,6 +215,10 @@ class AudioPlayerService extends ChangeNotifier {
     _currentTrack = null;
     _isShuffled = false;
     _player.stop();
+    
+    // Clear all preloaded players
+    _clearPreloadedPlayers();
+    
     notifyListeners();
   }
 
