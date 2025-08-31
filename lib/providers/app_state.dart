@@ -32,8 +32,12 @@ class AppState extends ChangeNotifier {
   bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
 
   AppState() {
-    _loadSavedServer();
-    _loadUserSettings();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await _loadUserSettings();
+    await _loadSavedServer();
   }
 
   Future<void> _loadSavedServer() async {
