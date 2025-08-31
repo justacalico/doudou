@@ -249,8 +249,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
         child: MiniPlayer(),
       ),
     ],
-    );
-  }
+  );
+}
 
   void _playTrack(Track track, int index) {
     final appState = context.read<AppState>();
