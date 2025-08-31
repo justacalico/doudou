@@ -114,7 +114,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     if (_lyricsResult?.syncedLyrics == null || _isUpdatingLine) return;
     
     // Throttle updates to prevent excessive rebuilds
-    if ((position - _lastPosition).abs() < const Duration(milliseconds: 100)) {
+    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) {
       return;
     }
     
@@ -142,10 +142,12 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
             _currentLineIndex = newLineIndex;
           });
           
-          // Auto-scroll to current line
-          if (newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
-            _scrollToCurrentLine();
-          }
+          // Auto-scroll to current line with a slight delay for smoother animation
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted && newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
+              _scrollToCurrentLine();
+            }
+          });
           
           _isUpdatingLine = false;
         }
