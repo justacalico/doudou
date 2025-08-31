@@ -96,6 +96,12 @@ class AudioPlayerService extends ChangeNotifier {
   void addToQueue(Track track) {
     _queue.add(track);
     _playlist.add(track);
+    
+    // Trigger preloading if this track is within preload range
+    if (_smartCrossfadeEnabled && _playlist.length - _currentIndex <= _maxPreloadedTracks + 1) {
+      _preloadTrack(track);
+    }
+    
     notifyListeners();
   }
 
@@ -103,6 +109,13 @@ class AudioPlayerService extends ChangeNotifier {
     final insertIndex = _currentIndex + 1;
     _queue.insert(insertIndex, track);
     _playlist.insert(insertIndex, track);
+    
+    // Clean up and restart preloading since queue order changed
+    if (_smartCrossfadeEnabled) {
+      _cleanupOldPreloadedPlayers();
+      _preloadNextTracks();
+    }
+    
     notifyListeners();
   }
 
