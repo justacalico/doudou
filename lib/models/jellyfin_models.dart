@@ -144,6 +144,14 @@ class Artist {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Id': id,
+      'Name': name,
+      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
+    };
+  }
 }
 
 class Playlist {
