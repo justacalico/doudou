@@ -314,15 +314,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
-                                if (currentTrack != null) {
-                                  appState.toggleFavorite(currentTrack);
-                                }
+                                appState.toggleFavorite(currentTrack);
                               },
                               child: Icon(
-                                currentTrack?.isFavorite == true 
+                                currentTrack.isFavorite 
                                     ? CupertinoIcons.heart_fill
                                     : CupertinoIcons.heart,
-                                color: currentTrack?.isFavorite == true 
+                                color: currentTrack.isFavorite 
                                     ? const Color(0xFFFF453A)
                                     : CupertinoColors.systemRed,
                                 size: 24,
