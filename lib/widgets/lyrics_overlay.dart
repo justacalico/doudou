@@ -2,6 +2,18 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+/// Shows the lyrics overlay as a modal popup
+void showLyricsOverlay(BuildContext context, String trackName, String artistName) {
+  showCupertinoModalPopup(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.3),
+    builder: (context) => LyricsOverlay(
+      trackName: trackName,
+      artistName: artistName,
+    ),
+  );
+}
+
 class LyricsOverlay extends StatefulWidget {
   final String trackName;
   final String artistName;
