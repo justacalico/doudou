@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../Artists/artists.dart';
 import '../Albums/details/album_details.dart';
-import '../Songs/songs.dart';
+import '../songs/songs.dart';
 import '../playlists/playlists.dart';
 import '../Favorites/favorites.dart';
 
