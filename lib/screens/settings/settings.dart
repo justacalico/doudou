@@ -18,10 +18,10 @@ class SettingsScreen extends StatelessWidget {
             
             return CustomScrollView(
               slivers: [
-                // Custom header instead of navigation bar for better OLED optimization
+                // Custom header for iOS-style left-aligned title
                 SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
                     child: const Text(
                       'Settings',
                       style: TextStyle(
