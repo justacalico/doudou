@@ -331,12 +331,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => const QueueScreen(),
-                                  ),
-                                );
+                                showQueueOverlay(context);
                               },
                               child: const Icon(
                                 CupertinoIcons.list_bullet,
