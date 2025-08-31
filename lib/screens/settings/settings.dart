@@ -590,12 +590,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showCacheDialog(BuildContext context) {
+  void _showCacheDialog(BuildContext context) async {
+    final appState = context.read<AppState>();
+    
+    // Get cache stats
+    final cacheStats = await appState.getCacheStats();
+    final dataCache = cacheStats['data_cache'] as Map<String, int>? ?? {};
+    final imageCacheSize = cacheStats['image_cache_size'] as int? ?? 0;
+    
+    // Calculate total entries
+    int totalDataEntries = 0;
+    for (final count in dataCache.values) {
+      totalDataEntries += count;
+    }
+    
+    // Format image cache size
+    String imageSizeText = '';
+    if (imageCacheSize > 0) {
+      if (imageCacheSize > 1024 * 1024) {
+        imageSizeText = '${(imageCacheSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+      } else if (imageCacheSize > 1024) {
+        imageSizeText = '${(imageCacheSize / 1024).toStringAsFixed(1)} KB';
+      } else {
+        imageSizeText = '$imageCacheSize bytes';
+      }
+    } else {
+      imageSizeText = '0 MB';
+    }
+    
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: const Text('Cache Information'),
-        content: const Text('Cache stores temporarily downloaded music and images for faster access.\n\nEstimated cache size: ~50 MB'),
+        content: Text(
+          'Cache stores downloaded music metadata and images for faster access.\n\n'
+          'Data Cache: $totalDataEntries entries\n'
+          'Image Cache: $imageSizeText\n\n'
+          'Cached data includes albums, artists, tracks, and playlists.'
+        ),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             child: const Text('OK'),
