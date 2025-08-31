@@ -25,6 +25,61 @@ android: $(BUILD_DIR)
 	cp build/app/outputs/flutter-apk/app-release.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android.apk
 	@echo "Android build complete!"
 
+# Android signed release build
+.PHONY: android-signed
+android-signed: $(BUILD_DIR)
+	@echo "Building signed Android APK for version $(VERSION)..."
+	@echo "Checking keystore environment variables..."
+	@if [ -z "$(KEYSTORE_PASSWORD)" ]; then echo "Error: KEYSTORE_PASSWORD not set"; exit 1; fi
+	@if [ -z "$(KEY_PASSWORD)" ]; then echo "Error: KEY_PASSWORD not set"; exit 1; fi
+	@if [ -z "$(KEY_ALIAS)" ]; then echo "Error: KEY_ALIAS not set"; exit 1; fi
+	@if [ -z "$(KEYSTORE_PATH)" ]; then echo "Error: KEYSTORE_PATH not set"; exit 1; fi
+	@if [ ! -f "$(KEYSTORE_PATH)" ]; then echo "Error: Keystore file not found at $(KEYSTORE_PATH)"; exit 1; fi
+	@echo "Building with keystore: $(KEYSTORE_PATH), alias: $(KEY_ALIAS)"
+	flutter build apk --release \
+		--dart-define=KEYSTORE_PASSWORD=$(KEYSTORE_PASSWORD) \
+		--dart-define=KEY_PASSWORD=$(KEY_PASSWORD) \
+		--dart-define=KEY_ALIAS=$(KEY_ALIAS) \
+		--dart-define=KEYSTORE_PATH=$(KEYSTORE_PATH)
+	@echo "Copying signed APK to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-signed.apk"
+	cp build/app/outputs/flutter-apk/app-release.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-signed.apk
+	@echo "Signed Android build complete!"
+
+# Android App Bundle (for Play Store)
+.PHONY: android-bundle
+android-bundle: $(BUILD_DIR)
+	@echo "Building Android App Bundle for version $(VERSION)..."
+	@echo "Checking keystore environment variables..."
+	@if [ -z "$(KEYSTORE_PASSWORD)" ]; then echo "Error: KEYSTORE_PASSWORD not set"; exit 1; fi
+	@if [ -z "$(KEY_PASSWORD)" ]; then echo "Error: KEY_PASSWORD not set"; exit 1; fi
+	@if [ -z "$(KEY_ALIAS)" ]; then echo "Error: KEY_ALIAS not set"; exit 1; fi
+	@if [ -z "$(KEYSTORE_PATH)" ]; then echo "Error: KEYSTORE_PATH not set"; exit 1; fi
+	@if [ ! -f "$(KEYSTORE_PATH)" ]; then echo "Error: Keystore file not found at $(KEYSTORE_PATH)"; exit 1; fi
+	@echo "Building App Bundle with keystore: $(KEYSTORE_PATH), alias: $(KEY_ALIAS)"
+	flutter build appbundle --release \
+		--dart-define=KEYSTORE_PASSWORD=$(KEYSTORE_PASSWORD) \
+		--dart-define=KEY_PASSWORD=$(KEY_PASSWORD) \
+		--dart-define=KEY_ALIAS=$(KEY_ALIAS) \
+		--dart-define=KEYSTORE_PATH=$(KEYSTORE_PATH)
+	@echo "Copying App Bundle to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android.aab"
+	cp build/app/outputs/bundle/release/app-release.aab $(BUILD_DIR)/doudou-flutter-$(VERSION)-android.aab
+	@echo "Android App Bundle build complete!"
+
+# Generate keystore (one-time setup)
+.PHONY: generate-keystore
+generate-keystore:
+	@echo "Generating new Android keystore..."
+	@mkdir -p android/app
+	@if [ -f "android/app/key.jks" ]; then echo "Keystore already exists at android/app/key.jks"; exit 1; fi
+	keytool -genkey -v -keystore android/app/key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias doudou
+	@echo "Keystore generated at android/app/key.jks"
+	@echo ""
+	@echo "Remember to export your keystore password environment variables:"
+	@echo "export KEYSTORE_PASSWORD='your_password'"
+	@echo "export KEY_PASSWORD='your_key_password'"
+	@echo "export KEY_ALIAS='doudou'"
+	@echo "export KEYSTORE_PATH='android/app/key.jks'"
+
 # iOS build
 .PHONY: ios
 ios: $(BUILD_DIR)
@@ -105,19 +160,31 @@ help:
 	@echo "  make [target]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  mobile     Build Android and iOS packages"
-	@echo "  android    Build Android APK only"
-	@echo "  ios        Build iOS IPA only"
-	@echo "  desktop    Build Windows, macOS and Linux packages"
-	@echo "  windows    Build Windows package only"
-	@echo "  macos      Build macOS package only"
-	@echo "  linux      Build Linux package only"
-	@echo "  clean      Clean Flutter build directories"
-	@echo "  clean-all  Clean Flutter and version build directories"
+	@echo "  mobile          Build Android and iOS packages"
+	@echo "  android         Build Android APK only (debug signing)"
+	@echo "  android-signed  Build signed Android APK (requires keystore env vars)"
+	@echo "  android-bundle  Build Android App Bundle for Play Store (requires keystore env vars)"
+	@echo "  ios             Build iOS IPA only"
+	@echo "  desktop         Build Windows, macOS and Linux packages"
+	@echo "  windows         Build Windows package only"
+	@echo "  macos           Build macOS package only"
+	@echo "  linux           Build Linux package only"
+	@echo "  generate-keystore  Generate new Android keystore (one-time setup)"
+	@echo "  clean           Clean Flutter build directories"
+	@echo "  clean-all       Clean Flutter and version build directories"
 	@echo ""
-	@echo "Options:"
-	@echo "  VERSION    Extracted from pubspec.yaml"
+	@echo "Android Signing Environment Variables (required for signed builds):"
+	@echo "  KEYSTORE_PASSWORD   Password for the keystore file"
+	@echo "  KEY_PASSWORD        Password for the signing key"
+	@echo "  KEY_ALIAS           Alias name for the signing key (default: doudou)"
+	@echo "  KEYSTORE_PATH       Path to keystore file (default: android/app/key.jks)"
 	@echo ""
-	@echo "Example:"
-	@echo "  make android"
-	@echo "  make linux"
+	@echo "Examples:"
+	@echo "  make android                    # Debug signed APK"
+	@echo "  make generate-keystore          # One-time keystore setup"
+	@echo "  export KEYSTORE_PASSWORD='your_password'"
+	@echo "  export KEY_PASSWORD='your_key_password'"
+	@echo "  export KEY_ALIAS='doudou'"
+	@echo "  export KEYSTORE_PATH='android/app/key.jks'"
+	@echo "  make android-signed             # Production signed APK"
+	@echo "  make android-bundle             # App Bundle for Play Store"
