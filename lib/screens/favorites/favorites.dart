@@ -15,18 +15,6 @@ class FavoritesView extends StatelessWidget {
         // Filter tracks to only show favorites
         final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
 
-        if (isLoading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF000000), // Pure black background
-        body: const Center(
-          child: CupertinoActivityIndicator(
-            color: Color(0xFFFF453A),
-            radius: 16,
-          ),
-        ),
-      );
-    }
-
         if (favoriteTracks.isEmpty) {
           return Container(
             color: const Color(0xFF000000), // Pure black for OLED
