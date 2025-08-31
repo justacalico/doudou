@@ -208,7 +208,7 @@ class _SearchScreenState extends State<SearchScreen> {
             subtitle: 'Browse all albums',
             color: const Color(0xFF30D158),
             onTap: () {
-              // TODO: Navigate to albums
+              _showAlbums(context, appState);
             },
           ),
           _buildBrowseCategory(
