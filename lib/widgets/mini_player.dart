@@ -11,7 +11,7 @@ class MiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final audioService = appState.audioService;
+        final audioHandler = appState.audioHandler;
         final currentTrack = audioService?.currentTrack;
         
         if (currentTrack == null) {
