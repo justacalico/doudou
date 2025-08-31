@@ -72,17 +72,45 @@ class _LyricsOverlayState extends State<LyricsOverlay>
   }
 
   Future<void> _loadLyrics() async {
-    // Simulate loading lyrics - in a real app, you'd fetch from an API
-    await Future.delayed(const Duration(seconds: 2));
-    
-    setState(() {
-      _lyrics = 'Lyrics for "${widget.trackName}" by ${widget.artistName}\n\n'
-          'Lyrics are not available for this track.\n\n'
-          'This is a placeholder where song lyrics would appear.\n\n'
-          'In a production app, you would integrate with a lyrics API service '
-          'to fetch and display the actual song lyrics here.';
-      _isLoading = false;
-    });
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      // Fetch real lyrics from the API
+      final lyrics = await LyricsService.fetchLyrics(widget.trackName, widget.artistName);
+      
+      setState(() {
+        if (lyrics != null && lyrics.trim().isNotEmpty) {
+          _lyrics = lyrics;
+        } else {
+          _lyrics = _getNoLyricsMessage();
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _lyrics = _getErrorMessage();
+        _isLoading = false;
+      });
+    }
+  }
+  
+  /// Get message when no lyrics are found
+  String _getNoLyricsMessage() {
+    return 'Lyrics not found for "${widget.trackName}" by ${widget.artistName}\n\n'
+        'This could be because:\n'
+        '• The song is instrumental\n'
+        '• The lyrics are not in our database\n'
+        '• There might be a difference in the song title or artist name\n\n'
+        'You can try searching for lyrics manually or check if the song information is correct.';
+  }
+  
+  /// Get error message when there's a network or API issue
+  String _getErrorMessage() {
+    return 'Unable to load lyrics for "${widget.trackName}" by ${widget.artistName}\n\n'
+        'Please check your internet connection and try again.\n\n'
+        'If the problem persists, the lyrics service might be temporarily unavailable.';
   }
 
   @override
