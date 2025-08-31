@@ -12,6 +12,15 @@ class HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        // Create different shuffled lists for variety
+        final allAlbums = List<Album>.from(appState.albums);
+        final shuffledAlbums = List<Album>.from(allAlbums)..shuffle();
+        final recentAlbums = allAlbums.take(6).toList();
+        final continueListeningAlbums = shuffledAlbums.take(4).toList();
+        final madeForYouAlbums = allAlbums.length > 10 
+            ? allAlbums.skip(6).take(4).toList() 
+            : shuffledAlbums.skip(2).take(4).toList();
+        
         return Container(
           color: const Color(0xFF000000),
           child: CustomScrollView(
