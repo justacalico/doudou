@@ -321,76 +321,32 @@ class LibraryContent extends StatelessWidget {
   Widget _buildSongsPage() {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        // Get all songs from all albums
-        final allSongs = <dynamic>[];
-        for (final album in appState.albums) {
-          if (album.songs != null) {
-            allSongs.addAll(album.songs!);
-          }
-        }
-
         return CustomScrollView(
           slivers: [
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final song = allSongs[index];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Color(0xFF2C2C2E),
-                          width: 0.5,
-                        ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Songs will be loaded from your albums',
+                      style: TextStyle(
+                        color: CupertinoColors.systemGrey,
+                        fontSize: 16,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                song.name ?? 'Unknown Song',
-                                style: const TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 16,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (song.artistName != null) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  song.artistName!,
-                                  style: const TextStyle(
-                                    color: CupertinoColors.systemGrey,
-                                    fontSize: 14,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            // Play song
-                          },
-                          child: const Icon(
-                            CupertinoIcons.play_circle,
-                            color: CupertinoColors.systemGrey,
-                            size: 24,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 20),
+                    CupertinoButton.filled(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Navigate to Albums to see songs
+                        _navigateToSection(context, 'Albums');
+                      },
+                      child: const Text('Browse Albums'),
                     ),
-                  );
-                },
-                childCount: allSongs.length,
+                  ],
+                ),
               ),
             ),
           ],
