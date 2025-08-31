@@ -44,32 +44,16 @@ class MiniPlayer extends StatelessWidget {
               child: Row(
                 children: [
                   // Album Art
-                  ClipRRect(
+                  AlbumArtWidget(
+                    imageUrl: currentTrack.imageUrl != null
+                        ? appState.jellyfinService.getImageUrl(
+                            currentTrack.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          )
+                        : null,
+                    size: 50,
                     borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      color: const Color(0xFF1C1C1E), // OLED-friendly dark grey
-                      child: currentTrack.imageUrl != null
-                          ? Image.network(
-                              appState.jellyfinService.getImageUrl(
-                                currentTrack.imageUrl!,
-                                width: 100,
-                                height: 100,
-                              ),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  CupertinoIcons.music_note,
-                                  color: CupertinoColors.systemGrey2,
-                                );
-                              },
-                            )
-                          : const Icon(
-                              CupertinoIcons.music_note,
-                              color: CupertinoColors.systemGrey2,
-                            ),
-                    ),
                   ),
                   const SizedBox(width: 12),
                   
