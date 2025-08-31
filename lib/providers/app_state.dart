@@ -140,18 +140,25 @@ class AppState extends ChangeNotifier {
       if (success) {
         _isLoggedIn = true;
         
-        // Initialize audio handler after successful login
-        _audioHandler = await AudioService.init(
-          builder: () => DoudouAudioHandler(_jellyfinService),
-          config: const AudioServiceConfig(
-            androidNotificationChannelId: 'com.example.doudou.channel.audio',
-            androidNotificationChannelName: 'Doudou Music',
-            androidNotificationOngoing: true,
-          ),
-        );
-        
-        // Apply user settings to the audio handler
-        _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+        // Try to initialize audio handler after successful login
+        try {
+          _audioHandler = await AudioService.init(
+            builder: () => DoudouAudioHandler(_jellyfinService),
+            config: const AudioServiceConfig(
+              androidNotificationChannelId: 'com.example.doudou.channel.audio',
+              androidNotificationChannelName: 'Doudou Music',
+              androidNotificationOngoing: true,
+            ),
+          );
+          
+          // Apply user settings to the audio handler
+          _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+        } catch (audioError) {
+          if (kDebugMode) {
+            print('Failed to initialize audio service: $audioError');
+          }
+          // Continue without audio service
+        }
         
         await _saveServer();
         await loadLibraryData();
