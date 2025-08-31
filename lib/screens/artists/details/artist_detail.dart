@@ -501,80 +501,101 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   Widget _buildAlbumTile(Album album, AppState appState) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: () {
-        // TODO: Navigate to album details
-      },
-      child: Container(
-        decoration: BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF000000),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
           color: const Color(0xFF1C1C1E),
-          borderRadius: BorderRadius.circular(8),
+          width: 1,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Album Art
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+      ),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          // TODO: Navigate to album details
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Album Art
+              Expanded(
                 child: Container(
                   width: double.infinity,
-                  color: const Color(0xFF2C2C2E),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1E),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                  ),
                   child: album.imageUrl != null
-                      ? Image.network(
-                          appState.jellyfinService.getImageUrl(
+                      ? CachedNetworkImage(
+                          imageUrl: appState.jellyfinService.getImageUrl(
                             album.imageUrl!,
-                            width: 300,
-                            height: 300,
+                            width: 320,
+                            height: 320,
                           ),
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(
+                          placeholder: (context, url) => Container(
+                            color: const Color(0xFF1C1C1E),
+                            child: const Center(
+                              child: CupertinoActivityIndicator(
+                                color: Color(0xFF8E8E93),
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: const Color(0xFF1C1C1E),
+                            child: const Icon(
                               CupertinoIcons.music_albums,
-                              color: CupertinoColors.systemGrey2,
+                              color: Color(0xFF8E8E93),
                               size: 40,
-                            );
-                          },
+                            ),
+                          ),
                         )
-                      : const Icon(
-                          CupertinoIcons.music_albums,
-                          color: CupertinoColors.systemGrey2,
-                          size: 40,
+                      : Container(
+                          color: const Color(0xFF1C1C1E),
+                          child: const Icon(
+                            CupertinoIcons.music_albums,
+                            color: Color(0xFF8E8E93),
+                            size: 40,
+                          ),
                         ),
                 ),
               ),
-            ),
-            // Album Info
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    album.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFFFFFFF),
+              // Album Info
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: const Color(0xFF000000),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      album.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                        height: 1.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    album.artistName ?? 'Unknown Artist',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: CupertinoColors.systemGrey2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    if (album.year != null)
+                      Text(
+                        album.year.toString(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
