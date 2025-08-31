@@ -238,7 +238,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                     ),
                   ),
                   SliverToBoxAdapter(
-                    child: Container(
+                    child: SizedBox(
                       height: 220,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
@@ -408,9 +408,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     return CupertinoButton(
       padding: EdgeInsets.zero,
       onPressed: () async {
-        await appState.playTrack(track);
-        // Set the queue to all artist tracks
-        appState.setQueue(_artistTracks);
+        // Find the track index in the artist tracks list
+        final trackIndex = _artistTracks.indexOf(track);
+        if (trackIndex != -1) {
+          await appState.audioHandler?.playPlaylist(_artistTracks, trackIndex);
+        } else {
+          // Fallback to playing single track
+          await appState.playTrack(track);
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(12),
