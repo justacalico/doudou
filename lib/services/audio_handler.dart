@@ -510,7 +510,67 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await stop();
   }
 
+  Future<void> _savePlaybackState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Save current playlist
+      if (_playlist.isNotEmpty) {
+        final playlistJson = _playlist.map((track) => track.toJson()).toList();
+        await prefs.setString('current_playlist', jsonEncode(playlistJson));
+        await prefs.setInt('current_index', _currentIndex);
+        await prefs.setBool('is_shuffled', _isShuffled);
+        
+        // Save current position
+        final position = _player.position.inMilliseconds;
+        await prefs.setInt('playback_position', position);
+        
+        if (_currentTrack != null) {
+          await prefs.setString('current_track_id', _currentTrack!.id);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving playback state: $e');
+      }
+    }
+  }
+
+  Future<void> _loadPlaybackState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      final playlistString = prefs.getString('current_playlist');
+      if (playlistString != null) {
+        final playlistJson = jsonDecode(playlistString) as List;
+        _playlist = playlistJson.map((json) => Track.fromJson(json)).toList();
+        _queue = List.from(_playlist);
+        
+        _currentIndex = prefs.getInt('current_index') ?? 0;
+        _isShuffled = prefs.getBool('is_shuffled') ?? false;
+        
+        if (_playlist.isNotEmpty && _currentIndex < _playlist.length) {
+          _currentTrack = _playlist[_currentIndex];
+          
+          // Update audio service queue
+          queue.add(_playlist.map(_trackToMediaItem).toList());
+          
+          // Restore position but don't auto-play
+          final savedPosition = prefs.getInt('playback_position') ?? 0;
+          if (savedPosition > 0) {
+            await _player.seek(Duration(milliseconds: savedPosition));
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading playback state: $e');
+      }
+    }
+  }
+
   void dispose() {
+    _savePlaybackState();
     _clearPreloadedPlayers();
     _player.dispose();
   }
