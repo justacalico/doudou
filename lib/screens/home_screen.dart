@@ -1,9 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import '../providers/app_state.dart';
 import 'home_content.dart';
 import 'library_content.dart';
-import 'now_playing_screen.dart';
 import '../widgets/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
