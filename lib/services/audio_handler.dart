@@ -312,6 +312,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Attempting to play track: ${track.name} using $streamType URL');
         }
         
+        // Stop current player before loading new track to prevent interruption errors
+        await _player.stop();
+        
+        // Add a small delay to ensure the stop completes
+        await Future.delayed(const Duration(milliseconds: 100));
+        
         await _player.setUrl(streamUrl);
         await _player.play();
         
