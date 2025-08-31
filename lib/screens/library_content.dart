@@ -100,8 +100,6 @@ class LibraryContent extends StatelessWidget {
                       color: const Color(0xFFFF453A),
                       onTap: () => _navigateToSection(context, 'Favorites'),
                     ),
-                    const SizedBox(height: 40),
-                    _buildRecentlyAddedSection(context),
                   ],
                 ),
               ),
