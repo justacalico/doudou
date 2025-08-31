@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import 'home_content.dart';
-import 'albums_tab.dart';
+import 'library_content.dart';
 import 'now_playing_screen.dart';
 import '../widgets/mini_player.dart';
 
@@ -52,8 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
             showNavBar = false; // Home has custom header
             break;
           case 1:
-            content = const AlbumsTab();
+            content = const LibraryContent();
             title = 'Library';
+            showNavBar = false; // Library has custom header
             break;
           case 2:
             content = _buildComingSoonTab('Downloads');
