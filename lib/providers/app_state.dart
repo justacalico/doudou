@@ -338,19 +338,79 @@ class AppState extends ChangeNotifier {
 
   Future<List<Track>> getAlbumTracks(String albumId) async {
     try {
-      return await _jellyfinService.getAlbumTracks(albumId);
+      // Try cache first
+      final cachedTracks = await _cacheService.getCachedAlbumTracks(albumId);
+      if (cachedTracks != null) {
+        if (kDebugMode) {
+          print('Loaded album tracks from cache for album: $albumId');
+        }
+        
+        // Load fresh data in background and update cache
+        _loadAlbumTracksInBackground(albumId);
+        
+        return cachedTracks;
+      }
+      
+      // Load fresh data
+      final tracks = await _jellyfinService.getAlbumTracks(albumId);
+      
+      // Cache the tracks
+      await _cacheService.cacheAlbumTracks(albumId, tracks);
+      
+      return tracks;
     } catch (e) {
       _setError('Failed to load tracks: ${e.toString()}');
       return [];
     }
   }
+  
+  Future<void> _loadAlbumTracksInBackground(String albumId) async {
+    try {
+      final tracks = await _jellyfinService.getAlbumTracks(albumId);
+      await _cacheService.cacheAlbumTracks(albumId, tracks);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to refresh album tracks in background: $e');
+      }
+    }
+  }
 
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
     try {
-      return await _jellyfinService.getPlaylistTracks(playlistId);
+      // Try cache first
+      final cachedTracks = await _cacheService.getCachedPlaylistTracks(playlistId);
+      if (cachedTracks != null) {
+        if (kDebugMode) {
+          print('Loaded playlist tracks from cache for playlist: $playlistId');
+        }
+        
+        // Load fresh data in background and update cache
+        _loadPlaylistTracksInBackground(playlistId);
+        
+        return cachedTracks;
+      }
+      
+      // Load fresh data
+      final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+      
+      // Cache the tracks
+      await _cacheService.cachePlaylistTracks(playlistId, tracks);
+      
+      return tracks;
     } catch (e) {
       _setError('Failed to load playlist tracks: ${e.toString()}');
       return [];
+    }
+  }
+  
+  Future<void> _loadPlaylistTracksInBackground(String playlistId) async {
+    try {
+      final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+      await _cacheService.cachePlaylistTracks(playlistId, tracks);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to refresh playlist tracks in background: $e');
+      }
     }
   }
 
