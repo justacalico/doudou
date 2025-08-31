@@ -179,10 +179,10 @@ class FavoriteTrackListItem extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: track.albumArt != null
+            child: track.imageUrl != null
                 ? CachedNetworkImage(
                     imageUrl: appState.jellyfinService.getImageUrl(
-                      track.albumArt!,
+                      track.imageUrl!,
                       width: 96,
                       height: 96,
                     ),
