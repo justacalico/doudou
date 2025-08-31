@@ -217,7 +217,7 @@ class _SearchScreenState extends State<SearchScreen> {
             subtitle: 'Browse all artists',
             color: const Color(0xFFFF9F0A),
             onTap: () {
-              // TODO: Navigate to artists
+              _showArtists(context, appState);
             },
           ),
         ],
