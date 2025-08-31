@@ -69,6 +69,7 @@ class _SearchScreenState extends State<SearchScreen> {
       builder: (context, appState, child) {
         return CupertinoPageScaffold(
           backgroundColor: const Color(0xFF000000), // Pure black for OLED
+          resizeToAvoidBottomInset: true,
           child: SafeArea(
             child: Column(
               children: [
