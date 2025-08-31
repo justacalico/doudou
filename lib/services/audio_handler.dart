@@ -23,6 +23,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {};
   static const int _maxPreloadedTracks = 3;
+  
+  // Periodic state saving
+  Timer? _saveStateTimer;
 
   DoudouAudioHandler(this._jellyfinService) {
     _init();
