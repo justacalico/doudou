@@ -300,6 +300,7 @@ class SongTile extends StatelessWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );
