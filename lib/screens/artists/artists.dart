@@ -173,7 +173,7 @@ class ArtistCard extends StatelessWidget {
         ),
       ),
       child: CupertinoListTile(
-        backgroundColor: Colors.transparent,
+        backgroundColor: CupertinoColors.clear,
         leading: Container(
           width: 56,
           height: 56,
