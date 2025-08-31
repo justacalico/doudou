@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../services/lyrics_service.dart';
 
 /// Shows the lyrics overlay as a modal popup
 void showLyricsOverlay(BuildContext context, String trackName, String artistName) {
