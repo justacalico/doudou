@@ -93,7 +93,7 @@ class MiniPlayer extends StatelessWidget {
                           Text(
                             currentTrack.artistName!,
                             style: const TextStyle(
-                              color: CupertinoColors.systemGrey,
+                              color: CupertinoColors.systemGrey2,
                               fontSize: 14,
                             ),
                             maxLines: 1,
