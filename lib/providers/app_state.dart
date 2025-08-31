@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../services/jellyfinService.dart';
-import '../services/audioService.dart';
+import '../services/audio_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
