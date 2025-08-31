@@ -111,7 +111,14 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   }
 
   void _updateCurrentLine(Duration position) {
-    if (_lyricsResult?.syncedLyrics == null) return;
+    if (_lyricsResult?.syncedLyrics == null || _isUpdatingLine) return;
+    
+    // Throttle updates to prevent excessive rebuilds
+    if ((position - _lastPosition).abs() < const Duration(milliseconds: 100)) {
+      return;
+    }
+    
+    _lastPosition = position;
     
     final lines = _lyricsResult!.syncedLyrics!;
     int newLineIndex = -1;
@@ -126,6 +133,8 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     }
     
     if (newLineIndex != _currentLineIndex) {
+      _isUpdatingLine = true;
+      
       // Use post frame callback to avoid setState during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -137,6 +146,8 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
           if (newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
             _scrollToCurrentLine();
           }
+          
+          _isUpdatingLine = false;
         }
       });
     }
