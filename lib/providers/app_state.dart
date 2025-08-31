@@ -32,6 +32,7 @@ class AppState extends ChangeNotifier {
 
   AppState() {
     _loadSavedServer();
+    _loadUserSettings();
   }
 
   Future<void> _loadSavedServer() async {
