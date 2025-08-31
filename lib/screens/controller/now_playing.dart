@@ -307,11 +307,25 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 ),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () {
+                                  onPressed: () async {
                                     final audioHandler = appState.audioHandler;
                                     if (audioHandler != null) {
-                                      // Cycle through repeat modes: off -> all -> one -> off
-                                      audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                      // Get current repeat mode
+                                      final currentState = audioHandler.playbackState.value;
+                                      final currentMode = currentState.repeatMode;
+                                      
+                                      // Cycle through repeat modes: none -> all -> one -> none
+                                      switch (currentMode) {
+                                        case AudioServiceRepeatMode.none:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                          break;
+                                        case AudioServiceRepeatMode.all:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                          break;
+                                        case AudioServiceRepeatMode.one:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                          break;
+                                      }
                                     }
                                   },
                                   child: StreamBuilder<AudioServiceRepeatMode>(
