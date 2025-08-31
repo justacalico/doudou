@@ -213,6 +213,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           subtitle: 'Free up storage space',
                           onTap: () => _showClearCacheDialog(context),
                         ),
+                        _buildSettingTile(
+                          icon: CupertinoIcons.refresh,
+                          title: 'Clean Expired Cache',
+                          subtitle: 'Remove old cached data',
+                          onTap: () => _cleanExpiredCache(context),
+                        ),
                       ],
                     ),
                   ),
