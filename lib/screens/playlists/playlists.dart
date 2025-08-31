@@ -94,6 +94,77 @@ class PlaylistsView extends StatelessWidget {
       },
     );
   }
+
+  void _showCreatePlaylistDialog(BuildContext context, AppState appState) {
+    final TextEditingController nameController = TextEditingController();
+    
+    showCupertinoDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Create Playlist'),
+          content: Container(
+            margin: const EdgeInsets.only(top: 16),
+            child: CupertinoTextField(
+              controller: nameController,
+              placeholder: 'Playlist name',
+              style: const TextStyle(color: CupertinoColors.black),
+              decoration: BoxDecoration(
+                color: CupertinoColors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              autofocus: true,
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Create'),
+              onPressed: () {
+                final playlistName = nameController.text.trim();
+                if (playlistName.isNotEmpty) {
+                  _createPlaylist(context, appState, playlistName);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _createPlaylist(BuildContext context, AppState appState, String name) {
+    // Close the dialog first
+    Navigator.of(context).pop();
+    
+    // TODO: Implement playlist creation in AppState
+    // appState.createPlaylist(name);
+    
+    // For now, show a message that the feature is not yet implemented
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Feature Coming Soon'),
+          content: Text('Playlist creation will be implemented soon.\nPlaylist name: "$name"'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class PlaylistTile extends StatelessWidget {
