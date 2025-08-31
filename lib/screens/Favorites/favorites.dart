@@ -251,7 +251,7 @@ class FavoriteTrackListItem extends StatelessWidget {
 
   void _toggleFavorite(BuildContext context, Track track) {
     final appState = context.read<AppState>();
-    appState.toggleTrackFavorite(track.id);
+    appState.toggleFavorite(track);
   }
 
   String _formatDuration(Duration duration) {
