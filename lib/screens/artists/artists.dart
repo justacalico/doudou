@@ -113,8 +113,12 @@ class ArtistCard extends StatelessWidget {
         ),
         trailing: const Icon(CupertinoIcons.forward, size: 16, color: CupertinoColors.systemGrey),
         onTap: () {
-          // TODO: Navigate to artist detail screen
-          _showAlert(context, artist.name);
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => ArtistDetailScreen(artist: artist),
+            ),
+          );
         },
       ),
     );
