@@ -296,8 +296,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                     CupertinoIcons.forward_fill,
                                     size: 40,
                                     color: audioHandler?.hasNext == true 
-                                        ? CupertinoColors.white
-                                        : CupertinoColors.systemGrey,
+                                        ? const Color(0xFFFFFFFF)
+                                        : CupertinoColors.systemGrey2,
                                   ),
                                 ),
                                 CupertinoButton(
