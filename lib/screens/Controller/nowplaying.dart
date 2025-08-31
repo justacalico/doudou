@@ -155,10 +155,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       
                       // Progress slider
                       StreamBuilder<Duration>(
-                        stream: audioService?.positionStream ?? Stream.value(Duration.zero),
+                        stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
                         builder: (context, snapshot) {
                           final position = snapshot.data ?? Duration.zero;
-                          final duration = audioService?.duration ?? Duration.zero;
+                          final duration = audioHandler?.duration ?? Duration.zero;
                           
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 30),
