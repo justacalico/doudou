@@ -337,15 +337,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () {}, // Share/more
-                              child: const Icon(
-                                CupertinoIcons.square_arrow_up,
-                                color: CupertinoColors.white,
-                                size: 24,
-                              ),
-                            ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
                               onPressed: () {}, // More options
                               child: const Icon(
                                 CupertinoIcons.ellipsis,
