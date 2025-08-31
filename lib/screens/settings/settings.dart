@@ -728,6 +728,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _cleanExpiredCache(BuildContext context) async {
+    final appState = context.read<AppState>();
+    try {
+      await appState.cleanupExpiredCache();
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text('Cache Cleaned'),
+          content: const Text('Expired cache entries have been removed.'),
+          actions: <CupertinoDialogAction>[
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      _showErrorDialog(context, 'Failed to clean expired cache: $e');
+    }
+  }
+
   void _showErrorDialog(BuildContext context, String message) {
     showCupertinoDialog(
       context: context,
