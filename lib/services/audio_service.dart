@@ -57,6 +57,13 @@ class AudioPlayerService extends ChangeNotifier {
     }
   }
 
+  Future<void> skipToIndex(int index) async {
+    if (index >= 0 && index < _playlist.length) {
+      _currentIndex = index;
+      await _playCurrentTrack();
+    }
+  }
+
   Future<void> seek(Duration position) => _player.seek(position);
 
   Future<void> playTrack(Track track) async {
