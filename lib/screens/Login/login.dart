@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
       child: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Consumer<AppState>(
             builder: (context, appState, child) {
@@ -38,6 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Add some top spacing
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    
                     // App Logo/Title
                     const Icon(
                       CupertinoIcons.music_note,
