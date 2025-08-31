@@ -541,22 +541,82 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
     );
   }
 
-  void _addToNewPlaylist(BuildContext context, String playlistName, dynamic currentTrack, AppState appState) {
-    // For now, just show a success message
-    // In a real implementation, you would call appState.createPlaylistAndAddSong() or similar
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Success'),
-        content: Text('Created playlist "$playlistName" and added "${currentTrack.name}" to it.'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+  void _addToNewPlaylist(BuildContext context, String playlistName, dynamic currentTrack, AppState appState) async {
+    try {
+      // Create the playlist
+      final success = await appState.createPlaylist(playlistName);
+      
+      if (success && context.mounted) {
+        // Find the newly created playlist
+        final newPlaylist = appState.playlists.firstWhere(
+          (p) => p.name == playlistName,
+          orElse: () => throw Exception('Playlist not found after creation'),
+        );
+        
+        // Add the song to the new playlist
+        final addSuccess = await appState.addToPlaylist(newPlaylist.id, currentTrack.id);
+        
+        if (addSuccess) {
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Success'),
+              content: Text('Created playlist "$playlistName" and added "${currentTrack.name}" to it.'),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('Partial Success'),
+              content: Text('Created playlist "$playlistName" but failed to add the song. You can add it manually from the playlists screen.'),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to create playlist "$playlistName".'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('An error occurred: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   String _formatDuration(Duration duration) {
