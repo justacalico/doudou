@@ -238,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _buildInfoTile(
                           icon: CupertinoIcons.info,
                           title: 'App Version',
-                          subtitle: '1.0.0',
+                          subtitle: _appVersion,
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.doc_text,
