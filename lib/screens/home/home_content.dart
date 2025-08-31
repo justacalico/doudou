@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../providers/app_state.dart';
-import '../models/jellyfin_models.dart';
-import 'albums/album_details.dart';
+import '../../providers/app_state.dart';
+import '../../models/jellyfin_models.dart';
+import '../albums/album_details.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});

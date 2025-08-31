@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'home_content.dart';
+import 'home/home_content.dart';
 import 'library_content.dart';
 import '../widgets/mini_player.dart';
 
