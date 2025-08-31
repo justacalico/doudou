@@ -206,6 +206,13 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> skipToIndex(int index) async {
+    if (_audioService != null) {
+      await _audioService!.skipToIndex(index);
+      notifyListeners();
+    }
+  }
+
   Future<void> seekTo(Duration position) async {
     if (_audioService != null) {
       await _audioService!.seek(position);
