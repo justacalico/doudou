@@ -449,13 +449,17 @@ class AudioPlayerService extends ChangeNotifier {
     if (enabled) {
       // Enable crossfade with 3-second duration
       _player.setVolume(1.0);
-      // Note: just_audio doesn't have built-in crossfade, but we can implement
-      // a basic version by controlling volume during track transitions
+      
+      // Start preloading next tracks
+      _preloadNextTracks();
+      
       if (kDebugMode) {
         print('Smart crossfade enabled with ${_crossfadeDuration.inSeconds}s duration');
       }
     } else {
-      // Disable crossfade
+      // Disable crossfade and clear preloaded tracks
+      _clearPreloadedPlayers();
+      
       if (kDebugMode) {
         print('Smart crossfade disabled');
       }
@@ -466,6 +470,7 @@ class AudioPlayerService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _clearPreloadedPlayers();
     _player.dispose();
     super.dispose();
   }
