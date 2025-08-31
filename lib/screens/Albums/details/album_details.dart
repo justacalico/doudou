@@ -41,7 +41,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       child: CustomScrollView(
         slivers: [
           CupertinoSliverNavigationBar(
-            largeTitle: Text(widget.album.name),
             backgroundColor: const Color(0xFF000000),
             stretch: true,
           ),
