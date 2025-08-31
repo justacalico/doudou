@@ -480,12 +480,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () {
-          Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => AlbumDetailScreen(album: album),
-            ),
-          );
+          // TODO: Navigate to album details
         },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
