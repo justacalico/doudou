@@ -356,22 +356,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       try {
         if (kDebugMode) {
-          print('Attempting to play track: ${track.name} using $streamType URL');
+          print('Loading track: ${track.name} using $streamType URL');
         }
         
-        // Stop current player before loading new track to prevent interruption errors
-        await _player.stop();
-        
-        // Add a small delay to ensure the stop completes
-        await Future.delayed(const Duration(milliseconds: 100));
-        
+        // Load the audio source
         await _player.setUrl(streamUrl);
-        await _player.play();
         
-        if (kDebugMode) {
-          print('Successfully started playing: ${track.name} using $streamType URL');
+        // Wait for the player to be ready before playing
+        while (_player.processingState == ProcessingState.loading) {
+          await Future.delayed(const Duration(milliseconds: 50));
         }
-        break; // Success! Exit the loop
+        
+        // Ensure the track is still the current one before playing
+        if (_currentTrack?.id == track.id) {
+          await _player.play();
+          
+          if (kDebugMode) {
+            print('Successfully started playing: ${track.name} using $streamType URL');
+          }
+          break; // Success! Exit the loop
+        } else {
+          if (kDebugMode) {
+            print('Track changed during loading, cancelling play for: ${track.name}');
+          }
+          break;
+        }
         
       } catch (e) {
         if (kDebugMode) {
