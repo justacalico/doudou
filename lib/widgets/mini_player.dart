@@ -83,7 +83,7 @@ class MiniPlayer extends StatelessWidget {
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
-                            color: CupertinoColors.white,
+                            color: Color(0xFFFFFFFF), // Pure white for OLED
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
