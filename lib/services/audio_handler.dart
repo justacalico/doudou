@@ -24,6 +24,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final Set<String> _preloadingTracks = {};
   static const int _maxPreloadedTracks = 10;
   
+  // Skip-to-previous behavior tracking
+  DateTime? _lastSkipToPreviousTime;
+  static const Duration _skipToPreviousThreshold = Duration(seconds: 5);
+  static const double _restartThresholdPercentage = 0.20; // 20% of song duration
+  
   // Periodic state saving
   Timer? _saveStateTimer;
 
