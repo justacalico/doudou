@@ -19,7 +19,7 @@ class AudioPlayerService extends ChangeNotifier {
   // Preloading and caching
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {};
-  static const int _maxPreloadedTracks = 3;
+  static const int _maxPreloadedTracks = 10;
 
   AudioPlayerService(this._jellyfinService) {
     _init();
