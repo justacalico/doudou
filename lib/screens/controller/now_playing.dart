@@ -194,19 +194,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                     );
                                     appState.seekTo(newPosition);
                                   },
-                                  activeColor: CupertinoColors.white,
-                                  thumbColor: CupertinoColors.white,
+                                  activeColor: const Color(0xFFFFFFFF),
+                                  thumbColor: const Color(0xFFFFFFFF),
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _formatDuration(position),
-                                      style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 14),
+                                      style: const TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
                                     ),
                                     Text(
                                       _formatDuration(duration),
-                                      style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 14),
+                                      style: const TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
                                     ),
                                   ],
                                 ),
