@@ -14,7 +14,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   int _currentIndex = 0;
   Track? _currentTrack;
   bool _isShuffled = false;
-  List<Track> _originalPlaylist = [];
   bool _smartCrossfadeEnabled = false;
   final Duration _crossfadeDuration = const Duration(seconds: 3);
   
