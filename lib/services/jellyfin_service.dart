@@ -119,7 +119,7 @@ class JellyfinService {
         queryParameters: {
           'IncludeItemTypes': 'Audio',
           'Recursive': true,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks',
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
           'SortBy': 'Album,IndexNumber',
           'SortOrder': 'Ascending',
           'Limit': 1000, // Limit to prevent too large responses
