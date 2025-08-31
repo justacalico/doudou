@@ -13,7 +13,7 @@ class FavoritesView extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         // Filter tracks to only show favorites
-        final favoriteTracks = appState.tracks.where((track) => track.isFavorite ?? false).toList();
+        final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
 
         if (appState.isLoading && favoriteTracks.isEmpty) {
           return const Center(
