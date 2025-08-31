@@ -22,7 +22,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Preloading and caching
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {};
-  static const int _maxPreloadedTracks = 3;
+  static const int _maxPreloadedTracks = 10;
   
   // Periodic state saving
   Timer? _saveStateTimer;
