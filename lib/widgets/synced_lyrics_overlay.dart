@@ -139,15 +139,21 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   }
 
   void _scrollToCurrentLine() {
-    if (_currentLineIndex >= 0 && _currentLineIndex < _lineKeys.length) {
+    if (_currentLineIndex >= 0 && 
+        _currentLineIndex < _lineKeys.length && 
+        _scrollController.hasClients) {
       final context = _lineKeys[_currentLineIndex].currentContext;
       if (context != null) {
-        Scrollable.ensureVisible(
-          context,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.5, // Center the line
-        );
+        try {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            alignment: 0.5, // Center the line
+          );
+        } catch (e) {
+          // Ignore scroll errors that might occur during rapid transitions
+        }
       }
     }
   }
