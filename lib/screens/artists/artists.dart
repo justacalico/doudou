@@ -20,17 +20,41 @@ class ArtistsTab extends StatelessWidget {
         }
 
         if (appState.artists.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.person_2, size: 64, color: CupertinoColors.systemGrey),
-                SizedBox(height: 16),
-                Text(
-                  'No artists found',
-                  style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
-                ),
-              ],
+          return Container(
+            color: const Color(0xFF000000), // Pure black for OLED
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.person_2,
+                    size: 80,
+                    color: Color(0xFF333333),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'No artists found',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      'Your music artists will appear here once they are loaded from your Jellyfin server.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF8E8E93),
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
