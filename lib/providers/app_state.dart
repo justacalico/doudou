@@ -648,4 +648,79 @@ class AppState extends ChangeNotifier {
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
   }
+
+  // Cache management methods
+  Future<void> clearAllCache() async {
+    try {
+      await _cacheService.clearAllCache();
+      await ImageCacheManager.clearCache();
+      
+      if (kDebugMode) {
+        print('All cache cleared successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing cache: $e');
+      }
+    }
+  }
+  
+  Future<void> clearDataCache() async {
+    try {
+      await _cacheService.clearAllCache();
+      
+      if (kDebugMode) {
+        print('Data cache cleared successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing data cache: $e');
+      }
+    }
+  }
+  
+  Future<void> clearImageCache() async {
+    try {
+      await ImageCacheManager.clearCache();
+      
+      if (kDebugMode) {
+        print('Image cache cleared successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing image cache: $e');
+      }
+    }
+  }
+  
+  Future<Map<String, dynamic>> getCacheStats() async {
+    try {
+      final dataStats = await _cacheService.getCacheStats();
+      final imageSize = await ImageCacheManager.getCacheSize();
+      
+      return {
+        'data_cache': dataStats,
+        'image_cache_size': imageSize,
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting cache stats: $e');
+      }
+      return {};
+    }
+  }
+  
+  Future<void> cleanupExpiredCache() async {
+    try {
+      await _cacheService.cleanupExpiredCache();
+      
+      if (kDebugMode) {
+        print('Expired cache cleaned up');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error cleaning up expired cache: $e');
+      }
+    }
+  }
 }
