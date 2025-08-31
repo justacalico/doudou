@@ -149,8 +149,8 @@ class HomeContent extends StatelessWidget {
                       const SizedBox(height: 16),
                       
                       // Featured album card
-                      if (appState.albums.isNotEmpty)
-                        _buildFeaturedCard(context, appState.albums.first, appState),
+                      if (shuffledAlbums.isNotEmpty)
+                        _buildFeaturedCard(context, shuffledAlbums.first, appState),
                       
                       const SizedBox(height: 30),
                       
