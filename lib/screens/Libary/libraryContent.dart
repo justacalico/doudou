@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../Artists/artists.dart';
-import '../Albums/details/albumDetails.dart';
+import '../Albums/details/album_details.dart';
 import '../Songs/songs.dart';
 import '../Playlists/playlists.dart';
 
