@@ -2,6 +2,7 @@
 
 ## Added
 - Added lyrics.
+- Added looping.
 
 ## Changed
 - Made the queue into a widget rather then a page.
@@ -12,3 +13,4 @@
 ## Removed
 
 ## Fixed
+- Fixed queue having overflow issues.
