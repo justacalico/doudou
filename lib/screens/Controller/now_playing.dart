@@ -213,10 +213,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               children: [
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () {}, // Shuffle placeholder
-                                  child: const Icon(
+                                  onPressed: () {
+                                    final audioService = appState.audioService;
+                                    if (audioService?.isShuffled == true) {
+                                      audioService?.unshuffle();
+                                    } else {
+                                      audioService?.shuffle();
+                                    }
+                                  },
+                                  child: Icon(
                                     CupertinoIcons.shuffle,
-                                    color: CupertinoColors.systemGrey,
+                                    color: audioService?.isShuffled == true 
+                                        ? const Color(0xFFFF453A)
+                                        : CupertinoColors.systemGrey,
                                     size: 28,
                                   ),
                                 ),
