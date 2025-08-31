@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'providers/app_state.dart';
-import 'screens/Login/login.dart';
+import 'screens/login/login.dart';
 import 'screens/controller/navbar.dart';
 
 void main() async {

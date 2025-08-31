@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
-import '../Login/login.dart';
+import '../login/login.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
