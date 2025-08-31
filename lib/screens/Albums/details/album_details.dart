@@ -43,6 +43,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           CupertinoSliverNavigationBar(
             backgroundColor: const Color(0xFF000000),
             stretch: true,
+            middle: Text(widget.album.name, style: const TextStyle(color: CupertinoColors.white)),
           ),
           SliverToBoxAdapter(
             child: Container(
