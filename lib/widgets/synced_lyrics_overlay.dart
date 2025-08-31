@@ -161,9 +161,19 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
         _scrollController.hasClients) {
       
       // Calculate the scroll position to center the current line
-      final itemHeight = 70.0; // Approximate height of each lyrics line
+      final baseItemHeight = 60.0; // Base height for normal lines
+      final currentItemHeight = 80.0; // Height for current line (larger)
+      final itemMargin = 12.0; // Vertical margin per item
+      
+      // Calculate total height up to current line
+      double totalHeight = 50.0; // Initial padding
+      for (int i = 0; i < _currentLineIndex; i++) {
+        totalHeight += baseItemHeight + itemMargin;
+      }
+      totalHeight += currentItemHeight / 2; // Half of current line height
+      
       final viewportHeight = _scrollController.position.viewportDimension;
-      final targetOffset = (_currentLineIndex * itemHeight) - (viewportHeight / 2) + (itemHeight / 2);
+      final targetOffset = totalHeight - (viewportHeight / 2);
       
       // Clamp the offset to valid scroll range
       final maxOffset = _scrollController.position.maxScrollExtent;
@@ -173,7 +183,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
       try {
         _scrollController.animateTo(
           clampedOffset,
-          duration: const Duration(milliseconds: 500),
+          duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
       } catch (e) {
@@ -183,7 +193,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
           try {
             Scrollable.ensureVisible(
               context,
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 400),
               curve: Curves.easeOut,
               alignment: 0.5, // Center the line
             );
