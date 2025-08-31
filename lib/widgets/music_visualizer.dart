@@ -193,42 +193,49 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
                         
                         const SizedBox(height: 20),
                         
-                        // Playback status indicator
+                        // Playback status indicator with enhanced styling
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           decoration: BoxDecoration(
                             color: widget.isPlaying 
-                                ? const Color(0xFF30D158).withOpacity(0.2)
-                                : const Color(0xFF8E8E93).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                                ? const Color(0xFF000000)
+                                : const Color(0xFF000000),
+                            borderRadius: BorderRadius.circular(25),
                             border: Border.all(
                               color: widget.isPlaying 
-                                  ? const Color(0xFF30D158)
+                                  ? const Color(0xFF00FF88)
                                   : const Color(0xFF8E8E93),
-                              width: 1,
+                              width: 2,
                             ),
+                            boxShadow: widget.isPlaying ? [
+                              BoxShadow(
+                                color: const Color(0xFF00FF88).withOpacity(0.3),
+                                blurRadius: 12,
+                                spreadRadius: 0,
+                              ),
+                            ] : null,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 widget.isPlaying 
-                                    ? CupertinoIcons.play_fill
+                                    ? CupertinoIcons.music_note_2
                                     : CupertinoIcons.pause_fill,
                                 color: widget.isPlaying 
-                                    ? const Color(0xFF30D158)
+                                    ? const Color(0xFF00FF88)
                                     : const Color(0xFF8E8E93),
-                                size: 16,
+                                size: 18,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 10),
                               Text(
-                                widget.isPlaying ? 'Playing' : 'Paused',
+                                widget.isPlaying ? 'Now Playing' : 'Paused',
                                 style: TextStyle(
                                   color: widget.isPlaying 
-                                      ? const Color(0xFF30D158)
+                                      ? const Color(0xFF00FF88)
                                       : const Color(0xFF8E8E93),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
