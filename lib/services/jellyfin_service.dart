@@ -110,6 +110,34 @@ class JellyfinService {
     return [];
   }
 
+  Future<List<Track>> getAllTracks() async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: {
+          'IncludeItemTypes': 'Audio',
+          'Recursive': true,
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks',
+          'SortBy': 'Album,IndexNumber',
+          'SortOrder': 'Ascending',
+          'Limit': 1000, // Limit to prevent too large responses
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Track.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching all tracks: $e');
+      }
+    }
+    return [];
+  }
+
   Future<List<Artist>> getArtists() async {
     if (_server == null) throw Exception('Server not configured');
 
