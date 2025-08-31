@@ -13,6 +13,8 @@ class AudioPlayerService extends ChangeNotifier {
   Track? _currentTrack;
   bool _isShuffled = false;
   List<Track> _originalPlaylist = [];
+  bool _smartCrossfadeEnabled = false;
+  Duration _crossfadeDuration = const Duration(seconds: 3);
 
   AudioPlayerService(this._jellyfinService) {
     _init();
