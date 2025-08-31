@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/music_visualizer.dart';
 import '../../widgets/synced_lyrics_overlay.dart';
-import '../queue/queue.dart';
+import '../../widgets/queue_overlay.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
