@@ -57,7 +57,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               onPressed: () => Navigator.pop(context),
                               child: const Icon(
                                 CupertinoIcons.chevron_down,
-                                color: CupertinoColors.white,
+                                color: Color(0xFFFFFFFF),
                                 size: 28,
                               ),
                             ),
@@ -66,7 +66,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               onPressed: () {}, // Cast functionality placeholder
                               child: const Icon(
                                 CupertinoIcons.antenna_radiowaves_left_right,
-                                color: CupertinoColors.white,
+                                color: Color(0xFFFFFFFF),
                                 size: 28,
                               ),
                             ),
