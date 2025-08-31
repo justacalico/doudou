@@ -47,6 +47,23 @@ class PlaylistsView extends StatelessWidget {
               CupertinoSliverRefreshControl(
                 onRefresh: () => appState.loadLibraryData(),
               ),
+              // Create playlist button
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.all(16),
+                  child: CupertinoButton.filled(
+                    onPressed: () => _showCreatePlaylistDialog(context, appState),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(CupertinoIcons.add, size: 18),
+                        SizedBox(width: 8),
+                        Text('Create Playlist'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               // Playlists list
               SliverList(
                 delegate: SliverChildBuilderDelegate(
