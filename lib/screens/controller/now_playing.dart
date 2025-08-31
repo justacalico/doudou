@@ -156,10 +156,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       
                       // Progress slider
                       StreamBuilder<Duration>(
-                        stream: audioService?.positionStream ?? Stream.value(Duration.zero),
+                        stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
                         builder: (context, snapshot) {
                           final position = snapshot.data ?? Duration.zero;
-                          final duration = audioService?.duration ?? Duration.zero;
+                          final duration = audioHandler?.duration ?? Duration.zero;
                           
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -201,10 +201,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       
                       // Control buttons
                       StreamBuilder(
-                        stream: audioService?.playerStateStream,
+                        stream: audioHandler?.playerStateStream,
                         builder: (context, snapshot) {
-                          final isPlaying = audioService?.isPlaying ?? false;
-                          final processingState = audioService?.playerState.processingState;
+                          final isPlaying = audioHandler?.isPlaying ?? false;
+                          final processingState = audioHandler?.playerState.processingState;
                           
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -214,16 +214,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
                                   onPressed: () {
-                                    final audioService = appState.audioService;
-                                    if (audioService?.isShuffled == true) {
-                                      audioService?.unshuffle();
+                                    final audioHandler = appState.audioHandler;
+                                    if (audioHandler?.isShuffled == true) {
+                                      audioHandler?.unshuffle();
                                     } else {
-                                      audioService?.shuffle();
+                                      audioHandler?.shuffle();
                                     }
                                   },
                                   child: Icon(
                                     CupertinoIcons.shuffle,
-                                    color: audioService?.isShuffled == true 
+                                    color: audioHandler?.isShuffled == true 
                                         ? const Color(0xFFFF453A)
                                         : CupertinoColors.systemGrey,
                                     size: 28,
@@ -231,13 +231,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 ),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: audioService?.hasPrevious == true
+                                  onPressed: audioHandler?.hasPrevious == true
                                       ? () => appState.skipToPrevious()
                                       : null,
                                   child: Icon(
                                     CupertinoIcons.backward_fill,
                                     size: 40,
-                                    color: audioService?.hasPrevious == true 
+                                    color: audioHandler?.hasPrevious == true 
                                         ? CupertinoColors.white
                                         : CupertinoColors.systemGrey,
                                   ),
@@ -270,13 +270,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                 ),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: audioService?.hasNext == true
+                                  onPressed: audioHandler?.hasNext == true
                                       ? () => appState.skipToNext()
                                       : null,
                                   child: Icon(
                                     CupertinoIcons.forward_fill,
                                     size: 40,
-                                    color: audioService?.hasNext == true 
+                                    color: audioHandler?.hasNext == true 
                                         ? CupertinoColors.white
                                         : CupertinoColors.systemGrey,
                                   ),
