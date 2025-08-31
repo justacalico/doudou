@@ -281,27 +281,36 @@ class QueueTrackItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               )
             : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (track.duration != null)
-              Text(
-                _formatDuration(Duration(milliseconds: track.duration!)),
-                style: const TextStyle(color: CupertinoColors.systemGrey2),
-              ),
-            if (canRemove && onRemove != null) ...[
-              const SizedBox(width: 8),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: onRemove,
-                child: const Icon(
-                  CupertinoIcons.minus_circle,
-                  color: CupertinoColors.systemRed,
-                  size: 20,
+        trailing: SizedBox(
+          width: canRemove && onRemove != null ? 80 : 50,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (track.duration != null)
+                Flexible(
+                  child: Text(
+                    _formatDuration(Duration(milliseconds: track.duration!)),
+                    style: const TextStyle(color: CupertinoColors.systemGrey2),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
+              if (canRemove && onRemove != null) ...[
+                const SizedBox(width: 8),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 20,
+                  onPressed: onRemove,
+                  child: const Icon(
+                    CupertinoIcons.minus_circle,
+                    color: CupertinoColors.systemRed,
+                    size: 20,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
         onTap: onTap,
       ),
