@@ -157,6 +157,9 @@ class AppState extends ChangeNotifier {
           // Apply user settings to the audio handler
           _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
           
+          // Set up listeners for automatic UI updates
+          _setupAudioHandlerListeners();
+          
           // Notify listeners after audio handler is ready
           notifyListeners();
         } catch (audioError) {
