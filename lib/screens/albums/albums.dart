@@ -222,15 +222,6 @@ class AlbumCard extends StatelessWidget {
                           size: 150,
                           borderRadius: BorderRadius.circular(12),
                         )
-                          errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFF1C1C1E),
-                            child: const Icon(
-                              CupertinoIcons.music_albums,
-                              size: 64,
-                              color: Color(0xFF8E8E93),
-                            ),
-                          ),
-                        )
                       : Container(
                           color: const Color(0xFF1C1C1E),
                           child: const Icon(
