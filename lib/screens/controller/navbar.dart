@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import '../home/home.dart';
 import '../libary/library.dart';
 import '../settings/settings.dart';
+import '../search/search.dart';
 import '../../widgets/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
