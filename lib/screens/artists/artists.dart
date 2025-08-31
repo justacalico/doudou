@@ -123,22 +123,4 @@ class ArtistCard extends StatelessWidget {
       ),
     );
   }
-
-  void _showAlert(BuildContext context, String artistName) {
-    showCupertinoDialog(
-      context: context,
-      builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Coming Soon'),
-        content: Text('Artist detail for $artistName - Coming soon!'),
-        actions: <CupertinoDialogAction>[
-          CupertinoDialogAction(
-            child: const Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }
