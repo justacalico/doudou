@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/app_state.dart';
@@ -13,7 +13,7 @@ class ArtistsTab extends StatelessWidget {
       builder: (context, appState, child) {
         if (appState.isLoading && appState.artists.isEmpty) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CupertinoActivityIndicator(),
           );
         }
 
@@ -22,27 +22,32 @@ class ArtistsTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.person, size: 64, color: Colors.grey),
+                Icon(CupertinoIcons.person_2, size: 64, color: CupertinoColors.secondaryLabel),
                 SizedBox(height: 16),
                 Text(
                   'No artists found',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel),
                 ),
               ],
             ),
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => appState.loadLibraryData(),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: appState.artists.length,
-            itemBuilder: (context, index) {
-              final artist = appState.artists[index];
-              return ArtistCard(artist: artist);
-            },
-          ),
+        return CustomScrollView(
+          slivers: [
+            CupertinoSliverRefreshControl(
+              onRefresh: () => appState.loadLibraryData(),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final artist = appState.artists[index];
+                  return ArtistCard(artist: artist);
+                },
+                childCount: appState.artists.length,
+              ),
+            ),
+          ],
         );
       },
     );
@@ -58,37 +63,70 @@ class ArtistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
     
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 25,
-          backgroundImage: artist.imageUrl != null
-              ? CachedNetworkImageProvider(
-                  appState.jellyfinService.getImageUrl(
-                    artist.imageUrl!,
-                    width: 100,
-                    height: 100,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: CupertinoListTile(
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+          ),
+          child: ClipOval(
+            child: artist.imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: appState.jellyfinService.getImageUrl(
+                      artist.imageUrl!,
+                      width: 100,
+                      height: 100,
+                    ),
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: CupertinoColors.systemGrey4.resolveFrom(context),
+                      child: const Icon(CupertinoIcons.person),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: CupertinoColors.systemGrey4.resolveFrom(context),
+                      child: const Icon(CupertinoIcons.person),
+                    ),
+                  )
+                : Container(
+                    color: CupertinoColors.systemGrey4.resolveFrom(context),
+                    child: const Icon(CupertinoIcons.person),
                   ),
-                )
-              : null,
-          child: artist.imageUrl == null
-              ? const Icon(Icons.person)
-              : null,
+          ),
         ),
         title: Text(
           artist.name,
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        trailing: const Icon(CupertinoIcons.forward, size: 16),
         onTap: () {
           // TODO: Navigate to artist detail screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Artist detail for ${artist.name} - Coming soon!'),
-            ),
-          );
+          _showAlert(context, artist.name);
         },
+      ),
+    );
+  }
+
+  void _showAlert(BuildContext context, String artistName) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: const Text('Coming Soon'),
+        content: Text('Artist detail for $artistName - Coming soon!'),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
     );
   }
