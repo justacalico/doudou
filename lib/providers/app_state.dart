@@ -18,6 +18,9 @@ class AppState extends ChangeNotifier {
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
   bool _smartCrossfadeEnabled = false;
+  bool _normalizeVolumeEnabled = false;
+  bool _oledDarkModeEnabled = true;
+  bool _showAlbumArtEnabled = true;
   
   // Getters
   bool get isLoggedIn => _isLoggedIn;
