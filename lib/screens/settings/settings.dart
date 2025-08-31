@@ -764,8 +764,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await appState.clearAllCache();
       await _loadCacheSize(); // Refresh cache size display
+      if (!mounted) return;
       _showCacheClearedDialog(context, 'All');
     } catch (e) {
+      if (!mounted) return;
       _showErrorDialog(context, 'Failed to clear cache: $e');
     }
   }
