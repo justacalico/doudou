@@ -52,7 +52,7 @@ We may update this privacy policy from time to time. Any changes will be posted 
 ## Contact Us
 
 If you have any questions about this privacy policy, please contact us at:
-- GitHub: https://github.com/HttpAnimations/doudou
+- Gitlab: https://github.com/HttpAnimations/doudou
 
 ## Data Safety Summary for Google Play
 
