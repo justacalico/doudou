@@ -139,31 +139,93 @@ class PlaylistsView extends StatelessWidget {
     );
   }
 
-  void _createPlaylist(BuildContext context, AppState appState, String name) {
+  void _createPlaylist(BuildContext context, AppState appState, String name) async {
     // Close the dialog first
     Navigator.of(context).pop();
     
-    // TODO: Implement playlist creation in AppState
-    // appState.createPlaylist(name);
-    
-    // For now, show a message that the feature is not yet implemented
+    // Show loading indicator
     showCupertinoDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: const Text('Feature Coming Soon'),
-          content: Text('Playlist creation will be implemented soon.\nPlaylist name: "$name"'),
-          actions: [
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return const CupertinoAlertDialog(
+          title: Text('Creating Playlist'),
+          content: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CupertinoActivityIndicator(),
+          ),
         );
       },
     );
+    
+    try {
+      final success = await appState.createPlaylist(name);
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      if (success) {
+        // Show success message
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Success'),
+              content: Text('Playlist "$name" created successfully!'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Show error message
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to create playlist "$name". Please try again.'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show error message
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('An error occurred: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
 
