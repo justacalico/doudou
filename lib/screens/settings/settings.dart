@@ -38,19 +38,19 @@ class SettingsScreen extends StatelessWidget {
                         _buildSectionHeader('Server Information'),
                         if (server != null) ...[
                           _buildInfoTile(
-                            icon: CupertinoIcons.server_rack,
+                            icon: CupertinoIcons.wifi,
                             title: 'Server URL',
                             subtitle: server.serverUrl,
                           ),
                           _buildInfoTile(
                             icon: CupertinoIcons.person,
-                            title: 'Username',
-                            subtitle: server.username,
+                            title: 'User ID',
+                            subtitle: server.userId ?? 'Not available',
                           ),
                           _buildInfoTile(
-                            icon: CupertinoIcons.device_phone_portrait,
-                            title: 'Server Version',
-                            subtitle: server.serverVersion ?? 'Unknown',
+                            icon: CupertinoIcons.checkmark_seal,
+                            title: 'Connection Status',
+                            subtitle: 'Connected',
                           ),
                         ],
                       ],
