@@ -5,6 +5,7 @@ import '../Artists/artists.dart';
 import '../Albums/details/album_details.dart';
 import '../Songs/songs.dart';
 import '../Playlists/playlists.dart';
+import '../Favorites/favorites.dart';
 
 class LibraryContent extends StatelessWidget {
   const LibraryContent({super.key});
