@@ -82,14 +82,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
             children: [
               CustomScrollView(
                 slivers: [
-                  // Custom Header with Hero Image
-                  SliverAppBar(
-                    expandedHeight: 400,
+                  // Custom Header with Hero Image (Cupertino version)
+                  CupertinoSliverNavigationBar(
                     backgroundColor: const Color(0xFF000000),
-                    pinned: true,
+                    border: null,
                     stretch: true,
+                    largeTitle: const Text(''),
                     leading: Container(
-                      margin: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: const Color(0xFF000000).withOpacity(0.7),
                         borderRadius: BorderRadius.circular(20),
@@ -108,125 +108,117 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         ),
                       ),
                     ),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Stack(
-                        fit: StackFit.expand,
+                  ),
+                  
+                  // Hero Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      height: 350,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            const Color(0xFF1C1C1E).withOpacity(0.3),
+                            const Color(0xFF000000).withOpacity(0.8),
+                            const Color(0xFF000000),
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Background blur effect
+                          // Artist Image with glow effect
                           Container(
+                            width: 180,
+                            height: 180,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  const Color(0xFF1C1C1E).withOpacity(0.3),
-                                  const Color(0xFF000000).withOpacity(0.8),
-                                  const Color(0xFF000000),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Artist image and info
-                          Positioned(
-                            bottom: 60,
-                            left: 0,
-                            right: 0,
-                            child: Column(
-                              children: [
-                                // Artist Image with glow effect
-                                Container(
-                                  width: 180,
-                                  height: 180,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF32D74B).withOpacity(0.3),
-                                        blurRadius: 20,
-                                        spreadRadius: 5,
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipOval(
-                                    child: widget.artist.imageUrl != null
-                                        ? CachedNetworkImage(
-                                            imageUrl: appState.jellyfinService.getImageUrl(
-                                              widget.artist.imageUrl!,
-                                              width: 360,
-                                              height: 360,
-                                            ),
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) => Container(
-                                              color: const Color(0xFF1C1C1E),
-                                              child: const Center(
-                                                child: CupertinoActivityIndicator(
-                                                  color: Color(0xFF8E8E93),
-                                                ),
-                                              ),
-                                            ),
-                                            errorWidget: (context, url, error) => Container(
-                                              color: const Color(0xFF1C1C1E),
-                                              child: const Icon(
-                                                CupertinoIcons.person,
-                                                color: Color(0xFF8E8E93),
-                                                size: 80,
-                                              ),
-                                            ),
-                                          )
-                                        : Container(
-                                            color: const Color(0xFF1C1C1E),
-                                            child: const Icon(
-                                              CupertinoIcons.person,
-                                              color: Color(0xFF8E8E93),
-                                              size: 80,
-                                            ),
-                                          ),
-                                  ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF32D74B).withOpacity(0.3),
+                                  blurRadius: 20,
+                                  spreadRadius: 5,
                                 ),
-                                const SizedBox(height: 20),
-                                // Artist Name
-                                Text(
-                                  widget.artist.name,
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFFFFFF),
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(0, 2),
-                                        blurRadius: 8,
-                                        color: Color(0xFF000000),
-                                      ),
-                                    ],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Stats with better design
-                                if (!_isLoading)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF000000).withOpacity(0.7),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: const Color(0xFF1C1C1E),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '${_artistAlbums.length} ${_artistAlbums.length == 1 ? 'Album' : 'Albums'} • ${_artistTracks.length} ${_artistTracks.length == 1 ? 'Song' : 'Songs'}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF8E8E93),
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
                               ],
                             ),
+                            child: ClipOval(
+                              child: widget.artist.imageUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: appState.jellyfinService.getImageUrl(
+                                        widget.artist.imageUrl!,
+                                        width: 360,
+                                        height: 360,
+                                      ),
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                        color: const Color(0xFF1C1C1E),
+                                        child: const Center(
+                                          child: CupertinoActivityIndicator(
+                                            color: Color(0xFF8E8E93),
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => Container(
+                                        color: const Color(0xFF1C1C1E),
+                                        child: const Icon(
+                                          CupertinoIcons.person,
+                                          color: Color(0xFF8E8E93),
+                                          size: 80,
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      color: const Color(0xFF1C1C1E),
+                                      child: const Icon(
+                                        CupertinoIcons.person,
+                                        color: Color(0xFF8E8E93),
+                                        size: 80,
+                                      ),
+                                    ),
+                            ),
                           ),
+                          const SizedBox(height: 20),
+                          // Artist Name
+                          Text(
+                            widget.artist.name,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFFFFFF),
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(0, 2),
+                                  blurRadius: 8,
+                                  color: Color(0xFF000000),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          // Stats with better design
+                          if (!_isLoading)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF000000).withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFF1C1C1E),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                '${_artistAlbums.length} ${_artistAlbums.length == 1 ? 'Album' : 'Albums'} • ${_artistTracks.length} ${_artistTracks.length == 1 ? 'Song' : 'Songs'}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF8E8E93),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                         ],
                       ),
                     ),
