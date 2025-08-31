@@ -359,7 +359,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                               onPressed: () => _showMoreOptions(context, currentTrack, appState),
                               child: const Icon(
                                 CupertinoIcons.ellipsis,
-                                color: CupertinoColors.white,
+                                color: Color(0xFFFFFFFF),
                                 size: 24,
                               ),
                             ),
