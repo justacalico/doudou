@@ -305,7 +305,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                                   onPressed: () {}, // Repeat placeholder
                                   child: const Icon(
                                     CupertinoIcons.repeat,
-                                    color: CupertinoColors.systemGrey,
+                                    color: CupertinoColors.systemGrey2,
                                     size: 28,
                                   ),
                                 ),
