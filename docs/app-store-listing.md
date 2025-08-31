@@ -45,9 +45,9 @@ Transform your Jellyfin media server into a beautiful mobile music experience wi
 **Note:** This app requires a self-hosted Jellyfin server. We do not provide media content or hosting services.
 
 **Support & Source Code:**
-• GitHub: [repository-url]
+• Gitlab: [repository-url]
 • Issues: [issues-url]
-• Open source under MIT License
+• Open source under GNU License
 
 Experience your music library like never before with Doudou - where your privacy meets beautiful design.
 
