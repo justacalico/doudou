@@ -190,7 +190,7 @@ class _SearchScreenState extends State<SearchScreen> {
             subtitle: 'Your recent tracks',
             color: const Color(0xFF007AFF),
             onTap: () {
-              // TODO: Implement recently played
+              _showRecentlyPlayed(context, appState);
             },
           ),
           _buildBrowseCategory(
@@ -199,7 +199,7 @@ class _SearchScreenState extends State<SearchScreen> {
             subtitle: 'Your favorite tracks',
             color: const Color(0xFFFF453A),
             onTap: () {
-              // TODO: Navigate to favorites
+              _showFavorites(context, appState);
             },
           ),
           _buildBrowseCategory(
