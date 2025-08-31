@@ -197,8 +197,31 @@ class AppState extends ChangeNotifier {
         _setLoading(false);
         return false;
       }
+    } on DioException catch (e) {
+      // Handle network errors with user-friendly messages
+      if (e.error is NetworkException) {
+        final networkError = e.error as NetworkException;
+        _setError(networkError.message);
+      } else {
+        _setError('Network error. Please check your connection and try again.');
+      }
+      _setLoading(false);
+      return false;
     } catch (e) {
-      _setError('Connection failed: ${e.toString()}');
+      // Handle any other unexpected errors
+      String errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      // Provide more specific error messages for common issues
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('timeout')) {
+        errorMessage = 'Connection timeout. Please check your network and server availability.';
+      } else if (errorString.contains('certificate') || errorString.contains('ssl')) {
+        errorMessage = 'SSL certificate error. Please check your server configuration.';
+      } else if (errorString.contains('host')) {
+        errorMessage = 'Cannot reach server. Please check the server URL and your network connection.';
+      }
+      
+      _setError(errorMessage);
       _setLoading(false);
       return false;
     }
