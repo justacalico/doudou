@@ -55,9 +55,44 @@ flutter pub get
 # Run in development
 flutter run
 
-# Build release APK
+# Build debug APK
+make android
+
+# Build release APK (debug signed)
 flutter build apk --release
 ```
+
+### Android Release Signing
+
+For production builds and Google Play Store:
+
+```bash
+# 1. Generate a keystore (one-time setup)
+make generate-keystore
+
+# 2. Create environment setup script
+make setup-signing
+
+# 3. Edit setup-signing.sh with your actual passwords
+nano setup-signing.sh
+
+# 4. Load environment variables
+source setup-signing.sh
+
+# 5. Build signed APK
+make android-signed
+
+# 6. Build App Bundle for Play Store
+make android-bundle
+```
+
+**Environment Variables Required:**
+- `KEYSTORE_PASSWORD` - Password for the keystore file
+- `KEY_PASSWORD` - Password for the signing key
+- `KEY_ALIAS` - Alias name for the signing key (default: 'doudou')
+- `KEYSTORE_PATH` - Path to keystore file (default: 'android/app/key.jks')
+
+**Security Note:** Never commit signing files or passwords to version control. The keystore file and setup script are automatically excluded via `.gitignore`.
 
 ### Release Preparation
 
