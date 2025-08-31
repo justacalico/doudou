@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
-import 'screens/login/login.dart';
+import 'screens/Login/login.dart';
 import 'screens/controller/navbar.dart';
 
 void main() async {
