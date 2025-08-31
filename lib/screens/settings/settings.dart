@@ -22,13 +22,17 @@ class SettingsScreen extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
-                    child: const Text(
-                      'Settings',
-                      style: TextStyle(
-                        color: Color(0xFFFFFFFF),
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            color: Color(0xFFFFFFFF),
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
