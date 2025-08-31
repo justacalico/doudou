@@ -237,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _buildSettingTile(
                           icon: CupertinoIcons.folder,
                           title: 'Cache Size',
-                          subtitle: 'Calculating...',
+                          subtitle: _cacheSize,
                           onTap: () => _showCacheDialog(context),
                         ),
                         _buildSettingTile(
