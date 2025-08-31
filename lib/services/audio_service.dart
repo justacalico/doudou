@@ -196,13 +196,44 @@ class AudioPlayerService extends ChangeNotifier {
     final track = _playlist[_currentIndex];
     _currentTrack = track;
     
+    // Check if we have a preloaded player for this track
+    if (_preloadedPlayers.containsKey(track.id)) {
+      final preloadedPlayer = _preloadedPlayers.remove(track.id);
+      if (preloadedPlayer != null) {
+        // Swap the preloaded player with the main player
+        await _player.stop();
+        await _player.setUrl(preloadedPlayer.audioSource?.audioSource.uri.toString() ?? '');
+        await _player.play();
+        
+        // Dispose the preloaded player
+        preloadedPlayer.dispose();
+        
+        if (kDebugMode) {
+          print('Playing preloaded track: ${track.name}');
+        }
+        
+        // Preload next tracks after successful play
+        _preloadNextTracks();
+        notifyListeners();
+        return;
+      }
+    }
+    
+    // Fallback to normal loading if no preloaded version
+    await _loadAndPlayTrack(track);
+    
+    // Preload next tracks after successful play
+    _preloadNextTracks();
+    notifyListeners();
+  }
+
+  Future<void> _loadAndPlayTrack(Track track) async {
     // Try multiple stream URLs in order of preference
     final streamUrls = [
       _jellyfinService.getStreamUrl(track.id),
       _jellyfinService.getDirectStreamUrl(track.id),
       _jellyfinService.getUniversalStreamUrl(track.id),
     ];
-    
     
     for (int i = 0; i < streamUrls.length; i++) {
       final streamUrl = streamUrls[i];
@@ -244,9 +275,102 @@ class AudioPlayerService extends ChangeNotifier {
         }
       }
     }
+  }
+
+  void _preloadNextTracks() async {
+    if (!_smartCrossfadeEnabled) return;
     
-    // Always notify listeners whether we succeeded or failed
-    notifyListeners();
+    // Clean up old preloaded players first
+    _cleanupOldPreloadedPlayers();
+    
+    // Preload next few tracks in the queue
+    for (int i = 1; i <= _maxPreloadedTracks; i++) {
+      final nextIndex = _currentIndex + i;
+      if (nextIndex < _playlist.length) {
+        final track = _playlist[nextIndex];
+        _preloadTrack(track);
+      }
+    }
+  }
+
+  void _preloadTrack(Track track) async {
+    // Don't preload if already preloaded or currently preloading
+    if (_preloadedPlayers.containsKey(track.id) || _preloadingTracks.contains(track.id)) {
+      return;
+    }
+    
+    _preloadingTracks.add(track.id);
+    
+    try {
+      final player = AudioPlayer();
+      
+      // Try multiple stream URLs in order of preference
+      final streamUrls = [
+        _jellyfinService.getStreamUrl(track.id),
+        _jellyfinService.getDirectStreamUrl(track.id),
+        _jellyfinService.getUniversalStreamUrl(track.id),
+      ];
+      
+      bool loaded = false;
+      for (final streamUrl in streamUrls) {
+        try {
+          await player.setUrl(streamUrl);
+          // Preload by seeking to the beginning but don't play
+          await player.seek(Duration.zero);
+          
+          _preloadedPlayers[track.id] = player;
+          loaded = true;
+          
+          if (kDebugMode) {
+            print('Successfully preloaded track: ${track.name}');
+          }
+          break;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to preload track ${track.name}: $e');
+          }
+        }
+      }
+      
+      if (!loaded) {
+        player.dispose();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error preloading track ${track.name}: $e');
+      }
+    } finally {
+      _preloadingTracks.remove(track.id);
+    }
+  }
+
+  void _cleanupOldPreloadedPlayers() {
+    final currentTrackId = _currentTrack?.id;
+    final upcomingTrackIds = <String>{};
+    
+    // Collect IDs of upcoming tracks
+    for (int i = 1; i <= _maxPreloadedTracks; i++) {
+      final nextIndex = _currentIndex + i;
+      if (nextIndex < _playlist.length) {
+        upcomingTrackIds.add(_playlist[nextIndex].id);
+      }
+    }
+    
+    // Remove preloaded players that are no longer needed
+    final keysToRemove = <String>[];
+    for (final trackId in _preloadedPlayers.keys) {
+      if (trackId != currentTrackId && !upcomingTrackIds.contains(trackId)) {
+        keysToRemove.add(trackId);
+      }
+    }
+    
+    for (final trackId in keysToRemove) {
+      final player = _preloadedPlayers.remove(trackId);
+      player?.dispose();
+      if (kDebugMode) {
+        print('Cleaned up preloaded player for track: $trackId');
+      }
+    }
   }
 
   // Getters
