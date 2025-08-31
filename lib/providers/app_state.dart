@@ -19,7 +19,7 @@ class AppState extends ChangeNotifier {
   List<Artist> _artists = [];
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
-  bool _smartCrossfadeEnabled = false;
+  bool _smartCrossfadeEnabled = true; // Enable by default for better performance
   bool _normalizeVolumeEnabled = false;
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
