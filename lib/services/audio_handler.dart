@@ -540,9 +540,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await prefs.setInt('current_index', _currentIndex);
         await prefs.setBool('is_shuffled', _isShuffled);
         
-        // Save current position
+        // Save current position and playing state
         final position = _player.position.inMilliseconds;
         await prefs.setInt('playback_position', position);
+        await prefs.setBool('was_playing', _player.playing);
         
         if (_currentTrack != null) {
           await prefs.setString('current_track_id', _currentTrack!.id);
