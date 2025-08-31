@@ -234,6 +234,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Queue getters
+  List<Track> get queue => _audioService?.queue ?? [];
+  List<Track> get upNext => _audioService?.upNext ?? [];
+  
+  void removeFromQueue(int index) {
+    _audioService?.removeFromQueue(index);
+    notifyListeners();
+  }
+  
+  void reorderQueue(int oldIndex, int newIndex) {
+    _audioService?.reorderQueue(oldIndex, newIndex);
+    notifyListeners();
+  }
+
   Future<void> toggleFavorite(Track track) async {
     try {
       final success = await _jellyfinService.toggleFavorite(track.id, track.isFavorite);
