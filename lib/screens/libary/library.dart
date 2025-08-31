@@ -25,21 +25,15 @@ class LibraryContent extends StatelessWidget {
             CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: () {
-                // Cast/airplay functionality
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
               },
               child: const Icon(
-                CupertinoIcons.antenna_radiowaves_left_right,
-                color: CupertinoColors.systemRed,
-                size: 24,
-              ),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                // Profile functionality
-              },
-              child: const Icon(
-                CupertinoIcons.person_circle,
+                CupertinoIcons.settings,
                 color: CupertinoColors.systemRed,
                 size: 24,
               ),
