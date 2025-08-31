@@ -115,9 +115,9 @@ class SettingsScreen extends StatelessWidget {
                           icon: CupertinoIcons.moon,
                           title: 'OLED Dark Mode',
                           subtitle: 'True black backgrounds for OLED displays',
-                          value: true,
+                          value: appState.oledDarkModeEnabled,
                           onChanged: (value) {
-                            // TODO: Implement theme switching
+                            appState.toggleOledDarkMode(value);
                           },
                         ),
                         _buildSwitchTile(
