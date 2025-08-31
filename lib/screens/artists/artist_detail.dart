@@ -179,7 +179,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       
                       // Shuffle Button
                       if (_artistTracks.isNotEmpty)
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           child: CupertinoButton(
                             color: const Color(0xFF1C1C1E),
