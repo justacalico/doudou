@@ -22,11 +22,11 @@ class QueueScreen extends StatelessWidget {
       child: Consumer<AppState>(
         builder: (context, appState, child) {
           final audioHandler = appState.audioHandler;
-          final queue = audioHandler?.queue ?? [];
+          final queueTracks = audioHandler?.queueTracks ?? [];
           final currentIndex = audioHandler?.currentIndex ?? 0;
           final isShuffled = audioHandler?.isShuffled ?? false;
 
-          if (queue.isEmpty) {
+          if (queueTracks.isEmpty) {
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
