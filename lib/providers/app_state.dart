@@ -298,4 +298,22 @@ class AppState extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  Future<void> toggleSmartCrossfade(bool enabled) async {
+    _smartCrossfadeEnabled = enabled;
+    
+    // Update the audio service with the new crossfade setting
+    _audioService?.setSmartCrossfade(enabled);
+    
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('smart_crossfade_enabled', enabled);
+    
+    notifyListeners();
+  }
+
+  Future<void> _loadUserSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? false;
+  }
 }
