@@ -345,6 +345,17 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
+                                _showLyricsOverlay(context, currentTrack);
+                              },
+                              child: const Icon(
+                                CupertinoIcons.text_quote,
+                                color: Color(0xFFFFFFFF),
+                                size: 24,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
                                 appState.toggleFavorite(currentTrack);
                               },
                               child: Icon(
@@ -378,6 +389,17 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showLyricsOverlay(BuildContext context, dynamic currentTrack) {
+    showCupertinoModalPopup(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.3),
+      builder: (context) => _LyricsOverlay(
+        trackName: currentTrack.name,
+        artistName: currentTrack.artistName ?? 'Unknown Artist',
       ),
     );
   }
