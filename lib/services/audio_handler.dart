@@ -588,7 +588,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  void _startPeriodicSaving() {
+    _stopPeriodicSaving(); // Clear any existing timer
+    _saveStateTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _savePlaybackState();
+    });
+  }
+
+  void _stopPeriodicSaving() {
+    _saveStateTimer?.cancel();
+    _saveStateTimer = null;
+  }
+
   void dispose() {
+    _stopPeriodicSaving();
     _savePlaybackState();
     _clearPreloadedPlayers();
     _player.dispose();
