@@ -631,18 +631,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showCacheDialog(BuildContext context) async {
     final appState = context.read<AppState>();
-    
+
     // Get cache stats
     final cacheStats = await appState.getCacheStats();
     final dataCache = cacheStats['data_cache'] as Map<String, int>? ?? {};
     final imageCacheSize = cacheStats['image_cache_size'] as int? ?? 0;
-    
+
     // Calculate total entries
     int totalDataEntries = 0;
     for (final count in dataCache.values) {
       totalDataEntries += count;
     }
-    
+
     // Format image cache size
     String imageSizeText = '';
     if (imageCacheSize > 0) {
@@ -656,9 +656,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       imageSizeText = '0 MB';
     }
-    
-    if (!mounted) return;
-    
+
+    if (!context.mounted) return;
+
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
@@ -738,10 +738,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await appState.clearDataCache();
       await _loadCacheSize(); // Refresh cache size display
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showCacheClearedDialog(context, 'Data');
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showErrorDialog(context, 'Failed to clear data cache: $e');
     }
   }
@@ -751,10 +751,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await appState.clearImageCache();
       await _loadCacheSize(); // Refresh cache size display
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showCacheClearedDialog(context, 'Image');
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showErrorDialog(context, 'Failed to clear image cache: $e');
     }
   }
@@ -764,10 +764,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await appState.clearAllCache();
       await _loadCacheSize(); // Refresh cache size display
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showCacheClearedDialog(context, 'All');
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showErrorDialog(context, 'Failed to clear cache: $e');
     }
   }
@@ -777,7 +777,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await appState.cleanupExpiredCache();
       await _loadCacheSize(); // Refresh cache size display
-      if (!mounted) return;
+      if (!context.mounted) return;
       showCupertinoDialog(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
@@ -792,7 +792,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       _showErrorDialog(context, 'Failed to clean expired cache: $e');
     }
   }
@@ -833,37 +833,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const url = 'https://gitlab.com/HttpAnimations/doudou';
     try {
       await Clipboard.setData(ClipboardData(text: url));
-      if (context.mounted) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('GitLab Repository'),
-            content: const Text('The GitLab URL has been copied to your clipboard!\n\nhttps://gitlab.com/HttpAnimations/doudou\n\nYou can now paste it into your browser to visit the repository.'),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('GitLab Repository'),
+          content: const Text('The GitLab URL has been copied to your clipboard!\n\nhttps://gitlab.com/HttpAnimations/doudou\n\nYou can now paste it into your browser to visit the repository.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
-      if (context.mounted) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to copy URL to clipboard. Please visit: $url'),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Error'),
+          content: Text('Failed to copy URL to clipboard. Please visit: $url'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
     }
   }
 
