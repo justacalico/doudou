@@ -200,10 +200,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       
                       // Control buttons
                       StreamBuilder(
-                        stream: audioService?.playerStateStream,
+                        stream: audioHandler?.playerStateStream,
                         builder: (context, snapshot) {
-                          final isPlaying = audioService?.isPlaying ?? false;
-                          final processingState = audioService?.playerState.processingState;
+                          final isPlaying = audioHandler?.isPlaying ?? false;
+                          final processingState = audioHandler?.playerState.processingState;
                           
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 30),
