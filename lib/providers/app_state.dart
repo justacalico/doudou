@@ -16,6 +16,7 @@ class AppState extends ChangeNotifier {
   List<Artist> _artists = [];
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
+  bool _smartCrossfadeEnabled = false;
   
   // Getters
   bool get isLoggedIn => _isLoggedIn;
@@ -27,6 +28,7 @@ class AppState extends ChangeNotifier {
   List<Playlist> get playlists => _playlists;
   JellyfinService get jellyfinService => _jellyfinService;
   AudioPlayerService? get audioService => _audioService;
+  bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
 
   AppState() {
     _loadSavedServer();
