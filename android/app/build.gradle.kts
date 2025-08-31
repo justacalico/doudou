@@ -30,19 +30,19 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // Signing configuration for release build
-            signingConfig = signingConfigs.getByName("release")
-        }
-    }
-
     signingConfigs {
         create("release") {
             keyAlias = System.getenv("KEY_ALIAS") ?: "doudou"
             keyPassword = System.getenv("KEY_PASSWORD") ?: ""
             storeFile = file(System.getenv("KEYSTORE_PATH") ?: "key.jks")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+        }
+    }
+
+    buildTypes {
+        release {
+            // Signing configuration for release build
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
