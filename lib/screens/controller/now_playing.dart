@@ -397,24 +397,54 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
   }
 
   void _showAddToPlaylistDialog(BuildContext context, dynamic currentTrack, AppState appState) {
-    showCupertinoDialog(
+    final playlists = appState.playlists;
+    
+    showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
+      builder: (context) => CupertinoActionSheet(
         title: const Text('Add to Playlist'),
-        content: const Text('Select a playlist to add this song to:'),
+        message: Text('Select a playlist to add "${currentTrack.name}" to:'),
         actions: [
-          CupertinoDialogAction(
+          // Show existing playlists
+          ...playlists.map((playlist) => CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _addToExistingPlaylist(context, playlist, currentTrack, appState);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.music_note_list, color: CupertinoColors.activeBlue),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    playlist.name,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          )),
+          // Create new playlist option
+          CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               _createNewPlaylist(context, currentTrack, appState);
             },
-            child: const Text('Create New Playlist'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.add_circled, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Create New Playlist'),
+              ],
+            ),
           ),
         ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
       ),
     );
   }
