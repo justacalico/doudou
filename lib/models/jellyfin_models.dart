@@ -56,6 +56,16 @@ class Album {
       year: json['ProductionYear'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Id': id,
+      'Name': name,
+      'AlbumArtist': artistName,
+      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
+      'ProductionYear': year,
+    };
+  }
 }
 
 class Track {
