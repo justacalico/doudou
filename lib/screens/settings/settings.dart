@@ -10,15 +10,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFF000000),
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text(
-          'Settings',
-          style: TextStyle(color: CupertinoColors.white),
-        ),
-        backgroundColor: Color(0xFF000000),
-        border: null,
-      ),
+      backgroundColor: const Color(0xFF000000), // Pure black for OLED
       child: SafeArea(
         child: Consumer<AppState>(
           builder: (context, appState, child) {
@@ -26,6 +18,20 @@ class SettingsScreen extends StatelessWidget {
             
             return CustomScrollView(
               slivers: [
+                // Custom header instead of navigation bar for better OLED optimization
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: const Text(
+                      'Settings',
+                      style: TextStyle(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 34,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
                 // Server Information Section
                 SliverToBoxAdapter(
                   child: Container(
