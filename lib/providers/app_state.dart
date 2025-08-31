@@ -68,25 +68,41 @@ class AppState extends ChangeNotifier {
         final serverData = jsonDecode(serverJson);
         final server = JellyfinServer.fromJson(serverData);
         _jellyfinService.setServer(server);
-        _isLoggedIn = true;
         
-        // Initialize audio handler
-        _audioHandler = await AudioService.init(
-          builder: () => DoudouAudioHandler(_jellyfinService),
-          config: const AudioServiceConfig(
-            androidNotificationChannelId: 'com.example.doudou.channel.audio',
-            androidNotificationChannelName: 'Doudou Music',
-            androidNotificationOngoing: true,
-          ),
-        );
-        
-        // Apply user settings to the audio handler
-        _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
-        
-        notifyListeners();
-        
-        // Load initial data
-        await loadLibraryData();
+        // Test the connection with saved credentials
+        try {
+          // Try to fetch a small amount of data to validate credentials
+          await _jellyfinService.getAlbums();
+          
+          // If successful, we're logged in
+          _isLoggedIn = true;
+          
+          // Initialize audio handler
+          _audioHandler = await AudioService.init(
+            builder: () => DoudouAudioHandler(_jellyfinService),
+            config: const AudioServiceConfig(
+              androidNotificationChannelId: 'com.example.doudou.channel.audio',
+              androidNotificationChannelName: 'Doudou Music',
+              androidNotificationOngoing: true,
+            ),
+          );
+          
+          // Apply user settings to the audio handler
+          _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+          
+          notifyListeners();
+          
+          // Load initial data
+          await loadLibraryData();
+        } catch (authError) {
+          if (kDebugMode) {
+            print('Saved credentials are invalid: $authError');
+          }
+          // Clear invalid credentials
+          await prefs.remove('jellyfin_server');
+          _isLoggedIn = false;
+          notifyListeners();
+        }
       }
     } catch (e) {
       if (kDebugMode) {
