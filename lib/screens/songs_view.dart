@@ -231,16 +231,20 @@ class SongTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                     ],
-                    // Favorite heart icon (placeholder for now)
+                    // Favorite heart icon
                     CupertinoButton(
                       padding: EdgeInsets.zero,
                       minSize: 32,
                       onPressed: () {
-                        // TODO: Implement favorite toggle
+                        appState.toggleFavorite(track);
                       },
-                      child: const Icon(
-                        CupertinoIcons.heart,
-                        color: CupertinoColors.systemGrey,
+                      child: Icon(
+                        track.isFavorite 
+                            ? CupertinoIcons.heart_fill 
+                            : CupertinoIcons.heart,
+                        color: track.isFavorite 
+                            ? CupertinoColors.systemRed 
+                            : CupertinoColors.systemGrey,
                         size: 20,
                       ),
                     ),
