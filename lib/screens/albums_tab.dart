@@ -131,7 +131,7 @@ class AlbumCard extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Container(
-                  color: CupertinoColors.systemBackground.resolveFrom(context),
+                  color: const Color(0xFF1C1C1E), // Dark background for text area
                   padding: const EdgeInsets.all(8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,6 +142,7 @@ class AlbumCard extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: CupertinoColors.white, // White text
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -150,8 +151,8 @@ class AlbumCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           album.artistName!,
-                          style: TextStyle(
-                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                          style: const TextStyle(
+                            color: CupertinoColors.systemGrey,
                             fontSize: 12,
                           ),
                           maxLines: 1,
@@ -162,8 +163,8 @@ class AlbumCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           album.year.toString(),
-                          style: TextStyle(
-                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                          style: const TextStyle(
+                            color: CupertinoColors.systemGrey,
                             fontSize: 11,
                           ),
                         ),
