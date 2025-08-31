@@ -37,28 +37,38 @@ class AlbumsTab extends StatelessWidget {
 
         return Container(
           color: const Color(0xFF000000), // Dark background
-          child: CustomScrollView(
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () => appState.loadLibraryData(),
+          child: Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () => appState.loadLibraryData(),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.8,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final album = appState.albums[index];
+                          return AlbumCard(album: album);
+                        },
+                        childCount: appState.albums.length,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.8,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final album = appState.albums[index];
-                      return AlbumCard(album: album);
-                    },
-                    childCount: appState.albums.length,
-                  ),
-                ),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: MiniPlayer(),
               ),
             ],
           ),
