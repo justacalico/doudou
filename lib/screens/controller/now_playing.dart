@@ -76,45 +76,64 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       
                       const SizedBox(height: 20),
                       
-                      // Album Art - responsive size
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.75,
-                        height: MediaQuery.of(context).size.width * 0.75,
-                        constraints: const BoxConstraints(
-                          maxWidth: 320,
-                          maxHeight: 320,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.5),
-                              blurRadius: 30,
-                              offset: const Offset(0, 15),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: currentTrack.imageUrl != null
-                              ? Image.network(
-                                  appState.jellyfinService.getImageUrl(
-                                    currentTrack.imageUrl!,
-                                    width: 800,
-                                    height: 800,
-                                  ),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      color: const Color(0xFF4A4A4A),
-                                      child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
-                                    );
-                                  },
-                                )
-                              : Container(
-                                  color: const Color(0xFF4A4A4A),
-                                  child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                      // Album Art - responsive size (clickable)
+                      GestureDetector(
+                        onTap: () {
+                          // You can add full screen image view functionality here
+                          // For now, this is a placeholder for the full view
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (context) => CupertinoAlertDialog(
+                              title: Text(currentTrack.name),
+                              content: Text('Full view for "${currentTrack.name}" by ${currentTrack.artistName ?? "Unknown Artist"}'),
+                              actions: [
+                                CupertinoDialogAction(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
                                 ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.75,
+                          height: MediaQuery.of(context).size.width * 0.75,
+                          constraints: const BoxConstraints(
+                            maxWidth: 320,
+                            maxHeight: 320,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: CupertinoColors.black.withOpacity(0.5),
+                                blurRadius: 30,
+                                offset: const Offset(0, 15),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: currentTrack.imageUrl != null
+                                ? Image.network(
+                                    appState.jellyfinService.getImageUrl(
+                                      currentTrack.imageUrl!,
+                                      width: 800,
+                                      height: 800,
+                                    ),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: const Color(0xFF4A4A4A),
+                                        child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    color: const Color(0xFF4A4A4A),
+                                    child: const Icon(CupertinoIcons.music_albums, size: 80, color: CupertinoColors.systemGrey),
+                                  ),
+                          ),
                         ),
                       ),
                       
