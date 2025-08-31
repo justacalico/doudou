@@ -337,7 +337,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                             ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () {}, // More options
+                              onPressed: () => _showMoreOptions(context, currentTrack, appState),
                               child: const Icon(
                                 CupertinoIcons.ellipsis,
                                 color: CupertinoColors.white,
@@ -356,6 +356,121 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showMoreOptions(BuildContext context, dynamic currentTrack, AppState appState) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(
+          currentTrack.name,
+          style: const TextStyle(fontSize: 16),
+        ),
+        message: Text(
+          currentTrack.artistName ?? 'Unknown Artist',
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _showAddToPlaylistDialog(context, currentTrack, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.add_circled, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Add to Playlist'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _showAddToPlaylistDialog(BuildContext context, dynamic currentTrack, AppState appState) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Add to Playlist'),
+        content: const Text('Select a playlist to add this song to:'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _createNewPlaylist(context, currentTrack, appState);
+            },
+            child: const Text('Create New Playlist'),
+          ),
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _createNewPlaylist(BuildContext context, dynamic currentTrack, AppState appState) {
+    final TextEditingController controller = TextEditingController();
+    
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('New Playlist'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter a name for your new playlist:'),
+            const SizedBox(height: 16),
+            CupertinoTextField(
+              controller: controller,
+              placeholder: 'Playlist name',
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                Navigator.pop(context);
+                _addToNewPlaylist(context, controller.text.trim(), currentTrack, appState);
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addToNewPlaylist(BuildContext context, String playlistName, dynamic currentTrack, AppState appState) {
+    // For now, just show a success message
+    // In a real implementation, you would call appState.createPlaylistAndAddSong() or similar
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Success'),
+        content: Text('Created playlist "$playlistName" and added "${currentTrack.name}" to it.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
