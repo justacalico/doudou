@@ -46,28 +46,31 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
   }
 
   void _startVisualizerAnimation() {
-    _timer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
       if (widget.isPlaying && mounted) {
         setState(() {
           for (int i = 0; i < _barCount; i++) {
-            // Create more dynamic movement with some bars being more active
-            double baseIntensity = 0.3 + _random.nextDouble() * 0.7;
+            // Create wave-like motion for smoother animation
+            double time = DateTime.now().millisecondsSinceEpoch / 1000.0;
+            double waveOffset = sin(time * 2 + i * 0.2) * 0.3;
             
-            // Make center bars generally more active
-            double centerBoost = 1.0 - (i - _barCount / 2).abs() / (_barCount / 2);
-            centerBoost = centerBoost * 0.3 + 0.7; // Scale between 0.7 and 1.0
+            // Base intensity with wave motion
+            double baseIntensity = 0.4 + _random.nextDouble() * 0.5 + waveOffset;
             
-            // Add some randomness for a more natural feel
-            double randomFactor = 0.7 + _random.nextDouble() * 0.6;
+            // Make opposite sides mirror each other for symmetry
+            double symmetryFactor = sin((i / _barCount) * 2 * pi) * 0.2;
             
-            _barHeights[i] = (baseIntensity * centerBoost * randomFactor).clamp(0.1, 1.0);
+            // Add bass-like emphasis to certain positions
+            double bassBoost = sin((i / _barCount) * 4 * pi) * 0.3;
+            
+            _barHeights[i] = (baseIntensity + symmetryFactor + bassBoost).clamp(0.15, 1.0);
           }
         });
       } else if (mounted) {
         // Gradually reduce bar heights when not playing
         setState(() {
           for (int i = 0; i < _barCount; i++) {
-            _barHeights[i] = (_barHeights[i] * 0.95).clamp(0.05, 1.0);
+            _barHeights[i] = (_barHeights[i] * 0.92).clamp(0.1, 1.0);
           }
         });
       }
