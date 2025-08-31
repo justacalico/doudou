@@ -777,6 +777,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await appState.cleanupExpiredCache();
       await _loadCacheSize(); // Refresh cache size display
+      if (!mounted) return;
       showCupertinoDialog(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
@@ -791,6 +792,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       _showErrorDialog(context, 'Failed to clean expired cache: $e');
     }
   }
