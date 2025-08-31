@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/jellyfin_models.dart';
-import 'jellyfinService.dart';
+import 'jellyfin_service.dart';
 
 class AudioPlayerService extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
