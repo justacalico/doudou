@@ -344,11 +344,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       ),
     );
     
-    // If the download was paused, remove it first to start fresh
-    if (task.status == DownloadStatus.paused) {
-      downloadService.cancelDownload(task.trackId);
-    }
-    
     downloadService.downloadTrack(track);
   }
 
