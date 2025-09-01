@@ -414,8 +414,11 @@ class DownloadService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Save download tasks
-      final tasksJson = _downloadTasks.values.map((task) => task.toJson()).toList();
+      // Save download tasks (only save incomplete tasks)
+      final incompleteTasks = _downloadTasks.values
+          .where((task) => task.status != DownloadStatus.downloaded)
+          .toList();
+      final tasksJson = incompleteTasks.map((task) => task.toJson()).toList();
       await prefs.setString('download_tasks', jsonEncode(tasksJson));
       
       // Save downloaded tracks
