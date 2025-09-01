@@ -1217,4 +1217,77 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _clearPreloadedPlayers();
     _player.dispose();
   }
+  
+  Future<void> _performGaplessTransition(Track nextTrack) async {
+    try {
+      if (kDebugMode) {
+        print('Performing gapless transition to: ${nextTrack.name}');
+      }
+      
+      // Get the preloaded player for the next track
+      final preloadedPlayer = _preloadedPlayers[nextTrack.id];
+      
+      if (preloadedPlayer != null) {
+        // Stop current player
+        await _player.stop();
+        
+        // Swap players for seamless transition
+        final oldPlayer = _player;
+        
+        // Create a new main player and copy state from preloaded player
+        final newPlayer = AudioPlayer();
+        
+        // Set up the new player with the preloaded track
+        final localPath = await _downloadService.getLocalPath(nextTrack.id);
+        
+        if (localPath != null && await File(localPath).exists()) {
+          await newPlayer.setFilePath(localPath);
+        } else {
+          final streamUrl = _jellyfinService.getStreamUrl(nextTrack.id);
+          await newPlayer.setUrl(streamUrl);
+        }
+        
+        // Start playback immediately for gapless transition
+        await newPlayer.play();
+        
+        // Update current track and index
+        _currentIndex++;
+        _currentTrack = nextTrack;
+        
+        // Update media item and state
+        mediaItem.add(_trackToMediaItem(nextTrack));
+        playbackState.add(playbackState.value.copyWith(
+          playing: true,
+          processingState: AudioProcessingState.ready,
+          queueIndex: _currentIndex,
+        ));
+        
+        // Clean up old preloaded player
+        _preloadedPlayers.remove(nextTrack.id);
+        await preloadedPlayer.dispose();
+        
+        // Start preloading next tracks
+        _preloadNextTracks();
+        
+        // Save state
+        await _savePlaybackState();
+        
+        if (kDebugMode) {
+          print('Gapless transition completed successfully');
+        }
+      } else {
+        // Fallback to regular transition if no preloaded player
+        if (kDebugMode) {
+          print('No preloaded player found, using regular transition');
+        }
+        await skipToNext();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in gapless transition: $e');
+      }
+      // Fallback to regular skip
+      await skipToNext();
+    }
+  }
 }
