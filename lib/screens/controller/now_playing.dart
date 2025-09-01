@@ -6,7 +6,7 @@ import '../../providers/app_state.dart';
 import '../playing/lyrics/synced_lyrics_overlay.dart';
 import '../playing/queue/queue_overlay.dart';
 import '../../widgets/cached_image_widget.dart';
-import '../../widgets/embedded_visualizer.dart';
+import '../playing/visualizer/embedded_visualizer.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
