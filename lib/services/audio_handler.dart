@@ -705,14 +705,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       bool loaded = false;
       
       if (localFilePath != null) {
-        // Preload local file
-        try {
-          if (kDebugMode) {
-            print('Preloading local file for track: ${track.name}');
-          }
-          
-          // Set local file path and wait for it to be ready
-          await player.setFilePath(localFilePath);
+        // Verify that the local file exists before trying to preload it
+        final localFile = File(localFilePath);
+        if (await localFile.exists()) {
+          // Preload local file
+          try {
+            if (kDebugMode) {
+              print('Preloading local file for track: ${track.name}');
+            }
+            
+            // Set local file path and wait for it to be ready
+            await player.setFilePath(localFilePath);
           
           // Apply volume normalization if enabled
           player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
