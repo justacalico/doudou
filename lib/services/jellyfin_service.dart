@@ -430,37 +430,46 @@ class JellyfinService {
     if (_server == null) throw Exception('Server not configured');
 
     try {
-      // First get the current playlist metadata
-      final getResponse = await _dio.get('/Users/${_server!.userId}/Items/$playlistId');
-      
-      if (getResponse.statusCode != 200) {
-        if (kDebugMode) {
-          print('Failed to get playlist metadata');
-        }
-        return false;
-      }
-      
-      final playlistData = getResponse.data;
-      
-      // Update the playlist metadata with the new name
-      final updateResponse = await _dio.post(
-        '/Items/$playlistId',
-        data: {
-          'Id': playlistId,
+      // Use the proper endpoint for updating library items
+      final response = await _dio.post(
+        '/Items/$playlistId/Name',
+        queryParameters: {
           'Name': newName,
-          'Type': playlistData['Type'],
-          'ChildCount': playlistData['ChildCount'],
-          'MediaType': playlistData['MediaType'] ?? 'Audio',
-          'UserId': _server!.userId,
         },
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
       );
 
-      return updateResponse.statusCode == 204 || updateResponse.statusCode == 200;
+      return response.statusCode == 204 || response.statusCode == 200;
     } catch (e) {
       if (kDebugMode) {
         print('Error renaming playlist: $e');
       }
-      return false;
+      
+      // Try alternative method if the first one fails
+      try {
+        final altResponse = await _dio.post(
+          '/Library/Items/$playlistId',
+          data: {
+            'Name': newName,
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+        
+        return altResponse.statusCode == 204 || altResponse.statusCode == 200;
+      } catch (altError) {
+        if (kDebugMode) {
+          print('Alternative rename method also failed: $altError');
+        }
+        return false;
+      }
     }
   }
 
