@@ -123,7 +123,7 @@ class DownloadService extends ChangeNotifier {
       _downloadQueue.remove(track.id);
       
       // Save state after cleanup
-      _saveDownloadData();
+      await _saveDownloadData();
       notifyListeners();
       
       if (kDebugMode) {
