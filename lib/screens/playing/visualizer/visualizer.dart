@@ -169,7 +169,7 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     return Center(
       child: SizedBox(
         width: 320,
-        height: 320,
+        height: 180,
         child: CustomPaint(
           painter: EmbeddedVisualizerPainter(
             barHeights: _barHeights,
