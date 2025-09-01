@@ -665,6 +665,24 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     }
   }
 
+  void _showAlbumTracks(BuildContext context, Album album, List<Track> tracks, AppState appState) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => DownloadedAlbumDetailScreen(
+          album: album,
+          downloadedTracks: tracks,
+        ),
+      ),
+    );
+  }
+
+  void _deleteAlbumDownloads(DownloadService downloadService, List<Track> tracks) {
+    for (final track in tracks) {
+      downloadService.deleteDownload(track.id);
+    }
+  }
+
   Widget _buildDownloadQueue(DownloadService downloadService) {
     final downloadTasks = downloadService.downloadTasks;
     
