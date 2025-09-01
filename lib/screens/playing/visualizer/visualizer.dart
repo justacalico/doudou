@@ -88,26 +88,39 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     _timer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
       if (widget.isPlaying && mounted) {
         setState(() {
+          double time = DateTime.now().millisecondsSinceEpoch / 1000.0;
+          
+          // Global pulse effect
+          _globalPulse = sin(time * 3) * 0.3 + 0.7;
+          
+          // Rotation offset for spinning effect
+          _rotationOffset = time * 0.5;
+          
           for (int i = 0; i < _barCount; i++) {
-            // Create wave-like motion for smoother animation
-            double time = DateTime.now().millisecondsSinceEpoch / 1000.0;
-            double waveOffset = sin(time * 2 + i * 0.2) * 0.3;
+            // Create wave-like motion with more dramatic effects
+            double waveOffset = sin(time * 2.5 + i * 0.3) * 0.4;
             
-            // Base intensity with wave motion
-            double baseIntensity = 0.4 + _random.nextDouble() * 0.5 + waveOffset;
+            // Base intensity with enhanced variation
+            double baseIntensity = 0.3 + _random.nextDouble() * 0.6 + waveOffset;
             
-            // Make opposite sides mirror each other for symmetry
-            double symmetryFactor = sin((i / _barCount) * 2 * pi) * 0.2;
+            // Symmetry with pulsing
+            double symmetryFactor = sin((i / _barCount) * 2 * pi + time) * 0.3;
             
-            // Add bass-like emphasis to certain positions
-            double bassBoost = sin((i / _barCount) * 4 * pi) * 0.3;
+            // Bass-like emphasis with stretching effect
+            double bassBoost = sin((i / _barCount) * 4 * pi + time * 0.7) * 0.4;
             
-            _barHeights[i] = (baseIntensity + symmetryFactor + bassBoost).clamp(0.15, 1.0);
+            // Radial stretch effect - some segments extend further
+            double stretchFactor = sin((i / _barCount) * 6 * pi + time * 1.2) * 0.3;
+            
+            _barHeights[i] = (baseIntensity + symmetryFactor + bassBoost + stretchFactor).clamp(0.1, 1.5);
           }
         });
       } else if (mounted) {
-        // Gradually reduce bar heights when not playing
+        // Gradually reduce effects when not playing
         setState(() {
+          _globalPulse = (_globalPulse * 0.95).clamp(0.3, 1.0);
+          _rotationOffset *= 0.98;
+          
           for (int i = 0; i < _barCount; i++) {
             _barHeights[i] = (_barHeights[i] * 0.92).clamp(0.1, 1.0);
           }
