@@ -176,21 +176,78 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
-    if (_isHandlingCompletion) return; // Prevent race conditions
+    if (_isHandlingCompletion) {
+      if (kDebugMode) {
+        print('Already handling completion, skipping...');
+      }
+      return; // Prevent race conditions
+    }
     
     _isHandlingCompletion = true;
     
     try {
-      // Add a small delay to ensure the completion is properly processed
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      // Double-check we're still in completed state
-      if (_player.processingState == ProcessingState.completed) {
-        if (kDebugMode) {
-          print('Track completed: ${_currentTrack?.name}, advancing to next');
-        }
-        await skipToNext();
+      if (kDebugMode) {
+        print('Handling track completion for: ${_currentTrack?.name}');
+        print('Current index: $_currentIndex, Playlist length: ${_playlist.length}');
+        print('Has next track: ${_currentIndex < _playlist.length - 1}');
       }
+      
+      // Check if we have a next track to play
+      if (_currentIndex < _playlist.length - 1) {
+        if (kDebugMode) {
+          print('Moving to next track...');
+        }
+        
+        // Advance to next track
+        _currentIndex++;
+        
+        // Get the next track
+        final nextTrack = _playlist[_currentIndex];
+        _currentTrack = nextTrack;
+        
+        if (kDebugMode) {
+          print('Next track: ${nextTrack.name}');
+        }
+        
+        // Update media item immediately for better background experience
+        mediaItem.add(_trackToMediaItem(nextTrack));
+        
+        // Update playback state to show we're loading the next track
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.loading,
+          queueIndex: _currentIndex,
+        ));
+        
+        // Play the next track
+        await _playCurrentTrack();
+        
+        // Save state after successful transition
+        await _savePlaybackState();
+        
+        if (kDebugMode) {
+          print('Successfully transitioned to next track: ${nextTrack.name}');
+        }
+      } else {
+        if (kDebugMode) {
+          print('Reached end of playlist, stopping playback');
+        }
+        
+        // End of playlist - update state to show completion
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.completed,
+          playing: false,
+        ));
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error handling track completion: $e');
+      }
+      
+      // On error, try to recover by updating the playback state
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+        playing: false,
+      ));
     } finally {
       _isHandlingCompletion = false;
     }
