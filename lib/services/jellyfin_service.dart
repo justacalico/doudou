@@ -430,11 +430,27 @@ class JellyfinService {
     if (_server == null) throw Exception('Server not configured');
 
     try {
-      // Use the proper endpoint for updating library items
+      // Get the current playlist to preserve other properties
+      final currentPlaylist = await _dio.get('/Users/${_server!.userId}/Items/$playlistId');
+      
+      if (currentPlaylist.statusCode != 200) {
+        if (kDebugMode) {
+          print('Failed to get current playlist data');
+        }
+        return false;
+      }
+      
+      final playlistData = currentPlaylist.data;
+      
+      // Update the playlist using the correct Jellyfin endpoint
       final response = await _dio.post(
-        '/Items/$playlistId/Name',
-        queryParameters: {
+        '/Items/$playlistId',
+        data: {
+          'Id': playlistId,
           'Name': newName,
+          'Overview': playlistData['Overview'] ?? '',
+          'MediaType': playlistData['MediaType'] ?? 'Audio',
+          'PlaylistMediaType': playlistData['PlaylistMediaType'] ?? 'Audio',
         },
         options: Options(
           headers: {
@@ -443,33 +459,21 @@ class JellyfinService {
         ),
       );
 
-      return response.statusCode == 204 || response.statusCode == 200;
+      bool success = response.statusCode == 204 || response.statusCode == 200;
+      
+      if (kDebugMode) {
+        print('Rename playlist response: ${response.statusCode}');
+        if (!success) {
+          print('Rename failed with data: ${response.data}');
+        }
+      }
+      
+      return success;
     } catch (e) {
       if (kDebugMode) {
         print('Error renaming playlist: $e');
       }
-      
-      // Try alternative method if the first one fails
-      try {
-        final altResponse = await _dio.post(
-          '/Library/Items/$playlistId',
-          data: {
-            'Name': newName,
-          },
-          options: Options(
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          ),
-        );
-        
-        return altResponse.statusCode == 204 || altResponse.statusCode == 200;
-      } catch (altError) {
-        if (kDebugMode) {
-          print('Alternative rename method also failed: $altError');
-        }
-        return false;
-      }
+      return false;
     }
   }
 
