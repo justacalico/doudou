@@ -448,15 +448,15 @@ class CircularVisualizerPainter extends CustomPainter {
 
     // Draw center indicator
     if (isPlaying) {
-      // Animated center point with glow
+      // Animated center point with glow using extracted colors
       final centerGlowPaint = Paint()
-        ..color = const Color(0xFFFFFFFF).withOpacity(0.6)
+        ..color = colors[0].withOpacity(0.6)
         ..style = PaintingStyle.fill
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawCircle(center, 8, centerGlowPaint);
       
       final centerPaint = Paint()
-        ..color = const Color(0xFFFFFFFF)
+        ..color = colors[0]
         ..style = PaintingStyle.fill;
       canvas.drawCircle(center, 4, centerPaint);
     } else {
