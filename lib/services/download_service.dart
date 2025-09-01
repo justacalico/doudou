@@ -94,12 +94,13 @@ class DownloadService extends ChangeNotifier {
       return; // Already downloading
     }
 
-    // If there's a failed or paused task, remove it first
+    // If there's a failed or paused task, remove it first and clean up
     if (existingTask != null && 
         (existingTask.status == DownloadStatus.failed || existingTask.status == DownloadStatus.paused)) {
       
       if (kDebugMode) {
         print('Retrying failed/paused download for: ${track.name}');
+        print('Old task status: ${existingTask.status}, path: ${existingTask.filePath}');
       }
       
       // Clean up any partial file from the previous attempt
@@ -117,8 +118,17 @@ class DownloadService extends ChangeNotifier {
         }
       }
       
+      // Remove the old task completely so we can create a fresh one
       _downloadTasks.remove(track.id);
       _downloadQueue.remove(track.id);
+      
+      // Save state after cleanup
+      _saveDownloadData();
+      notifyListeners();
+      
+      if (kDebugMode) {
+        print('Cleaned up old task, proceeding with fresh download');
+      }
     }
 
     try {
