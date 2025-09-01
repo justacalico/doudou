@@ -1,0 +1,462 @@
+import 'dart:io';
+import 'dart:convert';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/download_models.dart';
+import '../models/jellyfin_models.dart';
+import 'jellyfin_service.dart';
+
+class DownloadService extends ChangeNotifier {
+  final JellyfinService _jellyfinService;
+  final Map<String, DownloadTask> _downloadTasks = {};
+  final Map<String, DownloadedTrack> _downloadedTracks = {};
+  final List<String> _downloadQueue = [];
+  bool _isDownloading = false;
+  int _maxConcurrentDownloads = 3;
+  int _activeDownloads = 0;
+
+  DownloadService(this._jellyfinService) {
+    _loadDownloadData();
+  }
+
+  // Getters
+  List<DownloadTask> get downloadTasks => _downloadTasks.values.toList();
+  Map<String, DownloadedTrack> get downloadedTracks => Map.unmodifiable(_downloadedTracks);
+  bool get isDownloading => _isDownloading;
+  int get activeDownloads => _activeDownloads;
+  int get queueLength => _downloadQueue.length;
+
+  // Check if a track is downloaded
+  bool isTrackDownloaded(String trackId) {
+    return _downloadedTracks.containsKey(trackId);
+  }
+
+  // Get download status for a track
+  DownloadStatus getDownloadStatus(String trackId) {
+    if (_downloadedTracks.containsKey(trackId)) {
+      return DownloadStatus.downloaded;
+    }
+    final task = _downloadTasks.values.firstWhere(
+      (task) => task.trackId == trackId,
+      orElse: () => DownloadTask(
+        id: '',
+        trackId: '',
+        trackName: '',
+        downloadUrl: '',
+        filePath: '',
+      ),
+    );
+    return task.id.isEmpty ? DownloadStatus.notDownloaded : task.status;
+  }
+
+  // Get download progress for a track
+  double getDownloadProgress(String trackId) {
+    final task = _downloadTasks.values.firstWhere(
+      (task) => task.trackId == trackId,
+      orElse: () => DownloadTask(
+        id: '',
+        trackId: '',
+        trackName: '',
+        downloadUrl: '',
+        filePath: '',
+      ),
+    );
+    return task.id.isEmpty ? 0.0 : task.progress;
+  }
+
+  // Get local file path for a downloaded track
+  String? getLocalFilePath(String trackId) {
+    return _downloadedTracks[trackId]?.filePath;
+  }
+
+  // Download a track
+  Future<void> downloadTrack(Track track) async {
+    if (isTrackDownloaded(track.id)) {
+      return; // Already downloaded
+    }
+
+    // Check if already in queue or downloading
+    if (_downloadTasks.containsKey(track.id)) {
+      return;
+    }
+
+    try {
+      // Get download URL from Jellyfin
+      final downloadUrl = _jellyfinService.getDownloadUrl(track.id);
+      
+      // Create downloads directory
+      final appDir = await getApplicationDocumentsDirectory();
+      final downloadsDir = Directory('${appDir.path}/downloads');
+      if (!await downloadsDir.exists()) {
+        await downloadsDir.create(recursive: true);
+      }
+
+      // Create file path
+      final fileName = '${track.id}.mp3'; // Jellyfin usually serves as MP3
+      final filePath = '${downloadsDir.path}/$fileName';
+
+      // Create download task
+      final task = DownloadTask(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        trackId: track.id,
+        trackName: track.name,
+        artistName: track.artistName,
+        albumName: track.albumName,
+        imageUrl: track.imageUrl,
+        downloadUrl: downloadUrl,
+        filePath: filePath,
+        status: DownloadStatus.downloading,
+        startTime: DateTime.now(),
+      );
+
+      _downloadTasks[track.id] = task;
+      _downloadQueue.add(track.id);
+      
+      notifyListeners();
+      _saveDownloadData();
+
+      // Start downloading if not at max concurrent downloads
+      _processDownloadQueue();
+
+    } catch (e) {
+      debugPrint('Error starting download for ${track.name}: $e');
+    }
+  }
+
+  // Process download queue
+  Future<void> _processDownloadQueue() async {
+    if (_activeDownloads >= _maxConcurrentDownloads || _downloadQueue.isEmpty) {
+      return;
+    }
+
+    _isDownloading = true;
+    _activeDownloads++;
+    notifyListeners();
+
+    final trackId = _downloadQueue.removeAt(0);
+    final task = _downloadTasks[trackId];
+    
+    if (task == null) {
+      _activeDownloads--;
+      _checkDownloadComplete();
+      return;
+    }
+
+    try {
+      await _downloadFile(task);
+    } catch (e) {
+      debugPrint('Download failed for ${task.trackName}: $e');
+      
+      // Update task status to failed
+      _downloadTasks[trackId] = task.copyWith(
+        status: DownloadStatus.failed,
+        errorMessage: e.toString(),
+        endTime: DateTime.now(),
+      );
+    }
+
+    _activeDownloads--;
+    _saveDownloadData();
+    notifyListeners();
+
+    // Continue processing queue
+    _processDownloadQueue();
+    _checkDownloadComplete();
+  }
+
+  // Download individual file
+  Future<void> _downloadFile(DownloadTask task) async {
+    final file = File(task.filePath);
+    
+    try {
+      final request = http.Request('GET', Uri.parse(task.downloadUrl));
+      
+      // Add authentication headers
+      final headers = await _jellyfinService.getAuthHeaders();
+      request.headers.addAll(headers);
+
+      final response = await request.send();
+      
+      if (response.statusCode == 200) {
+        final totalBytes = response.contentLength ?? 0;
+        int downloadedBytes = 0;
+
+        // Update task with total size
+        _downloadTasks[task.trackId] = task.copyWith(
+          totalBytes: totalBytes,
+          downloadedBytes: 0,
+        );
+
+        final sink = file.openWrite();
+        
+        await response.stream.listen(
+          (chunk) {
+            sink.add(chunk);
+            downloadedBytes += chunk.length;
+            
+            final progress = totalBytes > 0 ? downloadedBytes / totalBytes : 0.0;
+            
+            // Update progress
+            _downloadTasks[task.trackId] = task.copyWith(
+              progress: progress,
+              downloadedBytes: downloadedBytes,
+            );
+            
+            notifyListeners();
+          },
+          onDone: () async {
+            await sink.close();
+            
+            // Download completed successfully
+            final fileSize = await file.length();
+            
+            final downloadedTrack = DownloadedTrack(
+              trackId: task.trackId,
+              filePath: task.filePath,
+              downloadedAt: DateTime.now(),
+              fileSize: fileSize,
+            );
+            
+            _downloadedTracks[task.trackId] = downloadedTrack;
+            
+            // Update task status
+            _downloadTasks[task.trackId] = task.copyWith(
+              status: DownloadStatus.downloaded,
+              progress: 1.0,
+              endTime: DateTime.now(),
+            );
+
+            // Also download album artwork if available
+            if (task.imageUrl != null) {
+              try {
+                await _downloadAlbumArt(task);
+              } catch (e) {
+                debugPrint('Failed to download album art: $e');
+              }
+            }
+            
+            notifyListeners();
+            _saveDownloadData();
+          },
+          onError: (error) async {
+            await sink.close();
+            
+            // Delete partial file
+            if (await file.exists()) {
+              await file.delete();
+            }
+            
+            throw error;
+          },
+        ).asFuture();
+        
+      } else {
+        throw Exception('HTTP ${response.statusCode}: Failed to download');
+      }
+    } catch (e) {
+      // Delete partial file if it exists
+      if (await file.exists()) {
+        await file.delete();
+      }
+      rethrow;
+    }
+  }
+
+  // Download album artwork
+  Future<void> _downloadAlbumArt(DownloadTask task) async {
+    if (task.imageUrl == null) return;
+
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${appDir.path}/downloads/images');
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
+      final imageFileName = '${task.trackId}_image.jpg';
+      final imagePath = '${imagesDir.path}/$imageFileName';
+      final imageFile = File(imagePath);
+
+      if (await imageFile.exists()) {
+        return; // Already downloaded
+      }
+
+      final imageUrl = _jellyfinService.getImageUrl(task.imageUrl!, width: 300, height: 300);
+      final headers = await _jellyfinService.getAuthHeaders();
+      
+      final response = await http.get(Uri.parse(imageUrl), headers: headers);
+      
+      if (response.statusCode == 200) {
+        await imageFile.writeAsBytes(response.bodyBytes);
+        
+        // Update downloaded track with image path
+        final downloadedTrack = _downloadedTracks[task.trackId];
+        if (downloadedTrack != null) {
+          _downloadedTracks[task.trackId] = DownloadedTrack(
+            trackId: downloadedTrack.trackId,
+            filePath: downloadedTrack.filePath,
+            imagePath: imagePath,
+            downloadedAt: downloadedTrack.downloadedAt,
+            fileSize: downloadedTrack.fileSize,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to download album art for ${task.trackName}: $e');
+    }
+  }
+
+  // Cancel a download
+  Future<void> cancelDownload(String trackId) async {
+    final task = _downloadTasks[trackId];
+    if (task == null) return;
+
+    // Remove from queue if pending
+    _downloadQueue.remove(trackId);
+
+    // Update status to paused/cancelled
+    _downloadTasks[trackId] = task.copyWith(
+      status: DownloadStatus.paused,
+      endTime: DateTime.now(),
+    );
+
+    // Delete partial file if it exists
+    final file = File(task.filePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+
+    notifyListeners();
+    _saveDownloadData();
+  }
+
+  // Delete a downloaded track
+  Future<void> deleteDownload(String trackId) async {
+    final downloadedTrack = _downloadedTracks[trackId];
+    if (downloadedTrack == null) return;
+
+    try {
+      // Delete audio file
+      final audioFile = File(downloadedTrack.filePath);
+      if (await audioFile.exists()) {
+        await audioFile.delete();
+      }
+
+      // Delete image file if it exists
+      if (downloadedTrack.imagePath != null) {
+        final imageFile = File(downloadedTrack.imagePath!);
+        if (await imageFile.exists()) {
+          await imageFile.delete();
+        }
+      }
+
+      // Remove from maps
+      _downloadedTracks.remove(trackId);
+      _downloadTasks.remove(trackId);
+
+      notifyListeners();
+      _saveDownloadData();
+    } catch (e) {
+      debugPrint('Error deleting download for $trackId: $e');
+    }
+  }
+
+  // Get total downloaded size
+  Future<int> getTotalDownloadedSize() async {
+    int totalSize = 0;
+    for (final track in _downloadedTracks.values) {
+      totalSize += track.fileSize;
+      
+      // Add image size if exists
+      if (track.imagePath != null) {
+        final imageFile = File(track.imagePath!);
+        if (await imageFile.exists()) {
+          final imageStat = await imageFile.stat();
+          totalSize += imageStat.size;
+        }
+      }
+    }
+    return totalSize;
+  }
+
+  // Clear all downloads
+  Future<void> clearAllDownloads() async {
+    for (final trackId in _downloadedTracks.keys.toList()) {
+      await deleteDownload(trackId);
+    }
+  }
+
+  // Check if downloading is complete
+  void _checkDownloadComplete() {
+    if (_activeDownloads == 0 && _downloadQueue.isEmpty) {
+      _isDownloading = false;
+      notifyListeners();
+    }
+  }
+
+  // Save download data to persistent storage
+  Future<void> _saveDownloadData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Save download tasks
+      final tasksJson = _downloadTasks.values.map((task) => task.toJson()).toList();
+      await prefs.setString('download_tasks', jsonEncode(tasksJson));
+      
+      // Save downloaded tracks
+      final tracksJson = _downloadedTracks.values.map((track) => track.toJson()).toList();
+      await prefs.setString('downloaded_tracks', jsonEncode(tracksJson));
+      
+    } catch (e) {
+      debugPrint('Error saving download data: $e');
+    }
+  }
+
+  // Load download data from persistent storage
+  Future<void> _loadDownloadData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Load download tasks
+      final tasksJsonString = prefs.getString('download_tasks');
+      if (tasksJsonString != null) {
+        final tasksList = jsonDecode(tasksJsonString) as List;
+        for (final taskJson in tasksList) {
+          final task = DownloadTask.fromJson(taskJson);
+          
+          // Reset any downloading tasks to failed (app was closed during download)
+          if (task.status == DownloadStatus.downloading) {
+            _downloadTasks[task.trackId] = task.copyWith(
+              status: DownloadStatus.failed,
+              errorMessage: 'Download interrupted',
+            );
+          } else {
+            _downloadTasks[task.trackId] = task;
+          }
+        }
+      }
+      
+      // Load downloaded tracks
+      final tracksJsonString = prefs.getString('downloaded_tracks');
+      if (tracksJsonString != null) {
+        final tracksList = jsonDecode(tracksJsonString) as List;
+        for (final trackJson in tracksList) {
+          final track = DownloadedTrack.fromJson(trackJson);
+          
+          // Verify file still exists
+          final file = File(track.filePath);
+          if (await file.exists()) {
+            _downloadedTracks[track.trackId] = track;
+          }
+        }
+      }
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading download data: $e');
+    }
+  }
+}
