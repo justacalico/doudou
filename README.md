@@ -5,6 +5,8 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 ![Doudou Logo](android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 Note: Icon is planned to be changed once someone makes a new one this is just so there is one in place and as a refernce.
 
+```
+
 ## ✨ Features
 
 - 🎵 **Beautiful Interface** - Clean, intuitive design inspired by modern music apps
