@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../artists/details/artist_detail.dart';
+import '../albums/details/album_details.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
