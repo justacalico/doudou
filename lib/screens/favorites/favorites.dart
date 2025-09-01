@@ -336,10 +336,12 @@ class FavoriteTrackListItem extends StatelessWidget {
             },
           ),
         ],
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
               // Album artwork
               Container(
                 width: 56,
@@ -459,6 +461,7 @@ class FavoriteTrackListItem extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 
