@@ -46,11 +46,16 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     // Initialize bar heights
     _barHeights = List.generate(_barCount, (index) => 0.1);
     
-    // Create animation controller
+    // Create animation controllers
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
+    
+    _rotationController = AnimationController(
+      duration: const Duration(seconds: 8),
+      vsync: this,
+    )..repeat();
 
     // Extract colors from song info
     _extractColorsFromSong();
