@@ -124,8 +124,6 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   void dispose() {
     _timer.cancel();
     _animationController.dispose();
-    _rotationController.dispose();
-    _depthController.dispose();
     super.dispose();
   }
 
