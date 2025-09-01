@@ -350,6 +350,318 @@ class PlaylistTile extends StatelessWidget {
       },
     );
   }
+
+  void _showPlaylistOptions(BuildContext context, AppState appState) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        title: Text(
+          playlist.name,
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _showRenameDialog(context, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.pencil, size: 18),
+                SizedBox(width: 8),
+                Text('Rename'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+              _showDeleteConfirmation(context, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.delete, size: 18),
+                SizedBox(width: 8),
+                Text('Remove'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _showRenameDialog(BuildContext context, AppState appState) {
+    final TextEditingController nameController = TextEditingController(text: playlist.name);
+    
+    showCupertinoDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Rename Playlist'),
+          content: Container(
+            margin: const EdgeInsets.only(top: 16),
+            child: CupertinoTextField(
+              controller: nameController,
+              placeholder: 'Playlist name',
+              style: const TextStyle(color: CupertinoColors.black),
+              decoration: BoxDecoration(
+                color: CupertinoColors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              autofocus: true,
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Rename'),
+              onPressed: () {
+                final newName = nameController.text.trim();
+                if (newName.isNotEmpty && newName != playlist.name) {
+                  _renamePlaylist(context, appState, newName);
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, AppState appState) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Remove Playlist'),
+          content: Text('Are you sure you want to remove "${playlist.name}"? This action cannot be undone.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: const Text('Remove'),
+              onPressed: () {
+                _removePlaylist(context, appState);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _renamePlaylist(BuildContext context, AppState appState, String newName) async {
+    // Close the dialog first
+    Navigator.of(context).pop();
+    
+    // Show loading indicator
+    if (!context.mounted) return;
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const CupertinoAlertDialog(
+          title: Text('Renaming Playlist'),
+          content: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CupertinoActivityIndicator(),
+          ),
+        );
+      },
+    );
+    
+    try {
+      final success = await appState.renamePlaylist(playlist.id, newName);
+      
+      // Close loading dialog
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      
+      if (success) {
+        // Show success message
+        if (!context.mounted) return;
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Success'),
+              content: Text('Playlist renamed to "$newName" successfully!'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Show error message
+        if (!context.mounted) return;
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to rename playlist to "$newName". Please try again.'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      
+      // Show error message
+      if (!context.mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('An error occurred: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _removePlaylist(BuildContext context, AppState appState) async {
+    // Close the dialog first
+    Navigator.of(context).pop();
+    
+    // Show loading indicator
+    if (!context.mounted) return;
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const CupertinoAlertDialog(
+          title: Text('Removing Playlist'),
+          content: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CupertinoActivityIndicator(),
+          ),
+        );
+      },
+    );
+    
+    try {
+      final success = await appState.removePlaylist(playlist.id);
+      
+      // Close loading dialog
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      
+      if (success) {
+        // Show success message
+        if (!context.mounted) return;
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Success'),
+              content: Text('Playlist "${playlist.name}" removed successfully!'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Show error message
+        if (!context.mounted) return;
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to remove playlist "${playlist.name}". Please try again.'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      
+      // Show error message
+      if (!context.mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('An error occurred: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 }
 
 class PlaylistDetailScreen extends StatefulWidget {
