@@ -445,24 +445,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     );
   }
 
-  void _showPlaylistTracks(BuildContext context, Playlist playlist, List<Track> tracks, AppState appState) {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => DownloadedPlaylistDetailScreen(
-          playlist: playlist,
-          downloadedTracks: tracks,
-        ),
-      ),
-    );
-  }
-
-  void _deletePlaylistDownloads(DownloadService downloadService, List<Track> tracks) {
-    for (final track in tracks) {
-      downloadService.deleteDownload(track.id);
-    }
-  }
-
   void _showAlbumTracks(BuildContext context, Album album, List<Track> tracks, AppState appState) {
     Navigator.push(
       context,
