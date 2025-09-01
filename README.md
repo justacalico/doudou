@@ -130,7 +130,7 @@ See [Release Checklist](docs/release-checklist.md) for complete Play Store submi
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please follow the code style and test code before commiting.
 
 ### Development Setup
 1. Fork the repository
