@@ -158,6 +158,19 @@ class SongTile extends StatelessWidget {
               CupertinoContextMenuAction(
                 child: const Row(
                   children: [
+                    Icon(CupertinoIcons.arrow_down_circle, size: 18),
+                    SizedBox(width: 8),
+                    Text('Download'),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.downloadService.downloadTrack(track);
+                },
+              ),
+              CupertinoContextMenuAction(
+                child: const Row(
+                  children: [
                     Icon(CupertinoIcons.add, size: 18),
                     SizedBox(width: 8),
                     Text('Add to Queue'),
