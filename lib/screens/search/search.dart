@@ -550,7 +550,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       itemCount: favoritesTracks.length,
                       itemBuilder: (context, index) {
                         final track = favoritesTracks[index];
-                        return _buildTrackTile(track, appState);
+                        return TrackListItem(
+                          track: track,
+                          onTap: () => appState.playTrack(track),
+                        );
                       },
                     ),
             ),
