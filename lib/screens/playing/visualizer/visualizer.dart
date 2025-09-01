@@ -98,44 +98,58 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   }
 
   void _startVisualizerAnimation() {
-    _timer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (widget.isPlaying && mounted) {
         setState(() {
           double time = DateTime.now().millisecondsSinceEpoch / 1000.0;
           
           // Global pulse effect
-          _globalPulse = sin(time * 3) * 0.3 + 0.7;
+          _globalPulse = sin(time * 2.5) * 0.4 + 0.7;
           
-          // Rotation offset for spinning effect
-          _rotationOffset = time * 0.5;
+          // 3D rotation and camera effects
+          _rotationOffset = time * 0.3;
+          _perspectiveAngle = sin(time * 0.8) * 0.2;
+          _cameraY = sin(time * 0.5) * 20;
           
           for (int i = 0; i < _barCount; i++) {
-            // Create wave-like motion with more dramatic effects
-            double waveOffset = sin(time * 2.5 + i * 0.3) * 0.4;
+            // Enhanced wave patterns for 3D effect
+            double waveOffset = sin(time * 3 + i * 0.15) * 0.5;
+            double secondaryWave = cos(time * 1.8 + i * 0.2) * 0.3;
             
-            // Base intensity with enhanced variation
-            double baseIntensity = 0.3 + _random.nextDouble() * 0.6 + waveOffset;
+            // Dynamic height with more variation
+            double baseIntensity = 0.2 + _random.nextDouble() * 0.7 + waveOffset + secondaryWave;
             
-            // Symmetry with pulsing
-            double symmetryFactor = sin((i / _barCount) * 2 * pi + time) * 0.3;
+            // 3D depth variation
+            double depthWave = sin(time * 2.2 + i * 0.25) * 0.6;
+            double depthIntensity = 0.3 + _random.nextDouble() * 0.4 + depthWave;
             
-            // Bass-like emphasis with stretching effect
-            double bassBoost = sin((i / _barCount) * 4 * pi + time * 0.7) * 0.4;
+            // Individual bar rotation
+            double rotationSpeed = 0.02 + (i % 5) * 0.01;
+            _barRotations[i] = (_barRotations[i] + rotationSpeed) % (2 * pi);
             
-            // Radial stretch effect - some segments extend further
-            double stretchFactor = sin((i / _barCount) * 6 * pi + time * 1.2) * 0.3;
+            // Bass-like emphasis with 3D stretching
+            double bassBoost = sin((i / _barCount) * 6 * pi + time * 0.9) * 0.5;
+            double trebleBoost = cos((i / _barCount) * 8 * pi + time * 1.3) * 0.3;
             
-            _barHeights[i] = (baseIntensity + symmetryFactor + bassBoost + stretchFactor).clamp(0.1, 1.5);
+            // Spiral effect
+            double spiralFactor = sin((i / _barCount) * 4 * pi + time * 1.5) * 0.4;
+            
+            _barHeights[i] = (baseIntensity + bassBoost + trebleBoost + spiralFactor).clamp(0.1, 2.0);
+            _barDepths[i] = (depthIntensity + spiralFactor * 0.5).clamp(0.1, 1.5);
           }
         });
       } else if (mounted) {
         // Gradually reduce effects when not playing
         setState(() {
-          _globalPulse = (_globalPulse * 0.95).clamp(0.3, 1.0);
+          _globalPulse = (_globalPulse * 0.95).clamp(0.4, 1.0);
           _rotationOffset *= 0.98;
+          _perspectiveAngle *= 0.95;
+          _cameraY *= 0.9;
           
           for (int i = 0; i < _barCount; i++) {
             _barHeights[i] = (_barHeights[i] * 0.92).clamp(0.1, 1.0);
+            _barDepths[i] = (_barDepths[i] * 0.92).clamp(0.1, 1.0);
+            _barRotations[i] = (_barRotations[i] * 0.98) % (2 * pi);
           }
         });
       }
