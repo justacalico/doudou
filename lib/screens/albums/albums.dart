@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
@@ -163,7 +164,9 @@ class AlbumsTab extends StatelessWidget {
                     
                     // Debug: Print whether we have a current track
                     if (currentTrack != null) {
-                      print('Albums page: Current track detected: ${currentTrack.name}');
+                      if (kDebugMode) {
+                        print('Albums page: Current track detected: ${currentTrack.name}');
+                      }
                     } else {
                       print('Albums page: No current track');
                     }
