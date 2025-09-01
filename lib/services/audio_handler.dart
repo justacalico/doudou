@@ -168,10 +168,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> skipToNext() async {
+    if (kDebugMode) {
+      print('Manual skip to next requested. Current: $_currentIndex, Max: ${_playlist.length - 1}');
+    }
+    
     if (_currentIndex < _playlist.length - 1) {
       _currentIndex++;
+      
+      if (kDebugMode) {
+        print('Skipping to track ${_currentIndex + 1}/${_playlist.length}: ${_playlist[_currentIndex].name}');
+      }
+      
       await _playCurrentTrack();
       await _savePlaybackState();
+    } else {
+      if (kDebugMode) {
+        print('Already at last track, cannot skip to next');
+      }
+      
+      // Update state to show we're at the end
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.completed,
+        playing: false,
+      ));
     }
   }
 
