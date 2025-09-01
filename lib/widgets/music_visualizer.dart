@@ -390,7 +390,7 @@ class CircularVisualizerPainter extends CustomPainter {
     // Draw subtle inner ring
     final innerRingPaint = Paint()
       ..color = isPlaying 
-          ? const Color(0xFFFFFFFF).withOpacity(0.2)
+          ? colors[2].withOpacity(0.3)
           : const Color(0xFF8E8E93).withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
