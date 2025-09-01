@@ -115,7 +115,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           Future.delayed(const Duration(milliseconds: 200), () {
             final currentPosition = _player.position;
             final currentDuration = _player.duration;
-            final currentState = _player.playerState;
             
             if (currentDuration != null && currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 100) {
               // We're essentially at the end, force completion handling
