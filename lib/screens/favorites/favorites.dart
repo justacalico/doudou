@@ -210,9 +210,14 @@ class FavoritesView extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final track = favoriteTracks[index];
-                        return FavoriteTrackListItem(
+                        return TrackListItem(
                           track: track,
                           onTap: () => _playTrack(context, track, index),
+                          showAlbumArt: true,
+                          showTrackNumber: false,
+                          showDuration: true,
+                          showDownloadButton: true,
+                          showFavoriteButton: true,
                         );
                       },
                       childCount: favoriteTracks.length,
