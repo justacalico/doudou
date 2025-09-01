@@ -507,4 +507,20 @@ class JellyfinService {
   }
 
   JellyfinServer? get currentServer => _server;
+
+  // Get download URL for a track
+  String getDownloadUrl(String itemId) {
+    if (_server == null) return '';
+    return '${_server!.serverUrl}/Items/$itemId/Download?api_key=${_server!.accessToken}';
+  }
+
+  // Get authentication headers for HTTP requests
+  Future<Map<String, String>> getAuthHeaders() async {
+    if (_server == null) return {};
+    
+    return {
+      'X-Emby-Token': _server!.accessToken ?? '',
+      'X-Emby-Authorization': 'MediaBrowser UserId="${_server!.userId}", Client="doudou-flutter", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+    };
+  }
 }
