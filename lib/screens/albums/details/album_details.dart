@@ -311,11 +311,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   );
                 }
 
-                final track = tracks[index - 1];
+                final track = tracks[index - 2];
                 return TrackListItem(
                   track: track,
-                  trackNumber: index,
-                  onTap: () => _playTrack(track, index - 1),
+                  trackNumber: index - 1,
+                  onTap: () => _playTrack(track, index - 2),
                   showAlbumArt: false,
                   showTrackNumber: true,
                   showDuration: true,
