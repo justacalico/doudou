@@ -773,7 +773,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     if (enabled) {
       // Enable crossfade with 3-second duration
-      _player.setVolume(1.0);
+      // Apply volume based on normalization setting
+      _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
       
       // Start preloading next tracks
       _preloadNextTracks();
