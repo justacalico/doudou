@@ -34,91 +34,102 @@ class SongsView extends StatelessWidget {
           );
         }
 
-        return Container(
-          color: const Color(0xFF000000), // Dark background
-          child: CustomScrollView(
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () => appState.loadLibraryData(),
-              ),
-              // Header with Play and Shuffle buttons
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CupertinoButton.filled(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          borderRadius: BorderRadius.circular(25),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(CupertinoIcons.play_fill, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Play All',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                          onPressed: () {
-                            if (appState.tracks.isNotEmpty) {
-                              appState.playPlaylist(appState.tracks, 0);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CupertinoButton(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          borderRadius: BorderRadius.circular(25),
-                          color: const Color(0xFF2C2C2E),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 18),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Shuffle',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
-                              ),
-                            ],
-                          ),
-                          onPressed: () {
-                            if (appState.tracks.isNotEmpty) {
-                              final shuffledTracks = List<Track>.from(appState.tracks)..shuffle();
-                              appState.playPlaylist(shuffledTracks, 0);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
+        return Stack(
+          children: [
+            Container(
+              color: const Color(0xFF000000), // Dark background
+              child: CustomScrollView(
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () => appState.loadLibraryData(),
                   ),
-                ),
-              ),
-              // Songs list
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final track = appState.tracks[index];
-                    return SongTile(
-                      track: track,
-                      onTap: () {
-                        appState.playPlaylist(appState.tracks, index);
+                  // Header with Play and Shuffle buttons
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoButton.filled(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              borderRadius: BorderRadius.circular(25),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(CupertinoIcons.play_fill, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Play All',
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                              onPressed: () {
+                                if (appState.tracks.isNotEmpty) {
+                                  appState.playPlaylist(appState.tracks, 0);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CupertinoButton(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              borderRadius: BorderRadius.circular(25),
+                              color: const Color(0xFF2C2C2E),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 18),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Shuffle',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
+                                  ),
+                                ],
+                              ),
+                              onPressed: () {
+                                if (appState.tracks.isNotEmpty) {
+                                  final shuffledTracks = List<Track>.from(appState.tracks)..shuffle();
+                                  appState.playPlaylist(shuffledTracks, 0);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Songs list
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final track = appState.tracks[index];
+                        return SongTile(
+                          track: track,
+                          onTap: () {
+                            appState.playPlaylist(appState.tracks, index);
+                          },
+                        );
                       },
-                    );
-                  },
-                  childCount: appState.tracks.length,
-                ),
+                      childCount: appState.tracks.length,
+                    ),
+                  ),
+                  // Add some bottom padding for mini player
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 100),
+                  ),
+                ],
               ),
-              // Add some bottom padding
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
-            ],
-          ),
+            ),
+            // Mini player at bottom
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MiniPlayer(),
+            ),
+          ],
         );
       },
     );
