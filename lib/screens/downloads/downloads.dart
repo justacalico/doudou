@@ -331,6 +331,10 @@ class _DownloadsScreenState extends State<DownloadsScreen>
   }
 
   void _retryDownload(DownloadService downloadService, DownloadTask task) {
+    if (kDebugMode) {
+      print('_retryDownload called for task: ${task.trackName}, status: ${task.status}');
+    }
+    
     // Find the track and retry download
     final appState = context.read<AppState>();
     final track = appState.tracks.firstWhere(
@@ -343,6 +347,10 @@ class _DownloadsScreenState extends State<DownloadsScreen>
         imageUrl: task.imageUrl,
       ),
     );
+    
+    if (kDebugMode) {
+      print('Retrying download for track: ${track.name}');
+    }
     
     downloadService.downloadTrack(track);
   }
