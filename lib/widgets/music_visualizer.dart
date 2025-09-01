@@ -36,7 +36,6 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
     const Color(0xFFFF9F0A), // Default orange
     const Color(0xFFBF5AF2), // Default purple
   ];
-  bool _colorsExtracted = false;
 
   @override
   void initState() {
