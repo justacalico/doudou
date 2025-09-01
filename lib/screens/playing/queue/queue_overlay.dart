@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../providers/app_state.dart';
-import '../models/jellyfin_models.dart';
+import '../../../providers/app_state.dart';
+import '../../../models/jellyfin_models.dart';
 
 /// Shows the queue overlay with glass-morphism design
 void showQueueOverlay(BuildContext context) {
