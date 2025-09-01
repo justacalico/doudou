@@ -387,18 +387,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     }
   }
 
-  // Method to manually refresh playlist groups
-  void _refreshPlaylistGroups(DownloadService downloadService, AppState appState) {
-    setState(() {
-      _cachedPlaylistGroups = null;
-      _isLoadingPlaylists = false;
-    });
-    
-    if (downloadService.downloadedTracks.isNotEmpty) {
-      _loadPlaylistGroups(downloadService.downloadedTracks, appState);
-    }
-  }
-
   Widget _buildDownloadedSongs(DownloadService downloadService, AppState appState) {
     final downloadedTracks = downloadService.downloadedTracks;
     
