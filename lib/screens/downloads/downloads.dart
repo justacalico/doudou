@@ -737,7 +737,7 @@ class DownloadTaskItem extends StatelessWidget {
       case DownloadStatus.failed:
         return task.errorMessage ?? 'Download failed';
       case DownloadStatus.paused:
-        return 'Paused';
+        return 'Cancelled - Tap to retry';
       default:
         return 'Waiting...';
     }
