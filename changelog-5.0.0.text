@@ -5,6 +5,7 @@
 - "Add to queue" button.
 - "Play next" button.
 - Download manager.
+- Abilty to download playlist's.
 
 ## Changed
 - Embedded the visualizer instead of having its own page.
