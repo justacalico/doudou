@@ -8,6 +8,7 @@ import '../../providers/app_state.dart';
 import '../../models/download_models.dart';
 import '../../models/jellyfin_models.dart';
 import '../../services/download_service.dart';
+import 'downloaded_album_detail.dart';
 import '../partials/player/mini_player.dart';
 
 class DownloadsScreen extends StatefulWidget {
