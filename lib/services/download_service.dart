@@ -87,6 +87,22 @@ class DownloadService extends ChangeNotifier {
     // If there's a failed or paused task, remove it first
     if (existingTask != null && 
         (existingTask.status == DownloadStatus.failed || existingTask.status == DownloadStatus.paused)) {
+      
+      // Clean up any partial file from the previous attempt
+      final oldFile = File(existingTask.filePath);
+      if (await oldFile.exists()) {
+        try {
+          await oldFile.delete();
+          if (kDebugMode) {
+            print('Cleaned up partial file for retry: ${existingTask.filePath}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to clean up partial file: $e');
+          }
+        }
+      }
+      
       _downloadTasks.remove(track.id);
       _downloadQueue.remove(track.id);
     }
