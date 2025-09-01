@@ -288,8 +288,8 @@ class JellyfinService {
         '/Playlists/$playlistId/Items',
         queryParameters: {
           'UserId': _server!.userId,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags,UserData',
-          'SortBy': 'SortName',
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+          'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
       );
