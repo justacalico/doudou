@@ -659,7 +659,7 @@ class DownloadTaskItem extends StatelessWidget {
             // Action button
             CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: task.status == DownloadStatus.failed ? onRetry : onCancel,
+              onPressed: (task.status == DownloadStatus.failed || task.status == DownloadStatus.paused) ? onRetry : onCancel,
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -671,10 +671,10 @@ class DownloadTaskItem extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  task.status == DownloadStatus.failed
+                  (task.status == DownloadStatus.failed || task.status == DownloadStatus.paused)
                       ? CupertinoIcons.refresh
                       : CupertinoIcons.xmark,
-                  color: task.status == DownloadStatus.failed
+                  color: (task.status == DownloadStatus.failed || task.status == DownloadStatus.paused)
                       ? const Color(0xFF007AFF)
                       : const Color(0xFF8E8E93),
                   size: 18,
