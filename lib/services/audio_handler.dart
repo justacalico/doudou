@@ -152,8 +152,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
         _startPeriodicSaving();
+        _startCompletionChecker(); // Start background completion checker
       } else {
         _stopPeriodicSaving();
+        _stopCompletionChecker(); // Stop background completion checker
         _savePlaybackState(); // Save immediately when paused
       }
     });
