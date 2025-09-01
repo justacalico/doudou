@@ -162,11 +162,15 @@ class EmbeddedVisualizerPainter extends CustomPainter {
   final List<double> barHeights;
   final bool isPlaying;
   final List<Color> colors;
+  final double globalPulse;
+  final double rotationOffset;
 
   EmbeddedVisualizerPainter({
     required this.barHeights,
     required this.isPlaying,
     required this.colors,
+    required this.globalPulse,
+    required this.rotationOffset,
   });
 
   @override
