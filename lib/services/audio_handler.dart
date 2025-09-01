@@ -592,6 +592,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Set URL and wait for it to be ready
           await player.setUrl(streamUrl);
           
+          // Apply volume normalization if enabled
+          player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+          
           // Wait for the player to be in ready state with a timeout
           final completer = Completer<void>();
           StreamSubscription? subscription;
