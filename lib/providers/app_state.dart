@@ -44,6 +44,7 @@ class AppState extends ChangeNotifier {
   DoudouAudioHandler? get audioHandler => _audioHandler;
   bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
+  bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
 
