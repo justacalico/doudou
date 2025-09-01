@@ -282,6 +282,34 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                     ),
                   );
                 }
+                
+                if (index == 1) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        // Download button
+                        SizedBox(
+                          width: double.infinity,
+                          child: CupertinoButton(
+                            color: const Color(0xFF007AFF),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.cloud_download, size: 18),
+                                SizedBox(width: 8),
+                                Text('Download Album'),
+                              ],
+                            ),
+                            onPressed: () => _downloadAlbum(),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  );
+                }
 
                 final track = tracks[index - 1];
                 return TrackListItem(
