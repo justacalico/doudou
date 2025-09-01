@@ -72,7 +72,7 @@ class CacheService {
         // Album tracks cache table
         await db.execute('''
           CREATE TABLE album_tracks_cache (
-            album_id TEXT PRIMARY KEY,
+            id TEXT PRIMARY KEY,
             data TEXT NOT NULL,
             timestamp INTEGER NOT NULL
           )
@@ -81,7 +81,7 @@ class CacheService {
         // Playlist tracks cache table
         await db.execute('''
           CREATE TABLE playlist_tracks_cache (
-            playlist_id TEXT PRIMARY KEY,
+            id TEXT PRIMARY KEY,
             data TEXT NOT NULL,
             timestamp INTEGER NOT NULL
           )
