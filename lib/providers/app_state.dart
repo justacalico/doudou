@@ -691,6 +691,19 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleGaplessPlayback(bool enabled) async {
+    _gaplessPlaybackEnabled = enabled;
+    
+    // Update the audio handler with the new gapless playback setting
+    _audioHandler?.setGaplessPlayback(enabled);
+    
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('gapless_playback_enabled', enabled);
+    
+    notifyListeners();
+  }
+
   Future<void> toggleOledDarkMode(bool enabled) async {
     _oledDarkModeEnabled = enabled;
     
