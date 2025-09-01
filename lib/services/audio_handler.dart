@@ -34,6 +34,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Periodic state saving
   Timer? _saveStateTimer;
+  
+  // Background completion checker as fallback
+  Timer? _completionCheckTimer;
 
   DoudouAudioHandler(this._jellyfinService) {
     _init();
