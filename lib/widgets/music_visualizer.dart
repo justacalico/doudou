@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 import 'dart:async';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 
 class MusicVisualizerScreen extends StatefulWidget {
   final String trackName;
