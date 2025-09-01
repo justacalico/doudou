@@ -222,7 +222,7 @@ class DownloadService extends ChangeNotifier {
             
             _downloadedTracks[task.trackId] = downloadedTrack;
             
-            // Update task status
+            // Update task status to downloaded
             _downloadTasks[task.trackId] = task.copyWith(
               status: DownloadStatus.downloaded,
               progress: 1.0,
