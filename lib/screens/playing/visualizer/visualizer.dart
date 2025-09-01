@@ -426,7 +426,7 @@ class EmbeddedVisualizerPainter extends CustomPainter {
           colors[0].withOpacity(0.3 * pulse),
           colors[1].withOpacity(0.2 * pulse),
           colors[2].withOpacity(0.1 * pulse),
-          Colors.transparent,
+          const Color(0x00000000), // Transparent
         ],
         stops: const [0.0, 0.3, 0.7, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: glowRadius));
