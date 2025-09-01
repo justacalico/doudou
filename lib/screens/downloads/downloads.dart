@@ -154,9 +154,13 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                                 ),
                                 1: Padding(
                                   padding: EdgeInsets.symmetric(vertical: 12),
-                                  child: Text('Songs'),
+                                  child: Text('Albums'),
                                 ),
                                 2: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12),
+                                  child: Text('Songs'),
+                                ),
+                                3: Padding(
                                   padding: EdgeInsets.symmetric(vertical: 12),
                                   child: Text('Queue'),
                                 ),
