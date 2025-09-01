@@ -11,6 +11,9 @@
 - Song's page uses track list template.
 - Favorite's page uses track list template.
 
+## Removed
+- Removed the download, favorite button from the view of tracklists.
+
 ## Fixed
 - Fixed playing favorite's from the dedicated page.
 - Screen breakage when overlayed.
