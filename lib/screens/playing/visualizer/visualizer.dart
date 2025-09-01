@@ -189,139 +189,249 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   }
 }
 
-// Custom painter for the embedded visualizer
+// Custom painter for the 3D embedded visualizer
 class EmbeddedVisualizerPainter extends CustomPainter {
   final List<double> barHeights;
+  final List<double> barDepths;
+  final List<double> barRotations;
   final bool isPlaying;
   final List<Color> colors;
   final double globalPulse;
   final double rotationOffset;
+  final double perspectiveAngle;
+  final double cameraY;
 
   EmbeddedVisualizerPainter({
     required this.barHeights,
+    required this.barDepths,
+    required this.barRotations,
     required this.isPlaying,
     required this.colors,
     required this.globalPulse,
     required this.rotationOffset,
+    required this.perspectiveAngle,
+    required this.cameraY,
   });
+
+  // 3D transformation helper
+  Offset project3D(double x, double y, double z, Size size, double perspective) {
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    
+    // Apply camera position
+    y += cameraY;
+    
+    // Apply perspective transformation
+    final projectedX = centerX + (x * perspective) / (z + 300);
+    final projectedY = centerY + (y * perspective) / (z + 300);
+    
+    return Offset(projectedX, projectedY);
+  }
+
+  // Create gradient for 3D effect
+  LinearGradient create3DGradient(Color baseColor, double intensity, double depth) {
+    final lightColor = Color.lerp(baseColor, const Color(0xFFFFFFFF), 0.3 * intensity)!;
+    final darkColor = Color.lerp(baseColor, const Color(0xFF000000), 0.4 * (1 - depth))!;
+    
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [lightColor, baseColor, darkColor],
+      stops: const [0.0, 0.5, 1.0],
+    );
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final baseRadius = min(size.width, size.height) / 2 - 20;
+    final baseRadius = min(size.width, size.height) / 3;
     final barCount = barHeights.length;
-
-    // Apply global pulse to the entire ring
+    
+    // Apply global pulse and perspective
     final radius = baseRadius * globalPulse;
-
-    // Create segments for the ring with enhanced effects
-    const double segmentSpacing = 0.03;
-    final double segmentAngle = (2 * pi / barCount) - segmentSpacing;
-
+    final perspective = 200 + (50 * globalPulse);
+    
+    // Create list of 3D bars with depth sorting
+    List<Map<String, dynamic>> bars3D = [];
+    
     for (int i = 0; i < barCount; i++) {
-      // Add rotation offset for spinning effect
-      final startAngle = (i / barCount) * 2 * pi - pi / 2 + rotationOffset;
+      final angle = (i / barCount) * 2 * pi + rotationOffset;
       final intensity = barHeights[i];
+      final depth = barDepths[i];
       
-      // Dynamic radius stretching - some segments extend further out
-      final stretchMultiplier = 0.8 + (intensity * 0.4);
-      final segmentRadius = radius * stretchMultiplier;
+      // Base position on circle
+      final x = cos(angle) * radius;
+      final y = sin(angle) * radius;
+      final z = depth * 100 - 50; // Z depth for 3D effect
       
-      // Enhanced thickness variation
-      final baseThickness = isPlaying ? 6.0 : 3.0;
-      final maxThickness = isPlaying ? 25.0 : 10.0;
-      final ringThickness = baseThickness + (intensity * (maxThickness - baseThickness));
+      // Individual bar rotation
+      final barAngle = angle + barRotations[i] + perspectiveAngle;
       
-      // Create dynamic color with enhanced effects
+      // Calculate 3D positions for the bar
+      final barWidth = isPlaying ? 8 + intensity * 12 : 4 + intensity * 6;
+      final barHeight = isPlaying ? 20 + intensity * 80 : 10 + intensity * 40;
+      
+      // Color for this bar
       final colorIndex = i % colors.length;
       final baseColor = colors[colorIndex];
-      final hsvColor = HSVColor.fromColor(baseColor);
       
-      // Enhanced color dynamics
-      final saturation = (isPlaying ? 0.85 + (intensity * 0.15) : 0.3).clamp(0.0, 1.0);
-      final brightness = (isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2).clamp(0.0, 1.0);
-      final opacity = (isPlaying ? 0.7 + intensity * 0.3 : 0.4 + intensity * 0.2).clamp(0.0, 1.0);
-      
-      final segmentColor = HSVColor.fromAHSV(
-        opacity, 
-        hsvColor.hue, 
-        saturation, 
-        brightness
-      ).toColor();
+      bars3D.add({
+        'index': i,
+        'x': x,
+        'y': y,
+        'z': z,
+        'angle': barAngle,
+        'width': barWidth,
+        'height': barHeight,
+        'intensity': intensity,
+        'depth': depth,
+        'color': baseColor,
+      });
+    }
+    
+    // Sort bars by Z-depth (back to front)
+    bars3D.sort((a, b) => a['z'].compareTo(b['z']));
+    
+    // Draw each 3D bar
+    for (var bar in bars3D) {
+      _draw3DBar(canvas, size, bar, perspective);
+    }
+    
+    // Add central glow effect
+    if (isPlaying) {
+      _drawCentralGlow(canvas, center, radius, globalPulse);
+    }
+  }
 
-      // Create paint for the ring segment
-      final segmentPaint = Paint()
-        ..color = segmentColor
+  void _draw3DBar(Canvas canvas, Size size, Map<String, dynamic> bar, double perspective) {
+    final x = bar['x'];
+    final y = bar['y'];
+    final z = bar['z'];
+    final width = bar['width'];
+    final height = bar['height'];
+    final intensity = bar['intensity'];
+    final depth = bar['depth'];
+    final baseColor = bar['color'];
+    
+    // Calculate 3D positions for bar corners
+    final bottomLeft = project3D(x - width/2, y + height/2, z, size, perspective);
+    final bottomRight = project3D(x + width/2, y + height/2, z, size, perspective);
+    final topLeft = project3D(x - width/2, y - height/2, z, size, perspective);
+    final topRight = project3D(x + width/2, y - height/2, z, size, perspective);
+    
+    // Back face (slightly behind)
+    final backZ = z - 20 * depth;
+    final backBottomLeft = project3D(x - width/2, y + height/2, backZ, size, perspective);
+    final backBottomRight = project3D(x + width/2, y + height/2, backZ, size, perspective);
+    final backTopLeft = project3D(x - width/2, y - height/2, backZ, size, perspective);
+    final backTopRight = project3D(x + width/2, y - height/2, backZ, size, perspective);
+    
+    // Create dynamic color with 3D lighting
+    final hsvColor = HSVColor.fromColor(baseColor);
+    final saturation = (isPlaying ? 0.8 + intensity * 0.2 : 0.4).clamp(0.0, 1.0);
+    final brightness = (isPlaying ? 0.5 + intensity * 0.4 : 0.3 + intensity * 0.2).clamp(0.0, 1.0);
+    final opacity = (isPlaying ? 0.8 + intensity * 0.2 : 0.5 + intensity * 0.2).clamp(0.0, 1.0);
+    
+    final frontColor = HSVColor.fromAHSV(opacity, hsvColor.hue, saturation, brightness).toColor();
+    final sideColor = HSVColor.fromAHSV(opacity * 0.7, hsvColor.hue, saturation, brightness * 0.7).toColor();
+    final backColor = HSVColor.fromAHSV(opacity * 0.5, hsvColor.hue, saturation, brightness * 0.5).toColor();
+    
+    // Draw back face
+    final backPath = Path()
+      ..moveTo(backBottomLeft.dx, backBottomLeft.dy)
+      ..lineTo(backBottomRight.dx, backBottomRight.dy)
+      ..lineTo(backTopRight.dx, backTopRight.dy)
+      ..lineTo(backTopLeft.dx, backTopLeft.dy)
+      ..close();
+    
+    canvas.drawPath(backPath, Paint()
+      ..color = backColor
+      ..style = PaintingStyle.fill);
+    
+    // Draw connecting sides (left and right)
+    final leftSidePath = Path()
+      ..moveTo(bottomLeft.dx, bottomLeft.dy)
+      ..lineTo(backBottomLeft.dx, backBottomLeft.dy)
+      ..lineTo(backTopLeft.dx, backTopLeft.dy)
+      ..lineTo(topLeft.dx, topLeft.dy)
+      ..close();
+    
+    canvas.drawPath(leftSidePath, Paint()
+      ..color = sideColor
+      ..style = PaintingStyle.fill);
+    
+    final rightSidePath = Path()
+      ..moveTo(bottomRight.dx, bottomRight.dy)
+      ..lineTo(backBottomRight.dx, backBottomRight.dy)
+      ..lineTo(backTopRight.dx, backTopRight.dy)
+      ..lineTo(topRight.dx, topRight.dy)
+      ..close();
+    
+    canvas.drawPath(rightSidePath, Paint()
+      ..color = sideColor
+      ..style = PaintingStyle.fill);
+    
+    // Draw top connecting face
+    final topSidePath = Path()
+      ..moveTo(topLeft.dx, topLeft.dy)
+      ..lineTo(topRight.dx, topRight.dy)
+      ..lineTo(backTopRight.dx, backTopRight.dy)
+      ..lineTo(backTopLeft.dx, backTopLeft.dy)
+      ..close();
+    
+    canvas.drawPath(topSidePath, Paint()
+      ..color = Color.lerp(frontColor, sideColor, 0.3)!
+      ..style = PaintingStyle.fill);
+    
+    // Draw front face (brightest)
+    final frontPath = Path()
+      ..moveTo(bottomLeft.dx, bottomLeft.dy)
+      ..lineTo(bottomRight.dx, bottomRight.dy)
+      ..lineTo(topRight.dx, topRight.dy)
+      ..lineTo(topLeft.dx, topLeft.dy)
+      ..close();
+    
+    canvas.drawPath(frontPath, Paint()
+      ..color = frontColor
+      ..style = PaintingStyle.fill);
+    
+    // Add glow effects for intense bars
+    if (isPlaying && intensity > 0.6) {
+      // Front face glow
+      canvas.drawPath(frontPath, Paint()
+        ..color = frontColor.withOpacity(0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = ringThickness
-        ..strokeCap = StrokeCap.round;
-
-      // Draw the main ring segment with dynamic radius
-      final rect = Rect.fromCircle(center: center, radius: segmentRadius);
-      canvas.drawArc(
-        rect,
-        startAngle,
-        segmentAngle,
-        false,
-        segmentPaint,
-      );
-
-      // Enhanced glow effects
-      if (isPlaying && intensity > 0.6) {
-        // Inner glow
-        final innerGlowPaint = Paint()
-          ..color = segmentColor.withOpacity(0.4)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = ringThickness + 6
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-          
-        canvas.drawArc(
-          rect,
-          startAngle,
-          segmentAngle,
-          false,
-          innerGlowPaint,
-        );
-        
-        // Outer glow for very intense segments
-        if (intensity > 0.8) {
-          final outerGlowPaint = Paint()
-            ..color = segmentColor.withOpacity(0.2)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = ringThickness + 12
-            ..strokeCap = StrokeCap.round
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-            
-          canvas.drawArc(
-            rect,
-            startAngle,
-            segmentAngle,
-            false,
-            outerGlowPaint,
-          );
-        }
-      }
+        ..strokeWidth = 2 + intensity * 3
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
       
-      // Add trailing effects for high-intensity segments
-      if (isPlaying && intensity > 0.7) {
-        final trailPaint = Paint()
-          ..color = segmentColor.withOpacity(0.3)
+      // Intense glow for very high intensity
+      if (intensity > 0.8) {
+        canvas.drawPath(frontPath, Paint()
+          ..color = frontColor.withOpacity(0.2)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = ringThickness * 0.6
-          ..strokeCap = StrokeCap.round;
-          
-        // Draw trailing arc
-        final trailAngle = startAngle - (segmentAngle * 0.5);
-        canvas.drawArc(
-          rect,
-          trailAngle,
-          segmentAngle * 0.3,
-          false,
-          trailPaint,
-        );
+          ..strokeWidth = 4 + intensity * 6
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
       }
     }
+  }
+
+  void _drawCentralGlow(Canvas canvas, Offset center, double radius, double pulse) {
+    // Central pulsing glow
+    final glowRadius = radius * 0.3 * pulse;
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        center: Alignment.center,
+        radius: 1.0,
+        colors: [
+          colors[0].withOpacity(0.3 * pulse),
+          colors[1].withOpacity(0.2 * pulse),
+          colors[2].withOpacity(0.1 * pulse),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.3, 0.7, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: glowRadius));
+    
+    canvas.drawCircle(center, glowRadius, glowPaint);
   }
 
   @override
