@@ -49,8 +49,10 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   void initState() {
     super.initState();
     
-    // Initialize bar heights
+    // Initialize 3D bar properties
     _barHeights = List.generate(_barCount, (index) => 0.1);
+    _barDepths = List.generate(_barCount, (index) => 0.1);
+    _barRotations = List.generate(_barCount, (index) => 0.0);
     
     // Create animation controllers
     _animationController = AnimationController(
@@ -59,7 +61,12 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     );
     
     _rotationController = AnimationController(
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 12),
+      vsync: this,
+    )..repeat();
+
+    _depthController = AnimationController(
+      duration: const Duration(seconds: 6),
       vsync: this,
     )..repeat();
 
