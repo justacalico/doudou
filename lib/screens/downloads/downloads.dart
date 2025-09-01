@@ -10,6 +10,7 @@ import '../../models/jellyfin_models.dart';
 import '../../services/download_service.dart';
 import '../partials/player/mini_player.dart';
 import 'playlists/playlists.dart';
+import 'albums/albums.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
