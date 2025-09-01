@@ -176,30 +176,39 @@ class EmbeddedVisualizerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2 - 20;
+    final baseRadius = min(size.width, size.height) / 2 - 20;
     final barCount = barHeights.length;
 
-    // Create segments for the ring
-    const double segmentSpacing = 0.02; // Small gap between segments
+    // Apply global pulse to the entire ring
+    final radius = baseRadius * globalPulse;
+
+    // Create segments for the ring with enhanced effects
+    const double segmentSpacing = 0.03;
     final double segmentAngle = (2 * pi / barCount) - segmentSpacing;
 
     for (int i = 0; i < barCount; i++) {
-      final startAngle = (i / barCount) * 2 * pi - pi / 2;
+      // Add rotation offset for spinning effect
+      final startAngle = (i / barCount) * 2 * pi - pi / 2 + rotationOffset;
       final intensity = barHeights[i];
       
-      // Calculate ring thickness based on intensity
-      final baseThickness = isPlaying ? 8.0 : 4.0;
-      final maxThickness = isPlaying ? 20.0 : 8.0;
+      // Dynamic radius stretching - some segments extend further out
+      final stretchMultiplier = 0.8 + (intensity * 0.4);
+      final segmentRadius = radius * stretchMultiplier;
+      
+      // Enhanced thickness variation
+      final baseThickness = isPlaying ? 6.0 : 3.0;
+      final maxThickness = isPlaying ? 25.0 : 10.0;
       final ringThickness = baseThickness + (intensity * (maxThickness - baseThickness));
       
-      // Create dynamic color based on position and extracted colors
+      // Create dynamic color with enhanced effects
       final colorIndex = i % colors.length;
       final baseColor = colors[colorIndex];
       final hsvColor = HSVColor.fromColor(baseColor);
       
-      final saturation = isPlaying ? 0.9 : 0.4;
-      final brightness = isPlaying ? 0.7 + intensity * 0.3 : 0.4 + intensity * 0.2;
-      final opacity = isPlaying ? 0.8 + intensity * 0.2 : 0.5 + intensity * 0.3;
+      // Enhanced color dynamics
+      final saturation = isPlaying ? 0.85 + (intensity * 0.15) : 0.3;
+      final brightness = isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2;
+      final opacity = isPlaying ? 0.7 + intensity * 0.3 : 0.4 + intensity * 0.2;
       
       final segmentColor = HSVColor.fromAHSV(
         opacity, 
@@ -215,8 +224,8 @@ class EmbeddedVisualizerPainter extends CustomPainter {
         ..strokeWidth = ringThickness
         ..strokeCap = StrokeCap.round;
 
-      // Draw the ring segment as an arc
-      final rect = Rect.fromCircle(center: center, radius: radius);
+      // Draw the main ring segment with dynamic radius
+      final rect = Rect.fromCircle(center: center, radius: segmentRadius);
       canvas.drawArc(
         rect,
         startAngle,
@@ -225,21 +234,59 @@ class EmbeddedVisualizerPainter extends CustomPainter {
         segmentPaint,
       );
 
-      // Add glow effect for high intensity segments when playing
-      if (isPlaying && intensity > 0.7) {
-        final glowPaint = Paint()
-          ..color = segmentColor.withOpacity(0.3)
+      // Enhanced glow effects
+      if (isPlaying && intensity > 0.6) {
+        // Inner glow
+        final innerGlowPaint = Paint()
+          ..color = segmentColor.withOpacity(0.4)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = ringThickness + 8
+          ..strokeWidth = ringThickness + 6
           ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
           
         canvas.drawArc(
           rect,
           startAngle,
           segmentAngle,
           false,
-          glowPaint,
+          innerGlowPaint,
+        );
+        
+        // Outer glow for very intense segments
+        if (intensity > 0.8) {
+          final outerGlowPaint = Paint()
+            ..color = segmentColor.withOpacity(0.2)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = ringThickness + 12
+            ..strokeCap = StrokeCap.round
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+            
+          canvas.drawArc(
+            rect,
+            startAngle,
+            segmentAngle,
+            false,
+            outerGlowPaint,
+          );
+        }
+      }
+      
+      // Add trailing effects for high-intensity segments
+      if (isPlaying && intensity > 0.7) {
+        final trailPaint = Paint()
+          ..color = segmentColor.withOpacity(0.3)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = ringThickness * 0.6
+          ..strokeCap = StrokeCap.round;
+          
+        // Draw trailing arc
+        final trailAngle = startAngle - (segmentAngle * 0.5);
+        canvas.drawArc(
+          rect,
+          trailAngle,
+          segmentAngle * 0.3,
+          false,
+          trailPaint,
         );
       }
     }
