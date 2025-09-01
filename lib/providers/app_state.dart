@@ -596,6 +596,44 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    try {
+      final success = await _jellyfinService.renamePlaylist(playlistId, newName);
+      if (success) {
+        // Update the local playlist list
+        final index = _playlists.indexWhere((p) => p.id == playlistId);
+        if (index != -1) {
+          _playlists[index] = Playlist(
+            id: playlistId,
+            name: newName,
+            imageUrl: _playlists[index].imageUrl,
+            trackCount: _playlists[index].trackCount,
+          );
+          notifyListeners();
+        }
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to rename playlist: ${e.toString()}');
+      return false;
+    }
+  }
+
+  Future<bool> removePlaylist(String playlistId) async {
+    try {
+      final success = await _jellyfinService.removePlaylist(playlistId);
+      if (success) {
+        // Remove the playlist from the local list
+        _playlists.removeWhere((p) => p.id == playlistId);
+        notifyListeners();
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to remove playlist: ${e.toString()}');
+      return false;
+    }
+  }
+
   Future<void> _saveServer() async {
     final server = _jellyfinService.currentServer;
     if (server != null) {
