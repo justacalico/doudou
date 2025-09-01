@@ -424,38 +424,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     );
   }
 
-  // Helper method to group tracks by playlist (async version that actually checks playlist contents)
-  Future<Map<Playlist, List<Track>>> _groupTracksByPlaylistAsync(Map<String, DownloadedTrack> downloadedTracks, AppState appState) async {
-    final Map<Playlist, List<Track>> playlistGroups = {};
-    
-    // Get all downloaded track IDs
-    final downloadedTrackIds = downloadedTracks.keys.toSet();
-    
-    // Check each playlist to see if it has downloaded tracks
-    for (final playlist in appState.playlists) {
-      try {
-        // Actually fetch the playlist tracks from the server
-        final playlistTracks = await appState.getPlaylistTracks(playlist.id);
-        
-        // Filter to only include downloaded tracks
-        final downloadedPlaylistTracks = playlistTracks
-            .where((track) => downloadedTrackIds.contains(track.id))
-            .toList();
-        
-        if (downloadedPlaylistTracks.isNotEmpty) {
-          playlistGroups[playlist] = downloadedPlaylistTracks;
-        }
-      } catch (e) {
-        // Skip this playlist if there's an error
-        if (kDebugMode) {
-          print('Error loading tracks for playlist ${playlist.name}: $e');
-        }
-      }
-    }
-    
-    return playlistGroups;
-  }
-
   void _showPlaylistTracks(BuildContext context, Playlist playlist, List<Track> tracks, AppState appState) {
     Navigator.push(
       context,
