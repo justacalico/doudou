@@ -218,28 +218,87 @@ class CacheService {
   Future<Map<String, dynamic>?> _getCache(String table, String key, Duration maxAge) async {
     if (_database == null) return null;
     
-    final result = await _database!.query(
-      table,
-      where: 'id = ?',
-      whereArgs: [key],
-      limit: 1,
-    );
-    
-    if (result.isEmpty) return null;
-    
-    final row = result.first;
-    final timestamp = row['timestamp'] as int;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    
-    // Check if cache is still valid
-    if (now - timestamp > maxAge.inMilliseconds) {
-      // Cache expired, remove it
-      await _database!.delete(table, where: 'id = ?', whereArgs: [key]);
+    try {
+      final result = await _database!.query(
+        table,
+        where: 'id = ?',
+        whereArgs: [key],
+        limit: 1,
+      );
+      
+      if (result.isEmpty) return null;
+      
+      final row = result.first;
+      final timestamp = row['timestamp'] as int;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      
+      // Check if cache is still valid
+      if (now - timestamp > maxAge.inMilliseconds) {
+        // Cache expired, remove it
+        await _database!.delete(table, where: 'id = ?', whereArgs: [key]);
+        return null;
+      }
+      
+      final dataJson = row['data'] as String;
+      return jsonDecode(dataJson) as Map<String, dynamic>;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error reading from cache table $table: $e');
+        print('Attempting to recreate table with correct schema...');
+      }
+      
+      // If there's a schema error, recreate the table
+      await _recreateTableWithCorrectSchema(table);
       return null;
     }
+  }
+  
+  Future<void> _recreateTableWithCorrectSchema(String tableName) async {
+    if (_database == null) return;
     
-    final dataJson = row['data'] as String;
-    return jsonDecode(dataJson) as Map<String, dynamic>;
+    try {
+      // Drop the problematic table
+      await _database!.execute('DROP TABLE IF EXISTS $tableName');
+      
+      // Recreate with correct schema
+      String createSQL = '';
+      switch (tableName) {
+        case 'album_tracks_cache':
+          createSQL = '''
+            CREATE TABLE album_tracks_cache (
+              id TEXT PRIMARY KEY,
+              data TEXT NOT NULL,
+              timestamp INTEGER NOT NULL
+            )
+          ''';
+          break;
+        case 'playlist_tracks_cache':
+          createSQL = '''
+            CREATE TABLE playlist_tracks_cache (
+              id TEXT PRIMARY KEY,
+              data TEXT NOT NULL,
+              timestamp INTEGER NOT NULL
+            )
+          ''';
+          break;
+        default:
+          if (kDebugMode) {
+            print('Unknown table for recreation: $tableName');
+          }
+          return;
+      }
+      
+      if (createSQL.isNotEmpty) {
+        await _database!.execute(createSQL);
+        if (kDebugMode) {
+          print('Successfully recreated table: $tableName');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to recreate table $tableName: $e');
+      }
+    }
   }
   
   Future<void> _clearExpiredCache(String table, Duration maxAge) async {
