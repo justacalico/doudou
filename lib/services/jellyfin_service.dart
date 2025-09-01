@@ -426,6 +426,41 @@ class JellyfinService {
     }
   }
 
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.post(
+        '/Items/$playlistId',
+        data: {
+          'Name': newName,
+        },
+      );
+
+      return response.statusCode == 204 || response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error renaming playlist: $e');
+      }
+      return false;
+    }
+  }
+
+  Future<bool> removePlaylist(String playlistId) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.delete('/Items/$playlistId');
+
+      return response.statusCode == 204 || response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error removing playlist: $e');
+      }
+      return false;
+    }
+  }
+
   Future<bool> validateCredentials() async {
     if (_server == null) return false;
 
