@@ -22,10 +22,13 @@ class EmbeddedVisualizer extends StatefulWidget {
 class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
+  late AnimationController _rotationController;
   late Timer _timer;
   List<double> _barHeights = [];
-  final int _barCount = 48; // Slightly fewer for smaller space
+  final int _barCount = 48;
   final Random _random = Random();
+  double _globalPulse = 0.0;
+  double _rotationOffset = 0.0;
   
   // Color extraction from song info
   List<Color> _extractedColors = [
