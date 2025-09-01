@@ -360,12 +360,32 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   Future<void> _loadTracks() async {
     final appState = context.read<AppState>();
-    final playlistTracks = await appState.getPlaylistTracks(widget.playlist.id);
     
-    setState(() {
-      tracks = playlistTracks;
-      isLoading = false;
-    });
+    try {
+      if (kDebugMode) {
+        print('Loading tracks for playlist: ${widget.playlist.id}');
+      }
+      
+      final playlistTracks = await appState.getPlaylistTracks(widget.playlist.id);
+      
+      if (kDebugMode) {
+        print('Loaded ${playlistTracks.length} tracks for playlist: ${widget.playlist.name}');
+      }
+      
+      setState(() {
+        tracks = playlistTracks;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading playlist tracks: $e');
+      }
+      
+      setState(() {
+        tracks = [];
+        isLoading = false;
+      });
+    }
   }
 
   @override
