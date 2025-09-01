@@ -472,10 +472,17 @@ class DownloadService extends ChangeNotifier {
           if (task.status == DownloadStatus.downloaded) {
             continue;
           } else if (task.status == DownloadStatus.downloading) {
-            _downloadTasks[task.trackId] = task.copyWith(
+            // Reset any downloading tasks to failed (app was closed during download)
+            final failedTask = task.copyWith(
               status: DownloadStatus.failed,
               errorMessage: 'Download interrupted',
+              endTime: DateTime.now(),
             );
+            _downloadTasks[task.trackId] = failedTask;
+            
+            if (kDebugMode) {
+              print('Marked interrupted download as failed: ${task.trackName}');
+            }
           } else {
             _downloadTasks[task.trackId] = task;
           }
