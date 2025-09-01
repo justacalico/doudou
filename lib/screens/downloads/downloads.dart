@@ -756,8 +756,9 @@ class DownloadSettingsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DownloadService>(
-      builder: (context, downloadService, child) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final downloadService = appState.downloadService;
         return Container(
           height: 400,
           decoration: const BoxDecoration(
