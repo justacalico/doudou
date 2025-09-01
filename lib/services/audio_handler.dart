@@ -267,33 +267,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Moving to next track...');
         }
         
-        // Advance to next track
-        _currentIndex++;
+        final nextTrack = _playlist[_currentIndex + 1];
         
-        // Get the next track
-        final nextTrack = _playlist[_currentIndex];
-        
-        if (kDebugMode) {
-          print('Next track: ${nextTrack.name}');
-        }
-        
-        // Update media item immediately for better background experience
-        mediaItem.add(_trackToMediaItem(nextTrack));
-        
-        // Update playback state to show we're loading the next track
-        playbackState.add(playbackState.value.copyWith(
-          processingState: AudioProcessingState.loading,
-          queueIndex: _currentIndex,
-        ));
-        
-        // Play the next track
-        await _playCurrentTrack();
-        
-        // Save state after successful transition
-        await _savePlaybackState();
-        
-        if (kDebugMode) {
-          print('Successfully transitioned to next track: ${nextTrack.name}');
+        // Use gapless transition if enabled and preloaded player is available
+        if (_gaplessPlaybackEnabled && _preloadedPlayers.containsKey(nextTrack.id)) {
+          if (kDebugMode) {
+            print('Using gapless transition to: ${nextTrack.name}');
+          }
+          await _performGaplessTransition(nextTrack);
+        } else {
+          // Regular transition
+          _currentIndex++;
+          
+          if (kDebugMode) {
+            print('Next track: ${nextTrack.name}');
+          }
+          
+          // Update media item immediately for better background experience
+          mediaItem.add(_trackToMediaItem(nextTrack));
+          
+          // Update playback state to show we're loading the next track
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.loading,
+            queueIndex: _currentIndex,
+          ));
+          
+          // Play the next track
+          await _playCurrentTrack();
+          
+          // Save state after successful transition
+          await _savePlaybackState();
+          
+          if (kDebugMode) {
+            print('Successfully transitioned to next track: ${nextTrack.name}');
+          }
         }
       } else {
         if (kDebugMode) {
