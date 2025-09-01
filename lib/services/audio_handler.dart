@@ -1242,63 +1242,91 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Get the preloaded player for the next track
       final preloadedPlayer = _preloadedPlayers[nextTrack.id];
       
-      if (preloadedPlayer != null) {
-        // Stop current player
-        await _player.stop();
+      if (preloadedPlayer != null && preloadedPlayer.processingState == ProcessingState.ready) {
+        // Store the current player for proper disposal
+        final oldPlayer = _player;
         
-        // Create a new main player and copy state from preloaded player
-        final newPlayer = AudioPlayer();
-        
-        // Set up the new player with the preloaded track
-        final localFilePath = _downloadService.getLocalFilePath(nextTrack.id);
-        
-        if (localFilePath != null && await File(localFilePath).exists()) {
-          await newPlayer.setFilePath(localFilePath);
-        } else {
-          final streamUrl = _jellyfinService.getStreamUrl(nextTrack.id);
-          await newPlayer.setUrl(streamUrl);
-        }
-        
-        // Start playback immediately for gapless transition
-        await newPlayer.play();
-        
-        // Update current track and index
+        // Update current track and index immediately for responsive UI
         _currentIndex++;
         _currentTrack = nextTrack;
         
-        // Update media item and state
+        // Update media item and state immediately
         mediaItem.add(_trackToMediaItem(nextTrack));
-        playbackState.add(playbackState.value.copyWith(
-          playing: true,
-          processingState: AudioProcessingState.ready,
-          queueIndex: _currentIndex,
-        ));
         
-        // Clean up old preloaded player
+        // Transfer the preloaded audio source to the main player
+        try {
+          final audioSource = preloadedPlayer.audioSource;
+          if (audioSource != null) {
+            // Set the preloaded audio source on main player
+            await _player.setAudioSource(audioSource);
+            
+            // Apply volume normalization if enabled
+            _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+            
+            // Start playback immediately for seamless transition
+            await _player.play();
+            
+            // Update playback state to playing
+            playbackState.add(playbackState.value.copyWith(
+              playing: true,
+              processingState: AudioProcessingState.ready,
+              queueIndex: _currentIndex,
+            ));
+            
+            if (kDebugMode) {
+              print('Gapless transition completed successfully using preloaded source');
+            }
+          } else {
+            throw Exception('Preloaded player has no audio source');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to transfer preloaded source, reloading: $e');
+          }
+          
+          // Fallback: reload the track normally
+          await _loadAndPlayTrack(nextTrack);
+        }
+        
+        // Clean up the preloaded player
         _preloadedPlayers.remove(nextTrack.id);
         await preloadedPlayer.dispose();
         
-        // Start preloading next tracks
-        _preloadNextTracks();
-        
-        // Save state
-        await _savePlaybackState();
-        
-        if (kDebugMode) {
-          print('Gapless transition completed successfully');
+        // Stop the old player after successful transition
+        try {
+          await oldPlayer.stop();
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error stopping old player: $e');
+          }
         }
       } else {
-        // Fallback to regular transition if no preloaded player
         if (kDebugMode) {
-          print('No preloaded player found, using regular transition');
+          print('No ready preloaded player found, performing regular transition');
         }
-        await skipToNext();
+        
+        // Update index and track info
+        _currentIndex++;
+        _currentTrack = nextTrack;
+        
+        // Update media item
+        mediaItem.add(_trackToMediaItem(nextTrack));
+        
+        // Load and play the track normally
+        await _loadAndPlayTrack(nextTrack);
       }
+      
+      // Start preloading next tracks for future gapless transitions
+      _preloadNextTracks();
+      
+      // Save state
+      await _savePlaybackState();
+      
     } catch (e) {
       if (kDebugMode) {
         print('Error in gapless transition: $e');
       }
-      // Fallback to regular skip
+      // Fallback to regular skip on any error
       await skipToNext();
     }
   }
