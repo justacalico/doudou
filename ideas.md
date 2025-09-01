@@ -13,7 +13,7 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
 - Built-in equalizer with custom and preset options
 - Presets: Rock, Pop, Jazz, Classical, Electronic, Vocal, etc.
 - Bass boost and treble enhancement
-- Audio visualization during playback
+- ~~Audio visualization during playback~~
 
 ### Advanced Playback
 - **Sleep Timer**: Auto-stop playback after a set time (15min, 30min, 1hr, etc.)
