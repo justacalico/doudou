@@ -6,7 +6,7 @@
 - "Play next" button.
 - Download manager.
 - Abilty to download playlist's.
-- Play all and Shuffle buttons for downlaoded songs.
+- Play all and Shuffle buttons for downloaded songs.
 
 ## Changed
 - Embedded the visualizer instead of having its own page.
