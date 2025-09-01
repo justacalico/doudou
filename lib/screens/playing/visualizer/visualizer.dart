@@ -206,9 +206,9 @@ class EmbeddedVisualizerPainter extends CustomPainter {
       final hsvColor = HSVColor.fromColor(baseColor);
       
       // Enhanced color dynamics
-      final saturation = isPlaying ? 0.85 + (intensity * 0.15) : 0.3;
-      final brightness = isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2;
-      final opacity = isPlaying ? 0.7 + intensity * 0.3 : 0.4 + intensity * 0.2;
+      final saturation = (isPlaying ? 0.85 + (intensity * 0.15) : 0.3).clamp(0.0, 1.0);
+      final brightness = (isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2).clamp(0.0, 1.0);
+      final opacity = (isPlaying ? 0.7 + intensity * 0.3 : 0.4 + intensity * 0.2).clamp(0.0, 1.0);
       
       final segmentColor = HSVColor.fromAHSV(
         opacity, 
