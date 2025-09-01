@@ -108,20 +108,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       
                       const SizedBox(height: 20),
                       
-                      // Album Art - responsive size (clickable)
+                      // Album Art / Visualizer - responsive size (clickable to toggle)
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) => MusicVisualizerScreen(
-                                trackName: currentTrack.name,
-                                artistName: currentTrack.artistName,
-                                imageUrl: currentTrack.imageUrl,
-                                isPlaying: audioHandler?.isPlaying ?? false,
-                              ),
-                            ),
-                          );
+                          setState(() {
+                            _showVisualizer = !_showVisualizer;
+                          });
                         },
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.75,
@@ -140,17 +132,26 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               ),
                             ],
                           ),
-                          child: AlbumArtWidget(
-                            imageUrl: currentTrack.imageUrl != null
-                                ? appState.jellyfinService.getImageUrl(
-                                    currentTrack.imageUrl!,
-                                    width: 800,
-                                    height: 800,
-                                  )
-                                : null,
-                            size: MediaQuery.of(context).size.width * 0.75,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                          child: _showVisualizer
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: EmbeddedVisualizer(
+                                    trackName: currentTrack.name,
+                                    artistName: currentTrack.artistName,
+                                    isPlaying: audioHandler?.isPlaying ?? false,
+                                  ),
+                                )
+                              : AlbumArtWidget(
+                                  imageUrl: currentTrack.imageUrl != null
+                                      ? appState.jellyfinService.getImageUrl(
+                                          currentTrack.imageUrl!,
+                                          width: 800,
+                                          height: 800,
+                                        )
+                                      : null,
+                                  size: MediaQuery.of(context).size.width * 0.75,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                         ),
                       ),
                       
