@@ -412,6 +412,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       child: SafeArea(
         child: CustomScrollView(
           slivers: [
+            CupertinoSliverRefreshControl(
+              onRefresh: _refreshTracks,
+            ),
             // Playlist header
             SliverToBoxAdapter(
               child: Container(
