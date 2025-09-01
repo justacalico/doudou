@@ -6,6 +6,9 @@
 - Embed the visualizer rather then having its own page.
 - Changes the visualizer into a bar.
 - Adds a universal partial for tracks.
+- Album's detail page uses track list template.
+- Song's page uses track list template.
+- Favorite's page uses track list template.
 
 ## Fixed
 - Fixed playing favorite's from the dedicated page.
