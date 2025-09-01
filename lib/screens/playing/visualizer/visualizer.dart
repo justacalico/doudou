@@ -28,7 +28,7 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   List<double> _barHeights = [];
   List<double> _barDepths = [];
   List<double> _barRotations = [];
-  final int _barCount = 32;
+  final int _barCount = 64;
   final Random _random = Random();
   double _globalPulse = 0.0;
   double _rotationOffset = 0.0;
@@ -169,7 +169,7 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     return Center(
       child: SizedBox(
         width: 320,
-        height: 180,
+        height: 320,
         child: CustomPaint(
           painter: EmbeddedVisualizerPainter(
             barHeights: _barHeights,
@@ -242,27 +242,33 @@ class EmbeddedVisualizerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final baseRadius = min(size.width, size.height) / 3;
     final barCount = barHeights.length;
-    final barSpacing = 4.0;
-    final totalBarWidth = (size.width - (barSpacing * (barCount - 1))) / barCount;
-    final barWidth = totalBarWidth * 0.8; // Leave some space between bars
-    final maxBarHeight = size.height * 0.8;
-    final baseY = size.height * 0.9; // Bottom baseline
     
-    // Create perspective effect
-    final perspective = 300 + (100 * globalPulse);
+    // Apply global pulse and perspective
+    final radius = baseRadius * globalPulse;
+    final perspective = 200 + (50 * globalPulse);
     
-    // Create list of bars for depth sorting
+    // Create list of 3D bars with depth sorting
     List<Map<String, dynamic>> bars3D = [];
     
     for (int i = 0; i < barCount; i++) {
+      final angle = (i / barCount) * 2 * pi + rotationOffset;
       final intensity = barHeights[i];
       final depth = barDepths[i];
       
-      // Calculate bar position
-      final x = (i * (barWidth + barSpacing)) + (barWidth / 2);
-      final barHeight = intensity * maxBarHeight * globalPulse;
-      final z = depth * 80 - 40; // Z depth for 3D effect
+      // Base position on circle
+      final x = cos(angle) * radius;
+      final y = sin(angle) * radius;
+      final z = depth * 100 - 50; // Z depth for 3D effect
+      
+      // Individual bar rotation
+      final barAngle = angle + barRotations[i] + perspectiveAngle;
+      
+      // Calculate 3D positions for the bar
+      final barWidth = isPlaying ? 8 + intensity * 12 : 4 + intensity * 6;
+      final barHeight = isPlaying ? 20 + intensity * 80 : 10 + intensity * 40;
       
       // Color for this bar
       final colorIndex = i % colors.length;
@@ -271,9 +277,11 @@ class EmbeddedVisualizerPainter extends CustomPainter {
       bars3D.add({
         'index': i,
         'x': x,
-        'barHeight': barHeight,
+        'y': y,
         'z': z,
+        'angle': barAngle,
         'width': barWidth,
+        'height': barHeight,
         'intensity': intensity,
         'depth': depth,
         'color': baseColor,
@@ -283,19 +291,14 @@ class EmbeddedVisualizerPainter extends CustomPainter {
     // Sort bars by Z-depth (back to front)
     bars3D.sort((a, b) => a['z'].compareTo(b['z']));
     
-    // Draw reflection/shadow first
-    for (var bar in bars3D) {
-      _drawBarReflection(canvas, size, bar, baseY, perspective);
-    }
-    
     // Draw each 3D bar
     for (var bar in bars3D) {
-      _draw3DBar(canvas, size, bar, baseY, perspective);
+      _draw3DBar(canvas, size, bar, perspective);
     }
     
-    // Add ambient glow effect
+    // Add central glow effect
     if (isPlaying) {
-      _drawAmbientGlow(canvas, size);
+      _drawCentralGlow(canvas, center, radius, globalPulse);
     }
   }
 
