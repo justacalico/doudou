@@ -320,10 +320,12 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
 class CircularVisualizerPainter extends CustomPainter {
   final List<double> barHeights;
   final bool isPlaying;
+  final List<Color> colors;
 
   CircularVisualizerPainter({
     required this.barHeights,
     required this.isPlaying,
+    required this.colors,
   });
 
   @override
