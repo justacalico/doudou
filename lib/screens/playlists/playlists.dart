@@ -42,56 +42,67 @@ class PlaylistsView extends StatelessWidget {
           );
         }
 
-        return Container(
-          color: const Color(0xFF000000), // Dark background
-          child: CustomScrollView(
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () => appState.loadLibraryData(),
-              ),
-              // Create playlist button
-              SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.all(16),
-                  child: CupertinoButton.filled(
-                    onPressed: () => _showCreatePlaylistDialog(context, appState),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(CupertinoIcons.add, size: 18),
-                        SizedBox(width: 8),
-                        Text('Create Playlist'),
-                      ],
+        return Stack(
+          children: [
+            Container(
+              color: const Color(0xFF000000), // Dark background
+              child: CustomScrollView(
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () => appState.loadLibraryData(),
+                  ),
+                  // Create playlist button
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      child: CupertinoButton.filled(
+                        onPressed: () => _showCreatePlaylistDialog(context, appState),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(CupertinoIcons.add, size: 18),
+                            SizedBox(width: 8),
+                            Text('Create Playlist'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              // Playlists list
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final playlist = appState.playlists[index];
-                    return PlaylistTile(
-                      playlist: playlist,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => PlaylistDetailScreen(playlist: playlist),
-                          ),
+                  // Playlists list
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final playlist = appState.playlists[index];
+                        return PlaylistTile(
+                          playlist: playlist,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (context) => PlaylistDetailScreen(playlist: playlist),
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                  childCount: appState.playlists.length,
-                ),
+                      childCount: appState.playlists.length,
+                    ),
+                  ),
+                  // Add some bottom padding for mini player
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 100),
+                  ),
+                ],
               ),
-              // Add some bottom padding
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
-            ],
-          ),
+            ),
+            // Mini player at bottom
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MiniPlayer(),
+            ),
+          ],
         );
       },
     );
