@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
-import '../../widgets/track_list_item.dart';
+import '../partials/tracks/track_list_item.dart';
 
 class SongsView extends StatelessWidget {
   const SongsView({super.key});

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import '../../widgets/track_list_item.dart';
+import '../partials/tracks/track_list_item.dart';
 import '../artists/details/artist_detail.dart';
 import '../albums/details/album_details.dart';
 
