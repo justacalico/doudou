@@ -10,7 +10,7 @@
 - Album's detail page uses track list template.
 - Song's page uses track list template.
 - Favorite's page uses track list template.
-- Scale album art
+- Scale album art.
 
 ## Removed
 - Removed the download, favorite button from the view of tracklists.
