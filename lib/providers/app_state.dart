@@ -47,6 +47,7 @@ class AppState extends ChangeNotifier {
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
 
   AppState() {
+    _downloadService = DownloadService(_jellyfinService);
     _initializeApp();
   }
 
