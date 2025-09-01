@@ -515,6 +515,71 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track) async {
+    // Check if track is downloaded locally first
+    final localFilePath = _downloadService.getLocalFilePath(track.id);
+    
+    if (localFilePath != null) {
+      // Play local file
+      if (kDebugMode) {
+        print('Playing local file for track: ${track.name} from $localFilePath');
+      }
+      
+      try {
+        // Load the local file
+        await _player.setFilePath(localFilePath);
+        
+        // Apply volume normalization if enabled
+        _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+        
+        // Wait for the player to be ready before playing
+        int retries = 0;
+        const maxRetries = 50; // 2.5 seconds total
+        while (_player.processingState == ProcessingState.loading && retries < maxRetries) {
+          await Future.delayed(const Duration(milliseconds: 50));
+          retries++;
+        }
+        
+        // Check if loading was successful
+        if (_player.processingState == ProcessingState.ready) {
+          // Update state to ready before playing
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.ready,
+            playing: false,
+            queueIndex: _currentIndex,
+          ));
+          
+          // Ensure the track is still the current one before playing
+          if (_currentTrack?.id == track.id) {
+            await _player.play();
+            
+            if (kDebugMode) {
+              print('Successfully started playing local file: ${track.name}');
+            }
+            return; // Success! Exit early
+          } else {
+            if (kDebugMode) {
+              print('Track changed during loading, cancelling play for: ${track.name}');
+            }
+            return;
+          }
+        } else {
+          if (kDebugMode) {
+            print('Failed to load local file for ${track.name} - player state: ${_player.processingState}');
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to play local file for ${track.name}: $e');
+        }
+      }
+      
+      // If local file failed, fall back to streaming
+      if (kDebugMode) {
+        print('Local file playback failed for ${track.name}, falling back to streaming');
+      }
+    }
+    
+    // Stream from server (original logic)
     // Try multiple stream URLs in order of preference
     final streamUrls = [
       _jellyfinService.getStreamUrl(track.id),
