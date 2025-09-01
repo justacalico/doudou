@@ -108,7 +108,7 @@ class AppState extends ChangeNotifier {
             // Try to initialize audio handler, but don't fail if it doesn't work
             try {
               _audioHandler = await AudioService.init(
-                builder: () => DoudouAudioHandler(_jellyfinService),
+                builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
                 config: const AudioServiceConfig(
                   androidNotificationChannelId: 'gitlab.httpanimations.doudou.channel.audio',
                   androidNotificationChannelName: 'Doudou Music',
