@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/lyrics_service.dart';
-import '../providers/app_state.dart';
+import '../../../services/lyrics_service.dart';
+import '../../../providers/app_state.dart';
 
 /// Shows the synchronized lyrics overlay with karaoke-style highlighting
 void showSyncedLyricsOverlay(BuildContext context, String trackName, String artistName) {

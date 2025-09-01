@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import '../../providers/app_state.dart';
-import '../../widgets/synced_lyrics_overlay.dart';
+import 'lyrics/synced_lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../../widgets/embedded_visualizer.dart';
