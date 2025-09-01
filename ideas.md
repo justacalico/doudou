@@ -19,7 +19,7 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
 - **Sleep Timer**: Auto-stop playback after a set time (15min, 30min, 1hr, etc.)
 - **Gapless Playback**: Seamless transitions between tracks in albums
 - **Replay Gain**: Automatic volume normalization across different albums
-- **Crossfade Settings**: Configurable crossfade duration
+- ~~**Crossfade Settings**: Configurable crossfade duration~~
 
 ## 📱 User Interface Enhancements
 
