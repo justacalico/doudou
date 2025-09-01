@@ -1020,6 +1020,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  void setGaplessPlayback(bool enabled) {
+    _gaplessPlaybackEnabled = enabled;
+    if (kDebugMode) {
+      print('Gapless playback ${enabled ? 'enabled' : 'disabled'}');
+    }
+  }
+
   // Getters
   Track? get currentTrack => _currentTrack;
   List<Track> get playlist => _playlist;
