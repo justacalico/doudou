@@ -227,62 +227,72 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       );
     }
 
-    // Group downloaded tracks by playlist
-    final playlistGroups = _groupTracksByPlaylist(downloadedTracks, appState);
-    
-    if (playlistGroups.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(40),
-            child: Column(
-              children: [
-                Icon(
-                  CupertinoIcons.music_note_list,
-                  size: 80,
-                  color: Color(0xFF333333),
-                ),
-                SizedBox(height: 24),
-                Text(
-                  'No downloaded playlists',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFFFFFFF),
-                  ),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  'Downloaded songs that are part of playlists will appear here',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF8E8E93),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final playlistEntry = playlistGroups.entries.elementAt(index);
-          final playlist = playlistEntry.key;
-          final tracks = playlistEntry.value;
+    // Use FutureBuilder to properly group tracks by playlist
+    return SliverToBoxAdapter(
+      child: FutureBuilder<Map<Playlist, List<Track>>>(
+        future: _groupTracksByPlaylistAsync(downloadedTracks, appState),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.all(40),
+              child: Center(
+                child: CupertinoActivityIndicator(color: CupertinoColors.white),
+              ),
+            );
+          }
           
-          return DownloadedPlaylistItem(
-            playlist: playlist,
-            downloadedTracks: tracks,
-            onTap: () => _showPlaylistTracks(context, playlist, tracks, appState),
-            onDelete: () => _deletePlaylistDownloads(downloadService, tracks),
+          final playlistGroups = snapshot.data ?? {};
+          
+          if (playlistGroups.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.all(40),
+              child: Column(
+                children: [
+                  Icon(
+                    CupertinoIcons.music_note_list,
+                    size: 80,
+                    color: Color(0xFF333333),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'No downloaded playlists',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Downloaded songs that are part of playlists will appear here',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF8E8E93),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            children: playlistGroups.entries.map((playlistEntry) {
+              final playlist = playlistEntry.key;
+              final tracks = playlistEntry.value;
+              
+              return DownloadedPlaylistItem(
+                playlist: playlist,
+                downloadedTracks: tracks,
+                onTap: () => _showPlaylistTracks(context, playlist, tracks, appState),
+                onDelete: () => _deletePlaylistDownloads(downloadService, tracks),
+              );
+            }).toList(),
           );
         },
-        childCount: playlistGroups.length,
       ),
+    );
+  }
     );
   }
 
