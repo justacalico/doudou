@@ -293,6 +293,19 @@ class FavoriteTrackListItem extends StatelessWidget {
           CupertinoContextMenuAction(
             child: const Row(
               children: [
+                Icon(CupertinoIcons.arrow_down_circle, size: 18, color: Color(0xFFFFFFFF)),
+                SizedBox(width: 8),
+                Text('Download', style: TextStyle(color: Color(0xFFFFFFFF))),
+              ],
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              appState.downloadService.downloadTrack(track);
+            },
+          ),
+          CupertinoContextMenuAction(
+            child: const Row(
+              children: [
                 Icon(CupertinoIcons.add, size: 18, color: Color(0xFFFFFFFF)),
                 SizedBox(width: 8),
                 Text('Add to Queue', style: TextStyle(color: Color(0xFFFFFFFF))),
