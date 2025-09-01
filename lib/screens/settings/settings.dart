@@ -110,17 +110,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader('Server Information'),
+                        _buildSectionHeader('Account Information'),
                         if (server != null) ...[
                           _buildInfoTile(
-                            icon: CupertinoIcons.wifi,
-                            title: 'Server URL',
-                            subtitle: server.serverUrl,
+                            icon: CupertinoIcons.person_circle,
+                            title: 'Username',
+                            subtitle: server.username ?? 'Not available',
                           ),
                           _buildInfoTile(
-                            icon: CupertinoIcons.person,
-                            title: 'User ID',
-                            subtitle: server.userId ?? 'Not available',
+                            icon: CupertinoIcons.server_rack,
+                            title: 'Server Name',
+                            subtitle: server.serverName ?? 'Jellyfin Server',
                           ),
                           _buildInfoTile(
                             icon: CupertinoIcons.checkmark_seal,
