@@ -597,6 +597,29 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     appState.playPlaylist([track], 0);
   }
 
+  void _playAllDownloaded(AppState appState, Map<String, DownloadedTrack> downloadedTracks, bool shuffle) {
+    // Convert downloaded tracks to Track objects
+    final tracks = downloadedTracks.keys.map((trackId) {
+      return appState.tracks.firstWhere(
+        (t) => t.id == trackId,
+        orElse: () => Track(
+          id: trackId,
+          name: 'Unknown Track',
+        ),
+      );
+    }).toList();
+    
+    if (tracks.isNotEmpty) {
+      if (shuffle) {
+        // Create a shuffled copy of the tracks
+        final shuffledTracks = List<Track>.from(tracks)..shuffle();
+        appState.playPlaylist(shuffledTracks, 0);
+      } else {
+        appState.playPlaylist(tracks, 0);
+      }
+    }
+  }
+
   void _deleteDownload(DownloadService downloadService, String trackId) {
     showCupertinoDialog(
       context: context,
