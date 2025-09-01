@@ -35,13 +35,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
   }
 
   @override
-  void didUpdateWidget(DownloadsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Clear cached data when the widget updates, which happens when downloads change
-    _cachedPlaylistGroups = null;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
