@@ -1114,6 +1114,123 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     );
   }
 
+  void _downloadPlaylistDetail() async {
+    final appState = context.read<AppState>();
+    
+    if (tracks.isEmpty) {
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('Empty Playlist'),
+            content: Text('The playlist "${widget.playlist.name}" is empty.'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+    
+    // Show confirmation dialog
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Download Playlist'),
+          content: Text(
+            'Download "${widget.playlist.name}" with ${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'}?'
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Download'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _startPlaylistDownloadDetail(appState);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _startPlaylistDownloadDetail(AppState appState) async {
+    int downloadedCount = 0;
+    int skippedCount = 0;
+    int failedCount = 0;
+    
+    // Count already downloaded tracks
+    for (final track in tracks) {
+      if (appState.downloadService.isTrackDownloaded(track.id)) {
+        skippedCount++;
+      }
+    }
+    
+    // Start downloading all tracks
+    for (final track in tracks) {
+      try {
+        if (!appState.downloadService.isTrackDownloaded(track.id)) {
+          await appState.downloadService.downloadTrack(track);
+          downloadedCount++;
+        }
+      } catch (e) {
+        failedCount++;
+        if (kDebugMode) {
+          print('Failed to start download for track ${track.name}: $e');
+        }
+      }
+    }
+    
+    // Show completion message
+    if (!mounted) return;
+    String message;
+    if (downloadedCount > 0) {
+      message = 'Started downloading $downloadedCount ${downloadedCount == 1 ? 'song' : 'songs'}';
+      if (skippedCount > 0) {
+        message += ', $skippedCount already downloaded';
+      }
+      if (failedCount > 0) {
+        message += ', $failedCount failed to start';
+      }
+    } else if (skippedCount > 0) {
+      message = 'All songs in "${widget.playlist.name}" are already downloaded';
+    } else {
+      message = 'Failed to start downloads';
+    }
+    
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text(downloadedCount > 0 || skippedCount == tracks.length ? 'Download Started' : 'Download Failed'),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _playTrack(Track track, int index) {
     final appState = context.read<AppState>();
     appState.playPlaylist(tracks, index);
