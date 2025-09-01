@@ -443,7 +443,10 @@ class DownloadService extends ChangeNotifier {
           final task = DownloadTask.fromJson(taskJson);
           
           // Reset any downloading tasks to failed (app was closed during download)
-          if (task.status == DownloadStatus.downloading) {
+          // Skip any completed tasks that might be in storage
+          if (task.status == DownloadStatus.downloaded) {
+            continue;
+          } else if (task.status == DownloadStatus.downloading) {
             _downloadTasks[task.trackId] = task.copyWith(
               status: DownloadStatus.failed,
               errorMessage: 'Download interrupted',
