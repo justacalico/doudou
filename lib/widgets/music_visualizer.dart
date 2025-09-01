@@ -245,13 +245,13 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(
                               color: widget.isPlaying 
-                                  ? const Color(0xFF00FF88)
+                                  ? _extractedColors[1]
                                   : const Color(0xFF8E8E93),
                               width: 2,
                             ),
                             boxShadow: widget.isPlaying ? [
                               BoxShadow(
-                                color: const Color(0xFF00FF88).withOpacity(0.3),
+                                color: _extractedColors[1].withOpacity(0.3),
                                 blurRadius: 12,
                                 spreadRadius: 0,
                               ),
@@ -265,7 +265,7 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
                                     ? CupertinoIcons.music_note_2
                                     : CupertinoIcons.pause_fill,
                                 color: widget.isPlaying 
-                                    ? const Color(0xFF00FF88)
+                                    ? _extractedColors[1]
                                     : const Color(0xFF8E8E93),
                                 size: 18,
                               ),
@@ -274,7 +274,7 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
                                 widget.isPlaying ? 'Now Playing' : 'Paused',
                                 style: TextStyle(
                                   color: widget.isPlaying 
-                                      ? const Color(0xFF00FF88)
+                                      ? _extractedColors[1]
                                       : const Color(0xFF8E8E93),
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
