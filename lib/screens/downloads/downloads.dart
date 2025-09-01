@@ -140,7 +140,7 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                               ),
                             ),
                             child: CupertinoSlidingSegmentedControl<int>(
-                              groupValue: _tabController.index,
+                              groupValue: _tabController.index.clamp(0, 3),
                               onValueChanged: (value) {
                                 if (value != null && value >= 0 && value < 4) {
                                   _tabController.animateTo(value);
