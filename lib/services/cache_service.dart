@@ -200,18 +200,48 @@ class CacheService {
     final now = DateTime.now().millisecondsSinceEpoch;
     final dataJson = jsonEncode(data);
     
-    await _database!.insert(
-      table,
-      {
-        'id': key,
-        'data': dataJson,
-        'timestamp': now,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    
-    if (kDebugMode) {
-      print('Cached $key in $table');
+    try {
+      await _database!.insert(
+        table,
+        {
+          'id': key,
+          'data': dataJson,
+          'timestamp': now,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      
+      if (kDebugMode) {
+        print('Cached $key in $table');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error writing to cache table $table: $e');
+        print('Attempting to recreate table with correct schema...');
+      }
+      
+      // If there's a schema error, recreate the table and try again
+      await _recreateTableWithCorrectSchema(table);
+      
+      try {
+        await _database!.insert(
+          table,
+          {
+            'id': key,
+            'data': dataJson,
+            'timestamp': now,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        
+        if (kDebugMode) {
+          print('Successfully cached $key in recreated $table');
+        }
+      } catch (e2) {
+        if (kDebugMode) {
+          print('Failed to cache $key even after recreating table $table: $e2');
+        }
+      }
     }
   }
   
