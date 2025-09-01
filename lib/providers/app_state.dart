@@ -421,11 +421,19 @@ class AppState extends ChangeNotifier {
   
   Future<void> _loadPlaylistTracksInBackground(String playlistId) async {
     try {
+      if (kDebugMode) {
+        print('Loading fresh playlist tracks in background for playlist: $playlistId');
+      }
+      
       final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
       await _cacheService.cachePlaylistTracks(playlistId, tracks);
+      
+      if (kDebugMode) {
+        print('Successfully refreshed ${tracks.length} playlist tracks in background for playlist: $playlistId');
+      }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to refresh playlist tracks in background: $e');
+        print('Failed to refresh playlist tracks in background for playlist $playlistId: $e');
       }
     }
   }
