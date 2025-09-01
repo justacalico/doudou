@@ -101,7 +101,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         // Multiple fallback mechanisms for background playback
         
-        // 1. Near end detection (1 second remaining)
+        // 1. Near end detection for gapless preparation
+        if (_gaplessPlaybackEnabled && remaining.inMilliseconds <= 2000 && remaining.inMilliseconds > 1000 && !_isHandlingCompletion) {
+          if (kDebugMode) {
+            print('Gapless preparation: ${remaining.inMilliseconds}ms remaining, ensuring next track is preloaded...');
+          }
+          // Ensure next track is preloaded for gapless transition
+          if (_currentIndex < _playlist.length - 1) {
+            final nextTrack = _playlist[_currentIndex + 1];
+            if (!_preloadedPlayers.containsKey(nextTrack.id) && !_preloadingTracks.contains(nextTrack.id)) {
+              _preloadTrack(nextTrack);
+            }
+          }
+        }
+        
+        // 2. Near end detection (1 second remaining)
         if (remaining.inMilliseconds <= 1000 && remaining.inMilliseconds > 500 && !_isHandlingCompletion) {
           if (kDebugMode) {
             print('Near end detected (${remaining.inMilliseconds}ms remaining), preparing for next track...');
@@ -112,8 +126,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
         
-        // 2. Very close to end (500ms remaining) - aggressive fallback
-        if (remaining.inMilliseconds <= 500 && remaining.inMilliseconds >= 0 && !_isHandlingCompletion) {
+        // 3. Very close to end (500ms remaining) - trigger gapless transition if enabled
+        if (remaining.inMilliseconds <= 500 && remaining.inMilliseconds > 100 && !_isHandlingCompletion) {
+          if (_gaplessPlaybackEnabled && _currentIndex < _playlist.length - 1) {
+            final nextTrack = _playlist[_currentIndex + 1];
+            if (_preloadedPlayers.containsKey(nextTrack.id)) {
+              if (kDebugMode) {
+                print('Initiating gapless transition with ${remaining.inMilliseconds}ms remaining');
+              }
+              _handleTrackCompletion();
+              return;
+            }
+          }
+          
           if (kDebugMode) {
             print('Very close to end detected (${remaining.inMilliseconds}ms remaining), checking for completion...');
           }
@@ -135,11 +160,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           });
         }
         
-        // 3. Stuck at end detection - if position hasn't changed for too long while at the end
-        if (remaining.inMilliseconds <= 50 && !_isHandlingCompletion) {
-          Future.delayed(const Duration(milliseconds: 1000), () {
+        // 4. Final fallback - stuck at end detection
+        if (remaining.inMilliseconds <= 100 && !_isHandlingCompletion) {
+          Future.delayed(const Duration(milliseconds: 500), () {
             final stillAtEnd = _player.duration != null && 
-                              (_player.duration!.inMilliseconds - _player.position.inMilliseconds) <= 50;
+                              (_player.duration!.inMilliseconds - _player.position.inMilliseconds) <= 100;
             
             if (stillAtEnd && !_isHandlingCompletion && _player.playerState.playing) {
               if (kDebugMode) {
