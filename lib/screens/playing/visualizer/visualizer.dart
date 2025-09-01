@@ -132,18 +132,13 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     return Center(
       child: SizedBox(
         width: 320,
-        height: 320,
+        height: 200,
         child: CustomPaint(
           painter: EmbeddedVisualizerPainter(
             barHeights: _barHeights,
-            barDepths: _barDepths,
-            barRotations: _barRotations,
             isPlaying: widget.isPlaying,
             colors: _extractedColors,
             globalPulse: _globalPulse,
-            rotationOffset: _rotationOffset,
-            perspectiveAngle: _perspectiveAngle,
-            cameraY: _cameraY,
           ),
         ),
       ),
