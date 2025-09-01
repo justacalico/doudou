@@ -21,6 +21,7 @@
 ## Removed
 - Removed the download and favorite buttons from track list views.
 - Removed display settings from the settings screen.
+- Removed the audo quality from the settings screen.
 
 ## Fixed
 - Fixed playing favorites from the dedicated page.

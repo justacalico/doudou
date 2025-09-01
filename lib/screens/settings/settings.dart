@@ -148,12 +148,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         _buildSectionHeader('Audio Settings'),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.music_note,
-                          title: 'Audio Quality',
-                          subtitle: 'High Quality',
-                          onTap: () => _showAudioQualityDialog(context),
-                        ),
                         _buildSwitchTile(
                           icon: CupertinoIcons.volume_up,
                           title: 'Smart Crossfade',
