@@ -158,7 +158,7 @@ We welcome contributions! Please follow the code style and test code before comm
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
 
 ## 🌟 Star History
 
