@@ -17,7 +17,7 @@
 - Favorites page now uses the track list template.
 - Scaled album art.
 - Play local version of songs if already downloaded.
-- Stop doxxing the server infomachine.
+- display more tame data for account info stop doxxing.
 
 ## Removed
 - Removed the download and favorite buttons from track list views.
