@@ -177,48 +177,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                // Display Settings Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF000000), // Pure black background
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader('Display Settings'),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.moon,
-                          title: 'OLED Dark Mode',
-                          subtitle: 'True black backgrounds for OLED displays',
-                          value: appState.oledDarkModeEnabled,
-                          onChanged: (value) {
-                            appState.toggleOledDarkMode(value);
-                          },
-                        ),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.photo,
-                          title: 'Show Album Art',
-                          subtitle: 'Display album artwork in player',
-                          value: appState.showAlbumArtEnabled,
-                          onChanged: (value) {
-                            appState.toggleShowAlbumArt(value);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
                 // Storage & Cache Section
                 SliverToBoxAdapter(
                   child: Container(
