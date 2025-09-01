@@ -106,29 +106,4 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
-  Widget _buildComingSoonTab(String tabName) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            tabName == 'Downloads' 
-                ? CupertinoIcons.arrow_down_circle 
-                : CupertinoIcons.search,
-            size: 64,
-            color: CupertinoColors.systemGrey,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '$tabName Coming Soon',
-            style: const TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
