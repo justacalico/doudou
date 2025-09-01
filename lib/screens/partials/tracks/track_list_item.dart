@@ -331,54 +331,85 @@ class TrackListItem extends StatelessWidget {
       );
     } else if (showTrackNumber) {
       // Album detail style with track numbers
-      return CupertinoListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: CupertinoColors.systemGrey5.resolveFrom(context),
-            borderRadius: BorderRadius.circular(4),
+      return Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF000000),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF1D1D1F),
+            width: 0.5,
           ),
-          child: Center(
-            child: Text(
-              track.trackNumber?.toString() ?? trackNumber.toString(),
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+        ),
+        child: CupertinoListTile(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFF2C2C2E),
+                width: 0.5,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                track.trackNumber?.toString() ?? trackNumber.toString(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8E8E93),
+                  fontSize: 16,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ),
-        ),
-        title: Text(
-          track.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: track.artistName != null
-            ? Text(
-                track.artistName!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (showDuration && track.duration != null) ...[
-              Text(
-                _formatDuration(Duration(milliseconds: track.duration!)),
-                style: TextStyle(
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          title: Text(
+            track.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFFFFFFFF),
+              fontSize: 17,
+              letterSpacing: -0.4,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: track.artistName != null
+              ? Text(
+                  track.artistName!,
+                  style: const TextStyle(
+                    color: Color(0xFF8E8E93),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: -0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+              : null,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showDuration && track.duration != null) ...[
+                Text(
+                  _formatDuration(Duration(milliseconds: track.duration!)),
+                  style: const TextStyle(
+                    color: Color(0xFF8E8E93),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 12),
+              ],
+              if (showDownloadButton)
+                DownloadButton(track: track),
             ],
-            if (showDownloadButton)
-              DownloadButton(track: track),
-          ],
+          ),
+          onTap: onTap,
         ),
-        onTap: onTap,
       );
     } else {
       // Songs list style with album art
