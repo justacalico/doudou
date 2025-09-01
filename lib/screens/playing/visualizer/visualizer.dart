@@ -22,18 +22,11 @@ class EmbeddedVisualizer extends StatefulWidget {
 class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
-  late AnimationController _rotationController;
-  late AnimationController _depthController;
   late Timer _timer;
   List<double> _barHeights = [];
-  List<double> _barDepths = [];
-  List<double> _barRotations = [];
-  final int _barCount = 64;
+  final int _barCount = 32;
   final Random _random = Random();
   double _globalPulse = 0.0;
-  double _rotationOffset = 0.0;
-  double _perspectiveAngle = 0.0;
-  double _cameraY = 0.0;
   
   // Color extraction from song info
   List<Color> _extractedColors = [
@@ -48,26 +41,14 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   void initState() {
     super.initState();
     
-    // Initialize 3D bar properties
+    // Initialize bar heights
     _barHeights = List.generate(_barCount, (index) => 0.1);
-    _barDepths = List.generate(_barCount, (index) => 0.1);
-    _barRotations = List.generate(_barCount, (index) => 0.0);
     
-    // Create animation controllers
+    // Create animation controller
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 12),
-      vsync: this,
-    )..repeat();
-
-    _depthController = AnimationController(
-      duration: const Duration(seconds: 6),
-      vsync: this,
-    )..repeat();
 
     // Extract colors from song info
     _extractColorsFromSong();
