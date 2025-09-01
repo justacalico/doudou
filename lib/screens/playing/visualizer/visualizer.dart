@@ -117,103 +117,17 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF000000), // Pure black background
-      ),
-      child: Stack(
-        children: [
-          // Background gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.center,
-                radius: 1.2,
-                colors: [
-                  _extractedColors[0].withOpacity(0.1),
-                  const Color(0xFF000000),
-                  const Color(0xFF000000),
-                ],
-                stops: const [0.0, 0.7, 1.0],
-              ),
-            ),
+    return Center(
+      child: SizedBox(
+        width: 280,
+        height: 280,
+        child: CustomPaint(
+          painter: EmbeddedVisualizerPainter(
+            barHeights: _barHeights,
+            isPlaying: widget.isPlaying,
+            colors: _extractedColors,
           ),
-          
-          // Visualizer
-          Center(
-            child: SizedBox(
-              width: 280,
-              height: 280,
-              child: CustomPaint(
-                painter: EmbeddedVisualizerPainter(
-                  barHeights: _barHeights,
-                  isPlaying: widget.isPlaying,
-                  colors: _extractedColors,
-                ),
-              ),
-            ),
-          ),
-          
-          // Center overlay with song info
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 60), // Push content down a bit
-                Icon(
-                  widget.isPlaying 
-                      ? CupertinoIcons.music_note_2
-                      : CupertinoIcons.pause_fill,
-                  color: _extractedColors[0],
-                  size: 32,
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF000000).withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _extractedColors[0].withOpacity(0.5),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    widget.isPlaying ? 'Now Playing' : 'Paused',
-                    style: TextStyle(
-                      color: _extractedColors[0],
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Tap indicator
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF000000).withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'Tap to show album art',
-                  style: TextStyle(
-                    color: CupertinoColors.systemGrey2.withOpacity(0.8),
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
