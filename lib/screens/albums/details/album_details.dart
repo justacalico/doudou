@@ -288,6 +288,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   track: track,
                   trackNumber: index,
                   onTap: () => _playTrack(track, index - 1),
+                  showAlbumArt: false,
+                  showTrackNumber: true,
+                  showDuration: true,
+                  showDownloadButton: true,
+                  showFavoriteButton: false,
                 );
               }, childCount: tracks.length + 1),
             ),
