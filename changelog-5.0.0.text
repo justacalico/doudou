@@ -2,6 +2,8 @@
 
 ## Added
 - Pop out for tracks
+- Added a add to queue button.
+- Added a play next button.
 
 ## Changed
 - Embed the visualizer rather then having its own page.
