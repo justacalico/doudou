@@ -293,8 +293,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       ),
     );
   }
-    );
-  }
 
   Widget _buildDownloadedSongs(DownloadService downloadService, AppState appState) {
     final downloadedTracks = downloadService.downloadedTracks;
