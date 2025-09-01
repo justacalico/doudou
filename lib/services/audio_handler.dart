@@ -749,11 +749,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (kDebugMode) {
             print('Successfully preloaded local track: ${track.name}');
           }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to preload local track ${track.name}: $e');
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to preload local track ${track.name}: $e');
+            }
+            // Fall back to streaming
           }
-          // Fall back to streaming
+        } else {
+          if (kDebugMode) {
+            print('Local file does not exist for preloading: $localFilePath');
+          }
         }
       }
       
