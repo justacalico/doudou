@@ -4,13 +4,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_pref                _downloadedTracks[task.trackId] = downloadedTrack;
-                
-                // Remove completed task from download tasks and queue since it's now in downloadedTracks
-                _downloadTasks.remove(task.trackId);
-                _downloadQueue.remove(task.trackId);
-
-                // Also download album artwork if availables/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/download_models.dart';
 import '../models/jellyfin_models.dart';
 import 'jellyfin_service.dart';
