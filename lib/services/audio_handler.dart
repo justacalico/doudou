@@ -1042,6 +1042,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   int get queueLength => _queue.length;
   bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
+  bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
