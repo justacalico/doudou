@@ -571,9 +571,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Failed to load local file for ${track.name} - player state: ${_player.processingState}');
           }
         }
-      } catch (e) {
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to play local file for ${track.name}: $e');
+          }
+        }
+      } else {
         if (kDebugMode) {
-          print('Failed to play local file for ${track.name}: $e');
+          print('Local file does not exist: $localFilePath');
         }
       }
       
