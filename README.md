@@ -160,10 +160,6 @@ We welcome contributions! Please follow the code style and test code before comm
 
 This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
 
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=[username]/doudou&type=Date)](https://star-history.com/#[username]/doudou&Date)
-
 ---
 
 **Made with ❤️ for the Jellyfin community**
