@@ -690,14 +690,69 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       final player = AudioPlayer();
       
-      // Try multiple stream URLs in order of preference
-      final streamUrls = [
-        _jellyfinService.getStreamUrl(track.id),
-        _jellyfinService.getDirectStreamUrl(track.id),
-        _jellyfinService.getUniversalStreamUrl(track.id),
-      ];
+      // Check if track is downloaded locally first
+      final localFilePath = _downloadService.getLocalFilePath(track.id);
       
       bool loaded = false;
+      
+      if (localFilePath != null) {
+        // Preload local file
+        try {
+          if (kDebugMode) {
+            print('Preloading local file for track: ${track.name}');
+          }
+          
+          // Set local file path and wait for it to be ready
+          await player.setFilePath(localFilePath);
+          
+          // Apply volume normalization if enabled
+          player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+          
+          // Wait for the player to be in ready state with a timeout
+          final completer = Completer<void>();
+          StreamSubscription? subscription;
+          
+          subscription = player.playerStateStream.listen((state) {
+            if (state.processingState == ProcessingState.ready) {
+              subscription?.cancel();
+              if (!completer.isCompleted) {
+                completer.complete();
+              }
+            }
+          });
+          
+          // Wait up to 5 seconds for the track to be ready
+          await completer.future.timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              subscription?.cancel();
+              throw TimeoutException('Local track preloading timed out', const Duration(seconds: 5));
+            },
+          );
+          
+          // Successfully preloaded
+          _preloadedPlayers[track.id] = player;
+          loaded = true;
+          
+          if (kDebugMode) {
+            print('Successfully preloaded local track: ${track.name}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to preload local track ${track.name}: $e');
+          }
+          // Fall back to streaming
+        }
+      }
+      
+      if (!loaded) {
+        // Fall back to streaming (original logic)
+        // Try multiple stream URLs in order of preference
+        final streamUrls = [
+          _jellyfinService.getStreamUrl(track.id),
+          _jellyfinService.getDirectStreamUrl(track.id),
+          _jellyfinService.getUniversalStreamUrl(track.id),
+        ];
       for (final streamUrl in streamUrls) {
         try {
           // Set URL and wait for it to be ready
