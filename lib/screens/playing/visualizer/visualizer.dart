@@ -161,6 +161,7 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     _timer.cancel();
     _animationController.dispose();
     _rotationController.dispose();
+    _depthController.dispose();
     super.dispose();
   }
 
@@ -168,15 +169,19 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        width: 280,
-        height: 280,
+        width: 320,
+        height: 320,
         child: CustomPaint(
           painter: EmbeddedVisualizerPainter(
             barHeights: _barHeights,
+            barDepths: _barDepths,
+            barRotations: _barRotations,
             isPlaying: widget.isPlaying,
             colors: _extractedColors,
             globalPulse: _globalPulse,
             rotationOffset: _rotationOffset,
+            perspectiveAngle: _perspectiveAngle,
+            cameraY: _cameraY,
           ),
         ),
       ),
