@@ -262,9 +262,9 @@ class PlaylistTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        return CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: onTap,
+        return GestureDetector(
+          onTap: onTap,
+          onLongPress: () => _showPlaylistOptions(context, appState),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
