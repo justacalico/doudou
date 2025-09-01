@@ -15,6 +15,7 @@
 - Song page now uses the track list template.
 - Favorites page now uses the track list template.
 - Scaled album art.
+- Play local version of songs if already downloaded.
 
 ## Removed
 - Removed the download and favorite buttons from track list views.
