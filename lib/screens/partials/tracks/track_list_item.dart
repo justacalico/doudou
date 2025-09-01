@@ -127,10 +127,7 @@ class TrackListItem extends StatelessWidget {
             },
           ),
         ],
-        child: Material(
-          color: Colors.transparent,
-          child: _buildContent(context, appState),
-        ),
+        child: _buildContent(context, appState),
       ),
     );
   }
