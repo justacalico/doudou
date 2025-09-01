@@ -78,9 +78,17 @@ class DownloadService extends ChangeNotifier {
       return; // Already downloaded
     }
 
-    // Check if already in queue or downloading
-    if (_downloadTasks.containsKey(track.id)) {
-      return;
+    // Check if already downloading (but allow retry for failed/paused downloads)
+    final existingTask = _downloadTasks[track.id];
+    if (existingTask != null && existingTask.status == DownloadStatus.downloading) {
+      return; // Already downloading
+    }
+
+    // If there's a failed or paused task, remove it first
+    if (existingTask != null && 
+        (existingTask.status == DownloadStatus.failed || existingTask.status == DownloadStatus.paused)) {
+      _downloadTasks.remove(track.id);
+      _downloadQueue.remove(track.id);
     }
 
     try {
