@@ -140,9 +140,13 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                               children: const {
                                 0: Padding(
                                   padding: EdgeInsets.symmetric(vertical: 12),
-                                  child: Text('Downloaded'),
+                                  child: Text('Playlists'),
                                 ),
                                 1: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12),
+                                  child: Text('Songs'),
+                                ),
+                                2: Padding(
                                   padding: EdgeInsets.symmetric(vertical: 12),
                                   child: Text('Queue'),
                                 ),
@@ -156,7 +160,9 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                   
                   // Content based on selected tab
                   if (_tabController.index == 0)
-                    _buildDownloadedList(downloadService, appState)
+                    _buildDownloadedPlaylists(downloadService, appState)
+                  else if (_tabController.index == 1)
+                    _buildDownloadedSongs(downloadService, appState)
                   else
                     _buildDownloadQueue(downloadService),
                   
