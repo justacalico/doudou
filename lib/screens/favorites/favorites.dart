@@ -416,7 +416,7 @@ class FavoriteTrackListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              // Duration and favorite button
+              // Duration and action buttons
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -429,32 +429,44 @@ class FavoriteTrackListItem extends StatelessWidget {
                       ),
                     ),
                   const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => _toggleFavorite(context, track),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: track.isFavorite 
-                            ? const Color(0xFFFF453A).withOpacity(0.1)
-                            : const Color(0xFF1C1C1E),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: track.isFavorite 
-                              ? const Color(0xFFFF453A).withOpacity(0.3)
-                              : const Color(0xFF2C2C2E),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        track.isFavorite 
-                            ? CupertinoIcons.heart_fill
-                            : CupertinoIcons.heart,
-                        color: track.isFavorite 
-                            ? const Color(0xFFFF453A)
-                            : const Color(0xFF8E8E93),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Download button
+                      DownloadButton(
+                        track: track,
                         size: 18,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      // Favorite button
+                      GestureDetector(
+                        onTap: () => _toggleFavorite(context, track),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: track.isFavorite 
+                                ? const Color(0xFFFF453A).withOpacity(0.1)
+                                : const Color(0xFF1C1C1E),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: track.isFavorite 
+                                  ? const Color(0xFFFF453A).withOpacity(0.3)
+                                  : const Color(0xFF2C2C2E),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(
+                            track.isFavorite 
+                                ? CupertinoIcons.heart_fill
+                                : CupertinoIcons.heart,
+                            color: track.isFavorite 
+                                ? const Color(0xFFFF453A)
+                                : const Color(0xFF8E8E93),
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
