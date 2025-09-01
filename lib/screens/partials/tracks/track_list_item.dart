@@ -141,7 +141,7 @@ class TrackListItem extends StatelessWidget {
           child: Row(
             children: [
               // Album artwork
-              Container(
+              SizedBox(
                 width: 60,
                 height: 60,
                 child: ClipRRect(
