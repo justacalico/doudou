@@ -1,6 +1,7 @@
 # 5.1.0
 
 ## Added
+- Pop out for tracks
 
 ## Changed
 - Embed the visualizer rather then having its own page.
