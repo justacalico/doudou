@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../widgets/track_list_item.dart';
 import '../artists/details/artist_detail.dart';
 import '../albums/details/album_details.dart';
 
@@ -176,7 +177,10 @@ class _SearchScreenState extends State<SearchScreen> {
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final track = _searchResults[index];
-        return _buildTrackTile(track, appState);
+        return TrackListItem(
+          track: track,
+          onTap: () => appState.playTrack(track),
+        );
       },
     );
   }

@@ -5,6 +5,7 @@
 ## Changed
 - Embed the visualizer rather then having its own page.
 - Changes the visualizer into a bar.
+- Adds a universal partial for tracks.
 
 ## Fixed
 - Fixed playing favorite's from the dedicated page.
