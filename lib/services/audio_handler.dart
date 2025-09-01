@@ -263,7 +263,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         // Get the next track
         final nextTrack = _playlist[_currentIndex];
-        _currentTrack = nextTrack;
         
         if (kDebugMode) {
           print('Next track: ${nextTrack.name}');
