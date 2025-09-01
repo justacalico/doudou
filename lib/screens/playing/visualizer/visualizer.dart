@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
 import 'dart:async';
+import 'dart:ui' as ui;
 
 // Embedded visualizer widget for the now playing screen
 class EmbeddedVisualizer extends StatefulWidget {
