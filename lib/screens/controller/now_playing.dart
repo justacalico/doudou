@@ -15,7 +15,32 @@ class NowPlayingScreen extends StatefulWidget {
   State<NowPlayingScreen> createState() => _NowPlayingScreenState();
 }
 
-class _NowPlayingScreenState extends State<NowPlayingScreen> {
+class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProviderStateMixin {
+  late AnimationController _favoriteAnimationController;
+  late Animation<double> _favoriteScaleAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    _favoriteAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _favoriteScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(
+      parent: _favoriteAnimationController,
+      curve: Curves.elasticOut,
+    ));
+  }
+  
+  @override
+  void dispose() {
+    _favoriteAnimationController.dispose();
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
