@@ -2,7 +2,7 @@
 
 A beautiful, privacy-focused music player for your personal Jellyfin media server.
 
-![Doudou Logo](docs/assets/logo.png)
+![Doudou Logo](android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 
 ## ✨ Features
 
