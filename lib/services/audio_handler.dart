@@ -76,7 +76,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Auto-play next track when current track completes
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed && !_isHandlingCompletion) {
+        if (kDebugMode) {
+          print('Track completion detected, handling...');
+        }
         _handleTrackCompletion();
+      }
+    });
+
+    // Also listen to position stream to detect when we're near the end
+    // This provides a backup mechanism for background playback
+    _player.positionStream.listen((position) {
+      final duration = _player.duration;
+      if (duration != null && duration.inMilliseconds > 0) {
+        final remaining = duration - position;
+        // If less than 500ms remaining and not already handling completion
+        if (remaining.inMilliseconds <= 500 && remaining.inMilliseconds >= 0 && !_isHandlingCompletion) {
+          if (kDebugMode) {
+            print('Near end of track detected (${remaining.inMilliseconds}ms remaining), preparing next track...');
+          }
+          // Use a small delay to ensure we don't trigger too early
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (_player.processingState == ProcessingState.completed && !_isHandlingCompletion) {
+              _handleTrackCompletion();
+            }
+          });
+        }
       }
     });
 
