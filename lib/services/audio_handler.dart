@@ -753,7 +753,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _jellyfinService.getDirectStreamUrl(track.id),
           _jellyfinService.getUniversalStreamUrl(track.id),
         ];
-      for (final streamUrl in streamUrls) {
+        
+        for (final streamUrl in streamUrls) {
         try {
           // Set URL and wait for it to be ready
           await player.setUrl(streamUrl);
