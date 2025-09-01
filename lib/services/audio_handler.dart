@@ -1036,7 +1036,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final position = _player.position;
     final isPlaying = _player.playing;
     
-    if (duration != null && position != null && isPlaying && !_isHandlingCompletion) {
+    if (duration != null && isPlaying && !_isHandlingCompletion) {
       final remaining = duration - position;
       
       // If we're stuck at the very end (less than 100ms remaining) and still playing
