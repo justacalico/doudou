@@ -106,11 +106,16 @@ class SongsView extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final track = appState.tracks[index];
-                        return SongTile(
+                        return TrackListItem(
                           track: track,
                           onTap: () {
                             appState.playPlaylist(appState.tracks, index);
                           },
+                          showAlbumArt: false,
+                          showTrackNumber: false,
+                          showDuration: true,
+                          showDownloadButton: true,
+                          showFavoriteButton: true,
                         );
                       },
                       childCount: appState.tracks.length,
