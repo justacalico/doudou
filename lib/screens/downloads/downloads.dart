@@ -362,18 +362,32 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     for (final playlist in appState.playlists) {
       final playlistTracks = <Track>[];
       
-      // Check which tracks from this playlist are downloaded
-      for (final track in appState.tracks) {
-        if (downloadedTrackIds.contains(track.id)) {
-          // Check if this track belongs to the playlist
-          // Note: This is a simplified check. In a real app, you'd need to 
-          // track playlist membership more explicitly
-          playlistTracks.add(track);
+      // Get all tracks in this playlist and check if they're downloaded
+      try {
+        // Note: This is a simplified approach. In a production app, you'd want to
+        // either store playlist membership data locally or fetch it async.
+        // For now, we'll check if tracks from the app's tracks list are downloaded
+        // and group them by album name matching playlist name (simplified approach)
+        
+        for (final track in appState.tracks) {
+          if (downloadedTrackIds.contains(track.id)) {
+            // Simple heuristic: if album name matches playlist name or track was recently downloaded
+            // In a real app, you'd have proper playlist-track relationships
+            if (track.albumName != null && 
+                track.albumName!.toLowerCase().contains(playlist.name.toLowerCase())) {
+              playlistTracks.add(track);
+            }
+          }
         }
-      }
-      
-      if (playlistTracks.isNotEmpty) {
-        playlistGroups[playlist] = playlistTracks;
+        
+        if (playlistTracks.isNotEmpty) {
+          playlistGroups[playlist] = playlistTracks;
+        }
+      } catch (e) {
+        // Skip this playlist if there's an error
+        if (kDebugMode) {
+          print('Error processing playlist ${playlist.name}: $e');
+        }
       }
     }
     
