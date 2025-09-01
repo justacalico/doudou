@@ -519,14 +519,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final localFilePath = _downloadService.getLocalFilePath(track.id);
     
     if (localFilePath != null) {
-      // Play local file
-      if (kDebugMode) {
-        print('Playing local file for track: ${track.name} from $localFilePath');
-      }
-      
-      try {
-        // Load the local file
-        await _player.setFilePath(localFilePath);
+      // Verify that the local file exists before trying to play it
+      final localFile = File(localFilePath);
+      if (await localFile.exists()) {
+        // Play local file
+        if (kDebugMode) {
+          print('Playing local file for track: ${track.name} from $localFilePath');
+        }
+        
+        try {
+          // Load the local file
+          await _player.setFilePath(localFilePath);
         
         // Apply volume normalization if enabled
         _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
