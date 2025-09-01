@@ -673,8 +673,8 @@ class AppState extends ChangeNotifier {
   Future<void> toggleNormalizeVolume(bool enabled) async {
     _normalizeVolumeEnabled = enabled;
     
-    // TODO: Update the audio handler with the new normalize volume setting
-    // _audioHandler?.setNormalizeVolume(enabled);
+    // Update the audio handler with the new normalize volume setting
+    _audioHandler?.setNormalizeVolume(enabled);
     
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
