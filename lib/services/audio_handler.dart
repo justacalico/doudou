@@ -686,7 +686,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _cleanupOldPreloadedPlayers();
     
     // Preload next few tracks in the queue for instant playback
-    const preloadCount = _gaplessPlaybackEnabled ? 2 : 1; // More aggressive preloading for gapless
+    final preloadCount = _gaplessPlaybackEnabled ? 2 : 1; // More aggressive preloading for gapless
     for (int i = 1; i <= preloadCount; i++) {
       final nextIndex = _currentIndex + i;
       if (nextIndex < _playlist.length) {
