@@ -145,16 +145,6 @@ class TrackListItem extends StatelessWidget {
               Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF000000).withOpacity(0.6),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: track.imageUrl != null
