@@ -40,10 +40,25 @@ class TrackListItem extends StatelessWidget {
           width: 0.5,
         ) : null,
       ),
-      child: CupertinoContextMenu(
+      child: GestureDetector(
+        onLongPress: () => _showTrackContextMenu(context, appState),
+        child: _buildContent(context, appState),
+      ),
+    );
+  }
+
+  void _showTrackContextMenu(BuildContext context, AppState appState) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
         actions: [
-          CupertinoContextMenuAction(
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              appState.downloadService.downloadTrack(track);
+            },
             child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   CupertinoIcons.arrow_down_circle,
@@ -53,17 +68,18 @@ class TrackListItem extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Download',
-                  style: TextStyle(color: Color(0xFFFFFFFF)),
+                  style: TextStyle(color: Color(0xFF007AFF)),
                 ),
               ],
             ),
+          ),
+          CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              appState.downloadService.downloadTrack(track);
+              appState.addToQueue(track);
             },
-          ),
-          CupertinoContextMenuAction(
             child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   CupertinoIcons.plus,
@@ -73,17 +89,18 @@ class TrackListItem extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Add to Queue',
-                  style: TextStyle(color: Color(0xFFFFFFFF)),
+                  style: TextStyle(color: Color(0xFF007AFF)),
                 ),
               ],
             ),
+          ),
+          CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              appState.addToQueue(track);
+              appState.addNextInQueue(track);
             },
-          ),
-          CupertinoContextMenuAction(
             child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   CupertinoIcons.play_arrow_solid,
@@ -93,17 +110,18 @@ class TrackListItem extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Play Next',
-                  style: TextStyle(color: Color(0xFFFFFFFF)),
+                  style: TextStyle(color: Color(0xFF007AFF)),
                 ),
               ],
             ),
+          ),
+          CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              appState.addNextInQueue(track);
+              appState.toggleFavorite(track);
             },
-          ),
-          CupertinoContextMenuAction(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   track.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
@@ -115,17 +133,22 @@ class TrackListItem extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                  style: const TextStyle(color: Color(0xFFFFFFFF)),
+                  style: const TextStyle(color: Color(0xFF007AFF)),
                 ),
               ],
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              appState.toggleFavorite(track);
-            },
           ),
         ],
-        child: _buildContent(context, appState),
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              color: Color(0xFF007AFF),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
     );
   }
