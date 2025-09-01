@@ -150,11 +150,25 @@ class AlbumsTab extends StatelessWidget {
               ),
             ),
             // Mini player at bottom
-            const Positioned(
+            Positioned(
               left: 0,
               right: 0,
               bottom: 0,
-              child: MiniPlayer(),
+              child: Consumer<AppState>(
+                builder: (context, appState, child) {
+                  final audioHandler = appState.audioHandler;
+                  final currentTrack = audioHandler?.currentTrack;
+                  
+                  // Debug: Print whether we have a current track
+                  if (currentTrack != null) {
+                    print('Albums page: Current track detected: ${currentTrack.name}');
+                  } else {
+                    print('Albums page: No current track');
+                  }
+                  
+                  return const MiniPlayer();
+                },
+              ),
             ),
           ],
         );
