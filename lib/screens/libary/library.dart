@@ -22,34 +22,13 @@ class LibraryContent extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Library',
-                      style: TextStyle(
-                        color: Color(0xFFFFFFFF),
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                      child: const Icon(
-                        CupertinoIcons.settings,
-                        color: CupertinoColors.systemRed,
-                        size: 24,
-                      ),
-                    ),
-                  ],
+                child: const Text(
+                  'Library',
+                  style: TextStyle(
+                    color: Color(0xFFFFFFFF),
+                    fontSize: 34,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
