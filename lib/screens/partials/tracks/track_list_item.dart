@@ -48,107 +48,118 @@ class TrackListItem extends StatelessWidget {
   }
 
   void _showTrackContextMenu(BuildContext context, AppState appState) {
+    // Use Consumer to make the context menu reactive to favorite changes
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext context) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              appState.downloadService.downloadTrack(track);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.arrow_down_circle,
-                  size: 18,
+      builder: (BuildContext context) => Consumer<AppState>(
+        builder: (context, appState, child) {
+          // Get the current track state (it might have been updated)
+          final currentTrack = appState.tracks.firstWhere(
+            (t) => t.id == track.id, 
+            orElse: () => track,
+          );
+          
+          return CupertinoActionSheet(
+            actions: [
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.downloadService.downloadTrack(currentTrack);
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.arrow_down_circle,
+                      size: 18,
+                      color: Color(0xFF007AFF),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Download',
+                      style: TextStyle(color: Color(0xFF007AFF)),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.addToQueue(currentTrack);
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.plus,
+                      size: 18,
+                      color: Color(0xFF007AFF),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Add to Queue',
+                      style: TextStyle(color: Color(0xFF007AFF)),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.addNextInQueue(currentTrack);
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.play_arrow_solid,
+                      size: 18,
+                      color: Color(0xFF007AFF),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Play Next',
+                      style: TextStyle(color: Color(0xFF007AFF)),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  appState.toggleFavorite(currentTrack);
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      currentTrack.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                      size: 18,
+                      color: currentTrack.isFavorite 
+                          ? const Color(0xFFFF453A) 
+                          : const Color(0xFF007AFF),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      currentTrack.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+                      style: const TextStyle(color: Color(0xFF007AFF)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
                   color: Color(0xFF007AFF),
+                  fontWeight: FontWeight.w600,
                 ),
-                SizedBox(width: 8),
-                Text(
-                  'Download',
-                  style: TextStyle(color: Color(0xFF007AFF)),
-                ),
-              ],
+              ),
             ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              appState.addToQueue(track);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.plus,
-                  size: 18,
-                  color: Color(0xFF007AFF),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Add to Queue',
-                  style: TextStyle(color: Color(0xFF007AFF)),
-                ),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              appState.addNextInQueue(track);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.play_arrow_solid,
-                  size: 18,
-                  color: Color(0xFF007AFF),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Play Next',
-                  style: TextStyle(color: Color(0xFF007AFF)),
-                ),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              appState.toggleFavorite(track);
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  track.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                  size: 18,
-                  color: track.isFavorite 
-                      ? const Color(0xFFFF453A) 
-                      : const Color(0xFF007AFF),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                  style: const TextStyle(color: Color(0xFF007AFF)),
-                ),
-              ],
-            ),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(
-              color: Color(0xFF007AFF),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
