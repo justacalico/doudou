@@ -267,6 +267,10 @@ class PlaylistTile extends StatelessWidget {
           onLongPress: () => _showPlaylistOptions(context, appState),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF000000),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Row(
               children: [
                 // Playlist artwork
