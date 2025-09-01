@@ -179,8 +179,10 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                     _buildDownloadedAlbums(downloadService, appState)
                   else if (_tabController.index == 2)
                     _buildDownloadedSongs(downloadService, appState)
+                  else if (_tabController.index == 3)
+                    _buildDownloadQueue(downloadService)
                   else
-                    _buildDownloadQueue(downloadService),
+                    _buildDownloadedPlaylists(downloadService, appState), // Default fallback
                   
                   // Bottom padding for mini player
                   const SliverToBoxAdapter(
