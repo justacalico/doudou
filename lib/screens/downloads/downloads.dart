@@ -339,7 +339,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       orElse: () => Track(
         id: task.trackId,
         name: task.trackName,
-        type: 'Audio',
         artistName: task.artistName,
         albumName: task.albumName,
         imageUrl: task.imageUrl,
