@@ -1019,6 +1019,37 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _saveStateTimer = null;
   }
 
+  void _startCompletionChecker() {
+    _stopCompletionChecker(); // Clear any existing timer
+    _completionCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _checkForCompletion();
+    });
+  }
+
+  void _stopCompletionChecker() {
+    _completionCheckTimer?.cancel();
+    _completionCheckTimer = null;
+  }
+
+  void _checkForCompletion() {
+    final duration = _player.duration;
+    final position = _player.position;
+    final isPlaying = _player.playing;
+    
+    if (duration != null && position != null && isPlaying && !_isHandlingCompletion) {
+      final remaining = duration - position;
+      
+      // If we're stuck at the very end (less than 100ms remaining) and still playing
+      if (remaining.inMilliseconds <= 100 && remaining.inMilliseconds >= 0) {
+        if (kDebugMode) {
+          print('Background completion checker detected end of track: ${_currentTrack?.name}');
+          print('Position: ${position.inMilliseconds}ms, Duration: ${duration.inMilliseconds}ms, Remaining: ${remaining.inMilliseconds}ms');
+        }
+        _handleTrackCompletion();
+      }
+    }
+  }
+
   void dispose() {
     _stopPeriodicSaving();
     _savePlaybackState();
