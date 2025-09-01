@@ -24,12 +24,17 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late AnimationController _rotationController;
+  late AnimationController _depthController;
   late Timer _timer;
   List<double> _barHeights = [];
-  final int _barCount = 48;
+  List<double> _barDepths = [];
+  List<double> _barRotations = [];
+  final int _barCount = 64;
   final Random _random = Random();
   double _globalPulse = 0.0;
   double _rotationOffset = 0.0;
+  double _perspectiveAngle = 0.0;
+  double _cameraY = 0.0;
   
   // Color extraction from song info
   List<Color> _extractedColors = [
