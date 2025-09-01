@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../providers/app_state.dart';
-import '../screens/controller/now_playing.dart';
+import '../screens/playing/now_playing.dart';
 import 'cached_image_widget.dart';
 
 class MiniPlayer extends StatelessWidget {
