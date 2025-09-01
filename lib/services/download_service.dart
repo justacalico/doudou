@@ -245,7 +245,10 @@ class DownloadService extends ChangeNotifier {
 
         final sink = file.openWrite();
         
-        await response.stream.listen(
+        // Create a completer to handle the async completion properly
+        final completer = Completer<void>();
+        
+        response.stream.listen(
           (chunk) {
             sink.add(chunk);
             downloadedBytes += chunk.length;
@@ -261,11 +264,19 @@ class DownloadService extends ChangeNotifier {
             notifyListeners();
           },
           onDone: () async {
-            await sink.close();
-            
             try {
+              await sink.close();
+              
+              if (kDebugMode) {
+                print('Stream completed for ${task.trackName}, processing completion...');
+              }
+              
               // Download completed successfully
               final fileSize = await file.length();
+              
+              if (kDebugMode) {
+                print('File size for ${task.trackName}: $fileSize bytes');
+              }
               
               final downloadedTrack = DownloadedTrack(
                 trackId: task.trackId,
@@ -290,11 +301,13 @@ class DownloadService extends ChangeNotifier {
               }
               
               notifyListeners();
-              _saveDownloadData();
+              await _saveDownloadData();
               
               if (kDebugMode) {
                 print('Download completed successfully for ${task.trackName}');
               }
+              
+              completer.complete();
             } catch (e) {
               debugPrint('Error in download completion for ${task.trackName}: $e');
               // Mark as failed if completion processing fails
@@ -304,20 +317,32 @@ class DownloadService extends ChangeNotifier {
                 endTime: DateTime.now(),
               );
               notifyListeners();
-              _saveDownloadData();
+              await _saveDownloadData();
+              completer.completeError(e);
             }
           },
           onError: (error) async {
-            await sink.close();
-            
-            // Delete partial file
-            if (await file.exists()) {
-              await file.delete();
+            try {
+              await sink.close();
+              
+              // Delete partial file
+              if (await file.exists()) {
+                await file.delete();
+              }
+              
+              if (kDebugMode) {
+                print('Download stream error for ${task.trackName}: $error');
+              }
+              
+              completer.completeError(error);
+            } catch (e) {
+              completer.completeError(e);
             }
-            
-            throw error;
           },
-        ).asFuture();
+        );
+        
+        // Wait for the download to complete
+        await completer.future;
         
       } else {
         throw Exception('HTTP ${response.statusCode}: Failed to download');
