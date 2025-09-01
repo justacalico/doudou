@@ -1231,17 +1231,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Stop current player
         await _player.stop();
         
-        // Swap players for seamless transition
-        final oldPlayer = _player;
-        
         // Create a new main player and copy state from preloaded player
         final newPlayer = AudioPlayer();
         
         // Set up the new player with the preloaded track
-        final localPath = await _downloadService.getLocalPath(nextTrack.id);
+        final localFilePath = _downloadService.getLocalFilePath(nextTrack.id);
         
-        if (localPath != null && await File(localPath).exists()) {
-          await newPlayer.setFilePath(localPath);
+        if (localFilePath != null && await File(localFilePath).exists()) {
+          await newPlayer.setFilePath(localFilePath);
         } else {
           final streamUrl = _jellyfinService.getStreamUrl(nextTrack.id);
           await newPlayer.setUrl(streamUrl);
