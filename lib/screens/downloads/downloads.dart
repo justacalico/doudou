@@ -187,7 +187,106 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     );
   }
 
-  Widget _buildDownloadedList(DownloadService downloadService, AppState appState) {
+  Widget _buildDownloadedPlaylists(DownloadService downloadService, AppState appState) {
+    final downloadedTracks = downloadService.downloadedTracks;
+    
+    if (downloadedTracks.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(40),
+            child: Column(
+              children: [
+                Icon(
+                  CupertinoIcons.music_note_list,
+                  size: 80,
+                  color: Color(0xFF333333),
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'No downloaded playlists',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Download playlists to listen offline',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF8E8E93),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Group downloaded tracks by playlist
+    final playlistGroups = _groupTracksByPlaylist(downloadedTracks, appState);
+    
+    if (playlistGroups.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(40),
+            child: Column(
+              children: [
+                Icon(
+                  CupertinoIcons.music_note_list,
+                  size: 80,
+                  color: Color(0xFF333333),
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'No downloaded playlists',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Downloaded songs that are part of playlists will appear here',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF8E8E93),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final playlistEntry = playlistGroups.entries.elementAt(index);
+          final playlist = playlistEntry.key;
+          final tracks = playlistEntry.value;
+          
+          return DownloadedPlaylistItem(
+            playlist: playlist,
+            downloadedTracks: tracks,
+            onTap: () => _showPlaylistTracks(context, playlist, tracks, appState),
+            onDelete: () => _deletePlaylistDownloads(downloadService, tracks),
+          );
+        },
+        childCount: playlistGroups.length,
+      ),
+    );
+  }
+
+  Widget _buildDownloadedSongs(DownloadService downloadService, AppState appState) {
     final downloadedTracks = downloadService.downloadedTracks;
     
     if (downloadedTracks.isEmpty) {
