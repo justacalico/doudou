@@ -147,10 +147,8 @@ We welcome contributions! Please follow the code style and test code before comm
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/[username]/doudou/issues)
-- **Email:** [your-email@domain.com]
-- **Discussions:** [GitHub Discussions](https://github.com/[username]/doudou/discussions)
-
+- **Issues:** [GitHub Issues](https://gitlab.com/httpanimations/doudou/issues)
+  
 ## 🙏 Acknowledgments
 
 - [Jellyfin Project](https://jellyfin.org/) - Amazing open-source media server
