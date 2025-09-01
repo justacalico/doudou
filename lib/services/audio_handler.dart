@@ -359,7 +359,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _playCurrentTrack() async {
-    if (_playlist.isEmpty || _currentIndex >= _playlist.length) return;
+    if (_playlist.isEmpty || _currentIndex >= _playlist.length) {
+      if (kDebugMode) {
+        print('Cannot play current track: playlist empty or index out of bounds');
+      }
+      return;
+    }
 
     final track = _playlist[_currentIndex];
     _currentTrack = track;
@@ -368,12 +373,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Playing track ${_currentIndex + 1}/${_playlist.length}: ${track.name}');
     }
     
-    // Update current media item
+    // Update current media item immediately for better background experience
     mediaItem.add(_trackToMediaItem(track));
     
+    // Update playback state to loading
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.loading,
+      queueIndex: _currentIndex,
+    ));
+    
     // Stop current player first to ensure clean state
-    await _player.stop();
-    await Future.delayed(const Duration(milliseconds: 100));
+    try {
+      await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 50)); // Reduced delay for faster transitions
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error stopping player: $e');
+      }
+    }
     
     // Check if we have a preloaded player for this track
     if (_preloadedPlayers.containsKey(track.id)) {
@@ -386,6 +403,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             
             // Set the same audio source on main player
             await _player.setAudioSource(preloadedPlayer.audioSource!);
+            
+            // Update state to ready before playing
+            playbackState.add(playbackState.value.copyWith(
+              processingState: AudioProcessingState.ready,
+              playing: false,
+              queueIndex: _currentIndex,
+            ));
+            
             await _player.play();
             
             if (kDebugMode) {
@@ -402,7 +427,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           } else {
             // Preloaded player not ready, fall back to normal loading
             if (kDebugMode) {
-              print('Preloaded player not ready for: ${track.name}');
+              print('Preloaded player not ready for: ${track.name}, state: ${preloadedPlayer.processingState}');
             }
             preloadedPlayer.dispose();
           }
