@@ -358,12 +358,22 @@ class CircularVisualizerPainter extends CustomPainter {
       final angle = (i * pi) / 180;
       final intensity = barHeights[(i ~/ (360 / barCount)) % barCount];
       
-      // Create rainbow gradient effect
-      final hue = (i + (isPlaying ? DateTime.now().millisecondsSinceEpoch / 20 : 0)) % 360;
+      // Use extracted colors with cycling pattern
+      final colorIndex = (i ~/ (360 / colors.length)) % colors.length;
+      final baseColor = colors[colorIndex];
+      
+      // Create dynamic color variations
       final saturation = isPlaying ? 0.8 + intensity * 0.2 : 0.3;
       final brightness = isPlaying ? 0.7 + intensity * 0.3 : 0.4;
       
-      final color = HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+      final hsvColor = HSVColor.fromColor(baseColor);
+      final color = HSVColor.fromAHSV(
+        1.0, 
+        hsvColor.hue, 
+        saturation, 
+        brightness
+      ).toColor();
+      
       ringPaint.color = color;
       
       final startAngle = angle - 0.02;
