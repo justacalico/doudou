@@ -228,6 +228,11 @@ class DownloadService extends ChangeNotifier {
 
       final response = await request.send();
       
+      if (kDebugMode) {
+        print('Download request for ${task.trackName}: Status ${response.statusCode}');
+        print('Content length: ${response.contentLength}');
+      }
+      
       if (response.statusCode == 200) {
         final totalBytes = response.contentLength ?? 0;
         int downloadedBytes = 0;
@@ -318,6 +323,11 @@ class DownloadService extends ChangeNotifier {
         throw Exception('HTTP ${response.statusCode}: Failed to download');
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('Download failed for ${task.trackName}: $e');
+        print('Task ID: ${task.trackId}, URL: ${task.downloadUrl}');
+      }
+      
       // Delete partial file if it exists
       if (await file.exists()) {
         await file.delete();
