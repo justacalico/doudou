@@ -78,26 +78,67 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed && !_isHandlingCompletion) {
         if (kDebugMode) {
-          print('Track completion detected, handling...');
+          print('Track completion detected via playerStateStream, handling...');
         }
         _handleTrackCompletion();
       }
     });
 
-    // Also listen to position stream to detect when we're near the end
-    // This provides a backup mechanism for background playback
+    // Enhanced position stream listener for reliable background track progression
     _player.positionStream.listen((position) {
       final duration = _player.duration;
-      if (duration != null && duration.inMilliseconds > 0) {
+      final playerState = _player.playerState;
+      
+      if (duration != null && duration.inMilliseconds > 0 && playerState.playing) {
         final remaining = duration - position;
-        // If less than 500ms remaining and not already handling completion
+        
+        // Multiple fallback mechanisms for background playback
+        
+        // 1. Near end detection (1 second remaining)
+        if (remaining.inMilliseconds <= 1000 && remaining.inMilliseconds > 500 && !_isHandlingCompletion) {
+          if (kDebugMode) {
+            print('Near end detected (${remaining.inMilliseconds}ms remaining), preparing for next track...');
+          }
+          // Start preparing next track if not already done
+          if (_currentIndex < _playlist.length - 1) {
+            _preloadNextTracks();
+          }
+        }
+        
+        // 2. Very close to end (500ms remaining) - aggressive fallback
         if (remaining.inMilliseconds <= 500 && remaining.inMilliseconds >= 0 && !_isHandlingCompletion) {
           if (kDebugMode) {
-            print('Near end of track detected (${remaining.inMilliseconds}ms remaining), preparing next track...');
+            print('Very close to end detected (${remaining.inMilliseconds}ms remaining), checking for completion...');
           }
-          // Use a small delay to ensure we don't trigger too early
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (_player.processingState == ProcessingState.completed && !_isHandlingCompletion) {
+          
+          // Schedule a check for completion after a short delay
+          Future.delayed(const Duration(milliseconds: 200), () {
+            final currentPosition = _player.position;
+            final currentDuration = _player.duration;
+            final currentState = _player.playerState;
+            
+            if (currentDuration != null && currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 100) {
+              // We're essentially at the end, force completion handling
+              if (!_isHandlingCompletion) {
+                if (kDebugMode) {
+                  print('Forced completion handling - position: ${currentPosition.inMilliseconds}ms, duration: ${currentDuration.inMilliseconds}ms');
+                }
+                _handleTrackCompletion();
+              }
+            }
+          });
+        }
+        
+        // 3. Stuck at end detection - if position hasn't changed for too long while at the end
+        if (remaining.inMilliseconds <= 50 && !_isHandlingCompletion) {
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            final stillAtEnd = _player.duration != null && 
+                              (_player.duration!.inMilliseconds - _player.position.inMilliseconds) <= 50;
+            
+            if (stillAtEnd && !_isHandlingCompletion && _player.playerState.playing) {
+              if (kDebugMode) {
+                print('Detected stuck at end, forcing next track...');
+              }
               _handleTrackCompletion();
             }
           });
