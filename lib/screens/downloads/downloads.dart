@@ -432,28 +432,89 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       );
     }
 
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final trackId = downloadedTracks.keys.elementAt(index);
-          final downloadedTrack = downloadedTracks[trackId]!;
-          final track = appState.tracks.firstWhere(
-            (t) => t.id == trackId,
-            orElse: () => Track(
-              id: trackId,
-              name: 'Unknown Track',
+    return SliverMainAxisGroup(
+      slivers: [
+        // Play buttons section
+        SliverToBoxAdapter(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Song count
+                Text(
+                  '${downloadedTracks.length} downloaded ${downloadedTracks.length == 1 ? 'song' : 'songs'}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF8E8E93),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Play buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoButton.filled(
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(CupertinoIcons.play_fill, size: 18),
+                            SizedBox(width: 8),
+                            Text('Play All'),
+                          ],
+                        ),
+                        onPressed: () => _playAllDownloaded(appState, downloadedTracks, false),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CupertinoButton(
+                        color: const Color(0xFF2C2C2E),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(CupertinoIcons.shuffle, size: 18),
+                            SizedBox(width: 8),
+                            Text('Shuffle'),
+                          ],
+                        ),
+                        onPressed: () => _playAllDownloaded(appState, downloadedTracks, true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-          
-          return DownloadedTrackItem(
-            track: track,
-            downloadedTrack: downloadedTrack,
-            onTap: () => _playDownloadedTrack(appState, track),
-            onDelete: () => _deleteDownload(downloadService, trackId),
-          );
-        },
-        childCount: downloadedTracks.length,
-      ),
+          ),
+        ),
+        
+        // Songs list
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final trackId = downloadedTracks.keys.elementAt(index);
+              final downloadedTrack = downloadedTracks[trackId]!;
+              final track = appState.tracks.firstWhere(
+                (t) => t.id == trackId,
+                orElse: () => Track(
+                  id: trackId,
+                  name: 'Unknown Track',
+                ),
+              );
+              
+              return DownloadedTrackItem(
+                track: track,
+                downloadedTrack: downloadedTrack,
+                onTap: () => _playDownloadedTrack(appState, track),
+                onDelete: () => _deleteDownload(downloadService, trackId),
+              );
+            },
+            childCount: downloadedTracks.length,
+          ),
+        ),
+      ],
     );
   }
 
