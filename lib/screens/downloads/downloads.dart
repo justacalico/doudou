@@ -176,6 +176,8 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                   if (_tabController.index == 0)
                     _buildDownloadedPlaylists(downloadService, appState)
                   else if (_tabController.index == 1)
+                    _buildDownloadedAlbums(downloadService, appState)
+                  else if (_tabController.index == 2)
                     _buildDownloadedSongs(downloadService, appState)
                   else
                     _buildDownloadQueue(downloadService),
