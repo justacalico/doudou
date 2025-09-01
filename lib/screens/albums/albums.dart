@@ -59,11 +59,11 @@ class AlbumsTab extends StatelessWidget {
           );
         }
 
-        return Container(
-          color: const Color(0xFF000000), // Dark background
-          child: Stack(
-            children: [
-              CustomScrollView(
+        return Stack(
+          children: [
+            Container(
+              color: const Color(0xFF000000), // Dark background
+              child: CustomScrollView(
                 slivers: [
                   CupertinoSliverRefreshControl(
                     onRefresh: () => appState.loadLibraryData(),
@@ -148,14 +148,15 @@ class AlbumsTab extends StatelessWidget {
                   ),
                 ],
               ),
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: MiniPlayer(),
-              ),
-            ],
-          ),
+            ),
+            // Mini player at bottom
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MiniPlayer(),
+            ),
+          ],
         );
       },
     );
