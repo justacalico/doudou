@@ -552,35 +552,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showAudioQualityDialog(BuildContext context) {
-    showCupertinoDialog(
-      context: context,
-      builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Audio Quality'),
-        content: const Text('Choose your preferred audio quality. Higher quality uses more bandwidth and storage.'),
-        actions: <CupertinoDialogAction>[
-          CupertinoDialogAction(
-            child: const Text('Low (128 kbps)'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            child: const Text('Medium (256 kbps)'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: const Text('High (320 kbps)'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showCacheDialog(BuildContext context) async {
     final appState = context.read<AppState>();
 
