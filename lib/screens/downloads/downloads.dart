@@ -229,7 +229,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
             orElse: () => Track(
               id: trackId,
               name: 'Unknown Track',
-              type: 'Audio',
             ),
           );
           
