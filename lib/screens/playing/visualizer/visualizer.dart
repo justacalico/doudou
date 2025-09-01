@@ -148,6 +148,8 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
             barHeights: _barHeights,
             isPlaying: widget.isPlaying,
             colors: _extractedColors,
+            globalPulse: _globalPulse,
+            rotationOffset: _rotationOffset,
           ),
         ),
       ),
