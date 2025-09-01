@@ -5,9 +5,9 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
 ## 🎵 Audio & Playback Features
 
 ### Lyrics Support
-- Display synchronized lyrics for songs (if available from Jellyfin)
-- Scrolling lyrics view in now playing screen
-- Karaoke mode with highlighted current line
+- ~~Display synchronized lyrics for songs (if available from Jellyfin)~~
+- ~~Scrolling lyrics view in now playing screen~~
+- ~~Karaoke mode with highlighted current line~~
 
 ### Audio Effects
 - Built-in equalizer with custom and preset options
