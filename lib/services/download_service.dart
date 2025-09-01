@@ -186,8 +186,7 @@ class DownloadService extends ChangeNotifier {
 
     _isDownloading = true;
     _activeDownloads++;
-    notifyListeners();
-
+    
     final trackId = _downloadQueue.removeAt(0);
     final task = _downloadTasks[trackId];
     
@@ -195,6 +194,17 @@ class DownloadService extends ChangeNotifier {
       _activeDownloads--;
       _checkDownloadComplete();
       return;
+    }
+
+    // Update task status to downloading and notify UI immediately
+    _downloadTasks[trackId] = task.copyWith(
+      status: DownloadStatus.downloading,
+      startTime: DateTime.now(),
+    );
+    notifyListeners();
+    
+    if (kDebugMode) {
+      print('Starting download for ${task.trackName}');
     }
 
     try {
@@ -208,10 +218,13 @@ class DownloadService extends ChangeNotifier {
         errorMessage: e.toString(),
         endTime: DateTime.now(),
       );
+      
+      // Notify listeners immediately when a download fails
+      notifyListeners();
     }
 
     _activeDownloads--;
-    _saveDownloadData();
+    await _saveDownloadData();
     notifyListeners();
 
     // Continue processing queue
