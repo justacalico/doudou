@@ -35,9 +35,7 @@ class TrackListItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
-        color: showAlbumArt 
-            ? const Color(0xFF000000) 
-            : const Color(0xFF000000), // Pure black for OLED
+        color: const Color(0xFF000000), // Pure black for OLED
         borderRadius: BorderRadius.circular(showAlbumArt ? 16 : 12),
         border: showAlbumArt ? Border.all(
           color: const Color(0xFF1D1D1F),
@@ -129,7 +127,10 @@ class TrackListItem extends StatelessWidget {
             },
           ),
         ],
-        child: _buildContent(context, appState),
+        child: Material(
+          color: Colors.transparent,
+          child: _buildContent(context, appState),
+        ),
       ),
     );
   }
