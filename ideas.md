@@ -1,6 +1,6 @@
-# Doudou v5.0 Feature Ideas
+# Doudou Feature Ideas
 
-A comprehensive list of potential features and enhancements for Doudou Music Player version 5.0.
+A comprehensive list of potential features and enhancements for Doudou Music Player.
 
 ## 🎵 Audio & Playback Features
 
