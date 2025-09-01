@@ -2,7 +2,7 @@
 
 A beautiful, privacy-focused music player for your personal Jellyfin media server.
 
-![Doudou Logo](docs/assets/logo.png) *(Add your logo here)*
+![Doudou Logo](docs/assets/logo.png)
 
 ## ✨ Features
 
