@@ -148,47 +148,72 @@ class EmbeddedVisualizerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2;
-    final innerRadius = radius * 0.3;
+    final radius = min(size.width, size.height) / 2 - 20;
     final barCount = barHeights.length;
 
-    // Draw animated bars extending outward
-    for (int i = 0; i < barCount; i++) {
-      final angle = (i / barCount) * 2 * pi - pi / 2;
-      final intensity = barHeights[i];
-      final barLength = intensity * 30; // Shorter bars for smaller space
-      
-      // Calculate positions
-      final startRadius = innerRadius + 8;
-      final endRadius = startRadius + barLength;
-      
-      final startX = center.dx + cos(angle) * startRadius;
-      final startY = center.dy + sin(angle) * startRadius;
-      final endX = center.dx + cos(angle) * endRadius;
-      final endY = center.dy + sin(angle) * endRadius;
+    // Create segments for the ring
+    const double segmentSpacing = 0.02; // Small gap between segments
+    final double segmentAngle = (2 * pi / barCount) - segmentSpacing;
 
+    for (int i = 0; i < barCount; i++) {
+      final startAngle = (i / barCount) * 2 * pi - pi / 2;
+      final intensity = barHeights[i];
+      
+      // Calculate ring thickness based on intensity
+      final baseThickness = isPlaying ? 8.0 : 4.0;
+      final maxThickness = isPlaying ? 20.0 : 8.0;
+      final ringThickness = baseThickness + (intensity * (maxThickness - baseThickness));
+      
       // Create dynamic color based on position and extracted colors
       final colorIndex = i % colors.length;
       final baseColor = colors[colorIndex];
       final hsvColor = HSVColor.fromColor(baseColor);
       
-      final saturation = isPlaying ? 0.9 : 0.3;
-      final brightness = isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2;
+      final saturation = isPlaying ? 0.9 : 0.4;
+      final brightness = isPlaying ? 0.7 + intensity * 0.3 : 0.4 + intensity * 0.2;
+      final opacity = isPlaying ? 0.8 + intensity * 0.2 : 0.5 + intensity * 0.3;
       
-      final barColor = HSVColor.fromAHSV(
-        1.0, 
+      final segmentColor = HSVColor.fromAHSV(
+        opacity, 
         hsvColor.hue, 
         saturation, 
         brightness
       ).toColor();
 
-      // Draw the main bar
-      final barPaint = Paint()
-        ..color = barColor
-        ..strokeWidth = 3
+      // Create paint for the ring segment
+      final segmentPaint = Paint()
+        ..color = segmentColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = ringThickness
         ..strokeCap = StrokeCap.round;
 
-      canvas.drawLine(Offset(startX, startY), Offset(endX, endY), barPaint);
+      // Draw the ring segment as an arc
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      canvas.drawArc(
+        rect,
+        startAngle,
+        segmentAngle,
+        false,
+        segmentPaint,
+      );
+
+      // Add glow effect for high intensity segments when playing
+      if (isPlaying && intensity > 0.7) {
+        final glowPaint = Paint()
+          ..color = segmentColor.withOpacity(0.3)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = ringThickness + 8
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+          
+        canvas.drawArc(
+          rect,
+          startAngle,
+          segmentAngle,
+          false,
+          glowPaint,
+        );
+      }
     }
   }
 
