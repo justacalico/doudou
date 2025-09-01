@@ -31,6 +31,16 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
   List<double> _barHeights = [];
   final int _barCount = 64; // Increased for smoother effect
   final Random _random = Random();
+  
+  // Color extraction from album art
+  List<Color> _extractedColors = [
+    const Color(0xFF007AFF), // Default blue
+    const Color(0xFF00FF88), // Default green
+    const Color(0xFFFF453A), // Default red
+    const Color(0xFFFF9F0A), // Default orange
+    const Color(0xFFBF5AF2), // Default purple
+  ];
+  bool _colorsExtracted = false;
 
   @override
   void initState() {
