@@ -363,6 +363,20 @@ class PlaylistTile extends StatelessWidget {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
+              _downloadPlaylist(context, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.cloud_download, size: 18),
+                SizedBox(width: 8),
+                Text('Download Playlist'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
               _showRenameDialog(context, appState);
             },
             child: const Row(
