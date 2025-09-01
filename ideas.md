@@ -39,7 +39,7 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
   - Larger artwork display
   - Swipe gestures for track control
   - Queue visualization
-  - Lyrics integration
+  - ~~Lyrics integration~~
 - **Recently Played**: Quick access to recently played tracks/albums
 - **Queue Management**: 
   - Visual queue with drag-to-reorder
