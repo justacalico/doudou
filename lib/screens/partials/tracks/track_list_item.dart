@@ -256,63 +256,17 @@ class TrackListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              // Duration and action buttons
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (showDuration && track.duration != null)
-                    Text(
-                      _formatDuration(Duration(milliseconds: track.duration!)),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF8E8E93),
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (showDownloadButton) ...[
-                        DownloadButton(track: track),
-                        const SizedBox(width: 8),
-                      ],
-                      if (showFavoriteButton)
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          minSize: 36,
-                          onPressed: () => appState.toggleFavorite(track),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: track.isFavorite 
-                                  ? const Color(0xFFFF453A).withOpacity(0.15)
-                                  : const Color(0xFF1C1C1E),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: track.isFavorite 
-                                    ? const Color(0xFFFF453A).withOpacity(0.3)
-                                    : const Color(0xFF2C2C2E),
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Icon(
-                              track.isFavorite 
-                                  ? CupertinoIcons.heart_fill 
-                                  : CupertinoIcons.heart,
-                              color: track.isFavorite 
-                                  ? const Color(0xFFFF453A) 
-                                  : const Color(0xFF8E8E93),
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                    ],
+              // Duration only
+              if (showDuration && track.duration != null)
+                Text(
+                  _formatDuration(Duration(milliseconds: track.duration!)),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF8E8E93),
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
-                ],
-              ),
+                ),
             ],
           ),
         ),
