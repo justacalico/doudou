@@ -32,33 +32,31 @@ class TrackListItem extends StatelessWidget {
     final appState = context.read<AppState>();
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
         color: showAlbumArt 
             ? const Color(0xFF000000) 
-            : CupertinoColors.secondarySystemBackground.resolveFrom(context),
-        borderRadius: BorderRadius.circular(showAlbumArt ? 12 : 8),
+            : const Color(0xFF000000), // Pure black for OLED
+        borderRadius: BorderRadius.circular(showAlbumArt ? 16 : 12),
         border: showAlbumArt ? Border.all(
-          color: const Color(0xFF1C1C1E),
-          width: 1,
+          color: const Color(0xFF1D1D1F),
+          width: 0.5,
         ) : null,
       ),
       child: CupertinoContextMenu(
         actions: [
           CupertinoContextMenuAction(
-            child: Row(
+            child: const Row(
               children: [
                 Icon(
                   CupertinoIcons.arrow_down_circle,
                   size: 18,
-                  color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
+                  color: Color(0xFF007AFF),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   'Download',
-                  style: TextStyle(
-                    color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
-                  ),
+                  style: TextStyle(color: Color(0xFFFFFFFF)),
                 ),
               ],
             ),
@@ -68,19 +66,17 @@ class TrackListItem extends StatelessWidget {
             },
           ),
           CupertinoContextMenuAction(
-            child: Row(
+            child: const Row(
               children: [
                 Icon(
-                  CupertinoIcons.add,
+                  CupertinoIcons.plus,
                   size: 18,
-                  color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
+                  color: Color(0xFF007AFF),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   'Add to Queue',
-                  style: TextStyle(
-                    color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
-                  ),
+                  style: TextStyle(color: Color(0xFFFFFFFF)),
                 ),
               ],
             ),
@@ -90,19 +86,17 @@ class TrackListItem extends StatelessWidget {
             },
           ),
           CupertinoContextMenuAction(
-            child: Row(
+            child: const Row(
               children: [
                 Icon(
-                  CupertinoIcons.play_arrow,
+                  CupertinoIcons.play_arrow_solid,
                   size: 18,
-                  color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
+                  color: Color(0xFF007AFF),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   'Play Next',
-                  style: TextStyle(
-                    color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
-                  ),
+                  style: TextStyle(color: Color(0xFFFFFFFF)),
                 ),
               ],
             ),
@@ -119,14 +113,12 @@ class TrackListItem extends StatelessWidget {
                   size: 18,
                   color: track.isFavorite 
                       ? const Color(0xFFFF453A) 
-                      : (showAlbumArt ? const Color(0xFFFFFFFF) : null),
+                      : const Color(0xFF007AFF),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                  style: TextStyle(
-                    color: showAlbumArt ? const Color(0xFFFFFFFF) : null,
-                  ),
+                  style: const TextStyle(color: Color(0xFFFFFFFF)),
                 ),
               ],
             ),
