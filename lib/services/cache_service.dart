@@ -31,7 +31,7 @@ class CacheService {
     
     _database = await openDatabase(
       path,
-      version: 1,
+      version: 2, // Increment version to trigger migration
       onCreate: (db, version) async {
         // Albums cache table
         await db.execute('''
@@ -98,6 +98,96 @@ class CacheService {
         
         if (kDebugMode) {
           print('Cache database initialized');
+        }
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // Fix column name inconsistencies in version 2
+          if (kDebugMode) {
+            print('Migrating cache database from version $oldVersion to $newVersion');
+          }
+          
+          // Check if album_tracks_cache exists with old schema and migrate
+          try {
+            final result = await db.rawQuery("PRAGMA table_info(album_tracks_cache)");
+            bool hasOldSchema = false;
+            for (final column in result) {
+              if (column['name'] == 'album_id') {
+                hasOldSchema = true;
+                break;
+              }
+            }
+            
+            if (hasOldSchema) {
+              // Create new table with correct schema
+              await db.execute('''
+                CREATE TABLE album_tracks_cache_new (
+                  id TEXT PRIMARY KEY,
+                  data TEXT NOT NULL,
+                  timestamp INTEGER NOT NULL
+                )
+              ''');
+              
+              // Copy data from old table to new table
+              await db.execute('''
+                INSERT INTO album_tracks_cache_new (id, data, timestamp)
+                SELECT album_id, data, timestamp FROM album_tracks_cache
+              ''');
+              
+              // Drop old table and rename new table
+              await db.execute('DROP TABLE album_tracks_cache');
+              await db.execute('ALTER TABLE album_tracks_cache_new RENAME TO album_tracks_cache');
+              
+              if (kDebugMode) {
+                print('Migrated album_tracks_cache table schema');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('album_tracks_cache table does not exist or migration failed: $e');
+            }
+          }
+          
+          // Check if playlist_tracks_cache exists with old schema and migrate
+          try {
+            final result = await db.rawQuery("PRAGMA table_info(playlist_tracks_cache)");
+            bool hasOldSchema = false;
+            for (final column in result) {
+              if (column['name'] == 'playlist_id') {
+                hasOldSchema = true;
+                break;
+              }
+            }
+            
+            if (hasOldSchema) {
+              // Create new table with correct schema
+              await db.execute('''
+                CREATE TABLE playlist_tracks_cache_new (
+                  id TEXT PRIMARY KEY,
+                  data TEXT NOT NULL,
+                  timestamp INTEGER NOT NULL
+                )
+              ''');
+              
+              // Copy data from old table to new table
+              await db.execute('''
+                INSERT INTO playlist_tracks_cache_new (id, data, timestamp)
+                SELECT playlist_id, data, timestamp FROM playlist_tracks_cache
+              ''');
+              
+              // Drop old table and rename new table
+              await db.execute('DROP TABLE playlist_tracks_cache');
+              await db.execute('ALTER TABLE playlist_tracks_cache_new RENAME TO playlist_tracks_cache');
+              
+              if (kDebugMode) {
+                print('Migrated playlist_tracks_cache table schema');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('playlist_tracks_cache table does not exist or migration failed: $e');
+            }
+          }
         }
       },
     );
