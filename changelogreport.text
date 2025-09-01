@@ -2,16 +2,16 @@
 
 ## Added
 - Navigate to the album's page from the search page.
-- Added button to remove a playlist.
-- Added the abilty to rename a playlist.
-- Added function for the normalzie audio.
-- Added real functionto the favorite button on the playing screen.
+- Added a button to remove a playlist.
+- Added the ability to rename a playlist.
+- Added function to normalise audio.
+- Added real functionality to the favourite button on the playing screen.
 
 ## Changed
-- Show the mini-player on the playlist's screen.
+- Show the mini-player on the playlist screen.
 - Display the mini-player on the songs page.
-- Music Visuzaler now uses the colours from the album art.
+- Music visualiser now uses the colours from the album art.
 
 ## Fixed
 - Fixed playlist screen not showing tracks.
-- Fixed playing next song when not open.
+- Fixed next song playing when not open.
