@@ -1029,6 +1029,23 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
+                          // Download button
+                          SizedBox(
+                            width: double.infinity,
+                            child: CupertinoButton(
+                              color: const Color(0xFF007AFF),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.cloud_download, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Download Playlist'),
+                                ],
+                              ),
+                              onPressed: () => _downloadPlaylistDetail(),
+                            ),
+                          ),
                         ],
                       ],
                     ),
