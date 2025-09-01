@@ -359,8 +359,8 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     );
   }
 
-  // Helper method to group tracks by playlist
-  Map<Playlist, List<Track>> _groupTracksByPlaylist(Map<String, DownloadedTrack> downloadedTracks, AppState appState) {
+  // Helper method to group tracks by playlist (async version that actually checks playlist contents)
+  Future<Map<Playlist, List<Track>>> _groupTracksByPlaylistAsync(Map<String, DownloadedTrack> downloadedTracks, AppState appState) async {
     final Map<Playlist, List<Track>> playlistGroups = {};
     
     // Get all downloaded track IDs
@@ -368,33 +368,22 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     
     // Check each playlist to see if it has downloaded tracks
     for (final playlist in appState.playlists) {
-      final playlistTracks = <Track>[];
-      
-      // Get all tracks in this playlist and check if they're downloaded
       try {
-        // Note: This is a simplified approach. In a production app, you'd want to
-        // either store playlist membership data locally or fetch it async.
-        // For now, we'll check if tracks from the app's tracks list are downloaded
-        // and group them by album name matching playlist name (simplified approach)
+        // Actually fetch the playlist tracks from the server
+        final playlistTracks = await appState.getPlaylistTracks(playlist.id);
         
-        for (final track in appState.tracks) {
-          if (downloadedTrackIds.contains(track.id)) {
-            // Simple heuristic: if album name matches playlist name or track was recently downloaded
-            // In a real app, you'd have proper playlist-track relationships
-            if (track.albumName != null && 
-                track.albumName!.toLowerCase().contains(playlist.name.toLowerCase())) {
-              playlistTracks.add(track);
-            }
-          }
-        }
+        // Filter to only include downloaded tracks
+        final downloadedPlaylistTracks = playlistTracks
+            .where((track) => downloadedTrackIds.contains(track.id))
+            .toList();
         
-        if (playlistTracks.isNotEmpty) {
-          playlistGroups[playlist] = playlistTracks;
+        if (downloadedPlaylistTracks.isNotEmpty) {
+          playlistGroups[playlist] = downloadedPlaylistTracks;
         }
       } catch (e) {
         // Skip this playlist if there's an error
         if (kDebugMode) {
-          print('Error processing playlist ${playlist.name}: $e');
+          print('Error loading tracks for playlist ${playlist.name}: $e');
         }
       }
     }
