@@ -131,7 +131,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                         width: 400,
                                         height: 400,
                                       ),
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   placeholder: (context, url) => Container(
                                     color: CupertinoColors.systemGrey4
                                         .resolveFrom(context),
