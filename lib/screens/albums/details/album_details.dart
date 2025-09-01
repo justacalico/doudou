@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
-import '../../../widgets/download_button.dart';
+import '../../../widgets/track_list_item.dart';
 import '../../partials/player/mini_player.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
