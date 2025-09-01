@@ -139,54 +139,83 @@ class TrackListItem extends StatelessWidget {
       return GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Row(
             children: [
               // Album artwork
               Container(
-                width: 56,
-                height: 56,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: const Color(0xFF1C1C1E),
-                  border: Border.all(
-                    color: const Color(0xFF2C2C2E),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF000000).withOpacity(0.6),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(9),
+                  borderRadius: BorderRadius.circular(12),
                   child: track.imageUrl != null
                       ? CachedNetworkImage(
                           imageUrl: appState.jellyfinService.getImageUrl(
                             track.imageUrl!,
-                            width: 120,
-                            height: 120,
+                            width: 180,
+                            height: 180,
                           ),
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
-                            color: const Color(0xFF2C2C2E),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  const Color(0xFF1C1C1E),
+                                  const Color(0xFF2C2C2E),
+                                ],
+                              ),
+                            ),
                             child: const Icon(
                               CupertinoIcons.music_note,
                               color: Color(0xFF8E8E93),
-                              size: 24,
+                              size: 28,
                             ),
                           ),
                           errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFF2C2C2E),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  const Color(0xFF1C1C1E),
+                                  const Color(0xFF2C2C2E),
+                                ],
+                              ),
+                            ),
                             child: const Icon(
                               CupertinoIcons.music_note,
                               color: Color(0xFF8E8E93),
-                              size: 24,
+                              size: 28,
                             ),
                           ),
                         )
                       : Container(
-                          color: const Color(0xFF2C2C2E),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(0xFF1C1C1E),
+                                const Color(0xFF2C2C2E),
+                              ],
+                            ),
+                          ),
                           child: const Icon(
                             CupertinoIcons.music_note,
                             color: Color(0xFF8E8E93),
-                            size: 24,
+                            size: 28,
                           ),
                         ),
                 ),
@@ -200,9 +229,10 @@ class TrackListItem extends StatelessWidget {
                     Text(
                       track.name,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFFFFFFF),
+                        letterSpacing: -0.4,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -212,8 +242,10 @@ class TrackListItem extends StatelessWidget {
                       Text(
                         track.artistName!,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
                           color: Color(0xFF8E8E93),
+                          letterSpacing: -0.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -225,7 +257,9 @@ class TrackListItem extends StatelessWidget {
                         track.albumName!,
                         style: const TextStyle(
                           fontSize: 13,
+                          fontWeight: FontWeight.w400,
                           color: Color(0xFF636366),
+                          letterSpacing: -0.1,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -242,31 +276,49 @@ class TrackListItem extends StatelessWidget {
                     Text(
                       _formatDuration(Duration(milliseconds: track.duration!)),
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF8E8E93),
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (showDownloadButton) ...[
                         DownloadButton(track: track),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 8),
                       ],
                       if (showFavoriteButton)
                         CupertinoButton(
                           padding: EdgeInsets.zero,
-                          minSize: 32,
+                          minSize: 36,
                           onPressed: () => appState.toggleFavorite(track),
-                          child: Icon(
-                            track.isFavorite 
-                                ? CupertinoIcons.heart_fill 
-                                : CupertinoIcons.heart,
-                            color: track.isFavorite 
-                                ? const Color(0xFFFF453A) 
-                                : const Color(0xFF8E8E93),
-                            size: 20,
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: track.isFavorite 
+                                  ? const Color(0xFFFF453A).withOpacity(0.15)
+                                  : const Color(0xFF1C1C1E),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: track.isFavorite 
+                                    ? const Color(0xFFFF453A).withOpacity(0.3)
+                                    : const Color(0xFF2C2C2E),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Icon(
+                              track.isFavorite 
+                                  ? CupertinoIcons.heart_fill 
+                                  : CupertinoIcons.heart,
+                              color: track.isFavorite 
+                                  ? const Color(0xFFFF453A) 
+                                  : const Color(0xFF8E8E93),
+                              size: 18,
+                            ),
                           ),
                         ),
                     ],
