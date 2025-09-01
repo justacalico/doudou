@@ -7,6 +7,7 @@
 - Download manager.
 - Abilty to download playlist's.
 - Play all and Shuffle buttons for downloaded songs.
+- Adds the abilty to download albums.
 
 ## Changed
 - Embedded the visualizer instead of having its own page.
