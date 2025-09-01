@@ -880,7 +880,12 @@ class _SearchScreenState extends State<SearchScreen> {
     return CupertinoButton(
       padding: EdgeInsets.zero,
       onPressed: () {
-        // TODO: Navigate to album details
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => AlbumDetailScreen(album: album),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
