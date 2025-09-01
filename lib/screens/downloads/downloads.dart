@@ -171,7 +171,7 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                   else if (_tabController.index == 1)
                     const DownloadedAlbumsTab()
                   else if (_tabController.index == 2)
-                    _buildDownloadedSongs(downloadService, appState)
+                    const DownloadedSongsTab()
                   else if (_tabController.index == 3)
                     _buildDownloadQueue(downloadService)
                   else
