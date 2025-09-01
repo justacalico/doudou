@@ -193,6 +193,7 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
                             painter: CircularVisualizerPainter(
                               barHeights: _barHeights,
                               isPlaying: widget.isPlaying,
+                              colors: _extractedColors,
                             ),
                           ),
                         ),
