@@ -327,7 +327,4 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       appState.playPlaylist(shuffledTracks, 0);
     }
   }
-
-}
-
 }
