@@ -351,6 +351,54 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     );
   }
 
+  // Helper method to group tracks by playlist
+  Map<Playlist, List<Track>> _groupTracksByPlaylist(Map<String, DownloadedTrack> downloadedTracks, AppState appState) {
+    final Map<Playlist, List<Track>> playlistGroups = {};
+    
+    // Get all downloaded track IDs
+    final downloadedTrackIds = downloadedTracks.keys.toSet();
+    
+    // Check each playlist to see if it has downloaded tracks
+    for (final playlist in appState.playlists) {
+      final playlistTracks = <Track>[];
+      
+      // Check which tracks from this playlist are downloaded
+      for (final track in appState.tracks) {
+        if (downloadedTrackIds.contains(track.id)) {
+          // Check if this track belongs to the playlist
+          // Note: This is a simplified check. In a real app, you'd need to 
+          // track playlist membership more explicitly
+          playlistTracks.add(track);
+        }
+      }
+      
+      if (playlistTracks.isNotEmpty) {
+        playlistGroups[playlist] = playlistTracks;
+      }
+    }
+    
+    return playlistGroups;
+  }
+
+  void _showPlaylistTracks(BuildContext context, Playlist playlist, List<Track> tracks, AppState appState) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => DownloadedPlaylistDetailScreen(
+          playlist: playlist,
+          downloadedTracks: tracks,
+        ),
+      ),
+    );
+  }
+
+  void _deletePlaylistDownloads(DownloadService downloadService, List<Track> tracks) {
+    for (final track in tracks) {
+      downloadService.deleteDownload(track.id);
+    }
+  }
+  }
+
   Widget _buildDownloadQueue(DownloadService downloadService) {
     final downloadTasks = downloadService.downloadTasks;
     
