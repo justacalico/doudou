@@ -114,18 +114,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (server != null) ...[
                           _buildInfoTile(
                             icon: CupertinoIcons.person_circle,
-                            title: 'Username',
-                            subtitle: server.username ?? 'Not available',
+                            title: 'User ID',
+                            subtitle: server.userId?.substring(0, 8) ?? 'Not available',
                           ),
                           _buildInfoTile(
-                            icon: CupertinoIcons.server_rack,
-                            title: 'Server Name',
-                            subtitle: server.serverName ?? 'Jellyfin Server',
+                            icon: CupertinoIcons.globe,
+                            title: 'Server',
+                            subtitle: 'Connected to Jellyfin',
                           ),
                           _buildInfoTile(
                             icon: CupertinoIcons.checkmark_seal,
                             title: 'Connection Status',
-                            subtitle: 'Connected',
+                            subtitle: 'Authenticated',
                           ),
                         ],
                       ],
