@@ -27,7 +27,7 @@ class _DownloadsScreenState extends State<DownloadsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
   }
 
   @override
