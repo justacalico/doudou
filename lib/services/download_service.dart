@@ -223,12 +223,8 @@ class DownloadService extends ChangeNotifier {
               
               _downloadedTracks[task.trackId] = downloadedTrack;
               
-              // Update task status to downloaded
-              _downloadTasks[task.trackId] = task.copyWith(
-                status: DownloadStatus.downloaded,
-                progress: 1.0,
-                endTime: DateTime.now(),
-              );
+              // Remove completed task from download tasks since it's now in downloadedTracks
+              _downloadTasks.remove(task.trackId);
 
               // Also download album artwork if available
               if (task.imageUrl != null) {
