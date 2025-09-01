@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/download_models.dart';
+import '../../models/jellyfin_models.dart';
 import '../../services/download_service.dart';
 import '../partials/player/mini_player.dart';
 
