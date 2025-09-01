@@ -210,36 +210,52 @@ class DownloadService extends ChangeNotifier {
           onDone: () async {
             await sink.close();
             
-            // Download completed successfully
-            final fileSize = await file.length();
-            
-            final downloadedTrack = DownloadedTrack(
-              trackId: task.trackId,
-              filePath: task.filePath,
-              downloadedAt: DateTime.now(),
-              fileSize: fileSize,
-            );
-            
-            _downloadedTracks[task.trackId] = downloadedTrack;
-            
-            // Update task status to downloaded
-            _downloadTasks[task.trackId] = task.copyWith(
-              status: DownloadStatus.downloaded,
-              progress: 1.0,
-              endTime: DateTime.now(),
-            );
+            try {
+              // Download completed successfully
+              final fileSize = await file.length();
+              
+              final downloadedTrack = DownloadedTrack(
+                trackId: task.trackId,
+                filePath: task.filePath,
+                downloadedAt: DateTime.now(),
+                fileSize: fileSize,
+              );
+              
+              _downloadedTracks[task.trackId] = downloadedTrack;
+              
+              // Update task status to downloaded
+              _downloadTasks[task.trackId] = task.copyWith(
+                status: DownloadStatus.downloaded,
+                progress: 1.0,
+                endTime: DateTime.now(),
+              );
 
-            // Also download album artwork if available
-            if (task.imageUrl != null) {
-              try {
-                await _downloadAlbumArt(task);
-              } catch (e) {
-                debugPrint('Failed to download album art: $e');
+              // Also download album artwork if available
+              if (task.imageUrl != null) {
+                try {
+                  await _downloadAlbumArt(task);
+                } catch (e) {
+                  debugPrint('Failed to download album art: $e');
+                }
               }
+              
+              notifyListeners();
+              _saveDownloadData();
+              
+              if (kDebugMode) {
+                print('Download completed successfully for ${task.trackName}');
+              }
+            } catch (e) {
+              debugPrint('Error in download completion for ${task.trackName}: $e');
+              // Mark as failed if completion processing fails
+              _downloadTasks[task.trackId] = task.copyWith(
+                status: DownloadStatus.failed,
+                errorMessage: 'Failed to complete download: $e',
+                endTime: DateTime.now(),
+              );
+              notifyListeners();
+              _saveDownloadData();
             }
-            
-            notifyListeners();
-            _saveDownloadData();
           },
           onError: (error) async {
             await sink.close();
