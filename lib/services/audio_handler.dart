@@ -11,6 +11,7 @@ import 'download_service.dart';
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
   final JellyfinService _jellyfinService;
+  final DownloadService _downloadService;
   
   List<Track> _playlist = [];
   List<Track> _queue = [];
