@@ -401,17 +401,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () {
+                              onPressed: () async {
+                                // Trigger animation
+                                await _favoriteAnimationController.forward();
+                                await _favoriteAnimationController.reverse();
+                                
+                                // Toggle favorite state
                                 appState.toggleFavorite(currentTrack);
                               },
-                              child: Icon(
-                                currentTrack.isFavorite 
-                                    ? CupertinoIcons.heart_fill
-                                    : CupertinoIcons.heart,
-                                color: currentTrack.isFavorite 
-                                    ? const Color(0xFFFF453A)
-                                    : CupertinoColors.systemRed,
-                                size: 24,
+                              child: AnimatedBuilder(
+                                animation: _favoriteScaleAnimation,
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: _favoriteScaleAnimation.value,
+                                    child: Icon(
+                                      currentTrack.isFavorite 
+                                          ? CupertinoIcons.heart_fill
+                                          : CupertinoIcons.heart,
+                                      color: currentTrack.isFavorite 
+                                          ? const Color(0xFFFF453A)
+                                          : CupertinoColors.systemRed,
+                                      size: 24,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             CupertinoButton(
