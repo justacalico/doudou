@@ -40,7 +40,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Background completion checker as fallback
   Timer? _completionCheckTimer;
 
-  DoudouAudioHandler(this._jellyfinService) {
+  DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _init();
     _loadPlaybackState();
   }
