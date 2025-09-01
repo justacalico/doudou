@@ -490,6 +490,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Load the audio source
         await _player.setUrl(streamUrl);
         
+        // Apply volume normalization if enabled
+        _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+        
         // Wait for the player to be ready before playing
         int retries = 0;
         const maxRetries = 50; // 2.5 seconds total
