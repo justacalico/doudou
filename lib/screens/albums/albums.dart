@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import '../partials/mini_player.dart';
+import '../partials/player/mini_player.dart';
 import '../../widgets/cached_image_widget.dart';
 import 'details/album_details.dart';
 

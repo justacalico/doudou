@@ -3,7 +3,7 @@ import '../../home/home.dart';
 import '../../libary/library.dart';
 import '../../settings/settings.dart';
 import '../../search/search.dart';
-import '../mini_player.dart';
+import '../player/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
