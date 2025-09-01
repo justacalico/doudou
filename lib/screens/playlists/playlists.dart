@@ -389,6 +389,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     }
   }
 
+  Future<void> _refreshTracks() async {
+    setState(() {
+      isLoading = true;
+    });
+    
+    await _loadTracks();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
