@@ -456,6 +456,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _jellyfinService.getUniversalStreamUrl(track.id),
     ];
     
+    bool loadedSuccessfully = false;
+    
     for (int i = 0; i < streamUrls.length; i++) {
       final streamUrl = streamUrls[i];
       final streamType = ['stream', 'direct', 'universal'][i];
@@ -469,37 +471,60 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _player.setUrl(streamUrl);
         
         // Wait for the player to be ready before playing
-        while (_player.processingState == ProcessingState.loading) {
+        int retries = 0;
+        const maxRetries = 50; // 2.5 seconds total
+        while (_player.processingState == ProcessingState.loading && retries < maxRetries) {
           await Future.delayed(const Duration(milliseconds: 50));
+          retries++;
         }
         
-        // Ensure the track is still the current one before playing
-        if (_currentTrack?.id == track.id) {
-          await _player.play();
+        // Check if loading was successful
+        if (_player.processingState == ProcessingState.ready) {
+          // Update state to ready before playing
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.ready,
+            playing: false,
+            queueIndex: _currentIndex,
+          ));
           
-          if (kDebugMode) {
-            print('Successfully started playing: ${track.name} using $streamType URL');
+          // Ensure the track is still the current one before playing
+          if (_currentTrack?.id == track.id) {
+            await _player.play();
+            loadedSuccessfully = true;
+            
+            if (kDebugMode) {
+              print('Successfully started playing: ${track.name} using $streamType URL');
+            }
+            break; // Success! Exit the loop
+          } else {
+            if (kDebugMode) {
+              print('Track changed during loading, cancelling play for: ${track.name}');
+            }
+            break;
           }
-          break; // Success! Exit the loop
         } else {
           if (kDebugMode) {
-            print('Track changed during loading, cancelling play for: ${track.name}');
+            print('Failed to load ${track.name} with $streamType URL - player state: ${_player.processingState}');
           }
-          break;
         }
         
       } catch (e) {
         if (kDebugMode) {
           print('Failed to play with $streamType URL: $e');
         }
-        
-        // If this was the last URL to try, we've failed completely
-        if (i == streamUrls.length - 1) {
-          if (kDebugMode) {
-            print('All stream URLs failed for track: ${track.name}');
-          }
-        }
       }
+    }
+    
+    if (!loadedSuccessfully) {
+      if (kDebugMode) {
+        print('All stream URLs failed for track: ${track.name}');
+      }
+      
+      // Update playback state to indicate error
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+        playing: false,
+      ));
     }
   }
 
