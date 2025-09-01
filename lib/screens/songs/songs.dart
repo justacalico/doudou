@@ -290,7 +290,7 @@ class SongTile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Duration and favorite
+                    // Duration and actions
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -304,6 +304,9 @@ class SongTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                         ],
+                        // Download button
+                        DownloadButton(track: track),
+                        const SizedBox(width: 4),
                         // Favorite heart icon
                         CupertinoButton(
                           padding: EdgeInsets.zero,
