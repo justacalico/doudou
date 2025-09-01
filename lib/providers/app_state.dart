@@ -13,6 +13,7 @@ import '../services/download_service.dart';
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
   final CacheService _cacheService = CacheService.instance;
+  late final DownloadService _downloadService;
   DoudouAudioHandler? _audioHandler;
   
   bool _isLoggedIn = false;
