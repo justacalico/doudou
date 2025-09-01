@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
-import '../../widgets/download_button.dart';
+import '../../widgets/track_list_item.dart';
 
 class SongsView extends StatelessWidget {
   const SongsView({super.key});
