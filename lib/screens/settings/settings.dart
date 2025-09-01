@@ -166,6 +166,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             appState.toggleNormalizeVolume(value);
                           },
                         ),
+                        _buildSwitchTile(
+                          icon: CupertinoIcons.forward_end,
+                          title: 'Gapless Playback',
+                          subtitle: 'Seamless transitions between tracks in queue',
+                          value: appState.gaplessPlaybackEnabled,
+                          onChanged: (value) {
+                            appState.toggleGaplessPlayback(value);
+                          },
+                        ),
                       ],
                     ),
                   ),
