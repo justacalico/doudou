@@ -728,6 +728,7 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? true;
     _normalizeVolumeEnabled = prefs.getBool('normalize_volume_enabled') ?? false;
+    _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
   }
