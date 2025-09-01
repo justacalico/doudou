@@ -29,16 +29,15 @@ class TrackListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
         color: const Color(0xFF000000), // Pure black for OLED
         borderRadius: BorderRadius.circular(showAlbumArt ? 16 : 12),
-        border: showAlbumArt ? Border.all(
-          color: const Color(0xFF1D1D1F),
-          width: 0.5,
-        ) : null,
+        border: showAlbumArt
+            ? Border.all(color: const Color(0xFF1D1D1F), width: 0.5)
+            : null,
       ),
       child: GestureDetector(
         onLongPress: () => _showTrackContextMenu(context, appState),
@@ -55,10 +54,10 @@ class TrackListItem extends StatelessWidget {
         builder: (context, appState, child) {
           // Get the current track state (it might have been updated)
           final currentTrack = appState.tracks.firstWhere(
-            (t) => t.id == track.id, 
+            (t) => t.id == track.id,
             orElse: () => track,
           );
-          
+
           return CupertinoActionSheet(
             actions: [
               CupertinoActionSheetAction(
@@ -133,15 +132,19 @@ class TrackListItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      currentTrack.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                      currentTrack.isFavorite
+                          ? CupertinoIcons.heart_fill
+                          : CupertinoIcons.heart,
                       size: 18,
-                      color: currentTrack.isFavorite 
-                          ? const Color(0xFFFF453A) 
+                      color: currentTrack.isFavorite
+                          ? const Color(0xFFFF453A)
                           : const Color(0xFF007AFF),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      currentTrack.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+                      currentTrack.isFavorite
+                          ? 'Remove from Favorites'
+                          : 'Add to Favorites',
                       style: const TextStyle(color: Color(0xFF007AFF)),
                     ),
                   ],
@@ -310,10 +313,7 @@ class TrackListItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF000000),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF1D1D1F),
-            width: 0.5,
-          ),
+          border: Border.all(color: const Color(0xFF1D1D1F), width: 0.5),
         ),
         child: CupertinoListTile(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -323,10 +323,7 @@ class TrackListItem extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: const Color(0xFF2C2C2E),
-                width: 0.5,
-              ),
+              border: Border.all(color: const Color(0xFF2C2C2E), width: 0.5),
             ),
             child: Center(
               child: Text(
