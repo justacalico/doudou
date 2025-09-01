@@ -417,12 +417,20 @@ class CircularVisualizerPainter extends CustomPainter {
       final endX = center.dx + cos(angle) * endRadius;
       final endY = center.dy + sin(angle) * endRadius;
 
-      // Create dynamic color based on position and intensity
-      final hue = (i * (360 / barCount) + (isPlaying ? DateTime.now().millisecondsSinceEpoch / 30 : 0)) % 360;
+      // Create dynamic color based on position and extracted colors
+      final colorIndex = i % colors.length;
+      final baseColor = colors[colorIndex];
+      final hsvColor = HSVColor.fromColor(baseColor);
+      
       final saturation = isPlaying ? 0.9 : 0.3;
       final brightness = isPlaying ? 0.6 + intensity * 0.4 : 0.3 + intensity * 0.2;
       
-      final barColor = HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+      final barColor = HSVColor.fromAHSV(
+        1.0, 
+        hsvColor.hue, 
+        saturation, 
+        brightness
+      ).toColor();
 
       // Add glow effect for playing state
       if (isPlaying && intensity > 0.5) {
