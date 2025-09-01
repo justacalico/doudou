@@ -5,6 +5,7 @@
 
 ## Changed
 - Show the mini-player on the playlist's screen.
+- Display the mini-player on the songs page.
 
 ## Fixed
 - Fixed playlist screen not showing tracks.
