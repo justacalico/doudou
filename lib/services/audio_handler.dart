@@ -746,6 +746,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  void addNext(Track track) {
+    // Insert the track right after the current track
+    final insertIndex = _currentIndex + 1;
+    
+    _queue.insert(insertIndex, track);
+    _playlist.insert(insertIndex, track);
+    
+    // Update audio service queue
+    queue.add(_playlist.map(_trackToMediaItem).toList());
+    
+    // Preload this track since it will play next
+    _preloadTrack(track);
+    
+    if (kDebugMode) {
+      print('Added track to play next: ${track.name} at position $insertIndex');
+    }
+  }
+
   void shuffle() {
     if (_playlist.length <= 1) return;
     
