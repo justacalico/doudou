@@ -223,8 +223,9 @@ class DownloadService extends ChangeNotifier {
               
               _downloadedTracks[task.trackId] = downloadedTrack;
               
-              // Remove completed task from download tasks since it's now in downloadedTracks
+              // Remove completed task from download tasks and queue since it's now in downloadedTracks
               _downloadTasks.remove(task.trackId);
+              _downloadQueue.remove(task.trackId);
 
               // Also download album artwork if available
               if (task.imageUrl != null) {
