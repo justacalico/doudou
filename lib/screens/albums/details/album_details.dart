@@ -322,7 +322,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   showDownloadButton: true,
                   showFavoriteButton: false,
                 );
-              }, childCount: tracks.length + 1),
+              }, childCount: tracks.length + 2),
             ),
             ],
           ),
