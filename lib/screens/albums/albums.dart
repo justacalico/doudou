@@ -168,7 +168,9 @@ class AlbumsTab extends StatelessWidget {
                         print('Albums page: Current track detected: ${currentTrack.name}');
                       }
                     } else {
-                      print('Albums page: No current track');
+                      if (kDebugMode) {
+                        print('Albums page: No current track');
+                      }
                     }
                     
                     return const MiniPlayer();
