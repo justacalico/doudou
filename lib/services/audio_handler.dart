@@ -797,6 +797,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Failed to preload track ${track.name}: $e');
           }
         }
+        }
       }
       
       if (!loaded) {
