@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/jellyfin_models.dart';
 import '../models/download_models.dart';
 import '../providers/app_state.dart';
+import '../services/download_service.dart';
 
 class DownloadButton extends StatelessWidget {
   final Track track;
