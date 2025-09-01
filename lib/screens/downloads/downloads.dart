@@ -20,6 +20,8 @@ class DownloadsScreen extends StatefulWidget {
 class _DownloadsScreenState extends State<DownloadsScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  Map<Playlist, List<Track>>? _cachedPlaylistGroups;
+  bool _isLoadingPlaylists = false;
 
   @override
   void initState() {
