@@ -335,6 +335,10 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       // Get all downloaded track IDs
       final downloadedTrackIds = downloadedTracks.keys.toSet();
       
+      if (kDebugMode) {
+        print('Loading playlist groups for ${downloadedTrackIds.length} downloaded tracks');
+      }
+      
       // Check each playlist to see if it has downloaded tracks
       for (final playlist in appState.playlists) {
         try {
@@ -348,6 +352,9 @@ class _DownloadsScreenState extends State<DownloadsScreen>
           
           if (downloadedPlaylistTracks.isNotEmpty) {
             playlistGroups[playlist] = downloadedPlaylistTracks;
+            if (kDebugMode) {
+              print('Found ${downloadedPlaylistTracks.length} downloaded tracks in playlist: ${playlist.name}');
+            }
           }
         } catch (e) {
           // Skip this playlist if there's an error
@@ -362,6 +369,10 @@ class _DownloadsScreenState extends State<DownloadsScreen>
           _cachedPlaylistGroups = playlistGroups;
           _isLoadingPlaylists = false;
         });
+        
+        if (kDebugMode) {
+          print('Successfully loaded ${playlistGroups.length} playlist groups');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
