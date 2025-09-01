@@ -202,6 +202,9 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     
     // Check if the number of downloaded tracks has changed, and invalidate cache if so
     if (downloadedTracks.length != _lastDownloadedTracksCount) {
+      if (kDebugMode) {
+        print('Downloads count changed from $_lastDownloadedTracksCount to ${downloadedTracks.length}, invalidating playlist cache');
+      }
       _lastDownloadedTracksCount = downloadedTracks.length;
       _cachedPlaylistGroups = null; // Invalidate cache
     }
