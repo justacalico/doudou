@@ -248,7 +248,12 @@ class _DownloadsScreenState extends State<DownloadsScreen>
 
     // Check if we need to refresh the playlist groups
     if (_cachedPlaylistGroups == null && !_isLoadingPlaylists) {
-      _loadPlaylistGroups(downloadedTracks, appState);
+      // Schedule the load to happen after the current build cycle
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _loadPlaylistGroups(downloadedTracks, appState);
+        }
+      });
     }
 
     // Show loading state while fetching playlist data
