@@ -397,7 +397,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       downloadService.deleteDownload(track.id);
     }
   }
-  }
 
   Widget _buildDownloadQueue(DownloadService downloadService) {
     final downloadTasks = downloadService.downloadTasks;
