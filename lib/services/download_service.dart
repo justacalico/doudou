@@ -163,8 +163,12 @@ class DownloadService extends ChangeNotifier {
       _downloadTasks[track.id] = task;
       _downloadQueue.add(track.id);
       
+      if (kDebugMode) {
+        print('Created new download task for retry/fresh download: ${track.name}');
+      }
+      
       notifyListeners();
-      _saveDownloadData();
+      await _saveDownloadData();
 
       // Start downloading if not at max concurrent downloads
       _processDownloadQueue();
