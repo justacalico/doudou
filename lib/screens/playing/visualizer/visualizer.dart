@@ -152,29 +152,6 @@ class EmbeddedVisualizerPainter extends CustomPainter {
     final innerRadius = radius * 0.3;
     final barCount = barHeights.length;
 
-    // Draw background glow effect
-    if (isPlaying) {
-      final glowPaint = Paint()
-        ..color = colors[0].withOpacity(0.15)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(center, radius + 10, glowPaint);
-    }
-
-    // Draw inner black circle for contrast
-    final innerCirclePaint = Paint()
-      ..color = const Color(0xFF000000)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, innerRadius, innerCirclePaint);
-
-    // Draw subtle inner ring
-    final innerRingPaint = Paint()
-      ..color = isPlaying 
-          ? colors[1].withOpacity(0.4)
-          : const Color(0xFF8E8E93).withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawCircle(center, innerRadius, innerRingPaint);
-
     // Draw animated bars extending outward
     for (int i = 0; i < barCount; i++) {
       final angle = (i / barCount) * 2 * pi - pi / 2;
@@ -205,17 +182,6 @@ class EmbeddedVisualizerPainter extends CustomPainter {
         brightness
       ).toColor();
 
-      // Add glow effect for playing state
-      if (isPlaying && intensity > 0.5) {
-        final glowPaint = Paint()
-          ..color = barColor.withOpacity(0.4)
-          ..strokeWidth = 6
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-          
-        canvas.drawLine(Offset(startX, startY), Offset(endX, endY), glowPaint);
-      }
-
       // Draw the main bar
       final barPaint = Paint()
         ..color = barColor
@@ -223,27 +189,6 @@ class EmbeddedVisualizerPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round;
 
       canvas.drawLine(Offset(startX, startY), Offset(endX, endY), barPaint);
-    }
-
-    // Draw center indicator
-    if (isPlaying) {
-      // Animated center point with glow using extracted colors
-      final centerGlowPaint = Paint()
-        ..color = colors[0].withOpacity(0.5)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      canvas.drawCircle(center, 6, centerGlowPaint);
-      
-      final centerPaint = Paint()
-        ..color = colors[0]
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(center, 3, centerPaint);
-    } else {
-      // Simple center point when paused
-      final centerPaint = Paint()
-        ..color = const Color(0xFF8E8E93).withOpacity(0.6)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(center, 2, centerPaint);
     }
   }
 
