@@ -436,14 +436,21 @@ class TrackListItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               )
             : null,
-        trailing: track.duration != null
-            ? Text(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (track.duration != null) ...[
+              Text(
                 _formatDuration(Duration(milliseconds: track.duration!)),
                 style: TextStyle(
                   color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 ),
-              )
-            : null,
+              ),
+              const SizedBox(width: 8),
+            ],
+            DownloadButton(track: track),
+          ],
+        ),
         onTap: onTap,
         ),
       ),
