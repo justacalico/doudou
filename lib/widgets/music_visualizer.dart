@@ -73,7 +73,6 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
         HSVColor.fromAHSV(1.0, (baseHue + 180) % 360, 0.6, 0.9).toColor(),
         HSVColor.fromAHSV(1.0, (baseHue + 240) % 360, 0.8, 0.8).toColor(),
       ];
-      _colorsExtracted = true;
       
       if (mounted) {
         setState(() {});
