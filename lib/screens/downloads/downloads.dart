@@ -303,8 +303,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       ),
     );
   }
-  );
-  }
 
   // Method to load playlist groups asynchronously
   Future<void> _loadPlaylistGroups(Map<String, DownloadedTrack> downloadedTracks, AppState appState) async {
