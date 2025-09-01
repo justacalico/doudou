@@ -28,7 +28,7 @@ class _EmbeddedVisualizerState extends State<EmbeddedVisualizer>
   List<double> _barHeights = [];
   List<double> _barDepths = [];
   List<double> _barRotations = [];
-  final int _barCount = 64;
+  final int _barCount = 32;
   final Random _random = Random();
   double _globalPulse = 0.0;
   double _rotationOffset = 0.0;
