@@ -61,8 +61,9 @@ class _HomeScreenState extends State<HomeScreen> {
             showNavBar = false; // Library has custom header
             break;
           case 2:
-            content = _buildComingSoonTab('Downloads');
+            content = const DownloadsScreen();
             title = 'Downloads';
+            showNavBar = false; // Downloads has custom header
             break;
           case 3:
             content = const SearchScreen();

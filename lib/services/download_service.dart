@@ -15,7 +15,7 @@ class DownloadService extends ChangeNotifier {
   final Map<String, DownloadedTrack> _downloadedTracks = {};
   final List<String> _downloadQueue = [];
   bool _isDownloading = false;
-  int _maxConcurrentDownloads = 3;
+  final int _maxConcurrentDownloads = 3;
   int _activeDownloads = 0;
 
   DownloadService(this._jellyfinService) {
