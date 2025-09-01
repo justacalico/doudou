@@ -46,7 +46,7 @@ All data (server settings, preferences) stays locally on your device.
 
 ```bash
 # Clone the repository
-git clone https://github.com/[username]/doudou.git
+git clone https://gitlab.com/httpanimations/doudou.git
 cd doudou
 
 # Install dependencies
