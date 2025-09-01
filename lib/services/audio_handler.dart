@@ -792,6 +792,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void setNormalizeVolume(bool enabled) {
+    _normalizeVolumeEnabled = enabled;
+    
     if (enabled) {
       // Enable volume normalization - set a consistent volume level
       _player.setVolume(0.8); // Slightly lower to prevent clipping
