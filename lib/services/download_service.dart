@@ -74,19 +74,33 @@ class DownloadService extends ChangeNotifier {
 
   // Download a track
   Future<void> downloadTrack(Track track) async {
+    if (kDebugMode) {
+      print('downloadTrack called for: ${track.name}');
+    }
+    
     if (isTrackDownloaded(track.id)) {
+      if (kDebugMode) {
+        print('Track already downloaded: ${track.name}');
+      }
       return; // Already downloaded
     }
 
     // Check if already downloading (but allow retry for failed/paused downloads)
     final existingTask = _downloadTasks[track.id];
     if (existingTask != null && existingTask.status == DownloadStatus.downloading) {
+      if (kDebugMode) {
+        print('Track already downloading: ${track.name}');
+      }
       return; // Already downloading
     }
 
     // If there's a failed or paused task, remove it first
     if (existingTask != null && 
         (existingTask.status == DownloadStatus.failed || existingTask.status == DownloadStatus.paused)) {
+      
+      if (kDebugMode) {
+        print('Retrying failed/paused download for: ${track.name}');
+      }
       
       // Clean up any partial file from the previous attempt
       final oldFile = File(existingTask.filePath);
