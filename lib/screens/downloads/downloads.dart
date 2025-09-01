@@ -253,59 +253,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
     );
   }
 
-  void _playDownloadedTrack(AppState appState, Track track) {
-    // Create a playlist with just this track for now
-    // In a real implementation, you might want to play all downloaded tracks
-    appState.playPlaylist([track], 0);
-  }
-
-  void _playAllDownloaded(AppState appState, Map<String, DownloadedTrack> downloadedTracks, bool shuffle) {
-    // Convert downloaded tracks to Track objects
-    final tracks = downloadedTracks.keys.map((trackId) {
-      return appState.tracks.firstWhere(
-        (t) => t.id == trackId,
-        orElse: () => Track(
-          id: trackId,
-          name: 'Unknown Track',
-        ),
-      );
-    }).toList();
-    
-    if (tracks.isNotEmpty) {
-      if (shuffle) {
-        // Create a shuffled copy of the tracks
-        final shuffledTracks = List<Track>.from(tracks)..shuffle();
-        appState.playPlaylist(shuffledTracks, 0);
-      } else {
-        appState.playPlaylist(tracks, 0);
-      }
-    }
-  }
-
-  void _deleteDownload(DownloadService downloadService, String trackId) {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Delete Download'),
-        content: const Text('Are you sure you want to delete this downloaded song?'),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            child: const Text('Delete'),
-            onPressed: () {
-              Navigator.pop(context);
-              downloadService.deleteDownload(trackId);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   void _retryDownload(DownloadService downloadService, DownloadTask task) {
     if (kDebugMode) {
       print('_retryDownload called for task: ${task.trackName}, status: ${task.status}');
