@@ -378,11 +378,15 @@ class AppState extends ChangeNotifier {
 
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
     try {
+      if (kDebugMode) {
+        print('getPlaylistTracks called for playlist: $playlistId');
+      }
+      
       // Try cache first
       final cachedTracks = await _cacheService.getCachedPlaylistTracks(playlistId);
       if (cachedTracks != null) {
         if (kDebugMode) {
-          print('Loaded playlist tracks from cache for playlist: $playlistId');
+          print('Loaded ${cachedTracks.length} playlist tracks from cache for playlist: $playlistId');
         }
         
         // Load fresh data in background and update cache
@@ -391,14 +395,25 @@ class AppState extends ChangeNotifier {
         return cachedTracks;
       }
       
+      if (kDebugMode) {
+        print('No cached playlist tracks found, loading fresh data for playlist: $playlistId');
+      }
+      
       // Load fresh data
       final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+      
+      if (kDebugMode) {
+        print('Loaded ${tracks.length} fresh playlist tracks for playlist: $playlistId');
+      }
       
       // Cache the tracks
       await _cacheService.cachePlaylistTracks(playlistId, tracks);
       
       return tracks;
     } catch (e) {
+      if (kDebugMode) {
+        print('Error in getPlaylistTracks: $e');
+      }
       _setError('Failed to load playlist tracks: ${e.toString()}');
       return [];
     }
