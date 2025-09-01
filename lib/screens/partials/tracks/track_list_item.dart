@@ -331,11 +331,8 @@ class TrackListItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 )
               : null,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showDuration && track.duration != null) ...[
-                Text(
+          trailing: showDuration && track.duration != null
+              ? Text(
                   _formatDuration(Duration(milliseconds: track.duration!)),
                   style: const TextStyle(
                     color: Color(0xFF8E8E93),
@@ -343,13 +340,8 @@ class TrackListItem extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              if (showDownloadButton)
-                DownloadButton(track: track),
-            ],
-          ),
+                )
+              : null,
           onTap: onTap,
         ),
       );
