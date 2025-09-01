@@ -19,8 +19,9 @@ class DownloadButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DownloadService>(
-      builder: (context, downloadService, child) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final downloadService = appState.downloadService;
         final status = downloadService.getDownloadStatus(track.id);
         final progress = downloadService.getDownloadProgress(track.id);
 
