@@ -55,8 +55,35 @@ class _MusicVisualizerScreenState extends State<MusicVisualizerScreen>
       vsync: this,
     );
 
+    // Extract colors from album art if available
+    _extractColorsFromAlbumArt();
+
     // Start the visualizer animation
     _startVisualizerAnimation();
+  }
+
+  void _extractColorsFromAlbumArt() {
+    if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty) {
+      // For now, let's generate colors based on the track name and artist
+      // This creates consistent colors for each song
+      final String colorSeed = '${widget.trackName}${widget.artistName ?? ''}';
+      final Random colorRandom = Random(colorSeed.hashCode);
+      
+      // Generate a color palette based on the song
+      final baseHue = colorRandom.nextDouble() * 360;
+      _extractedColors = [
+        HSVColor.fromAHSV(1.0, baseHue, 0.8, 0.9).toColor(),
+        HSVColor.fromAHSV(1.0, (baseHue + 60) % 360, 0.7, 0.8).toColor(),
+        HSVColor.fromAHSV(1.0, (baseHue + 120) % 360, 0.9, 0.7).toColor(),
+        HSVColor.fromAHSV(1.0, (baseHue + 180) % 360, 0.6, 0.9).toColor(),
+        HSVColor.fromAHSV(1.0, (baseHue + 240) % 360, 0.8, 0.8).toColor(),
+      ];
+      _colorsExtracted = true;
+      
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   void _startVisualizerAnimation() {
