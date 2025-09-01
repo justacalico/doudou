@@ -505,7 +505,7 @@ class AppState extends ChangeNotifier {
   }
 
   void addNextInQueue(Track track) {
-    _audioHandler?.addToQueue(track); // Add next functionality in handler if needed
+    _audioHandler?.addNext(track);
     notifyListeners();
   }
 
