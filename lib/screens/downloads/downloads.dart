@@ -246,9 +246,7 @@ class _DownloadsScreenState extends State<DownloadsScreen>
   }
 
   Widget _buildDownloadQueue(DownloadService downloadService) {
-    final downloadTasks = downloadService.downloadTasks
-        .where((task) => task.status != DownloadStatus.downloaded)
-        .toList();
+    final downloadTasks = downloadService.downloadTasks;
     
     if (downloadTasks.isEmpty) {
       return const SliverToBoxAdapter(
