@@ -401,7 +401,7 @@ class EmbeddedVisualizerPainter extends CustomPainter {
       canvas.drawPath(frontPath, Paint()
         ..color = frontColor.withOpacity(0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2 + intensity * 3
+        ..strokeWidth = (2 + intensity * 3).toDouble()
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
       
       // Intense glow for very high intensity
@@ -409,7 +409,7 @@ class EmbeddedVisualizerPainter extends CustomPainter {
         canvas.drawPath(frontPath, Paint()
           ..color = frontColor.withOpacity(0.2)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 4 + intensity * 6
+          ..strokeWidth = (4 + intensity * 6).toDouble()
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
       }
     }
