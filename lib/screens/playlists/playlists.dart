@@ -263,8 +263,14 @@ class PlaylistTile extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return GestureDetector(
-          onTap: onTap,
+          onTap: () {
+            if (kDebugMode) {
+              print('Playlist tile tapped: ${playlist.name}');
+            }
+            onTap();
+          },
           onLongPress: () => _showPlaylistOptions(context, appState),
+          behavior: HitTestBehavior.opaque,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
