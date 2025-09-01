@@ -338,17 +338,14 @@ class DownloadService extends ChangeNotifier {
     // Remove from queue if pending
     _downloadQueue.remove(trackId);
 
-    // Update status to paused/cancelled
-    _downloadTasks[trackId] = task.copyWith(
-      status: DownloadStatus.paused,
-      endTime: DateTime.now(),
-    );
-
     // Delete partial file if it exists
     final file = File(task.filePath);
     if (await file.exists()) {
       await file.delete();
     }
+
+    // Completely remove the cancelled task
+    _downloadTasks.remove(trackId);
 
     notifyListeners();
     _saveDownloadData();
