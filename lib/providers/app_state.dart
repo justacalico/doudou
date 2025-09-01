@@ -39,6 +39,7 @@ class AppState extends ChangeNotifier {
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
   JellyfinService get jellyfinService => _jellyfinService;
+  DownloadService get downloadService => _downloadService;
   DoudouAudioHandler? get audioHandler => _audioHandler;
   bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
