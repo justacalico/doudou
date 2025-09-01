@@ -338,7 +338,7 @@ class CircularVisualizerPainter extends CustomPainter {
     // Draw background glow effect
     if (isPlaying) {
       final glowPaint = Paint()
-        ..color = const Color(0xFF007AFF).withOpacity(0.1)
+        ..color = colors[0].withOpacity(0.1)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(center, radius + 20, glowPaint);
     }
