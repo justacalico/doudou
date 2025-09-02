@@ -60,27 +60,29 @@ class TrackListItem extends StatelessWidget {
 
           return CupertinoActionSheet(
             actions: [
-              CupertinoActionSheetAction(
-                onPressed: () {
-                  Navigator.pop(context);
-                  appState.downloadService.downloadTrack(currentTrack);
-                },
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.arrow_down_circle,
-                      size: 18,
-                      color: Color(0xFF007AFF),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Download',
-                      style: TextStyle(color: Color(0xFF007AFF)),
-                    ),
-                  ],
+              // Only show download button if track is not already downloaded
+              if (!appState.downloadService.isTrackDownloaded(currentTrack.id))
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    appState.downloadService.downloadTrack(currentTrack);
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.arrow_down_circle,
+                        size: 18,
+                        color: Color(0xFF007AFF),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Download',
+                        style: TextStyle(color: Color(0xFF007AFF)),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               CupertinoActionSheetAction(
                 onPressed: () {
                   Navigator.pop(context);
