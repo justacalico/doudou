@@ -50,7 +50,7 @@ All data (server settings, preferences) stays locally on your device.
 
 ```bash
 # Clone the repository
-git clone https://gitlab.com/httpanimations/doudou.git
+git clone https://gitlab.com/Openlyst/doudou.git
 cd doudou
 
 # Install dependencies
@@ -151,7 +151,7 @@ We welcome contributions! Please follow the code style and test code before comm
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://gitlab.com/httpanimations/doudou/issues)
+- **Issues:** [GitHub Issues](https://gitlab.com/Openlyst/doudou/issues)
   
 ## 🙏 Acknowledgments
 

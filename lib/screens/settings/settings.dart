@@ -762,7 +762,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _openGitLabPage(BuildContext context) async {
-    const url = 'https://gitlab.com/HttpAnimations/doudou';
+    const url = 'https://gitlab.com/Openlyst/doudou';
     try {
       await Clipboard.setData(ClipboardData(text: url));
       if (!context.mounted) return;
@@ -770,7 +770,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         context: context,
         builder: (context) => CupertinoAlertDialog(
           title: const Text('GitLab Repository'),
-          content: const Text('The GitLab URL has been copied to your clipboard!\n\nhttps://gitlab.com/HttpAnimations/doudou\n\nYou can now paste it into your browser to visit the repository.'),
+          content: const Text('The GitLab URL has been copied to your clipboard!\n\nhttps://gitlab.com/Openlyst/doudou\n\nYou can now paste it into your browser to visit the repository.'),
           actions: [
             CupertinoDialogAction(
               child: const Text('OK'),
