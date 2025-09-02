@@ -308,6 +308,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Has next track: ${_currentIndex < _playlist.length - 1}');
       }
       
+      // Reset stuck detection counters
+      _stuckCounter = 0;
+      _lastKnownPosition = null;
+      
       // Check if we have a next track to play
       if (_currentIndex < _playlist.length - 1) {
         if (kDebugMode) {
@@ -323,7 +327,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           await _performGaplessTransition(nextTrack);
         } else {
-          // Regular transition
+          // Regular transition - more robust for background playback
           _currentIndex++;
           
           if (kDebugMode) {
@@ -337,10 +341,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.loading,
             queueIndex: _currentIndex,
+            playing: true, // Ensure playing state is maintained for background
           ));
           
-          // Play the next track
-          await _playCurrentTrack();
+          // Play the next track with enhanced error handling
+          try {
+            await _playCurrentTrack();
+            
+            // Verify playback started successfully
+            await Future.delayed(const Duration(milliseconds: 500));
+            if (!_player.playing) {
+              // If playback didn't start, try again
+              if (kDebugMode) {
+                print('Playback did not start automatically, retrying...');
+              }
+              await _player.play();
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error during track transition, attempting recovery: $e');
+            }
+            // Attempt recovery by reloading the track
+            await _loadAndPlayTrack(nextTrack);
+          }
           
           // Save state after successful transition
           await _savePlaybackState();
