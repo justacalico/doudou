@@ -131,12 +131,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
       }
-                }
-              }
-            });
-          }
-        }
-      }
     });
 
     // Enhanced position stream listener for reliable background track progression
