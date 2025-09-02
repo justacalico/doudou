@@ -1223,7 +1223,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void _startCompletionChecker() {
     _stopCompletionChecker(); // Clear any existing timer
-    _completionCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    // Use a more frequent check for better background responsiveness
+    _completionCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       _checkForCompletion();
     });
   }
@@ -1236,16 +1237,67 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _checkForCompletion() {
     final duration = _player.duration;
     final position = _player.position;
-    final isPlaying = _player.playing;
+    final playerState = _player.playerState;
+    final isPlaying = playerState.playing;
+    final processingState = playerState.processingState;
     
-    if (duration != null && isPlaying && !_isHandlingCompletion) {
+    if (duration != null && isPlaying && !_isHandlingCompletion && duration.inMilliseconds > 0) {
       final remaining = duration - position;
+      final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
       
-      // If we're stuck at the very end (less than 100ms remaining) and still playing
+      // Enhanced completion detection for background playback
+      bool shouldTriggerCompletion = false;
+      
+      // 1. Traditional end detection (less than 100ms remaining)
       if (remaining.inMilliseconds <= 100 && remaining.inMilliseconds >= 0) {
+        shouldTriggerCompletion = true;
+        if (kDebugMode) {
+          print('Background completion: Traditional end detection');
+        }
+      }
+      
+      // 2. Completion state detection (critical for background playback)
+      else if (processingState == ProcessingState.completed) {
+        shouldTriggerCompletion = true;
+        if (kDebugMode) {
+          print('Background completion: Processing state completed');
+        }
+      }
+      
+      // 3. Progress-based detection (if we're very close to the end and progress hasn't changed)
+      else if (progressPercentage >= 0.995) { // 99.5% complete
+        shouldTriggerCompletion = true;
+        if (kDebugMode) {
+          print('Background completion: Progress-based detection (${(progressPercentage * 100).toStringAsFixed(2)}%)');
+        }
+      }
+      
+      // 4. Stuck detection - if position hasn't advanced near the end
+      else if (remaining.inMilliseconds <= 1000 && _lastKnownPosition != null) {
+        final positionDiff = position.inMilliseconds - _lastKnownPosition!.inMilliseconds;
+        if (positionDiff <= 50) { // Position advanced less than 50ms in 500ms check
+          _stuckCounter++;
+          if (_stuckCounter >= 3) { // Stuck for 1.5 seconds
+            shouldTriggerCompletion = true;
+            if (kDebugMode) {
+              print('Background completion: Stuck detection (position not advancing)');
+            }
+          }
+        } else {
+          _stuckCounter = 0;
+        }
+      } else {
+        _stuckCounter = 0;
+      }
+      
+      _lastKnownPosition = position;
+      
+      if (shouldTriggerCompletion) {
         if (kDebugMode) {
           print('Background completion checker detected end of track: ${_currentTrack?.name}');
-          print('Position: ${position.inMilliseconds}ms, Duration: ${duration.inMilliseconds}ms, Remaining: ${remaining.inMilliseconds}ms');
+          print('Position: ${position.inMilliseconds}ms, Duration: ${duration.inMilliseconds}ms');
+          print('Remaining: ${remaining.inMilliseconds}ms, Progress: ${(progressPercentage * 100).toStringAsFixed(2)}%');
+          print('Processing State: $processingState');
         }
         _handleTrackCompletion();
       }
