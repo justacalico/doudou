@@ -285,6 +285,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 }
                 
                 if (index == 1) {
+                  // Check if all tracks are downloaded
+                  final appState = context.read<AppState>();
+                  final bool allTracksDownloaded = tracks.isNotEmpty && 
+                      tracks.every((track) => appState.downloadService.isTrackDownloaded(track.id));
+                  
+                  // Don't show download button if all tracks are already downloaded
+                  if (allTracksDownloaded) {
+                    return const SizedBox(height: 12);
+                  }
+                  
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
