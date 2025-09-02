@@ -814,4 +814,127 @@ class AppState extends ChangeNotifier {
       }
     }
   }
+
+  // Connectivity and Offline Mode Management
+  Future<bool> _checkConnectivity() async {
+    try {
+      // Try to ping the server with a simple request
+      if (_jellyfinService.server != null) {
+        final response = await _jellyfinService.dio.get(
+          '/System/Info/Public',
+          options: Options(
+            receiveTimeout: const Duration(seconds: 5),
+            sendTimeout: const Duration(seconds: 5),
+          ),
+        );
+        return response.statusCode == 200;
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Connectivity check failed: $e');
+      }
+      return false;
+    }
+  }
+
+  Future<void> _updateConnectivityState() async {
+    final wasConnected = _isConnected;
+    _isConnected = await _checkConnectivity();
+    
+    if (wasConnected && !_isConnected) {
+      // Lost connection - enter offline mode
+      await _enterOfflineMode();
+    } else if (!wasConnected && _isConnected) {
+      // Regained connection - exit offline mode if possible
+      await _exitOfflineMode();
+    }
+    
+    notifyListeners();
+  }
+
+  Future<void> _enterOfflineMode() async {
+    if (kDebugMode) {
+      print('Entering offline mode');
+    }
+    
+    _isOfflineMode = true;
+    
+    // Load downloaded tracks for offline access
+    await _loadOfflineData();
+    
+    // Clear online-only data but keep user logged in
+    // This allows access to downloads without re-authentication
+    _clearError();
+    
+    notifyListeners();
+  }
+
+  Future<void> _exitOfflineMode() async {
+    if (kDebugMode) {
+      print('Exiting offline mode');
+    }
+    
+    _isOfflineMode = false;
+    
+    // Try to refresh library data now that we're back online
+    try {
+      await loadLibraryData();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to refresh library data after going online: $e');
+      }
+    }
+    
+    notifyListeners();
+  }
+
+  Future<void> _loadOfflineData() async {
+    try {
+      // Load cached data
+      final cachedAlbums = await _cacheService.getCachedAlbums();
+      final cachedArtists = await _cacheService.getCachedArtists();
+      final cachedTracks = await _cacheService.getCachedTracks();
+      final cachedPlaylists = await _cacheService.getCachedPlaylists();
+      
+      if (cachedAlbums.isNotEmpty) _albums = cachedAlbums;
+      if (cachedArtists.isNotEmpty) _artists = cachedArtists;
+      if (cachedTracks.isNotEmpty) _tracks = cachedTracks;
+      if (cachedPlaylists.isNotEmpty) _playlists = cachedPlaylists;
+      
+      // Filter to only show content that's available offline
+      _filterToOfflineContent();
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading offline data: $e');
+      }
+    }
+  }
+
+  void _filterToOfflineContent() {
+    // Filter tracks to only those that are downloaded
+    _tracks = _tracks.where((track) => 
+      _downloadService.isTrackDownloaded(track.id)
+    ).toList();
+    
+    // Filter albums to only those with downloaded tracks
+    _albums = _albums.where((album) => 
+      _tracks.any((track) => track.albumId == album.id)
+    ).toList();
+    
+    // Filter artists to only those with downloaded tracks
+    _artists = _artists.where((artist) => 
+      _tracks.any((track) => track.artistName == artist.name)
+    ).toList();
+    
+    // Filter playlists to only those with downloaded tracks
+    // Note: This is more complex as we'd need to check playlist contents
+    // For now, we'll keep all playlists but they'll show filtered content
+  }
+
+  // Public method to manually check connectivity
+  Future<void> checkConnectivity() async {
+    await _updateConnectivityState();
+  }
 }
