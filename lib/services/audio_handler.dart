@@ -31,6 +31,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
   
+  // Background completion detection helpers
+  Duration? _lastKnownPosition;
+  int _stuckCounter = 0;
+  
   // Skip-to-previous behavior tracking
   DateTime? _lastSkipToPreviousTime;
   static const Duration _skipToPreviousThreshold = Duration(seconds: 5);
