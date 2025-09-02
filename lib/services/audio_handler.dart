@@ -85,13 +85,44 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
     });
 
-    // Auto-play next track when current track completes
+    // Auto-play next track when current track completes - enhanced for background playback
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed && !_isHandlingCompletion) {
         if (kDebugMode) {
           print('Track completion detected via playerStateStream, handling...');
         }
         _handleTrackCompletion();
+      }
+      
+      // Additional background-friendly completion detection
+      if (!_isHandlingCompletion && state.playing) {
+        final duration = _player.duration;
+        final position = _player.position;
+        
+        if (duration != null && duration.inMilliseconds > 0) {
+          final remaining = duration - position;
+          final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
+          
+          // Aggressive completion detection for background mode
+          // This is crucial for locked screen playback
+          if (progressPercentage >= 0.98 || remaining.inMilliseconds <= 500) {
+            // Schedule a delayed check for completion to handle background throttling
+            Future.delayed(const Duration(milliseconds: 200), () {
+              final currentDuration = _player.duration;
+              final currentPosition = _player.position;
+              final currentState = _player.playerState;
+              
+              if (currentDuration != null && currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 200) {
+                if (!_isHandlingCompletion && currentState.playing) {
+                  if (kDebugMode) {
+                    print('Background completion detection triggered at ${(currentPosition.inMilliseconds / currentDuration.inMilliseconds * 100).toStringAsFixed(1)}%');
+                  }
+                  _handleTrackCompletion();
+                }
+              }
+            });
+          }
+        }
       }
     });
 
