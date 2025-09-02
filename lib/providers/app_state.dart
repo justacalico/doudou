@@ -223,12 +223,29 @@ class AppState extends ChangeNotifier {
         return false;
       }
     } on DioException catch (e) {
-      // Handle network errors with user-friendly messages
+      // Handle network errors - check if we should enter offline mode
       if (e.error is NetworkException) {
         final networkError = e.error as NetworkException;
-        _setError(networkError.message);
+        
+        // If we have saved credentials and downloads, offer offline mode
+        if (await _hasSavedCredentials() && await _hasDownloadedContent()) {
+          await _enterOfflineMode();
+          _isLoggedIn = true;
+          _setLoading(false);
+          return true;
+        } else {
+          _setError(networkError.message);
+        }
       } else {
-        _setError('Network error. Please check your connection and try again.');
+        // Check for offline mode possibility
+        if (await _hasSavedCredentials() && await _hasDownloadedContent()) {
+          await _enterOfflineMode();
+          _isLoggedIn = true;
+          _setLoading(false);
+          return true;
+        } else {
+          _setError('Network error. Please check your connection and try again.');
+        }
       }
       _setLoading(false);
       return false;
@@ -246,9 +263,17 @@ class AppState extends ChangeNotifier {
         errorMessage = 'Cannot reach server. Please check the server URL and your network connection.';
       }
       
-      _setError(errorMessage);
-      _setLoading(false);
-      return false;
+      // Check for offline mode possibility
+      if (await _hasSavedCredentials() && await _hasDownloadedContent()) {
+        await _enterOfflineMode();
+        _isLoggedIn = true;
+        _setLoading(false);
+        return true;
+      } else {
+        _setError(errorMessage);
+        _setLoading(false);
+        return false;
+      }
     }
   }
 
