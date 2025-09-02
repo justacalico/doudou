@@ -102,12 +102,15 @@ class AppState extends ChangeNotifier {
         
         // Test the connection with saved credentials
         try {
-          // Try to validate credentials
-          final isValid = await _jellyfinService.validateCredentials();
+          // Try to validate credentials with timeout
+          final isValid = await _jellyfinService.validateCredentials()
+              .timeout(const Duration(seconds: 10));
           
           if (isValid) {
-            // If successful, we're logged in
+            // If successful, we're logged in and online
             _isLoggedIn = true;
+            _isConnected = true;
+            _isOfflineMode = false;
             
             // Initialize cache service first
             await _cacheService.initialize();
@@ -145,19 +148,62 @@ class AppState extends ChangeNotifier {
             // Load initial data in background
             loadLibraryData();
           } else {
-            // Clear invalid credentials
+            // Credentials are invalid, clear them
             await prefs.remove('jellyfin_server');
             _isLoggedIn = false;
             notifyListeners();
           }
         } catch (authError) {
           if (kDebugMode) {
-            print('Saved credentials are invalid: $authError');
+            print('Cannot connect to server, checking for offline mode: $authError');
           }
-          // Clear invalid credentials
-          await prefs.remove('jellyfin_server');
-          _isLoggedIn = false;
-          notifyListeners();
+          
+          // Server is unreachable, but we have credentials - check for offline capability
+          if (await _hasDownloadedContent()) {
+            // Enter offline mode with saved credentials
+            _isLoggedIn = true;
+            _isConnected = false;
+            await _enterOfflineMode();
+            
+            // Initialize cache service for offline mode
+            await _cacheService.initialize();
+            
+            // Try to initialize audio handler for offline playback
+            try {
+              _audioHandler = await AudioService.init(
+                builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                config: const AudioServiceConfig(
+                  androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
+                  androidNotificationChannelName: 'Doudou Music',
+                  androidNotificationOngoing: true,
+                ),
+              );
+              
+              // Apply user settings to the audio handler
+              _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+              _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+              _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+              
+              // Set up listeners for automatic UI updates
+              _setupAudioHandlerListeners();
+              
+            } catch (audioError) {
+              if (kDebugMode) {
+                print('Failed to initialize audio service for offline mode: $audioError');
+              }
+              // Continue without audio service
+            }
+            
+            if (kDebugMode) {
+              print('Entered offline mode with saved credentials');
+            }
+            notifyListeners();
+          } else {
+            // No downloads available, clear invalid credentials
+            await prefs.remove('jellyfin_server');
+            _isLoggedIn = false;
+            notifyListeners();
+          }
         }
       }
     } catch (e) {
