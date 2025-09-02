@@ -173,15 +173,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             ),
                             const SizedBox(height: 8),
                             if (currentTrack.artistName != null || currentTrack.albumName != null)
-                              Text(
-                                _buildArtistAlbumText(currentTrack),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: CupertinoColors.systemGrey2,
+                              GestureDetector(
+                                onTap: () => _navigateToAlbum(context, currentTrack, appState),
+                                child: Text(
+                                  _buildArtistAlbumText(currentTrack),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: CupertinoColors.systemGrey2,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                           ],
                         ),
