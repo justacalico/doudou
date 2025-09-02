@@ -9,6 +9,7 @@
 - Play all and Shuffle buttons for downloaded songs.
 - Adds the abilty to download albums.
 - Go to album from clicking on the album name from now_playing.
+- Go to the artist page by clicking on the artist name from now_playing.
 
 ## Changed
 - Embedded the visualizer instead of having its own page.
