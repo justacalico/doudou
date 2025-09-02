@@ -734,4 +734,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
     }
     return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
+
+  String _buildArtistAlbumText(dynamic track) {
+    final albumName = track.albumName;
+    final artistName = track.artistName;
+    
+    if (albumName != null && artistName != null) {
+      return '$albumName - $artistName';
+    } else if (albumName != null) {
+      return albumName;
+    } else if (artistName != null) {
+      return artistName;
+    } else {
+      return 'Unknown Artist';
+    }
+  }
 }
