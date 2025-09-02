@@ -801,74 +801,57 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
     }
   }
 
-  void _navigateToAlbum(BuildContext context, dynamic track, AppState appState) {
-    if (kDebugMode) {
-      print('Attempting to navigate to album for track: ${track.name}');
-      print('Track albumId: ${track.albumId}');
-      print('Track albumName: ${track.albumName}');
-      print('Available albums count: ${appState.albums.length}');
-    }
-    
-    // Only navigate if we have album information
-    if (track.albumId != null && track.albumId!.isNotEmpty) {
-      // Find the album in the app state
-      try {
-        final album = appState.albums.firstWhere(
-          (album) => album.id == track.albumId,
-        );
-        
-        if (kDebugMode) {
-          print('Found album: ${album.name} (${album.id})');
-        }
-        
-        // Navigate to the album detail page using CupertinoPageRoute
-        Navigator.push(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => AlbumDetailScreen(album: album),
-          ),
-        );
-      } catch (e) {
-        // Show error if album not found
-        if (kDebugMode) {
-          print('Album not found for ID: ${track.albumId}');
-          print('Available album IDs: ${appState.albums.map((a) => a.id).take(10).join(', ')}${appState.albums.length > 10 ? '...' : ''}');
-          print('Error: $e');
-        }
-        
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Album Not Found'),
-            content: Text('Album "${track.albumName ?? 'Unknown'}" is not available in your current library view. Try refreshing your library.'),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    } else {
-      // Show message if no album ID available
-      if (kDebugMode) {
-        print('No album ID available for track: ${track.name}');
+  void _navigateToAlbum(BuildContext context, Track track, AppState appState) {
+    try {
+      debugPrint('Attempting to navigate to album: ${track.albumName} (ID: ${track.albumId})');
+      
+      if (track.albumId == null) {
+        debugPrint('Track albumId is null, cannot navigate');
+        _showErrorSnackBar(context, 'Album information not available');
+        return;
       }
       
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('No Album Information'),
-          content: const Text('This track does not have album information available.'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
+      final album = appState.albums.firstWhere(
+        (album) => album.id == track.albumId,
+        orElse: () => throw StateError('Album not found'),
+      );
+      
+      debugPrint('Found album: ${album.name}, navigating...');
+      Navigator.of(context).push(
+        CupertinoPageRoute(
+          builder: (context) => AlbumDetailScreen(album: album),
         ),
       );
+    } catch (e) {
+      debugPrint('Error navigating to album: $e');
+      _showErrorSnackBar(context, 'Album not found in library');
+    }
+  }
+
+  void _navigateToArtist(BuildContext context, Track track, AppState appState) {
+    try {
+      debugPrint('Attempting to navigate to artist: ${track.artistName}');
+      
+      if (track.artistName == null) {
+        debugPrint('Track artistName is null, cannot navigate');
+        _showErrorSnackBar(context, 'Artist information not available');
+        return;
+      }
+      
+      final artist = appState.artists.firstWhere(
+        (artist) => artist.name == track.artistName,
+        orElse: () => throw StateError('Artist not found'),
+      );
+      
+      debugPrint('Found artist: ${artist.name}, navigating...');
+      Navigator.of(context).push(
+        CupertinoPageRoute(
+          builder: (context) => ArtistDetailScreen(artist: artist),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error navigating to artist: $e');
+      _showErrorSnackBar(context, 'Artist not found in library');
     }
   }
 }
