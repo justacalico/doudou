@@ -1300,7 +1300,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _startCompletionChecker() {
     _stopCompletionChecker(); // Clear any existing timer
     // Use a more frequent check for better background responsiveness
-    _completionCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+    // Check more frequently when near the end of a track for reliable background playback
+    _completionCheckTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
       _checkForCompletion();
     });
   }
