@@ -202,15 +202,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                         ),
                                       ),
                                       Flexible(
-                                        child: Text(
-                                          currentTrack.artistName!,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: CupertinoColors.systemGrey2,
+                                        child: GestureDetector(
+                                          onTap: () => _navigateToArtist(context, currentTrack, appState),
+                                          child: Text(
+                                            currentTrack.artistName!,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: CupertinoColors.systemGrey2,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
