@@ -378,9 +378,20 @@ class PlaylistTile extends StatelessWidget {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.cloud_download, size: 18),
-                SizedBox(width: 8),
-                Text('Download Playlist'),
+                Icon(
+                  CupertinoIcons.cloud_download, 
+                  size: 20,
+                  color: CupertinoColors.systemBlue,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Download Playlist',
+                  style: TextStyle(
+                    color: CupertinoColors.systemBlue,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ),
