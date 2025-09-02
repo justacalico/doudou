@@ -818,18 +818,9 @@ class AppState extends ChangeNotifier {
   // Connectivity and Offline Mode Management
   Future<bool> _checkConnectivity() async {
     try {
-      // Try to ping the server with a simple request
-      if (_jellyfinService._server != null) {
-        final response = await _jellyfinService._dio.get(
-          '/System/Info/Public',
-          options: Options(
-            receiveTimeout: const Duration(seconds: 5),
-            sendTimeout: const Duration(seconds: 5),
-          ),
-        );
-        return response.statusCode == 200;
-      }
-      return false;
+      // Simple connectivity check - try to get albums with short timeout
+      await _jellyfinService.getAlbums().timeout(const Duration(seconds: 5));
+      return true;
     } catch (e) {
       if (kDebugMode) {
         print('Connectivity check failed: $e');
