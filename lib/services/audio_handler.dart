@@ -199,11 +199,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           });
         }
         
-        // 4. Final fallback - stuck at end detection
-        if (remaining.inMilliseconds <= 100 && !_isHandlingCompletion) {
-          Future.delayed(const Duration(milliseconds: 500), () {
+        // 4. Final fallback - stuck at end detection (more aggressive for background)
+        if (remaining.inMilliseconds <= 200 && !_isHandlingCompletion) {
+          Future.delayed(const Duration(milliseconds: 300), () {
             final stillAtEnd = _player.duration != null && 
-                              (_player.duration!.inMilliseconds - _player.position.inMilliseconds) <= 100;
+                              (_player.duration!.inMilliseconds - _player.position.inMilliseconds) <= 300;
             
             if (stillAtEnd && !_isHandlingCompletion && _player.playerState.playing) {
               if (kDebugMode) {
@@ -214,10 +214,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           });
         }
         
-        // 5. Progressive completion detection for background mode
-        if (progressPercentage >= 0.99 && !_isHandlingCompletion) {
+        // 5. Progressive completion detection for background mode (more aggressive)
+        if (progressPercentage >= 0.975 && !_isHandlingCompletion) {
           // Use a more aggressive approach for background playback
-          Future.delayed(const Duration(milliseconds: 300), () {
+          Future.delayed(const Duration(milliseconds: 200), () {
             final currentProgress = _player.position.inMilliseconds / (_player.duration?.inMilliseconds ?? 1);
             if (currentProgress >= 0.995 && !_isHandlingCompletion) {
               if (kDebugMode) {
