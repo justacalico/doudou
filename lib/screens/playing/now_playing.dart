@@ -173,19 +173,58 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             ),
                             const SizedBox(height: 8),
                             if (currentTrack.artistName != null || currentTrack.albumName != null)
-                              GestureDetector(
-                                onTap: () => _navigateToAlbum(context, currentTrack, appState),
-                                child: Text(
-                                  _buildArtistAlbumText(currentTrack),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: CupertinoColors.systemGrey2,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (currentTrack.albumName != null) ...[
+                                    GestureDetector(
+                                      onTap: () => _navigateToAlbum(context, currentTrack, appState),
+                                      child: Text(
+                                        currentTrack.albumName!,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: CupertinoColors.systemGrey2,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (currentTrack.artistName != null) ...[
+                                      const Text(
+                                        ' - ',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: CupertinoColors.systemGrey2,
+                                        ),
+                                      ),
+                                      Flexible(
+                                        child: Text(
+                                          currentTrack.artistName!,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: CupertinoColors.systemGrey2,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ] else if (currentTrack.artistName != null) ...[
+                                    Text(
+                                      currentTrack.artistName!,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: CupertinoColors.systemGrey2,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
                               ),
                           ],
                         ),
