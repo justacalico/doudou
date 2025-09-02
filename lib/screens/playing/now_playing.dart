@@ -172,9 +172,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 8),
-                            if (currentTrack.artistName != null)
+                            if (currentTrack.artistName != null || currentTrack.albumName != null)
                               Text(
-                                currentTrack.artistName!,
+                                _buildArtistAlbumText(currentTrack),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: CupertinoColors.systemGrey2,
