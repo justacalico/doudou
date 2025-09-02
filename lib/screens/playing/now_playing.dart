@@ -186,7 +186,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: CupertinoColors.systemGrey2,
-                                          decoration: TextDecoration.underline,
                                         ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
