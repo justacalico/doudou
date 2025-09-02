@@ -219,7 +219,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Use a more aggressive approach for background playback
           Future.delayed(const Duration(milliseconds: 200), () {
             final currentProgress = _player.position.inMilliseconds / (_player.duration?.inMilliseconds ?? 1);
-            if (currentProgress >= 0.995 && !_isHandlingCompletion) {
+            if (currentProgress >= 0.98 && !_isHandlingCompletion) {
               if (kDebugMode) {
                 print('Background progressive completion: ${(currentProgress * 100).toStringAsFixed(2)}%');
               }
