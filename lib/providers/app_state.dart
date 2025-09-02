@@ -36,6 +36,8 @@ class AppState extends ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
+  bool get isOfflineMode => _isOfflineMode;
+  bool get isConnected => _isConnected;
   String? get errorMessage => _errorMessage;
   List<Album> get albums => _albums;
   List<Artist> get artists => _artists;
