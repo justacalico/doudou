@@ -953,4 +953,24 @@ class AppState extends ChangeNotifier {
   Future<void> checkConnectivity() async {
     await _updateConnectivityState();
   }
+
+  // Helper methods for offline mode
+  Future<bool> _hasSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final serverData = prefs.getString('jellyfin_server');
+      return serverData != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> _hasDownloadedContent() async {
+    try {
+      final downloadedTracks = _downloadService.downloadedTracks;
+      return downloadedTracks.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
 }
