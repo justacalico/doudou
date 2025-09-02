@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/app_state.dart';
 import '../../home/home.dart';
 import '../../libary/library.dart';
 import '../../settings/settings.dart';
