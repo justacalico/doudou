@@ -930,13 +930,16 @@ class AppState extends ChangeNotifier {
     }
     
     _isOfflineMode = true;
+    _isConnected = false;
     
-    // Load downloaded tracks for offline access
+    // Load downloaded tracks and cached data for offline access
     await _loadOfflineData();
     
-    // Clear online-only data but keep user logged in
-    // This allows access to downloads without re-authentication
+    // Clear any previous error messages since we're now in a valid offline state
     _clearError();
+    
+    // Ensure we show only downloaded content
+    _filterContentForOfflineMode();
     
     notifyListeners();
   }
@@ -1002,6 +1005,31 @@ class AppState extends ChangeNotifier {
     // Filter playlists to only those with downloaded tracks
     // Note: This is more complex as we'd need to check playlist contents
     // For now, we'll keep all playlists but they'll show filtered content
+  }
+
+  void _filterContentForOfflineMode() {
+    if (!_isOfflineMode) return;
+    
+    // Filter tracks to only show downloaded ones
+    final downloadedTrackIds = _downloadService.downloadedTracks.map((t) => t.trackId).toSet();
+    _tracks = _tracks.where((track) => downloadedTrackIds.contains(track.id)).toList();
+    
+    // Filter albums to only show those with downloaded tracks
+    _albums = _albums.where((album) => 
+      _tracks.any((track) => track.albumId == album.id)
+    ).toList();
+    
+    // Filter artists to only show those with downloaded tracks
+    _artists = _artists.where((artist) =>
+      _tracks.any((track) => track.artistName == artist.name)
+    ).toList();
+    
+    // Keep playlists but they will show filtered content when opened
+    // The playlist detail screens will handle filtering their tracks
+    
+    if (kDebugMode) {
+      print('Filtered content for offline mode: ${_tracks.length} tracks, ${_albums.length} albums, ${_artists.length} artists');
+    }
   }
 
   // Public method to manually check connectivity
