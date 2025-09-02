@@ -1050,35 +1050,52 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          // Download button
-                          SizedBox(
-                            width: double.infinity,
-                            child: CupertinoButton(
-                              color: CupertinoColors.systemGrey6.darkColor,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                          // Check if all tracks are downloaded
+                          Consumer<AppState>(
+                            builder: (context, appState, child) {
+                              final bool allTracksDownloaded = tracks.isNotEmpty && 
+                                  tracks.every((track) => appState.downloadService.isTrackDownloaded(track.id));
+                              
+                              // Don't show download button if all tracks are already downloaded
+                              if (allTracksDownloaded) {
+                                return const SizedBox(height: 12);
+                              }
+                              
+                              return Column(
                                 children: [
-                                  Icon(
-                                    CupertinoIcons.cloud_download, 
-                                    size: 20,
-                                    color: CupertinoColors.systemBlue,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Text(
-                                    'Download Playlist',
-                                    style: TextStyle(
-                                      color: CupertinoColors.systemBlue,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                  const SizedBox(height: 12),
+                                  // Download button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: CupertinoButton(
+                                      color: CupertinoColors.systemGrey6.darkColor,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.cloud_download, 
+                                            size: 20,
+                                            color: CupertinoColors.systemBlue,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          const Text(
+                                            'Download Playlist',
+                                            style: TextStyle(
+                                              color: CupertinoColors.systemBlue,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      onPressed: () => _downloadPlaylistDetail(),
                                     ),
                                   ),
                                 ],
-                              ),
-                              onPressed: () => _downloadPlaylistDetail(),
-                            ),
+                              );
+                            },
                           ),
                         ],
                       ],
