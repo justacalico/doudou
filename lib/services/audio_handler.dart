@@ -375,25 +375,48 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             playing: true, // Ensure playing state is maintained for background
           ));
           
-          // Play the next track with enhanced error handling
+          // Play the next track with enhanced error handling for background mode
           try {
             await _playCurrentTrack();
             
-            // Verify playback started successfully
-            await Future.delayed(const Duration(milliseconds: 500));
-            if (!_player.playing) {
-              // If playback didn't start, try again
-              if (kDebugMode) {
-                print('Playback did not start automatically, retrying...');
+            // Enhanced verification for background playback - wait longer and check multiple times
+            for (int i = 0; i < 5; i++) {
+              await Future.delayed(const Duration(milliseconds: 200));
+              if (_player.playing) {
+                break; // Successfully playing
               }
-              await _player.play();
+              
+              if (i == 4) {
+                // Final attempt - force play
+                if (kDebugMode) {
+                  print('Playback did not start after multiple attempts, forcing play...');
+                }
+                try {
+                  await _player.play();
+                } catch (playError) {
+                  if (kDebugMode) {
+                    print('Force play failed: $playError');
+                  }
+                }
+              }
             }
           } catch (e) {
             if (kDebugMode) {
               print('Error during track transition, attempting recovery: $e');
             }
             // Attempt recovery by reloading the track
-            await _loadAndPlayTrack(nextTrack);
+            try {
+              await _loadAndPlayTrack(nextTrack);
+              // Ensure it starts playing
+              await Future.delayed(const Duration(milliseconds: 300));
+              if (!_player.playing) {
+                await _player.play();
+              }
+            } catch (recoveryError) {
+              if (kDebugMode) {
+                print('Recovery attempt failed: $recoveryError');
+              }
+            }
           }
           
           // Save state after successful transition
