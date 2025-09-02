@@ -343,6 +343,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _stuckCounter = 0;
       _lastKnownPosition = null;
       
+      // Store current track info for verification
+      final currentTrackName = _currentTrack?.name;
+      final currentIndex = _currentIndex;
+      
       // Check if we have a next track to play
       if (_currentIndex < _playlist.length - 1) {
         if (kDebugMode) {
@@ -357,6 +361,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Using gapless transition to: ${nextTrack.name}');
           }
           await _performGaplessTransition(nextTrack);
+          
+          // After gapless transition, verify we actually moved to the next track
+          if (_currentIndex == currentIndex || _currentTrack?.name == currentTrackName) {
+            if (kDebugMode) {
+              print('ERROR: Gapless transition failed to advance track, forcing manual advance');
+            }
+            // Force advance to prevent getting stuck
+            _currentIndex++;
+            _currentTrack = nextTrack;
+          }
         } else {
           // Regular transition - more robust for background playback
           _currentIndex++;
