@@ -796,13 +796,24 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
   }
 
   void _navigateToAlbum(BuildContext context, dynamic track, AppState appState) {
+    if (kDebugMode) {
+      print('Attempting to navigate to album for track: ${track.name}');
+      print('Track albumId: ${track.albumId}');
+      print('Track albumName: ${track.albumName}');
+      print('Available albums count: ${appState.albums.length}');
+    }
+    
     // Only navigate if we have album information
-    if (track.albumId != null) {
+    if (track.albumId != null && track.albumId!.isNotEmpty) {
       // Find the album in the app state
       try {
         final album = appState.albums.firstWhere(
           (album) => album.id == track.albumId,
         );
+        
+        if (kDebugMode) {
+          print('Found album: ${album.name} (${album.id})');
+        }
         
         // Navigate to the album detail page using CupertinoPageRoute
         Navigator.push(
@@ -814,15 +825,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       } catch (e) {
         // Show error if album not found
         if (kDebugMode) {
-          print('Album not found: ${track.albumId}');
-          print('Available albums: ${appState.albums.map((a) => '${a.id}: ${a.name}').join(', ')}');
+          print('Album not found for ID: ${track.albumId}');
+          print('Available album IDs: ${appState.albums.map((a) => a.id).take(10).join(', ')}${appState.albums.length > 10 ? '...' : ''}');
+          print('Error: $e');
         }
         
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: const Text('Album Not Found'),
-            content: Text('Unable to find album "${track.albumName ?? 'Unknown'}" in your library.'),
+            content: Text('Album "${track.albumName ?? 'Unknown'}" is not available in your current library view. Try refreshing your library.'),
             actions: [
               CupertinoDialogAction(
                 onPressed: () => Navigator.pop(context),
@@ -834,6 +846,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       }
     } else {
       // Show message if no album ID available
+      if (kDebugMode) {
+        print('No album ID available for track: ${track.name}');
+      }
+      
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
