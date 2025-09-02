@@ -855,4 +855,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       _showErrorSnackBar(context, 'Artist not found in library');
     }
   }
+
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: CupertinoColors.systemRed,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 }
