@@ -803,19 +803,25 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           (album) => album.id == track.albumId,
         );
         
-        // Navigate to the album detail page
-        Navigator.pushNamed(
+        // Navigate to the album detail page using CupertinoPageRoute
+        Navigator.push(
           context,
-          '/album',
-          arguments: album,
+          CupertinoPageRoute(
+            builder: (context) => AlbumDetailScreen(album: album),
+          ),
         );
       } catch (e) {
         // Show error if album not found
+        if (kDebugMode) {
+          print('Album not found: ${track.albumId}');
+          print('Available albums: ${appState.albums.map((a) => '${a.id}: ${a.name}').join(', ')}');
+        }
+        
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: const Text('Album Not Found'),
-            content: const Text('Unable to find the album information.'),
+            content: Text('Unable to find album "${track.albumName ?? 'Unknown'}" in your library.'),
             actions: [
               CupertinoDialogAction(
                 onPressed: () => Navigator.pop(context),
