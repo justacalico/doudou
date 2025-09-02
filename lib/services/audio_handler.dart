@@ -1324,11 +1324,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Enhanced completion detection for background playback
       bool shouldTriggerCompletion = false;
       
-      // 1. Traditional end detection (less than 100ms remaining)
-      if (remaining.inMilliseconds <= 100 && remaining.inMilliseconds >= 0) {
+      // 1. Traditional end detection (less than 200ms remaining for better background handling)
+      if (remaining.inMilliseconds <= 200 && remaining.inMilliseconds >= 0) {
         shouldTriggerCompletion = true;
         if (kDebugMode) {
-          print('Background completion: Traditional end detection');
+          print('Background completion: Traditional end detection (${remaining.inMilliseconds}ms remaining)');
         }
       }
       
@@ -1340,20 +1340,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       
-      // 3. Progress-based detection (if we're very close to the end and progress hasn't changed)
-      else if (progressPercentage >= 0.995) { // 99.5% complete
+      // 3. More aggressive progress-based detection for background mode
+      else if (progressPercentage >= 0.985) { // 98.5% complete (more aggressive than before)
         shouldTriggerCompletion = true;
         if (kDebugMode) {
           print('Background completion: Progress-based detection (${(progressPercentage * 100).toStringAsFixed(2)}%)');
         }
       }
       
-      // 4. Stuck detection - if position hasn't advanced near the end
-      else if (remaining.inMilliseconds <= 1000 && _lastKnownPosition != null) {
+      // 4. Stuck detection - if position hasn't advanced near the end (made more sensitive)
+      else if (remaining.inMilliseconds <= 1500 && _lastKnownPosition != null) {
         final positionDiff = position.inMilliseconds - _lastKnownPosition!.inMilliseconds;
-        if (positionDiff <= 50) { // Position advanced less than 50ms in 500ms check
+        if (positionDiff <= 100) { // Position advanced less than 100ms in 500ms check
           _stuckCounter++;
-          if (_stuckCounter >= 3) { // Stuck for 1.5 seconds
+          if (_stuckCounter >= 2) { // Stuck for 1 second (reduced from 1.5)
             shouldTriggerCompletion = true;
             if (kDebugMode) {
               print('Background completion: Stuck detection (position not advancing)');
