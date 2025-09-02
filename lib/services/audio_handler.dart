@@ -100,8 +100,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final duration = _player.duration;
       final playerState = _player.playerState;
       
+      // Always update the last known position for stuck detection
+      _lastKnownPosition = position;
+      
       if (duration != null && duration.inMilliseconds > 0 && playerState.playing) {
         final remaining = duration - position;
+        final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
         
         // Multiple fallback mechanisms for background playback
         
@@ -173,6 +177,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             if (stillAtEnd && !_isHandlingCompletion && _player.playerState.playing) {
               if (kDebugMode) {
                 print('Detected stuck at end, forcing next track...');
+              }
+              _handleTrackCompletion();
+            }
+          });
+        }
+        
+        // 5. Progressive completion detection for background mode
+        if (progressPercentage >= 0.99 && !_isHandlingCompletion) {
+          // Use a more aggressive approach for background playback
+          Future.delayed(const Duration(milliseconds: 300), () {
+            final currentProgress = _player.position.inMilliseconds / (_player.duration?.inMilliseconds ?? 1);
+            if (currentProgress >= 0.995 && !_isHandlingCompletion) {
+              if (kDebugMode) {
+                print('Background progressive completion: ${(currentProgress * 100).toStringAsFixed(2)}%');
               }
               _handleTrackCompletion();
             }
