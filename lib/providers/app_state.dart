@@ -819,8 +819,8 @@ class AppState extends ChangeNotifier {
   Future<bool> _checkConnectivity() async {
     try {
       // Try to ping the server with a simple request
-      if (_jellyfinService.server != null) {
-        final response = await _jellyfinService.dio.get(
+      if (_jellyfinService._server != null) {
+        final response = await _jellyfinService._dio.get(
           '/System/Info/Public',
           options: Options(
             receiveTimeout: const Duration(seconds: 5),
