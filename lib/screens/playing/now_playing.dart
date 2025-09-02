@@ -471,7 +471,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           style: const TextStyle(fontSize: 16),
         ),
         message: Text(
-          currentTrack.artistName ?? 'Unknown Artist',
+          _buildArtistAlbumText(currentTrack),
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
