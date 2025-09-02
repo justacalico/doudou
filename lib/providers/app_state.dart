@@ -1011,7 +1011,7 @@ class AppState extends ChangeNotifier {
     if (!_isOfflineMode) return;
     
     // Filter tracks to only show downloaded ones
-    final downloadedTrackIds = _downloadService.downloadedTracks.map((t) => t.trackId).toSet();
+    final downloadedTrackIds = _downloadService.downloadedTracks.keys.toSet();
     _tracks = _tracks.where((track) => downloadedTrackIds.contains(track.id)).toList();
     
     // Filter albums to only show those with downloaded tracks
