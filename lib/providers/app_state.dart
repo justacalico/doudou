@@ -888,10 +888,10 @@ class AppState extends ChangeNotifier {
       final cachedTracks = await _cacheService.getCachedTracks();
       final cachedPlaylists = await _cacheService.getCachedPlaylists();
       
-      if (cachedAlbums.isNotEmpty) _albums = cachedAlbums;
-      if (cachedArtists.isNotEmpty) _artists = cachedArtists;
-      if (cachedTracks.isNotEmpty) _tracks = cachedTracks;
-      if (cachedPlaylists.isNotEmpty) _playlists = cachedPlaylists;
+      if (cachedAlbums != null && cachedAlbums.isNotEmpty) _albums = cachedAlbums;
+      if (cachedArtists != null && cachedArtists.isNotEmpty) _artists = cachedArtists;
+      if (cachedTracks != null && cachedTracks.isNotEmpty) _tracks = cachedTracks;
+      if (cachedPlaylists != null && cachedPlaylists.isNotEmpty) _playlists = cachedPlaylists;
       
       // Filter to only show content that's available offline
       _filterToOfflineContent();
