@@ -1341,6 +1341,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final isPlaying = playerState.playing;
     final processingState = playerState.processingState;
     
+    // CRITICAL: Don't check for completion if we're already handling it or during transitions
     if (duration != null && isPlaying && !_isHandlingCompletion && duration.inMilliseconds > 0) {
       final remaining = duration - position;
       final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
@@ -1365,19 +1366,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // 3. More aggressive progress-based detection for background mode
-      else if (progressPercentage >= 0.985) { // 98.5% complete (more aggressive than before)
+      else if (progressPercentage >= 0.98) { // 98% complete for more reliable background detection
         shouldTriggerCompletion = true;
         if (kDebugMode) {
-          print('Background completion: Progress-based detection (${(progressPercentage * 100).toStringAsFixed(2)}%)');
+          print('Background progressive completion: ${(progressPercentage * 100).toStringAsFixed(2)}%');
         }
       }
       
       // 4. Stuck detection - if position hasn't advanced near the end (made more sensitive)
       else if (remaining.inMilliseconds <= 1500 && _lastKnownPosition != null) {
         final positionDiff = position.inMilliseconds - _lastKnownPosition!.inMilliseconds;
-        if (positionDiff <= 100) { // Position advanced less than 100ms in 500ms check
+        if (positionDiff <= 100) { // Position advanced less than 100ms in 300ms check
           _stuckCounter++;
-          if (_stuckCounter >= 2) { // Stuck for 1 second (reduced from 1.5)
+          if (_stuckCounter >= 3) { // Stuck for 900ms (more reliable)
             shouldTriggerCompletion = true;
             if (kDebugMode) {
               print('Background completion: Stuck detection (position not advancing)');
@@ -1392,14 +1393,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       _lastKnownPosition = position;
       
-      if (shouldTriggerCompletion) {
+      // Double-check: Make sure we're still on the same track before triggering completion
+      if (shouldTriggerCompletion && _currentTrack != null) {
         if (kDebugMode) {
           print('Background completion checker detected end of track: ${_currentTrack?.name}');
           print('Position: ${position.inMilliseconds}ms, Duration: ${duration.inMilliseconds}ms');
           print('Remaining: ${remaining.inMilliseconds}ms, Progress: ${(progressPercentage * 100).toStringAsFixed(2)}%');
           print('Processing State: $processingState');
         }
-        _handleTrackCompletion();
+        
+        // Use a short delay to prevent race conditions with any ongoing transitions
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (!_isHandlingCompletion) { // Double-check before executing
+            _handleTrackCompletion();
+          }
+        });
       }
     }
   }
@@ -1417,6 +1425,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Performing gapless transition to: ${nextTrack.name}');
       }
+      
+      // CRITICAL: Temporarily disable completion checking during transition
+      _isHandlingCompletion = true;
       
       // Get the preloaded player for the next track
       final preloadedPlayer = _preloadedPlayers[nextTrack.id];
@@ -1494,6 +1505,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Load and play the track normally
         await _loadAndPlayTrack(nextTrack);
       }
+      
+      // Wait a moment for the new track to fully initialize before re-enabling completion checking
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Re-enable completion checking AFTER the transition is complete
+      _isHandlingCompletion = false;
       
       // Start preloading next tracks for future gapless transitions
       _preloadNextTracks();
