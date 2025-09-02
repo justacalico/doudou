@@ -87,14 +87,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Auto-play next track when current track completes - enhanced for background playback
     _player.playerStateStream.listen((state) {
+      // Primary completion detection through player state
       if (state.processingState == ProcessingState.completed && !_isHandlingCompletion) {
         if (kDebugMode) {
           print('Track completion detected via playerStateStream, handling...');
         }
-        _handleTrackCompletion();
+        // Use a small delay to allow any ongoing gapless transitions to complete
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!_isHandlingCompletion) {
+            _handleTrackCompletion();
+          }
+        });
       }
       
-      // Additional background-friendly completion detection
+      // Enhanced background-friendly completion detection for locked screen
       if (!_isHandlingCompletion && state.playing) {
         final duration = _player.duration;
         final position = _player.position;
@@ -103,21 +109,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           final remaining = duration - position;
           final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
           
-          // Aggressive completion detection for background mode
-          // This is crucial for locked screen playback
-          if (progressPercentage >= 0.98 || remaining.inMilliseconds <= 500) {
-            // Schedule a delayed check for completion to handle background throttling
-            Future.delayed(const Duration(milliseconds: 200), () {
+          // Critical: Aggressive completion detection for background mode
+          // This is essential for locked screen playback continuity  
+          if (progressPercentage >= 0.97 || remaining.inMilliseconds <= 800) {
+            // Multiple checks with delays to handle Android's background throttling
+            Future.delayed(const Duration(milliseconds: 100), () {
               final currentDuration = _player.duration;
               final currentPosition = _player.position;
               final currentState = _player.playerState;
               
-              if (currentDuration != null && currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 200) {
-                if (!_isHandlingCompletion && currentState.playing) {
-                  if (kDebugMode) {
-                    print('Background completion detection triggered at ${(currentPosition.inMilliseconds / currentDuration.inMilliseconds * 100).toStringAsFixed(1)}%');
-                  }
-                  _handleTrackCompletion();
+              if (currentDuration != null && 
+                  currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 300 &&
+                  !_isHandlingCompletion && 
+                  currentState.playing) {
+                if (kDebugMode) {
+                  print('Background state stream completion triggered at ${(currentPosition.inMilliseconds / currentDuration.inMilliseconds * 100).toStringAsFixed(1)}%');
+                }
+                _handleTrackCompletion();
+              }
+            });
+          }
+        }
+      }
                 }
               }
             });
