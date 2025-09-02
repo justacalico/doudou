@@ -50,12 +50,7 @@ class DoudouApp extends StatelessWidget {
               }
               
               if (appState.isLoggedIn) {
-                // Check if we're in offline mode and show appropriate screen
-                if (appState.isOfflineMode) {
-                  return const OfflineHomeScreen();
-                } else {
-                  return const HomeScreen();
-                }
+                return const HomeScreen();
               } else {
                 return const LoginScreen();
               }
