@@ -294,13 +294,26 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: CupertinoButton(
-                            color: const Color(0xFF007AFF),
-                            child: const Row(
+                            color: CupertinoColors.systemGrey6.darkColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(CupertinoIcons.cloud_download, size: 18),
-                                SizedBox(width: 8),
-                                Text('Download Album'),
+                                Icon(
+                                  CupertinoIcons.cloud_download, 
+                                  size: 20,
+                                  color: CupertinoColors.systemBlue,
+                                ),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'Download Album',
+                                  style: TextStyle(
+                                    color: CupertinoColors.systemBlue,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             ),
                             onPressed: () => _downloadAlbum(),
