@@ -753,4 +753,54 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       return 'Unknown Artist';
     }
   }
+
+  void _navigateToAlbum(BuildContext context, dynamic track, AppState appState) {
+    // Only navigate if we have album information
+    if (track.albumId != null) {
+      // Find the album in the app state
+      final album = appState.albums.firstWhere(
+        (album) => album.id == track.albumId,
+        orElse: () => null,
+      );
+      
+      if (album != null) {
+        // Navigate to the album detail page
+        Navigator.pushNamed(
+          context,
+          '/album',
+          arguments: album,
+        );
+      } else {
+        // Show error if album not found
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Album Not Found'),
+            content: const Text('Unable to find the album information.'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } else {
+      // Show message if no album ID available
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('No Album Information'),
+          content: const Text('This track does not have album information available.'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 }
