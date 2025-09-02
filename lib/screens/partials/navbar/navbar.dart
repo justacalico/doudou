@@ -83,27 +83,96 @@ class _HomeScreenState extends State<HomeScreen> {
             showNavBar = false;
         }
         
-        return CupertinoPageScaffold(
-          backgroundColor: const Color(0xFF000000), // Dark background
-          navigationBar: showNavBar ? CupertinoNavigationBar(
-            middle: Text(title, style: const TextStyle(color: CupertinoColors.white)),
-            backgroundColor: const Color(0xFF000000), // True black for OLED
-            border: null,
-            trailing: null,
-          ) : null,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: content,
+        return Consumer<AppState>(
+          builder: (context, appState, child) {
+            return CupertinoPageScaffold(
+              backgroundColor: const Color(0xFF000000), // Dark background
+              navigationBar: showNavBar ? CupertinoNavigationBar(
+                middle: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(title, style: const TextStyle(color: CupertinoColors.white)),
+                    if (appState.isOfflineMode)
+                      const Text(
+                        'Offline Mode',
+                        style: TextStyle(
+                          color: CupertinoColors.systemOrange,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
+                backgroundColor: const Color(0xFF000000), // True black for OLED
+                border: null,
+                trailing: appState.isOfflineMode 
+                  ? const Icon(
+                      CupertinoIcons.wifi_slash,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    )
+                  : null,
+              ) : null,
+              child: Stack(
+                children: [
+                  // Offline banner
+                  if (appState.isOfflineMode)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        color: CupertinoColors.systemOrange,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.wifi_slash,
+                              color: CupertinoColors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Offline Mode - Downloads Only',
+                              style: TextStyle(
+                                color: CupertinoColors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minSize: 0,
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(
+                                  color: CupertinoColors.white,
+                                  fontSize: 14,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              onPressed: () => appState.checkConnectivity(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  // Main content with offset for offline banner
+                  Positioned.fill(
+                    top: appState.isOfflineMode ? 40 : 0,
+                    child: content,
+                  ),
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: MiniPlayer(),
+                  ),
+                ],
               ),
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: MiniPlayer(),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
