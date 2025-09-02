@@ -905,11 +905,20 @@ class AppState extends ChangeNotifier {
     _isConnected = await _checkConnectivity();
     
     if (wasConnected && !_isConnected) {
-      // Lost connection - enter offline mode
-      await _enterOfflineMode();
-    } else if (!wasConnected && _isConnected) {
-      // Regained connection - exit offline mode if possible
+      // Lost connection - enter offline mode if we have downloads and credentials
+      if (_isLoggedIn && await _hasDownloadedContent()) {
+        await _enterOfflineMode();
+        if (kDebugMode) {
+          print('Connection lost, entered offline mode');
+        }
+      }
+      // Note: We don't log the user out anymore when losing connection
+    } else if (!wasConnected && _isConnected && _isOfflineMode) {
+      // Regained connection - exit offline mode and refresh data
       await _exitOfflineMode();
+      if (kDebugMode) {
+        print('Connection restored, exited offline mode');
+      }
     }
     
     notifyListeners();
