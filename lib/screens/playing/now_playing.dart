@@ -758,19 +758,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
     // Only navigate if we have album information
     if (track.albumId != null) {
       // Find the album in the app state
-      final album = appState.albums.firstWhere(
-        (album) => album.id == track.albumId,
-        orElse: () => null,
-      );
-      
-      if (album != null) {
+      try {
+        final album = appState.albums.firstWhere(
+          (album) => album.id == track.albumId,
+        );
+        
         // Navigate to the album detail page
         Navigator.pushNamed(
           context,
           '/album',
           arguments: album,
         );
-      } else {
+      } catch (e) {
         // Show error if album not found
         showCupertinoDialog(
           context: context,
