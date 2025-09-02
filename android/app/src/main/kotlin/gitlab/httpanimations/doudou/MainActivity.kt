@@ -1,4 +1,4 @@
-package gitlab.httpanimations.doudou
+package gitlab.openlyst.doudou
 
 import com.ryanheise.audioservice.AudioServiceActivity
 

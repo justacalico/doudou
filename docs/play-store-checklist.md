@@ -17,7 +17,7 @@
 - Addresses all required sections
 
 ### 3. **Bundle Identifier** ✅
-- Changed from `com.example.doudou` to `gitlab.httpanimations.doudou`
+- Changed from `com.example.doudou` to `gitlab.openlyst.doudou`
 - Updated in both Android (`build.gradle.kts`) and iOS (`project.pbxproj`)
 - Moved MainActivity to correct package structure
 
