@@ -13,6 +13,9 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     
+    <!-- Advertising ID permission for Android 13+ compliance -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    
     <application
         android:label="doudou"
         android:name="${applicationName}"
