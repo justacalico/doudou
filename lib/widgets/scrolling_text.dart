@@ -124,14 +124,22 @@ class _ScrollingTextState extends State<ScrollingText>
             // Visible scrolling text
             if (_needsScrolling)
               AnimatedBuilder(
-                animation: _animation,
+                animation: _controller,
                 builder: (context, child) {
                   final RenderBox? renderBox = _textKey.currentContext?.findRenderObject() as RenderBox?;
                   final textWidth = renderBox?.size.width ?? 0;
                   final scrollDistance = textWidth - widget.maxWidth + 50; // Extra padding
                   
+                  // Combine scroll and bounce animations
+                  final scrollValue = _scrollAnimation.value;
+                  final bounceValue = _bounceAnimation.value;
+                  
+                  // Apply spring effect at the end
+                  final finalOffset = scrollDistance * scrollValue + 
+                      (bounceValue > 0 ? scrollDistance * 0.1 * (1 - bounceValue) : 0);
+                  
                   return Transform.translate(
-                    offset: Offset(-scrollDistance * _animation.value, 0),
+                    offset: Offset(-finalOffset, 0),
                     child: Text(
                       widget.text,
                       style: widget.style,
