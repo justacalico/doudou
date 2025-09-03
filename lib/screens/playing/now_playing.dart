@@ -175,65 +175,22 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             ),
                             const SizedBox(height: 8),
                             if (currentTrack.artistName != null || currentTrack.albumName != null)
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width - 60,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (currentTrack.albumName != null) ...[
-                                      Flexible(
-                                        child: GestureDetector(
-                                          onTap: () => _navigateToAlbum(context, currentTrack, appState),
-                                          child: ScrollingText(
-                                            text: currentTrack.albumName!,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              color: CupertinoColors.systemGrey2,
-                                            ),
-                                            maxWidth: currentTrack.artistName != null 
-                                                ? (MediaQuery.of(context).size.width - 60) * 0.45 
-                                                : MediaQuery.of(context).size.width - 60,
-                                          ),
-                                        ),
-                                      ),
-                                      if (currentTrack.artistName != null) ...[
-                                        const Text(
-                                          ' - ',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: CupertinoColors.systemGrey2,
-                                          ),
-                                        ),
-                                        Flexible(
-                                          child: GestureDetector(
-                                            onTap: () => _navigateToArtist(context, currentTrack, appState),
-                                            child: ScrollingText(
-                                              text: currentTrack.artistName!,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                color: CupertinoColors.systemGrey2,
-                                              ),
-                                              maxWidth: (MediaQuery.of(context).size.width - 60) * 0.45,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ] else if (currentTrack.artistName != null) ...[
-                                      Flexible(
-                                        child: GestureDetector(
-                                          onTap: () => _navigateToArtist(context, currentTrack, appState),
-                                          child: ScrollingText(
-                                            text: currentTrack.artistName!,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              color: CupertinoColors.systemGrey2,
-                                            ),
-                                            maxWidth: MediaQuery.of(context).size.width - 60,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
+                              GestureDetector(
+                                onTap: () {
+                                  // Navigate to album if available, otherwise to artist
+                                  if (currentTrack.albumName != null) {
+                                    _navigateToAlbum(context, currentTrack, appState);
+                                  } else if (currentTrack.artistName != null) {
+                                    _navigateToArtist(context, currentTrack, appState);
+                                  }
+                                },
+                                child: ScrollingText(
+                                  text: _buildArtistAlbumText(currentTrack),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: CupertinoColors.systemGrey2,
+                                  ),
+                                  maxWidth: MediaQuery.of(context).size.width - 60,
                                 ),
                               ),
                           ],
