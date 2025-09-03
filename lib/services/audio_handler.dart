@@ -1137,38 +1137,37 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
       // Priority matching: same artist tracks first
       final sameArtistTracks = availableTracks.where((track) => 
-        track.artist == currentTrack.artist
+        track.artistName == currentTrack.artistName && track.artistName != null
       ).toList();
 
-      // Secondary matching: same genre tracks
-      final sameGenreTracks = availableTracks.where((track) => 
-        track.artist != currentTrack.artist && 
-        track.genres?.any((genre) => currentTrack.genres?.contains(genre) ?? false) == true
+      // Secondary matching: same album tracks
+      final sameAlbumTracks = availableTracks.where((track) => 
+        track.artistName != currentTrack.artistName &&
+        track.albumName == currentTrack.albumName && track.albumName != null
       ).toList();
 
-      // Tertiary matching: same album artist or similar
+      // Tertiary matching: tracks from same album ID
       final similarTracks = availableTracks.where((track) => 
-        track.artist != currentTrack.artist &&
-        !(track.genres?.any((genre) => currentTrack.genres?.contains(genre) ?? false) == true) &&
-        (track.albumArtist == currentTrack.albumArtist || 
-         track.album == currentTrack.album)
+        track.artistName != currentTrack.artistName &&
+        track.albumName != currentTrack.albumName &&
+        track.albumId == currentTrack.albumId && track.albumId != null
       ).toList();
 
       // Shuffle each category to avoid predictable ordering
       sameArtistTracks.shuffle();
-      sameGenreTracks.shuffle();
+      sameAlbumTracks.shuffle();
       similarTracks.shuffle();
 
       // Combine results with weighted selection
       final result = <Track>[];
       
-      // Add up to 40% same artist tracks
-      final sameArtistCount = (limit * 0.4).round();
+      // Add up to 50% same artist tracks
+      final sameArtistCount = (limit * 0.5).round();
       result.addAll(sameArtistTracks.take(sameArtistCount));
       
-      // Add up to 40% same genre tracks
-      final sameGenreCount = (limit * 0.4).round();
-      result.addAll(sameGenreTracks.take(sameGenreCount));
+      // Add up to 30% same album tracks
+      final sameAlbumCount = ((limit - result.length) * 0.6).round();
+      result.addAll(sameAlbumTracks.take(sameAlbumCount));
       
       // Fill remaining with similar tracks
       final remainingCount = limit - result.length;
@@ -1185,7 +1184,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
       if (kDebugMode) {
         print('Generated ${result.length} similar tracks for radio mode');
-        print('Same artist: ${sameArtistTracks.length}, Same genre: ${sameGenreTracks.length}, Similar: ${similarTracks.length}');
+        print('Same artist: ${sameArtistTracks.length}, Same album: ${sameAlbumTracks.length}, Similar: ${similarTracks.length}');
       }
 
       return result;
