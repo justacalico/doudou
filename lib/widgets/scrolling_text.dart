@@ -11,8 +11,8 @@ class ScrollingText extends StatefulWidget {
     super.key,
     required this.text,
     this.style,
-    this.scrollDuration = const Duration(seconds: 8),
-    this.pauseDuration = const Duration(seconds: 2),
+    this.scrollDuration = const Duration(seconds: 6),
+    this.pauseDuration = const Duration(seconds: 1),
     required this.maxWidth,
   });
 
