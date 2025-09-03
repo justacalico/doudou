@@ -732,6 +732,71 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  void _showPlaylists(BuildContext context, AppState appState) {
+    final playlists = appState.playlists;
+    
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Color(0xFF000000),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Playlists',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Icon(
+                      CupertinoIcons.xmark,
+                      color: CupertinoColors.systemGrey2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Playlists List
+            Expanded(
+              child: playlists.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No playlists found',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: CupertinoColors.systemGrey2,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: playlists.length,
+                      itemBuilder: (context, index) {
+                        final playlist = playlists[index];
+                        return _buildPlaylistTile(playlist, appState);
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAlbumTile(Album album, AppState appState) {
     return CupertinoButton(
       padding: EdgeInsets.zero,
