@@ -21,9 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
-        backgroundColor: const Color(0xFF000000), // True black for OLED
+        backgroundColor: Colors.transparent,
         activeColor: CupertinoColors.systemRed, // Red for active tab
-        inactiveColor: CupertinoColors.systemGrey,
+        inactiveColor: CupertinoColors.systemGrey2,
+        border: null, // Remove default border
         items: const [
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.house_fill),
