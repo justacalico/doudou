@@ -55,4 +55,3 @@ setup-signing.sh
 /builds
 .notes
 *.png
-pubspec.lock
