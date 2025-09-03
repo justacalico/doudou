@@ -29,13 +29,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _favoriteScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.3,
-    ).animate(CurvedAnimation(
-      parent: _favoriteAnimationController,
-      curve: Curves.elasticOut,
-    ));
   }
   
   @override
