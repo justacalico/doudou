@@ -20,6 +20,7 @@ class NowPlayingScreen extends StatefulWidget {
 
 class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProviderStateMixin {
   late AnimationController _favoriteAnimationController;
+  late Animation<double> _favoriteScaleAnimation;
   bool _showVisualizer = false; // Toggle between album art and visualizer
   
   @override
@@ -29,6 +30,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
+    _favoriteScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(
+      parent: _favoriteAnimationController,
+      curve: Curves.elasticOut,
+    ));
   }
   
   @override
@@ -63,424 +71,399 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           }
 
           return SafeArea(
-            child: Column(
-              children: [
-                // Top bar with chevron down and cast icon
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
                     children: [
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(context),
+                      // Top bar with chevron down and cast icon
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => Navigator.pop(context),
+                              child: const Icon(
+                                CupertinoIcons.chevron_down,
+                                color: Color(0xFFFFFFFF),
+                                size: 28,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {}, // Cast functionality placeholder
+                              child: const Icon(
+                                CupertinoIcons.antenna_radiowaves_left_right,
+                                color: Color(0xFFFFFFFF),
+                                size: 28,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Album Art / Visualizer - responsive size (clickable to toggle)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showVisualizer = !_showVisualizer;
+                          });
+                        },
                         child: Container(
-                          width: 40,
-                          height: 40,
+                          width: MediaQuery.of(context).size.width * 0.75,
+                          height: MediaQuery.of(context).size.width * 0.75,
+                          constraints: const BoxConstraints(
+                            maxWidth: 320,
+                            maxHeight: 320,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1C1C1E).withOpacity(0.8),
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF000000).withOpacity(0.8),
+                                blurRadius: 40,
+                                offset: const Offset(0, 20),
+                              ),
+                            ],
                           ),
-                          child: const Icon(
-                            CupertinoIcons.chevron_down,
-                            color: Color(0xFFFFFFFF),
-                            size: 20,
-                          ),
+                          child: _showVisualizer
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: EmbeddedVisualizer(
+                                    trackName: currentTrack.name,
+                                    artistName: currentTrack.artistName,
+                                    isPlaying: audioHandler?.isPlaying ?? false,
+                                  ),
+                                )
+                              : AlbumArtWidget(
+                                  imageUrl: currentTrack.imageUrl != null
+                                      ? appState.jellyfinService.getImageUrl(
+                                          currentTrack.imageUrl!,
+                                          width: 800,
+                                          height: 800,
+                                        )
+                                      : null,
+                                  size: MediaQuery.of(context).size.width * 0.75,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                         ),
                       ),
-                      // Now Playing indicator
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1C1C1E).withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Now Playing',
-                          style: TextStyle(
-                            color: Color(0xFFFFFFFF),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Track info
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        child: Column(
+                          children: [
+                            Text(
+                              currentTrack.name,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFFFFFF),
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            if (currentTrack.albumName != null)
+                              GestureDetector(
+                                onTap: () => _navigateToAlbum(context, currentTrack, appState),
+                                child: Text(
+                                  currentTrack.albumName!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: CupertinoColors.systemGrey2,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            if (currentTrack.artistName != null)
+                              GestureDetector(
+                                onTap: () => _navigateToArtist(context, currentTrack, appState),
+                                child: Text(
+                                  currentTrack.artistName!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: CupertinoColors.systemGrey2,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {}, // Cast functionality placeholder
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1C1C1E).withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            CupertinoIcons.antenna_radiowaves_left_right,
-                            color: Color(0xFFFFFFFF),
-                            size: 20,
-                          ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Progress slider
+                      StreamBuilder<Duration>(
+                        stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
+                        builder: (context, snapshot) {
+                          final position = snapshot.data ?? Duration.zero;
+                          final duration = audioHandler?.duration ?? Duration.zero;
+                          
+                          // Calculate slider value with bounds checking
+                          double sliderValue = 0.0;
+                          if (duration.inMilliseconds > 0) {
+                            sliderValue = position.inMilliseconds / duration.inMilliseconds;
+                            // Ensure the value is within valid bounds (0.0 to 1.0)
+                            sliderValue = sliderValue.clamp(0.0, 1.0);
+                          }
+                          
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: Column(
+                              children: [
+                                CupertinoSlider(
+                                  value: sliderValue,
+                                  onChanged: (value) {
+                                    final newPosition = Duration(
+                                      milliseconds: (value * duration.inMilliseconds).round(),
+                                    );
+                                    appState.seekTo(newPosition);
+                                  },
+                                  activeColor: const Color(0xFFFFFFFF),
+                                  thumbColor: const Color(0xFFFFFFFF),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatDuration(position),
+                                      style: const TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+                                    ),
+                                    Text(
+                                      _formatDuration(duration),
+                                      style: const TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Control buttons
+                      StreamBuilder(
+                        stream: audioHandler?.playerStateStream,
+                        builder: (context, snapshot) {
+                          final isPlaying = audioHandler?.isPlaying ?? false;
+                          final processingState = audioHandler?.playerState.processingState;
+                          
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    final audioHandler = appState.audioHandler;
+                                    if (audioHandler?.isShuffled == true) {
+                                      audioHandler?.unshuffle();
+                                    } else {
+                                      audioHandler?.shuffle();
+                                    }
+                                  },
+                                  child: Icon(
+                                    CupertinoIcons.shuffle,
+                                    color: audioHandler?.isShuffled == true 
+                                        ? const Color(0xFFFF453A)
+                                        : CupertinoColors.systemGrey2,
+                                    size: 28,
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: audioHandler?.hasPrevious == true
+                                      ? () => appState.skipToPrevious()
+                                      : null,
+                                  child: Icon(
+                                    CupertinoIcons.backward_fill,
+                                    size: 40,
+                                    color: audioHandler?.hasPrevious == true 
+                                        ? const Color(0xFFFFFFFF)
+                                        : CupertinoColors.systemGrey2,
+                                  ),
+                                ),
+                                Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFFFFFF),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: processingState == ProcessingState.loading ||
+                                          processingState == ProcessingState.buffering
+                                      ? const Center(
+                                          child: CupertinoActivityIndicator(
+                                            color: Color(0xFF000000),
+                                          ),
+                                        )
+                                      : CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            appState.playPause();
+                                          },
+                                          child: Icon(
+                                            isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_arrow_solid,
+                                            size: 35,
+                                            color: const Color(0xFF000000),
+                                          ),
+                                        ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: audioHandler?.hasNext == true
+                                      ? () => appState.skipToNext()
+                                      : null,
+                                  child: Icon(
+                                    CupertinoIcons.forward_fill,
+                                    size: 40,
+                                    color: audioHandler?.hasNext == true 
+                                        ? const Color(0xFFFFFFFF)
+                                        : CupertinoColors.systemGrey2,
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () async {
+                                    final audioHandler = appState.audioHandler;
+                                    if (audioHandler != null) {
+                                      // Get current repeat mode
+                                      final currentState = audioHandler.playbackState.value;
+                                      final currentMode = currentState.repeatMode;
+                                      
+                                      // Cycle through repeat modes: none -> all -> one -> none
+                                      switch (currentMode) {
+                                        case AudioServiceRepeatMode.none:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                          break;
+                                        case AudioServiceRepeatMode.all:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                          break;
+                                        case AudioServiceRepeatMode.one:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                          break;
+                                        case AudioServiceRepeatMode.group:
+                                          await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                          break;
+                                      }
+                                    }
+                                  },
+                                  child: StreamBuilder<AudioServiceRepeatMode>(
+                                    stream: audioHandler?.playbackState.map((state) => state.repeatMode),
+                                    builder: (context, snapshot) {
+                                      final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
+                                      
+                                      return Icon(
+                                        repeatMode == AudioServiceRepeatMode.one 
+                                            ? CupertinoIcons.repeat_1
+                                            : CupertinoIcons.repeat,
+                                        color: repeatMode == AudioServiceRepeatMode.none
+                                            ? CupertinoColors.systemGrey2
+                                            : const Color(0xFFFF453A),
+                                        size: 28,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Bottom controls
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                showQueueOverlay(context);
+                              },
+                              child: const Icon(
+                                CupertinoIcons.list_bullet,
+                                color: Color(0xFFFFFFFF),
+                                size: 24,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                _showLyricsOverlay(context, currentTrack);
+                              },
+                              child: const Icon(
+                                CupertinoIcons.text_quote,
+                                color: Color(0xFFFFFFFF),
+                                size: 24,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                // Trigger animation
+                                await _favoriteAnimationController.forward();
+                                await _favoriteAnimationController.reverse();
+                                
+                                // Toggle favorite state
+                                appState.toggleFavorite(currentTrack);
+                              },
+                              child: AnimatedBuilder(
+                                animation: _favoriteScaleAnimation,
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: _favoriteScaleAnimation.value,
+                                    child: Icon(
+                                      currentTrack.isFavorite 
+                                          ? CupertinoIcons.heart_fill
+                                          : CupertinoIcons.heart,
+                                      color: currentTrack.isFavorite 
+                                          ? const Color(0xFFFF453A)
+                                          : CupertinoColors.systemRed,
+                                      size: 24,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => _showMoreOptions(context, currentTrack, appState),
+                              child: const Icon(
+                                CupertinoIcons.ellipsis,
+                                color: Color(0xFFFFFFFF),
+                                size: 24,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
-                
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 24),
-                          
-                          // Album Art / Visualizer - optimized for vertical view
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.85,
-                            height: MediaQuery.of(context).size.width * 0.85,
-                            constraints: const BoxConstraints(
-                              maxWidth: 360,
-                              maxHeight: 360,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF000000).withOpacity(0.6),
-                                  blurRadius: 60,
-                                  offset: const Offset(0, 30),
-                                  spreadRadius: -10,
-                                ),
-                                BoxShadow(
-                                  color: const Color(0xFFFFFFFF).withOpacity(0.05),
-                                  blurRadius: 1,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showVisualizer = !_showVisualizer;
-                                });
-                              },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: _showVisualizer
-                                    ? EmbeddedVisualizer(
-                                        trackName: currentTrack.name,
-                                        artistName: currentTrack.artistName,
-                                        isPlaying: audioHandler?.isPlaying ?? false,
-                                      )
-                                    : AlbumArtWidget(
-                                        imageUrl: currentTrack.imageUrl != null
-                                            ? appState.jellyfinService.getImageUrl(
-                                                currentTrack.imageUrl!,
-                                                width: 800,
-                                                height: 800,
-                                              )
-                                            : null,
-                                        size: MediaQuery.of(context).size.width * 0.85,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                              ),
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 40),
-                          
-                          // Track info with improved typography
-                          Column(
-                            children: [
-                              Text(
-                                currentTrack.name,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFFFFF),
-                                  letterSpacing: -0.5,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 12),
-                              if (currentTrack.artistName != null)
-                                GestureDetector(
-                                  onTap: () => _navigateToArtist(context, currentTrack, appState),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      color: const Color(0xFF1C1C1E).withOpacity(0.6),
-                                    ),
-                                    child: Text(
-                                      currentTrack.artistName!,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        color: Color(0xFFFFFFFF),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              if (currentTrack.albumName != null) ...[
-                                const SizedBox(height: 8),
-                                GestureDetector(
-                                  onTap: () => _navigateToAlbum(context, currentTrack, appState),
-                                  child: Text(
-                                    currentTrack.albumName!,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: CupertinoColors.systemGrey2.withOpacity(0.8),
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          
-                          const SizedBox(height: 40),
-                          
-                          // Enhanced progress slider
-                          StreamBuilder<Duration>(
-                            stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
-                            builder: (context, snapshot) {
-                              final position = snapshot.data ?? Duration.zero;
-                              final duration = audioHandler?.duration ?? Duration.zero;
-                              
-                              // Calculate slider value with bounds checking
-                              double sliderValue = 0.0;
-                              if (duration.inMilliseconds > 0) {
-                                sliderValue = position.inMilliseconds / duration.inMilliseconds;
-                                sliderValue = sliderValue.clamp(0.0, 1.0);
-                              }
-                              
-                              return Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: const Color(0xFF1C1C1E).withOpacity(0.3),
-                                ),
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  children: [
-                                    CupertinoSlider(
-                                      value: sliderValue,
-                                      onChanged: (value) {
-                                        final newPosition = Duration(
-                                          milliseconds: (value * duration.inMilliseconds).round(),
-                                        );
-                                        appState.seekTo(newPosition);
-                                      },
-                                      activeColor: const Color(0xFFFFFFFF),
-                                      thumbColor: const Color(0xFFFFFFFF),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          _formatDuration(position),
-                                          style: const TextStyle(
-                                            color: Color(0xFFFFFFFF),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        Text(
-                                          _formatDuration(duration),
-                                          style: const TextStyle(
-                                            color: Color(0xFFFFFFFF),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          
-                          const SizedBox(height: 32),
-                          
-                          // Enhanced control buttons
-                          StreamBuilder(
-                            stream: audioHandler?.playerStateStream,
-                            builder: (context, snapshot) {
-                              final isPlaying = audioHandler?.isPlaying ?? false;
-                              final processingState = audioHandler?.playerState.processingState;
-                              
-                              return Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(24),
-                                  color: const Color(0xFF1C1C1E).withOpacity(0.4),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    // Shuffle button
-                                    _buildControlButton(
-                                      icon: CupertinoIcons.shuffle,
-                                      isActive: audioHandler?.isShuffled == true,
-                                      onPressed: () {
-                                        final audioHandler = appState.audioHandler;
-                                        if (audioHandler?.isShuffled == true) {
-                                          audioHandler?.unshuffle();
-                                        } else {
-                                          audioHandler?.shuffle();
-                                        }
-                                      },
-                                    ),
-                                    
-                                    // Previous button
-                                    _buildControlButton(
-                                      icon: CupertinoIcons.backward_fill,
-                                      size: 32,
-                                      isEnabled: audioHandler?.hasPrevious == true,
-                                      onPressed: audioHandler?.hasPrevious == true
-                                          ? () => appState.skipToPrevious()
-                                          : null,
-                                    ),
-                                    
-                                    // Play/Pause button (larger)
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFFFFFF),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFFFFFFFF).withOpacity(0.3),
-                                            blurRadius: 20,
-                                            offset: const Offset(0, 8),
-                                          ),
-                                        ],
-                                      ),
-                                      child: processingState == ProcessingState.loading ||
-                                              processingState == ProcessingState.buffering
-                                          ? const Center(
-                                              child: CupertinoActivityIndicator(
-                                                color: Color(0xFF000000),
-                                                radius: 16,
-                                              ),
-                                            )
-                                          : CupertinoButton(
-                                              padding: EdgeInsets.zero,
-                                              onPressed: () => appState.playPause(),
-                                              child: Icon(
-                                                isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_arrow_solid,
-                                                size: 36,
-                                                color: const Color(0xFF000000),
-                                              ),
-                                            ),
-                                    ),
-                                    
-                                    // Next button
-                                    _buildControlButton(
-                                      icon: CupertinoIcons.forward_fill,
-                                      size: 32,
-                                      isEnabled: audioHandler?.hasNext == true,
-                                      onPressed: audioHandler?.hasNext == true
-                                          ? () => appState.skipToNext()
-                                          : null,
-                                    ),
-                                    
-                                    // Repeat button
-                                    StreamBuilder<AudioServiceRepeatMode>(
-                                      stream: audioHandler?.playbackState.map((state) => state.repeatMode),
-                                      builder: (context, snapshot) {
-                                        final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
-                                        
-                                        return _buildControlButton(
-                                          icon: repeatMode == AudioServiceRepeatMode.one 
-                                              ? CupertinoIcons.repeat_1
-                                              : CupertinoIcons.repeat,
-                                          isActive: repeatMode != AudioServiceRepeatMode.none,
-                                          onPressed: () async {
-                                            final audioHandler = appState.audioHandler;
-                                            if (audioHandler != null) {
-                                              switch (repeatMode) {
-                                                case AudioServiceRepeatMode.none:
-                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                                  break;
-                                                case AudioServiceRepeatMode.all:
-                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
-                                                  break;
-                                                case AudioServiceRepeatMode.one:
-                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-                                                  break;
-                                                case AudioServiceRepeatMode.group:
-                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-                                                  break;
-                                              }
-                                            }
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          
-                          const SizedBox(height: 32),
-                          
-                          // Enhanced bottom controls
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: const Color(0xFF1C1C1E).withOpacity(0.4),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildBottomControlButton(
-                                  icon: CupertinoIcons.list_bullet,
-                                  onPressed: () => showQueueOverlay(context),
-                                ),
-                                _buildBottomControlButton(
-                                  icon: CupertinoIcons.text_quote,
-                                  onPressed: () => _showLyricsOverlay(context, currentTrack),
-                                ),
-                                _buildBottomControlButton(
-                                  icon: currentTrack.isFavorite 
-                                      ? CupertinoIcons.heart_fill
-                                      : CupertinoIcons.heart,
-                                  color: currentTrack.isFavorite 
-                                      ? const Color(0xFFFF453A)
-                                      : null,
-                                  onPressed: () async {
-                                    await _favoriteAnimationController.forward();
-                                    await _favoriteAnimationController.reverse();
-                                    appState.toggleFavorite(currentTrack);
-                                  },
-                                ),
-                                _buildBottomControlButton(
-                                  icon: CupertinoIcons.ellipsis,
-                                  onPressed: () => _showMoreOptions(context, currentTrack, appState),
-                                ),
-                              ],
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           );
         },
@@ -855,62 +838,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           ],
         );
       },
-    );
-  }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required VoidCallback? onPressed,
-    bool isActive = false,
-    bool isEnabled = true,
-    double size = 24,
-  }) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: isEnabled ? onPressed : null,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isActive 
-              ? const Color(0xFFFF453A).withOpacity(0.2)
-              : const Color(0x00000000),
-        ),
-        child: Icon(
-          icon,
-          color: isActive 
-              ? const Color(0xFFFF453A)
-              : isEnabled 
-                  ? const Color(0xFFFFFFFF)
-                  : CupertinoColors.systemGrey2,
-          size: size,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomControlButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-    Color? color,
-  }) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: onPressed,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFF2C2C2E).withOpacity(0.6),
-        ),
-        child: Icon(
-          icon,
-          color: color ?? const Color(0xFFFFFFFF),
-          size: 22,
-        ),
-      ),
     );
   }
 }
