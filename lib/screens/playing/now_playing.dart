@@ -289,19 +289,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                 ),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    appState.toggleRadioMode();
-                                  },
-                                  child: Icon(
-                                    CupertinoIcons.infinite,
-                                    color: appState.radioModeEnabled
-                                        ? const Color(0xFFFF453A)
-                                        : CupertinoColors.systemGrey2,
-                                    size: 28,
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
                                   onPressed: audioHandler?.hasPrevious == true
                                       ? () => appState.skipToPrevious()
                                       : null,
