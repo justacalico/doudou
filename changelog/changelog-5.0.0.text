@@ -26,6 +26,7 @@
 - Display sub title as "album - artist".
 - Navbar now has a glass effect.
 - Mini_player now has a glass effect.
+- Moves the account informatcio
 
 ## Removed
 - Removed the download and favorite buttons from track list views.
