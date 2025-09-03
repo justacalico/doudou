@@ -392,69 +392,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF3A3A3C),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: value ? const Color(0xFF30D158) : const Color(0xFF007AFF), // Green when active, blue when inactive
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFFFFFFFF), // Pure white text
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFFAAAAAA), // Lighter gray
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          CupertinoSwitch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: const Color(0xFF30D158), // Green for OLED
-            trackColor: const Color(0xFF1C1C1E), // Dark track
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showLogoutDialog(BuildContext context, AppState appState) {
     showCupertinoDialog(
       context: context,
