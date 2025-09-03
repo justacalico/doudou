@@ -163,14 +163,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         padding: const EdgeInsets.symmetric(horizontal: 30),
                         child: Column(
                           children: [
-                            ScrollingText(
-                              text: currentTrack.name,
+                            Text(
+                              currentTrack.name,
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFFFFFFF),
                               ),
-                              maxWidth: MediaQuery.of(context).size.width - 60,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 8),
                             if (currentTrack.albumName != null)
