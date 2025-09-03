@@ -449,15 +449,106 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
       } else {
-        if (kDebugMode) {
-          print('Reached end of playlist, stopping playback');
+        // End of playlist reached
+        if (_radioModeEnabled && _currentTrack != null) {
+          if (kDebugMode) {
+            print('Reached end of playlist, adding radio tracks...');
+          }
+          
+          // Get similar tracks for radio mode
+          final similarTracks = await _getSimilarTracks(_currentTrack!, limit: 15);
+          
+          if (similarTracks.isNotEmpty) {
+            // Add similar tracks to the playlist
+            _playlist.addAll(similarTracks);
+            _queue.addAll(similarTracks);
+            
+            // Update audio service queue
+            queue.add(_playlist.map(_trackToMediaItem).toList());
+            
+            // Move to the next track (first radio track)
+            _currentIndex++;
+            final nextTrack = _playlist[_currentIndex];
+            
+            if (kDebugMode) {
+              print('Radio mode: Added ${similarTracks.length} tracks, now playing: ${nextTrack.name}');
+            }
+            
+            // Update media item
+            mediaItem.add(_trackToMediaItem(nextTrack));
+            
+            // Update playback state to loading
+            playbackState.add(playbackState.value.copyWith(
+              processingState: AudioProcessingState.loading,
+              queueIndex: _currentIndex,
+              playing: true,
+            ));
+            
+            // Play the radio track
+            try {
+              await _playCurrentTrack();
+              
+              // Verify playback started
+              for (int i = 0; i < 5; i++) {
+                await Future.delayed(const Duration(milliseconds: 200));
+                if (_player.playing) {
+                  break; // Successfully playing
+                }
+                
+                if (i == 4) {
+                  // Final attempt - force play
+                  if (kDebugMode) {
+                    print('Radio playback did not start, forcing play...');
+                  }
+                  try {
+                    await _player.play();
+                  } catch (playError) {
+                    if (kDebugMode) {
+                      print('Force play failed: $playError');
+                    }
+                  }
+                }
+              }
+              
+              // Save state after successful radio transition
+              await _savePlaybackState();
+              
+              if (kDebugMode) {
+                print('Successfully started radio mode with track: ${nextTrack.name}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error playing radio track, stopping: $e');
+              }
+              
+              // If radio track fails to play, stop playback
+              playbackState.add(playbackState.value.copyWith(
+                processingState: AudioProcessingState.completed,
+                playing: false,
+              ));
+            }
+          } else {
+            if (kDebugMode) {
+              print('No similar tracks found for radio mode, stopping playback');
+            }
+            
+            // No similar tracks available, stop playback
+            playbackState.add(playbackState.value.copyWith(
+              processingState: AudioProcessingState.completed,
+              playing: false,
+            ));
+          }
+        } else {
+          if (kDebugMode) {
+            print('Reached end of playlist, stopping playback');
+          }
+          
+          // End of playlist - update state to show completion
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.completed,
+            playing: false,
+          ));
         }
-        
-        // End of playlist - update state to show completion
-        playbackState.add(playbackState.value.copyWith(
-          processingState: AudioProcessingState.completed,
-          playing: false,
-        ));
       }
     } catch (e) {
       if (kDebugMode) {
