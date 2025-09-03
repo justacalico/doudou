@@ -49,6 +49,26 @@ class AudioSettingsSection extends StatelessWidget {
                   appState.toggleGaplessPlayback(value);
                 },
               ),
+              const Divider(
+                color: Color(0xFF2C2C2E),
+                height: 1,
+                indent: 20,
+                endIndent: 20,
+              ),
+              _buildDownloadTile(
+                context: context,
+                icon: CupertinoIcons.cloud_download,
+                title: 'Download All Songs',
+                subtitle: 'Download your entire music library',
+                onTap: () => _downloadAllSongs(context, appState),
+              ),
+              _buildDownloadTile(
+                context: context,
+                icon: CupertinoIcons.heart_circle,
+                title: 'Download All Favorites',
+                subtitle: 'Download all your liked songs',
+                onTap: () => _downloadAllFavorites(context, appState),
+              ),
             ],
           ),
         );
