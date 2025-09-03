@@ -179,7 +179,13 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    if (_searchResults.isEmpty) {
+    // Check if we have any results
+    final hasResults = _trackResults.isNotEmpty || 
+                       _albumResults.isNotEmpty || 
+                       _artistResults.isNotEmpty || 
+                       _playlistResults.isNotEmpty;
+
+    if (!hasResults) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -210,16 +216,104 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final track = _searchResults[index];
-        return TrackListItem(
-          track: track,
-          onTap: () => appState.playTrack(track),
-        );
-      },
+      children: [
+        // Top Results Section (show best matches first)
+        if (_trackResults.isNotEmpty || _albumResults.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Top Results',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFFFFFF),
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Show first track result if available
+          if (_trackResults.isNotEmpty)
+            _buildTopResultTrack(_trackResults.first, appState),
+          
+          // Show first album result if available
+          if (_albumResults.isNotEmpty)
+            _buildTopResultAlbum(_albumResults.first, appState),
+        ],
+        
+        // Artists Section
+        if (_artistResults.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Text(
+            'Artists (${_artistResults.length})',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFFFFFF),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._artistResults.take(5).map((artist) => _buildArtistResultItem(artist, appState)),
+          if (_artistResults.length > 5)
+            _buildShowMoreButton('artists', _artistResults.length - 5),
+        ],
+        
+        // Albums Section
+        if (_albumResults.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Text(
+            'Albums (${_albumResults.length})',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFFFFFF),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._albumResults.take(5).map((album) => _buildAlbumResultItem(album, appState)),
+          if (_albumResults.length > 5)
+            _buildShowMoreButton('albums', _albumResults.length - 5),
+        ],
+        
+        // Playlists Section
+        if (_playlistResults.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Text(
+            'Playlists (${_playlistResults.length})',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFFFFFF),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._playlistResults.take(5).map((playlist) => _buildPlaylistResultItem(playlist, appState)),
+          if (_playlistResults.length > 5)
+            _buildShowMoreButton('playlists', _playlistResults.length - 5),
+        ],
+        
+        // Songs Section
+        if (_trackResults.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Text(
+            'Songs (${_trackResults.length})',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFFFFFF),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._trackResults.take(10).map((track) => TrackListItem(
+            track: track,
+            onTap: () => appState.playTrack(track),
+          )),
+          if (_trackResults.length > 10)
+            _buildShowMoreButton('songs', _trackResults.length - 10),
+        ],
+        
+        const SizedBox(height: 100), // Bottom padding
+      ],
     );
   }
 
