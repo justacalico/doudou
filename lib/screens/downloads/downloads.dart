@@ -36,7 +36,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final downloadService = appState.downloadService;
         return Container(
           color: const Color(0xFF000000),
           child: Stack(
