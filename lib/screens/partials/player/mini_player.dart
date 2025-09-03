@@ -43,11 +43,11 @@ class MiniPlayer extends StatelessWidget {
                     ),
                   ],
                 ),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                CupertinoPageRoute(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
                   builder: (context) => const NowPlayingScreen(),
                 ),
               );
