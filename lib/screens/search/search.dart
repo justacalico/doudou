@@ -15,7 +15,13 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Track> _searchResults = [];
+  
+  // Search results by category
+  List<Track> _trackResults = [];
+  List<Album> _albumResults = [];
+  List<Artist> _artistResults = [];
+  List<Playlist> _playlistResults = [];
+  
   bool _isSearching = false;
   String _searchQuery = '';
 
@@ -28,7 +34,10 @@ class _SearchScreenState extends State<SearchScreen> {
   void _performSearch(String query, AppState appState) async {
     if (query.trim().isEmpty) {
       setState(() {
-        _searchResults = [];
+        _trackResults = [];
+        _albumResults = [];
+        _artistResults = [];
+        _playlistResults = [];
         _isSearching = false;
         _searchQuery = '';
       });
@@ -41,26 +50,55 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      // Search through all tracks for matches
-      final allTracks = appState.tracks;
-      final results = allTracks.where((track) {
+      final searchTerm = query.toLowerCase();
+      
+      // Search tracks
+      final trackResults = appState.tracks.where((track) {
         final trackName = track.name.toLowerCase();
         final artistName = track.artistName?.toLowerCase() ?? '';
         final albumName = track.albumName?.toLowerCase() ?? '';
-        final searchTerm = query.toLowerCase();
         
         return trackName.contains(searchTerm) ||
                artistName.contains(searchTerm) ||
                albumName.contains(searchTerm);
       }).toList();
 
+      // Search albums
+      final albumResults = appState.albums.where((album) {
+        final albumName = album.name.toLowerCase();
+        final artistName = album.artistName?.toLowerCase() ?? '';
+        
+        return albumName.contains(searchTerm) ||
+               artistName.contains(searchTerm);
+      }).toList();
+
+      // Search artists
+      final artistResults = appState.artists.where((artist) {
+        final artistName = artist.name.toLowerCase();
+        
+        return artistName.contains(searchTerm);
+      }).toList();
+
+      // Search playlists
+      final playlistResults = appState.playlists.where((playlist) {
+        final playlistName = playlist.name.toLowerCase();
+        
+        return playlistName.contains(searchTerm);
+      }).toList();
+
       setState(() {
-        _searchResults = results;
+        _trackResults = trackResults;
+        _albumResults = albumResults;
+        _artistResults = artistResults;
+        _playlistResults = playlistResults;
         _isSearching = false;
       });
     } catch (e) {
       setState(() {
-        _searchResults = [];
+        _trackResults = [];
+        _albumResults = [];
+        _artistResults = [];
+        _playlistResults = [];
         _isSearching = false;
       });
     }
