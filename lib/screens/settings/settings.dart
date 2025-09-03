@@ -281,7 +281,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 100)), // Space for mini player
+                const SliverToBoxAdapter(child: SizedBox(height: 160)), // Increased space for mini player + nav bar
               ],
             );
           },
