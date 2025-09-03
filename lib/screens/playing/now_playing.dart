@@ -750,11 +750,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
     final artistName = track.artistName;
     
     if (albumName != null && artistName != null) {
-      return '$albumName - $artistName';
-    } else if (albumName != null) {
-      return albumName;
+      return '$artistName - $albumName';
     } else if (artistName != null) {
       return artistName;
+    } else if (albumName != null) {
+      return albumName;
     } else {
       return 'Unknown Artist';
     }
