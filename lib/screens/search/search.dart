@@ -893,6 +893,111 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  Widget _buildPlaylistTile(Playlist playlist, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          // TODO: Navigate to playlist detail screen when implemented
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: Text(playlist.name),
+              content: Text('Playlist with ${playlist.trackCount} songs'),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF2C2C2E),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Playlist Image
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C1E),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: playlist.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          appState.jellyfinService.getImageUrl(
+                            playlist.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          ),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              CupertinoIcons.music_note_list,
+                              color: CupertinoColors.systemGrey2,
+                              size: 20,
+                            );
+                          },
+                        ),
+                      )
+                    : const Icon(
+                        CupertinoIcons.music_note_list,
+                        color: CupertinoColors.systemGrey2,
+                        size: 20,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              // Playlist Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      playlist.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${playlist.trackCount} songs',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey2,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildArtistTile(Artist artist, AppState appState) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
