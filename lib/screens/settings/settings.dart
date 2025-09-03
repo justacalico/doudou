@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/app_state.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';
+import 'partials/audio_settings.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
