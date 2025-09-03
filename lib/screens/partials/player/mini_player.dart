@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
+import 'dart:ui';
 import '../../../providers/app_state.dart';
 import '../../playing/now_playing.dart';
 import '../../../widgets/cached_image_widget.dart';
