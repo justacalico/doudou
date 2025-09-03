@@ -24,9 +24,10 @@ class MiniPlayer extends StatelessWidget {
         // Also check if the current widget tree contains SettingsScreen
         bool isOnSettingsPage = false;
         context.visitAncestorElements((element) {
-          if (element.widget.runtimeType.toString() == 'SettingsScreen' ||
-              element.widget.toString().contains('SettingsScreen') ||
-              element.widget.runtimeType.toString() == '_SettingsScreenState') {
+          final widgetType = element.widget.runtimeType.toString();
+          if (widgetType == 'SettingsScreen' ||
+              widgetType == '_SettingsScreenState' ||
+              element.widget.toString().contains('SettingsScreen')) {
             isOnSettingsPage = true;
             return false; // Stop traversing
           }
