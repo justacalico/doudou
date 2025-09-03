@@ -48,11 +48,11 @@ class MiniPlayer extends StatelessWidget {
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
-                  builder: (context) => const NowPlayingScreen(),
-                ),
-              );
-            },
-            child: Padding(
+                        builder: (context) => const NowPlayingScreen(),
+                      ),
+                    );
+                  },
+                  child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
