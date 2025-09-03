@@ -16,7 +16,22 @@ class MiniPlayer extends StatelessWidget {
         final audioHandler = appState.audioHandler;
         final currentTrack = audioHandler?.currentTrack;
         
-        if (currentTrack == null) {
+        // Check if we're on the settings screen
+        final currentRoute = ModalRoute.of(context)?.settings.name;
+        final isSettingsScreen = currentRoute == '/settings' || 
+                                ModalRoute.of(context)?.settings.arguments == 'settings';
+        
+        // Also check if the current widget tree contains SettingsScreen
+        bool isOnSettingsPage = false;
+        context.visitAncestorElements((element) {
+          if (element.widget.toString().contains('SettingsScreen')) {
+            isOnSettingsPage = true;
+            return false; // Stop traversing
+          }
+          return true; // Continue traversing
+        });
+        
+        if (currentTrack == null || isSettingsScreen || isOnSettingsPage) {
           return const SizedBox.shrink();
         }
 
