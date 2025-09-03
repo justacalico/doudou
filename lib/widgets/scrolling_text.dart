@@ -88,10 +88,14 @@ class _ScrollingTextState extends State<ScrollingText>
     await Future.delayed(widget.pauseDuration);
     if (mounted && _needsScrolling) {
       await _controller.forward();
-      await Future.delayed(widget.pauseDuration);
+      await Future.delayed(const Duration(milliseconds: 300)); // Brief pause at end
       if (mounted) {
-        _controller.reset();
-        _startScrolling();
+        // Quick spring back to start
+        await _controller.animateBack(0.0, duration: const Duration(milliseconds: 400), curve: Curves.elasticOut);
+        await Future.delayed(widget.pauseDuration);
+        if (mounted) {
+          _startScrolling();
+        }
       }
     }
   }
