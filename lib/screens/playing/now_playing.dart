@@ -254,57 +254,83 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           ),
                           
                           const SizedBox(height: 40),
-                      
-                      // Progress slider
-                      StreamBuilder<Duration>(
-                        stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
-                        builder: (context, snapshot) {
-                          final position = snapshot.data ?? Duration.zero;
-                          final duration = audioHandler?.duration ?? Duration.zero;
                           
-                          // Calculate slider value with bounds checking
-                          double sliderValue = 0.0;
-                          if (duration.inMilliseconds > 0) {
-                            sliderValue = position.inMilliseconds / duration.inMilliseconds;
-                            // Ensure the value is within valid bounds (0.0 to 1.0)
-                            sliderValue = sliderValue.clamp(0.0, 1.0);
-                          }
-                          
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 30),
-                            child: Column(
-                              children: [
-                                CupertinoSlider(
-                                  value: sliderValue,
-                                  onChanged: (value) {
-                                    final newPosition = Duration(
-                                      milliseconds: (value * duration.inMilliseconds).round(),
-                                    );
-                                    appState.seekTo(newPosition);
-                                  },
-                                  activeColor: const Color(0xFFFFFFFF),
-                                  thumbColor: const Color(0xFFFFFFFF),
+                          // Enhanced progress slider
+                          StreamBuilder<Duration>(
+                            stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
+                            builder: (context, snapshot) {
+                              final position = snapshot.data ?? Duration.zero;
+                              final duration = audioHandler?.duration ?? Duration.zero;
+                              
+                              // Calculate slider value with bounds checking
+                              double sliderValue = 0.0;
+                              if (duration.inMilliseconds > 0) {
+                                sliderValue = position.inMilliseconds / duration.inMilliseconds;
+                                sliderValue = sliderValue.clamp(0.0, 1.0);
+                              }
+                              
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: const Color(0xFF1C1C1E).withOpacity(0.3),
                                 ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
                                   children: [
-                                    Text(
-                                      _formatDuration(position),
-                                      style: const TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+                                    SliderTheme(
+                                      data: SliderThemeData(
+                                        trackHeight: 6,
+                                        thumbShape: const RoundSliderThumbShape(
+                                          enabledThumbRadius: 8,
+                                          elevation: 0,
+                                        ),
+                                        overlayShape: const RoundSliderOverlayShape(
+                                          overlayRadius: 16,
+                                        ),
+                                        activeTrackColor: const Color(0xFFFFFFFF),
+                                        inactiveTrackColor: const Color(0xFF3A3A3C),
+                                        thumbColor: const Color(0xFFFFFFFF),
+                                        overlayColor: const Color(0xFFFFFFFF).withOpacity(0.1),
+                                      ),
+                                      child: Slider(
+                                        value: sliderValue,
+                                        onChanged: (value) {
+                                          final newPosition = Duration(
+                                            milliseconds: (value * duration.inMilliseconds).round(),
+                                          );
+                                          appState.seekTo(newPosition);
+                                        },
+                                      ),
                                     ),
-                                    Text(
-                                      _formatDuration(duration),
-                                      style: const TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _formatDuration(position),
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFFFFF),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatDuration(duration),
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFFFFF),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      
-                      const SizedBox(height: 20),
+                              );
+                            },
+                          ),
+                          
+                          const SizedBox(height: 32),
                       
                       // Control buttons
                       StreamBuilder(
