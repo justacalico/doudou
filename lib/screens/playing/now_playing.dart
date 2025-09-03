@@ -883,7 +883,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           shape: BoxShape.circle,
           color: isActive 
               ? const Color(0xFFFF453A).withOpacity(0.2)
-              : Colors.transparent,
+              : CupertinoColors.clear,
         ),
         child: Icon(
           icon,
