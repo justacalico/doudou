@@ -442,81 +442,53 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           ),
                           
                           const SizedBox(height: 32),
-                      
-                      // Bottom controls
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () {
-                                showQueueOverlay(context);
-                              },
-                              child: const Icon(
-                                CupertinoIcons.list_bullet,
-                                color: Color(0xFFFFFFFF),
-                                size: 24,
-                              ),
+                          
+                          // Enhanced bottom controls
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: const Color(0xFF1C1C1E).withOpacity(0.4),
                             ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () {
-                                _showLyricsOverlay(context, currentTrack);
-                              },
-                              child: const Icon(
-                                CupertinoIcons.text_quote,
-                                color: Color(0xFFFFFFFF),
-                                size: 24,
-                              ),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildBottomControlButton(
+                                  icon: CupertinoIcons.list_bullet,
+                                  onPressed: () => showQueueOverlay(context),
+                                ),
+                                _buildBottomControlButton(
+                                  icon: CupertinoIcons.text_quote,
+                                  onPressed: () => _showLyricsOverlay(context, currentTrack),
+                                ),
+                                _buildBottomControlButton(
+                                  icon: currentTrack.isFavorite 
+                                      ? CupertinoIcons.heart_fill
+                                      : CupertinoIcons.heart,
+                                  color: currentTrack.isFavorite 
+                                      ? const Color(0xFFFF453A)
+                                      : null,
+                                  onPressed: () async {
+                                    await _favoriteAnimationController.forward();
+                                    await _favoriteAnimationController.reverse();
+                                    appState.toggleFavorite(currentTrack);
+                                  },
+                                ),
+                                _buildBottomControlButton(
+                                  icon: CupertinoIcons.ellipsis,
+                                  onPressed: () => _showMoreOptions(context, currentTrack, appState),
+                                ),
+                              ],
                             ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () async {
-                                // Trigger animation
-                                await _favoriteAnimationController.forward();
-                                await _favoriteAnimationController.reverse();
-                                
-                                // Toggle favorite state
-                                appState.toggleFavorite(currentTrack);
-                              },
-                              child: AnimatedBuilder(
-                                animation: _favoriteScaleAnimation,
-                                builder: (context, child) {
-                                  return Transform.scale(
-                                    scale: _favoriteScaleAnimation.value,
-                                    child: Icon(
-                                      currentTrack.isFavorite 
-                                          ? CupertinoIcons.heart_fill
-                                          : CupertinoIcons.heart,
-                                      color: currentTrack.isFavorite 
-                                          ? const Color(0xFFFF453A)
-                                          : CupertinoColors.systemRed,
-                                      size: 24,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () => _showMoreOptions(context, currentTrack, appState),
-                              child: const Icon(
-                                CupertinoIcons.ellipsis,
-                                color: Color(0xFFFFFFFF),
-                                size: 24,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                      
-                      const SizedBox(height: 20),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           );
         },
