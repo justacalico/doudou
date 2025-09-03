@@ -174,23 +174,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               maxWidth: MediaQuery.of(context).size.width - 60,
                             ),
                             const SizedBox(height: 8),
-                            if (currentTrack.artistName != null || currentTrack.albumName != null)
+                            if (currentTrack.albumName != null)
                               GestureDetector(
-                                onTap: () {
-                                  // Navigate to album if available, otherwise to artist
-                                  if (currentTrack.albumName != null) {
-                                    _navigateToAlbum(context, currentTrack, appState);
-                                  } else if (currentTrack.artistName != null) {
-                                    _navigateToArtist(context, currentTrack, appState);
-                                  }
-                                },
-                                child: ScrollingText(
-                                  text: _buildArtistAlbumText(currentTrack),
+                                onTap: () => _navigateToAlbum(context, currentTrack, appState),
+                                child: Text(
+                                  currentTrack.albumName!,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     color: CupertinoColors.systemGrey2,
                                   ),
-                                  maxWidth: MediaQuery.of(context).size.width - 60,
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            if (currentTrack.artistName != null)
+                              GestureDetector(
+                                onTap: () => _navigateToArtist(context, currentTrack, appState),
+                                child: Text(
+                                  currentTrack.artistName!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: CupertinoColors.systemGrey2,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                           ],
