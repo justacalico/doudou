@@ -23,10 +23,15 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         CupertinoTabScaffold(
           tabBar: CupertinoTabBar(
-            backgroundColor: const Color(0x00000000), // Fully transparent
+            backgroundColor: const Color(0xFF000000).withOpacity(0.8), // Semi-transparent black
             activeColor: CupertinoColors.systemRed, // Red for active tab
             inactiveColor: CupertinoColors.systemGrey2,
-            border: null, // Remove default border
+            border: Border(
+              top: BorderSide(
+                color: const Color(0xFFFFFFFF).withOpacity(0.2),
+                width: 0.5,
+              ),
+            ),
             items: const [
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.house_fill),
