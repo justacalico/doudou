@@ -29,10 +29,10 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
 - **Dynamic Theming**: Theme based on current album artwork
 
 ### Navigation & Search
-- **Global Search**: Search across artists, albums, songs, and playlists
 - **Search Filters**: Filter search results by type, year, genre
 - **Recent Searches**: Quick access to previous searches
 - **Voice Search**: Speech-to-text search functionality
+- ~~**Global Search**: Search across artists, albums, songs, and playlists~~
 
 ### Enhanced Screens
 - **Now Playing Redesign**: 
