@@ -277,30 +277,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                 padding: const EdgeInsets.all(20),
                                 child: Column(
                                   children: [
-                                    SliderTheme(
-                                      data: SliderThemeData(
-                                        trackHeight: 6,
-                                        thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 8,
-                                          elevation: 0,
-                                        ),
-                                        overlayShape: const RoundSliderOverlayShape(
-                                          overlayRadius: 16,
-                                        ),
-                                        activeTrackColor: const Color(0xFFFFFFFF),
-                                        inactiveTrackColor: const Color(0xFF3A3A3C),
-                                        thumbColor: const Color(0xFFFFFFFF),
-                                        overlayColor: const Color(0xFFFFFFFF).withOpacity(0.1),
-                                      ),
-                                      child: Slider(
-                                        value: sliderValue,
-                                        onChanged: (value) {
-                                          final newPosition = Duration(
-                                            milliseconds: (value * duration.inMilliseconds).round(),
-                                          );
-                                          appState.seekTo(newPosition);
-                                        },
-                                      ),
+                                    CupertinoSlider(
+                                      value: sliderValue,
+                                      onChanged: (value) {
+                                        final newPosition = Duration(
+                                          milliseconds: (value * duration.inMilliseconds).round(),
+                                        );
+                                        appState.seekTo(newPosition);
+                                      },
+                                      activeColor: const Color(0xFFFFFFFF),
+                                      thumbColor: const Color(0xFFFFFFFF),
                                     ),
                                     const SizedBox(height: 8),
                                     Row(
