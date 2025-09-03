@@ -6,7 +6,6 @@ import '../../providers/app_state.dart';
 import '../../models/download_models.dart';
 import '../../models/jellyfin_models.dart';
 import '../../services/download_service.dart';
-import '../partials/player/mini_player.dart';
 import 'playlists/playlists.dart';
 import 'albums/albums.dart';
 import 'songs/songs.dart';
