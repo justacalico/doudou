@@ -141,103 +141,119 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       child: Column(
                         children: [
                           const SizedBox(height: 24),
-                      
-                      // Album Art / Visualizer - responsive size (clickable to toggle)
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showVisualizer = !_showVisualizer;
-                          });
-                        },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.75,
-                          height: MediaQuery.of(context).size.width * 0.75,
-                          constraints: const BoxConstraints(
-                            maxWidth: 320,
-                            maxHeight: 320,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF000000).withOpacity(0.8),
-                                blurRadius: 40,
-                                offset: const Offset(0, 20),
+                          
+                          // Album Art / Visualizer - optimized for vertical view
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.85,
+                            height: MediaQuery.of(context).size.width * 0.85,
+                            constraints: const BoxConstraints(
+                              maxWidth: 360,
+                              maxHeight: 360,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF000000).withOpacity(0.6),
+                                  blurRadius: 60,
+                                  offset: const Offset(0, 30),
+                                  spreadRadius: -10,
+                                ),
+                                BoxShadow(
+                                  color: const Color(0xFFFFFFFF).withOpacity(0.05),
+                                  blurRadius: 1,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showVisualizer = !_showVisualizer;
+                                });
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: _showVisualizer
+                                    ? EmbeddedVisualizer(
+                                        trackName: currentTrack.name,
+                                        artistName: currentTrack.artistName,
+                                        isPlaying: audioHandler?.isPlaying ?? false,
+                                      )
+                                    : AlbumArtWidget(
+                                        imageUrl: currentTrack.imageUrl != null
+                                            ? appState.jellyfinService.getImageUrl(
+                                                currentTrack.imageUrl!,
+                                                width: 800,
+                                                height: 800,
+                                              )
+                                            : null,
+                                        size: MediaQuery.of(context).size.width * 0.85,
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
                               ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 40),
+                          
+                          // Track info with improved typography
+                          Column(
+                            children: [
+                              Text(
+                                currentTrack.name,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFFFFFFF),
+                                  letterSpacing: -0.5,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 12),
+                              if (currentTrack.artistName != null)
+                                GestureDetector(
+                                  onTap: () => _navigateToArtist(context, currentTrack, appState),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: const Color(0xFF1C1C1E).withOpacity(0.6),
+                                    ),
+                                    child: Text(
+                                      currentTrack.artistName!,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        color: Color(0xFFFFFFFF),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              if (currentTrack.albumName != null) ...[
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTap: () => _navigateToAlbum(context, currentTrack, appState),
+                                  child: Text(
+                                    currentTrack.albumName!,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: CupertinoColors.systemGrey2.withOpacity(0.8),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
-                          child: _showVisualizer
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: EmbeddedVisualizer(
-                                    trackName: currentTrack.name,
-                                    artistName: currentTrack.artistName,
-                                    isPlaying: audioHandler?.isPlaying ?? false,
-                                  ),
-                                )
-                              : AlbumArtWidget(
-                                  imageUrl: currentTrack.imageUrl != null
-                                      ? appState.jellyfinService.getImageUrl(
-                                          currentTrack.imageUrl!,
-                                          width: 800,
-                                          height: 800,
-                                        )
-                                      : null,
-                                  size: MediaQuery.of(context).size.width * 0.75,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Track info
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30),
-                        child: Column(
-                          children: [
-                            Text(
-                              currentTrack.name,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFFFFFFF),
-                              ),
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 8),
-                            if (currentTrack.albumName != null)
-                              GestureDetector(
-                                onTap: () => _navigateToAlbum(context, currentTrack, appState),
-                                child: Text(
-                                  currentTrack.albumName!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: CupertinoColors.systemGrey2,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            if (currentTrack.artistName != null)
-                              GestureDetector(
-                                onTap: () => _navigateToArtist(context, currentTrack, appState),
-                                child: Text(
-                                  currentTrack.artistName!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: CupertinoColors.systemGrey2,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 30),
+                          
+                          const SizedBox(height: 40),
                       
                       // Progress slider
                       StreamBuilder<Duration>(
