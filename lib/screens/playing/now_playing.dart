@@ -20,7 +20,6 @@ class NowPlayingScreen extends StatefulWidget {
 
 class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProviderStateMixin {
   late AnimationController _favoriteAnimationController;
-  late Animation<double> _favoriteScaleAnimation;
   bool _showVisualizer = false; // Toggle between album art and visualizer
   
   @override
