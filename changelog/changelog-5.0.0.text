@@ -29,6 +29,7 @@
 - Moves the account information into its own file.
 - Scroll effect for album name + artist.
 - Downloaded albums now reuse the album_details.
+- Downloaded playlist's now reuse the playlist screen.
 
 ## Removed
 - Removed the download and favorite buttons from track list views.
