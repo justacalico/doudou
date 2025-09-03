@@ -1436,6 +1436,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         _currentIndex = prefs.getInt('current_index') ?? 0;
         _isShuffled = prefs.getBool('is_shuffled') ?? false;
+        _radioModeEnabled = prefs.getBool('radio_mode_enabled') ?? false;
         final wasPlaying = prefs.getBool('was_playing') ?? false;
         
         if (_playlist.isNotEmpty && _currentIndex < _playlist.length) {
