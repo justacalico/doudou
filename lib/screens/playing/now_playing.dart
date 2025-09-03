@@ -71,43 +71,76 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           }
 
           return SafeArea(
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
+            child: Column(
+              children: [
+                // Top bar with chevron down and cast icon
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Top bar with chevron down and cast icon
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () => Navigator.pop(context),
-                              child: const Icon(
-                                CupertinoIcons.chevron_down,
-                                color: Color(0xFFFFFFFF),
-                                size: 28,
-                              ),
-                            ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () {}, // Cast functionality placeholder
-                              child: const Icon(
-                                CupertinoIcons.antenna_radiowaves_left_right,
-                                color: Color(0xFFFFFFFF),
-                                size: 28,
-                              ),
-                            ),
-                          ],
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1C1C1E).withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.chevron_down,
+                            color: Color(0xFFFFFFFF),
+                            size: 20,
+                          ),
                         ),
                       ),
-                      
-                      const SizedBox(height: 20),
+                      // Now Playing indicator
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1C1C1E).withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Now Playing',
+                          style: TextStyle(
+                            color: Color(0xFFFFFFFF),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {}, // Cast functionality placeholder
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1C1C1E).withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.antenna_radiowaves_left_right,
+                            color: Color(0xFFFFFFFF),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 24),
                       
                       // Album Art / Visualizer - responsive size (clickable to toggle)
                       GestureDetector(
