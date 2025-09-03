@@ -370,6 +370,15 @@ class _SearchScreenState extends State<SearchScreen> {
               _showArtists(context, appState);
             },
           ),
+          _buildBrowseCategory(
+            icon: CupertinoIcons.music_note_list,
+            title: 'Playlists',
+            subtitle: 'Browse all playlists',
+            color: const Color(0xFFAF52DE),
+            onTap: () {
+              _showPlaylists(context, appState);
+            },
+          ),
           // Add bottom padding for keyboard space
           const SizedBox(height: 100),
         ],
