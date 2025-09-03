@@ -908,4 +908,561 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+
+  // Top result widgets for featured display
+  Widget _buildTopResultTrack(Track track, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF000000),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF2C2C2E),
+          width: 1,
+        ),
+      ),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => appState.playTrack(track),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color(0xFF007AFF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                CupertinoIcons.music_note,
+                color: Color(0xFFFFFFFF),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    track.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Song • ${track.artistName ?? 'Unknown Artist'}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.systemGrey2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              CupertinoIcons.play_fill,
+              color: Color(0xFF007AFF),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopResultAlbum(Album album, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF000000),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF2C2C2E),
+          width: 1,
+        ),
+      ),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => AlbumDetailScreen(album: album),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color(0xFF30D158),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                CupertinoIcons.music_albums,
+                color: Color(0xFFFFFFFF),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    album.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Album • ${album.artistName ?? 'Unknown Artist'}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.systemGrey2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              CupertinoIcons.chevron_right,
+              color: CupertinoColors.systemGrey2,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArtistResultItem(Artist artist, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => ArtistDetailScreen(artist: artist),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF2C2C2E),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1E),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: artist.imageUrl != null
+                      ? Image.network(
+                          appState.jellyfinService.getImageUrl(
+                            artist.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          ),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              CupertinoIcons.person,
+                              color: CupertinoColors.systemGrey2,
+                              size: 20,
+                            );
+                          },
+                        )
+                      : const Icon(
+                          CupertinoIcons.person,
+                          color: CupertinoColors.systemGrey2,
+                          size: 20,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      artist.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Artist',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey2,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlbumResultItem(Album album, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => AlbumDetailScreen(album: album),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF2C2C2E),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C1E),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: album.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          appState.jellyfinService.getImageUrl(
+                            album.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          ),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              CupertinoIcons.music_albums,
+                              color: CupertinoColors.systemGrey2,
+                              size: 20,
+                            );
+                          },
+                        ),
+                      )
+                    : const Icon(
+                        CupertinoIcons.music_albums,
+                        color: CupertinoColors.systemGrey2,
+                        size: 20,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      album.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Album • ${album.artistName ?? 'Unknown Artist'}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey2,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaylistResultItem(Playlist playlist, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          // TODO: Navigate to playlist detail screen when implemented
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: Text(playlist.name),
+              content: Text('Playlist with ${playlist.trackCount} songs'),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF2C2C2E),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C1E),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: playlist.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          appState.jellyfinService.getImageUrl(
+                            playlist.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          ),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              CupertinoIcons.music_note_list,
+                              color: CupertinoColors.systemGrey2,
+                              size: 20,
+                            );
+                          },
+                        ),
+                      )
+                    : const Icon(
+                        CupertinoIcons.music_note_list,
+                        color: CupertinoColors.systemGrey2,
+                        size: 20,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      playlist.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Playlist • ${playlist.trackCount} songs',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey2,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShowMoreButton(String category, int remainingCount) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          _showAllResults(category);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C1C1E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF2C2C2E),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Show $remainingCount more $category',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF007AFF),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                CupertinoIcons.chevron_down,
+                color: Color(0xFF007AFF),
+                size: 14,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAllResults(String category) {
+    List<Widget> items = [];
+    String title = '';
+    
+    switch (category) {
+      case 'artists':
+        title = 'All Artists (${_artistResults.length})';
+        items = _artistResults.map((artist) => _buildArtistResultItem(artist, context.read<AppState>())).toList();
+        break;
+      case 'albums':
+        title = 'All Albums (${_albumResults.length})';
+        items = _albumResults.map((album) => _buildAlbumResultItem(album, context.read<AppState>())).toList();
+        break;
+      case 'playlists':
+        title = 'All Playlists (${_playlistResults.length})';
+        items = _playlistResults.map((playlist) => _buildPlaylistResultItem(playlist, context.read<AppState>())).toList();
+        break;
+      case 'songs':
+        title = 'All Songs (${_trackResults.length})';
+        items = _trackResults.map((track) => TrackListItem(
+          track: track,
+          onTap: () => context.read<AppState>().playTrack(track),
+        )).toList();
+        break;
+    }
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          color: Color(0xFF000000),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Icon(
+                      CupertinoIcons.xmark,
+                      color: CupertinoColors.systemGrey2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Results List
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: items,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
