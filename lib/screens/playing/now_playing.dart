@@ -495,6 +495,27 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
+              appState.toggleRadioMode();
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.infinite,
+                  color: appState.radioModeEnabled
+                      ? const Color(0xFFFF453A)
+                      : CupertinoColors.activeBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  appState.radioModeEnabled ? 'Disable Radio Mode' : 'Enable Radio Mode',
+                ),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
               _showAddToPlaylistDialog(context, currentTrack, appState);
             },
             child: const Row(
