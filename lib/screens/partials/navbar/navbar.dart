@@ -179,6 +179,31 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
       },
+        ),
+        // Glass overlay for the tab bar
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                height: 83, // Standard tab bar height
+                decoration: BoxDecoration(
+                  color: const Color(0xFF000000).withOpacity(0.3),
+                  border: Border(
+                    top: BorderSide(
+                      color: const Color(0xFFFFFFFF).withOpacity(0.1),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
