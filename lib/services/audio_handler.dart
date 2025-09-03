@@ -1098,6 +1098,105 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  // Radio Mode functionality for endless playback
+  void toggleRadioMode() {
+    _radioModeEnabled = !_radioModeEnabled;
+    
+    if (kDebugMode) {
+      print('Radio mode ${_radioModeEnabled ? 'enabled' : 'disabled'}');
+    }
+  }
+
+  void enableRadioMode() {
+    _radioModeEnabled = true;
+    
+    if (kDebugMode) {
+      print('Radio mode enabled');
+    }
+  }
+
+  void disableRadioMode() {
+    _radioModeEnabled = false;
+    
+    if (kDebugMode) {
+      print('Radio mode disabled');
+    }
+  }
+
+  // Get similar tracks for radio mode based on current track
+  Future<List<Track>> _getSimilarTracks(Track currentTrack, {int limit = 10}) async {
+    try {
+      // Get all tracks from the service
+      final allTracks = await _jellyfinService.getAllTracks();
+      
+      // Filter out tracks we've already played recently (last 20 tracks)
+      final recentTrackIds = _playlist.take(20).map((t) => t.id).toSet();
+      final availableTracks = allTracks.where((track) => 
+        track.id != currentTrack.id && !recentTrackIds.contains(track.id)
+      ).toList();
+
+      // Priority matching: same artist tracks first
+      final sameArtistTracks = availableTracks.where((track) => 
+        track.artist == currentTrack.artist
+      ).toList();
+
+      // Secondary matching: same genre tracks
+      final sameGenreTracks = availableTracks.where((track) => 
+        track.artist != currentTrack.artist && 
+        track.genres?.any((genre) => currentTrack.genres?.contains(genre) ?? false) == true
+      ).toList();
+
+      // Tertiary matching: same album artist or similar
+      final similarTracks = availableTracks.where((track) => 
+        track.artist != currentTrack.artist &&
+        !(track.genres?.any((genre) => currentTrack.genres?.contains(genre) ?? false) == true) &&
+        (track.albumArtist == currentTrack.albumArtist || 
+         track.album == currentTrack.album)
+      ).toList();
+
+      // Shuffle each category to avoid predictable ordering
+      sameArtistTracks.shuffle();
+      sameGenreTracks.shuffle();
+      similarTracks.shuffle();
+
+      // Combine results with weighted selection
+      final result = <Track>[];
+      
+      // Add up to 40% same artist tracks
+      final sameArtistCount = (limit * 0.4).round();
+      result.addAll(sameArtistTracks.take(sameArtistCount));
+      
+      // Add up to 40% same genre tracks
+      final sameGenreCount = (limit * 0.4).round();
+      result.addAll(sameGenreTracks.take(sameGenreCount));
+      
+      // Fill remaining with similar tracks
+      final remainingCount = limit - result.length;
+      result.addAll(similarTracks.take(remainingCount));
+
+      // If we still don't have enough, add random tracks
+      if (result.length < limit) {
+        final remainingAvailable = availableTracks.where((track) => 
+          !result.any((r) => r.id == track.id)
+        ).toList();
+        remainingAvailable.shuffle();
+        result.addAll(remainingAvailable.take(limit - result.length));
+      }
+
+      if (kDebugMode) {
+        print('Generated ${result.length} similar tracks for radio mode');
+        print('Same artist: ${sameArtistTracks.length}, Same genre: ${sameGenreTracks.length}, Similar: ${similarTracks.length}');
+      }
+
+      return result;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting similar tracks for radio mode: $e');
+      }
+      return [];
+    }
+  }
+
   void clearQueue() {
     _playlist.clear();
     _queue.clear();
