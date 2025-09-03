@@ -11,6 +11,7 @@
 - Navigate to album by clicking the album name in **Now Playing**.  
 - Navigate to artist page by clicking the artist name in **Now Playing**.  
 - Offline mode that keeps users logged in and restricts functionality to downloaded content when connectivity is lost.
+- **Global Search**: Search across artists, albums, songs, and playlists
 
 ## Changed
 - Embedded the visualizer instead of using a separate page.  
