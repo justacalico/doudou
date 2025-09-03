@@ -38,7 +38,7 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
 - **Now Playing Redesign**: 
   - Larger artwork display
   - Swipe gestures for track control
-  - Queue visualization
+  - ~~Queue visualization~~
   - ~~Lyrics integration~~
 - **Recently Played**: Quick access to recently played tracks/albums
 - **Queue Management**: 
