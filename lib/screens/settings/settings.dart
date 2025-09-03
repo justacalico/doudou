@@ -75,8 +75,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: SafeArea(
         child: Consumer<AppState>(
           builder: (context, appState, child) {
-            final server = appState.jellyfinService.currentServer;
-            
             return CustomScrollView(
               slivers: [
                 // Custom header for iOS-style left-aligned title
