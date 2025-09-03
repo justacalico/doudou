@@ -23,7 +23,8 @@ class ScrollingText extends StatefulWidget {
 class _ScrollingTextState extends State<ScrollingText>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late Animation<double> _scrollAnimation;
+  late Animation<double> _bounceAnimation;
   bool _needsScrolling = false;
   final GlobalKey _textKey = GlobalKey();
 
@@ -35,12 +36,22 @@ class _ScrollingTextState extends State<ScrollingText>
       vsync: this,
     );
     
-    _animation = Tween<double>(
+    // Main scrolling animation with easing
+    _scrollAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.linear,
+      curve: const Interval(0.0, 0.85, curve: Curves.easeInOut),
+    ));
+
+    // Spring bounce animation at the end
+    _bounceAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.85, 1.0, curve: Curves.elasticOut),
     ));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
