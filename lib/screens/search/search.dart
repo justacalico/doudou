@@ -1433,18 +1433,10 @@ class _SearchScreenState extends State<SearchScreen> {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () {
-          // TODO: Navigate to playlist detail screen when implemented
-          showCupertinoDialog(
-            context: context,
-            builder: (context) => CupertinoAlertDialog(
-              title: Text(playlist.name),
-              content: Text('Playlist with ${playlist.trackCount} songs'),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => PlaylistDetailScreen(playlist: playlist),
             ),
           );
         },
