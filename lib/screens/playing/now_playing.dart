@@ -865,4 +865,60 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       },
     );
   }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool isActive = false,
+    bool isEnabled = true,
+    double size = 24,
+  }) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: isEnabled ? onPressed : null,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isActive 
+              ? const Color(0xFFFF453A).withOpacity(0.2)
+              : Colors.transparent,
+        ),
+        child: Icon(
+          icon,
+          color: isActive 
+              ? const Color(0xFFFF453A)
+              : isEnabled 
+                  ? const Color(0xFFFFFFFF)
+                  : CupertinoColors.systemGrey2,
+          size: size,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    Color? color,
+  }) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: onPressed,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF2C2C2E).withOpacity(0.6),
+        ),
+        child: Icon(
+          icon,
+          color: color ?? const Color(0xFFFFFFFF),
+          size: 22,
+        ),
+      ),
+    );
+  }
 }
