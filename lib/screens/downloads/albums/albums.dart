@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../services/download_service.dart';
+import '../../albums/details/album_details.dart';
 
 class DownloadedAlbumsTab extends StatelessWidget {
   const DownloadedAlbumsTab({super.key});
