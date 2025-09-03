@@ -146,9 +146,8 @@ class DownloadedAlbumsTab extends StatelessWidget {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => DownloadedAlbumDetailScreen(
+        builder: (context) => AlbumDetailScreen(
           album: album,
-          downloadedTracks: tracks,
         ),
       ),
     );
