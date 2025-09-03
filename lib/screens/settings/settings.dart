@@ -102,50 +102,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
 
                 // Audio Settings Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF000000), // Pure black background
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader('Audio Settings'),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.volume_up,
-                          title: 'Smart Crossfade',
-                          subtitle: 'Smooth transitions between tracks',
-                          value: appState.smartCrossfadeEnabled,
-                          onChanged: (value) {
-                            appState.toggleSmartCrossfade(value);
-                          },
-                        ),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.speaker_2,
-                          title: 'Normalize Volume',
-                          subtitle: 'Reduces volume differences between tracks',
-                          value: appState.normalizeVolumeEnabled,
-                          onChanged: (value) {
-                            appState.toggleNormalizeVolume(value);
-                          },
-                        ),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.forward_end,
-                          title: 'Gapless Playback',
-                          subtitle: 'Seamless transitions between tracks in queue',
-                          value: appState.gaplessPlaybackEnabled,
-                          onChanged: (value) {
-                            appState.toggleGaplessPlayback(value);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                const SliverToBoxAdapter(
+                  child: AudioSettingsSection(),
                 ),
 
                 // Storage & Cache Section
