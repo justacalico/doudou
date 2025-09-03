@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/app_state.dart';
 import '../login/login.dart';
+import 'account_infomation.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
