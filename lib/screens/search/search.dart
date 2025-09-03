@@ -141,7 +141,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         child: CupertinoSearchTextField(
                           controller: _searchController,
-                          placeholder: 'Songs, artists, or albums',
+                          placeholder: 'Artists, albums, songs, or playlists',
                           style: const TextStyle(color: Color(0xFFFFFFFF)),
                           placeholderStyle: const TextStyle(color: CupertinoColors.systemGrey2),
                           backgroundColor: const Color(0x00000000),
