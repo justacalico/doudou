@@ -31,6 +31,7 @@
 - Added scroll effect for album name and artist in Now Playing.  
 - Downloaded albums now reuse the existing album detail screen.  
 - Downloaded playlists now reuse the playlist screen.
+- Moved the queue to its own .dart file.
 
 ## Removed
 - Removed **Download** and **Favorite** buttons from track list views.  
