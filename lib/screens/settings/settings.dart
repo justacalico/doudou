@@ -97,41 +97,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-                // Server Information Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF000000), // Pure black background
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader('Account Information'),
-                        if (server != null) ...[
-                          _buildInfoTile(
-                            icon: CupertinoIcons.person_circle,
-                            title: 'User ID',
-                            subtitle: server.userId?.substring(0, 8) ?? 'Not available',
-                          ),
-                          _buildInfoTile(
-                            icon: CupertinoIcons.globe,
-                            title: 'Server',
-                            subtitle: 'Connected to Jellyfin',
-                          ),
-                          _buildInfoTile(
-                            icon: CupertinoIcons.checkmark_seal,
-                            title: 'Connection Status',
-                            subtitle: 'Authenticated',
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                // Account Information Section
+                const SliverToBoxAdapter(
+                  child: AccountInformationSection(),
                 ),
 
                 // Audio Settings Section
