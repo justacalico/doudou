@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
-        backgroundColor: CupertinoColors.clear,
+        backgroundColor: const Color(0x00000000), // Fully transparent
         activeColor: CupertinoColors.systemRed, // Red for active tab
         inactiveColor: CupertinoColors.systemGrey2,
         border: null, // Remove default border
