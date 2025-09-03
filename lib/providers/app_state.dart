@@ -597,6 +597,24 @@ class AppState extends ChangeNotifier {
   List<Track> get queue => _audioHandler?.queueTracks ?? [];
   List<Track> get upNext => _audioHandler?.upNext ?? [];
   
+  // Radio mode controls
+  bool get radioModeEnabled => _audioHandler?.radioModeEnabled ?? false;
+  
+  void toggleRadioMode() {
+    _audioHandler?.toggleRadioMode();
+    notifyListeners();
+  }
+  
+  void enableRadioMode() {
+    _audioHandler?.enableRadioMode();
+    notifyListeners();
+  }
+  
+  void disableRadioMode() {
+    _audioHandler?.disableRadioMode();
+    notifyListeners();
+  }
+  
   void removeFromQueue(int index) {
     // Remove from queue functionality would need to be added to the handler
     notifyListeners();
