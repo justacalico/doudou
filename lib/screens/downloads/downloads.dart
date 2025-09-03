@@ -9,6 +9,7 @@ import '../../services/download_service.dart';
 import 'playlists/playlists.dart';
 import 'albums/albums.dart';
 import 'songs/songs.dart';
+import 'queue/queue.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
