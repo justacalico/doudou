@@ -331,24 +331,28 @@ class AudioSettingsSection extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) => CupertinoAlertDialog(
-        title: Text('Downloading $description'),
+        title: Text('Starting Downloads'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: 16),
             CupertinoActivityIndicator(),
             SizedBox(height: 16),
-            Text('Starting downloads...'),
+            Text('Preparing downloads...'),
           ],
         ),
       ),
     );
 
-    // Start downloads
+    // Start downloads (don't await - let them run in background)
     for (final track in tracks) {
       try {
         if (!appState.downloadService.isTrackDownloaded(track.id)) {
-          await appState.downloadService.downloadTrack(track);
+          // Start download without awaiting (fire and forget)
+          appState.downloadService.downloadTrack(track).catchError((error) {
+            // Handle individual download errors silently
+            return;
+          });
           downloadedCount++;
         } else {
           skippedCount++;
@@ -358,7 +362,7 @@ class AudioSettingsSection extends StatelessWidget {
       }
     }
 
-    // Close progress dialog
+    // Close progress dialog immediately
     if (context.mounted) {
       Navigator.of(context).pop();
     }
@@ -374,6 +378,7 @@ class AudioSettingsSection extends StatelessWidget {
         if (failedCount > 0) {
           message += ', $failedCount failed to start';
         }
+        message += '\n\nDownloads will continue in the background. Check the Downloads tab to monitor progress.';
       } else if (skippedCount > 0) {
         message = 'All $description are already downloaded';
       } else {
@@ -382,7 +387,7 @@ class AudioSettingsSection extends StatelessWidget {
 
       _showInfoDialog(
         context,
-        downloadedCount > 0 ? 'Downloads Started' : 'Download Complete',
+        downloadedCount > 0 ? 'Downloads Started' : 'Download Status',
         message,
       );
     }
