@@ -20,7 +20,8 @@ $(BUILD_DIR):
 .PHONY: android
 android: $(BUILD_DIR)
 	@echo "Building unsigned Android APK for version $(VERSION)..."
-	flutter build apk --debug
+	@echo "Using Android SDK at: $${ANDROID_SDK_ROOT:-$$ANDROID_HOME}"
+	ANDROID_SDK_ROOT=$${ANDROID_SDK_ROOT:-$$ANDROID_HOME} ANDROID_HOME=$${ANDROID_HOME:-$$ANDROID_SDK_ROOT} flutter build apk --debug
 	@echo "Copying APK to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-debug.apk"
 	cp build/app/outputs/flutter-apk/app-debug.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-debug.apk
 	@echo "Unsigned Android build complete!"
@@ -29,7 +30,8 @@ android: $(BUILD_DIR)
 .PHONY: android-release
 android-release: $(BUILD_DIR)
 	@echo "Building unsigned release Android APK for version $(VERSION)..."
-	flutter build apk --release --no-shrink
+	@echo "Using Android SDK at: $${ANDROID_SDK_ROOT:-$$ANDROID_HOME}"
+	ANDROID_SDK_ROOT=$${ANDROID_SDK_ROOT:-$$ANDROID_HOME} ANDROID_HOME=$${ANDROID_HOME:-$$ANDROID_SDK_ROOT} flutter build apk --release --no-shrink
 	@echo "Copying APK to $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-release-unsigned.apk"
 	cp build/app/outputs/flutter-apk/app-release.apk $(BUILD_DIR)/doudou-flutter-$(VERSION)-android-release-unsigned.apk
 	@echo "Unsigned release Android build complete!"
