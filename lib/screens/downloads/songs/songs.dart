@@ -210,14 +210,14 @@ class DownloadedSongsTab extends StatelessWidget {
     if (tracks.isEmpty) {
       // Show alert if no favorited downloaded tracks
       showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
+        context: appState.navigatorKey.currentContext!,
+        builder: (dialogContext) => CupertinoAlertDialog(
           title: const Text('No Favorited Downloads'),
           content: const Text('You don\'t have any downloaded songs that are also marked as favorites.'),
           actions: [
             CupertinoDialogAction(
               child: const Text('OK'),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
           ],
         ),
