@@ -3,6 +3,10 @@
 # Extract version from pubspec.yaml
 VERSION = $(shell grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
 
+# Ensure Android SDK environment is set
+ANDROID_HOME ?= $(ANDROID_SDK_ROOT)
+ANDROID_SDK_ROOT ?= $(ANDROID_HOME)
+
 # Build directory (relative to project for permission reasons)
 BUILD_DIR = ./builds/$(VERSION)
 # Get absolute path for the build directory
