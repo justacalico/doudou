@@ -108,3 +108,26 @@ build_android_debug:
     - main
     - develop
     - merge_requests
+
+# Release stage - Create GitLab Release with debug APK
+release_to_gitlab:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  dependencies:
+    - build_android_debug
+  script:
+    - echo "Creating GitLab Release with debug APK..."
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Debug build for Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
+    tag_name: '$CI_COMMIT_TAG'
+    # If no tag is present, use the pipeline ID
+    ref: '$CI_COMMIT_TAG'
+    assets:
+      links:
+        - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk'
+          link_type: 'package'
+  only:
+    - tags
+    - main
