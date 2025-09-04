@@ -1773,7 +1773,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Wait a moment for the new track to fully initialize before re-enabling completion checking
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1)); // Reduced from 2 seconds
+      
+      // Final verification: ensure the track is playing if it should be
+      if (wasPlaying && !_player.playing) {
+        if (kDebugMode) {
+          print('Gapless transition: Final check - track should be playing but isn\'t, forcing play...');
+        }
+        try {
+          await _player.play();
+          await Future.delayed(const Duration(milliseconds: 200)); // Give it a moment
+          if (kDebugMode) {
+            print('Gapless transition: Final play attempt result: ${_player.playing}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Gapless transition: Final play attempt failed: $e');
+          }
+        }
+      }
       
       // Re-enable completion checking AFTER the transition is complete
       _isHandlingCompletion = false;
