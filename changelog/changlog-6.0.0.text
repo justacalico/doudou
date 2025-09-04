@@ -2,7 +2,7 @@
 
 ## Added
 
-    - Automatically build .apks.
+- Automatically build .apks.
 
 ## Changed
 
@@ -14,4 +14,4 @@
 
 ## Todo
 
-    - Indiacte if a song is being played locally/downloaded or streaming.
+- Indiacte if a song is being played locally/downloaded or streaming.
