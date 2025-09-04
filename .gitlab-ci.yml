@@ -126,7 +126,7 @@ release_to_gitlab:
     assets:
       links:
         - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
-          url: '${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
           link_type: 'package'
   only:
     - tags
@@ -153,7 +153,7 @@ release_from_pipeline:
     assets:
       links:
         - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
-          url: '${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/main/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
           link_type: 'package'
   only:
     - main
