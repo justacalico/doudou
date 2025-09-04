@@ -102,7 +102,7 @@ build_android_debug:
     - develop
     - merge_requests
 
-# Build release APK (requires signing configuration)
+# Build unsigned release APK using Makefile
 build_android_release:
   stage: build
   image: ubuntu:22.04
@@ -110,7 +110,7 @@ build_android_release:
     - setup_flutter
   before_script:
     - apt-get update -qy
-    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
     - export PATH=$JAVA_HOME/bin:$PATH
     # Install Android SDK
@@ -131,28 +131,13 @@ build_android_release:
     - cd $CI_PROJECT_DIR
     - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-    # Check if signing environment variables are set
-    - |
-      if [[ -z "$KEY_ALIAS" || -z "$KEY_PASSWORD" || -z "$KEYSTORE_PASSWORD" ]]; then
-        echo "Warning: Signing environment variables not set. Building unsigned release APK."
-        flutter pub get
-        flutter build apk --release
-        mkdir -p builds/$CI_PIPELINE_ID
-        cp build/app/outputs/flutter-apk/app-release.apk builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk
-      else
-        echo "Building signed release APK..."
-        # Decode base64 keystore if provided
-        if [[ -n "$KEYSTORE_BASE64" ]]; then
-          echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
-        fi
-        flutter pub get
-        flutter build apk --release
-        mkdir -p builds/$CI_PIPELINE_ID
-        cp build/app/outputs/flutter-apk/app-release.apk builds/$CI_PIPELINE_ID/doudou-release-$CI_PIPELINE_ID.apk
-      fi
+    - flutter pub get
+    - make android-release
+    - mkdir -p builds/$CI_PIPELINE_ID
+    - cp builds/*/doudou-flutter-*-android-release-unsigned.apk builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk
   artifacts:
     paths:
-      - builds/$CI_PIPELINE_ID/doudou-release*.apk
+      - builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk
     expire_in: 90 days
   only:
     - main
