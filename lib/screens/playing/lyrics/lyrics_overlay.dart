@@ -431,7 +431,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
             
             return ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50), // Add more vertical padding
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100), // Extra padding for better scrolling
               itemCount: _lyricsResult!.syncedLyrics!.length,
               itemBuilder: (context, index) {
                 final line = _lyricsResult!.syncedLyrics![index];
