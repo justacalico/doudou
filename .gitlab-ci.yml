@@ -139,10 +139,11 @@ release_from_pipeline:
   dependencies:
     - build_android_debug
   before_script:
-    # Extract version from pubspec.yaml to use in release name
-    - apt-get update -qy && apt-get install -y grep sed
-    - VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
-    - echo "App version from pubspec.yaml: $VERSION"
+    - |
+      # Extract version from pubspec.yaml to use in release name
+      apt-get update -qy && apt-get install -y grep sed
+      VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
+      echo "App version from pubspec.yaml: $VERSION"
   script:
     - echo "Creating GitLab Release with debug APK (pipeline-based)..."
   release:
