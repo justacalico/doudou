@@ -100,6 +100,17 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
           for (int i = 0; i < result!.syncedLyrics!.length; i++) {
             _lineKeys.add(GlobalKey());
           }
+          
+          // After loading lyrics, check current position and scroll to appropriate line
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              final appState = Provider.of<AppState>(context, listen: false);
+              final currentPosition = appState.audioHandler?.playbackState.value.position ?? Duration.zero;
+              if (currentPosition > Duration.zero) {
+                _updateCurrentLine(currentPosition);
+              }
+            }
+          });
         }
       });
     } catch (e) {
