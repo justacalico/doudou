@@ -27,6 +27,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Preloading and caching
   final Map<String, AudioPlayer> _preloadedPlayers = {};
+  final Set<String> _preloadingTracks = {}; // Tracks currently being preloaded
   
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
