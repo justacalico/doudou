@@ -774,6 +774,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track) async {
+    // Store the current playing state to maintain it through the loading process
+    final wasPlaying = playbackState.value.playing;
+    
     // Check if track is downloaded locally first
     final localFilePath = _downloadService.getLocalFilePath(track.id);
     
