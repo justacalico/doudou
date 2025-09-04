@@ -97,8 +97,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             // Playback source indicator
                             Consumer<AppState>(
                               builder: (context, appState, child) {
-                                final isDownloaded = currentTrack != null && 
-                                    appState.downloadService.isTrackDownloaded(currentTrack.id);
+                                final isDownloaded = appState.downloadService.isTrackDownloaded(currentTrack.id);
                                 
                                 return Icon(
                                   isDownloaded 
