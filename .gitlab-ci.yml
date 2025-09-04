@@ -18,8 +18,8 @@ stages:
   - release
 
 default:
-  tags:
-    - share
+tags:
+    - android
 
 # Cache configuration
 cache:
@@ -66,8 +66,8 @@ cache:
 setup_flutter:
   stage: setup
   image: ubuntu:22.04
-  tags:
-    - share
+tags:
+    - android
 
   before_script:
     - *setup_common
@@ -91,8 +91,8 @@ setup_flutter:
 build_android_debug:
   stage: build
   image: ubuntu:22.04
-  tags:
-    - share
+tags:
+    - android
 
   dependencies:
     - setup_flutter
@@ -123,8 +123,8 @@ build_android_debug:
 build_android_release:
   stage: build
   image: ubuntu:22.04
-  tags:
-    - share
+tags:
+    - android
 
   dependencies:
     - setup_flutter
@@ -154,8 +154,8 @@ build_android_release:
 release_to_gitlab:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  tags:
-    - share
+tags:
+    - android
 
   dependencies:
     - build_android_debug
@@ -183,8 +183,8 @@ release_to_gitlab:
 release_from_pipeline:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  tags:
-    - share
+tags:
+    - android
   dependencies:
     - build_android_debug
     - build_android_release
