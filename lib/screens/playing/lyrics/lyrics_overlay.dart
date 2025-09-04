@@ -160,48 +160,56 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
         _currentLineIndex < _lineKeys.length && 
         _scrollController.hasClients) {
       
-      // Calculate the scroll position to center the current line
-      final baseItemHeight = 60.0; // Base height for normal lines
-      final currentItemHeight = 80.0; // Height for current line (larger)
-      final itemMargin = 12.0; // Vertical margin per item
-      
-      // Calculate total height up to current line
-      double totalHeight = 50.0; // Initial padding
-      for (int i = 0; i < _currentLineIndex; i++) {
-        totalHeight += baseItemHeight + itemMargin;
+      // Use ensureVisible as the primary method for better reliability
+      final context = _lineKeys[_currentLineIndex].currentContext;
+      if (context != null) {
+        try {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            alignment: 0.5, // Center the line in the viewport
+            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+          );
+        } catch (e) {
+          // Fallback to simple animateTo if ensureVisible fails
+          _fallbackScrollToLine();
+        }
+      } else {
+        // If context is not available, use fallback method
+        _fallbackScrollToLine();
       }
-      totalHeight += currentItemHeight / 2; // Half of current line height
-      
+    }
+  }
+
+  void _fallbackScrollToLine() {
+    if (!_scrollController.hasClients) return;
+    
+    try {
+      // Simple calculation to scroll to approximate position
+      final itemHeight = 70.0; // Average item height
+      final targetPosition = _currentLineIndex * itemHeight;
       final viewportHeight = _scrollController.position.viewportDimension;
-      final targetOffset = totalHeight - (viewportHeight / 2);
+      final centeredPosition = targetPosition - (viewportHeight / 2) + (itemHeight / 2);
       
-      // Clamp the offset to valid scroll range
+      // Clamp to valid range
       final maxOffset = _scrollController.position.maxScrollExtent;
       final minOffset = _scrollController.position.minScrollExtent;
-      final clampedOffset = targetOffset.clamp(minOffset, maxOffset);
+      final clampedOffset = centeredPosition.clamp(minOffset, maxOffset);
       
-      try {
-        _scrollController.animateTo(
-          clampedOffset,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      } catch (e) {
-        // Fallback to ensureVisible if animateTo fails
-        final context = _lineKeys[_currentLineIndex].currentContext;
-        if (context != null) {
-          try {
-            Scrollable.ensureVisible(
-              context,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeOut,
-              alignment: 0.5, // Center the line
-            );
-          } catch (e) {
-            // Ignore scroll errors that might occur during rapid transitions
-          }
-        }
-      }
+      _scrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    } catch (e) {
+      // If all else fails, jump to position without animation
+      final itemHeight = 70.0;
+      final targetPosition = (_currentLineIndex * itemHeight).clamp(
+        0.0, 
+        _scrollController.position.maxScrollExtent,
+      );
+      _scrollController.jumpTo(targetPosition);
     }
   }
 
