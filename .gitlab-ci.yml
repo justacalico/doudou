@@ -1,0 +1,200 @@
+# GitLab CI/CD Pipeline for Flutter Android APK Build
+
+variables:
+  # Flutter version to use
+  FLUTTER_VERSION: "3.24.0"
+  # Android SDK variables
+  ANDROID_SDK_ROOT: "/opt/android-sdk"
+  ANDROID_HOME: "/opt/android-sdk"
+  # Java version
+  JAVA_VERSION: "17"
+
+# Define stages
+stages:
+  - setup
+  - test
+  - build
+  - deploy
+
+# Cache configuration
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .pub-cache/
+    - .gradle/
+    - android/.gradle/
+    - build/
+
+# Setup stage - Install Flutter and dependencies
+setup_flutter:
+  stage: setup
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    # Install Android SDK
+    - mkdir -p $ANDROID_SDK_ROOT
+    - cd $ANDROID_SDK_ROOT
+    - wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    - unzip -q commandlinetools-linux-9477386_latest.zip
+    - mkdir -p cmdline-tools/latest
+    - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+    - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+    - yes | sdkmanager --licenses
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+    # Install Flutter
+    - cd /opt
+    - git clone https://github.com/flutter/flutter.git -b stable --depth 1
+    - export PATH="/opt/flutter/bin:$PATH"
+    - flutter doctor -v
+    - flutter --version
+  script:
+    - cd $CI_PROJECT_DIR
+    - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - flutter pub get
+    - flutter doctor -v
+  artifacts:
+    paths:
+      - .pub-cache/
+    expire_in: 1 hour
+
+# Test stage - Run Flutter tests
+test:
+  stage: test
+  image: ubuntu:22.04
+  dependencies:
+    - setup_flutter
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    # Install Flutter
+    - cd /opt
+    - git clone https://github.com/flutter/flutter.git -b stable --depth 1
+    - export PATH="/opt/flutter/bin:$PATH"
+  script:
+    - cd $CI_PROJECT_DIR
+    - export PATH="/opt/flutter/bin:$PATH"
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - flutter pub get
+    - flutter analyze
+    - flutter test
+  allow_failure: true
+
+# Build stage - Build Android APK
+build_android_debug:
+  stage: build
+  image: ubuntu:22.04
+  dependencies:
+    - setup_flutter
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    # Install Android SDK
+    - mkdir -p $ANDROID_SDK_ROOT
+    - cd $ANDROID_SDK_ROOT
+    - wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    - unzip -q commandlinetools-linux-9477386_latest.zip
+    - mkdir -p cmdline-tools/latest
+    - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+    - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+    - yes | sdkmanager --licenses
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+    # Install Flutter
+    - cd /opt
+    - git clone https://github.com/flutter/flutter.git -b stable --depth 1
+    - export PATH="/opt/flutter/bin:$PATH"
+  script:
+    - cd $CI_PROJECT_DIR
+    - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - flutter pub get
+    - flutter build apk --debug
+    - mkdir -p builds/$CI_PIPELINE_ID
+    - cp build/app/outputs/flutter-apk/app-debug.apk builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
+  artifacts:
+    paths:
+      - builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
+    expire_in: 30 days
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# Build release APK (requires signing configuration)
+build_android_release:
+  stage: build
+  image: ubuntu:22.04
+  dependencies:
+    - setup_flutter
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    # Install Android SDK
+    - mkdir -p $ANDROID_SDK_ROOT
+    - cd $ANDROID_SDK_ROOT
+    - wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    - unzip -q commandlinetools-linux-9477386_latest.zip
+    - mkdir -p cmdline-tools/latest
+    - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+    - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+    - yes | sdkmanager --licenses
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+    # Install Flutter
+    - cd /opt
+    - git clone https://github.com/flutter/flutter.git -b stable --depth 1
+    - export PATH="/opt/flutter/bin:$PATH"
+  script:
+    - cd $CI_PROJECT_DIR
+    - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    # Check if signing environment variables are set
+    - |
+      if [[ -z "$KEY_ALIAS" || -z "$KEY_PASSWORD" || -z "$KEYSTORE_PASSWORD" ]]; then
+        echo "Warning: Signing environment variables not set. Building unsigned release APK."
+        flutter pub get
+        flutter build apk --release
+        mkdir -p builds/$CI_PIPELINE_ID
+        cp build/app/outputs/flutter-apk/app-release.apk builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk
+      else
+        echo "Building signed release APK..."
+        # Decode base64 keystore if provided
+        if [[ -n "$KEYSTORE_BASE64" ]]; then
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
+        fi
+        flutter pub get
+        flutter build apk --release
+        mkdir -p builds/$CI_PIPELINE_ID
+        cp build/app/outputs/flutter-apk/app-release.apk builds/$CI_PIPELINE_ID/doudou-release-$CI_PIPELINE_ID.apk
+      fi
+  artifacts:
+    paths:
+      - builds/$CI_PIPELINE_ID/doudou-release*.apk
+    expire_in: 90 days
+  only:
+    - main
+    - tags
+
+# Deploy stage - Upload to releases (optional)
+deploy_release:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build_android_release
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - echo "Release APK built successfully"
+    - ls -la builds/$CI_PIPELINE_ID/
+    # Add your deployment logic here (e.g., upload to GitLab releases, Play Store, etc.)
+  only:
+    - tags
+  when: manual
