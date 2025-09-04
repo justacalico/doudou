@@ -189,6 +189,7 @@ release_from_pipeline:
     - local
   dependencies:
     - build_android_debug
+    - build_android_release
   before_script:
     - |
       # Extract version from pubspec.yaml to use in release name
@@ -196,16 +197,19 @@ release_from_pipeline:
       VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
       echo "App version from pubspec.yaml: $VERSION"
   script:
-    - echo "Creating GitLab Release with debug APK (pipeline-based)..."
+    - echo "Creating GitLab Release with debug and release APKs (pipeline-based)..."
   release:
-    name: 'Debug v$VERSION-build.$CI_PIPELINE_ID'
-    description: 'Debug build for Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
+    name: 'Build v$VERSION-$CI_PIPELINE_ID'
+    description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
     tag_name: 'build-$CI_PIPELINE_ID'
     ref: '$CI_COMMIT_SHA'
     assets:
       links:
         - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
           url: '${CI_PROJECT_URL}/-/jobs/artifacts/main/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
+          link_type: 'package'
+        - name: 'doudou-release-unsigned-$CI_PIPELINE_ID.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/main/raw/builds/${CI_PIPELINE_ID}/doudou-release-unsigned-${CI_PIPELINE_ID}.apk?job=build_android_release&inline=false'
           link_type: 'package'
   only:
     - main
