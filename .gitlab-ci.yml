@@ -123,6 +123,7 @@ build_android_debug:
 build_android_release:
   stage: build
   image: ubuntu:22.04
+  timeout: 30m
   dependencies:
     - setup_flutter
   before_script:
