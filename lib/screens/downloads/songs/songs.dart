@@ -194,6 +194,41 @@ class DownloadedSongsTab extends StatelessWidget {
       }
     }
   }
+  
+  void _playFavoritesDownloaded(AppState appState, Map<String, DownloadedTrack> downloadedTracks) {
+    // Get tracks that are both downloaded and favorited
+    final tracks = downloadedTracks.keys
+        .map((trackId) {
+          return appState.tracks.firstWhere(
+            (t) => t.id == trackId,
+            orElse: () => Track(id: trackId, name: 'Unknown Track'),
+          );
+        })
+        .where((track) => track.isFavorite)
+        .toList();
+    
+    if (tracks.isEmpty) {
+      // Show alert if no favorited downloaded tracks
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('No Favorited Downloads'),
+          content: const Text('You don\'t have any downloaded songs that are also marked as favorites.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    
+    // Create a shuffled copy of the tracks
+    final shuffledTracks = List<Track>.from(tracks)..shuffle();
+    appState.playPlaylist(shuffledTracks, 0);
+  }
 
   void _deleteDownload(BuildContext context, DownloadService downloadService, String trackId) {
     showCupertinoDialog(
