@@ -88,8 +88,12 @@ build_android_debug:
     - cd $CI_PROJECT_DIR
     - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
     - flutter pub get
+    - echo "Running make android..."
     - make android
+    - echo "Build completed, checking output..."
+    - ls -la builds/
     - mkdir -p builds/$CI_PIPELINE_ID
     - cp builds/*/doudou-flutter-*-android-debug.apk builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
   artifacts:
