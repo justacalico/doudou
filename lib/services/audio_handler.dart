@@ -391,10 +391,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           mediaItem.add(_trackToMediaItem(nextTrack));
           
           // Update playback state to show we're loading the next track
+          // Preserve the current playing state to prevent pausing
+          final wasPlaying = playbackState.value.playing;
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.loading,
             queueIndex: _currentIndex,
-            playing: true, // Ensure playing state is maintained for background
+            playing: wasPlaying, // Maintain the current playing state
           ));
           
           // Play the next track with enhanced error handling for background mode
