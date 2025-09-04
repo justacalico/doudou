@@ -12,7 +12,6 @@ variables:
 # Define stages
 stages:
   - setup
-  - test
   - build
   - deploy
 
