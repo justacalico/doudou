@@ -131,3 +131,31 @@ release_to_gitlab:
   only:
     - tags
     - main
+
+# Create a release for non-tagged pipelines (e.g., main branch)
+release_from_pipeline:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  dependencies:
+    - build_android_debug
+  before_script:
+    # Extract version from pubspec.yaml to use in release name
+    - apt-get update -qy && apt-get install -y grep sed
+    - VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
+    - echo "App version from pubspec.yaml: $VERSION"
+  script:
+    - echo "Creating GitLab Release with debug APK (pipeline-based)..."
+  release:
+    name: 'Debug v$VERSION-build.$CI_PIPELINE_ID'
+    description: 'Debug build for Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
+    tag_name: 'v$VERSION-build.$CI_PIPELINE_ID'
+    ref: '$CI_COMMIT_SHA'
+    assets:
+      links:
+        - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk'
+          link_type: 'package'
+  only:
+    - main
+  except:
+    - tags
