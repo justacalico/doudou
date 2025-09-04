@@ -452,6 +452,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Has next track: ${_currentIndex < _playlist.length - 1}');
         print('Current playing state: ${playbackState.value.playing}');
         print('Player playing state: ${_player.playing}');
+        print('Gapless playback enabled: ${_gaplessPlaybackEnabled}');
       }
       
       // Reset stuck detection counters
@@ -462,10 +463,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final currentTrackName = _currentTrack?.name;
       final currentIndex = _currentIndex;
       
+      // Preserve current playing state through the transition - CRITICAL
+      final wasPlaying = playbackState.value.playing || _player.playing;
+      
       // Check if we have a next track to play
       if (_currentIndex < _playlist.length - 1) {
         if (kDebugMode) {
-          print('Moving to next track...');
+          print('Moving to next track... (was playing: $wasPlaying)');
         }
         
         final nextTrack = _playlist[_currentIndex + 1];
@@ -491,7 +495,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _currentIndex++;
           
           if (kDebugMode) {
-            print('Next track: ${nextTrack.name}');
+            print('Next track: ${nextTrack.name} (gapless disabled or no preloaded player)');
           }
           
           // Update media item immediately for better background experience
@@ -499,7 +503,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           // Update playback state to show we're loading the next track
           // Preserve the current playing state to prevent pausing
-          final wasPlaying = playbackState.value.playing;
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.loading,
             queueIndex: _currentIndex,
@@ -510,34 +513,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           try {
             await _playCurrentTrack();
             
-            // Enhanced verification for background playback - wait longer and check multiple times
-            // Also ensure we maintain the playing state throughout the transition
-            final shouldBePlaying = playbackState.value.playing;
-            for (int i = 0; i < 8; i++) {
-              await Future.delayed(const Duration(milliseconds: 150));
-              if (_player.playing) {
-                break; // Successfully playing
+            // Make absolutely sure we're in the expected playing state after transition
+            if (wasPlaying && !_player.playing) {
+              if (kDebugMode) {
+                print('Transition complete but not playing when it should be. Forcing playback...');
               }
               
-              if (i == 7) {
-                // Final attempt - force play if we should be playing
-                if (kDebugMode) {
-                  print('Playback did not start after multiple attempts, forcing play...');
-                }
+              // Try multiple times to start playback in case of player state inconsistency
+              for (int i = 0; i < 5; i++) {
                 try {
-                  if (shouldBePlaying) {
-                    await _player.play();
-                    // Give it one more chance to start
-                    await Future.delayed(const Duration(milliseconds: 200));
+                  await _player.play();
+                  await Future.delayed(const Duration(milliseconds: 100));
+                  if (_player.playing) {
                     if (kDebugMode) {
-                      print('Force play result: ${_player.playing}');
+                      print('Post-transition playback started on attempt ${i+1}');
                     }
+                    break;
                   }
-                } catch (playError) {
+                } catch (e) {
                   if (kDebugMode) {
-                    print('Force play failed: $playError');
+                    print('Post-transition play attempt ${i+1} failed: $e');
                   }
                 }
+              }
+              
+              // Force state consistency as last resort
+              if (!_player.playing) {
+                if (kDebugMode) {
+                  print('CRITICAL: All post-transition play attempts failed. Forcing state consistency.');
+                }
+                playbackState.add(playbackState.value.copyWith(
+                  playing: true, // Force the state to match expectations
+                ));
+                // One final attempt
+                _player.play().catchError((e) => print('Final post-transition play attempt error: $e'));
               }
             }
           } catch (e) {
