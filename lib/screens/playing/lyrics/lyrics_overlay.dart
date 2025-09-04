@@ -125,7 +125,7 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     if (_lyricsResult?.syncedLyrics == null || _isUpdatingLine) return;
     
     // Throttle updates to prevent excessive rebuilds
-    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) {
+    if ((position - _lastPosition).abs() < const Duration(milliseconds: 25)) {
       return;
     }
     
