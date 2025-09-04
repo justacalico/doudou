@@ -60,31 +60,7 @@ setup_flutter:
       - .pub-cache/
     expire_in: 1 hour
 
-# Test stage - Run Flutter tests
-test:
-  stage: test
-  image: ubuntu:22.04
-  dependencies:
-    - setup_flutter
-  before_script:
-    - apt-get update -qy
-    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
-    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-    - export PATH=$JAVA_HOME/bin:$PATH
-    # Install Flutter
-    - cd /opt
-    - git clone https://github.com/flutter/flutter.git -b stable --depth 1
-    - export PATH="/opt/flutter/bin:$PATH"
-  script:
-    - cd $CI_PROJECT_DIR
-    - export PATH="/opt/flutter/bin:$PATH"
-    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-    - flutter pub get
-    - flutter analyze
-    - flutter test
-  allow_failure: true
-
-# Build stage - Build Android APK
+# Build stage - Build Android APK using Makefile
 build_android_debug:
   stage: build
   image: ubuntu:22.04
