@@ -947,11 +947,36 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             // Only start playing if we were playing before
             if (wasPlaying) {
               await _player.play();
+              
+              // Enhanced verification for auto-play - wait and force if needed
+              for (int i = 0; i < 10; i++) {
+                await Future.delayed(const Duration(milliseconds: 100));
+                if (_player.playing) {
+                  break; // Successfully playing
+                }
+                
+                if (i == 9) {
+                  // Final attempt - force play one more time
+                  if (kDebugMode) {
+                    print('Stream: Playback did not start automatically, forcing play...');
+                  }
+                  try {
+                    await _player.play();
+                  } catch (playError) {
+                    if (kDebugMode) {
+                      print('Stream: Force play failed: $playError');
+                    }
+                  }
+                }
+              }
             }
             loadedSuccessfully = true;
             
             if (kDebugMode) {
               print('Successfully ${wasPlaying ? "started playing" : "loaded"}: ${track.name} using $streamType URL');
+              if (wasPlaying) {
+                print('Stream auto-play result: ${_player.playing}');
+              }
             }
             break; // Success! Exit the loop
           } else {
