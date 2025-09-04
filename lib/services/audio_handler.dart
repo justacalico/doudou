@@ -58,6 +58,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
+      // Important: Handle playback states consistently
+      final bool shouldBePlaying = playbackState.value.playing;
+      
       playbackState.add(playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
@@ -78,34 +81,61 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         queueIndex: _currentIndex,
       ));
       
-      // CRITICAL: Auto-play mechanism when track becomes ready during transitions
-      if (playerState.processingState == ProcessingState.ready && 
-          !isPlaying && 
-          playbackState.value.playing && 
-          !_isHandlingCompletion) {
-        // The playback state indicates we should be playing, but we're not
-        // This happens during track transitions - force play immediately
-        if (kDebugMode) {
-          print('Auto-play trigger: Track ready but not playing when it should be, forcing play...');
-        }
-        
-        // Use a short delay to ensure the player is fully ready
-        Future.delayed(const Duration(milliseconds: 50), () async {
-          if (_player.processingState == ProcessingState.ready && 
-              !_player.playing && 
-              playbackState.value.playing) {
-            try {
-              await _player.play();
-              if (kDebugMode) {
-                print('Auto-play trigger successful: ${_player.playing}');
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                print('Auto-play trigger failed: $e');
+      // CRITICAL: More aggressive auto-play mechanism
+      if (playerState.processingState == ProcessingState.ready) {
+        // Case 1: Track is ready but not playing when it should be
+        if (!isPlaying && shouldBePlaying && !_isHandlingCompletion) {
+          if (kDebugMode) {
+            print('Critical auto-play trigger: Track ready but not playing when it should be, forcing play...');
+          }
+          
+          // Attempt immediate play first
+          _player.play().then((_) {
+            if (kDebugMode) {
+              print('Immediate auto-play result: ${_player.playing}');
+            }
+          }).catchError((e) {
+            if (kDebugMode) {
+              print('Immediate auto-play failed: $e');
+            }
+          });
+          
+          // Also schedule a delayed check as backup
+          Future.delayed(const Duration(milliseconds: 100), () async {
+            if (_player.processingState == ProcessingState.ready && 
+                !_player.playing && 
+                playbackState.value.playing) {
+              try {
+                await _player.play();
+                if (kDebugMode) {
+                  print('Delayed auto-play result: ${_player.playing}');
+                }
+              } catch (e) {
+                if (kDebugMode) {
+                  print('Delayed auto-play failed: $e');
+                }
               }
             }
+          });
+        }
+        // Case 2: Track just became ready and should be playing (e.g., on initial load)
+        else if (shouldBePlaying && _currentTrack != null) {
+          if (kDebugMode) {
+            print('Track is ready and should be playing, checking state: ${_player.playing}');
           }
-        });
+          
+          // For initial loads, ensure we're playing
+          if (!_player.playing) {
+            if (kDebugMode) {
+              print('Track ready event: Starting playback...');
+            }
+            _player.play().catchError((e) {
+              if (kDebugMode) {
+                print('Track ready play failed: $e');
+              }
+            });
+          }
+        }
       }
     });
 
@@ -315,7 +345,52 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Audio Service Methods
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    // More aggressive approach to ensure playback starts
+    try {
+      // First attempt
+      await _player.play();
+      
+      // Double check that play actually started
+      if (!_player.playing) {
+        if (kDebugMode) {
+          print('First play attempt failed to start playback, retrying...');
+        }
+        
+        // Second attempt after a short delay
+        await Future.delayed(const Duration(milliseconds: 50));
+        await _player.play();
+        
+        // Triple check
+        if (!_player.playing) {
+          if (kDebugMode) {
+            print('Second play attempt failed to start playback, final retry...');
+          }
+          
+          // Third attempt with slightly longer delay
+          await Future.delayed(const Duration(milliseconds: 100));
+          await _player.play();
+        }
+      }
+      
+      // Update the playback state to reflect that we're playing
+      playbackState.add(playbackState.value.copyWith(
+        playing: true, // Force the state to playing
+      ));
+      
+      if (kDebugMode) {
+        print('Play command result: ${_player.playing}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during play command: $e');
+      }
+      // Even if there was an error, update state to at least maintain consistency
+      playbackState.add(playbackState.value.copyWith(
+        playing: _player.playing,
+      ));
+    }
+  }
 
   @override
   Future<void> pause() => _player.pause();
