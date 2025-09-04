@@ -79,7 +79,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
-                      // Top bar with chevron down and cast icon
+                      // Top bar with chevron down and playback source indicator
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         child: Row(
@@ -94,14 +94,20 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                 size: 28,
                               ),
                             ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () {}, // Cast functionality placeholder
-                              child: const Icon(
-                                CupertinoIcons.antenna_radiowaves_left_right,
-                                color: Color(0xFFFFFFFF),
-                                size: 28,
-                              ),
+                            // Playback source indicator
+                            Consumer<AppState>(
+                              builder: (context, appState, child) {
+                                final isDownloaded = currentTrack != null && 
+                                    appState.downloadService.isTrackDownloaded(currentTrack.id);
+                                
+                                return Icon(
+                                  isDownloaded 
+                                      ? CupertinoIcons.floppy_disk 
+                                      : CupertinoIcons.antenna_radiowaves_left_right,
+                                  color: const Color(0xFFFFFFFF),
+                                  size: 28,
+                                );
+                              },
                             ),
                           ],
                         ),
