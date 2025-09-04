@@ -1695,12 +1695,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             // Apply volume normalization if enabled
             _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
             
-            // Start playback immediately for seamless transition
-            await _player.play();
+            // Start playback only if we were playing before (for seamless transition)
+            if (wasPlaying) {
+              await _player.play();
+            }
             
-            // Update playback state to playing
+            // Update playback state maintaining the previous playing state
             playbackState.add(playbackState.value.copyWith(
-              playing: true,
+              playing: wasPlaying, // Maintain the previous playing state
               processingState: AudioProcessingState.ready,
               queueIndex: _currentIndex,
             ));
