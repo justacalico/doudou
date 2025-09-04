@@ -457,6 +457,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           if (kDebugMode) {
             print('Successfully transitioned to next track: ${nextTrack.name}');
+            print('Final playing state - should be: $wasPlaying, actually: ${_player.playing}');
+          }
+          
+          // Final verification after regular transition
+          if (wasPlaying && !_player.playing) {
+            if (kDebugMode) {
+              print('Regular transition: Final check - forcing play to maintain state...');
+            }
+            try {
+              await _player.play();
+            } catch (e) {
+              if (kDebugMode) {
+                print('Regular transition: Final play failed: $e');
+              }
+            }
           }
         }
       } else {
