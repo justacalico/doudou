@@ -39,7 +39,7 @@ setup_flutter:
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
-    - echo "y" | sdkmanager --licenses || true
+    - yes | sdkmanager --licenses
     - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
     # Install Flutter
     - cd /opt
