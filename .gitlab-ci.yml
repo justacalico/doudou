@@ -50,12 +50,13 @@ setup_flutter:
     - flutter doctor -v
     - flutter --version
   script:
-    - cd $CI_PROJECT_DIR
-    - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
-    - flutter pub get
-    - flutter doctor -v
+    - |
+      cd $CI_PROJECT_DIR
+      export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+      export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+      export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
+      flutter pub get
+      flutter doctor -v
   artifacts:
     paths:
       - .pub-cache/
