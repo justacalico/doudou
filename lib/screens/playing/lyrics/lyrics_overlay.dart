@@ -142,12 +142,10 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
             _currentLineIndex = newLineIndex;
           });
           
-          // Auto-scroll to current line with a slight delay for smoother animation
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted && newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
-              _scrollToCurrentLine();
-            }
-          });
+          // Scroll immediately to the new current line
+          if (newLineIndex >= 0 && newLineIndex < _lineKeys.length) {
+            _scrollToCurrentLine();
+          }
           
           _isUpdatingLine = false;
         }
