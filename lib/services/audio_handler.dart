@@ -548,6 +548,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 // One final attempt
                 _player.play().catchError((e) => {
                   if (kDebugMode) {
+                    // ignore: avoid_print
                     print('Final post-transition play attempt error: $e')
                   }
                 });
@@ -1010,6 +1011,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                     // One final attempt
                     _player.play().catchError((e) => {
                       if (kDebugMode) {
+                        // ignore: avoid_print
                         print('Final play attempt error: $e')
                       }
                     });
@@ -1139,6 +1141,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                   // One final attempt
                   _player.play().catchError((e) => {
                     if (kDebugMode) {
+                      // ignore: avoid_print
                       print('Final stream play attempt error: $e')
                     }
                   });
@@ -1983,6 +1986,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 // One final attempt
                 _player.play().catchError((e) => {
                   if (kDebugMode) {
+                    // ignore: avoid_print
                     print('Final gapless play attempt error: $e')
                   }
                 });
