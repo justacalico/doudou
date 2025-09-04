@@ -941,6 +941,67 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // New public method to enter offline mode without login
+  Future<bool> enterOfflineModeWithoutLogin() async {
+    if (await _hasDownloadedContent()) {
+      // Set offline mode without requiring login
+      _isOfflineMode = true;
+      _isConnected = false;
+      _isLoggedIn = true; // We're setting this to true to bypass the login screen
+      
+      if (kDebugMode) {
+        print('Entering offline mode without login');
+      }
+      
+      // Initialize cache service for offline mode
+      await _cacheService.initialize();
+      
+      // Load downloaded tracks and cached data for offline access
+      await _loadOfflineData();
+      
+      // Clear any previous error messages
+      _clearError();
+      
+      // Filter content to show only downloaded items
+      _filterContentForOfflineMode();
+      
+      // Try to initialize audio handler for offline playback
+      try {
+        _audioHandler = await AudioService.init(
+          builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+          config: const AudioServiceConfig(
+            androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
+            androidNotificationChannelName: 'Doudou Music',
+            androidNotificationOngoing: true,
+          ),
+        );
+        
+        // Apply user settings to the audio handler
+        _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+        _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+        
+        // Set up listeners for automatic UI updates
+        _setupAudioHandlerListeners();
+        
+      } catch (audioError) {
+        if (kDebugMode) {
+          print('Failed to initialize audio service for offline mode: $audioError');
+        }
+        // Continue without audio service
+      }
+      
+      notifyListeners();
+      return true;
+    } else {
+      if (kDebugMode) {
+        print('No downloaded content available for offline mode');
+      }
+      _setError('No downloaded content available for offline mode');
+      return false;
+    }
+  }
+
   Future<void> _enterOfflineMode() async {
     if (kDebugMode) {
       print('Entering offline mode');
