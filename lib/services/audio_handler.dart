@@ -2063,4 +2063,5 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Fallback to regular skip on any error
       await skipToNext();
     }
+  }
 }
