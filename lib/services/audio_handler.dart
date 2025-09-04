@@ -77,6 +77,36 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         speed: _player.speed,
         queueIndex: _currentIndex,
       ));
+      
+      // CRITICAL: Auto-play mechanism when track becomes ready during transitions
+      if (playerState.processingState == ProcessingState.ready && 
+          !isPlaying && 
+          playbackState.value.playing && 
+          !_isHandlingCompletion) {
+        // The playback state indicates we should be playing, but we're not
+        // This happens during track transitions - force play immediately
+        if (kDebugMode) {
+          print('Auto-play trigger: Track ready but not playing when it should be, forcing play...');
+        }
+        
+        // Use a short delay to ensure the player is fully ready
+        Future.delayed(const Duration(milliseconds: 50), () async {
+          if (_player.processingState == ProcessingState.ready && 
+              !_player.playing && 
+              playbackState.value.playing) {
+            try {
+              await _player.play();
+              if (kDebugMode) {
+                print('Auto-play trigger successful: ${_player.playing}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('Auto-play trigger failed: $e');
+              }
+            }
+          }
+        });
+      }
     });
 
     // Listen to position changes
