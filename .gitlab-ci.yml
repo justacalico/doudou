@@ -63,9 +63,8 @@ setup_flutter:
   stage: setup
   image: ubuntu:22.04
   tags:
-    - flutter
-    - android
-    - local
+    - share
+
   before_script:
     - *setup_common
   script:
@@ -89,9 +88,8 @@ build_android_debug:
   stage: build
   image: ubuntu:22.04
   tags:
-    - flutter
-    - android
-    - local
+    - share
+
   dependencies:
     - setup_flutter
   before_script:
@@ -122,9 +120,8 @@ build_android_release:
   stage: build
   image: ubuntu:22.04
   tags:
-    - flutter
-    - android
-    - local
+    - share
+
   dependencies:
     - setup_flutter
   before_script:
@@ -154,9 +151,8 @@ release_to_gitlab:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - flutter
-    - android
-    - local
+    - share
+    
   dependencies:
     - build_android_debug
     - build_android_release
@@ -184,9 +180,7 @@ release_from_pipeline:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - flutter
-    - android
-    - local
+    - share
   dependencies:
     - build_android_debug
     - build_android_release
