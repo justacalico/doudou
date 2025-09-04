@@ -3,15 +3,10 @@
 ## Added
 
 - Automatically build .apks.
+- Indication if a song is being played locally/downloaded or streaming.
 
 ## Changed
 
 ## Removed
 
 ## Fixed
-
----
-
-## Todo
-
-- Indiacte if a song is being played locally/downloaded or streaming.
