@@ -926,73 +926,89 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Load the local file
           await _player.setFilePath(localFilePath);
         
-        // Apply volume normalization if enabled
-        _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
-        
-        // Wait for the player to be ready before playing
-        int retries = 0;
-        const maxRetries = 50; // 2.5 seconds total
-        while (_player.processingState == ProcessingState.loading && retries < maxRetries) {
-          await Future.delayed(const Duration(milliseconds: 50));
-          retries++;
-        }
-        
-        // Check if loading was successful
-        if (_player.processingState == ProcessingState.ready) {
-          // Update state to ready, maintaining the playing state
-          playbackState.add(playbackState.value.copyWith(
-            processingState: AudioProcessingState.ready,
-            playing: wasPlaying, // Maintain the previous playing state
-            queueIndex: _currentIndex,
-          ));
+          // Apply volume normalization if enabled
+          _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
           
-          // Ensure the track is still the current one before playing
-          if (_currentTrack?.id == track.id) {
-            // Only start playing if we were playing before
-            if (wasPlaying) {
-              await _player.play();
-              
-              // Enhanced verification for auto-play - wait and force if needed
-              for (int i = 0; i < 10; i++) {
-                await Future.delayed(const Duration(milliseconds: 100));
-                if (_player.playing) {
-                  break; // Successfully playing
-                }
+          // Wait for the player to be ready before playing
+          int retries = 0;
+          const maxRetries = 50; // 2.5 seconds total
+          while (_player.processingState == ProcessingState.loading && retries < maxRetries) {
+            await Future.delayed(const Duration(milliseconds: 50));
+            retries++;
+          }
+          
+          // Check if loading was successful
+          if (_player.processingState == ProcessingState.ready) {
+            // Update state to ready, maintaining the playing state
+            playbackState.add(playbackState.value.copyWith(
+              processingState: AudioProcessingState.ready,
+              playing: wasPlaying, // Maintain the previous playing state
+              queueIndex: _currentIndex,
+            ));
+            
+            // Ensure the track is still the current one before playing
+            if (_currentTrack?.id == track.id) {
+              // Only start playing if we were playing before
+              if (wasPlaying) {
+                // CRITICAL: More aggressive approach for starting playback
+                // First attempt
+                await _player.play();
                 
-                if (i == 9) {
-                  // Final attempt - force play one more time
-                  if (kDebugMode) {
-                    print('Local file: Playback did not start automatically, forcing play...');
+                // Monitor and retry loop for reliable playback start
+                for (int i = 0; i < 10; i++) {
+                  await Future.delayed(const Duration(milliseconds: 75));
+                  
+                  if (_player.playing) {
+                    if (kDebugMode && i > 0) {
+                      print('Local file: Playback started after $i retries');
+                    }
+                    break; // Successfully playing
                   }
-                  try {
-                    await _player.play();
-                  } catch (playError) {
-                    if (kDebugMode) {
-                      print('Local file: Force play failed: $playError');
+                  
+                  // Not playing yet, retry with exponential backoff
+                  if (i < 9) {
+                    try {
+                      if (kDebugMode) {
+                        print('Local file: Playback attempt ${i+1} failed, retrying...');
+                      }
+                      await _player.play();
+                    } catch (playError) {
+                      if (kDebugMode) {
+                        print('Local file: Play retry ${i+1} failed: $playError');
+                      }
                     }
                   }
                 }
               }
-            }
-            
-            if (kDebugMode) {
-              print('Successfully ${wasPlaying ? "started playing" : "loaded"} local file: ${track.name}');
-              if (wasPlaying) {
-                print('Local file auto-play result: ${_player.playing}');
+              
+              if (kDebugMode) {
+                print('Successfully ${wasPlaying ? "started playing" : "loaded"} local file: ${track.name}');
+                if (wasPlaying) {
+                  print('Local file auto-play final state: ${_player.playing}');
+                  
+                  // Force state consistency as last resort
+                  if (!_player.playing) {
+                    print('WARNING: Player reports not playing but should be playing. Forcing state consistency...');
+                    playbackState.add(playbackState.value.copyWith(
+                      playing: true, // Force the state to match expectations
+                    ));
+                    // One final attempt
+                    _player.play().catchError((e) => print('Final play attempt error: $e'));
+                  }
+                }
               }
+              return; // Success! Exit early
+            } else {
+              if (kDebugMode) {
+                print('Track changed during loading, cancelling play for: ${track.name}');
+              }
+              return;
             }
-            return; // Success! Exit early
           } else {
             if (kDebugMode) {
-              print('Track changed during loading, cancelling play for: ${track.name}');
+              print('Failed to load local file for ${track.name} - player state: ${_player.processingState}');
             }
-            return;
           }
-        } else {
-          if (kDebugMode) {
-            print('Failed to load local file for ${track.name} - player state: ${_player.processingState}');
-          }
-        }
         } catch (e) {
           if (kDebugMode) {
             print('Failed to play local file for ${track.name}: $e');
