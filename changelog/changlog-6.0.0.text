@@ -4,6 +4,7 @@
 
 - Automatically build .apks.
 - Indication if a song is being played locally/downloaded or streaming.
+- Adds shuffle favorites button for downlaoded songs.
 
 ## Changed
 
