@@ -65,14 +65,15 @@ setup_flutter:
   before_script:
     - *setup_common
   script:
-    - flutter pub get
-    - flutter clean
-    - flutter doctor -v
-    # Verify the environment is correctly set up
-    - ls -la $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/
-    - echo "SDK Manager available: $(which sdkmanager)"
-    - echo "Flutter version: $(flutter --version)"
-    - mkdir -p builds
+    - |
+      flutter pub get
+      flutter clean
+      flutter doctor -v
+      # Verify the environment is correctly set up
+      ls -la $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/
+      echo "SDK Manager available: $(which sdkmanager)"
+      echo "Flutter version: $(flutter --version)"
+      mkdir -p builds
   artifacts:
     paths:
       - .pub-cache/
