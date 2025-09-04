@@ -62,6 +62,10 @@ cache:
 setup_flutter:
   stage: setup
   image: ubuntu:22.04
+  tags:
+    - flutter
+    - android
+    - local
   before_script:
     - *setup_common
   script:
