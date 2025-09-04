@@ -81,35 +81,55 @@ class DownloadedSongsTab extends StatelessWidget {
                 const SizedBox(height: 16),
                 
                 // Play buttons
-                Row(
+                Column(
                   children: [
-                    Expanded(
-                      child: CupertinoButton.filled(
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(CupertinoIcons.play_fill, size: 18),
-                            SizedBox(width: 8),
-                            Text('Play All'),
-                          ],
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoButton.filled(
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.play_fill, size: 18),
+                                SizedBox(width: 8),
+                                Text('Play All'),
+                              ],
+                            ),
+                            onPressed: () => _playAllDownloaded(appState, downloadedTracks, false),
+                          ),
                         ),
-                        onPressed: () => _playAllDownloaded(appState, downloadedTracks, false),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CupertinoButton(
+                            color: const Color(0xFF2C2C2E),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.shuffle, size: 18),
+                                SizedBox(width: 8),
+                                Text('Shuffle'),
+                              ],
+                            ),
+                            onPressed: () => _playAllDownloaded(appState, downloadedTracks, true),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: CupertinoButton(
-                        color: const Color(0xFF2C2C2E),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(CupertinoIcons.shuffle, size: 18),
-                            SizedBox(width: 8),
-                            Text('Shuffle'),
-                          ],
-                        ),
-                        onPressed: () => _playAllDownloaded(appState, downloadedTracks, true),
+                    const SizedBox(height: 12),
+                    CupertinoButton(
+                      color: const Color(0xFF2C2C2E),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.shuffle, size: 18),
+                          SizedBox(width: 8),
+                          Icon(CupertinoIcons.heart_fill, size: 16, color: Color(0xFFFF375F)),
+                          SizedBox(width: 8),
+                          Text('Shuffle Favorites'),
+                        ],
                       ),
+                      onPressed: () => _playFavoritesDownloaded(appState, downloadedTracks),
                     ),
                   ],
                 ),
