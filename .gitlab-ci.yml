@@ -147,6 +147,10 @@ release_to_gitlab:
 release_from_pipeline:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - flutter
+    - android
+    - local
   dependencies:
     - build_android_debug
   before_script:
