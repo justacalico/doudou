@@ -404,6 +404,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await _playCurrentTrack();
             
             // Enhanced verification for background playback - wait longer and check multiple times
+            // Also ensure we maintain the playing state throughout the transition
+            final shouldBePlaying = playbackState.value.playing;
             for (int i = 0; i < 5; i++) {
               await Future.delayed(const Duration(milliseconds: 200));
               if (_player.playing) {
@@ -411,12 +413,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               }
               
               if (i == 4) {
-                // Final attempt - force play
+                // Final attempt - force play if we should be playing
                 if (kDebugMode) {
                   print('Playback did not start after multiple attempts, forcing play...');
                 }
                 try {
-                  await _player.play();
+                  if (shouldBePlaying) {
+                    await _player.play();
+                  }
                 } catch (playError) {
                   if (kDebugMode) {
                     print('Force play failed: $playError');
