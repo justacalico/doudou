@@ -452,7 +452,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Has next track: ${_currentIndex < _playlist.length - 1}');
         print('Current playing state: ${playbackState.value.playing}');
         print('Player playing state: ${_player.playing}');
-        print('Gapless playback enabled: ${_gaplessPlaybackEnabled}');
+        print('Gapless playback enabled: $_gaplessPlaybackEnabled');
       }
       
       // Reset stuck detection counters
