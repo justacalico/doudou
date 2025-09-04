@@ -196,7 +196,7 @@ class DownloadedSongsTab extends StatelessWidget {
     }
   }
   
-  void _playFavoritesDownloaded(AppState appState, Map<String, DownloadedTrack> downloadedTracks) {
+  void _playFavoritesDownloaded(BuildContext context, AppState appState, Map<String, DownloadedTrack> downloadedTracks) {
     // Get tracks that are both downloaded and favorited
     final tracks = downloadedTracks.keys
         .map((trackId) {
@@ -209,24 +209,20 @@ class DownloadedSongsTab extends StatelessWidget {
         .toList();
     
     if (tracks.isEmpty) {
-      // Find the current BuildContext from the widget tree
-      final scaffoldContext = WidgetsBinding.instance.focusManager.primaryFocus?.context;
-      if (scaffoldContext != null) {
-        // Show alert if no favorited downloaded tracks
-        showCupertinoDialog(
-          context: scaffoldContext,
-          builder: (dialogContext) => CupertinoAlertDialog(
-            title: const Text('No Favorited Downloads'),
-            content: const Text('You don\'t have any downloaded songs that are also marked as favorites.'),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.pop(dialogContext),
-              ),
-            ],
-          ),
-        );
-      }
+      // Show alert if no favorited downloaded tracks
+      showCupertinoDialog(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: const Text('No Favorited Downloads'),
+          content: const Text('You don\'t have any downloaded songs that are also marked as favorites.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+          ],
+        ),
+      );
       return;
     }
     
