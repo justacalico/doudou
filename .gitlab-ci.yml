@@ -92,6 +92,8 @@ build_android_debug:
     - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
     - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
+    - echo "Debug: ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+    - echo "Debug: ANDROID_HOME=$ANDROID_HOME" 
     - flutter config --android-sdk $ANDROID_SDK_ROOT
     - flutter doctor -v
     - flutter pub get
