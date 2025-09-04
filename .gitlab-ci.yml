@@ -97,7 +97,7 @@ build_android_debug:
     - flutter doctor -v
     - flutter pub get
     - echo "Running make android..."
-    - make android
+    - make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android
     - echo "Build completed, checking output..."
     - ls -la builds/
     - mkdir -p builds/$CI_PIPELINE_ID
@@ -147,7 +147,7 @@ build_android_release:
     - flutter doctor -v
     - flutter pub get
     - echo "Running make android-release..."
-    - make android-release
+    - make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android-release
     - echo "Build completed, checking output..."
     - ls -la builds/
     - mkdir -p builds/$CI_PIPELINE_ID
