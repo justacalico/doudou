@@ -1665,6 +1665,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Performing gapless transition to: ${nextTrack.name}');
       }
       
+      // Store the current playing state before starting transition
+      final wasPlaying = playbackState.value.playing;
+      
       // CRITICAL: Temporarily disable completion checking during transition
       _isHandlingCompletion = true;
       
