@@ -1927,7 +1927,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 await Future.delayed(const Duration(milliseconds: 75));
                 if (_player.playing) {
                   if (kDebugMode && i > 0) {
-                    print('Gapless transition: Playback started after $i retries');
+                    if (kDebugMode) {
+                      print('Gapless transition: Playback started after $i retries');
+                    }
                   }
                   break; // Successfully playing
                 }
