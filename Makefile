@@ -18,7 +18,7 @@ all: android ios
 
 # Create build directory
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR) 
 
 # Android build (unsigned/debug)
 .PHONY: android
