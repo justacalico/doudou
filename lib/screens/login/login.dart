@@ -303,4 +303,27 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+  
+  Future<void> _enterOfflineMode() async {
+    final appState = context.read<AppState>();
+    final success = await appState.enterOfflineModeWithoutLogin();
+    
+    if (!success && mounted) {
+      // Show an alert to the user if no downloaded content is available
+      showCupertinoDialog(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('No Downloaded Content'),
+          content: const Text('You need to have downloaded music to use offline mode. Please sign in first to download some music.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      );
+    }
+    // If successful, navigation will be handled by the main app based on login state
+  }
 }
