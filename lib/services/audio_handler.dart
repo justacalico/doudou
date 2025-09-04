@@ -483,11 +483,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             // Update media item
             mediaItem.add(_trackToMediaItem(nextTrack));
             
-            // Update playback state to loading
+            // Update playback state to loading, maintaining the playing state
+            final shouldBePlaying = playbackState.value.playing;
             playbackState.add(playbackState.value.copyWith(
               processingState: AudioProcessingState.loading,
               queueIndex: _currentIndex,
-              playing: true,
+              playing: shouldBePlaying, // Maintain the current playing state
             ));
             
             // Play the radio track
