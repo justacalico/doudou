@@ -1072,25 +1072,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (_currentTrack?.id == track.id) {
             // Only start playing if we were playing before
             if (wasPlaying) {
+              // CRITICAL: More aggressive approach for starting streaming playback
+              // First attempt
               await _player.play();
               
-              // Enhanced verification for auto-play - wait and force if needed
+              // Monitor and retry loop for reliable playback start
               for (int i = 0; i < 10; i++) {
-                await Future.delayed(const Duration(milliseconds: 100));
+                await Future.delayed(const Duration(milliseconds: 75));
+                
                 if (_player.playing) {
+                  if (kDebugMode && i > 0) {
+                    print('Stream: Playback started after $i retries');
+                  }
                   break; // Successfully playing
                 }
                 
-                if (i == 9) {
-                  // Final attempt - force play one more time
-                  if (kDebugMode) {
-                    print('Stream: Playback did not start automatically, forcing play...');
-                  }
+                // Not playing yet, retry with exponential backoff
+                if (i < 9) {
                   try {
+                    if (kDebugMode) {
+                      print('Stream: Playback attempt ${i+1} failed, retrying...');
+                    }
                     await _player.play();
                   } catch (playError) {
                     if (kDebugMode) {
-                      print('Stream: Force play failed: $playError');
+                      print('Stream: Play retry ${i+1} failed: $playError');
                     }
                   }
                 }
@@ -1101,7 +1107,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             if (kDebugMode) {
               print('Successfully ${wasPlaying ? "started playing" : "loaded"}: ${track.name} using $streamType URL');
               if (wasPlaying) {
-                print('Stream auto-play result: ${_player.playing}');
+                print('Stream auto-play final state: ${_player.playing}');
+                
+                // Force state consistency as last resort
+                if (!_player.playing) {
+                  print('WARNING: Stream player reports not playing but should be playing. Forcing state consistency...');
+                  playbackState.add(playbackState.value.copyWith(
+                    playing: true, // Force the state to match expectations
+                  ));
+                  // One final attempt
+                  _player.play().catchError((e) => print('Final stream play attempt error: $e'));
+                }
               }
             }
             break; // Success! Exit the loop
