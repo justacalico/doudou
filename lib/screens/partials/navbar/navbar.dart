@@ -16,22 +16,55 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late CupertinoTabController _tabController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _tabController = CupertinoTabController();
+    
+    // Check after a delay if we should navigate to downloads (if in offline mode)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      if (appState.isOfflineMode) {
+        // Navigate to downloads tab (index 2)
+        _tabController.index = 2;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        CupertinoTabScaffold(
-          tabBar: CupertinoTabBar(
-            backgroundColor: const Color(0xFF000000).withOpacity(0.8), // Semi-transparent black
-            activeColor: CupertinoColors.systemRed, // Red for active tab
-            inactiveColor: CupertinoColors.systemGrey2,
-            border: Border(
-              top: BorderSide(
-                color: const Color(0xFFFFFFFF).withOpacity(0.2),
-                width: 0.5,
-              ),
-            ),
-            items: const [
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        // When offline mode changes, update the tab to show downloads
+        if (appState.isOfflineMode && _tabController.index != 2) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _tabController.index = 2;
+          });
+        }
+        
+        return Stack(
+          children: [
+            CupertinoTabScaffold(
+              controller: _tabController,
+              tabBar: CupertinoTabBar(
+                backgroundColor: const Color(0xFF000000).withOpacity(0.8), // Semi-transparent black
+                activeColor: CupertinoColors.systemRed, // Red for active tab
+                inactiveColor: CupertinoColors.systemGrey2,
+                border: Border(
+                  top: BorderSide(
+                    color: const Color(0xFFFFFFFF).withOpacity(0.2),
+                    width: 0.5,
+                  ),
+                ),
+                items: const [
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.house_fill),
             label: 'Home',
