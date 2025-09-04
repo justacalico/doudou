@@ -16,12 +16,12 @@ class DownloadedSongsTab extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final downloadService = appState.downloadService;
-        return _buildDownloadedSongs(downloadService, appState);
+        return _buildDownloadedSongs(context, downloadService, appState);
       },
     );
   }
 
-  Widget _buildDownloadedSongs(DownloadService downloadService, AppState appState) {
+  Widget _buildDownloadedSongs(BuildContext context, DownloadService downloadService, AppState appState) {
     final downloadedTracks = downloadService.downloadedTracks;
     
     if (downloadedTracks.isEmpty) {
