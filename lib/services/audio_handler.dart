@@ -969,7 +969,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                   
                   if (_player.playing) {
                     if (kDebugMode && i > 0) {
-                      print('Local file: Playback started after $i retries');
+                      if (kDebugMode) {
+                        print('Local file: Playback started after $i retries');
+                      }
                     }
                     break; // Successfully playing
                   }
