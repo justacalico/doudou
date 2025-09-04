@@ -437,9 +437,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             // Attempt recovery by reloading the track
             try {
               await _loadAndPlayTrack(nextTrack);
-              // Ensure it starts playing
+              // Ensure it starts playing if it should be playing
               await Future.delayed(const Duration(milliseconds: 300));
-              if (!_player.playing) {
+              if (wasPlaying && !_player.playing) {
+                if (kDebugMode) {
+                  print('Recovery: Track should be playing but isn\'t, forcing play...');
+                }
                 await _player.play();
               }
             } catch (recoveryError) {
