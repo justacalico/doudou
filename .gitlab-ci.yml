@@ -70,6 +70,7 @@ setup_flutter:
 build_android_debug:
   stage: build
   image: ubuntu:22.04
+  timeout: 30m
   dependencies:
     - setup_flutter
   before_script:
