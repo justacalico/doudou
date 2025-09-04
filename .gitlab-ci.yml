@@ -140,7 +140,7 @@ build_android_release:
     - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
     - flutter pub get
     - echo "Running make android-release..."
-    - make android-release
+    - ANDROID_HOME=$ANDROID_SDK_ROOT ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT make android-release
     - echo "Build completed, checking output..."
     - ls -la builds/
     - mkdir -p builds/$CI_PIPELINE_ID
