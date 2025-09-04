@@ -159,18 +159,22 @@ release_to_gitlab:
     - local
   dependencies:
     - build_android_debug
+    - build_android_release
   script:
     - |
-      echo "Creating GitLab Release with debug APK for tag $CI_COMMIT_TAG..."
+      echo "Creating GitLab Release with debug and release APKs for tag $CI_COMMIT_TAG..."
   release:
     name: 'Release $CI_COMMIT_TAG'
-    description: 'Debug build for Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
+    description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
     tag_name: '$CI_COMMIT_TAG'
     ref: '$CI_COMMIT_TAG'
     assets:
       links:
         - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
           url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
+          link_type: 'package'
+        - name: 'doudou-release-unsigned-$CI_PIPELINE_ID.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-release-unsigned-${CI_PIPELINE_ID}.apk?job=build_android_release&inline=false'
           link_type: 'package'
   only:
     - tags
