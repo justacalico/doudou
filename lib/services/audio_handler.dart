@@ -1698,6 +1698,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             // Start playback only if we were playing before (for seamless transition)
             if (wasPlaying) {
               await _player.play();
+              
+              // Verify that playback actually started
+              for (int i = 0; i < 10; i++) {
+                await Future.delayed(const Duration(milliseconds: 100));
+                if (_player.playing) {
+                  break; // Successfully playing
+                }
+                
+                if (i == 9) {
+                  // Final attempt - force play again
+                  if (kDebugMode) {
+                    print('Gapless transition: Playback did not start, forcing play...');
+                  }
+                  try {
+                    await _player.play();
+                  } catch (playError) {
+                    if (kDebugMode) {
+                      print('Gapless transition: Force play failed: $playError');
+                    }
+                  }
+                }
+              }
             }
             
             // Update playback state maintaining the previous playing state
@@ -1708,7 +1730,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             ));
             
             if (kDebugMode) {
-              print('Gapless transition completed successfully using preloaded source');
+              print('Gapless transition completed successfully using preloaded source - playing: $wasPlaying, actual: ${_player.playing}');
             }
           } else {
             throw Exception('Preloaded player has no audio source');
