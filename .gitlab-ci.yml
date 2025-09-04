@@ -118,16 +118,17 @@ build_android_release:
   before_script:
     - *setup_common
   script:
-    - flutter pub get
-    - echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
-    - flutter doctor -v
-    - echo "Running make android-release with explicit SDK paths..."
-    - make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android-release
-    - echo "Build completed, checking output..."
-    - ls -la builds/
-    - mkdir -p builds/$CI_PIPELINE_ID
-    - find builds/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \;
-    - ls -la builds/$CI_PIPELINE_ID/
+    - |
+      flutter pub get
+      echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
+      flutter doctor -v
+      echo "Running make android-release with explicit SDK paths..."
+      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android-release
+      echo "Build completed, checking output..."
+      ls -la builds/
+      mkdir -p builds/$CI_PIPELINE_ID
+      find builds/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \;
+      ls -la builds/$CI_PIPELINE_ID/
   artifacts:
     paths:
       - builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk
