@@ -88,6 +88,10 @@ setup_flutter:
 build_android_debug:
   stage: build
   image: ubuntu:22.04
+  tags:
+    - flutter
+    - android
+    - local
   dependencies:
     - setup_flutter
   before_script:
