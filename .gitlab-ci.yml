@@ -17,6 +17,10 @@ stages:
   - build
   - release
 
+default:
+  tags:
+    - share
+
 # Cache configuration
 cache:
   key: "${CI_COMMIT_REF_SLUG}-flutter-${FLUTTER_VERSION}"
@@ -152,7 +156,7 @@ release_to_gitlab:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
     - share
-    
+
   dependencies:
     - build_android_debug
     - build_android_release
