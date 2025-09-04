@@ -726,17 +726,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             // Set the same audio source on main player
             await _player.setAudioSource(preloadedPlayer.audioSource!);
             
-            // Update state to ready before playing
+            // Update state to ready before playing, maintaining the playing state
             playbackState.add(playbackState.value.copyWith(
               processingState: AudioProcessingState.ready,
-              playing: false,
+              playing: wasPlaying, // Maintain the previous playing state
               queueIndex: _currentIndex,
             ));
             
-            await _player.play();
+            // Only start playing if we were playing before
+            if (wasPlaying) {
+              await _player.play();
+            }
             
             if (kDebugMode) {
-              print('Successfully playing preloaded track: ${track.name}');
+              print('Successfully ${wasPlaying ? "playing" : "loaded"} preloaded track: ${track.name}');
             }
             
             // Dispose the preloaded player
