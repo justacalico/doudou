@@ -26,7 +26,6 @@ cache:
 setup_flutter:
   stage: setup
   image: ubuntu:22.04
-  timeout: 20m
   before_script:
     - apt-get update -qy
     - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk pkg-config
@@ -40,11 +39,6 @@ setup_flutter:
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
-    # Accept Android SDK licenses non-interactively
-    - mkdir -p $ANDROID_SDK_ROOT/licenses
-    - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
-    - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
-    - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
     - echo y | sdkmanager --licenses >/dev/null 2>&1 || true
     - sdkmanager --licenses --verbose || echo "License acceptance completed"
     - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
@@ -70,7 +64,6 @@ setup_flutter:
 build_android_debug:
   stage: build
   image: ubuntu:22.04
-  timeout: 30m
   dependencies:
     - setup_flutter
   before_script:
@@ -86,11 +79,6 @@ build_android_debug:
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
-    # Accept Android SDK licenses non-interactively
-    - mkdir -p $ANDROID_SDK_ROOT/licenses
-    - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
-    - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
-    - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
     - echo y | sdkmanager --licenses >/dev/null 2>&1 || true
     - sdkmanager --licenses --verbose || echo "License acceptance completed"
     - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
@@ -123,7 +111,6 @@ build_android_debug:
 build_android_release:
   stage: build
   image: ubuntu:22.04
-  timeout: 30m
   dependencies:
     - setup_flutter
   before_script:
@@ -139,11 +126,6 @@ build_android_release:
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
-    # Accept Android SDK licenses non-interactively
-    - mkdir -p $ANDROID_SDK_ROOT/licenses
-    - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
-    - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
-    - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
     - echo y | sdkmanager --licenses >/dev/null 2>&1 || true
     - sdkmanager --licenses --verbose || echo "License acceptance completed"
     - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
