@@ -148,7 +148,7 @@ release_from_pipeline:
   release:
     name: 'Debug v$VERSION-build.$CI_PIPELINE_ID'
     description: 'Debug build for Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
-    tag_name: 'v$VERSION-build.$CI_PIPELINE_ID'
+    tag_name: 'build-$CI_PIPELINE_ID'
     ref: '$CI_COMMIT_SHA'
     assets:
       links:
