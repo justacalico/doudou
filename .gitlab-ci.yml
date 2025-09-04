@@ -15,6 +15,7 @@ variables:
 stages:
   - setup
   - build
+  - release
 
 # Cache configuration
 cache:
