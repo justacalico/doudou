@@ -345,6 +345,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Handling track completion for: ${_currentTrack?.name}');
         print('Current index: $_currentIndex, Playlist length: ${_playlist.length}');
         print('Has next track: ${_currentIndex < _playlist.length - 1}');
+        print('Current playing state: ${playbackState.value.playing}');
+        print('Player playing state: ${_player.playing}');
       }
       
       // Reset stuck detection counters
