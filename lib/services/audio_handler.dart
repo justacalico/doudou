@@ -1981,7 +1981,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                   playing: true, // Force the state to match expectations
                 ));
                 // One final attempt
-                _player.play().catchError((e) => print('Final gapless play attempt error: $e'));
+                _player.play().catchError((e) => {
+                  if (kDebugMode) {
+                    print('Final gapless play attempt error: $e')
+                  }
+                });
               }
             }
           } else {
