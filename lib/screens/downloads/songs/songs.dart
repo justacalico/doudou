@@ -130,7 +130,7 @@ class DownloadedSongsTab extends StatelessWidget {
                           Text('Shuffle Favorites'),
                         ],
                       ),
-                      onPressed: () => _playFavoritesDownloaded(appState, downloadedTracks),
+                      onPressed: () => _playFavoritesDownloaded(context, appState, downloadedTracks),
                     ),
                   ],
                 ),
