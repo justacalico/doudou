@@ -246,6 +246,38 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     
+                    const SizedBox(height: 16),
+                    
+                    // Offline Mode Button
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      width: double.infinity,
+                      child: CupertinoButton(
+                        onPressed: appState.isLoading ? null : _enterOfflineMode,
+                        borderRadius: BorderRadius.circular(12),
+                        color: CupertinoColors.systemGrey5.resolveFrom(context),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.arrow_down_circle,
+                              size: 20,
+                              color: CupertinoColors.systemPurple,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Use Offline Mode',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w500,
+                                color: CupertinoColors.label.resolveFrom(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
                     // Bottom spacing
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                   ],
