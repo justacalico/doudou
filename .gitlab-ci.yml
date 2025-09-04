@@ -20,9 +20,7 @@ cache:
   key: "$CI_COMMIT_REF_SLUG"
   paths:
     - .pub-cache/
-    - .gradle/
-    - android/.gradle/
-    - build/
+  policy: pull-push
 
 # Setup stage - Install Flutter and dependencies
 setup_flutter:
@@ -30,7 +28,7 @@ setup_flutter:
   image: ubuntu:22.04
   before_script:
     - apt-get update -qy
-    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk pkg-config
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
     - export PATH=$JAVA_HOME/bin:$PATH
     # Install Android SDK
@@ -53,6 +51,7 @@ setup_flutter:
     - cd $CI_PROJECT_DIR
     - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
     - flutter pub get
     - flutter doctor -v
   artifacts:
@@ -68,7 +67,7 @@ build_android_debug:
     - setup_flutter
   before_script:
     - apt-get update -qy
-    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make
+    - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make pkg-config
     - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
     - export PATH=$JAVA_HOME/bin:$PATH
     # Install Android SDK
