@@ -887,20 +887,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         // Check if loading was successful
         if (_player.processingState == ProcessingState.ready) {
-          // Update state to ready before playing
+          // Update state to ready, maintaining the playing state
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.ready,
-            playing: false,
+            playing: wasPlaying, // Maintain the previous playing state
             queueIndex: _currentIndex,
           ));
           
           // Ensure the track is still the current one before playing
           if (_currentTrack?.id == track.id) {
-            await _player.play();
+            // Only start playing if we were playing before
+            if (wasPlaying) {
+              await _player.play();
+            }
             loadedSuccessfully = true;
             
             if (kDebugMode) {
-              print('Successfully started playing: ${track.name} using $streamType URL');
+              print('Successfully ${wasPlaying ? "started playing" : "loaded"}: ${track.name} using $streamType URL');
             }
             break; // Success! Exit the loop
           } else {
