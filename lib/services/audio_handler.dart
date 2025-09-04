@@ -1887,7 +1887,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Store the current playing state before starting transition
-      final wasPlaying = playbackState.value.playing;
+      final wasPlaying = playbackState.value.playing || _player.playing;
       
       // CRITICAL: Temporarily disable completion checking during transition
       _isHandlingCompletion = true;
@@ -1921,22 +1921,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               await _player.play();
               
               // Verify that playback actually started
-              for (int i = 0; i < 10; i++) {
-                await Future.delayed(const Duration(milliseconds: 100));
+              for (int i = 0; i < 12; i++) {
+                await Future.delayed(const Duration(milliseconds: 75));
                 if (_player.playing) {
+                  if (kDebugMode && i > 0) {
+                    print('Gapless transition: Playback started after $i retries');
+                  }
                   break; // Successfully playing
                 }
                 
-                if (i == 9) {
-                  // Final attempt - force play again
-                  if (kDebugMode) {
-                    print('Gapless transition: Playback did not start, forcing play...');
-                  }
+                // Not playing yet, retry with shorter intervals
+                if (i < 11) {
                   try {
+                    if (kDebugMode) {
+                      print('Gapless transition: Playback attempt ${i+1} failed, retrying...');
+                    }
                     await _player.play();
                   } catch (playError) {
                     if (kDebugMode) {
-                      print('Gapless transition: Force play failed: $playError');
+                      print('Gapless transition: Play retry ${i+1} failed: $playError');
                     }
                   }
                 }
@@ -1951,7 +1954,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             ));
             
             if (kDebugMode) {
-              print('Gapless transition completed successfully using preloaded source - playing: $wasPlaying, actual: ${_player.playing}');
+              print('Gapless transition completed - was playing: $wasPlaying, actual: ${_player.playing}');
+              
+              // Force state consistency as last resort
+              if (wasPlaying && !_player.playing) {
+                print('CRITICAL: Gapless transition inconsistency - forcing play state');
+                playbackState.add(playbackState.value.copyWith(
+                  playing: true, // Force the state to match expectations
+                ));
+                // One final attempt
+                _player.play().catchError((e) => print('Final gapless play attempt error: $e'));
+              }
             }
           } else {
             throw Exception('Preloaded player has no audio source');
@@ -1963,6 +1976,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           // Fallback: reload the track normally
           await _loadAndPlayTrack(nextTrack);
+          
+          // Double check playing state after fallback
+          if (wasPlaying && !_player.playing) {
+            if (kDebugMode) {
+              print('Gapless fallback not playing when it should be, forcing play...');
+            }
+            await _player.play();
+          }
         }
         
         // Clean up the preloaded player
@@ -1991,10 +2012,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         // Load and play the track normally
         await _loadAndPlayTrack(nextTrack);
+        
+        // Double check playing state after regular transition
+        if (wasPlaying && !_player.playing) {
+          if (kDebugMode) {
+            print('Regular transition not playing when it should be, forcing play...');
+          }
+          await _player.play();
+        }
       }
       
       // Wait a moment for the new track to fully initialize before re-enabling completion checking
-      await Future.delayed(const Duration(seconds: 1)); // Reduced from 2 seconds
+      await Future.delayed(const Duration(milliseconds: 500)); // Reduced from 1 second
       
       // Final verification: ensure the track is playing if it should be
       if (wasPlaying && !_player.playing) {
@@ -2002,8 +2031,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Gapless transition: Final check - track should be playing but isn\'t, forcing play...');
         }
         try {
-          await _player.play();
-          await Future.delayed(const Duration(milliseconds: 200)); // Give it a moment
+          for (int i = 0; i < 3; i++) {
+            await _player.play();
+            await Future.delayed(const Duration(milliseconds: 100));
+            if (_player.playing) break;
+          }
+          
           if (kDebugMode) {
             print('Gapless transition: Final play attempt result: ${_player.playing}');
           }
@@ -2030,5 +2063,4 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Fallback to regular skip on any error
       await skipToNext();
     }
-  }
 }
