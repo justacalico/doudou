@@ -803,6 +803,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update audio service queue
     queue.add(_playlist.map(_trackToMediaItem).toList());
     
+    // Set state to playing since this is explicitly starting a new playlist
+    playbackState.add(playbackState.value.copyWith(
+      playing: true,
+      processingState: AudioProcessingState.loading,
+      queueIndex: _currentIndex,
+    ));
+    
     // Start playing current track and immediately start preloading
     await _playCurrentTrack();
     
