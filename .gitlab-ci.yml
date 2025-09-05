@@ -1,27 +1,7 @@
 # GitLab CI/CD Pipeline for Doudou Flutter Android APK Build
 
 variables:
-  # Flutter version to us  script:
-    - |
-      # Retry flutter pub get if needed
-      for i in {1..3}; do
-        flutter pub get && break || {
-          echo "flutter pub get attempt $i failed, retrying..."
-          # Clear flutter cache and fix permissions before retry
-          flutter clean || true
-          rm -rf /opt/flutter/bin/cache/downloads/* || true
-          rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
-          chown -R root:root /opt/flutter/bin/cache || true
-          sleep 5
-        }
-      done
-      flutter clean || true
-      flutter doctor -v || true
-      # Verify the environment is correctly set up
-      ls -la $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/ || echo "SDK tools not found"
-      echo "SDK Manager available: $(which sdkmanager || echo 'not found')"
-      echo "Flutter version: $(flutter --version || echo 'flutter not found')"
-      mkdir -p builds version compatible with Dart SDK ^3.8.0
+  # Flutter version to use - using stable version compatible with Dart SDK ^3.8.0
   FLUTTER_VERSION: "3.24.3"
   # Android SDK variables
   ANDROID_SDK_ROOT: "/opt/android-sdk"
