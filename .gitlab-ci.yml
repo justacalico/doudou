@@ -1,8 +1,8 @@
 # GitLab CI/CD Pipeline for Doudou Flutter Android APK Build
 
 variables:
-  # Flutter version to use - using stable version compatible with Dart SDK ^3.8.0
-  FLUTTER_VERSION: "3.29.0"
+  # Flutter version to use - using latest stable version compatible with Dart SDK ^3.8.0
+  FLUTTER_VERSION: "stable"
   # Android SDK variables
   ANDROID_SDK_ROOT: "/opt/android-sdk"
   ANDROID_HOME: "/opt/android-sdk"
