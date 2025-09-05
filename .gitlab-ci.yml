@@ -22,6 +22,7 @@ stages:
 default:
   tags:
     - android
+  timeout: 30m
 
 # Cache configuration
 cache:
@@ -34,7 +35,17 @@ cache:
 
 # Common setup script for Android SDK and Flutter
 .setup_common: &setup_common
-  - apt-get update -qy
+  - |
+    # Try to use alternative mirrors if main Ubuntu repos are slow
+    cp /etc/apt/sources.list /etc/apt/sources.list.bak
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy main restricted universe multiverse" > /etc/apt/sources.list
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy-updates main restricted universe multiverse" >> /etc/apt/sources.list
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy-security main restricted universe multiverse" >> /etc/apt/sources.list
+    apt-get update -qy || {
+      echo "Alternative mirror failed, reverting to original"
+      cp /etc/apt/sources.list.bak /etc/apt/sources.list
+      apt-get update -qy
+    }
   - apt-get install -y --fix-missing curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make pkg-config || apt-get install -y --fix-missing curl git unzip xz-utils zip wget openjdk-${JAVA_VERSION}-jdk make pkg-config
   - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
   - export PATH=$JAVA_HOME/bin:$PATH
