@@ -59,17 +59,34 @@ class DownloadQueueTab extends StatelessWidget {
       );
     }
 
+    // Count tasks that can be retried (failed or paused)
+    final retryableTasks = downloadTasks.where((task) => 
+      task.status == DownloadStatus.failed || task.status == DownloadStatus.paused
+    ).toList();
+    final showRetryAll = retryableTasks.length >= 2;
+
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          final task = downloadTasks[index];
+          // Show retry all button as first item if needed
+          if (index == 0 && showRetryAll) {
+            return _buildRetryAllButton(downloadService, appState, retryableTasks);
+          }
+          
+          // Adjust index for download tasks if retry all button is shown
+          final taskIndex = showRetryAll ? index - 1 : index;
+          if (taskIndex < 0 || taskIndex >= downloadTasks.length) {
+            return const SizedBox.shrink();
+          }
+          
+          final task = downloadTasks[taskIndex];
           return DownloadTaskItem(
             task: task,
             onCancel: () => downloadService.cancelDownload(task.trackId),
             onRetry: () => _retryDownload(downloadService, task, appState),
           );
         },
-        childCount: downloadTasks.length,
+        childCount: downloadTasks.length + (showRetryAll ? 1 : 0),
       ),
     );
   }
