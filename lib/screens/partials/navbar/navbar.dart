@@ -17,11 +17,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late CupertinoTabController _tabController;
+  int _previousIndex = 0;
   
   @override
   void initState() {
     super.initState();
     _tabController = CupertinoTabController();
+    
+    // Listen to tab changes to detect double-taps
+    _tabController.addListener(_handleTabChange);
     
     // Check after a delay if we should navigate to downloads (if in offline mode)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -29,14 +33,56 @@ class _HomeScreenState extends State<HomeScreen> {
       if (appState.isOfflineMode) {
         // Navigate to downloads tab (index 2)
         _tabController.index = 2;
+        _previousIndex = 2;
       }
     });
   }
   
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _handleTabChange() {
+    final currentIndex = _tabController.index;
+    
+    // If user tapped the same tab twice, reload/refresh that page
+    if (currentIndex == _previousIndex) {
+      _reloadCurrentTab(currentIndex);
+    }
+    
+    _previousIndex = currentIndex;
+  }
+
+  void _reloadCurrentTab(int index) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    
+    switch (index) {
+      case 0: // Home
+        // Refresh home data and scroll to top
+        appState.loadLibraryData();
+        break;
+      case 1: // Library
+        // Refresh library data
+        appState.loadLibraryData();
+        break;
+      case 2: // Downloads
+        // Refresh download data - just trigger a rebuild since downloads update automatically
+        break;
+      case 3: // Search
+        // Clear search and refresh
+        // Search page will handle its own refresh internally
+        break;
+      case 4: // Settings
+        // Refresh settings data (cache size, etc.)
+        // Settings will refresh its own data
+        break;
+    }
+    
+    // Force rebuild by triggering a setState
+    setState(() {});
   }
 
   @override
