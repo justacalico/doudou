@@ -137,6 +137,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
       }
+      
+      // Handle loading interruptions and errors more gracefully
+      if (playerState.processingState == ProcessingState.idle && shouldBePlaying && _currentTrack != null) {
+        if (kDebugMode) {
+          print('Player unexpectedly went to idle state while should be playing. Attempting recovery...');
+        }
+        
+        // Try to reload the current track after a short delay
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          if (_player.processingState == ProcessingState.idle && 
+              playbackState.value.playing && 
+              _currentTrack != null && 
+              !_isHandlingCompletion) {
+            
+            if (kDebugMode) {
+              print('Attempting to recover by reloading current track: ${_currentTrack!.name}');
+            }
+            
+            try {
+              await _loadAndPlayTrack(_currentTrack!);
+            } catch (e) {
+              if (kDebugMode) {
+                print('Recovery attempt failed: $e');
+              }
+            }
+          }
+        });
+      }
     });
 
     // Listen to position changes
