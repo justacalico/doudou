@@ -178,12 +178,14 @@ class _HomeContentState extends State<HomeContent> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final allAlbums = List<Album>.from(appState.albums);
-        _initializeAlbumLists(allAlbums);
+        final favoriteTracks = List<Track>.from(appState.favoriteTracks);
+        _initializeAlbumLists(allAlbums, favoriteTracks);
         
-        final recentAlbums = allAlbums.take(6).toList();
+        final recentAlbums = _recommendedAlbums ?? allAlbums.take(6).toList();
         final shuffledAlbums = _shuffledAlbums ?? allAlbums;
         final continueListeningAlbums = _continueListeningAlbums ?? allAlbums.take(4).toList();
         final madeForYouAlbums = _madeForYouAlbums ?? allAlbums.take(4).toList();
+        final similarToFavoritesAlbums = _similarToFavoritesAlbums ?? [];
         
         return Container(
           color: const Color(0xFF000000),
