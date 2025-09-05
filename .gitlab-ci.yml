@@ -198,9 +198,14 @@ build_android_release:
     - *setup_common
   script:
     - |
-      # Retry flutter pub get if needed
+      # Retry flutter pub get if needed with cache handling
       flutter pub get || {
         echo "Retrying flutter pub get..."
+        # Clear and fix Flutter cache permissions
+        flutter clean || true
+        rm -rf /opt/flutter/bin/cache/downloads/* || true
+        rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
+        chown -R root:root /opt/flutter/bin/cache || true
         sleep 5
         flutter pub get
       }
