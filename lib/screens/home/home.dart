@@ -16,15 +16,161 @@ class _HomeContentState extends State<HomeContent> {
   List<Album>? _shuffledAlbums;
   List<Album>? _continueListeningAlbums;
   List<Album>? _madeForYouAlbums;
+  List<Album>? _recommendedAlbums;
+  List<Album>? _similarToFavoritesAlbums;
 
-  void _initializeAlbumLists(List<Album> allAlbums) {
+  void _initializeAlbumLists(List<Album> allAlbums, List<Track> favoriteTracks) {
     if (_shuffledAlbums == null || _shuffledAlbums!.isEmpty) {
       _shuffledAlbums = List<Album>.from(allAlbums)..shuffle();
-      _continueListeningAlbums = List<Album>.from(_shuffledAlbums!).take(4).toList();
-      _madeForYouAlbums = allAlbums.length > 10 
-          ? allAlbums.skip(6).take(4).toList() 
-          : List<Album>.from(_shuffledAlbums!).skip(2).take(4).toList();
+      
+      // Get personalized recommendations based on favorites
+      _recommendedAlbums = _getRecommendedAlbums(allAlbums, favoriteTracks);
+      _continueListeningAlbums = _getContinueListeningAlbums(allAlbums, favoriteTracks);
+      _madeForYouAlbums = _getMadeForYouAlbums(allAlbums, favoriteTracks);
+      _similarToFavoritesAlbums = _getSimilarToFavoritesAlbums(allAlbums, favoriteTracks);
     }
+  }
+
+  List<Album> _getRecommendedAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
+    if (favoriteTracks.isEmpty) {
+      // If no favorites, return recently added albums
+      return allAlbums.take(6).toList();
+    }
+
+    // Get albums from favorite artists
+    final favoriteArtistNames = favoriteTracks
+        .where((track) => track.artistName != null)
+        .map((track) => track.artistName!)
+        .toSet();
+
+    final albumsByFavoriteArtists = allAlbums
+        .where((album) => 
+            album.artistName != null && 
+            favoriteArtistNames.contains(album.artistName!))
+        .toList()
+      ..shuffle();
+
+    // Mix with some random albums
+    final otherAlbums = allAlbums
+        .where((album) => 
+            album.artistName == null || 
+            !favoriteArtistNames.contains(album.artistName!))
+        .toList()
+      ..shuffle();
+
+    final recommended = <Album>[];
+    recommended.addAll(albumsByFavoriteArtists.take(4));
+    recommended.addAll(otherAlbums.take(2));
+    
+    return recommended.take(6).toList();
+  }
+
+  List<Album> _getContinueListeningAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
+    if (favoriteTracks.isEmpty) {
+      return List<Album>.from(allAlbums)..shuffle();
+    }
+
+    // Get albums that contain favorite tracks
+    final favoriteAlbumIds = favoriteTracks
+        .where((track) => track.albumId != null)
+        .map((track) => track.albumId!)
+        .toSet();
+
+    final favoriteAlbums = allAlbums
+        .where((album) => favoriteAlbumIds.contains(album.id))
+        .toList();
+
+    // If we have enough favorite albums, use them
+    if (favoriteAlbums.length >= 4) {
+      favoriteAlbums.shuffle();
+      return favoriteAlbums.take(4).toList();
+    }
+
+    // Otherwise, mix favorite albums with similar ones
+    final otherAlbums = allAlbums
+        .where((album) => !favoriteAlbumIds.contains(album.id))
+        .toList()
+      ..shuffle();
+
+    final continueListening = <Album>[];
+    continueListening.addAll(favoriteAlbums);
+    continueListening.addAll(otherAlbums.take(4 - favoriteAlbums.length));
+    
+    return continueListening;
+  }
+
+  List<Album> _getMadeForYouAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
+    if (favoriteTracks.isEmpty) {
+      return allAlbums.length > 10 
+          ? allAlbums.skip(6).take(4).toList() 
+          : List<Album>.from(allAlbums)..shuffle();
+    }
+
+    // Get albums from artists that appear in favorites
+    final favoriteArtistNames = favoriteTracks
+        .where((track) => track.artistName != null)
+        .map((track) => track.artistName!)
+        .toSet();
+
+    final albumsByFavoriteArtists = allAlbums
+        .where((album) => 
+            album.artistName != null && 
+            favoriteArtistNames.contains(album.artistName!))
+        .toList();
+
+    // Remove albums that contain favorite tracks (to avoid duplicates with continue listening)
+    final favoriteAlbumIds = favoriteTracks
+        .where((track) => track.albumId != null)
+        .map((track) => track.albumId!)
+        .toSet();
+
+    final madeForYou = albumsByFavoriteArtists
+        .where((album) => !favoriteAlbumIds.contains(album.id))
+        .toList()
+      ..shuffle();
+
+    if (madeForYou.length >= 4) {
+      return madeForYou.take(4).toList();
+    }
+
+    // Fill with other albums if needed
+    final otherAlbums = allAlbums
+        .where((album) => 
+            (album.artistName == null || !favoriteArtistNames.contains(album.artistName!)) &&
+            !favoriteAlbumIds.contains(album.id))
+        .toList()
+      ..shuffle();
+
+    madeForYou.addAll(otherAlbums.take(4 - madeForYou.length));
+    return madeForYou;
+  }
+
+  List<Album> _getSimilarToFavoritesAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
+    if (favoriteTracks.isEmpty) {
+      return [];
+    }
+
+    // Get albums from the same artists as favorite tracks
+    final favoriteArtistNames = favoriteTracks
+        .where((track) => track.artistName != null)
+        .map((track) => track.artistName!)
+        .toSet();
+
+    // Get albums that user hasn't favorited tracks from yet
+    final favoriteAlbumIds = favoriteTracks
+        .where((track) => track.albumId != null)
+        .map((track) => track.albumId!)
+        .toSet();
+
+    final similarAlbums = allAlbums
+        .where((album) => 
+            album.artistName != null && 
+            favoriteArtistNames.contains(album.artistName!) &&
+            !favoriteAlbumIds.contains(album.id))
+        .toList()
+      ..shuffle();
+
+    return similarAlbums.take(6).toList();
   }
 
   @override
