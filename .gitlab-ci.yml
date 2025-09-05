@@ -33,7 +33,7 @@ cache:
 # Common setup script for Android SDK and Flutter
 .setup_common: &setup_common
   - apt-get update -qy
-  - apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make pkg-config
+  - apt-get install -y --fix-missing curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make pkg-config || apt-get install -y --fix-missing curl git unzip xz-utils zip wget openjdk-${JAVA_VERSION}-jdk make pkg-config
   - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
   - export PATH=$JAVA_HOME/bin:$PATH
   # Install Android SDK
