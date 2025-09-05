@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../services/jellyfin_service.dart';
-import '../services/audio_handler.dart';
+import '../services/audio/audio_handler.dart';
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
