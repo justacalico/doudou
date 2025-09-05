@@ -91,6 +91,56 @@ class DownloadQueueTab extends StatelessWidget {
     );
   }
 
+  Widget _buildRetryAllButton(DownloadService downloadService, AppState appState, List<DownloadTask> retryableTasks) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => _retryAllDownloads(downloadService, appState, retryableTasks),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF007AFF),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF0056CC),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.refresh,
+                color: Color(0xFFFFFFFF),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Retry All (${retryableTasks.length})',
+                style: const TextStyle(
+                  color: Color(0xFFFFFFFF),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _retryAllDownloads(DownloadService downloadService, AppState appState, List<DownloadTask> retryableTasks) {
+    if (kDebugMode) {
+      print('_retryAllDownloads called for ${retryableTasks.length} tasks');
+    }
+    
+    for (final task in retryableTasks) {
+      _retryDownload(downloadService, task, appState);
+    }
+  }
+
   void _retryDownload(DownloadService downloadService, DownloadTask task, AppState appState) {
     if (kDebugMode) {
       print('_retryDownload called for task: ${task.trackName}, status: ${task.status}');
