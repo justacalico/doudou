@@ -13,7 +13,7 @@ class AudioSettingsSection extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF000000), // Pure black background
+            color: const Color(0xFF1C1C1E), // Dark gray background instead of pure black
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: const Color(0xFF2C2C2E),
