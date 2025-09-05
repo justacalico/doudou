@@ -107,6 +107,11 @@ build_android_debug:
   image: ubuntu:22.04
   tags:
     - android
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - unknown_failure
 
   dependencies:
     - setup_flutter
@@ -114,15 +119,30 @@ build_android_debug:
     - *setup_common
   script:
     - |
-      flutter pub get
+      # Retry flutter pub get if needed
+      flutter pub get || {
+        echo "Retrying flutter pub get..."
+        sleep 5
+        flutter pub get
+      }
       echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
-      flutter doctor -v
+      flutter doctor -v || true
       echo "Running make android with explicit SDK paths..."
-      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android
+      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android || {
+        echo "Build failed, checking logs..."
+        ls -la build/ || echo "No build directory"
+        exit 1
+      }
       echo "Build completed, checking output..."
-      ls -la builds/
+      ls -la builds/ || echo "No builds directory"
       mkdir -p builds/$CI_PIPELINE_ID
-      find builds/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \;
+      find builds/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \; || {
+        echo "No APK found, checking build directory..."
+        find build/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \; || {
+          echo "APK not found in expected locations"
+          exit 1
+        }
+      }
       ls -la builds/$CI_PIPELINE_ID/
   artifacts:
     paths:
