@@ -68,10 +68,12 @@ cache:
   - cd /opt
   - git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1 || (rm -rf flutter && git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1)
   - export PATH="/opt/flutter/bin:$PATH"
-  # Fix Flutter cache permissions to avoid tar ownership issues
-  - mkdir -p /opt/flutter/bin/cache/downloads
-  - mkdir -p /opt/flutter/bin/cache/artifacts/gradle_wrapper
+  # Fix Flutter cache permissions and set up directory structure
+  - mkdir -p /opt/flutter/bin/cache/{downloads,artifacts/gradle_wrapper}
   - chown -R root:root /opt/flutter/bin/cache || true
+  - chmod -R 755 /opt/flutter/bin/cache || true
+  # Set environment variables to avoid tar ownership issues
+  - export TAR_OPTIONS="--no-same-owner"
   - flutter config --android-sdk $ANDROID_SDK_ROOT
   - flutter doctor -v || true
   # Return to project directory
