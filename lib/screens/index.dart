@@ -1,7 +1,7 @@
 // Barrel export for all screens
 export 'albums/index.dart';
 export 'artists/index.dart';
-export 'controller/index.dart';
+export 'controller/index.dart' hide NowPlayingScreen;
 export 'downloads/index.dart';
 export 'favorites/index.dart';
 export 'home/index.dart';
