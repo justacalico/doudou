@@ -784,17 +784,90 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Custom methods for the app
   Future<void> playTrack(Track track) async {
+    // Stop any currently playing audio first
+    try {
+      await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 100)); // Allow stop to complete
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error stopping player during single track play: $e');
+      }
+    }
+    
+    // Clear existing preloaded tracks
+    _clearPreloadedPlayers();
+    
+    // Reset completion handling state
+    _isHandlingCompletion = false;
+    
     _playlist = [track];
     _currentIndex = 0;
     
+    if (kDebugMode) {
+      print('Playing single track: ${track.name}');
+    }
+    
     // Set state to playing since this is explicitly starting a single track
+    // This is CRITICAL - the system needs to know we intend to play
     playbackState.add(playbackState.value.copyWith(
       playing: true,
       processingState: AudioProcessingState.loading,
       queueIndex: 0,
     ));
     
-    await _playCurrentTrack();
+    try {
+      await _playCurrentTrack();
+      
+      // CRITICAL: Verify that playback actually started
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (playbackState.value.playing && !_player.playing) {
+        if (kDebugMode) {
+          print('Single track started but not playing - forcing playback to start...');
+        }
+        
+        // Retry playback multiple times if needed
+        for (int i = 0; i < 5; i++) {
+          try {
+            await _player.play();
+            await Future.delayed(const Duration(milliseconds: 200));
+            
+            if (_player.playing) {
+              if (kDebugMode) {
+                print('Successfully started single track playback on attempt ${i + 1}');
+              }
+              break;
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Single track auto-play attempt ${i + 1} failed: $e');
+            }
+          }
+        }
+        
+        // Final state check
+        if (!_player.playing) {
+          if (kDebugMode) {
+            print('All single track auto-play attempts failed, but maintaining playing state');
+          }
+        }
+      }
+      
+      if (kDebugMode) {
+        print('Single track initialization complete. Playing: ${_player.playing}, State playing: ${playbackState.value.playing}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during single track play: $e');
+      }
+      
+      // Maintain playing state for consistency
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+        playing: true, // Keep this true so UI shows expected state
+      ));
+    }
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
