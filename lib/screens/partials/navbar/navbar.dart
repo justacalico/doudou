@@ -93,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (appState.isOfflineMode && _tabController.index != 2) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _tabController.index = 2;
+            _previousIndex = 2; // Update tracking for double-tap detection
           });
         }
         
