@@ -100,6 +100,8 @@ setup_flutter:
     - *setup_common
   script:
     - |
+      # Set tar options to avoid ownership issues
+      export TAR_OPTIONS="--no-same-owner"
       # Retry flutter pub get if needed with cache cleanup
       for i in {1..3}; do
         flutter pub get && break || {
@@ -109,6 +111,7 @@ setup_flutter:
           rm -rf /opt/flutter/bin/cache/downloads/* || true
           rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
           chown -R root:root /opt/flutter/bin/cache || true
+          chmod -R 755 /opt/flutter/bin/cache || true
           sleep 5
         }
       done
