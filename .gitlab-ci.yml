@@ -206,6 +206,8 @@ build_android_release:
     - *setup_common
   script:
     - |
+      # Set tar options to avoid ownership issues
+      export TAR_OPTIONS="--no-same-owner"
       # Retry flutter pub get if needed with cache handling
       flutter pub get || {
         echo "Retrying flutter pub get..."
@@ -214,6 +216,7 @@ build_android_release:
         rm -rf /opt/flutter/bin/cache/downloads/* || true
         rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
         chown -R root:root /opt/flutter/bin/cache || true
+        chmod -R 755 /opt/flutter/bin/cache || true
         sleep 5
         flutter pub get
       }
