@@ -2,7 +2,7 @@
 
 variables:
   # Flutter version to use - using stable version compatible with Dart SDK ^3.8.0
-  FLUTTER_VERSION: "3.24.3"
+  FLUTTER_VERSION: "3.27.1"
   # Android SDK variables
   ANDROID_SDK_ROOT: "/opt/android-sdk"
   ANDROID_HOME: "/opt/android-sdk"
