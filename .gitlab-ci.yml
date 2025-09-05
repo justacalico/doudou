@@ -39,11 +39,12 @@ cache:
   # Install Android SDK
   - mkdir -p $ANDROID_SDK_ROOT
   - cd $ANDROID_SDK_ROOT
-  - wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip
-  - unzip -q commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip
+  - wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip -O cmdtools.zip
+  - unzip -q cmdtools.zip
   - mkdir -p cmdline-tools/latest
   - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
   - rm -rf cmdline-tools/latest/cmdline-tools || true
+  - rm cmdtools.zip
   - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
   # Accept licenses (critical for CI/CD)
   - yes | sdkmanager --licenses > /dev/null || true
