@@ -321,9 +321,9 @@ class _HomeContentState extends State<HomeContent> {
                       const SizedBox(height: 30),
                       
                       // Recently added albums
-                      const Text(
-                        'Recently added albums',
-                        style: TextStyle(
+                      Text(
+                        favoriteTracks.isNotEmpty ? 'Recommended for you' : 'Recently added albums',
+                        style: const TextStyle(
                           color: CupertinoColors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
