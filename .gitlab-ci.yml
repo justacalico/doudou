@@ -47,10 +47,10 @@ cache:
   - rm cmdtools.zip
   - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
   # Accept licenses (critical for CI/CD)
-  - yes | sdkmanager --licenses > /dev/null || true
-  - yes | sdkmanager --licenses > /dev/null || true
-  - sdkmanager --update
-  - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+  - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  - sdkmanager --update || true
+  - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
   # Install Flutter
   - cd /opt
   - git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1
