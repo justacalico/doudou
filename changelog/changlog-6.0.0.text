@@ -14,3 +14,4 @@
 
 - Fixed synced lyrics text being hidden on some cases.
 - Fixed offline mode never being set to true.
+- Fixed autoplay.
