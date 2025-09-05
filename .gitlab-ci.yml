@@ -98,10 +98,15 @@ setup_flutter:
     - *setup_common
   script:
     - |
-      # Retry flutter pub get if it fails
+      # Retry flutter pub get if needed with cache cleanup
       for i in {1..3}; do
         flutter pub get && break || {
           echo "flutter pub get attempt $i failed, retrying..."
+          # Clear flutter cache and fix permissions before retry
+          flutter clean || true
+          rm -rf /opt/flutter/bin/cache/downloads/* || true
+          rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
+          chown -R root:root /opt/flutter/bin/cache || true
           sleep 5
         }
       done
