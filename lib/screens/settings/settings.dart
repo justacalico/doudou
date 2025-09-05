@@ -240,7 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 100)), // Space for nav bar only
+                const SliverToBoxAdapter(child: SizedBox(height: 20)), // Reduced spacing to prevent overlap with now playing
               ],
             );
           },
