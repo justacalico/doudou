@@ -786,6 +786,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> playTrack(Track track) async {
     _playlist = [track];
     _currentIndex = 0;
+    
+    // Set state to playing since this is explicitly starting a single track
+    playbackState.add(playbackState.value.copyWith(
+      playing: true,
+      processingState: AudioProcessingState.loading,
+      queueIndex: 0,
+    ));
+    
     await _playCurrentTrack();
   }
 
