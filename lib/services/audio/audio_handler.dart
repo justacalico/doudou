@@ -1193,6 +1193,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         processingState: AudioProcessingState.error,
         playing: false,
       ));
+    } else {
+      // Additional safety check: If we successfully loaded but aren't playing when we should be
+      final shouldBePlaying = playbackState.value.playing;
+      if (shouldBePlaying && !_player.playing) {
+        if (kDebugMode) {
+          print('Track loaded successfully but not playing when it should be. Final play attempt...');
+        }
+        
+        // Final attempt to start playback
+        try {
+          await _player.play();
+          await Future.delayed(const Duration(milliseconds: 200));
+          
+          if (kDebugMode) {
+            print('Final play attempt result: ${_player.playing}');
+          }
+          
+          // Update state to match reality
+          if (_player.playing != shouldBePlaying) {
+            playbackState.add(playbackState.value.copyWith(
+              playing: _player.playing,
+            ));
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Final play attempt failed: $e');
+          }
+        }
+      }
     }
   }
 
