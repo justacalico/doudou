@@ -53,10 +53,10 @@ cache:
   - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
   # Install Flutter
   - cd /opt
-  - git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1
+  - git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1 || (rm -rf flutter && git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1)
   - export PATH="/opt/flutter/bin:$PATH"
   - flutter config --android-sdk $ANDROID_SDK_ROOT
-  - flutter doctor -v
+  - flutter doctor -v || true
   # Return to project directory
   - cd $CI_PROJECT_DIR
   - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
