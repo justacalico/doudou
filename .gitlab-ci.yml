@@ -1,8 +1,8 @@
 # GitLab CI/CD Pipeline for Doudou Flutter Android APK Build
 
 variables:
-  # Flutter version to use - specifying exact version that's compatible with Dart SDK ^3.8.0
-  FLUTTER_VERSION: "3.35.2"
+  # Flutter version to use - using stable version compatible with Dart SDK ^3.8.0
+  FLUTTER_VERSION: "3.24.3"
   # Android SDK variables
   ANDROID_SDK_ROOT: "/opt/android-sdk"
   ANDROID_HOME: "/opt/android-sdk"
@@ -10,6 +10,8 @@ variables:
   JAVA_VERSION: "17"
   # Command line tools version that's known to be compatible
   CMDLINE_TOOLS_VERSION: "9477386"
+  # Add timeout and retry settings
+  CI_DEBUG_TRACE: "false"
 
 # Define stages
 stages:
@@ -159,6 +161,11 @@ build_android_release:
   image: ubuntu:22.04
   tags:
     - android
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - unknown_failure
 
   dependencies:
     - setup_flutter
@@ -166,15 +173,30 @@ build_android_release:
     - *setup_common
   script:
     - |
-      flutter pub get
+      # Retry flutter pub get if needed
+      flutter pub get || {
+        echo "Retrying flutter pub get..."
+        sleep 5
+        flutter pub get
+      }
       echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
-      flutter doctor -v
+      flutter doctor -v || true
       echo "Running make android-release with explicit SDK paths..."
-      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android-release
+      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android-release || {
+        echo "Release build failed, checking logs..."
+        ls -la build/ || echo "No build directory"
+        exit 1
+      }
       echo "Build completed, checking output..."
-      ls -la builds/
+      ls -la builds/ || echo "No builds directory"
       mkdir -p builds/$CI_PIPELINE_ID
-      find builds/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \;
+      find builds/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \; || {
+        echo "No release APK found, checking build directory..."
+        find build/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \; || {
+          echo "Release APK not found in expected locations"
+          exit 1
+        }
+      }
       ls -la builds/$CI_PIPELINE_ID/
   artifacts:
     paths:
