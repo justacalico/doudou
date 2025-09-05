@@ -420,6 +420,44 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
               
+              // Similar to favorites section (only show if user has favorites)
+              if (similarToFavoritesAlbums.isNotEmpty) ...[
+                const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'More from your favorite artists',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: similarToFavoritesAlbums.length,
+                      itemBuilder: (context, index) {
+                        final album = similarToFavoritesAlbums[index];
+                        return _buildAlbumCard(context, album, appState);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+              
               const SliverToBoxAdapter(child: SizedBox(height: 100)), // Space for mini player
             ],
           ),
