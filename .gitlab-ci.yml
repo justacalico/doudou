@@ -188,66 +188,6 @@ build_android_debug:
     - develop
     - merge_requests
 
-# Build stage - Build Release APK using Makefile
-build_android_release:
-  stage: build
-  image: ubuntu:22.04
-  tags:
-    - android
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - unknown_failure
-
-  dependencies:
-    - setup_flutter
-    - build_android_debug
-  before_script:
-    - *setup_common
-  script:
-    - |
-      # Set tar options to avoid ownership issues
-      export TAR_OPTIONS="--no-same-owner"
-      # Retry flutter pub get if needed with cache handling
-      flutter pub get || {
-        echo "Retrying flutter pub get..."
-        # Clear and fix Flutter cache permissions
-        flutter clean || true
-        rm -rf /opt/flutter/bin/cache/downloads/* || true
-        rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
-        chown -R root:root /opt/flutter/bin/cache || true
-        chmod -R 755 /opt/flutter/bin/cache || true
-        sleep 5
-        flutter pub get
-      }
-      echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
-      flutter doctor -v || true
-      echo "Running make android-release with explicit SDK paths..."
-      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android-release || {
-        echo "Release build failed, checking logs..."
-        ls -la build/ || echo "No build directory"
-        exit 1
-      }
-      echo "Build completed, checking output..."
-      ls -la builds/ || echo "No builds directory"
-      mkdir -p builds/$CI_PIPELINE_ID
-      find builds/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \; || {
-        echo "No release APK found, checking build directory..."
-        find build/ -name "*-release-unsigned.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk \; || {
-          echo "Release APK not found in expected locations"
-          exit 1
-        }
-      }
-      ls -la builds/$CI_PIPELINE_ID/
-  artifacts:
-    paths:
-      - builds/$CI_PIPELINE_ID/doudou-release-unsigned-$CI_PIPELINE_ID.apk
-    expire_in: 90 days
-  only:
-    - tags
-    - main
-
 # Release stage - Create GitLab Release with debug APK (for tagged commits)
 release_to_gitlab:
   stage: release
@@ -257,10 +197,9 @@ release_to_gitlab:
 
   dependencies:
     - build_android_debug
-    - build_android_release
   script:
     - |
-      echo "Creating GitLab Release with debug and release APKs for tag $CI_COMMIT_TAG..."
+      echo "Creating GitLab Release with debug APK for tag $CI_COMMIT_TAG..."
   release:
     name: 'Release $CI_COMMIT_TAG'
     description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
@@ -270,9 +209,6 @@ release_to_gitlab:
       links:
         - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
           url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
-          link_type: 'package'
-        - name: 'doudou-release-unsigned-$CI_PIPELINE_ID.apk'
-          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-release-unsigned-${CI_PIPELINE_ID}.apk?job=build_android_release&inline=false'
           link_type: 'package'
   only:
     - tags
