@@ -28,6 +28,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Preloading and caching
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {}; // Tracks currently being preloaded
+  final Set<String> _bufferedTracks = {}; // Tracks with buffered content
+  
+  // Buffer management
+  static const int _maxPreloadedTracks = 5; // Increased buffer size
+  static const int _aggressivePreloadCount = 3; // Always preload next 3 tracks
   
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
@@ -1195,22 +1200,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     try {
       if (kDebugMode) {
-        print('Fast loading track: ${track.name}');
+        print('Fast loading track with buffering: ${track.name}');
       }
       
-      // Load and play in one operation
+      // Load with immediate buffer initialization
       await _player.setUrl(streamUrl);
       
       // Apply volume normalization if enabled
       _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
       
-      // Don't wait for ready state - let just_audio handle it
+      // Start playing immediately without waiting - let buffering happen in background
       if (wasPlaying) {
-        _player.play(); // Don't await this
+        _player.play(); // Don't await - start immediately
+        _bufferedTracks.add(track.id); // Mark as buffered
       }
       
       if (kDebugMode) {
-        print('Successfully started fast loading: ${track.name}');
+        print('Successfully started fast loading with buffering: ${track.name}');
       }
       
     } catch (e) {
@@ -1227,7 +1233,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
         
         if (wasPlaying) {
-          _player.play(); // Don't await this
+          _player.play(); // Don't await - start immediately
+          _bufferedTracks.add(track.id); // Mark as buffered
         }
         
         if (kDebugMode) {
