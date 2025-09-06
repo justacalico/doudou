@@ -10,7 +10,15 @@ import '../jellyfin_service.dart';
 import '../download_service.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final AudioPlayer _player = AudioPlayer();
+  final AudioPlayer _player = AudioPlayer(
+    audioPipeline: AudioPipeline(
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.music,
+        flags: AndroidAudioFlags.audibilityEnforced,
+        usage: AndroidAudioUsage.media,
+      ),
+    ),
+  );
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
   
