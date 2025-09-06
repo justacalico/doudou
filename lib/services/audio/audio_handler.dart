@@ -1342,15 +1342,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       if (!loaded) {
-        // Fall back to streaming (original logic)
-        // Try multiple stream URLs in order of preference
-        final streamUrls = [
-          _jellyfinService.getStreamUrl(track.id),
-          _jellyfinService.getDirectStreamUrl(track.id),
-          _jellyfinService.getUniversalStreamUrl(track.id),
-        ];
+        // Fast streaming - just try the best URL for preloading to save time
+        final streamUrl = _jellyfinService.getStreamUrl(track.id);
         
-        for (final streamUrl in streamUrls) {
         try {
           // Set URL and wait for it to be ready
           await player.setUrl(streamUrl);
@@ -1387,12 +1381,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (kDebugMode) {
             print('Successfully preloaded track: ${track.name}');
           }
-          break;
         } catch (e) {
           if (kDebugMode) {
             print('Failed to preload track ${track.name}: $e');
           }
-        }
         }
       }
       
