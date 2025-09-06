@@ -1168,235 +1168,85 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Apply volume normalization if enabled
           _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
           
-          // Wait for the player to be ready before playing
-          int retries = 0;
-          const maxRetries = 50; // 2.5 seconds total
-          while (_player.processingState == ProcessingState.loading && retries < maxRetries) {
-            await Future.delayed(const Duration(milliseconds: 50));
-            retries++;
+          // Don't wait for ready state - let just_audio handle buffering
+          if (wasPlaying) {
+            _player.play(); // Don't await this - let it play when ready
           }
           
-          // Check if loading was successful
-          if (_player.processingState == ProcessingState.ready) {
-            // Update state to ready, maintaining the playing state
-            playbackState.add(playbackState.value.copyWith(
-              processingState: AudioProcessingState.ready,
-              playing: wasPlaying, // Maintain the previous playing state
-              queueIndex: _currentIndex,
-            ));
-            
-            // Ensure the track is still the current one before playing
-            if (_currentTrack?.id == track.id) {
-              // Only start playing if we were playing before
-              if (wasPlaying) {
-                // CRITICAL: More aggressive approach for starting playback
-                // First attempt
-                await _player.play();
-                
-                // Monitor and retry loop for reliable playback start
-                for (int i = 0; i < 10; i++) {
-                  await Future.delayed(const Duration(milliseconds: 75));
-                  
-                  if (_player.playing) {
-                    if (kDebugMode && i > 0) {
-                      if (kDebugMode) {
-                        print('Local file: Playback started after $i retries');
-                      }
-                    }
-                    break; // Successfully playing
-                  }
-                  
-                  // Not playing yet, retry with exponential backoff
-                  if (i < 9) {
-                    try {
-                      if (kDebugMode) {
-                        print('Local file: Playback attempt ${i+1} failed, retrying...');
-                      }
-                      await _player.play();
-                    } catch (playError) {
-                      if (kDebugMode) {
-                        print('Local file: Play retry ${i+1} failed: $playError');
-                      }
-                    }
-                  }
-                }
-              }
-              
-              if (kDebugMode) {
-                print('Successfully ${wasPlaying ? "started playing" : "loaded"} local file: ${track.name}');
-                if (wasPlaying) {
-                  print('Local file auto-play final state: ${_player.playing}');
-                  
-                  // Force state consistency as last resort
-                  if (!_player.playing) {
-                    print('WARNING: Player reports not playing but should be playing. Forcing state consistency...');
-                    playbackState.add(playbackState.value.copyWith(
-                      playing: true, // Force the state to match expectations
-                    ));
-                    // One final attempt
-                    _player.play().catchError((e) => {
-                      if (kDebugMode) {
-                        // ignore: avoid_print
-                        print('Final play attempt error: $e')
-                      }
-                    });
-                  }
-                }
-              }
-              return; // Success! Exit early
-            } else {
-              if (kDebugMode) {
-                print('Track changed during loading, cancelling play for: ${track.name}');
-              }
-              return;
-            }
-          } else {
-            if (kDebugMode) {
-              print('Failed to load local file for ${track.name} - player state: ${_player.processingState}');
-            }
+          if (kDebugMode) {
+            print('Successfully loaded local file: ${track.name}');
           }
+          return; // Success! Exit early
         } catch (e) {
           if (kDebugMode) {
             print('Failed to play local file for ${track.name}: $e');
           }
         }
-      } else {
-        if (kDebugMode) {
-          print('Local file does not exist: $localFilePath');
-        }
-      }
-      
-      // If local file failed, fall back to streaming
-      if (kDebugMode) {
-        print('Local file playback failed for ${track.name}, falling back to streaming');
       }
     }
     
-    // Stream from server (original logic)
-    // Try multiple stream URLs in order of preference
-    final streamUrls = [
-      _jellyfinService.getStreamUrl(track.id),
-      _jellyfinService.getDirectStreamUrl(track.id),
-      _jellyfinService.getUniversalStreamUrl(track.id),
-    ];
+    // Fast streaming - try best URL first, only one fallback
+    await _loadAndPlayTrackFast(track, wasPlaying);
+  }
+
+  Future<void> _loadAndPlayTrackFast(Track track, bool wasPlaying) async {
+    // Get the best stream URL immediately (don't try all fallbacks)
+    final streamUrl = _jellyfinService.getStreamUrl(track.id);
     
-    bool loadedSuccessfully = false;
-    
-    for (int i = 0; i < streamUrls.length; i++) {
-      final streamUrl = streamUrls[i];
-      final streamType = ['stream', 'direct', 'universal'][i];
+    try {
+      if (kDebugMode) {
+        print('Fast loading track: ${track.name}');
+      }
       
+      // Load and play in one operation
+      await _player.setUrl(streamUrl);
+      
+      // Apply volume normalization if enabled
+      _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+      
+      // Don't wait for ready state - let just_audio handle it
+      if (wasPlaying) {
+        _player.play(); // Don't await this
+      }
+      
+      if (kDebugMode) {
+        print('Successfully started fast loading: ${track.name}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Primary URL failed, trying fallback for: ${track.name}');
+      }
+      
+      // Only try one fallback URL
       try {
-        if (kDebugMode) {
-          print('Loading track: ${track.name} using $streamType URL');
-        }
-        
-        // Load the audio source
-        await _player.setUrl(streamUrl);
+        final fallbackUrl = _jellyfinService.getDirectStreamUrl(track.id);
+        await _player.setUrl(fallbackUrl);
         
         // Apply volume normalization if enabled
         _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
         
-        // Wait for the player to be ready before playing
-        int retries = 0;
-        const maxRetries = 50; // 2.5 seconds total
-        while (_player.processingState == ProcessingState.loading && retries < maxRetries) {
-          await Future.delayed(const Duration(milliseconds: 50));
-          retries++;
+        if (wasPlaying) {
+          _player.play(); // Don't await this
         }
         
-        // Check if loading was successful
-        if (_player.processingState == ProcessingState.ready) {
-          // Update state to ready, maintaining the playing state
-          playbackState.add(playbackState.value.copyWith(
-            processingState: AudioProcessingState.ready,
-            playing: wasPlaying, // Maintain the previous playing state
-            queueIndex: _currentIndex,
-          ));
-          
-          // Ensure the track is still the current one before playing
-          if (_currentTrack?.id == track.id) {
-            // Only start playing if we were playing before
-            if (wasPlaying) {
-              // CRITICAL: More aggressive approach for starting streaming playback
-              // First attempt
-              await _player.play();
-              
-              // Monitor and retry loop for reliable playback start
-              for (int i = 0; i < 10; i++) {
-                await Future.delayed(const Duration(milliseconds: 75));
-                
-                if (_player.playing) {
-                  if (kDebugMode && i > 0) {
-                    if (kDebugMode) {
-                      print('Stream: Playback started after $i retries');
-                    }
-                  }
-                  break; // Successfully playing
-                }
-                
-                // Not playing yet, retry with exponential backoff
-                if (i < 9) {
-                  try {
-                    if (kDebugMode) {
-                      print('Stream: Playback attempt ${i+1} failed, retrying...');
-                    }
-                    await _player.play();
-                  } catch (playError) {
-                    if (kDebugMode) {
-                      print('Stream: Play retry ${i+1} failed: $playError');
-                    }
-                  }
-                }
-              }
-            }
-            loadedSuccessfully = true;
-            
-            if (kDebugMode) {
-              print('Successfully ${wasPlaying ? "started playing" : "loaded"}: ${track.name} using $streamType URL');
-              if (wasPlaying) {
-                print('Stream auto-play final state: ${_player.playing}');
-                
-                // Force state consistency as last resort
-                if (!_player.playing) {
-                  print('WARNING: Stream player reports not playing but should be playing. Forcing state consistency...');
-                  playbackState.add(playbackState.value.copyWith(
-                    playing: true, // Force the state to match expectations
-                  ));
-                  // One final attempt
-                  _player.play().catchError((e) => {
-                    if (kDebugMode) {
-                      // ignore: avoid_print
-                      print('Final stream play attempt error: $e')
-                    }
-                  });
-                }
-              }
-            }
-            break; // Success! Exit the loop
-          } else {
-            if (kDebugMode) {
-              print('Track changed during loading, cancelling play for: ${track.name}');
-            }
-            break;
-          }
-        } else {
-          if (kDebugMode) {
-            print('Failed to load ${track.name} with $streamType URL - player state: ${_player.processingState}');
-          }
-        }
-        
-      } catch (e) {
         if (kDebugMode) {
-          print('Failed to play with $streamType URL: $e');
+          print('Successfully loaded with fallback URL: ${track.name}');
         }
+      } catch (fallbackError) {
+        if (kDebugMode) {
+          print('All URLs failed for track: ${track.name}');
+          print('Primary error: $e');
+          print('Fallback error: $fallbackError');
+        }
+        
+        // Set error state
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.error,
+        ));
       }
     }
-    
-    if (!loadedSuccessfully) {
-      if (kDebugMode) {
-        print('All stream URLs failed for track: ${track.name}');
-      }
+  }
       
       // Update playback state to indicate error
       playbackState.add(playbackState.value.copyWith(
