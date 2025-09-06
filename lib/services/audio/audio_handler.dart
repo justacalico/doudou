@@ -377,6 +377,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Audio Service Methods
   @override
   Future<void> play() async {
+    if (kDebugMode) {
+      print('Play command received');
+    }
+    
+    // Clear pause time since user explicitly wants to play
+    _lastPauseTime = null;
+    
     // More aggressive approach to ensure playback starts
     try {
       // First attempt
