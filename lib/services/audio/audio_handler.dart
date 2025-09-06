@@ -1286,6 +1286,100 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  void _preloadTrackAggressive(Track track, int priority) async {
+    // Don't preload if already preloaded or currently preloading
+    if (_preloadedPlayers.containsKey(track.id) || _preloadingTracks.contains(track.id)) {
+      return;
+    }
+    
+    _preloadingTracks.add(track.id);
+    
+    if (kDebugMode) {
+      print('Aggressively preloading track (priority $priority): ${track.name}');
+    }
+    
+    try {
+      final player = AudioPlayer();
+      
+      // Check if track is downloaded locally first
+      final localFilePath = _downloadService.getLocalFilePath(track.id);
+      
+      bool loaded = false;
+      
+      if (localFilePath != null) {
+        final localFile = File(localFilePath);
+        if (await localFile.exists()) {
+          try {
+            await player.setFilePath(localFilePath);
+            player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+            
+            // For local files, wait briefly to ensure they're ready
+            await Future.delayed(const Duration(milliseconds: 100));
+            
+            _preloadedPlayers[track.id] = player;
+            _bufferedTracks.add(track.id);
+            loaded = true;
+            
+            if (kDebugMode) {
+              print('✓ Aggressively preloaded local track: ${track.name}');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to aggressively preload local track ${track.name}: $e');
+            }
+          }
+        }
+      }
+      
+      if (!loaded) {
+        // Stream preloading - start buffering immediately
+        final streamUrl = _jellyfinService.getStreamUrl(track.id);
+        
+        try {
+          await player.setUrl(streamUrl);
+          player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+          
+          // Don't wait for full buffer - just start the buffering process
+          _preloadedPlayers[track.id] = player;
+          _bufferedTracks.add(track.id);
+          loaded = true;
+          
+          if (kDebugMode) {
+            print('✓ Started aggressive buffering for: ${track.name}');
+          }
+          
+          // Let it buffer in the background without waiting
+          player.playerStateStream.listen((state) {
+            if (state.processingState == ProcessingState.ready) {
+              if (kDebugMode) {
+                print('✓ Background buffering complete for: ${track.name}');
+              }
+            }
+          });
+          
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to start aggressive buffering for ${track.name}: $e');
+          }
+          loaded = false;
+        }
+      }
+      
+      if (!loaded) {
+        player.dispose();
+        if (kDebugMode) {
+          print('✗ Could not aggressively preload track: ${track.name}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in aggressive preloading for ${track.name}: $e');
+      }
+    } finally {
+      _preloadingTracks.remove(track.id);
+    }
+  }
+
   void _preloadTrack(Track track) async {
     // Don't preload if already preloaded or currently preloading
     if (_preloadedPlayers.containsKey(track.id) || _preloadingTracks.contains(track.id)) {
