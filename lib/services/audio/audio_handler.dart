@@ -1256,20 +1256,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _preloadNextTracks() async {
-    // Only preload if gapless playback is enabled or for general performance
-    
-    // Clean up old preloaded players first
+    // Aggressive preloading for instant playback
     _cleanupOldPreloadedPlayers();
     
-    // Preload next few tracks in the queue for instant playback
-    final preloadCount = _gaplessPlaybackEnabled ? 2 : 1; // More aggressive preloading for gapless
+    // Always preload next 3 tracks for instant switching
+    const preloadCount = 3; // Increased from 2/1 to always preload 3
+    
+    if (kDebugMode) {
+      print('Starting aggressive preloading of next $preloadCount tracks...');
+    }
+    
     for (int i = 1; i <= preloadCount; i++) {
       final nextIndex = _currentIndex + i;
       if (nextIndex < _playlist.length) {
         final track = _playlist[nextIndex];
         if (!_preloadedPlayers.containsKey(track.id) && !_preloadingTracks.contains(track.id)) {
-          _preloadTrack(track);
+          // Start preloading immediately without waiting
+          _preloadTrackAggressive(track, i);
         }
+      }
+    }
+    
+    // Also preload the previous track for instant skip-back
+    if (_currentIndex > 0) {
+      final prevTrack = _playlist[_currentIndex - 1];
+      if (!_preloadedPlayers.containsKey(prevTrack.id) && !_preloadingTracks.contains(prevTrack.id)) {
+        _preloadTrackAggressive(prevTrack, 0);
       }
     }
   }
