@@ -421,7 +421,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    if (kDebugMode) {
+      print('Pause command received');
+    }
+    
+    try {
+      await _player.pause();
+      
+      // Immediately update playback state to reflect pause
+      playbackState.add(playbackState.value.copyWith(
+        playing: false,
+      ));
+      
+      if (kDebugMode) {
+        print('Pause command completed: ${_player.playing}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during pause command: $e');
+      }
+    }
+  }
 
   @override
   Future<void> stop() async {
