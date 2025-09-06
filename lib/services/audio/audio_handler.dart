@@ -1358,11 +1358,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       if (!loaded) {
-        // Stream preloading - start buffering immediately
-        final streamUrl = _jellyfinService.getStreamUrl(track.id);
+        // Stream preloading - use optimized URL selection
+        final fallbackUrl = _jellyfinService.getDirectStreamUrl(track.id);
+        final primaryUrl = _jellyfinService.getStreamUrl(track.id);
         
+        // Try direct stream first (optimized based on server behavior)
         try {
-          await player.setUrl(streamUrl);
+          await player.setUrl(fallbackUrl);
           player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
           
           // Don't wait for full buffer - just start the buffering process
@@ -1371,7 +1373,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           loaded = true;
           
           if (kDebugMode) {
-            print('✓ Started aggressive buffering for: ${track.name}');
+            print('✓ Started aggressive buffering (direct): ${track.name}');
           }
           
           // Let it buffer in the background without waiting
@@ -1384,10 +1386,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           });
           
         } catch (e) {
-          if (kDebugMode) {
-            print('Failed to start aggressive buffering for ${track.name}: $e');
+          // Fallback to primary URL
+          try {
+            await player.setUrl(primaryUrl);
+            player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+            
+            _preloadedPlayers[track.id] = player;
+            _bufferedTracks.add(track.id);
+            loaded = true;
+            
+            if (kDebugMode) {
+              print('✓ Started aggressive buffering (primary): ${track.name}');
+            }
+            
+            player.playerStateStream.listen((state) {
+              if (state.processingState == ProcessingState.ready) {
+                if (kDebugMode) {
+                  print('✓ Background buffering complete for: ${track.name}');
+                }
+              }
+            });
+            
+          } catch (primaryError) {
+            if (kDebugMode) {
+              print('Failed to start aggressive buffering for ${track.name}: direct=$e, primary=$primaryError');
+            }
+            loaded = false;
           }
-          loaded = false;
         }
       }
       
