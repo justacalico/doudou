@@ -976,9 +976,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       queueIndex: _currentIndex,
     ));
     
-    // Start playing current track with enhanced auto-play
+    // Start playing current track with enhanced auto-play and aggressive buffering
     try {
       await _playCurrentTrack();
+      
+      // Immediately start aggressive preloading without waiting
+      Future.microtask(() => _preloadNextTracks());
       
       // CRITICAL: Verify that playback actually started
       // Wait a bit for the track to load and then force play if needed
