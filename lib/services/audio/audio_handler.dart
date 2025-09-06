@@ -1532,13 +1532,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final currentTrackId = _currentTrack?.id;
     final upcomingTrackIds = <String>{};
     
-    // Collect IDs of upcoming tracks (next 3 tracks)
+    // Collect IDs of upcoming tracks (next 3 tracks + previous track)
     const preloadCount = 3;
+    
+    // Add next tracks
     for (int i = 1; i <= preloadCount; i++) {
       final nextIndex = _currentIndex + i;
       if (nextIndex < _playlist.length) {
         upcomingTrackIds.add(_playlist[nextIndex].id);
       }
+    }
+    
+    // Add previous track for instant skip-back
+    if (_currentIndex > 0) {
+      upcomingTrackIds.add(_playlist[_currentIndex - 1].id);
     }
     
     // Remove preloaded players that are no longer needed
@@ -1549,12 +1556,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
+    if (keysToRemove.isNotEmpty && kDebugMode) {
+      print('Cleaning up ${keysToRemove.length} old preloaded tracks');
+    }
+    
     for (final trackId in keysToRemove) {
       final player = _preloadedPlayers.remove(trackId);
       player?.dispose();
+      _bufferedTracks.remove(trackId);
       if (kDebugMode) {
         print('Cleaned up preloaded player for track: $trackId');
       }
+    }
+    
+    if (kDebugMode) {
+      print('Currently buffered: ${_preloadedPlayers.length} tracks, Buffering: ${_preloadingTracks.length} tracks');
     }
   }
 
