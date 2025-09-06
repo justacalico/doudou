@@ -202,6 +202,7 @@ build_android_release:
 
   dependencies:
     - setup_flutter
+    - build_android_debug
   before_script:
     - *setup_common
   script:
