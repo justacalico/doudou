@@ -1511,44 +1511,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         final primaryUrl = _jellyfinService.getStreamUrl(track.id);
         
         // Try direct stream first (optimized based on server behavior)
-        bool urlLoaded = false;
-        Exception? lastError;
-        
         try {
           // Set URL and wait for it to be ready
           await player.setUrl(fallbackUrl);
           
           // Apply volume normalization if enabled
           player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
-          urlLoaded = true;
           
           if (kDebugMode) {
             print('Regular preload using direct URL: ${track.name}');
           }
           
-        } catch (e) {
-          lastError = e as Exception;
-          
-          // Fallback to primary URL
-          try {
-            await player.setUrl(primaryUrl);
-            player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
-            urlLoaded = true;
-            
-            if (kDebugMode) {
-              print('Regular preload using primary URL: ${track.name}');
-            }
-            
-          } catch (primaryError) {
-            if (kDebugMode) {
-              print('Both URLs failed for regular preload: ${track.name}');
-            }
-            urlLoaded = false;
-            lastError = primaryError as Exception;
-          }
-        }
-        
-        if (urlLoaded) {
           // Wait for the player to be in ready state with a timeout
           final completer = Completer<void>();
           StreamSubscription? subscription;
@@ -1576,11 +1549,53 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           loaded = true;
           
           if (kDebugMode) {
-            print('Successfully preloaded track: ${track.name}');
+            print('Successfully preloaded track (direct): ${track.name}');
           }
+          
         } catch (e) {
-          if (kDebugMode) {
-            print('Failed to preload track ${track.name}: $e');
+          // Fallback to primary URL
+          try {
+            await player.setUrl(primaryUrl);
+            player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+            
+            if (kDebugMode) {
+              print('Regular preload using primary URL: ${track.name}');
+            }
+            
+            // Wait for the player to be in ready state with a timeout
+            final completer = Completer<void>();
+            StreamSubscription? subscription;
+            
+            subscription = player.playerStateStream.listen((state) {
+              if (state.processingState == ProcessingState.ready) {
+                subscription?.cancel();
+                if (!completer.isCompleted) {
+                  completer.complete();
+                }
+              }
+            });
+            
+            // Wait up to 5 seconds for the track to be ready
+            await completer.future.timeout(
+              const Duration(seconds: 5),
+              onTimeout: () {
+                subscription?.cancel();
+                throw TimeoutException('Track preloading timed out', const Duration(seconds: 5));
+              },
+            );
+            
+            // Successfully preloaded
+            _preloadedPlayers[track.id] = player;
+            loaded = true;
+            
+            if (kDebugMode) {
+              print('Successfully preloaded track (primary): ${track.name}');
+            }
+            
+          } catch (primaryError) {
+            if (kDebugMode) {
+              print('Failed to preload track ${track.name}: direct=$e, primary=$primaryError');
+            }
           }
         }
       }
