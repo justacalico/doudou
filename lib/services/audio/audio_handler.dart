@@ -885,6 +885,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       await _playCurrentTrack();
       
+      // For single tracks, still preload similar tracks for better UX
+      if (_playlist.length == 1) {
+        Future.microtask(() async {
+          try {
+            final similarTracks = await _getSimilarTracks(track, limit: 3);
+            if (similarTracks.isNotEmpty && kDebugMode) {
+              print('Preloading ${similarTracks.length} similar tracks for better UX');
+              for (final similarTrack in similarTracks) {
+                _preloadTrackAggressive(similarTrack, 10); // Low priority
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to preload similar tracks: $e');
+            }
+          }
+        });
+      }
+      
       // CRITICAL: Verify that playback actually started
       await Future.delayed(const Duration(milliseconds: 500));
       
