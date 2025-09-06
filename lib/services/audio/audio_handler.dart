@@ -30,10 +30,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final Set<String> _preloadingTracks = {}; // Tracks currently being preloaded
   final Set<String> _bufferedTracks = {}; // Tracks with buffered content
   
-  // Buffer management
-  static const int _maxPreloadedTracks = 5; // Increased buffer size
-  static const int _aggressivePreloadCount = 3; // Always preload next 3 tracks
-  
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
   
@@ -1628,8 +1624,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update audio service queue
     queue.add(_playlist.map(_trackToMediaItem).toList());
     
-    // Preload this track since it will play next
-    _preloadTrack(track);
+    // This track will play next - preload it immediately with highest priority
+    if (kDebugMode) {
+      print('Immediately preloading "play next" track: ${track.name}');
+    }
+    _preloadTrackAggressive(track, 1); // Highest priority
     
     if (kDebugMode) {
       print('Added track to play next: ${track.name} at position $insertIndex');
