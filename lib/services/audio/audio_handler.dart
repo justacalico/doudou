@@ -1517,14 +1517,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _clearPreloadedPlayers() {
+    if (kDebugMode) {
+      print('Clearing all ${_preloadedPlayers.length} preloaded players');
+    }
+    
     for (final player in _preloadedPlayers.values) {
       player.dispose();
     }
     _preloadedPlayers.clear();
     _preloadingTracks.clear();
+    _bufferedTracks.clear();
     
     if (kDebugMode) {
-      print('Cleared all preloaded players');
+      print('Cleared all preloaded players and buffers');
     }
   }
 
