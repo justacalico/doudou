@@ -1213,16 +1213,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrackFast(Track track, bool wasPlaying) async {
-    // Get the best stream URL immediately (don't try all fallbacks)
-    final streamUrl = _jellyfinService.getStreamUrl(track.id);
+    if (kDebugMode) {
+      print('Ultra-fast loading track: ${track.name}');
+    }
     
+    // Get both URLs immediately for parallel testing
+    final primaryUrl = _jellyfinService.getStreamUrl(track.id);
+    final fallbackUrl = _jellyfinService.getDirectStreamUrl(track.id);
+    
+    // Try fallback URL first since primary is failing with 500 errors
+    // This is a temporary optimization based on current server behavior
     try {
       if (kDebugMode) {
-        print('Fast loading track with buffering: ${track.name}');
+        print('Trying direct stream URL first (optimized): ${track.name}');
       }
       
-      // Load with immediate buffer initialization
-      await _player.setUrl(streamUrl);
+      // Load direct stream URL immediately
+      await _player.setUrl(fallbackUrl);
       
       // Apply volume normalization if enabled
       _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
@@ -1234,18 +1241,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       if (kDebugMode) {
-        print('Successfully started fast loading with buffering: ${track.name}');
+        print('✓ Successfully loaded with direct stream URL: ${track.name}');
       }
+      
+      return; // Success - exit early
       
     } catch (e) {
       if (kDebugMode) {
-        print('Primary URL failed, trying fallback for: ${track.name}');
+        print('Direct stream failed, trying primary URL for: ${track.name}');
       }
       
-      // Only try one fallback URL
+      // Fallback to primary URL if direct stream fails
       try {
-        final fallbackUrl = _jellyfinService.getDirectStreamUrl(track.id);
-        await _player.setUrl(fallbackUrl);
+        await _player.setUrl(primaryUrl);
         
         // Apply volume normalization if enabled
         _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
@@ -1256,13 +1264,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         if (kDebugMode) {
-          print('Successfully loaded with fallback URL: ${track.name}');
+          print('✓ Successfully loaded with primary URL: ${track.name}');
         }
       } catch (fallbackError) {
         if (kDebugMode) {
-          print('All URLs failed for track: ${track.name}');
-          print('Primary error: $e');
-          print('Fallback error: $fallbackError');
+          print('✗ All URLs failed for track: ${track.name}');
+          print('Direct stream error: $e');
+          print('Primary URL error: $fallbackError');
         }
         
         // Set error state
