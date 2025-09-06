@@ -1608,9 +1608,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update audio service queue
     queue.add(_playlist.map(_trackToMediaItem).toList());
     
-    // Always trigger preloading if this track is within preload range
-    if (_playlist.length - _currentIndex <= 4) { // Preload if within next 3 tracks
-      _preloadTrack(track);
+    // Always preload tracks that are added - they're likely to be played soon
+    final position = _playlist.length - _currentIndex - 1; // Position from current track
+    if (position <= 5) { // If within next 5 tracks, preload immediately
+      if (kDebugMode) {
+        print('Immediately preloading newly added track: ${track.name}');
+      }
+      _preloadTrackAggressive(track, position);
     }
   }
 
