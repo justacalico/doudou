@@ -41,6 +41,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   static const Duration _skipToPreviousThreshold = Duration(seconds: 5);
   static const double _restartThresholdPercentage = 0.20; // 20% of song duration
   
+  // Pause tracking to prevent aggressive auto-play after manual pause
+  DateTime? _lastPauseTime;
+  
   // Periodic state saving
   Timer? _saveStateTimer;
   
@@ -81,42 +84,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         queueIndex: _currentIndex,
       ));
       
-      // CRITICAL: More aggressive auto-play mechanism
+      // CRITICAL: More controlled auto-play mechanism
       if (playerState.processingState == ProcessingState.ready) {
         // Case 1: Track is ready but not playing when it should be
         if (!isPlaying && shouldBePlaying && !_isHandlingCompletion) {
-          if (kDebugMode) {
-            print('Critical auto-play trigger: Track ready but not playing when it should be, forcing play...');
-          }
+          // Add additional check - only auto-play if user explicitly wants to play
+          // Don't auto-play if the user has manually paused
+          final timeSinceLastPause = DateTime.now().difference(_lastPauseTime ?? DateTime(2000));
           
-          // Attempt immediate play first
-          _player.play().then((_) {
+          if (timeSinceLastPause.inSeconds > 2) { // Only auto-play if it's been >2 seconds since manual pause
             if (kDebugMode) {
-              print('Immediate auto-play result: ${_player.playing}');
+              print('Auto-play trigger: Track ready but not playing when it should be, forcing play...');
             }
-          }).catchError((e) {
-            if (kDebugMode) {
-              print('Immediate auto-play failed: $e');
-            }
-          });
-          
-          // Also schedule a delayed check as backup
-          Future.delayed(const Duration(milliseconds: 100), () async {
-            if (_player.processingState == ProcessingState.ready && 
-                !_player.playing && 
-                playbackState.value.playing) {
-              try {
-                await _player.play();
-                if (kDebugMode) {
-                  print('Delayed auto-play result: ${_player.playing}');
-                }
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Delayed auto-play failed: $e');
-                }
+            
+            // Attempt immediate play first
+            _player.play().then((_) {
+              if (kDebugMode) {
+                print('Immediate auto-play result: ${_player.playing}');
               }
+            }).catchError((e) {
+              if (kDebugMode) {
+                print('Immediate auto-play failed: $e');
+              }
+            });
+          } else {
+            if (kDebugMode) {
+              print('Skipping auto-play due to recent manual pause');
             }
-          });
+          }
         }
         // Case 2: Track just became ready and should be playing (e.g., on initial load)
         else if (shouldBePlaying && _currentTrack != null) {
@@ -124,16 +119,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Track is ready and should be playing, checking state: ${_player.playing}');
           }
           
-          // For initial loads, ensure we're playing
+          // For initial loads, ensure we're playing - but respect recent pauses
           if (!_player.playing) {
-            if (kDebugMode) {
-              print('Track ready event: Starting playback...');
-            }
-            _player.play().catchError((e) {
+            final timeSinceLastPause = DateTime.now().difference(_lastPauseTime ?? DateTime(2000));
+            
+            if (timeSinceLastPause.inSeconds > 2) {
               if (kDebugMode) {
-                print('Track ready play failed: $e');
+                print('Track ready event: Starting playback...');
               }
-            });
+              _player.play().catchError((e) {
+                if (kDebugMode) {
+                  print('Track ready play failed: $e');
+                }
+              });
+            } else {
+              if (kDebugMode) {
+                print('Track ready but skipping auto-play due to recent manual pause');
+              }
+            }
           }
         }
       }
@@ -427,6 +430,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     try {
+      // Record the pause time to prevent aggressive auto-play
+      _lastPauseTime = DateTime.now();
+      
       await _player.pause();
       
       // Immediately update playback state to reflect pause
