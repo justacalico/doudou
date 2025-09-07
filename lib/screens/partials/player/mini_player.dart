@@ -125,7 +125,7 @@ class MiniPlayer extends StatelessWidget {
                           // Next Button
                           CupertinoButton(
                             padding: EdgeInsets.zero,
-                            onPressed: audioHandler?.hasNext == true
+                            onPressed: audioHandler.hasNext == true
                                 ? () => appState.skipToNext()
                                 : null,
                             child: Icon(
