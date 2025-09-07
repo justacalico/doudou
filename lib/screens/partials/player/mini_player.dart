@@ -131,7 +131,7 @@ class MiniPlayer extends StatelessWidget {
                             child: Icon(
                               CupertinoIcons.forward_fill,
                               size: 24,
-                              color: audioHandler?.hasNext == true 
+                              color: audioHandler.hasNext == true 
                                   ? const Color(0xFFFFFFFF) // Pure white for OLED
                                   : CupertinoColors.systemGrey2,
                             ),
