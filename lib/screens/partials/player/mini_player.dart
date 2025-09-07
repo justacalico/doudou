@@ -15,7 +15,8 @@ class MiniPlayer extends StatelessWidget {
         final audioHandler = appState.audioHandler;
         final currentTrack = audioHandler?.currentTrack;
         
-        if (currentTrack == null) {
+        // Return empty widget if no track is playing
+        if (currentTrack == null || audioHandler == null) {
           return const SizedBox.shrink();
         }
 
