@@ -92,10 +92,10 @@ class MiniPlayer extends StatelessWidget {
                   
                   // Control Buttons
                   StreamBuilder(
-                    stream: audioHandler?.playerStateStream,
+                    stream: audioHandler.playerStateStream,
                     builder: (context, snapshot) {
-                      final isPlaying = audioHandler?.isPlaying ?? false;
-                      final processingState = audioHandler?.playerState.processingState;
+                      final isPlaying = audioHandler.isPlaying;
+                      final processingState = audioHandler.playerState.processingState;
                       
                       return Row(
                         mainAxisSize: MainAxisSize.min,
