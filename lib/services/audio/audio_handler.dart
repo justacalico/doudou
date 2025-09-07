@@ -887,7 +887,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           try {
             final similarTracks = await _getSimilarTracks(track, limit: 3);
             if (similarTracks.isNotEmpty && kDebugMode) {
-              print('Preloading ${similarTracks.length} similar tracks for better UX');
+              if (kDebugMode) {
+                print('Preloading ${similarTracks.length} similar tracks for better UX');
+              }
               for (final similarTrack in similarTracks) {
                 _preloadTrackAggressive(similarTrack, 10); // Low priority
               }
@@ -1661,7 +1663,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     if (keysToRemove.isNotEmpty && kDebugMode) {
-      print('Cleaning up ${keysToRemove.length} old preloaded tracks');
+      if (kDebugMode) {
+        print('Cleaning up ${keysToRemove.length} old preloaded tracks');
+      }
     }
     
     for (final trackId in keysToRemove) {
