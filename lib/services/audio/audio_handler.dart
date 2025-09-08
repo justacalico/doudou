@@ -227,248 +227,46 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Track completed: ${_currentTrack?.name}');
       }
       
-      // Store current track info for verification
-      final currentTrackName = _currentTrack?.name;
-      final currentIndex = _currentIndex;
-      
-      // Preserve current playing state through the transition - CRITICAL
-      final wasPlaying = playbackState.value.playing || _player.playing;
-      
-      // Check if we have a next track to play
+      // Simple logic: move to next track if available
       if (_currentIndex < _playlist.length - 1) {
+        _currentIndex++;
+        await _playCurrentTrack();
+        await _savePlaybackState();
+        
         if (kDebugMode) {
-          print('Moving to next track... (was playing: $wasPlaying)');
+          print('Moved to next track: ${_playlist[_currentIndex].name}');
         }
-        
-        final nextTrack = _playlist[_currentIndex + 1];
-        
-        // Use gapless transition if enabled and preloaded player is available
-        if (_gaplessPlaybackEnabled && _preloadedPlayers.containsKey(nextTrack.id)) {
-          if (kDebugMode) {
-            print('Using gapless transition to: ${nextTrack.name}');
-          }
-          await _performGaplessTransition(nextTrack);
+      } else if (_radioModeEnabled && _currentTrack != null) {
+        // Add radio tracks and continue playing
+        final similarTracks = await _getSimilarTracks(_currentTrack!, limit: 15);
+        if (similarTracks.isNotEmpty) {
+          _playlist.addAll(similarTracks);
+          _queue.addAll(similarTracks);
+          queue.add(_playlist.map(_trackToMediaItem).toList());
           
-          // After gapless transition, verify we actually moved to the next track
-          if (_currentIndex == currentIndex || _currentTrack?.name == currentTrackName) {
-            if (kDebugMode) {
-              print('ERROR: Gapless transition failed to advance track, forcing manual advance');
-            }
-            // Force advance to prevent getting stuck
-            _currentIndex++;
-            _currentTrack = nextTrack;
-          }
-        } else {
-          // Regular transition - more robust for background playback
           _currentIndex++;
-          
-          if (kDebugMode) {
-            print('Next track: ${nextTrack.name} (gapless disabled or no preloaded player)');
-          }
-          
-          // Update media item immediately for better background experience
-          mediaItem.add(_trackToMediaItem(nextTrack));
-          
-          // Update playback state to show we're loading the next track
-          // Preserve the current playing state to prevent pausing
-          playbackState.add(playbackState.value.copyWith(
-            processingState: AudioProcessingState.loading,
-            queueIndex: _currentIndex,
-            playing: wasPlaying, // Maintain the current playing state
-          ));
-          
-          // Play the next track with enhanced error handling for background mode
-          try {
-            await _playCurrentTrack();
-            
-            // Make absolutely sure we're in the expected playing state after transition
-            if (wasPlaying && !_player.playing) {
-              if (kDebugMode) {
-                print('Transition complete but not playing when it should be. Forcing playback...');
-              }
-              
-              // Try multiple times to start playback in case of player state inconsistency
-              for (int i = 0; i < 5; i++) {
-                try {
-                  await _player.play();
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  if (_player.playing) {
-                    if (kDebugMode) {
-                      print('Post-transition playback started on attempt ${i+1}');
-                    }
-                    break;
-                  }
-                } catch (e) {
-                  if (kDebugMode) {
-                    print('Post-transition play attempt ${i+1} failed: $e');
-                  }
-                }
-              }
-              
-              // Force state consistency as last resort
-              if (!_player.playing) {
-                if (kDebugMode) {
-                  print('CRITICAL: All post-transition play attempts failed. Forcing state consistency.');
-                }
-                playbackState.add(playbackState.value.copyWith(
-                  playing: true, // Force the state to match expectations
-                ));
-                // One final attempt
-                _player.play().catchError((e) => {
-                  if (kDebugMode) {
-                    // ignore: avoid_print
-                    print('Final post-transition play attempt error: $e')
-                  }
-                });
-              }
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Error during track transition, attempting recovery: $e');
-            }
-            // Attempt recovery by reloading the track
-            try {
-              await _loadAndPlayTrack(nextTrack);
-              // Ensure it starts playing if it should be playing
-              await Future.delayed(const Duration(milliseconds: 300));
-              if (wasPlaying && !_player.playing) {
-                if (kDebugMode) {
-                  print('Recovery: Track should be playing but isn\'t, forcing play...');
-                }
-                await _player.play();
-              }
-            } catch (recoveryError) {
-              if (kDebugMode) {
-                print('Recovery attempt failed: $recoveryError');
-              }
-            }
-          }
-          
-          // Save state after successful transition
+          await _playCurrentTrack();
           await _savePlaybackState();
           
           if (kDebugMode) {
-            print('Successfully transitioned to next track: ${nextTrack.name}');
-            print('Final playing state - should be: $wasPlaying, actually: ${_player.playing}');
-          }
-          
-          // Final verification after regular transition
-          if (wasPlaying && !_player.playing) {
-            if (kDebugMode) {
-              print('Regular transition: Final check - forcing play to maintain state...');
-            }
-            try {
-              await _player.play();
-            } catch (e) {
-              if (kDebugMode) {
-                print('Regular transition: Final play failed: $e');
-              }
-            }
-          }
-        }
-      } else {
-        // End of playlist reached
-        if (_radioModeEnabled && _currentTrack != null) {
-          if (kDebugMode) {
-            print('Reached end of playlist, adding radio tracks...');
-          }
-          
-          // Get similar tracks for radio mode
-          final similarTracks = await _getSimilarTracks(_currentTrack!, limit: 15);
-          
-          if (similarTracks.isNotEmpty) {
-            // Add similar tracks to the playlist
-            _playlist.addAll(similarTracks);
-            _queue.addAll(similarTracks);
-            
-            // Update audio service queue
-            queue.add(_playlist.map(_trackToMediaItem).toList());
-            
-            // Move to the next track (first radio track)
-            _currentIndex++;
-            final nextTrack = _playlist[_currentIndex];
-            
-            if (kDebugMode) {
-              print('Radio mode: Added ${similarTracks.length} tracks, now playing: ${nextTrack.name}');
-            }
-            
-            // Update media item
-            mediaItem.add(_trackToMediaItem(nextTrack));
-            
-            // Update playback state to loading, maintaining the playing state
-            final shouldBePlaying = playbackState.value.playing;
-            playbackState.add(playbackState.value.copyWith(
-              processingState: AudioProcessingState.loading,
-              queueIndex: _currentIndex,
-              playing: shouldBePlaying, // Maintain the current playing state
-            ));
-            
-            // Play the radio track
-            try {
-              await _playCurrentTrack();
-              
-              // Verify playback started and maintain playing state
-              for (int i = 0; i < 5; i++) {
-                await Future.delayed(const Duration(milliseconds: 200));
-                if (_player.playing) {
-                  break; // Successfully playing
-                }
-                
-                if (i == 4) {
-                  // Final attempt - force play only if we should be playing
-                  if (kDebugMode) {
-                    print('Radio playback did not start, forcing play...');
-                  }
-                  try {
-                    if (shouldBePlaying) {
-                      await _player.play();
-                    }
-                  } catch (playError) {
-                    if (kDebugMode) {
-                      print('Force play failed: $playError');
-                    }
-                  }
-                }
-              }
-              
-              // Save state after successful radio transition
-              await _savePlaybackState();
-              
-              if (kDebugMode) {
-                print('Successfully started radio mode with track: ${nextTrack.name}');
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                print('Error playing radio track, stopping: $e');
-              }
-              
-              // If radio track fails to play, stop playback
-              playbackState.add(playbackState.value.copyWith(
-                processingState: AudioProcessingState.completed,
-                playing: false,
-              ));
-            }
-          } else {
-            if (kDebugMode) {
-              print('No similar tracks found for radio mode, stopping playback');
-            }
-            
-            // No similar tracks available, stop playback
-            playbackState.add(playbackState.value.copyWith(
-              processingState: AudioProcessingState.completed,
-              playing: false,
-            ));
+            print('Radio mode: Added ${similarTracks.length} tracks');
           }
         } else {
-          if (kDebugMode) {
-            print('Reached end of playlist, stopping playback');
-          }
-          
-          // End of playlist - update state to show completion
+          // No similar tracks, stop playback
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.completed,
             playing: false,
           ));
+        }
+      } else {
+        // End of playlist, stop playback
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.completed,
+          playing: false,
+        ));
+        
+        if (kDebugMode) {
+          print('Reached end of playlist');
         }
       }
     } catch (e) {
@@ -476,7 +274,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Error handling track completion: $e');
       }
       
-      // On error, try to recover by updating the playback state
       playbackState.add(playbackState.value.copyWith(
         processingState: AudioProcessingState.error,
         playing: false,
