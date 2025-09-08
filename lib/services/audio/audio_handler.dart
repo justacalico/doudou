@@ -2149,6 +2149,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  // Transcoding support methods
+  bool _shouldTranscodeTrack(Track track) {
+    // Determine if track needs transcoding based on codec or other factors
+    // For now, transcoding can be enabled for better compatibility
+    return true; // Enable transcoding for all tracks for maximum compatibility
+  }
+
+  String _getHlsStreamUrl(Track track) {
+    final baseUrl = _jellyfinService.baseUrl;
+    final token = _jellyfinService.accessToken;
+    return '$baseUrl/Audio/${track.id}/main.m3u8?ApiKey=$token&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
+  }
+
   void dispose() {
     _stopPeriodicSaving();
     _stopCompletionChecker();
