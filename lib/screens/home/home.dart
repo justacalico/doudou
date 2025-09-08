@@ -586,34 +586,41 @@ class _HomeContentState extends State<HomeContent> {
                       ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    album.name,
-                    style: const TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (album.artistName != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      album.artistName!,
-                      style: const TextStyle(
-                        color: CupertinoColors.systemGrey,
-                        fontSize: 14,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        album.name,
+                        style: const TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
+                    if (album.artistName != null) ...[
+                      const SizedBox(height: 2),
+                      Flexible(
+                        child: Text(
+                          album.artistName!,
+                          style: const TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
