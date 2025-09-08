@@ -57,14 +57,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _init() {
-    // Listen to player state changes and update audio service
+    // Simple player state listener - trust just_audio to manage states
     _player.playerStateStream.listen((playerState) {
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
-      // Important: Handle playback states consistently
-      final bool shouldBePlaying = playbackState.value.playing;
-      
+      // Update playback state based on actual player state
       playbackState.add(playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
@@ -84,91 +82,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         speed: _player.speed,
         queueIndex: _currentIndex,
       ));
-      
-      // CRITICAL: More controlled auto-play mechanism
-      if (playerState.processingState == ProcessingState.ready) {
-        // Case 1: Track is ready but not playing when it should be
-        if (!isPlaying && shouldBePlaying && !_isHandlingCompletion) {
-          // Add additional check - only auto-play if user explicitly wants to play
-          // Don't auto-play if the user has manually paused
-          final timeSinceLastPause = DateTime.now().difference(_lastPauseTime ?? DateTime(2000));
-          
-          if (timeSinceLastPause.inSeconds > 2) { // Only auto-play if it's been >2 seconds since manual pause
-            if (kDebugMode) {
-              print('Auto-play trigger: Track ready but not playing when it should be, forcing play...');
-            }
-            
-            // Attempt immediate play first
-            _player.play().then((_) {
-              if (kDebugMode) {
-                print('Immediate auto-play result: ${_player.playing}');
-              }
-            }).catchError((e) {
-              if (kDebugMode) {
-                print('Immediate auto-play failed: $e');
-              }
-            });
-          } else {
-            if (kDebugMode) {
-              print('Skipping auto-play due to recent manual pause');
-            }
-          }
-        }
-        // Case 2: Track just became ready and should be playing (e.g., on initial load)
-        else if (shouldBePlaying && _currentTrack != null) {
-          if (kDebugMode) {
-            print('Track is ready and should be playing, checking state: ${_player.playing}');
-          }
-          
-          // For initial loads, ensure we're playing - but respect recent pauses
-          if (!_player.playing) {
-            final timeSinceLastPause = DateTime.now().difference(_lastPauseTime ?? DateTime(2000));
-            
-            if (timeSinceLastPause.inSeconds > 2) {
-              if (kDebugMode) {
-                print('Track ready event: Starting playback...');
-              }
-              _player.play().catchError((e) {
-                if (kDebugMode) {
-                  print('Track ready play failed: $e');
-                }
-              });
-            } else {
-              if (kDebugMode) {
-                print('Track ready but skipping auto-play due to recent manual pause');
-              }
-            }
-          }
-        }
-      }
-      
-      // Handle loading interruptions and errors more gracefully
-      if (playerState.processingState == ProcessingState.idle && shouldBePlaying && _currentTrack != null) {
-        if (kDebugMode) {
-          print('Player unexpectedly went to idle state while should be playing. Attempting recovery...');
-        }
-        
-        // Try to reload the current track after a short delay
-        Future.delayed(const Duration(milliseconds: 500), () async {
-          if (_player.processingState == ProcessingState.idle && 
-              playbackState.value.playing && 
-              _currentTrack != null && 
-              !_isHandlingCompletion) {
-            
-            if (kDebugMode) {
-              print('Attempting to recover by reloading current track: ${_currentTrack!.name}');
-            }
-            
-            try {
-              await _loadAndPlayTrack(_currentTrack!);
-            } catch (e) {
-              if (kDebugMode) {
-                print('Recovery attempt failed: $e');
-              }
-            }
-          }
-        });
-      }
     });
 
     // Listen to position changes
@@ -178,155 +91,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
     });
 
-    // Auto-play next track when current track completes - enhanced for background playback
-    _player.playerStateStream.listen((state) {
-      // Primary completion detection through player state
-      if (state.processingState == ProcessingState.completed && !_isHandlingCompletion) {
+    // Simple completion detection - only use ProcessingState.completed
+    _player.processingStateStream.listen((state) {
+      if (state == ProcessingState.completed && !_isHandlingCompletion) {
         if (kDebugMode) {
-          print('Track completion detected via playerStateStream, handling...');
+          print('Track completed, moving to next');
         }
-        // Use a small delay to allow any ongoing gapless transitions to complete
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (!_isHandlingCompletion) {
-            _handleTrackCompletion();
-          }
-        });
-      }
-      
-      // Enhanced background-friendly completion detection for locked screen
-      if (!_isHandlingCompletion && state.playing) {
-        final duration = _player.duration;
-        final position = _player.position;
-        
-        if (duration != null && duration.inMilliseconds > 0) {
-          final remaining = duration - position;
-          final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
-          
-          // Critical: Aggressive completion detection for background mode
-          // This is essential for locked screen playback continuity  
-          if (progressPercentage >= 0.97 || remaining.inMilliseconds <= 800) {
-            // Multiple checks with delays to handle Android's background throttling
-            Future.delayed(const Duration(milliseconds: 100), () {
-              final currentDuration = _player.duration;
-              final currentPosition = _player.position;
-              final currentState = _player.playerState;
-              
-              if (currentDuration != null && 
-                  currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 300 &&
-                  !_isHandlingCompletion && 
-                  currentState.playing) {
-                if (kDebugMode) {
-                  print('Background state stream completion triggered at ${(currentPosition.inMilliseconds / currentDuration.inMilliseconds * 100).toStringAsFixed(1)}%');
-                }
-                _handleTrackCompletion();
-              }
-            });
-          }
-        }
-      }
-    });
-
-    // Enhanced position stream listener for reliable background track progression
-    _player.positionStream.listen((position) {
-      final duration = _player.duration;
-      final playerState = _player.playerState;
-      
-      // Always update the last known position for stuck detection
-      _lastKnownPosition = position;
-      
-      if (duration != null && duration.inMilliseconds > 0 && playerState.playing) {
-        final remaining = duration - position;
-        final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
-        
-        // Multiple fallback mechanisms for background playback
-        
-        // 1. Near end detection for gapless preparation
-        if (_gaplessPlaybackEnabled && remaining.inMilliseconds <= 2000 && remaining.inMilliseconds > 1000 && !_isHandlingCompletion) {
-          if (kDebugMode) {
-            print('Gapless preparation: ${remaining.inMilliseconds}ms remaining, ensuring next track is preloaded...');
-          }
-          // Ensure next track is preloaded for gapless transition
-          if (_currentIndex < _playlist.length - 1) {
-            final nextTrack = _playlist[_currentIndex + 1];
-            if (!_preloadedPlayers.containsKey(nextTrack.id) && !_preloadingTracks.contains(nextTrack.id)) {
-              _preloadTrack(nextTrack);
-            }
-          }
-        }
-        
-        // 2. Near end detection (1 second remaining)
-        if (remaining.inMilliseconds <= 1000 && remaining.inMilliseconds > 500 && !_isHandlingCompletion) {
-          if (kDebugMode) {
-            print('Near end detected (${remaining.inMilliseconds}ms remaining), preparing for next track...');
-          }
-          // Start preparing next track if not already done
-          if (_currentIndex < _playlist.length - 1) {
-            _preloadNextTracks();
-          }
-        }
-        
-        // 3. Very close to end (500ms remaining) - trigger gapless transition if enabled
-        if (remaining.inMilliseconds <= 500 && remaining.inMilliseconds > 100 && !_isHandlingCompletion) {
-          if (_gaplessPlaybackEnabled && _currentIndex < _playlist.length - 1) {
-            final nextTrack = _playlist[_currentIndex + 1];
-            if (_preloadedPlayers.containsKey(nextTrack.id)) {
-              if (kDebugMode) {
-                print('Initiating gapless transition with ${remaining.inMilliseconds}ms remaining');
-              }
-              _handleTrackCompletion();
-              return;
-            }
-          }
-          
-          if (kDebugMode) {
-            print('Very close to end detected (${remaining.inMilliseconds}ms remaining), checking for completion...');
-          }
-          
-          // Schedule a check for completion after a short delay
-          Future.delayed(const Duration(milliseconds: 200), () {
-            final currentPosition = _player.position;
-            final currentDuration = _player.duration;
-            
-            if (currentDuration != null && currentPosition.inMilliseconds >= currentDuration.inMilliseconds - 100) {
-              // We're essentially at the end, force completion handling
-              if (!_isHandlingCompletion) {
-                if (kDebugMode) {
-                  print('Forced completion handling - position: ${currentPosition.inMilliseconds}ms, duration: ${currentDuration.inMilliseconds}ms');
-                }
-                _handleTrackCompletion();
-              }
-            }
-          });
-        }
-        
-        // 4. Final fallback - stuck at end detection (more aggressive for background)
-        if (remaining.inMilliseconds <= 200 && !_isHandlingCompletion) {
-          Future.delayed(const Duration(milliseconds: 300), () {
-            final stillAtEnd = _player.duration != null && 
-                              (_player.duration!.inMilliseconds - _player.position.inMilliseconds) <= 300;
-            
-            if (stillAtEnd && !_isHandlingCompletion && _player.playerState.playing) {
-              if (kDebugMode) {
-                print('Detected stuck at end, forcing next track...');
-              }
-              _handleTrackCompletion();
-            }
-          });
-        }
-        
-        // 5. Progressive completion detection for background mode (more aggressive)
-        if (progressPercentage >= 0.975 && !_isHandlingCompletion) {
-          // Use a more aggressive approach for background playback
-          Future.delayed(const Duration(milliseconds: 200), () {
-            final currentProgress = _player.position.inMilliseconds / (_player.duration?.inMilliseconds ?? 1);
-            if (currentProgress >= 0.98 && !_isHandlingCompletion) {
-              if (kDebugMode) {
-                print('Background progressive completion: ${(currentProgress * 100).toStringAsFixed(2)}%');
-              }
-              _handleTrackCompletion();
-            }
-          });
-        }
+        _handleTrackCompletion();
       }
     });
 
@@ -334,10 +105,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
         _startPeriodicSaving();
-        _startCompletionChecker(); // Start background completion checker
       } else {
         _stopPeriodicSaving();
-        _stopCompletionChecker(); // Stop background completion checker
         _savePlaybackState(); // Save immediately when paused
       }
     });
