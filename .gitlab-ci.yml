@@ -44,7 +44,7 @@ install_dependencies:
     paths:
       - .pub-cache/
       - .dart-tool/
-      - /opt/android-sdk-linux/
+      - /opt/android-sdk/
     policy: pull-push
   before_script:
     - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
