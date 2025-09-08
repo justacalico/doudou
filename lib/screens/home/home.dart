@@ -402,37 +402,7 @@ class _HomeContentState extends State<HomeContent> {
                         'Continue listening',
                         style: TextStyle(
                           color: CupertinoColors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Continue listening grid
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 1.5,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        itemCount: continueListeningAlbums.length,
-                        itemBuilder: (context, index) {
-                          final album = continueListeningAlbums[index];
-                          return _buildContinueListeningCard(context, album, appState);
-                        },
-                      ),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Made for you section
-                      const Text(
-                        'Made for you',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 24,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -441,6 +411,48 @@ class _HomeContentState extends State<HomeContent> {
                   ),
                 ),
               ),
+              
+              // Continue listening horizontal scroll with larger cards
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 250,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: continueListeningAlbums.take(4).length,
+                    itemBuilder: (context, index) {
+                      final album = continueListeningAlbums[index];
+                      return _buildContinueListeningCard(context, album, appState);
+                    },
+                  ),
+                ),
+              ),
+              
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              
+              // Listen now section
+              if (appState.isPlaying && appState.currentTrack != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Listen now',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildListenNowCard(context, appState),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
+                ),
               
               // Made for you horizontal scroll
               SliverToBoxAdapter(
