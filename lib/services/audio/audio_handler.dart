@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
 import '../download_service.dart';
@@ -12,7 +11,6 @@ import 'audio_preloader.dart';
 import 'audio_queue_manager.dart';
 import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
-import 'audio_lifecycle_manager.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -25,23 +23,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioQueueManager _queueManager;
   late final AudioRadioMode _radioMode;
   late final AudioStatePersistence _statePersistence;
-  late final AudioLifecycleManager _lifecycleManager;
-  
-  // Background playback reliability improvements
-  Timer? _positionMonitorTimer;
-  Timer? _completionTimeoutTimer;
-  Timer? _trackProgressionRetryTimer;
-  bool _isInBackground = false;
-  int _backgroundCompletionRetryCount = 0;
-  static const int _maxBackgroundRetries = 3;
-  
+
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
     _preloader = AudioPreloader(_jellyfinService, _downloadService);
     _queueManager = AudioQueueManager(_stateManager);
     _radioMode = AudioRadioMode(_jellyfinService);
     _statePersistence = AudioStatePersistence(_stateManager);
-    _lifecycleManager = AudioLifecycleManager(_handleAppLifecycleChange);
     
     _init();
     _loadPlaybackState();
@@ -50,9 +38,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _init() {
     // Simple player state listener - trust just_audio to manage states
     _player.playerStateStream.listen((playerState) {
+      final isPlaying = playerState.playing;
+      final processingState = _mapProcessingState(playerState.processingState);
+      
+      // Update playback state based on actual player state
       playbackState.add(playbackState.value.copyWith(
-        playing: playerState.playing,
-        processingState: _mapProcessingState(playerState.processingState),
+        controls: [
+          MediaControl.skipToPrevious,
+          if (isPlaying) MediaControl.pause else MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActionIndices: const [0, 1, 2],
+        processingState: processingState,
+        playing: isPlaying,
+        updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
+        speed: _player.speed,
+        queueIndex: _stateManager.currentIndex,
       ));
     });
 
@@ -61,16 +68,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playbackState.add(playbackState.value.copyWith(
         updatePosition: position,
       ));
-      
-      // Position-based completion detection as backup for background mode
-      _checkPositionForCompletion(position);
     });
 
     // Simple completion detection - only use ProcessingState.completed
     _player.processingStateStream.listen((state) {
-      if (state == ProcessingState.completed) {
+      if (state == ProcessingState.completed && !_stateManager.isHandlingCompletion) {
         if (kDebugMode) {
-          print('Track completed via processingStateStream - handling completion');
+          print('Track completed, moving to next');
         }
         _handleTrackCompletion();
       }
@@ -79,119 +83,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Start/stop periodic state saving based on playback state
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
-        _statePersistence.startPeriodicSaving(_player.position, true);
+        _statePersistence.startPeriodicSaving(_player.position, playerState.playing);
       } else {
         _statePersistence.stopPeriodicSaving();
-        _statePersistence.savePlaybackState(_player.position, false);
+        _statePersistence.savePlaybackState(_player.position, playerState.playing); // Save immediately when paused
       }
     });
-
-    // Start position-based monitoring for background reliability
-    _startPositionMonitoring();
 
     // Set initial playback state
     playbackState.add(PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
-        MediaControl.pause,
         MediaControl.play,
         MediaControl.skipToNext,
       ],
-      systemActions: {
+      systemActions: const {
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
       },
-      androidCompactActionIndices: [0, 1, 3],
+      androidCompactActionIndices: const [0, 1, 2],
       processingState: AudioProcessingState.idle,
       playing: false,
-      updatePosition: Duration.zero,
-      bufferedPosition: Duration.zero,
-      speed: 1.0,
     ));
-  }
-  
-  /// Handle app lifecycle state changes (foreground/background)
-  void _handleAppLifecycleChange(AppLifecycleState state) {
-    final wasInBackground = _isInBackground;
-    
-    // Update background state
-    _isInBackground = state == AppLifecycleState.paused || 
-                      state == AppLifecycleState.detached ||
-                      state == AppLifecycleState.hidden;
-    
-    if (kDebugMode) {
-      print('App lifecycle changed: $state, isInBackground: $_isInBackground');
-    }
-    
-    if (_isInBackground) {
-      // App going to background
-      if (_player.playing) {
-        // Save state when going to background
-        _statePersistence.savePlaybackState(_player.position, true);
-      }
-      
-      // Disable aggressive preloading in background
-      _preloader.setBackgroundMode(true);
-      
-      // Ensure position monitoring is active for background
-      _ensurePositionMonitoring();
-    } else if (wasInBackground && !_isInBackground) {
-      // App coming back to foreground
-      _preloader.setBackgroundMode(false);
-      
-      // Reset retry counter when coming to foreground
-      _backgroundCompletionRetryCount = 0;
-      
-      if (_player.playing) {
-        // Check if we missed any completions while in background
-        _checkPositionForCompletion(_player.position);
-      }
-    }
-  }
-  
-  /// Start position monitoring for backup completion detection
-  void _startPositionMonitoring() {
-    _positionMonitorTimer?.cancel();
-    
-    // Check position every second for completion detection
-    _positionMonitorTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_player.playing && _player.duration != null && _player.position.inMilliseconds > 0) {
-        _checkPositionForCompletion(_player.position);
-      }
-    });
-    
-    if (kDebugMode) {
-      print('Started position monitoring for background completion detection');
-    }
-  }
-  
-  /// Ensure position monitoring is active (especially important for background)
-  void _ensurePositionMonitoring() {
-    if (_positionMonitorTimer == null || !_positionMonitorTimer!.isActive) {
-      _startPositionMonitoring();
-    }
-  }
-  
-  /// Check if current position indicates track completion
-  void _checkPositionForCompletion(Duration position) {
-    if (!_player.playing || _player.duration == null) return;
-    
-    final duration = _player.duration!;
-    
-    // If we're at the end of the track (within 1 second or passed the end)
-    if (duration.inMilliseconds > 0 && 
-        position.inMilliseconds > 0 &&
-        (duration.inMilliseconds - position.inMilliseconds < 1000 || 
-         position.inMilliseconds >= duration.inMilliseconds)) {
-      
-      if (kDebugMode) {
-        print('Position-based completion detected: ${position.inSeconds}s/${duration.inSeconds}s');
-      }
-      
-      // Handle completion based on position
-      _handleTrackCompletion();
-    }
   }
 
   AudioProcessingState _mapProcessingState(ProcessingState state) {
@@ -288,84 +202,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _handleTrackCompletion() async {
     if (_stateManager.isHandlingCompletion) {
       if (kDebugMode) {
-        print('Already handling completion, ignoring duplicate event');
+        print('Already handling completion, skipping...');
       }
-      return;
+      return; // Prevent race conditions
     }
     
     _stateManager.setHandlingCompletion(true);
     
-    // Cancel any existing completion timeout
-    _completionTimeoutTimer?.cancel();
-    
     try {
       if (kDebugMode) {
-        print('Handling track completion${_isInBackground ? " (in background)" : ""}');
+        print('Track completed: ${_stateManager.currentTrack?.name}');
       }
       
-      await _statePersistence.savePlaybackState(_player.position, _player.playing);
-      
-      // Set completion timeout to recover from potential hangs
-      _completionTimeoutTimer = Timer(const Duration(seconds: 10), () {
-        if (_stateManager.isHandlingCompletion) {
-          if (kDebugMode) {
-            print('Completion handling timed out after 10s - forcing recovery');
-          }
-          
-          // Force recovery from stuck state
-          _stateManager.setHandlingCompletion(false);
-          
-          // Try to move to next track if we're still on the same one
-          if (_stateManager.hasNext) {
-            _backgroundCompletionRetryCount++;
-            
-            if (_backgroundCompletionRetryCount <= _maxBackgroundRetries) {
-              if (kDebugMode) {
-                print('Retrying progression to next track (attempt $_backgroundCompletionRetryCount)');
-              }
-              _forceMoveToNextTrack();
-            } else {
-              if (kDebugMode) {
-                print('Max retry attempts reached - pausing playback');
-              }
-              _player.pause();
-            }
-          }
-        }
-      });
-      
-      // Check if there are more tracks to play
-      if (_stateManager.hasNext) {
-        // Progress to next track with timeout protection
-        if (_stateManager.incrementCurrentIndex()) {
-          try {
-            // Attempt to play the next track with timeout
-            await _playCurrentTrack().timeout(
-              const Duration(seconds: 8),
-              onTimeout: () {
-                if (kDebugMode) {
-                  print('Next track playback timed out - using fallback');
-                }
-                return _playCurrentTrackFallback();
-              },
-            );
-          } catch (e) {
-            if (kDebugMode) {
-              print('Error playing next track after completion: $e');
-            }
-            
-            if (_isInBackground) {
-              // Retry in background with simplified approach
-              _backgroundCompletionRetryCount++;
-              
-              if (_backgroundCompletionRetryCount <= _maxBackgroundRetries) {
-                if (kDebugMode) {
-                  print('Retrying with simplified approach in background (attempt $_backgroundCompletionRetryCount)');
-                }
-                await _playCurrentTrackFallback();
-              }
-            }
-          }
+      // Simple logic: move to next track if available
+      if (_stateManager.incrementCurrentIndex()) {
+        await _playCurrentTrack();
+        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        
+        if (kDebugMode) {
+          print('Moved to next track: ${_stateManager.currentTrack!.name}');
         }
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
         // Add radio tracks and continue playing
@@ -417,92 +272,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  /// Fallback method for playing the current track in background
-  /// Uses a simplified, more reliable approach for background playback
-  Future<void> _playCurrentTrackFallback() async {
-    if (kDebugMode) {
-      print('Using fallback method for playing track in background');
-    }
-    
-    final track = _stateManager.currentTrack;
-    if (track == null) return;
-    
-    try {
-      // Stop current playback
-      await _player.stop().timeout(const Duration(seconds: 2), onTimeout: () => null);
-      
-      // Immediately update state for responsiveness
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.loading,
-        queueIndex: _stateManager.currentIndex,
-      ));
-      
-      // Check for local file first (most reliable)
-      final localFilePath = _downloadService.getLocalFilePath(track.id);
-      if (localFilePath != null) {
-        final localFile = File(localFilePath);
-        if (await localFile.exists()) {
-          await _player.setFilePath(localFilePath)
-              .timeout(const Duration(seconds: 5));
-          
-          if (kDebugMode) {
-            print('Fallback: Playing local file for ${track.name}');
-          }
-          
-          await _player.play();
-          return;
-        }
-      }
-      
-      // Use direct URL approach (most reliable for streaming)
-      final directUrl = _jellyfinService.getDirectStreamUrl(track.id);
-      
-      await _player.setUrl(directUrl)
-          .timeout(const Duration(seconds: 5));
-      
-      await _player.play();
-      
-      if (kDebugMode) {
-        print('Fallback: Playing stream URL for ${track.name}');
-      }
-      
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error in playback fallback: $e');
-      }
-      
-      // Last resort - try basic audio source
-      try {
-        final basicUrl = _jellyfinService.getStreamUrl(track.id);
-        await _player.setUrl(basicUrl)
-            .timeout(const Duration(seconds: 5));
-        await _player.play();
-      } catch (fallbackError) {
-        if (kDebugMode) {
-          print('Fallback playback failed: $fallbackError');
-        }
-        
-        // Move to next track if possible
-        if (_stateManager.hasNext && _stateManager.incrementCurrentIndex()) {
-          return _playCurrentTrackFallback();
-        }
-      }
-    }
-  }
-  
-  /// Force progression to next track (used for recovery)
-  void _forceMoveToNextTrack() {
-    try {
-      if (_stateManager.hasNext && _stateManager.incrementCurrentIndex()) {
-        _playCurrentTrackFallback();
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error in forced track progression: $e');
-      }
-    }
-  }
-  
   @override
   Future<void> skipToPrevious() async {
     final now = DateTime.now();
@@ -513,49 +282,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     bool shouldRestartCurrentSong = false;
     
     if (duration != null && duration.inMilliseconds > 0) {
-      // Check if we're past the restart threshold (20% of song or 5 seconds, whichever is smaller)
-      final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
-      final minThresholdMs = Duration(seconds: 5).inMilliseconds;
-      final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
-      
-      if (currentPosition.inMilliseconds > thresholdMs) {
-        // We're past the threshold, check if this is a double-tap within 5 seconds
-        if (_stateManager.lastSkipToPreviousTime != null && 
-            now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
-          // Double-tap within threshold - go to previous song
-          shouldRestartCurrentSong = false;
-        } else {
-          // Single tap past threshold - restart current song
-          shouldRestartCurrentSong = true;
-        }
-      } else {
-        // We're within the threshold - always go to previous song
-        shouldRestartCurrentSong = false;
-      }
-    } else {
-      // No duration info - go to previous song
-      shouldRestartCurrentSong = false;
-    }
-    
-    _stateManager.setLastSkipToPreviousTime(now);
-    
-    if (shouldRestartCurrentSong) {
-      // Restart current song by seeking to beginning
-      await _player.seek(Duration.zero);
-      if (kDebugMode) {
-        print('Restarting current song: ${_stateManager.currentTrack?.name}');
-      }
-    } else {
-      // Go to previous song (original behavior)
-      if (_stateManager.decrementCurrentIndex()) {
-        await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
-        if (kDebugMode) {
-          print('Skipping to previous song');
-        }
-      }
-    }
-  }
       // Check if we're past the restart threshold (20% of song or 5 seconds, whichever is smaller)
       final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
       final minThresholdMs = Duration(seconds: 5).inMilliseconds;
