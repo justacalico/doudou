@@ -33,23 +33,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
   
-  // Background completion detection helpers
-  Duration? _lastKnownPosition;
-  int _stuckCounter = 0;
-  
   // Skip-to-previous behavior tracking
   DateTime? _lastSkipToPreviousTime;
   static const Duration _skipToPreviousThreshold = Duration(seconds: 5);
   static const double _restartThresholdPercentage = 0.20; // 20% of song duration
   
-  // Pause tracking to prevent aggressive auto-play after manual pause
-  DateTime? _lastPauseTime;
-  
   // Periodic state saving
   Timer? _saveStateTimer;
-  
-  // Background completion checker as fallback
-  Timer? _completionCheckTimer;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _init();
