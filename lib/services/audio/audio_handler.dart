@@ -217,61 +217,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Already handling completion, skipping...');
       }
-      return;
+      return; // Prevent race conditions
     }
     
     _isHandlingCompletion = true;
     
     try {
-      if (kDebugMode) {
-        print('Track completed: ${_currentTrack?.name}');
-      }
-      
-      // Check if we have a next track to play
-      if (_currentIndex < _playlist.length - 1) {
-        // Move to next track
-        await skipToNext();
-      } else {
-        // End of playlist
-        if (_radioModeEnabled && _currentTrack != null) {
-          if (kDebugMode) {
-            print('Adding radio tracks...');
-          }
-          
-          final similarTracks = await _getSimilarTracks(_currentTrack!, limit: 15);
-          if (similarTracks.isNotEmpty) {
-            _playlist.addAll(similarTracks);
-            _queue.addAll(similarTracks);
-            queue.add(_playlist.map(_trackToMediaItem).toList());
-            
-            await skipToNext();
-          } else {
-            // No radio tracks available, stop playback
-            playbackState.add(playbackState.value.copyWith(
-              processingState: AudioProcessingState.completed,
-              playing: false,
-            ));
-          }
-        } else {
-          // End of playlist - stop playback
-          playbackState.add(playbackState.value.copyWith(
-            processingState: AudioProcessingState.completed,
-            playing: false,
-          ));
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error handling track completion: $e');
-      }
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.error,
-        playing: false,
-      ));
-    } finally {
-      _isHandlingCompletion = false;
-    }
-  }
       if (kDebugMode) {
         print('Handling track completion for: ${_currentTrack?.name}');
         print('Current index: $_currentIndex, Playlist length: ${_playlist.length}');
