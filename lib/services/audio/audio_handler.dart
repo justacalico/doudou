@@ -401,24 +401,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Pause command received');
     }
     
-    try {
-      // Record the pause time to prevent aggressive auto-play
-      _lastPauseTime = DateTime.now();
-      
-      await _player.pause();
-      
-      // Immediately update playback state to reflect pause
-      playbackState.add(playbackState.value.copyWith(
-        playing: false,
-      ));
-      
-      if (kDebugMode) {
-        print('Pause command completed: ${_player.playing}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error during pause command: $e');
-      }
+    await _player.pause();
+    
+    // Update playback state immediately
+    playbackState.add(playbackState.value.copyWith(
+      playing: false,
+    ));
+    
+    if (kDebugMode) {
+      print('Pause command completed');
     }
   }
 
