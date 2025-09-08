@@ -197,22 +197,6 @@ class _HomeContentState extends State<HomeContent> {
                   padding: const EdgeInsets.fromLTRB(16.0, 50.0, 16.0, 0),
                   child: Row(
                     children: [
-                      // MANET+ Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE91E63),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'MANET+',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                       const Spacer(),
                       const Text(
                         'Home',
