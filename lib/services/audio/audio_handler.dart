@@ -288,25 +288,84 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _handleTrackCompletion() async {
     if (_stateManager.isHandlingCompletion) {
       if (kDebugMode) {
-        print('Already handling completion, skipping...');
+        print('Already handling completion, ignoring duplicate event');
       }
-      return; // Prevent race conditions
+      return;
     }
     
     _stateManager.setHandlingCompletion(true);
     
+    // Cancel any existing completion timeout
+    _completionTimeoutTimer?.cancel();
+    
     try {
       if (kDebugMode) {
-        print('Track completed: ${_stateManager.currentTrack?.name}');
+        print('Handling track completion${_isInBackground ? " (in background)" : ""}');
       }
       
-      // Simple logic: move to next track if available
-      if (_stateManager.incrementCurrentIndex()) {
-        await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
-        
-        if (kDebugMode) {
-          print('Moved to next track: ${_stateManager.currentTrack!.name}');
+      await _statePersistence.savePlaybackState(_player.position, _player.playing);
+      
+      // Set completion timeout to recover from potential hangs
+      _completionTimeoutTimer = Timer(const Duration(seconds: 10), () {
+        if (_stateManager.isHandlingCompletion) {
+          if (kDebugMode) {
+            print('Completion handling timed out after 10s - forcing recovery');
+          }
+          
+          // Force recovery from stuck state
+          _stateManager.setHandlingCompletion(false);
+          
+          // Try to move to next track if we're still on the same one
+          if (_stateManager.hasNext) {
+            _backgroundCompletionRetryCount++;
+            
+            if (_backgroundCompletionRetryCount <= _maxBackgroundRetries) {
+              if (kDebugMode) {
+                print('Retrying progression to next track (attempt $_backgroundCompletionRetryCount)');
+              }
+              _forceMoveToNextTrack();
+            } else {
+              if (kDebugMode) {
+                print('Max retry attempts reached - pausing playback');
+              }
+              _player.pause();
+            }
+          }
+        }
+      });
+      
+      // Check if there are more tracks to play
+      if (_stateManager.hasNext) {
+        // Progress to next track with timeout protection
+        if (_stateManager.incrementCurrentIndex()) {
+          try {
+            // Attempt to play the next track with timeout
+            await _playCurrentTrack().timeout(
+              const Duration(seconds: 8),
+              onTimeout: () {
+                if (kDebugMode) {
+                  print('Next track playback timed out - using fallback');
+                }
+                return _playCurrentTrackFallback();
+              },
+            );
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error playing next track after completion: $e');
+            }
+            
+            if (_isInBackground) {
+              // Retry in background with simplified approach
+              _backgroundCompletionRetryCount++;
+              
+              if (_backgroundCompletionRetryCount <= _maxBackgroundRetries) {
+                if (kDebugMode) {
+                  print('Retrying with simplified approach in background (attempt $_backgroundCompletionRetryCount)');
+                }
+                await _playCurrentTrackFallback();
+              }
+            }
+          }
         }
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
         // Add radio tracks and continue playing
@@ -358,16 +417,91 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  @override
-  Future<void> skipToPrevious() async {
-    final now = DateTime.now();
-    final currentPosition = _player.position;
-    final duration = _player.duration;
+  /// Fallback method for playing the current track in background
+  /// Uses a simplified, more reliable approach for background playback
+  Future<void> _playCurrentTrackFallback() async {
+    if (kDebugMode) {
+      print('Using fallback method for playing track in background');
+    }
     
-    // Calculate if we should restart current song or go to previous
-    bool shouldRestartCurrentSong = false;
+    final track = _stateManager.currentTrack;
+    if (track == null) return;
     
-    if (duration != null && duration.inMilliseconds > 0) {
+    try {
+      // Stop current playback
+      await _player.stop().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      
+      // Immediately update state for responsiveness
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.loading,
+        queueIndex: _stateManager.currentIndex,
+      ));
+      
+      // Check for local file first (most reliable)
+      final localFilePath = _downloadService.getLocalFilePath(track.id);
+      if (localFilePath != null) {
+        final localFile = File(localFilePath);
+        if (await localFile.exists()) {
+          await _player.setFilePath(localFilePath)
+              .timeout(const Duration(seconds: 5));
+          
+          if (kDebugMode) {
+            print('Fallback: Playing local file for ${track.name}');
+          }
+          
+          await _player.play();
+          return;
+        }
+      }
+      
+      // Use direct URL approach (most reliable for streaming)
+      final directUrl = _jellyfinService.getDirectStreamUrl(track.id);
+      
+      await _player.setUrl(directUrl)
+          .timeout(const Duration(seconds: 5));
+      
+      await _player.play();
+      
+      if (kDebugMode) {
+        print('Fallback: Playing stream URL for ${track.name}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in playback fallback: $e');
+      }
+      
+      // Last resort - try basic audio source
+      try {
+        final basicUrl = _jellyfinService.getStreamUrl(track.id);
+        await _player.setUrl(basicUrl)
+            .timeout(const Duration(seconds: 5));
+        await _player.play();
+      } catch (fallbackError) {
+        if (kDebugMode) {
+          print('Fallback playback failed: $fallbackError');
+        }
+        
+        // Move to next track if possible
+        if (_stateManager.hasNext && _stateManager.incrementCurrentIndex()) {
+          return _playCurrentTrackFallback();
+        }
+      }
+    }
+  }
+  
+  /// Force progression to next track (used for recovery)
+  void _forceMoveToNextTrack() {
+    try {
+      if (_stateManager.hasNext && _stateManager.incrementCurrentIndex()) {
+        _playCurrentTrackFallback();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in forced track progression: $e');
+      }
+    }
+  }
       // Check if we're past the restart threshold (20% of song or 5 seconds, whichever is smaller)
       final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
       final minThresholdMs = Duration(seconds: 5).inMilliseconds;
