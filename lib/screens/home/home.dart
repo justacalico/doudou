@@ -183,7 +183,6 @@ class _HomeContentState extends State<HomeContent> {
         _initializeAlbumLists(allAlbums, favoriteTracks);
         
         final recentAlbums = _recommendedAlbums ?? allAlbums.take(6).toList();
-        final shuffledAlbums = _shuffledAlbums ?? allAlbums;
         final continueListeningAlbums = _continueListeningAlbums ?? allAlbums.take(4).toList();
         final madeForYouAlbums = _madeForYouAlbums ?? allAlbums.take(4).toList();
         final similarToFavoritesAlbums = _similarToFavoritesAlbums ?? [];
