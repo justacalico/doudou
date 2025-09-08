@@ -454,18 +454,62 @@ class _HomeContentState extends State<HomeContent> {
                   ),
                 ),
               
-              // Made for you horizontal scroll
+              // Recent playlists section (using Made for you albums as placeholder)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Recent playlists',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Recent playlists horizontal scroll
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: 200,
+                  height: 180,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: madeForYouAlbums.length,
+                    itemCount: madeForYouAlbums.take(6).length,
                     itemBuilder: (context, index) {
                       final album = madeForYouAlbums[index];
-                      return _buildAlbumCard(context, album, appState);
+                      return _buildPlaylistCard(context, album, appState);
                     },
+                  ),
+                ),
+              ),
+              
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              
+              // Favorite albums section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Favorite albums',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
               ),
