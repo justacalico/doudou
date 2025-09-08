@@ -352,6 +352,27 @@ class _HomeContentState extends State<HomeContent> {
               
               const SliverToBoxAdapter(child: SizedBox(height: 30)),
               
+              // Recently added albums
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Recently added albums',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+              
               // Recently added albums horizontal scroll
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -359,7 +380,7 @@ class _HomeContentState extends State<HomeContent> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: recentAlbums.length,
+                    itemCount: recentAlbums.take(6).length,
                     itemBuilder: (context, index) {
                       final album = recentAlbums[index];
                       return _buildAlbumCard(context, album, appState);
