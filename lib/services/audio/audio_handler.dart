@@ -50,28 +50,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _init() {
     // Simple player state listener - trust just_audio to manage states
     _player.playerStateStream.listen((playerState) {
-      final isPlaying = playerState.playing;
-      final processingState = _mapProcessingState(playerState.processingState);
-      
-      // Update playback state based on actual player state
       playbackState.add(playbackState.value.copyWith(
-        controls: [
-          MediaControl.skipToPrevious,
-          if (isPlaying) MediaControl.pause else MediaControl.play,
-          MediaControl.skipToNext,
-        ],
-        systemActions: const {
-          MediaAction.seek,
-          MediaAction.seekForward,
-          MediaAction.seekBackward,
-        },
-        androidCompactActionIndices: const [0, 1, 2],
-        processingState: processingState,
-        playing: isPlaying,
-        updatePosition: _player.position,
-        bufferedPosition: _player.bufferedPosition,
-        speed: _player.speed,
-        queueIndex: _stateManager.currentIndex,
+        playing: playerState.playing,
+        processingState: _mapProcessingState(playerState.processingState),
       ));
     });
 
@@ -80,13 +61,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playbackState.add(playbackState.value.copyWith(
         updatePosition: position,
       ));
+      
+      // Position-based completion detection as backup for background mode
+      _checkPositionForCompletion(position);
     });
 
     // Simple completion detection - only use ProcessingState.completed
     _player.processingStateStream.listen((state) {
-      if (state == ProcessingState.completed && !_stateManager.isHandlingCompletion) {
+      if (state == ProcessingState.completed) {
         if (kDebugMode) {
-          print('Track completed, moving to next');
+          print('Track completed via processingStateStream - handling completion');
         }
         _handleTrackCompletion();
       }
@@ -95,29 +79,119 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Start/stop periodic state saving based on playback state
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
-        _statePersistence.startPeriodicSaving(_player.position, playerState.playing);
+        _statePersistence.startPeriodicSaving(_player.position, true);
       } else {
         _statePersistence.stopPeriodicSaving();
-        _statePersistence.savePlaybackState(_player.position, playerState.playing); // Save immediately when paused
+        _statePersistence.savePlaybackState(_player.position, false);
       }
     });
+
+    // Start position-based monitoring for background reliability
+    _startPositionMonitoring();
 
     // Set initial playback state
     playbackState.add(PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
+        MediaControl.pause,
         MediaControl.play,
         MediaControl.skipToNext,
       ],
-      systemActions: const {
+      systemActions: {
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
       },
-      androidCompactActionIndices: const [0, 1, 2],
+      androidCompactActionIndices: [0, 1, 3],
       processingState: AudioProcessingState.idle,
       playing: false,
+      updatePosition: Duration.zero,
+      bufferedPosition: Duration.zero,
+      speed: 1.0,
     ));
+  }
+  
+  /// Handle app lifecycle state changes (foreground/background)
+  void _handleAppLifecycleChange(AppLifecycleState state) {
+    final wasInBackground = _isInBackground;
+    
+    // Update background state
+    _isInBackground = state == AppLifecycleState.paused || 
+                      state == AppLifecycleState.detached ||
+                      state == AppLifecycleState.hidden;
+    
+    if (kDebugMode) {
+      print('App lifecycle changed: $state, isInBackground: $_isInBackground');
+    }
+    
+    if (_isInBackground) {
+      // App going to background
+      if (_player.playing) {
+        // Save state when going to background
+        _statePersistence.savePlaybackState(_player.position, true);
+      }
+      
+      // Disable aggressive preloading in background
+      _preloader.setBackgroundMode(true);
+      
+      // Ensure position monitoring is active for background
+      _ensurePositionMonitoring();
+    } else if (wasInBackground && !_isInBackground) {
+      // App coming back to foreground
+      _preloader.setBackgroundMode(false);
+      
+      // Reset retry counter when coming to foreground
+      _backgroundCompletionRetryCount = 0;
+      
+      if (_player.playing) {
+        // Check if we missed any completions while in background
+        _checkPositionForCompletion(_player.position);
+      }
+    }
+  }
+  
+  /// Start position monitoring for backup completion detection
+  void _startPositionMonitoring() {
+    _positionMonitorTimer?.cancel();
+    
+    // Check position every second for completion detection
+    _positionMonitorTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_player.playing && _player.duration != null && _player.position.inMilliseconds > 0) {
+        _checkPositionForCompletion(_player.position);
+      }
+    });
+    
+    if (kDebugMode) {
+      print('Started position monitoring for background completion detection');
+    }
+  }
+  
+  /// Ensure position monitoring is active (especially important for background)
+  void _ensurePositionMonitoring() {
+    if (_positionMonitorTimer == null || !_positionMonitorTimer!.isActive) {
+      _startPositionMonitoring();
+    }
+  }
+  
+  /// Check if current position indicates track completion
+  void _checkPositionForCompletion(Duration position) {
+    if (!_player.playing || _player.duration == null) return;
+    
+    final duration = _player.duration!;
+    
+    // If we're at the end of the track (within 1 second or passed the end)
+    if (duration.inMilliseconds > 0 && 
+        position.inMilliseconds > 0 &&
+        (duration.inMilliseconds - position.inMilliseconds < 1000 || 
+         position.inMilliseconds >= duration.inMilliseconds)) {
+      
+      if (kDebugMode) {
+        print('Position-based completion detected: ${position.inSeconds}s/${duration.inSeconds}s');
+      }
+      
+      // Handle completion based on position
+      _handleTrackCompletion();
+    }
   }
 
   AudioProcessingState _mapProcessingState(ProcessingState state) {
