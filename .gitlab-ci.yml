@@ -136,8 +136,10 @@ build_android_release:
     - install_dependencies
   before_script:
     - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
+    - export ANDROID_SDK_ROOT=/opt/android-sdk-linux
+    - export ANDROID_HOME=/opt/android-sdk-linux
+    - export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
     - flutter doctor -v
-    - yes | flutter doctor --android-licenses || echo "Android licenses accepted"
   script:
     - flutter pub get
     - flutter clean
