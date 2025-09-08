@@ -48,8 +48,8 @@ install_dependencies:
     policy: pull-push
   before_script:
     - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
-    - export ANDROID_SDK_ROOT=/opt/android-sdk-linux
-    - export ANDROID_HOME=/opt/android-sdk-linux
+    - export ANDROID_SDK_ROOT=/opt/android-sdk
+    - export ANDROID_HOME=/opt/android-sdk
     - export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
     # Install Android SDK if not present
     - |
