@@ -1739,19 +1739,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Transcoding support methods
   bool _shouldTranscodeTrack(Track track) {
-    // Determine if track needs transcoding based on codec or other factors
-    // For now, transcoding can be enabled for better compatibility
-    return true; // Enable transcoding for all tracks for maximum compatibility
+    // For now, enable transcoding for all tracks for maximum compatibility
+    // In the future, this could check codec types or file formats
+    return true;
   }
 
   String _getHlsStreamUrl(Track track) {
-    // Use the existing stream URL method as a base and modify it for HLS
+    // Use the existing stream URL method as a base and construct HLS URL
     final streamUrl = _jellyfinService.getStreamUrl(track.id);
     if (streamUrl.isEmpty) return '';
     
-    // Replace 'stream' with 'main.m3u8' and add HLS-specific parameters
+    // Extract the base URL and construct HLS endpoint
     final baseUrl = streamUrl.split('/Audio/')[0];
-    return '$baseUrl/Audio/${track.id}/main.m3u8?ApiKey=${_jellyfinService.getStreamUrl(track.id).split('api_key=')[1].split('&')[0]}&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
+    final urlParts = streamUrl.split('api_key=');
+    if (urlParts.length < 2) return '';
+    
+    final apiKey = urlParts[1].split('&')[0];
+    return '$baseUrl/Audio/${track.id}/main.m3u8?ApiKey=$apiKey&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
   }
 
   void dispose() {
