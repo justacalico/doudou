@@ -25,13 +25,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioQueueManager _queueManager;
   late final AudioRadioMode _radioMode;
   late final AudioStatePersistence _statePersistence;
-
+  late final AudioLifecycleManager _lifecycleManager;
+  
+  // Background playback reliability improvements
+  Timer? _positionMonitorTimer;
+  Timer? _completionTimeoutTimer;
+  Timer? _trackProgressionRetryTimer;
+  bool _isInBackground = false;
+  int _backgroundCompletionRetryCount = 0;
+  static const int _maxBackgroundRetries = 3;
+  
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
     _preloader = AudioPreloader(_jellyfinService, _downloadService);
     _queueManager = AudioQueueManager(_stateManager);
     _radioMode = AudioRadioMode(_jellyfinService);
     _statePersistence = AudioStatePersistence(_stateManager);
+    _lifecycleManager = AudioLifecycleManager(_handleAppLifecycleChange);
     
     _init();
     _loadPlaybackState();
