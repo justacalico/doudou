@@ -263,128 +263,94 @@ class _HomeContentState extends State<HomeContent> {
               
               const SliverToBoxAdapter(child: SizedBox(height: 30)),
               
-              // Listen now section
+              // Shuffle buttons
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      // Header with shuffle buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () async {
-                                await appState.shuffleAllTracks();
-                              },
-                              child: Container(
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF8B2635),
-                                  borderRadius: BorderRadius.circular(25),
+                      Expanded(
+                        child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () async {
+                            await appState.shuffleAllTracks();
+                          },
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE91E63),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Shuffle all',
+                                  style: TextStyle(
+                                    color: CupertinoColors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 20),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Shuffle all',
-                                      style: TextStyle(
-                                        color: CupertinoColors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () async {
+                            final favoriteCount = appState.favoriteTracks.length;
+                            if (favoriteCount > 0) {
+                              await appState.shuffleFavoriteTracks();
+                            } else {
+                              showCupertinoDialog(
+                                context: context,
+                                builder: (BuildContext context) => CupertinoAlertDialog(
+                                  title: const Text('No Favorites'),
+                                  content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
+                                  actions: <CupertinoDialogAction>[
+                                    CupertinoDialogAction(
+                                      child: const Text('OK'),
+                                      onPressed: () => Navigator.of(context).pop(),
                                     ),
                                   ],
                                 ),
-                              ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE91E63).withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.heart, color: CupertinoColors.white, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Shuffle favorites',
+                                  style: TextStyle(
+                                    color: CupertinoColors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () async {
-                                final favoriteCount = appState.favoriteTracks.length;
-                                if (favoriteCount > 0) {
-                                  await appState.shuffleFavoriteTracks();
-                                } else {
-                                  // Show a message if no favorites
-                                  showCupertinoDialog(
-                                    context: context,
-                                    builder: (BuildContext context) => CupertinoAlertDialog(
-                                      title: const Text('No Favorites'),
-                                      content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
-                                      actions: <CupertinoDialogAction>[
-                                        CupertinoDialogAction(
-                                          child: const Text('OK'),
-                                          onPressed: () => Navigator.of(context).pop(),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Container(
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF8B2635),
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(CupertinoIcons.heart, color: CupertinoColors.white, size: 20),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Shuffle favorites',
-                                      style: TextStyle(
-                                        color: CupertinoColors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      
-                      // Listen now section
-                      const Text(
-                        'Listen now',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Featured album card
-                      if (shuffledAlbums.isNotEmpty)
-                        _buildFeaturedCard(context, shuffledAlbums.first, appState),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Recently added albums
-                      Text(
-                        favoriteTracks.isNotEmpty ? 'Recommended for you' : 'Recently added albums',
-                        style: const TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
               ),
+              
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
               
               // Recently added albums horizontal scroll
               SliverToBoxAdapter(
