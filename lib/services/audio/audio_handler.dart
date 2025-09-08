@@ -676,33 +676,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Store the current playing state to maintain it through the loading process
     final wasPlaying = playbackState.value.playing;
     
+    if (kDebugMode) {
+      print('Loading track: ${track.name}');
+    }
+    
     // Check if track is downloaded locally first
     final localFilePath = _downloadService.getLocalFilePath(track.id);
     
     if (localFilePath != null) {
-      // Verify that the local file exists before trying to play it
       final localFile = File(localFilePath);
       if (await localFile.exists()) {
-        // Play local file
         if (kDebugMode) {
-          print('Playing local file for track: ${track.name} from $localFilePath');
+          print('Playing local file: ${track.name}');
         }
         
         try {
-          // Load the local file
           await _player.setFilePath(localFilePath);
-        
-          // Apply volume normalization if enabled
           _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
           
-          // Don't wait for ready state - let just_audio handle buffering
           if (wasPlaying) {
-            _player.play(); // Don't await this - let it play when ready
+            await _player.play();
           }
           
-          if (kDebugMode) {
-            print('Successfully loaded local file: ${track.name}');
-          }
           return; // Success! Exit early
         } catch (e) {
           if (kDebugMode) {
@@ -712,8 +707,54 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Fast streaming - try best URL first, only one fallback
-    await _loadAndPlayTrackFast(track, wasPlaying);
+    // Stream the track - try transcoding first for better compatibility
+    try {
+      AudioSource audioSource;
+      
+      if (_shouldTranscodeTrack(track)) {
+        // Use HLS transcoding for maximum compatibility
+        final hlsUrl = _getHlsStreamUrl(track);
+        if (hlsUrl.isNotEmpty) {
+          audioSource = HlsAudioSource(Uri.parse(hlsUrl));
+          if (kDebugMode) {
+            print('Using HLS transcoding for: ${track.name}');
+          }
+        } else {
+          // Fallback to direct stream
+          audioSource = AudioSource.uri(Uri.parse(_jellyfinService.getDirectStreamUrl(track.id)));
+          if (kDebugMode) {
+            print('HLS failed, using direct stream for: ${track.name}');
+          }
+        }
+      } else {
+        // Use direct stream
+        audioSource = AudioSource.uri(Uri.parse(_jellyfinService.getDirectStreamUrl(track.id)));
+        if (kDebugMode) {
+          print('Using direct stream for: ${track.name}');
+        }
+      }
+      
+      await _player.setAudioSource(audioSource);
+      _player.setVolume(_normalizeVolumeEnabled ? 0.8 : 1.0);
+      
+      if (wasPlaying) {
+        await _player.play();
+      }
+      
+      if (kDebugMode) {
+        print('Successfully loaded: ${track.name}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to load track ${track.name}: $e');
+      }
+      
+      // Set error state
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+      ));
+    }
   }
 
   Future<void> _loadAndPlayTrackFast(Track track, bool wasPlaying) async {
