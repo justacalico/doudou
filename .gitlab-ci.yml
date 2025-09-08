@@ -1,9 +1,9 @@
 # GitLab CI/CD Pipeline for Doudou Flutter Android APK Build (Optimized)
 
 variables:
-  # Use pre-built Flutter image with Android SDK
-  FLUTTER_IMAGE: "cirrusci/flutter:stable"
-  # Android SDK variables (already set in cirrusci image)
+  # Use newer Flutter image that supports Dart 3.8+
+  FLUTTER_IMAGE: "ghcr.io/cirruslabs/flutter:3.24.3"
+  # Android SDK variables
   ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
   ANDROID_HOME: "/opt/android-sdk-linux"
   CI_DEBUG_TRACE: "false"
