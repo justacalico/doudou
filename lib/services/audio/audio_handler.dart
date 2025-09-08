@@ -1555,7 +1555,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void dispose() {
     _stopPeriodicSaving();
-    _stopCompletionChecker();
     _savePlaybackState();
     _clearPreloadedPlayers();
     _player.dispose();
