@@ -422,7 +422,7 @@ class _HomeContentState extends State<HomeContent> {
                     itemCount: continueListeningAlbums.take(4).length,
                     itemBuilder: (context, index) {
                       final album = continueListeningAlbums[index];
-                      return _buildContinueListeningCard(context, album, appState);
+                      return _buildLargeContinueListeningCard(context, album, appState);
                     },
                   ),
                 ),
@@ -431,7 +431,7 @@ class _HomeContentState extends State<HomeContent> {
               const SliverToBoxAdapter(child: SizedBox(height: 30)),
               
               // Listen now section
-              if (appState.isPlaying && appState.currentTrack != null)
+              if (appState.audioHandler?.currentTrack != null)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
