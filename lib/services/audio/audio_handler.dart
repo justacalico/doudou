@@ -2157,10 +2157,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   String _getHlsStreamUrl(Track track) {
-    if (_jellyfinService._server == null) return '';
+    // Use the existing stream URL method as a base and modify it for HLS
+    final streamUrl = _jellyfinService.getStreamUrl(track.id);
+    if (streamUrl.isEmpty) return '';
     
-    final server = _jellyfinService._server!;
-    return '${server.serverUrl}/Audio/${track.id}/main.m3u8?ApiKey=${server.accessToken}&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
+    // Replace 'stream' with 'main.m3u8' and add HLS-specific parameters
+    final baseUrl = streamUrl.split('/Audio/')[0];
+    return '$baseUrl/Audio/${track.id}/main.m3u8?ApiKey=${_jellyfinService.getStreamUrl(track.id).split('api_key=')[1].split('&')[0]}&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
   }
 
   void dispose() {
