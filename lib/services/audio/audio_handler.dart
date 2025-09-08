@@ -382,52 +382,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Play command received');
     }
     
-    // Clear pause time since user explicitly wants to play
-    _lastPauseTime = null;
+    // Simple and direct approach - trust just_audio to handle playback
+    await _player.play();
     
-    // More aggressive approach to ensure playback starts
-    try {
-      // First attempt
-      await _player.play();
-      
-      // Double check that play actually started
-      if (!_player.playing) {
-        if (kDebugMode) {
-          print('First play attempt failed to start playback, retrying...');
-        }
-        
-        // Second attempt after a short delay
-        await Future.delayed(const Duration(milliseconds: 50));
-        await _player.play();
-        
-        // Triple check
-        if (!_player.playing) {
-          if (kDebugMode) {
-            print('Second play attempt failed to start playback, final retry...');
-          }
-          
-          // Third attempt with slightly longer delay
-          await Future.delayed(const Duration(milliseconds: 100));
-          await _player.play();
-        }
-      }
-      
-      // Update the playback state to reflect that we're playing
-      playbackState.add(playbackState.value.copyWith(
-        playing: true, // Force the state to playing
-      ));
-      
-      if (kDebugMode) {
-        print('Play command result: ${_player.playing}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error during play command: $e');
-      }
-      // Even if there was an error, update state to at least maintain consistency
-      playbackState.add(playbackState.value.copyWith(
-        playing: _player.playing,
-      ));
+    // Update playback state immediately
+    playbackState.add(playbackState.value.copyWith(
+      playing: true,
+    ));
+    
+    if (kDebugMode) {
+      print('Play command completed');
     }
   }
 
