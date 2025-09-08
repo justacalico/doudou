@@ -24,6 +24,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioRadioMode _radioMode;
   late final AudioStatePersistence _statePersistence;
 
+  // Background playback tracking
+  Timer? _backgroundPlaybackTimer;
+  bool _isInBackground = false;
+
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
     _preloader = AudioPreloader(_jellyfinService, _downloadService);
@@ -36,13 +40,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _init() {
-    // Simple player state listener - trust just_audio to manage states
+    // Enhanced player state listener for background compatibility
     _player.playerStateStream.listen((playerState) {
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
-      // Update playback state based on actual player state
-      playbackState.add(playbackState.value.copyWith(
+      // Always update playback state to keep system informed
+      final newPlaybackState = playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
           if (isPlaying) MediaControl.pause else MediaControl.play,
@@ -60,33 +64,47 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
         queueIndex: _stateManager.currentIndex,
-      ));
+      );
+      
+      playbackState.add(newPlaybackState);
+      
+      // Handle state changes that might indicate background issues
+      if (processingState == AudioProcessingState.error && _isInBackground) {
+        _handleBackgroundError();
+      }
     });
 
-    // Listen to position changes
+    // Enhanced position stream for background tracking
     _player.positionStream.listen((position) {
       playbackState.add(playbackState.value.copyWith(
         updatePosition: position,
       ));
     });
 
-    // Simple completion detection - only use ProcessingState.completed
+    // More robust completion detection with background handling
     _player.processingStateStream.listen((state) {
+      if (kDebugMode) {
+        print('Processing state changed: $state');
+      }
+      
       if (state == ProcessingState.completed && !_stateManager.isHandlingCompletion) {
         if (kDebugMode) {
-          print('Track completed, moving to next');
+          print('Track completed, handling transition...');
         }
-        _handleTrackCompletion();
+        // Use a microtask to ensure this runs even in background
+        Future.microtask(() => _handleTrackCompletion());
       }
     });
 
-    // Start/stop periodic state saving based on playback state
+    // Monitor playback for background issues
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
         _statePersistence.startPeriodicSaving(_player.position, playerState.playing);
+        _startBackgroundMonitoring();
       } else {
         _statePersistence.stopPeriodicSaving();
-        _statePersistence.savePlaybackState(_player.position, playerState.playing); // Save immediately when paused
+        _statePersistence.savePlaybackState(_player.position, playerState.playing);
+        _stopBackgroundMonitoring();
       }
     });
 
@@ -108,6 +126,108 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     ));
   }
 
+  void _startBackgroundMonitoring() {
+    _stopBackgroundMonitoring();
+    
+    // Check for background playback issues every 2 seconds
+    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      _checkBackgroundPlayback();
+    });
+  }
+
+  void _stopBackgroundMonitoring() {
+    _backgroundPlaybackTimer?.cancel();
+    _backgroundPlaybackTimer = null;
+  }
+
+  void _checkBackgroundPlayback() {
+    final playerState = _player.playerState;
+    
+    // If we think we're playing but the player is stuck/idle, handle it
+    if (playbackState.value.playing && 
+        (playerState.processingState == ProcessingState.idle ||
+         playerState.processingState == ProcessingState.completed)) {
+      
+      if (kDebugMode) {
+        print('Background playback issue detected. Player state: ${playerState.processingState}, Expected: playing');
+      }
+      
+      _handleBackgroundPlaybackIssue();
+    }
+  }
+
+  void _handleBackgroundPlaybackIssue() async {
+    if (_stateManager.isHandlingCompletion) return;
+    
+    try {
+      // Check if we should move to next track or restart current
+      final position = _player.position;
+      final duration = _player.duration;
+      
+      if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.95)) {
+        // Track is essentially complete, move to next
+        if (kDebugMode) {
+          print('Track near completion, moving to next');
+        }
+        await _handleTrackCompletion();
+      } else {
+        // Try to resume current track
+        if (kDebugMode) {
+          print('Attempting to resume current track from background issue');
+        }
+        await _resumeCurrentTrack();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error handling background playback issue: $e');
+      }
+    }
+  }
+
+  void _handleBackgroundError() async {
+    if (kDebugMode) {
+      print('Handling background error, attempting to recover...');
+    }
+    
+    try {
+      // Try to reload and resume the current track
+      await _resumeCurrentTrack();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to recover from background error: $e');
+      }
+    }
+  }
+
+  Future<void> _resumeCurrentTrack() async {
+    if (_stateManager.currentTrack == null) return;
+    
+    final currentPosition = _player.position;
+    final wasPlaying = playbackState.value.playing;
+    
+    try {
+      await _loadAndPlayTrack(_stateManager.currentTrack!);
+      
+      // Restore position if we had one
+      if (currentPosition.inMilliseconds > 0) {
+        await _player.seek(currentPosition);
+      }
+      
+      // Resume playing if we were playing before
+      if (wasPlaying) {
+        await _player.play();
+      }
+      
+      if (kDebugMode) {
+        print('Successfully resumed track from background issue');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to resume track: $e');
+      }
+    }
+  }
+
   AudioProcessingState _mapProcessingState(ProcessingState state) {
     switch (state) {
       case ProcessingState.idle:
@@ -123,23 +243,39 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  // Audio Service Methods
+  // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
     if (kDebugMode) {
-      print('Play command received');
+      print('Play command received (background safe)');
     }
     
-    // Simple and direct approach - trust just_audio to handle playback
-    await _player.play();
-    
-    // Update playback state immediately
-    playbackState.add(playbackState.value.copyWith(
-      playing: true,
-    ));
-    
-    if (kDebugMode) {
-      print('Play command completed');
+    try {
+      // Ensure we have a track to play
+      if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
+        await _playCurrentTrack();
+      } else {
+        await _player.play();
+      }
+      
+      // Force update playback state for system
+      playbackState.add(playbackState.value.copyWith(
+        playing: true,
+        processingState: AudioProcessingState.ready,
+      ));
+      
+      if (kDebugMode) {
+        print('Play command completed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in play command: $e');
+      }
+      
+      // Try to recover by reloading current track
+      if (_stateManager.currentTrack != null) {
+        await _resumeCurrentTrack();
+      }
     }
   }
 
@@ -149,20 +285,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Pause command received');
     }
     
-    await _player.pause();
-    
-    // Update playback state immediately
-    playbackState.add(playbackState.value.copyWith(
-      playing: false,
-    ));
-    
-    if (kDebugMode) {
-      print('Pause command completed');
+    try {
+      await _player.pause();
+      
+      playbackState.add(playbackState.value.copyWith(
+        playing: false,
+      ));
+      
+      if (kDebugMode) {
+        print('Pause command completed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in pause command: $e');
+      }
     }
   }
 
   @override
   Future<void> stop() async {
+    _stopBackgroundMonitoring();
     await _player.stop();
     playbackState.add(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
@@ -179,6 +321,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Manual skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
     
+    // Reset completion handling to prevent conflicts
+    _stateManager.setHandlingCompletion(false);
+    
     if (_stateManager.incrementCurrentIndex()) {
       if (kDebugMode) {
         print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
@@ -191,7 +336,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Already at last track, cannot skip to next');
       }
       
-      // Update state to show we're at the end
       playbackState.add(playbackState.value.copyWith(
         processingState: AudioProcessingState.completed,
         playing: false,
@@ -204,7 +348,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Already handling completion, skipping...');
       }
-      return; // Prevent race conditions
+      return;
     }
     
     _stateManager.setHandlingCompletion(true);
@@ -214,16 +358,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Track completed: ${_stateManager.currentTrack?.name}');
       }
       
-      // Simple logic: move to next track if available
+      // For background compatibility, ensure we maintain playing state
+      final wasPlaying = playbackState.value.playing;
+      
       if (_stateManager.incrementCurrentIndex()) {
         await _playCurrentTrack();
+        
+        // Ensure we continue playing if we were playing before
+        if (wasPlaying && !_player.playing) {
+          await _player.play();
+        }
+        
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
         
         if (kDebugMode) {
           print('Moved to next track: ${_stateManager.currentTrack!.name}');
         }
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
-        // Add radio tracks and continue playing
+        // Radio mode handling
         final similarTracks = await _radioMode.getSimilarTracks(
           _stateManager.currentTrack!, 
           _stateManager.playlist,
@@ -235,20 +387,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           _stateManager.incrementCurrentIndex();
           await _playCurrentTrack();
+          
+          if (wasPlaying && !_player.playing) {
+            await _player.play();
+          }
+          
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
           
           if (kDebugMode) {
             print('Radio mode: Added ${similarTracks.length} tracks');
           }
         } else {
-          // No similar tracks, stop playback
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.completed,
             playing: false,
           ));
         }
       } else {
-        // End of playlist, stop playback
         playbackState.add(playbackState.value.copyWith(
           processingState: AudioProcessingState.completed,
           playing: false,
@@ -278,44 +433,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final currentPosition = _player.position;
     final duration = _player.duration;
     
-    // Calculate if we should restart current song or go to previous
     bool shouldRestartCurrentSong = false;
     
     if (duration != null && duration.inMilliseconds > 0) {
-      // Check if we're past the restart threshold (20% of song or 5 seconds, whichever is smaller)
       final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
       final minThresholdMs = Duration(seconds: 5).inMilliseconds;
       final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
       
       if (currentPosition.inMilliseconds > thresholdMs) {
-        // We're past the threshold, check if this is a double-tap within 5 seconds
         if (_stateManager.lastSkipToPreviousTime != null && 
             now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
-          // Double-tap within threshold - go to previous song
           shouldRestartCurrentSong = false;
         } else {
-          // Single tap past threshold - restart current song
           shouldRestartCurrentSong = true;
         }
       } else {
-        // We're within the threshold - always go to previous song
         shouldRestartCurrentSong = false;
       }
     } else {
-      // No duration info - go to previous song
       shouldRestartCurrentSong = false;
     }
     
     _stateManager.setLastSkipToPreviousTime(now);
     
     if (shouldRestartCurrentSong) {
-      // Restart current song by seeking to beginning
       await _player.seek(Duration.zero);
       if (kDebugMode) {
         print('Restarting current song: ${_stateManager.currentTrack?.name}');
       }
     } else {
-      // Go to previous song (original behavior)
       if (_stateManager.decrementCurrentIndex()) {
         await _playCurrentTrack();
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
@@ -335,77 +481,222 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  // Enhanced track loading with better error handling
+  Future<void> _playCurrentTrack() async {
+    if (_stateManager.playlist.isEmpty || _stateManager.currentIndex >= _stateManager.playlist.length) {
+      if (kDebugMode) {
+        print('Cannot play current track: playlist empty or index out of bounds');
+      }
+      return;
+    }
+
+    final track = _stateManager.currentTrack!;
+    
+    if (kDebugMode) {
+      print('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}');
+    }
+    
+    // Update current media item immediately
+    mediaItem.add(_trackToMediaItem(track));
+    
+    // Store playing state for background compatibility
+    final wasPlaying = playbackState.value.playing;
+    
+    // Update to loading state
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.loading,
+      queueIndex: _stateManager.currentIndex,
+      playing: wasPlaying,
+    ));
+    
+    // Stop current player safely
+    try {
+      await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 100));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error stopping player: $e');
+      }
+    }
+    
+    // Try preloaded player first
+    final preloadedPlayer = _preloader.getPreloadedPlayer(track.id);
+    if (preloadedPlayer != null) {
+      try {
+        if (preloadedPlayer.audioSource != null && 
+            preloadedPlayer.processingState == ProcessingState.ready) {
+          
+          await _player.setAudioSource(preloadedPlayer.audioSource!);
+          
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.ready,
+            playing: wasPlaying,
+            queueIndex: _stateManager.currentIndex,
+          ));
+          
+          if (wasPlaying) {
+            await _player.play();
+          }
+          
+          if (kDebugMode) {
+            print('Successfully played preloaded track: ${track.name}');
+          }
+          
+          preloadedPlayer.dispose();
+          _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+          return;
+        } else {
+          if (kDebugMode) {
+            print('Preloaded player not ready, falling back to normal loading');
+          }
+          preloadedPlayer.dispose();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to use preloaded track: $e');
+        }
+        preloadedPlayer.dispose();
+      }
+    }
+    
+    // Load track normally
+    await _loadAndPlayTrack(track);
+    _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+  }
+
+  Future<void> _loadAndPlayTrack(Track track) async {
+    final wasPlaying = playbackState.value.playing;
+    
+    if (kDebugMode) {
+      print('Loading track: ${track.name}');
+    }
+    
+    // Try local file first
+    final localFilePath = _downloadService.getLocalFilePath(track.id);
+    
+    if (localFilePath != null) {
+      final localFile = File(localFilePath);
+      if (await localFile.exists()) {
+        try {
+          await _player.setFilePath(localFilePath);
+          _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+          
+          if (wasPlaying) {
+            await _player.play();
+          }
+          
+          if (kDebugMode) {
+            print('Successfully loaded local file: ${track.name}');
+          }
+          return;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to play local file: $e');
+          }
+        }
+      }
+    }
+    
+    // Stream the track with enhanced error handling
+    final streamUrls = [
+      _jellyfinService.getDirectStreamUrl(track.id),
+      _jellyfinService.getStreamUrl(track.id),
+      _jellyfinService.getUniversalStreamUrl(track.id),
+    ];
+    
+    bool loaded = false;
+    Exception? lastError;
+    
+    for (final streamUrl in streamUrls) {
+      try {
+        if (streamUrl.isNotEmpty) {
+          if (_shouldTranscodeTrack(track)) {
+            final hlsUrl = _getHlsStreamUrl(track);
+            if (hlsUrl.isNotEmpty) {
+              await _player.setAudioSource(HlsAudioSource(Uri.parse(hlsUrl)));
+            } else {
+              await _player.setUrl(streamUrl);
+            }
+          } else {
+            await _player.setUrl(streamUrl);
+          }
+          
+          _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+          
+          if (wasPlaying) {
+            await _player.play();
+          }
+          
+          loaded = true;
+          if (kDebugMode) {
+            print('Successfully loaded stream: ${track.name}');
+          }
+          break;
+        }
+      } catch (e) {
+        lastError = e as Exception?;
+        if (kDebugMode) {
+          print('Failed to load stream URL: $e');
+        }
+      }
+    }
+    
+    if (!loaded) {
+      if (kDebugMode) {
+        print('Failed to load any stream for: ${track.name}, last error: $lastError');
+      }
+      
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+        playing: false,
+      ));
+    }
+  }
+
   // Custom methods for the app
   Future<void> playTrack(Track track) async {
-    // Stop any currently playing audio first
     await _player.stop();
-    
-    // Clear existing preloaded tracks
     _preloader.clearAllPreloadedPlayers();
-    
-    // Reset completion handling state
     _stateManager.setHandlingCompletion(false);
     
     _queueManager.setSingleTrack(track);
     
-    if (kDebugMode) {
-      print('Playing single track: ${track.name}');
-    }
-    
-    // Set state to playing immediately for instant UI response
     playbackState.add(playbackState.value.copyWith(
       playing: true,
       processingState: AudioProcessingState.loading,
       queueIndex: 0,
     ));
     
-    // Load and play the track - trust just_audio to handle the rest
     await _playCurrentTrack();
     
     if (kDebugMode) {
-      print('Single track playback initiated');
+      print('Single track playback initiated: ${track.name}');
     }
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
     
-    // Stop any currently playing audio
     await _player.stop();
-    
-    // Clear existing preloaded tracks
     _preloader.clearAllPreloadedPlayers();
-    
-    // Reset completion handling state
     _stateManager.setHandlingCompletion(false);
     
     _queueManager.setPlaylist(tracks, startIndex);
-    
-    // Update audio service queue
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
-    if (kDebugMode) {
-      print('Starting playlist: ${tracks.length} tracks, starting at index $startIndex');
-    }
-    
-    // Set state to playing immediately for instant UI response
     playbackState.add(playbackState.value.copyWith(
       playing: true,
       processingState: AudioProcessingState.loading,
       queueIndex: _stateManager.currentIndex,
     ));
     
-    // Start playing current track - trust just_audio to handle the rest
     await _playCurrentTrack();
     
-    // Start preloading next tracks in background
     Future.microtask(() => _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex));
-    
-    // Save the new playlist state
     await _statePersistence.savePlaybackState(_player.position, _player.playing);
     
     if (kDebugMode) {
-      print('Playlist playback initiated');
+      print('Playlist playback initiated: ${tracks.length} tracks');
     }
   }
 
@@ -422,241 +713,39 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     );
   }
 
-  Future<void> _playCurrentTrack() async {
-    if (_stateManager.playlist.isEmpty || _stateManager.currentIndex >= _stateManager.playlist.length) {
-      if (kDebugMode) {
-        print('Cannot play current track: playlist empty or index out of bounds');
-      }
-      return;
-    }
-
-    final track = _stateManager.currentTrack!;
-    
-    if (kDebugMode) {
-      print('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}');
-    }
-    
-    // Update current media item immediately for better background experience
-    mediaItem.add(_trackToMediaItem(track));
-    
-    // Store the current playing state to maintain it through the transition
-    final wasPlaying = playbackState.value.playing;
-    
-    // Update playback state to loading while preserving playing state
-    playbackState.add(playbackState.value.copyWith(
-      processingState: AudioProcessingState.loading,
-      queueIndex: _stateManager.currentIndex,
-      playing: wasPlaying, // Preserve the playing state
-    ));
-    
-    // Stop current player first to ensure clean state and prevent interruptions
-    try {
-      await _player.stop();
-      // Give the player time to fully stop to prevent "Loading interrupted" errors
-      await Future.delayed(const Duration(milliseconds: 150)); 
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error stopping player: $e');
-      }
-    }
-    
-    // Check if we have a preloaded player for this track
-    final preloadedPlayer = _preloader.getPreloadedPlayer(track.id);
-    if (preloadedPlayer != null) {
-      try {
-        // Check if the preloaded player is ready
-        if (preloadedPlayer.audioSource != null && 
-            preloadedPlayer.processingState == ProcessingState.ready) {
-          
-          // Set the same audio source on main player
-          await _player.setAudioSource(preloadedPlayer.audioSource!);
-          
-          // Update state to ready before playing, maintaining the playing state
-          playbackState.add(playbackState.value.copyWith(
-            processingState: AudioProcessingState.ready,
-            playing: wasPlaying, // Maintain the previous playing state
-            queueIndex: _stateManager.currentIndex,
-          ));
-          
-          // Only start playing if we were playing before
-          if (wasPlaying) {
-            await _player.play();
-          }
-          
-          if (kDebugMode) {
-            print('Successfully ${wasPlaying ? "playing" : "loaded"} preloaded track: ${track.name}');
-          }
-          
-          // Dispose the preloaded player
-          preloadedPlayer.dispose();
-          
-          // Preload next tracks after successful play
-          _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
-          return;
-          
-        } else {
-          // Preloaded player not ready, fall back to normal loading
-          if (kDebugMode) {
-            print('Preloaded player not ready for: ${track.name}, state: ${preloadedPlayer.processingState}');
-          }
-          preloadedPlayer.dispose();
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Failed to play preloaded track: $e');
-        }
-        // Dispose the preloaded player and fall back to normal loading
-        preloadedPlayer.dispose();
-      }
-    }
-    
-    // Fallback to normal loading if no preloaded version or if preloaded failed
-    await _loadAndPlayTrack(track);
-    
-    // Preload next tracks after successful play
-    _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
-  }
-
-  Future<void> _loadAndPlayTrack(Track track) async {
-    // Store the current playing state to maintain it through the loading process
-    final wasPlaying = playbackState.value.playing;
-    
-    if (kDebugMode) {
-      print('Loading track: ${track.name}');
-    }
-    
-    // Check if track is downloaded locally first
-    final localFilePath = _downloadService.getLocalFilePath(track.id);
-    
-    if (localFilePath != null) {
-      final localFile = File(localFilePath);
-      if (await localFile.exists()) {
-        if (kDebugMode) {
-          print('Playing local file: ${track.name}');
-        }
-        
-        try {
-          await _player.setFilePath(localFilePath);
-          _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
-          
-          if (wasPlaying) {
-            await _player.play();
-          }
-          
-          return; // Success! Exit early
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to play local file for ${track.name}: $e');
-          }
-        }
-      }
-    }
-    
-    // Stream the track - try transcoding first for better compatibility
-    try {
-      AudioSource audioSource;
-      
-      if (_shouldTranscodeTrack(track)) {
-        // Use HLS transcoding for maximum compatibility
-        final hlsUrl = _getHlsStreamUrl(track);
-        if (hlsUrl.isNotEmpty) {
-          audioSource = HlsAudioSource(Uri.parse(hlsUrl));
-          if (kDebugMode) {
-            print('Using HLS transcoding for: ${track.name}');
-          }
-        } else {
-          // Fallback to direct stream
-          audioSource = AudioSource.uri(Uri.parse(_jellyfinService.getDirectStreamUrl(track.id)));
-          if (kDebugMode) {
-            print('HLS failed, using direct stream for: ${track.name}');
-          }
-        }
-      } else {
-        // Use direct stream
-        audioSource = AudioSource.uri(Uri.parse(_jellyfinService.getDirectStreamUrl(track.id)));
-        if (kDebugMode) {
-          print('Using direct stream for: ${track.name}');
-        }
-      }
-      
-      await _player.setAudioSource(audioSource);
-      _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
-      
-      if (wasPlaying) {
-        await _player.play();
-      }
-      
-      if (kDebugMode) {
-        print('Successfully loaded: ${track.name}');
-      }
-      
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to load track ${track.name}: $e');
-      }
-      
-      // Set error state
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.error,
-      ));
-    }
-  }
-
-  // Queue management methods (delegate to queue manager)
+  // Queue management methods
   void addToQueue(Track track) {
     _queueManager.addToQueue(track);
-    
-    // Update audio service queue
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
-    // Preload if it's likely to be played soon
-    final position = _stateManager.playlist.length - _stateManager.currentIndex - 1; // Position from current track
+    final position = _stateManager.playlist.length - _stateManager.currentIndex - 1;
     _preloader.preloadQueueTrack(track, position);
   }
 
   void addNext(Track track) {
     _queueManager.addNext(track);
-    
-    // Update audio service queue
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
-    
-    // This track will play next - preload it immediately
     _preloader.preloadPlayNextTrack(track);
   }
 
   void removeFromQueue(int index) {
     _queueManager.removeFromQueue(index);
-    
-    // Update audio service queue
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
-    
-    // Clean up preloaded players
     _preloader.cleanupOldPreloadedPlayers(_stateManager.playlist, _stateManager.currentIndex);
   }
 
   void clearQueue() {
     _queueManager.clearQueue();
-    
-    // Clear preloaded players
     _preloader.clearAllPreloadedPlayers();
-    
-    // Update audio service
     queue.add(<MediaItem>[]);
     mediaItem.add(null);
-    
     stop();
   }
 
   void shuffle() {
-    // Clear preloaded players since order will change
     _preloader.clearAllPreloadedPlayers();
-    
     _queueManager.shuffle();
-    
-    // Update audio service queue
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
-    
-    // Restart preloading with new order
     _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
   }
 
@@ -664,7 +753,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _queueManager.unshuffle();
   }
 
-  // Radio Mode functionality for endless playback
+  // Radio Mode functionality
   void toggleRadioMode() {
     _stateManager.setRadioModeEnabled(!_stateManager.radioModeEnabled);
   }
@@ -682,22 +771,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _stateManager.setSmartCrossfadeEnabled(enabled);
     
     if (enabled) {
-      // Enable crossfade with 3-second duration
-      // Apply volume based on normalization setting
       _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
-      
-      // Start preloading next tracks
       _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
     } else {
-      // Disable crossfade and clear preloaded tracks
       _preloader.clearAllPreloadedPlayers();
     }
   }
 
   void setNormalizeVolume(bool enabled) {
     _stateManager.setNormalizeVolumeEnabled(enabled);
-    
-    // Apply volume normalization
     _player.setVolume(enabled ? 0.8 : 1.0);
   }
 
@@ -705,7 +787,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _stateManager.setGaplessPlaybackEnabled(enabled);
   }
 
-  // Getters (delegate to state manager)
+  // Getters
   Track? get currentTrack => _stateManager.currentTrack;
   List<Track> get playlist => _stateManager.playlist;
   List<Track> get queueTracks => _stateManager.queueTracks;
@@ -731,35 +813,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> onTaskRemoved() async {
-    // Handle task removal (app swiped away)
+    if (kDebugMode) {
+      print('App task removed, stopping playback');
+    }
     await stop();
   }
 
   Future<void> _loadPlaybackState() async {
     final stateData = await _statePersistence.loadPlaybackState();
     if (stateData != null) {
-      // Update audio service queue
       queue.add(stateData.playlist.map(_trackToMediaItem).toList());
-      
-      // Update current media item
       mediaItem.add(_trackToMediaItem(stateData.playlist[stateData.currentIndex]));
       
-      // Prepare the audio source
       try {
         final currentTrack = stateData.playlist[stateData.currentIndex];
         
         final streamUrls = [
-          _jellyfinService.getStreamUrl(currentTrack.id),
           _jellyfinService.getDirectStreamUrl(currentTrack.id),
+          _jellyfinService.getStreamUrl(currentTrack.id),
           _jellyfinService.getUniversalStreamUrl(currentTrack.id),
         ];
         
         bool loaded = false;
         for (final streamUrl in streamUrls) {
           try {
-            await _player.setUrl(streamUrl);
-            loaded = true;
-            break;
+            if (streamUrl.isNotEmpty) {
+              await _player.setUrl(streamUrl);
+              loaded = true;
+              break;
+            }
           } catch (e) {
             if (kDebugMode) {
               print('Failed to load stream URL for restored track: $e');
@@ -768,21 +850,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         if (loaded) {
-          // Restore position
           if (stateData.savedPosition.inMilliseconds > 0) {
             await _player.seek(stateData.savedPosition);
           }
           
-          // Resume playing if it was playing before
           if (stateData.wasPlaying) {
             await _player.play();
-            _statePersistence.startPeriodicSaving(_player.position, _player.playing); // Start saving state if we resumed playing
+            _statePersistence.startPeriodicSaving(_player.position, _player.playing);
             if (kDebugMode) {
               print('Automatically resumed playback: ${currentTrack.name}');
             }
           }
           
-          // Update playback state
           playbackState.add(playbackState.value.copyWith(
             controls: [
               MediaControl.skipToPrevious,
@@ -813,19 +892,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  // Background state management
+  void setBackgroundState(bool isBackground) {
+    _isInBackground = isBackground;
+    
+    if (kDebugMode) {
+      print('App background state changed: $isBackground');
+    }
+  }
+
   // Transcoding support methods
   bool _shouldTranscodeTrack(Track track) {
-    // For now, enable transcoding for all tracks for maximum compatibility
-    // In the future, this could check codec types or file formats
-    return true;
+    return true; // Enable transcoding for maximum compatibility
   }
 
   String _getHlsStreamUrl(Track track) {
-    // Use the existing stream URL method as a base and construct HLS URL
     final streamUrl = _jellyfinService.getStreamUrl(track.id);
     if (streamUrl.isEmpty) return '';
     
-    // Extract the base URL and construct HLS endpoint
     final baseUrl = streamUrl.split('/Audio/')[0];
     final urlParts = streamUrl.split('api_key=');
     if (urlParts.length < 2) return '';
@@ -834,9 +918,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return '$baseUrl/Audio/${track.id}/main.m3u8?ApiKey=$apiKey&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
   }
 
-  void dispose() {
+  Future<void> dispose() async {
+    _stopBackgroundMonitoring();
     _statePersistence.dispose();
     _preloader.dispose();
-    _player.dispose();
+    await _player.dispose();
   }
 }
