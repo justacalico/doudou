@@ -502,6 +502,60 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
   }
+  
+  @override
+  Future<void> skipToPrevious() async {
+    final now = DateTime.now();
+    final currentPosition = _player.position;
+    final duration = _player.duration;
+    
+    // Calculate if we should restart current song or go to previous
+    bool shouldRestartCurrentSong = false;
+    
+    if (duration != null && duration.inMilliseconds > 0) {
+      // Check if we're past the restart threshold (20% of song or 5 seconds, whichever is smaller)
+      final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
+      final minThresholdMs = Duration(seconds: 5).inMilliseconds;
+      final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
+      
+      if (currentPosition.inMilliseconds > thresholdMs) {
+        // We're past the threshold, check if this is a double-tap within 5 seconds
+        if (_stateManager.lastSkipToPreviousTime != null && 
+            now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
+          // Double-tap within threshold - go to previous song
+          shouldRestartCurrentSong = false;
+        } else {
+          // Single tap past threshold - restart current song
+          shouldRestartCurrentSong = true;
+        }
+      } else {
+        // We're within the threshold - always go to previous song
+        shouldRestartCurrentSong = false;
+      }
+    } else {
+      // No duration info - go to previous song
+      shouldRestartCurrentSong = false;
+    }
+    
+    _stateManager.setLastSkipToPreviousTime(now);
+    
+    if (shouldRestartCurrentSong) {
+      // Restart current song by seeking to beginning
+      await _player.seek(Duration.zero);
+      if (kDebugMode) {
+        print('Restarting current song: ${_stateManager.currentTrack?.name}');
+      }
+    } else {
+      // Go to previous song (original behavior)
+      if (_stateManager.decrementCurrentIndex()) {
+        await _playCurrentTrack();
+        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        if (kDebugMode) {
+          print('Skipping to previous song');
+        }
+      }
+    }
+  }
       // Check if we're past the restart threshold (20% of song or 5 seconds, whichever is smaller)
       final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
       final minThresholdMs = Duration(seconds: 5).inMilliseconds;
