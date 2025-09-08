@@ -191,26 +191,76 @@ class _HomeContentState extends State<HomeContent> {
           color: const Color(0xFF000000),
           child: CustomScrollView(
             slivers: [
-              // Home header
+              // Home header with profile and notification icons
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.fromLTRB(16.0, 50.0, 16.0, 0),
+                  child: Row(
                     children: [
+                      // MANET+ Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE91E63),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'MANET+',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
                       const Text(
                         'Home',
                         style: TextStyle(
                           color: Color(0xFFFFFFFF),
-                          fontSize: 34,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const Spacer(),
+                      // Notification and Profile icons
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1C1C1E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.bell,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFE91E63),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.person_fill,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ),
+              
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
               
               // Listen now section
               SliverToBoxAdapter(
