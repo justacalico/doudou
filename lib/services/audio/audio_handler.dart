@@ -620,7 +620,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           } else {
             await _player.setUrl(streamUrl);
           }
-          
+           
           _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
           
           if (wasPlaying) {
