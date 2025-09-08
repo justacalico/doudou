@@ -1,4 +1,6 @@
-  /// Fallback method for playing the current track in background
+  import 'package:flutter/foundation.dart';
+
+/// Fallback method for playing the current track in background
   /// Uses a simplified, more reliable approach for background playback
   Future<void> _playCurrentTrackFallback() async {
     if (kDebugMode) {
