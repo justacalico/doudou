@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
 import '../download_service.dart';
@@ -11,6 +12,7 @@ import 'audio_preloader.dart';
 import 'audio_queue_manager.dart';
 import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
+import 'audio_lifecycle_manager.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
