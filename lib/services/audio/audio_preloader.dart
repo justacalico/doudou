@@ -235,7 +235,9 @@ class AudioPreloader {
     }
     
     if (keysToRemove.isNotEmpty && kDebugMode) {
-      print('Cleaning up ${keysToRemove.length} old preloaded tracks');
+      if (kDebugMode) {
+        print('Cleaning up ${keysToRemove.length} old preloaded tracks');
+      }
     }
     
     for (final trackId in keysToRemove) {
