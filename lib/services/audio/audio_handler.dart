@@ -224,17 +224,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     try {
       if (kDebugMode) {
-        print('Handling track completion for: ${_currentTrack?.name}');
-        print('Current index: $_currentIndex, Playlist length: ${_playlist.length}');
-        print('Has next track: ${_currentIndex < _playlist.length - 1}');
-        print('Current playing state: ${playbackState.value.playing}');
-        print('Player playing state: ${_player.playing}');
-        print('Gapless playback enabled: $_gaplessPlaybackEnabled');
+        print('Track completed: ${_currentTrack?.name}');
       }
-      
-      // Reset stuck detection counters
-      _stuckCounter = 0;
-      _lastKnownPosition = null;
       
       // Store current track info for verification
       final currentTrackName = _currentTrack?.name;
