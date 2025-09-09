@@ -587,6 +587,69 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
+          // Go to Album
+          if (currentTrack.albumName != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToAlbum(context, currentTrack, appState);
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.music_albums, color: CupertinoColors.activeBlue),
+                  SizedBox(width: 8),
+                  Text('Go to Album'),
+                ],
+              ),
+            ),
+          // Go to Artist
+          if (currentTrack.artistName != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToArtist(context, currentTrack, appState);
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.person, color: CupertinoColors.activeBlue),
+                  SizedBox(width: 8),
+                  Text('Go to Artist'),
+                ],
+              ),
+            ),
+          // Add to Playlist
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _showAddToPlaylistDialog(context, currentTrack, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.add_circled, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Add to Playlist'),
+              ],
+            ),
+          ),
+          // Share
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _shareTrack(context, currentTrack);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.share, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Share'),
+              ],
+            ),
+          ),
+          // Radio Mode
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
@@ -605,20 +668,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                 Text(
                   appState.radioModeEnabled ? 'Disable Radio Mode' : 'Enable Radio Mode',
                 ),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _showAddToPlaylistDialog(context, currentTrack, appState);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.add_circled, color: CupertinoColors.activeBlue),
-                SizedBox(width: 8),
-                Text('Add to Playlist'),
               ],
             ),
           ),
