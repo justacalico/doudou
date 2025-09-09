@@ -598,7 +598,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final wasPlaying = playbackState.value.playing;
     
     if (kDebugMode) {
-      print('Loading track: ${track.name}');
+      print('Loading track: ${track.name}, wasPlaying: $wasPlaying');
     }
     
     // Try local file first
@@ -616,17 +616,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           if (wasPlaying) {
             await _player.play();
+            if (kDebugMode) {
+              print('Auto-playing local file: ${track.name}');
+            }
           }
           
           // Update playback state after successful load
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.ready,
-            playing: _player.playing,
+            playing: wasPlaying ? _player.playing : false,
             queueIndex: _stateManager.currentIndex,
           ));
           
           if (kDebugMode) {
-            print('Successfully loaded local file: ${track.name}');
+            print('Successfully loaded local file: ${track.name}, playing: ${_player.playing}');
           }
           return;
         } catch (e) {
@@ -668,18 +671,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           if (wasPlaying) {
             await _player.play();
+            if (kDebugMode) {
+              print('Auto-playing stream: ${track.name}');
+            }
           }
           
           // Update playback state after successful load
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.ready,
-            playing: _player.playing,
+            playing: wasPlaying ? _player.playing : false,
             queueIndex: _stateManager.currentIndex,
           ));
           
           loaded = true;
           if (kDebugMode) {
-            print('Successfully loaded stream: ${track.name}');
+            print('Successfully loaded stream: ${track.name}, playing: ${_player.playing}');
           }
           break;
         }
