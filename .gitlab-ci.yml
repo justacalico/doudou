@@ -127,18 +127,26 @@ build_android_debug:
       echo "Testing network connectivity..."
       ping -c 3 dl.google.com || echo "Warning: Cannot reach dl.google.com"
       
-      # Configure Gradle for better network handling
+      # Configure Gradle for better network handling and force refresh
       mkdir -p ~/.gradle
       cat > ~/.gradle/gradle.properties << EOF
       org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
       org.gradle.parallel=true
       org.gradle.configureondemand=true
       org.gradle.daemon=false
+      org.gradle.caching=true
       systemProp.http.connectionTimeout=60000
       systemProp.http.socketTimeout=60000
       systemProp.https.connectionTimeout=60000
       systemProp.https.socketTimeout=60000
       EOF
+      
+      # Pre-warm Gradle and force dependency refresh
+      echo "Pre-warming Gradle and refreshing dependencies..."
+      cd android
+      # Force refresh dependencies to avoid stale cache issues
+      ./gradlew --refresh-dependencies --no-daemon clean || echo "Initial clean failed, continuing..."
+      cd ..
       
       # Build APK with network retry logic
       echo "Building Android APK with network resilience..."
