@@ -49,15 +49,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
   
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFF000000), // Pure black for OLED
-      child: Consumer<AppState>(
-        builder: (context, appState, child) {
-          final audioHandler = appState.audioHandler;
-          final currentTrack = audioHandler?.currentTrack;
-          
-          if (currentTrack == null) {
-            return const Center(
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final audioHandler = appState.audioHandler;
+        final currentTrack = audioHandler?.currentTrack;
+        
+        if (currentTrack == null) {
+          return CupertinoPageScaffold(
+            backgroundColor: const Color(0xFF000000),
+            child: const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -69,16 +69,48 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                   ),
                 ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+        return Scaffold(
+          backgroundColor: const Color(0xFF000000),
+          body: Stack(
+            children: [
+              // Blurred background
+              if (currentTrack.imageUrl != null)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          appState.jellyfinService.getImageUrl(
+                            currentTrack.imageUrl!,
+                            width: 800,
+                            height: 800,
+                          ),
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                child: IntrinsicHeight(
+              // Content
+              SafeArea(
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                    ),
+                    child: IntrinsicHeight(
                   child: Column(
                     children: [
                       // Top bar with chevron down and playback source indicator
