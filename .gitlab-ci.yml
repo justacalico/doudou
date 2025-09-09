@@ -145,11 +145,18 @@ build_android_debug:
       systemProp.https.socketTimeout=60000
       EOF
       
-      # Pre-warm Gradle and force dependency refresh
-      echo "Pre-warming Gradle and refreshing dependencies..."
+      # Clean any existing Gradle locks and caches
+      echo "Cleaning Gradle locks and preparing build environment..."
+      rm -rf android/.gradle/*/fileHashes/fileHashes.lock
+      rm -rf android/.gradle/*/executionHistory/executionHistory.lock
+      rm -rf ~/.gradle/daemon/*/
+      
+      # Pre-warm Gradle with lock cleanup
+      echo "Pre-warming Gradle with clean state..."
       cd android
-      # Force refresh dependencies to avoid stale cache issues
-      ./gradlew --refresh-dependencies --no-daemon clean || echo "Initial clean failed, continuing..."
+      # Stop any existing daemons and clean locks
+      ./gradlew --stop || true
+      ./gradlew clean --no-daemon --refresh-dependencies || echo "Initial clean failed, continuing..."
       cd ..
       
       # Build APK with network retry logic
