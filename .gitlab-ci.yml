@@ -8,6 +8,8 @@ variables:
 build_debug_apk:
   stage: build
   image: cirruslabs/flutter:latest
+  tags:
+    - android
   script:
     - flutter --version
     - flutter pub get
@@ -20,6 +22,8 @@ build_debug_apk:
 publish_release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - android
   needs: ["build_debug_apk"]
   script:
     - echo "Publishing release with debug APK"
