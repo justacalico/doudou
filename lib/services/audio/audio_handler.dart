@@ -407,17 +407,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await _playCurrentTrack();
           
           if (wasPlaying) {
-            await Future.delayed(const Duration(milliseconds: 200));
-            if (!_player.playing) {
-              await _player.play();
-            }
+            _startBackgroundMonitoring();
           }
-          
-          // Update state to reflect reality
-          playbackState.add(playbackState.value.copyWith(
-            playing: _player.playing,
-            processingState: AudioProcessingState.ready,
-          ));
           
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
           
