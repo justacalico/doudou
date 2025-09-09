@@ -55,6 +55,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       parent: _albumArtAnimationController,
       curve: Curves.easeInOut,
     ));
+    
+    _rotationAnimationController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    );
+    _rotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_rotationAnimationController);
   }
   
   @override
