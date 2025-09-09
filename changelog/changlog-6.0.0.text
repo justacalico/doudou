@@ -2,6 +2,7 @@
 
 ## Added
 
+- Added an animation when album art changes size.
 - Background for Now_playing.
 - Automatically build .apk's.
 - Indication if a song is being played locally/downloaded or streaming.
