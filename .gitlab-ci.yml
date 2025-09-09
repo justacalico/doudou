@@ -189,9 +189,17 @@ build_android_debug:
       # Pre-warm Gradle with lock cleanup
       echo "Pre-warming Gradle with clean state..."
       cd android
+      
+      # Verify Android configuration
+      echo "Verifying Android configuration..."
+      echo "Android Gradle Plugin version in settings.gradle.kts:"
+      grep "com.android.application" settings.gradle.kts || echo "Could not find Android plugin version"
+      echo "Kotlin version in settings.gradle.kts:"
+      grep "org.jetbrains.kotlin.android" settings.gradle.kts || echo "Could not find Kotlin version"
+      
       # Stop any existing daemons and clean locks
       run_gradle_with_timeout "./gradlew --stop" || true
-      run_gradle_with_timeout "./gradlew clean --no-daemon --refresh-dependencies" || echo "Initial clean failed, continuing..."
+      run_gradle_with_timeout "./gradlew clean --no-daemon --refresh-dependencies --info" || echo "Initial clean failed, continuing..."
       cd ..
       
       # Build APK with network retry logic
