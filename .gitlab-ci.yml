@@ -64,6 +64,8 @@ setup_flutter:
   image: $FLUTTER_IMAGE
   tags:
     - android
+  variables:
+    GIT_STRATEGY: clone  # Ensure clean clone for this job
   retry:
     max: 2
     when:
@@ -71,6 +73,8 @@ setup_flutter:
       - unknown_failure
   before_script:
     - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    - echo "Git repository status check..."
+    - pwd && ls -la
     - flutter --version
     - flutter doctor -v
   script:
