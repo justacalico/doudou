@@ -262,14 +262,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _player.play();
       }
       
-      // Force update playback state for system
+      // Always verify the play command worked
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Update state to reflect actual player state
       playbackState.add(playbackState.value.copyWith(
-        playing: true,
-        processingState: AudioProcessingState.ready,
+        playing: _player.playing, // Use actual player state
+        processingState: _player.processingState == ProcessingState.ready 
+            ? AudioProcessingState.ready 
+            : AudioProcessingState.loading,
       ));
       
       if (kDebugMode) {
-        print('Play command completed');
+        print('Play command completed. Actually playing: ${_player.playing}');
       }
     } catch (e) {
       if (kDebugMode) {
