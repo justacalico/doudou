@@ -290,155 +290,56 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   ),
                 ),
               ),
-          if (isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CupertinoActivityIndicator()),
-            )
-          else if (tracks.isEmpty)
-            const SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.music_note,
-                      size: 64,
-                      color: CupertinoColors.secondaryLabel,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No tracks found',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: CupertinoColors.secondaryLabel,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CupertinoButton(
-                            onPressed: () => _playAllTracks(),
-                            color: const Color(0xFFFF453A),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.play_arrow,
-                                  color: CupertinoColors.white,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Play All',
-                                  style: TextStyle(
-                                    color: CupertinoColors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: CupertinoButton(
-                            onPressed: () => _shuffleAllTracks(),
-                            color: CupertinoColors.systemBackground,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.shuffle,
-                                  color: const Color(0xFFFF453A),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Shuffle',
-                                  style: TextStyle(
-                                    color: const Color(0xFFFF453A),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                
-                if (index == 1) {
-                  // Check if all tracks are downloaded
-                  final appState = context.read<AppState>();
-                  final bool allTracksDownloaded = tracks.isNotEmpty && 
-                      tracks.every((track) => appState.downloadService.isTrackDownloaded(track.id));
-                  
-                  // Don't show download button if all tracks are already downloaded
-                  if (allTracksDownloaded) {
-                    return const SizedBox(height: 12);
-                  }
-                  
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              if (isLoading)
+                const SliverFillRemaining(
+                  child: Center(child: CupertinoActivityIndicator()),
+                )
+              else if (tracks.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 12),
-                        // Download button
-                        SizedBox(
-                          width: double.infinity,
-                          child: CupertinoButton(
-                            color: CupertinoColors.systemGrey6.darkColor,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.cloud_download, 
-                                  size: 20,
-                                  color: CupertinoColors.systemBlue,
-                                ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'Download Album',
-                                  style: TextStyle(
-                                    color: CupertinoColors.systemBlue,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            onPressed: () => _downloadAlbum(),
+                        Icon(
+                          CupertinoIcons.music_note,
+                          size: 64,
+                          color: CupertinoColors.secondaryLabel,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No tracks found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: CupertinoColors.secondaryLabel,
                           ),
                         ),
-                        const SizedBox(height: 12),
                       ],
                     ),
-                  );
-                }
-
-                final track = tracks[index - 2];
-                return TrackListItem(
-                  track: track,
-                  trackNumber: index - 1,
-                  onTap: () => _playTrack(track, index - 2),
-                  showAlbumArt: false,
-                  showTrackNumber: true,
-                  showDuration: true,
-                  showDownloadButton: true,
-                  showFavoriteButton: false,
-                );
-              }, childCount: tracks.length + 2),
-            ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final track = tracks[index];
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 1),
+                        child: TrackListItem(
+                          track: track,
+                          trackNumber: index + 1,
+                          onTap: () => _playTrack(track, index),
+                          showAlbumArt: false,
+                          showTrackNumber: true,
+                          showDuration: true,
+                          showDownloadButton: true,
+                          showFavoriteButton: true,
+                        ),
+                      );
+                    }, childCount: tracks.length),
+                  ),
+                ),
             ],
           ),
           const Positioned(
