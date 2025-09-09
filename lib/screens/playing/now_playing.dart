@@ -70,6 +70,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
   void dispose() {
     _favoriteAnimationController.dispose();
     _albumArtAnimationController.dispose();
+    _rotationAnimationController.dispose();
     super.dispose();
   }
   
