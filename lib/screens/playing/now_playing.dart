@@ -680,6 +680,26 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
     );
   }
 
+  void _shareTrack(BuildContext context, dynamic currentTrack) {
+    final trackInfo = '${currentTrack.name} by ${currentTrack.artistName ?? 'Unknown Artist'}';
+    
+    // For now, just show the track info in a dialog
+    // In a real app, you would use a share plugin like share_plus
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Share Track'),
+        content: Text(trackInfo),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAddToPlaylistDialog(BuildContext context, dynamic currentTrack, AppState appState) {
     final playlists = appState.playlists;
     
