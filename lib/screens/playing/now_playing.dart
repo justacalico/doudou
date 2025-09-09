@@ -41,6 +41,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       parent: _favoriteAnimationController,
       curve: Curves.elasticOut,
     ));
+    
+    _albumArtAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _albumArtScaleAnimation = Tween<double>(
+      begin: 0.85, // Smaller when paused
+      end: 1.0,    // Larger when playing
+    ).animate(CurvedAnimation(
+      parent: _albumArtAnimationController,
+      curve: Curves.easeInOut,
+    ));
   }
   
   @override
