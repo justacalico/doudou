@@ -149,29 +149,41 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       const SizedBox(height: 20),
                       
                       // Album Art / Visualizer - responsive size (clickable to toggle)
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showVisualizer = !_showVisualizer;
-                          });
-                        },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.75,
-                          height: MediaQuery.of(context).size.width * 0.75,
-                          constraints: const BoxConstraints(
-                            maxWidth: 320,
-                            maxHeight: 320,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF000000).withOpacity(0.8),
-                                blurRadius: 40,
-                                offset: const Offset(0, 20),
-                              ),
-                            ],
-                          ),
+                      StreamBuilder(
+                        stream: audioHandler?.playerStateStream,
+                        builder: (context, snapshot) {
+                          final isPlaying = audioHandler?.isPlaying ?? false;
+                          final albumArtSize = isPlaying 
+                              ? MediaQuery.of(context).size.width * 0.85  // Larger when playing
+                              : MediaQuery.of(context).size.width * 0.65; // Smaller when paused
+                          final maxSize = isPlaying ? 360.0 : 280.0;
+                          
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showVisualizer = !_showVisualizer;
+                                });
+                              },
+                              child: Container(
+                                width: albumArtSize,
+                                height: albumArtSize,
+                                constraints: BoxConstraints(
+                                  maxWidth: maxSize,
+                                  maxHeight: maxSize,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF000000).withOpacity(0.8),
+                                      blurRadius: isPlaying ? 50 : 30,
+                                      offset: const Offset(0, 20),
+                                    ),
+                                  ],
+                                ),
                           child: _showVisualizer
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(20),
