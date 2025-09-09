@@ -108,6 +108,10 @@ class AudioStateManager {
     _isHandlingCompletion = handling;
   }
   
+  void setTransitioning(bool transitioning) {
+    _isTransitioning = transitioning;
+  }
+  
   void setLastSkipToPreviousTime(DateTime? time) {
     _lastSkipToPreviousTime = time;
   }
