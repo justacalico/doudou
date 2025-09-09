@@ -607,9 +607,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await _player.setFilePath(localFilePath);
           _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
           
+          // Wait for player to be ready before playing
+          await Future.delayed(const Duration(milliseconds: 200));
+          
           if (wasPlaying) {
             await _player.play();
           }
+          
+          // Update playback state after successful load
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.ready,
+            playing: _player.playing,
+            queueIndex: _stateManager.currentIndex,
+          ));
           
           if (kDebugMode) {
             print('Successfully loaded local file: ${track.name}');
@@ -649,9 +659,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
            
           _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
           
+          // Wait for player to be ready before playing
+          await Future.delayed(const Duration(milliseconds: 200));
+          
           if (wasPlaying) {
             await _player.play();
           }
+          
+          // Update playback state after successful load
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.ready,
+            playing: _player.playing,
+            queueIndex: _stateManager.currentIndex,
+          ));
           
           loaded = true;
           if (kDebugMode) {
