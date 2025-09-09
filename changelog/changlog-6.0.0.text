@@ -2,6 +2,7 @@
 
 ## Added
 
+- Background for Now_playing.
 - Automatically build .apk's.
 - Indication if a song is being played locally/downloaded or streaming.
 - Adds shuffle favorites button for downlaoded songs.
