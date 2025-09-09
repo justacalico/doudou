@@ -397,55 +397,105 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   ),
                 ),
               ),
+              // Loading state
               if (isLoading)
                 const SliverFillRemaining(
-                  child: Center(child: CupertinoActivityIndicator()),
-                )
-              else if (tracks.isEmpty)
-                const SliverFillRemaining(
                   child: Center(
-                    child: Column(
+                    child: CupertinoActivityIndicator(
+                      radius: 16,
+                    ),
+                  ),
+                )
+              // Empty state with better design
+              else if (tracks.isEmpty)
+                SliverFillRemaining(
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          CupertinoIcons.music_note,
-                          size: 64,
-                          color: CupertinoColors.secondaryLabel,
+                          CupertinoIcons.music_note_2,
+                          size: 80,
+                          color: Color(0xFF48484A),
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: 24),
                         Text(
                           'No tracks found',
                           style: TextStyle(
-                            fontSize: 18,
-                            color: CupertinoColors.secondaryLabel,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.white,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'This album appears to be empty or the tracks couldn\'t be loaded.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF8E8E93),
                           ),
                         ),
                       ],
                     ),
                   ),
                 )
+              // Track list with section header
               else
-                SliverPadding(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final track = tracks[index];
-                      
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 1),
-                        child: TrackListItem(
-                          track: track,
-                          trackNumber: index + 1,
-                          onTap: () => _playTrack(track, index),
-                          showAlbumArt: false,
-                          showTrackNumber: true,
-                          showDuration: true,
-                          showDownloadButton: true,
-                          showFavoriteButton: true,
+                SliverList(
+                  delegate: SliverChildListDelegate([
+                    // Tracks section header
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                      child: const Text(
+                        'Songs',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.white,
                         ),
-                      );
-                    }, childCount: tracks.length),
-                  ),
+                      ),
+                    ),
+                    // Track items with improved container
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1E),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: tracks.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final track = entry.value;
+                          final isLast = index == tracks.length - 1;
+                          
+                          return Container(
+                            decoration: BoxDecoration(
+                              border: !isLast ? const Border(
+                                bottom: BorderSide(
+                                  color: Color(0xFF2C2C2E),
+                                  width: 0.5,
+                                ),
+                              ) : null,
+                            ),
+                            child: TrackListItem(
+                              track: track,
+                              trackNumber: index + 1,
+                              onTap: () => _playTrack(track, index),
+                              showAlbumArt: false,
+                              showTrackNumber: true,
+                              showDuration: true,
+                              showDownloadButton: true,
+                              showFavoriteButton: true,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    // Bottom padding for mini player
+                    const SizedBox(height: 100),
+                  ]),
                 ),
             ],
           ),
@@ -466,12 +516,18 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       builder: (context) => CupertinoActionSheet(
         title: Text(
           widget.album.name,
-          style: const TextStyle(fontSize: 16),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         message: widget.album.artistName != null
             ? Text(
-                widget.album.artistName!,
-                style: const TextStyle(fontSize: 14),
+                'by ${widget.album.artistName!}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF8E8E93),
+                ),
               )
             : null,
         actions: [
