@@ -14,7 +14,7 @@ variables:
   # Debug keystore for consistent signing
   DEBUG_KEYSTORE_PASSWORD: "android"
   DEBUG_KEY_PASSWORD: "android"
-  DEBUG_KEY_ALIAS: "androiddebugkey"
+  DEBUG_KEY_ALIAS: "androiddebugkey" 
   # Optimization variables
   GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configureondemand=true -Xmx4g -XX:+UseG1GC"
   GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
