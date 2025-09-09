@@ -172,9 +172,13 @@ build_android_debug:
           if [ $attempt -lt 3 ]; then
             echo "Waiting 30 seconds before retry..."
             sleep 30
-            # Clear Gradle cache and try again
+            # Clear Gradle locks and caches thoroughly
+            echo "Cleaning Gradle state for retry..."
+            ./gradlew --stop || true
             rm -rf ~/.gradle/caches/
-            cd android && ./gradlew clean && cd ..
+            rm -rf ~/.gradle/daemon/
+            rm -rf android/.gradle/
+            cd android && ./gradlew clean --no-daemon && cd ..
           else
             echo "All build attempts failed"
             exit 1
