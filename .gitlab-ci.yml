@@ -94,15 +94,21 @@ build_android_debug:
   tags:
     - android
   retry:
-    max: 2
+    max: 3
     when:
       - runner_system_failure
       - unknown_failure
+      - script_failure  # Add retry for network failures
   dependencies:
     - setup_flutter
     - create_debug_keystore
   before_script:
     - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    # Fix DNS and network issues
+    - echo "8.8.8.8 dl.google.com" >> /etc/hosts
+    - echo "8.8.4.4 maven.google.com" >> /etc/hosts
+    - echo "nameserver 8.8.8.8" > /etc/resolv.conf
+    - echo "nameserver 8.8.4.4" >> /etc/resolv.conf
     - flutter doctor -v
   script:
     - |
@@ -117,9 +123,44 @@ build_android_debug:
         echo "Warning: Debug keystore not found, APK may not be updatable"
       fi
       
-      # Build APK directly (no Makefile needed)
-      echo "Building Android APK..."
-      flutter build apk --debug --target-platform android-arm64
+      # Test network connectivity before building
+      echo "Testing network connectivity..."
+      ping -c 3 dl.google.com || echo "Warning: Cannot reach dl.google.com"
+      
+      # Configure Gradle for better network handling
+      mkdir -p ~/.gradle
+      cat > ~/.gradle/gradle.properties << EOF
+      org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
+      org.gradle.parallel=true
+      org.gradle.configureondemand=true
+      org.gradle.daemon=false
+      systemProp.http.connectionTimeout=60000
+      systemProp.http.socketTimeout=60000
+      systemProp.https.connectionTimeout=60000
+      systemProp.https.socketTimeout=60000
+      EOF
+      
+      # Build APK with network retry logic
+      echo "Building Android APK with network resilience..."
+      for attempt in 1 2 3; do
+        echo "Build attempt $attempt/3"
+        if flutter build apk --debug --target-platform android-arm64; then
+          echo "Build successful on attempt $attempt"
+          break
+        else
+          echo "Build failed on attempt $attempt"
+          if [ $attempt -lt 3 ]; then
+            echo "Waiting 30 seconds before retry..."
+            sleep 30
+            # Clear Gradle cache and try again
+            rm -rf ~/.gradle/caches/
+            cd android && ./gradlew clean && cd ..
+          else
+            echo "All build attempts failed"
+            exit 1
+          fi
+        fi
+      done
       
       # Copy APK to expected location
       echo "Build completed, organizing output..."
