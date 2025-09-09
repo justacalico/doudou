@@ -1,5 +1,4 @@
 # GitLab CI/CD Pipeline for Doudou Flutter Android APK Build
-
 variables:
   # Flutter version to use - using latest stable version compatible with Dart SDK ^3.8.0
   FLUTTER_VERSION: "stable"
@@ -12,6 +11,10 @@ variables:
   CMDLINE_TOOLS_VERSION: "9477386"
   # Add timeout and retry settings
   CI_DEBUG_TRACE: "false"
+  # Debug keystore for consistent signing
+  DEBUG_KEYSTORE_PASSWORD: "android"
+  DEBUG_KEY_PASSWORD: "android"
+  DEBUG_KEY_ALIAS: "androiddebugkey"
 
 # Define stages
 stages:
@@ -95,7 +98,6 @@ setup_flutter:
       - unknown_failure
       - api_failure
       - stuck_or_timeout_failure
-
   before_script:  
     - *setup_common
   script:
@@ -128,6 +130,37 @@ setup_flutter:
       - $ANDROID_SDK_ROOT/licenses/
     expire_in: 1 hour
 
+# Create consistent debug keystore
+create_debug_keystore:
+  stage: setup
+  image: ubuntu:22.04
+  tags:
+    - android
+  before_script:
+    - apt-get update -qy && apt-get install -y openjdk-${JAVA_VERSION}-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+  script:
+    - |
+      mkdir -p android/app/
+      # Create a consistent debug keystore
+      keytool -genkeypair \
+        -alias $DEBUG_KEY_ALIAS \
+        -keypass $DEBUG_KEY_PASSWORD \
+        -keystore android/app/debug.keystore \
+        -storepass $DEBUG_KEYSTORE_PASSWORD \
+        -dname "CN=Debug,OU=Debug,O=Debug,L=Debug,S=Debug,C=US" \
+        -keyalg RSA \
+        -keysize 2048 \
+        -validity 10000
+      
+      echo "Debug keystore created successfully"
+      ls -la android/app/debug.keystore
+  artifacts:
+    paths:
+      - android/app/debug.keystore
+    expire_in: 1 hour
+
 # Build stage - Build Android APK using Makefile
 build_android_debug:
   stage: build
@@ -139,15 +172,16 @@ build_android_debug:
     when:
       - runner_system_failure
       - unknown_failure
-
   dependencies:
     - setup_flutter
+    - create_debug_keystore
   before_script:
     - *setup_common
   script:
     - |
       # Set tar options to avoid ownership issues
       export TAR_OPTIONS="--no-same-owner"
+      
       # Retry flutter pub get if needed with cache handling
       flutter pub get || {
         echo "Retrying flutter pub get..."
@@ -160,14 +194,25 @@ build_android_debug:
         sleep 5
         flutter pub get
       }
+      
       echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
       flutter doctor -v || true
+      
+      # Verify debug keystore exists
+      if [ -f "android/app/debug.keystore" ]; then
+        echo "Debug keystore found, using consistent signing"
+        ls -la android/app/debug.keystore
+      else
+        echo "Warning: Debug keystore not found, APK may not be updatable"
+      fi
+      
       echo "Running make android with explicit SDK paths..."
       make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android || {
         echo "Build failed, checking logs..."
         ls -la build/ || echo "No build directory"
         exit 1
       }
+      
       echo "Build completed, checking output..."
       ls -la builds/ || echo "No builds directory"
       mkdir -p builds/$CI_PIPELINE_ID
@@ -194,7 +239,6 @@ release_to_gitlab:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
     - android
-
   dependencies:
     - build_android_debug
   script:
