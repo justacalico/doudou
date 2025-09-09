@@ -499,7 +499,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       ),
                       
                       const SizedBox(height: 20),
-                    ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
