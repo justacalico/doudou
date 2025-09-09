@@ -141,16 +141,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _checkBackgroundPlayback() {
-    // Don't interfere during transitions or completion handling
-    if (_stateManager.isHandlingCompletion || _stateManager.isTransitioning) {
+    // Don't interfere during transitions, completion handling, or when the player is loading
+    if (_stateManager.isHandlingCompletion || 
+        _stateManager.isTransitioning ||
+        _player.processingState == ProcessingState.loading ||
+        _player.processingState == ProcessingState.buffering) {
       return;
     }
     
     final playerState = _player.playerState;
     
-    // Only handle if we're truly stuck, not during normal completion
+    // Only handle if we're truly stuck, not during normal completion or transitions
     if (playbackState.value.playing && 
-        playerState.processingState == ProcessingState.idle) {
+        playerState.processingState == ProcessingState.idle &&
+        !_stateManager.isHandlingCompletion) {
       
       if (kDebugMode) {
         print('Background playback issue detected. Player state: ${playerState.processingState}, Expected: playing');
