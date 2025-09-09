@@ -1,13 +1,13 @@
 stages:
-  - build
-  - release
+- build
+- release
 
 variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
 
 build_debug_apk:
   stage: build
-  image: cirruslinstrumentisto/flutter
+  image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - android
   script:
