@@ -1,70 +1,289 @@
-stages:
-  - build
-
+# GitLab CI/CD Pipeline for Doudou Flutter Android APK Build
 variables:
+  # Flutter version to use - using latest stable version compatible with Dart SDK ^3.8.0
+  FLUTTER_VERSION: "stable"
+  # Android SDK variables
+  ANDROID_SDK_ROOT: "/opt/android-sdk"
+  ANDROID_HOME: "/opt/android-sdk"
+  # Java version
+  JAVA_VERSION: "17"
+  # Command line tools version that's known to be compatible
+  CMDLINE_TOOLS_VERSION: "9477386"
+  # Add timeout and retry settings
+  CI_DEBUG_TRACE: "false"
   # Debug keystore for consistent signing
   DEBUG_KEYSTORE_PASSWORD: "android"
   DEBUG_KEY_PASSWORD: "android"
   DEBUG_KEY_ALIAS: "androiddebugkey"
-  
-  # Flutter configuration
-  FLUTTER_VERSION: "3.35.0"
-  JAVA_VERSION: "11"
 
-build_debug_apk:
-  stage: build
-  image: ghcr.io/cirruslabs/flutter:3.35.0-0.1.pre
+# Define stages
+stages:
+  - setup
+  - build
+  - release
+
+default:
   tags:
     - android
-  
-  before_script:
-    # Update package lists
-    - apt-get update -qq
-    
-    # Install OpenJDK 11
-    - apt-get install -y openjdk-11-jdk
-    - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-    - export PATH=$JAVA_HOME/bin:$PATH
-    
-    # Verify Java version
-    - java -version
-    - javac -version
-    
-    # Flutter setup
-    - flutter --version
-    - flutter doctor -v
-    - flutter pub get
-    
-    # Create debug keystore if it doesn't exist
-    - mkdir -p android/app/
-    - |
-      if [ ! -f android/app/debug.keystore ]; then
-        keytool -genkey -v \
-          -keystore android/app/debug.keystore \
-          -storepass $DEBUG_KEYSTORE_PASSWORD \
-          -alias $DEBUG_KEY_ALIAS \
-          -keypass $DEBUG_KEY_PASSWORD \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000 \
-          -dname "CN=Android Debug,O=Android,C=US"
-      fi
-    
+  timeout: 30m
+
+# Cache configuration
+cache:
+  key: "${CI_COMMIT_REF_SLUG}-flutter-${FLUTTER_VERSION}"
+  paths:
+    - .pub-cache/
+    - .dart-tool/
+    - build/
+  policy: pull-push
+
+# Common setup script for Android SDK and Flutter
+.setup_common: &setup_common
+  - |
+    # Try to use alternative mirrors if main Ubuntu repos are slow
+    cp /etc/apt/sources.list /etc/apt/sources.list.bak
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy main restricted universe multiverse" > /etc/apt/sources.list
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy-updates main restricted universe multiverse" >> /etc/apt/sources.list
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy-security main restricted universe multiverse" >> /etc/apt/sources.list
+    apt-get update -qy || {
+      echo "Alternative mirror failed, reverting to original"
+      cp /etc/apt/sources.list.bak /etc/apt/sources.list
+      apt-get update -qy
+    }
+  - apt-get install -y --fix-missing curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make pkg-config || apt-get install -y --fix-missing curl git unzip xz-utils zip wget openjdk-${JAVA_VERSION}-jdk make pkg-config
+  - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+  - export PATH=$JAVA_HOME/bin:$PATH
+  # Install Android SDK
+  - mkdir -p $ANDROID_SDK_ROOT
+  - cd $ANDROID_SDK_ROOT
+  - wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip -O cmdtools.zip
+  - unzip -q cmdtools.zip
+  - mkdir -p cmdline-tools/latest
+  - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+  - rm -rf cmdline-tools/latest/cmdline-tools || true
+  - rm cmdtools.zip
+  - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+  # Accept licenses (critical for CI/CD)
+  - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  - sdkmanager --update || true
+  - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+  # Install Flutter
+  - cd /opt
+  - git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1 || (rm -rf flutter && git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1)
+  - export PATH="/opt/flutter/bin:$PATH"
+  # Fix Flutter cache permissions and set up directory structure
+  - mkdir -p /opt/flutter/bin/cache/{downloads,artifacts/gradle_wrapper}
+  - chown -R root:root /opt/flutter/bin/cache || true
+  - chmod -R 755 /opt/flutter/bin/cache || true
+  # Set environment variables to avoid tar ownership issues
+  - export TAR_OPTIONS="--no-same-owner"
+  - flutter config --android-sdk $ANDROID_SDK_ROOT
+  - flutter doctor -v || true
+  # Return to project directory
+  - cd $CI_PROJECT_DIR
+  - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+  - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+  - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
+
+# Setup stage - Install Flutter and dependencies
+setup_flutter:
+  stage: setup
+  image: ubuntu:22.04
+  tags:
+    - android
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - unknown_failure
+      - api_failure
+      - stuck_or_timeout_failure
+  before_script:  
+    - *setup_common
   script:
-    # Build debug APK
-    - flutter build apk --debug --verbose
-    
+    - |
+      # Set tar options to avoid ownership issues
+      export TAR_OPTIONS="--no-same-owner"
+      # Retry flutter pub get if needed with cache cleanup
+      for i in {1..3}; do
+        flutter pub get && break || {
+          echo "flutter pub get attempt $i failed, retrying..."
+          # Clear flutter cache and fix permissions before retry
+          flutter clean || true
+          rm -rf /opt/flutter/bin/cache/downloads/* || true
+          rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
+          chown -R root:root /opt/flutter/bin/cache || true
+          chmod -R 755 /opt/flutter/bin/cache || true
+          sleep 5
+        }
+      done
+      flutter clean || true
+      flutter doctor -v || true
+      # Verify the environment is correctly set up
+      ls -la $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/ || echo "SDK tools not found"
+      echo "SDK Manager available: $(which sdkmanager || echo 'not found')"
+      echo "Flutter version: $(flutter --version || echo 'flutter not found')"
+      mkdir -p builds
   artifacts:
     paths:
-      - build/app/outputs/flutter-apk/app-debug.apk
-    expire_in: 1 week
-    
-  cache:
-    paths:
       - .pub-cache/
-      - android/.gradle/
+      - $ANDROID_SDK_ROOT/licenses/
+    expire_in: 1 hour
+
+# Create consistent debug keystore
+create_debug_keystore:
+  stage: setup
+  image: ubuntu:22.04
+  tags:
+    - android
+  before_script:
+    - apt-get update -qy && apt-get install -y openjdk-${JAVA_VERSION}-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+  script:
+    - |
+      mkdir -p android/app/
+      # Create a consistent debug keystore
+      keytool -genkeypair \
+        -alias $DEBUG_KEY_ALIAS \
+        -keypass $DEBUG_KEY_PASSWORD \
+        -keystore android/app/debug.keystore \
+        -storepass $DEBUG_KEYSTORE_PASSWORD \
+        -dname "CN=Debug,OU=Debug,O=Debug,L=Debug,S=Debug,C=US" \
+        -keyalg RSA \
+        -keysize 2048 \
+        -validity 10000
       
+      echo "Debug keystore created successfully"
+      ls -la android/app/debug.keystore
+  artifacts:
+    paths:
+      - android/app/debug.keystore
+    expire_in: 1 hour
+
+# Build stage - Build Android APK using Makefile
+build_android_debug:
+  stage: build
+  image: ubuntu:22.04
+  tags:
+    - android
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - unknown_failure
+  dependencies:
+    - setup_flutter
+    - create_debug_keystore
+  before_script:
+    - *setup_common
+  script:
+    - |
+      # Set tar options to avoid ownership issues
+      export TAR_OPTIONS="--no-same-owner"
+      
+      # Retry flutter pub get if needed with cache handling
+      flutter pub get || {
+        echo "Retrying flutter pub get..."
+        # Clear and fix Flutter cache permissions
+        flutter clean || true
+        rm -rf /opt/flutter/bin/cache/downloads/* || true
+        rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
+        chown -R root:root /opt/flutter/bin/cache || true
+        chmod -R 755 /opt/flutter/bin/cache || true
+        sleep 5
+        flutter pub get
+      }
+      
+      echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
+      flutter doctor -v || true
+      
+      # Verify debug keystore exists
+      if [ -f "android/app/debug.keystore" ]; then
+        echo "Debug keystore found, using consistent signing"
+        ls -la android/app/debug.keystore
+      else
+        echo "Warning: Debug keystore not found, APK may not be updatable"
+      fi
+      
+      echo "Running make android with explicit SDK paths..."
+      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android || {
+        echo "Build failed, checking logs..."
+        ls -la build/ || echo "No build directory"
+        exit 1
+      }
+      
+      echo "Build completed, checking output..."
+      ls -la builds/ || echo "No builds directory"
+      mkdir -p builds/$CI_PIPELINE_ID
+      find builds/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \; || {
+        echo "No APK found, checking build directory..."
+        find build/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \; || {
+          echo "APK not found in expected locations"
+          exit 1
+        }
+      }
+      ls -la builds/$CI_PIPELINE_ID/
+  artifacts:
+    paths:
+      - builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
+    expire_in: 30 days
   only:
     - main
     - develop
     - merge_requests
+
+# Release stage - Create GitLab Release with debug APK (for tagged commits)
+release_to_gitlab:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - android
+  dependencies:
+    - build_android_debug
+  script:
+    - |
+      echo "Creating GitLab Release with debug APK for tag $CI_COMMIT_TAG..."
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
+    tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_TAG'
+    assets:
+      links:
+        - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
+          link_type: 'package'
+  only:
+    - tags
+
+# Create a release for non-tagged pipelines (e.g., main branch)
+release_from_pipeline:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - android
+  dependencies:
+    - build_android_debug
+  before_script:
+    - |
+      # Extract version from pubspec.yaml to use in release name
+      apt-get update -qy && apt-get install -y grep sed
+      VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
+      echo "App version from pubspec.yaml: $VERSION"
+  script:
+    - echo "Creating GitLab Release with debug APK (pipeline-based)..."
+  release:
+    name: 'Build v$VERSION-$CI_PIPELINE_ID'
+    description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
+    tag_name: 'build-$CI_PIPELINE_ID'
+    ref: '$CI_COMMIT_SHA'
+    assets:
+      links:
+        - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/main/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
+          link_type: 'package'
+  only:
+    - main
+  except:
+    - tags
