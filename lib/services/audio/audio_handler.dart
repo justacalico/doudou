@@ -353,30 +353,51 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
-    if (_stateManager.isHandlingCompletion) {
+    if (_stateManager.isHandlingCompletion || _stateManager.isTransitioning) {
       if (kDebugMode) {
-        print('Already handling completion, skipping...');
+        print('Already handling completion or transitioning, skipping...');
       }
       return;
     }
     
     _stateManager.setHandlingCompletion(true);
+    _stateManager.setTransitioning(true);
     
     try {
       if (kDebugMode) {
         print('Track completed: ${_stateManager.currentTrack?.name}');
       }
       
-      // For background compatibility, ensure we maintain playing state
+      // Store the playing state before transition
       final wasPlaying = playbackState.value.playing;
       
       if (_stateManager.incrementCurrentIndex()) {
         await _playCurrentTrack();
         
-        // Ensure we continue playing if we were playing before
-        if (wasPlaying && !_player.playing) {
-          await _player.play();
+        // Force play state if we were playing before
+        if (wasPlaying) {
+          // Add small delay to ensure track is loaded
+          await Future.delayed(const Duration(milliseconds: 200));
+          if (!_player.playing) {
+            await _player.play();
+          }
+          
+          // Verify playback actually started
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (!_player.playing && wasPlaying) {
+            // Force retry
+            if (kDebugMode) {
+              print('Retrying play command after track transition');
+            }
+            await _player.play();
+          }
         }
+        
+        // Update state to reflect reality
+        playbackState.add(playbackState.value.copyWith(
+          playing: _player.playing,
+          processingState: AudioProcessingState.ready,
+        ));
         
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
         
@@ -397,9 +418,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _stateManager.incrementCurrentIndex();
           await _playCurrentTrack();
           
-          if (wasPlaying && !_player.playing) {
-            await _player.play();
+          if (wasPlaying) {
+            await Future.delayed(const Duration(milliseconds: 200));
+            if (!_player.playing) {
+              await _player.play();
+            }
           }
+          
+          // Update state to reflect reality
+          playbackState.add(playbackState.value.copyWith(
+            playing: _player.playing,
+            processingState: AudioProcessingState.ready,
+          ));
           
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
           
@@ -433,6 +463,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
     } finally {
       _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
     }
   }
 
