@@ -372,38 +372,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Store the playing state before transition
       final wasPlaying = playbackState.value.playing;
       
+      // Stop background monitoring during transition to prevent interference
+      _stopBackgroundMonitoring();
+      
       if (_stateManager.incrementCurrentIndex()) {
-        await _playCurrentTrack();
-        
-        // Force play state if we were playing before
-        if (wasPlaying) {
-          // Add small delay to ensure track is loaded
-          await Future.delayed(const Duration(milliseconds: 200));
-          if (!_player.playing) {
-            await _player.play();
-          }
-          
-          // Verify playback actually started
-          await Future.delayed(const Duration(milliseconds: 300));
-          if (!_player.playing && wasPlaying) {
-            // Force retry
-            if (kDebugMode) {
-              print('Retrying play command after track transition');
-            }
-            await _player.play();
-          }
+        if (kDebugMode) {
+          print('Moving to next track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
         }
         
-        // Update state to reflect reality
-        playbackState.add(playbackState.value.copyWith(
-          playing: _player.playing,
-          processingState: AudioProcessingState.ready,
-        ));
+        await _playCurrentTrack();
+        
+        // Restart background monitoring if we were playing
+        if (wasPlaying) {
+          _startBackgroundMonitoring();
+        }
         
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
         
         if (kDebugMode) {
-          print('Moved to next track: ${_stateManager.currentTrack!.name}');
+          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
         }
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
         // Radio mode handling
