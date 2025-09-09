@@ -222,7 +222,7 @@ build_android_debug:
       
       # Clean up Gradle resources
       echo "Cleaning up Gradle resources..."
-      ./gradlew --stop || true
+      cd android && ./gradlew --stop || true && cd ..
       rm -rf "$GRADLE_USER_HOME" || true
   artifacts:
     paths:
