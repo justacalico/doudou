@@ -353,6 +353,356 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     );
   }
 
+  void _showMoreOptions(BuildContext context, AppState appState) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(
+          widget.album.name,
+          style: const TextStyle(fontSize: 16),
+        ),
+        message: widget.album.artistName != null
+            ? Text(
+                widget.album.artistName!,
+                style: const TextStyle(fontSize: 14),
+              )
+            : null,
+        actions: [
+          // Download Album
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              final bool allTracksDownloaded = tracks.isNotEmpty && 
+                  tracks.every((track) => appState.downloadService.isTrackDownloaded(track.id));
+              
+              if (allTracksDownloaded) {
+                return const SizedBox.shrink();
+              }
+              
+              return CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _downloadAlbum();
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(CupertinoIcons.cloud_download, color: CupertinoColors.activeBlue),
+                    SizedBox(width: 8),
+                    Text('Download'),
+                  ],
+                ),
+              );
+            },
+          ),
+          // Mark as favorite
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _toggleAlbumFavorite(appState);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.album.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                  color: widget.album.isFavorite ? CupertinoColors.systemRed : CupertinoColors.activeBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(widget.album.isFavorite ? 'Remove from favorites' : 'Mark as favorite'),
+              ],
+            ),
+          ),
+          // Play next
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _addToQueueNext(appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.text_insert, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Play next'),
+              ],
+            ),
+          ),
+          // Play later
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _addToQueueLater(appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.text_append, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Play later'),
+              ],
+            ),
+          ),
+          // Instant mix
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _createInstantMix(appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.antenna_radiowaves_left_right, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Instant mix'),
+              ],
+            ),
+          ),
+          // Add to collection/playlist
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _showAddToPlaylistDialog(context, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.add_circled, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Add to collection...'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _toggleAlbumFavorite(AppState appState) {
+    // Toggle favorite status for the album
+    appState.toggleAlbumFavorite(widget.album);
+    
+    // Show confirmation
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(widget.album.isFavorite ? 'Added to Favorites' : 'Removed from Favorites'),
+        content: Text('Album "${widget.album.name}" ${widget.album.isFavorite ? 'added to' : 'removed from'} your favorites.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addToQueueNext(AppState appState) {
+    if (tracks.isNotEmpty) {
+      appState.addToQueueNext(tracks);
+      _showQueueMessage('Added album to play next');
+    }
+  }
+
+  void _addToQueueLater(AppState appState) {
+    if (tracks.isNotEmpty) {
+      appState.addToQueue(tracks);
+      _showQueueMessage('Added album to queue');
+    }
+  }
+
+  void _createInstantMix(AppState appState) {
+    if (tracks.isNotEmpty) {
+      // Create an instant mix based on the album's tracks
+      appState.createInstantMix(tracks.first);
+      _showQueueMessage('Created instant mix from album');
+    }
+  }
+
+  void _showAddToPlaylistDialog(BuildContext context, AppState appState) {
+    final playlists = appState.playlists;
+    
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('Add Album to Playlist'),
+        message: Text('Select a playlist to add "${widget.album.name}" to:'),
+        actions: [
+          // Show existing playlists
+          ...playlists.map((playlist) => CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _addAlbumToPlaylist(playlist, appState);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.music_note_list, color: CupertinoColors.activeBlue),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    playlist.name,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          )),
+          // Create new playlist option
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _createNewPlaylistWithAlbum(context, appState);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.add_circled, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Create New Playlist'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _addAlbumToPlaylist(dynamic playlist, AppState appState) async {
+    try {
+      int successCount = 0;
+      for (final track in tracks) {
+        final success = await appState.addToPlaylist(playlist.id, track.id);
+        if (success) successCount++;
+      }
+      
+      if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Success'),
+            content: Text('Added $successCount of ${tracks.length} songs from "${widget.album.name}" to "${playlist.name}".'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to add album to playlist: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void _createNewPlaylistWithAlbum(BuildContext context, AppState appState) {
+    final TextEditingController controller = TextEditingController();
+    
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('New Playlist'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter a name for your new playlist:'),
+            const SizedBox(height: 16),
+            CupertinoTextField(
+              controller: controller,
+              placeholder: 'Playlist name',
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                Navigator.pop(context);
+                _createPlaylistWithAlbum(controller.text.trim(), appState);
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _createPlaylistWithAlbum(String playlistName, AppState appState) async {
+    try {
+      final success = await appState.createPlaylist(playlistName);
+      
+      if (success && context.mounted) {
+        final newPlaylist = appState.playlists.firstWhere(
+          (p) => p.name == playlistName,
+          orElse: () => throw Exception('Playlist not found after creation'),
+        );
+        
+        _addAlbumToPlaylist(newPlaylist, appState);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to create playlist: ${e.toString()}'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void _showQueueMessage(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Success'),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _playTrack(Track track, int index) {
     final appState = context.read<AppState>();
     appState.playPlaylist(tracks, index);
