@@ -97,6 +97,7 @@ build_android_debug:
   image: $FLUTTER_IMAGE
   tags:
     - android
+  timeout: 20m  # Increase timeout to handle lock cleanup
   retry:
     max: 2  # Fixed: Changed from 3 to 2 (GitLab maximum)
     when:
