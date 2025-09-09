@@ -206,11 +206,20 @@ build_android_debug:
       echo "Building Android APK with network resilience..."
       for attempt in 1 2 3; do
         echo "Build attempt $attempt/3"
-        if flutter build apk --debug --target-platform android-arm64; then
+        echo "Flutter version information:"
+        flutter --version
+        echo "Starting build..."
+        
+        if flutter build apk --debug --target-platform android-arm64 --verbose; then
           echo "Build successful on attempt $attempt"
           break
         else
           echo "Build failed on attempt $attempt"
+          echo "Build error details:"
+          echo "Checking for Flutter build outputs..."
+          ls -la build/ || echo "Build directory not found"
+          ls -la build/app/ || echo "App build directory not found"
+          
           if [ $attempt -lt 3 ]; then
             echo "Waiting 30 seconds before retry..."
             sleep 30
@@ -220,9 +229,11 @@ build_android_debug:
             rm -rf "$GRADLE_USER_HOME/caches/"
             rm -rf "$GRADLE_USER_HOME/daemon/"
             rm -rf android/.gradle/
-            cd android && run_gradle_with_timeout "./gradlew clean --no-daemon" && cd ..
+            cd android && run_gradle_with_timeout "./gradlew clean --no-daemon --info" && cd ..
           else
             echo "All build attempts failed"
+            echo "Final build directory status:"
+            ls -la build/ || echo "Build directory not found"
             exit 1
           fi
         fi
