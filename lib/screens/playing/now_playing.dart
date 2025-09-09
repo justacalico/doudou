@@ -50,6 +50,31 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
     super.dispose();
   }
   
+  // Check if lyrics are available for the current track
+  void _checkLyricsAvailability(String trackName, String artistName, String trackId) async {
+    // Avoid repeated checks for the same track
+    if (_lastCheckedTrackId == trackId && _hasLyrics != null) {
+      return;
+    }
+    
+    _lastCheckedTrackId = trackId;
+    
+    try {
+      final lyricsResult = await LyricsService.fetchLyrics(trackName, artistName);
+      if (mounted) {
+        setState(() {
+          _hasLyrics = lyricsResult != null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasLyrics = false;
+        });
+      }
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
