@@ -197,6 +197,12 @@ build_android_debug:
       echo "Kotlin version in settings.gradle.kts:"
       grep "org.jetbrains.kotlin.android" settings.gradle.kts || echo "Could not find Kotlin version"
       
+      # Test repository connectivity
+      echo "Testing repository connectivity..."
+      curl -I https://plugins.gradle.org/ || echo "Cannot reach Gradle Plugin Portal"
+      curl -I https://repo1.maven.org/maven2/ || echo "Cannot reach Maven Central"
+      curl -I https://dl.google.com/dl/android/maven2/ || echo "Cannot reach Google Maven"
+      
       # Stop any existing daemons and clean locks
       run_gradle_with_timeout "./gradlew --stop" || true
       run_gradle_with_timeout "./gradlew clean --no-daemon --refresh-dependencies --info" || echo "Initial clean failed, continuing..."
