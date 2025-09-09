@@ -24,6 +24,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
   late AnimationController _favoriteAnimationController;
   late Animation<double> _favoriteScaleAnimation;
   bool _showVisualizer = false; // Toggle between album art and visualizer
+  bool? _hasLyrics; // null = unknown, true = available, false = not available
+  String? _lastCheckedTrackId; // To avoid repeated checks for the same track
   
   @override
   void initState() {
