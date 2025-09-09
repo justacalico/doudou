@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'dart:math' as math;
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
@@ -24,10 +23,6 @@ class NowPlayingScreen extends StatefulWidget {
 class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProviderStateMixin {
   late AnimationController _favoriteAnimationController;
   late Animation<double> _favoriteScaleAnimation;
-  late AnimationController _albumArtAnimationController;
-  late Animation<double> _albumArtScaleAnimation;
-  late AnimationController _rotationAnimationController;
-  late Animation<double> _rotationAnimation;
   bool _showVisualizer = false; // Toggle between album art and visualizer
   
   @override
@@ -44,34 +39,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       parent: _favoriteAnimationController,
       curve: Curves.elasticOut,
     ));
-    
-    _albumArtAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _albumArtScaleAnimation = Tween<double>(
-      begin: 0.85, // Smaller when paused
-      end: 1.0,    // Larger when playing
-    ).animate(CurvedAnimation(
-      parent: _albumArtAnimationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _rotationAnimationController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    );
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(_rotationAnimationController);
   }
   
   @override
   void dispose() {
     _favoriteAnimationController.dispose();
-    _albumArtAnimationController.dispose();
-    _rotationAnimationController.dispose();
     super.dispose();
   }
   
@@ -177,77 +149,50 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       const SizedBox(height: 20),
                       
                       // Album Art / Visualizer - responsive size (clickable to toggle)
-                      StreamBuilder<bool>(
-                        stream: audioHandler?.playbackState.map((state) => state.playing),
-                        builder: (context, playingSnapshot) {
-                          final isPlaying = playingSnapshot.data ?? false;
-                          
-                          // Animate the album art based on playing state
-                          if (isPlaying) {
-                            _albumArtAnimationController.forward();
-                            _rotationAnimationController.repeat();
-                          } else {
-                            _albumArtAnimationController.reverse();
-                            _rotationAnimationController.stop();
-                          }
-                          
-                          return AnimatedBuilder(
-                            animation: Listenable.merge([_albumArtScaleAnimation, _rotationAnimation]),
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: _albumArtScaleAnimation.value,
-                                child: Transform.rotate(
-                                  angle: _rotationAnimation.value * 2 * 3.14159, // Full rotation
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _showVisualizer = !_showVisualizer;
-                                      });
-                                    },
-                                    child: Container(
-                                      width: MediaQuery.of(context).size.width * 0.75,
-                                      height: MediaQuery.of(context).size.width * 0.75,
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 320,
-                                        maxHeight: 320,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFF000000).withOpacity(0.8),
-                                            blurRadius: 40,
-                                            offset: const Offset(0, 20),
-                                          ),
-                                        ],
-                                      ),
-                                      child: _showVisualizer
-                                          ? ClipRRect(
-                                              borderRadius: BorderRadius.circular(20),
-                                              child: EmbeddedVisualizer(
-                                                trackName: currentTrack.name,
-                                                artistName: currentTrack.artistName,
-                                                isPlaying: audioHandler?.isPlaying ?? false,
-                                              ),
-                                            )
-                                          : AlbumArtWidget(
-                                              imageUrl: currentTrack.imageUrl != null
-                                                  ? appState.jellyfinService.getImageUrl(
-                                                      currentTrack.imageUrl!,
-                                                      width: 800,
-                                                      height: 800,
-                                                    )
-                                                  : null,
-                                              size: MediaQuery.of(context).size.width * 0.75,
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showVisualizer = !_showVisualizer;
+                          });
                         },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.75,
+                          height: MediaQuery.of(context).size.width * 0.75,
+                          constraints: const BoxConstraints(
+                            maxWidth: 320,
+                            maxHeight: 320,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF000000).withOpacity(0.8),
+                                blurRadius: 40,
+                                offset: const Offset(0, 20),
+                              ),
+                            ],
+                          ),
+                          child: _showVisualizer
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: EmbeddedVisualizer(
+                                    trackName: currentTrack.name,
+                                    artistName: currentTrack.artistName,
+                                    isPlaying: audioHandler?.isPlaying ?? false,
+                                  ),
+                                )
+                              : AlbumArtWidget(
+                                  imageUrl: currentTrack.imageUrl != null
+                                      ? appState.jellyfinService.getImageUrl(
+                                          currentTrack.imageUrl!,
+                                          width: 800,
+                                          height: 800,
+                                        )
+                                      : null,
+                                  size: MediaQuery.of(context).size.width * 0.75,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                        ),
                       ),
                       
                       const SizedBox(height: 30),
