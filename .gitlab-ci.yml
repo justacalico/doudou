@@ -109,6 +109,9 @@ build_android_debug:
     - create_debug_keystore
   before_script:
     - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    # Use unique Gradle home to avoid lock conflicts
+    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle-$CI_JOB_ID"
+    - mkdir -p "$GRADLE_USER_HOME"
     # Fix DNS and network issues
     - echo "8.8.8.8 dl.google.com" >> /etc/hosts
     - echo "8.8.4.4 maven.google.com" >> /etc/hosts
