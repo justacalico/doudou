@@ -19,6 +19,7 @@ class AudioStateManager {
   
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
+  bool _isTransitioning = false;
   
   // Skip-to-previous behavior tracking
   DateTime? _lastSkipToPreviousTime;
