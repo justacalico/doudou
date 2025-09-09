@@ -8,7 +8,7 @@ variables:
   DEBUG_KEY_ALIAS: "androiddebugkey"
   
   # Flutter configuration
-  FLUTTER_VERSION: "3.24.3"
+  FLUTTER_VERSION: "3.35.0"
   JAVA_VERSION: "11"
 
 build_debug_apk:
