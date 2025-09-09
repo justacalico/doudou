@@ -528,10 +528,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playing: wasPlaying,
     ));
     
-    // Stop current player safely
+    // Stop current player safely with longer delay for codec cleanup
     try {
       await _player.stop();
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Give codecs more time to properly cleanup
+      await Future.delayed(const Duration(milliseconds: 300));
     } catch (e) {
       if (kDebugMode) {
         print('Error stopping player: $e');
@@ -554,6 +555,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           ));
           
           if (wasPlaying) {
+            // Add delay before playing to ensure everything is ready
+            await Future.delayed(const Duration(milliseconds: 100));
             await _player.play();
           }
           
@@ -578,9 +581,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Load track normally
+    // Load track normally with improved error handling
     await _loadAndPlayTrack(track);
-    _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+    
+    // Only start preloading after current track is fully loaded
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+    });
   }
 
   Future<void> _loadAndPlayTrack(Track track) async {
