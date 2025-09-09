@@ -113,6 +113,10 @@ build_android_debug:
     - echo "8.8.4.4 maven.google.com" >> /etc/hosts
     - echo "nameserver 8.8.8.8" > /etc/resolv.conf
     - echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+    # Kill any existing Gradle processes and clean locks
+    - pkill -f gradle || true
+    - pkill -f daemon || true
+    - rm -rf /tmp/gradle* || true
     - flutter doctor -v
   script:
     - |
