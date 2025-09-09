@@ -121,6 +121,21 @@ build_android_debug:
     - flutter doctor -v
   script:
     - |
+      # Function to run Gradle commands with timeout
+      run_gradle_with_timeout() {
+        local cmd="$1"
+        local timeout_duration="300"  # 5 minutes
+        
+        echo "Running: $cmd (timeout: ${timeout_duration}s)"
+        if timeout "$timeout_duration" $cmd; then
+          echo "Command completed successfully"
+          return 0
+        else
+          echo "Command timed out or failed"
+          return 1
+        fi
+      }
+      
       # Quick dependency check
       flutter pub get --offline || flutter pub get
       
