@@ -99,6 +99,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               CupertinoSliverNavigationBar(
                 backgroundColor: const Color(0xFF000000),
                 border: null,
+                largeTitle: Text(
+                  widget.album.name,
+                  style: const TextStyle(
+                    color: CupertinoColors.white,
+                    fontSize: 34,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 leading: CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: () => Navigator.pop(context),
@@ -119,14 +127,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                middle: Text(
-                  widget.album.name,
-                  style: const TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 trailing: CupertinoButton(
