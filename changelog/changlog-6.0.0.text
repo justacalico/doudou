@@ -6,6 +6,7 @@
 - Automatically build .apk files.  
 - Indication if a song is being played locally/downloaded or streaming.  
 - Added shuffle favorites button for downloaded songs.  
+- New options in the drop down menu on now_playing.
 
 ## Changed
 - Grey out lyrics if none are available.  
