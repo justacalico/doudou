@@ -184,27 +184,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                     ),
                                   ],
                                 ),
-                          child: _showVisualizer
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: EmbeddedVisualizer(
-                                    trackName: currentTrack.name,
-                                    artistName: currentTrack.artistName,
-                                    isPlaying: audioHandler?.isPlaying ?? false,
-                                  ),
-                                )
-                              : AlbumArtWidget(
-                                  imageUrl: currentTrack.imageUrl != null
-                                      ? appState.jellyfinService.getImageUrl(
-                                          currentTrack.imageUrl!,
-                                          width: 800,
-                                          height: 800,
-                                        )
-                                      : null,
-                                  size: MediaQuery.of(context).size.width * 0.75,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                        ),
+                                child: _showVisualizer
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: EmbeddedVisualizer(
+                                          trackName: currentTrack.name,
+                                          artistName: currentTrack.artistName,
+                                          isPlaying: audioHandler?.isPlaying ?? false,
+                                        ),
+                                      )
+                                    : AlbumArtWidget(
+                                        imageUrl: currentTrack.imageUrl != null
+                                            ? appState.jellyfinService.getImageUrl(
+                                                currentTrack.imageUrl!,
+                                                width: 800,
+                                                height: 800,
+                                              )
+                                            : null,
+                                        size: albumArtSize,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       
                       const SizedBox(height: 30),
