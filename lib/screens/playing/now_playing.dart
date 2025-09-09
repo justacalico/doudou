@@ -25,6 +25,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
   late Animation<double> _favoriteScaleAnimation;
   late AnimationController _albumArtAnimationController;
   late Animation<double> _albumArtScaleAnimation;
+  late AnimationController _rotationAnimationController;
+  late Animation<double> _rotationAnimation;
   bool _showVisualizer = false; // Toggle between album art and visualizer
   
   @override
