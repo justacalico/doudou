@@ -194,11 +194,11 @@ build_android_debug:
             sleep 30
             # Clear Gradle locks and caches thoroughly
             echo "Cleaning Gradle state for retry..."
-            ./gradlew --stop || true
+            run_gradle_with_timeout "./gradlew --stop" || true
             rm -rf ~/.gradle/caches/
             rm -rf ~/.gradle/daemon/
             rm -rf android/.gradle/
-            cd android && ./gradlew clean --no-daemon && cd ..
+            cd android && run_gradle_with_timeout "./gradlew clean --no-daemon" && cd ..
           else
             echo "All build attempts failed"
             exit 1
