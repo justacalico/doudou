@@ -219,6 +219,11 @@ build_android_debug:
       
       # Verify APK is valid
       file builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
+      
+      # Clean up Gradle resources
+      echo "Cleaning up Gradle resources..."
+      ./gradlew --stop || true
+      rm -rf "$GRADLE_USER_HOME" || true
   artifacts:
     paths:
       - builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
