@@ -558,7 +558,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                     ),
                   ),
                 ),
-                ),
               ),
             ],
           ),
