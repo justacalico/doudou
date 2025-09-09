@@ -195,162 +195,203 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   ),
                 ],
               ),
+              // Album info section with improved design
               SliverToBoxAdapter(
                 child: Container(
                   color: const Color(0xFF000000),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Album artwork with video-like aspect ratio
-                      Container(
-                        margin: const EdgeInsets.all(16),
-                        height: 200,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: CupertinoColors.systemGrey6,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: widget.album.imageUrl != null
-                              ? CachedNetworkImage(
-                                  imageUrl: appState.jellyfinService
-                                      .getImageUrl(
-                                        widget.album.imageUrl!,
-                                        width: 600,
-                                        height: 400,
-                                      ),
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  placeholder: (context, url) => Container(
-                                    color: CupertinoColors.systemGrey6,
-                                    child: const Center(
-                                      child: CupertinoActivityIndicator(),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) =>
-                                      Container(
-                                        color: CupertinoColors.systemGrey6,
-                                        child: const Center(
-                                          child: Icon(
-                                            CupertinoIcons.music_albums,
-                                            size: 80,
-                                            color: CupertinoColors.systemGrey,
-                                          ),
-                                        ),
-                                      ),
-                                )
-                              : Container(
-                                  color: CupertinoColors.systemGrey6,
-                                  child: const Center(
-                                    child: Icon(
-                                      CupertinoIcons.music_albums,
-                                      size: 80,
-                                      color: CupertinoColors.systemGrey,
-                                    ),
-                                  ),
-                                ),
+                      // Album title
+                      Text(
+                        widget.album.name,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: CupertinoColors.white,
+                          height: 1.1,
                         ),
                       ),
+                      const SizedBox(height: 8),
                       
-                      // Album info
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      // Artist name with styling
+                      if (widget.album.artistName != null)
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: Navigate to artist page
+                          },
+                          child: Text(
+                            widget.album.artistName!,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFFFF453A),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Album stats row
+                      if (tracks.isNotEmpty)
+                        Row(
                           children: [
-                            Text(
-                              widget.album.name,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: CupertinoColors.white,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            if (widget.album.artistName != null)
-                              Text(
-                                widget.album.artistName!,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFFFF453A),
-                                ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1C1C1E),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            const SizedBox(height: 16),
-                            
-                            // Track count and duration info
-                            if (tracks.isNotEmpty)
-                              Text(
-                                '${tracks.length} ${tracks.length == 1 ? 'track' : 'tracks'} • ${_formatTotalDuration()}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            
-                            // Play and Shuffle buttons
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: CupertinoButton(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    color: const Color(0xFFFF453A),
-                                    borderRadius: BorderRadius.circular(8),
-                                    onPressed: () => _playAllTracks(),
-                                    child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          CupertinoIcons.play_fill,
-                                          color: CupertinoColors.white,
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Play',
-                                          style: TextStyle(
-                                            color: CupertinoColors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    CupertinoIcons.music_note,
+                                    size: 14,
+                                    color: Color(0xFF8E8E93),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${tracks.length} ${tracks.length == 1 ? 'track' : 'tracks'}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF8E8E93),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  flex: 2,
-                                  child: CupertinoButton(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    color: const Color(0xFF1C1C1E),
-                                    borderRadius: BorderRadius.circular(8),
-                                    onPressed: () => _shuffleAllTracks(),
-                                    child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          CupertinoIcons.shuffle,
-                                          color: Color(0xFFFF453A),
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Shuffle',
-                                          style: TextStyle(
-                                            color: Color(0xFFFF453A),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1C1C1E),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    CupertinoIcons.time,
+                                    size: 14,
+                                    color: Color(0xFF8E8E93),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _formatTotalDuration(),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF8E8E93),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 16),
                           ],
                         ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Enhanced action buttons
+                      Row(
+                        children: [
+                          // Play button - now larger and more prominent
+                          Expanded(
+                            flex: 3,
+                            child: CupertinoButton(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              color: const Color(0xFFFF453A),
+                              borderRadius: BorderRadius.circular(12),
+                              onPressed: () => _playAllTracks(),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.play_fill,
+                                    color: CupertinoColors.white,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Play',
+                                    style: TextStyle(
+                                      color: CupertinoColors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(width: 12),
+                          
+                          // Shuffle button
+                          Expanded(
+                            flex: 2,
+                            child: CupertinoButton(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              color: const Color(0xFF1C1C1E),
+                              borderRadius: BorderRadius.circular(12),
+                              onPressed: () => _shuffleAllTracks(),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.shuffle,
+                                    color: CupertinoColors.white,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Shuffle',
+                                    style: TextStyle(
+                                      color: CupertinoColors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(width: 12),
+                          
+                          // Download button (if not all downloaded)
+                          Consumer<AppState>(
+                            builder: (context, appState, child) {
+                              final bool allTracksDownloaded = tracks.isNotEmpty && 
+                                  tracks.every((track) => appState.downloadService.isTrackDownloaded(track.id));
+                              
+                              if (allTracksDownloaded) {
+                                return const SizedBox.shrink();
+                              }
+                              
+                              return CupertinoButton(
+                                padding: const EdgeInsets.all(16),
+                                color: const Color(0xFF1C1C1E),
+                                borderRadius: BorderRadius.circular(12),
+                                onPressed: () => _downloadAlbum(),
+                                child: const Icon(
+                                  CupertinoIcons.cloud_download,
+                                  color: CupertinoColors.white,
+                                  size: 18,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
