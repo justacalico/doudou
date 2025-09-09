@@ -719,6 +719,27 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     appState.playPlaylist(tracks, index);
   }
 
+  String _formatTotalDuration() {
+    if (tracks.isEmpty) return '0 minutes';
+    
+    int totalSeconds = 0;
+    for (final track in tracks) {
+      if (track.duration != null) {
+        totalSeconds += track.duration!.inSeconds;
+      }
+    }
+    
+    final duration = Duration(seconds: totalSeconds);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    
+    if (hours > 0) {
+      return '$hours ${hours == 1 ? 'hour' : 'hours'} $minutes ${minutes == 1 ? 'minute' : 'minutes'}';
+    } else {
+      return '$minutes ${minutes == 1 ? 'minute' : 'minutes'}';
+    }
+  }
+
   void _playAllTracks() {
     if (tracks.isNotEmpty) {
       _playTrack(tracks.first, 0);
