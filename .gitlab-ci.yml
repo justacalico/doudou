@@ -176,8 +176,8 @@ build_android_debug:
       echo "Pre-warming Gradle with clean state..."
       cd android
       # Stop any existing daemons and clean locks
-      ./gradlew --stop || true
-      ./gradlew clean --no-daemon --refresh-dependencies || echo "Initial clean failed, continuing..."
+      run_gradle_with_timeout "./gradlew --stop" || true
+      run_gradle_with_timeout "./gradlew clean --no-daemon --refresh-dependencies" || echo "Initial clean failed, continuing..."
       cd ..
       
       # Build APK with network retry logic
