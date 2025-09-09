@@ -14,7 +14,7 @@ variables:
   # Debug keystore for consistent signing
   DEBUG_KEYSTORE_PASSWORD: "android"
   DEBUG_KEY_PASSWORD: "android"
-  DEBUG_KEY_ALIAS: "androiddebugkey" 
+  DEBUG_KEY_ALIAS: "androiddebugkey"
   # Optimization variables
   GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configureondemand=true -Xmx4g -XX:+UseG1GC"
   GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
@@ -167,18 +167,16 @@ build_android_debug:
     - |
       echo "=== Build Optimization Setup ==="
       export GRADLE_OPTS="$GRADLE_OPTS"
-      flutter --version
       
       echo "=== Verify Keystore ==="
       if [ -f "android/app/debug.keystore" ]; then
-        echo "✓ Debug keystore found"
-        ls -la android/app/debug.keystore
+        echo "Debug keystore found"
       else
-        echo "⚠ Warning: Debug keystore not found"
+        echo "Warning: Debug keystore not found"
       fi
       
       echo "=== Quick Dependency Check ==="
-      flutter pub get --offline || flutter pub get
+      flutter pub get --offline >/dev/null 2>&1 || flutter pub get >/dev/null 2>&1
       
       echo "=== Optimized Build ==="
       # Use direct flutter build instead of make for better control
@@ -187,9 +185,9 @@ build_android_debug:
         --target-platform android-arm64 \
         --no-tree-shake-icons \
         --dart-define=flutter.inspector.structuredErrors=false \
-        || {
+        >/dev/null 2>&1 || {
         echo "ARM64 build failed, trying universal APK..."
-        flutter build apk --debug
+        flutter build apk --debug >/dev/null 2>&1
       }
       
       echo "=== Package Results ==="
@@ -198,14 +196,14 @@ build_android_debug:
       # Find and copy the built APK
       if [ -f "build/app/outputs/flutter-apk/app-debug.apk" ]; then
         cp build/app/outputs/flutter-apk/app-debug.apk builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
-        echo "✓ APK packaged successfully"
+        echo "APK packaged successfully"
+        echo "APK size: $(du -h builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk | cut -f1)"
       else
-        echo "✗ APK not found, checking alternative locations..."
+        echo "APK not found, checking alternative locations..."
         find build/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \;
       fi
       
-      ls -la builds/$CI_PIPELINE_ID/
-      echo "Build completed in $(date)"
+      echo "Build completed successfully"
   artifacts:
     paths:
       - builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
