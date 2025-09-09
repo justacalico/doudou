@@ -93,13 +93,25 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         fit: BoxFit.cover,
                       ),
                     ),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
-                        ),
-                      ),
+                    child: StreamBuilder(
+                      stream: audioHandler?.playerStateStream,
+                      builder: (context, snapshot) {
+                        final isPlaying = audioHandler?.isPlaying ?? false;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(
+                              sigmaX: isPlaying ? 30 : 20, 
+                              sigmaY: isPlaying ? 30 : 20
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(isPlaying ? 0.5 : 0.7),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
