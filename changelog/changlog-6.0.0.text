@@ -9,6 +9,7 @@
 
 ## Changed
 
+- Album art is smaller when paused.
 - Refactored the whole audio backend. (Hopefully not as buggy now lol.)
 - Redesigned the home page.
 
