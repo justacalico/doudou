@@ -48,6 +48,7 @@ class AudioStateManager {
   
   // Getters for completion tracking
   bool get isHandlingCompletion => _isHandlingCompletion;
+  bool get isTransitioning => _isTransitioning;
   DateTime? get lastSkipToPreviousTime => _lastSkipToPreviousTime;
   Duration get skipToPreviousThreshold => _skipToPreviousThreshold;
   double get restartThresholdPercentage => _restartThresholdPercentage;
