@@ -18,6 +18,7 @@
 
 ## Removed
 
+- Music visuzler as this is impossible on the current audio provider.
 - Now_playing from settings screen.
 
 ## Fixed
