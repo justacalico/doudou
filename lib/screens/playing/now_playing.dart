@@ -12,6 +12,7 @@ import '../../widgets/cached_image_widget.dart';
 import 'visualizer/visualizer.dart';
 import '../albums/details/album_details.dart';
 import '../artists/details/artist_detail.dart';
+import '../../services/lyrics_service.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
