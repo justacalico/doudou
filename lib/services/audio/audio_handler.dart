@@ -389,12 +389,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Restart background monitoring if we were playing
         if (wasPlaying) {
           _startBackgroundMonitoring();
+          
+          // Additional verification that playback actually started
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (!_player.playing && wasPlaying) {
+            if (kDebugMode) {
+              print('Playback verification failed, forcing play command');
+            }
+            try {
+              await _player.play();
+              
+              // Update state to reflect the corrected state
+              playbackState.add(playbackState.value.copyWith(
+                playing: _player.playing,
+                processingState: AudioProcessingState.ready,
+              ));
+            } catch (e) {
+              if (kDebugMode) {
+                print('Failed to force play after track transition: $e');
+              }
+            }
+          }
         }
         
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
         
         if (kDebugMode) {
-          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
+          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}, playing: ${_player.playing}');
         }
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
         // Radio mode handling
