@@ -725,7 +725,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     int totalSeconds = 0;
     for (final track in tracks) {
       if (track.duration != null) {
-        totalSeconds += track.duration!.inSeconds;
+        // Assuming duration is stored as seconds (int or double)
+        totalSeconds += track.duration!.round();
       }
     }
     
