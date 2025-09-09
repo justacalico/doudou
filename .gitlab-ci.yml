@@ -13,7 +13,7 @@ variables:
 
 build_debug_apk:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:3.27.0
+  image: ghcr.io/cirruslabs/flutter:3.35.0-0.1.pre
   tags:
     - android
   
