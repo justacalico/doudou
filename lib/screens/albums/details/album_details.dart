@@ -149,8 +149,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.transparent,
-                              Colors.transparent,
+                              Color(0x00000000),
+                              Color(0x00000000),
                               Color(0x99000000),
                               Color(0xFF000000),
                             ],
