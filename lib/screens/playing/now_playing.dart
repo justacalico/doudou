@@ -111,8 +111,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                     ),
                     child: IntrinsicHeight(
-                  child: Column(
-                    children: [
+                      child: Column(
+                        children: [
                       // Top bar with chevron down and playback source indicator
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
