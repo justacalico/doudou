@@ -4,6 +4,7 @@ stages:
 
 variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
+  ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
 
 build_debug_apk:
   stage: build
@@ -18,6 +19,30 @@ build_debug_apk:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
     expire_in: 1 week
+
+build_release_apk:
+  stage: build
+  image: ghcr.io/cirruslabs/flutter:stable
+  tags:
+    - android
+  script:
+    - flutter --version
+    - flutter pub get
+    # Create key.properties for signing
+    - |
+      cat > android/key.properties << EOF
+      storePassword=$KEYSTORE_PASSWORD
+      keyPassword=$KEY_PASSWORD
+      keyAlias=$KEY_ALIAS
+      storeFile=key.jks
+      EOF
+    - flutter build apk --release
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG
 
 publish_release:
   stage: release
