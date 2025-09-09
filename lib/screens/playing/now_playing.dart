@@ -517,12 +517,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () {
+                              onPressed: _hasLyrics == true ? () {
                                 _showLyricsOverlay(context, currentTrack);
-                              },
-                              child: const Icon(
+                              } : null,
+                              child: Icon(
                                 CupertinoIcons.text_quote,
-                                color: Color(0xFFFFFFFF),
+                                color: _hasLyrics == true 
+                                    ? const Color(0xFFFFFFFF)
+                                    : CupertinoColors.systemGrey2,
                                 size: 24,
                               ),
                             ),
