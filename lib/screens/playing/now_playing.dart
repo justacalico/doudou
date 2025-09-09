@@ -82,6 +82,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
         final audioHandler = appState.audioHandler;
         final currentTrack = audioHandler?.currentTrack;
         
+        // Check lyrics availability when track changes
+        if (currentTrack != null && currentTrack.artistName != null) {
+          _checkLyricsAvailability(
+            currentTrack.name, 
+            currentTrack.artistName!, 
+            currentTrack.id
+          );
+        }
+        
         if (currentTrack == null) {
           return CupertinoPageScaffold(
             backgroundColor: const Color(0xFF000000),
