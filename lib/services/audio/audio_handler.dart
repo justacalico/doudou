@@ -722,6 +722,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
     _stateManager.setHandlingCompletion(false);
+    _stateManager.setTransitioning(false);
     
     _queueManager.setPlaylist(tracks, startIndex);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
