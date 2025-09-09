@@ -155,8 +155,8 @@ build_android_debug:
       ping -c 3 dl.google.com || echo "Warning: Cannot reach dl.google.com"
       
       # Configure Gradle for better network handling and prevent locking issues
-      mkdir -p ~/.gradle
-      cat > ~/.gradle/gradle.properties << EOF
+      mkdir -p "$GRADLE_USER_HOME"
+      cat > "$GRADLE_USER_HOME/gradle.properties" << EOF
       org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
       org.gradle.parallel=false
       org.gradle.configureondemand=true
