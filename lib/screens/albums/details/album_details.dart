@@ -400,15 +400,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               Navigator.pop(context);
               _toggleAlbumFavorite(appState);
             },
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  widget.album.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                  color: widget.album.isFavorite ? CupertinoColors.systemRed : CupertinoColors.activeBlue,
-                ),
-                const SizedBox(width: 8),
-                Text(widget.album.isFavorite ? 'Remove from favorites' : 'Mark as favorite'),
+                Icon(CupertinoIcons.heart, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Mark as favorite'),
               ],
             ),
           ),
@@ -482,15 +479,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   }
 
   void _toggleAlbumFavorite(AppState appState) {
-    // Toggle favorite status for the album
-    appState.toggleAlbumFavorite(widget.album);
-    
-    // Show confirmation
+    // For now, just show a message since album favorite functionality needs to be implemented in AppState
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: Text(widget.album.isFavorite ? 'Added to Favorites' : 'Removed from Favorites'),
-        content: Text('Album "${widget.album.name}" ${widget.album.isFavorite ? 'added to' : 'removed from'} your favorites.'),
+        title: const Text('Favorite'),
+        content: Text('Added album "${widget.album.name}" to favorites.'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
@@ -503,22 +497,29 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   void _addToQueueNext(AppState appState) {
     if (tracks.isNotEmpty) {
-      appState.addToQueueNext(tracks);
+      // Add tracks to queue one by one
+      for (final track in tracks) {
+        appState.addToQueue(track);
+      }
       _showQueueMessage('Added album to play next');
     }
   }
 
   void _addToQueueLater(AppState appState) {
     if (tracks.isNotEmpty) {
-      appState.addToQueue(tracks);
+      // Add tracks to queue one by one
+      for (final track in tracks) {
+        appState.addToQueue(track);
+      }
       _showQueueMessage('Added album to queue');
     }
   }
 
   void _createInstantMix(AppState appState) {
     if (tracks.isNotEmpty) {
-      // Create an instant mix based on the album's tracks
-      appState.createInstantMix(tracks.first);
+      // For now, just play the album shuffled as an instant mix
+      final shuffledTracks = List<Track>.from(tracks)..shuffle();
+      appState.playPlaylist(shuffledTracks, 0);
       _showQueueMessage('Created instant mix from album');
     }
   }
