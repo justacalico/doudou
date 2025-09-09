@@ -195,7 +195,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       
                       const SizedBox(height: 20),
                       
-                      // Album Art / Visualizer - responsive size (clickable to toggle)
+                      // Album Art - responsive size
                       StreamBuilder(
                         stream: audioHandler?.playerStateStream,
                         builder: (context, snapshot) {
@@ -214,47 +214,31 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               maxWidth: maxContainerSize,
                               maxHeight: maxContainerSize,
                             ),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showVisualizer = !_showVisualizer;
-                                });
-                              },
-                              child: AnimatedScale(
-                                scale: contentScale,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF000000).withOpacity(0.8),
-                                        blurRadius: isPlaying ? 50 : 30,
-                                        offset: const Offset(0, 20),
-                                      ),
-                                    ],
-                                  ),
-                                  child: _showVisualizer
-                                      ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(20),
-                                          child: EmbeddedVisualizer(
-                                            trackName: currentTrack.name,
-                                            artistName: currentTrack.artistName,
-                                            isPlaying: audioHandler?.isPlaying ?? false,
-                                          ),
+                            child: AnimatedScale(
+                              scale: contentScale,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF000000).withOpacity(0.8),
+                                      blurRadius: isPlaying ? 50 : 30,
+                                      offset: const Offset(0, 20),
+                                    ),
+                                  ],
+                                ),
+                                child: AlbumArtWidget(
+                                  imageUrl: currentTrack.imageUrl != null
+                                      ? appState.jellyfinService.getImageUrl(
+                                          currentTrack.imageUrl!,
+                                          width: 800,
+                                          height: 800,
                                         )
-                                      : AlbumArtWidget(
-                                          imageUrl: currentTrack.imageUrl != null
-                                              ? appState.jellyfinService.getImageUrl(
-                                                  currentTrack.imageUrl!,
-                                                  width: 800,
-                                                  height: 800,
-                                                )
-                                              : null,
-                                          size: containerSize,
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
+                                      : null,
+                                  size: containerSize,
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
                             ),
