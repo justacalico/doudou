@@ -1,204 +1,208 @@
-# GitLab CI/CD Pipeline for Doudou Flutter Android APK Build (Optimized)
+# GitLab CI/CD Pipeline for Doudou Flutter Android APK Build
 
 variables:
-  # Use Instrumentisto Flutter image which is reliable and updated
-  FLUTTER_IMAGE: "instrumentisto/flutter:3.24"
+  # Flutter version to use - using latest stable version compatible with Dart SDK ^3.8.0
+  FLUTTER_VERSION: "stable"
   # Android SDK variables
   ANDROID_SDK_ROOT: "/opt/android-sdk"
-  ANDROID_HOME: "/opt/android-sdk"  
+  ANDROID_HOME: "/opt/android-sdk"
+  # Java version
+  JAVA_VERSION: "17"
+  # Command line tools version that's known to be compatible
+  CMDLINE_TOOLS_VERSION: "9477386"
+  # Add timeout and retry settings
   CI_DEBUG_TRACE: "false"
 
+# Define stages
 stages:
-  - dependencies
+  - setup
   - build
   - release
 
 default:
   tags:
     - android
-  timeout: 15m  # Reduced from 30m since setup is much faster
-  image: $FLUTTER_IMAGE
+  timeout: 30m
 
-# Enhanced cache configuration with multiple cache keys
+# Cache configuration
 cache:
-  - key: "flutter-deps-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - .pub-cache/
-      - .dart-tool/
-    policy: pull-push
-  - key: "gradle-cache-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - android/.gradle/
-      - ~/.gradle/
-    policy: pull-push
-  - key: "build-cache-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - build/
-    policy: pull-push
+  key: "${CI_COMMIT_REF_SLUG}-flutter-${FLUTTER_VERSION}"
+  paths:
+    - .pub-cache/
+    - .dart-tool/
+    - build/
+  policy: pull-push
 
-# Install dependencies only when pubspec files change
-install_dependencies:
-  stage: dependencies
-  cache:
-    key: "deps-${CI_COMMIT_REF_SLUG}-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - .pub-cache/
-      - .dart-tool/
-      - /opt/android-sdk/
-    policy: pull-push
-  before_script:
-    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
-    - export ANDROID_SDK_ROOT=/opt/android-sdk
-    - export ANDROID_HOME=/opt/android-sdk
-    - export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-    # Install Android SDK if not present
-    - |
-      if [ ! -d "$ANDROID_SDK_ROOT" ]; then
-        echo "Installing Android SDK..."
-        apt-get update && apt-get install -y wget unzip openjdk-17-jdk
-        mkdir -p $ANDROID_SDK_ROOT
-        cd /tmp
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip commandlinetools-linux-11076708_latest.zip
-        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
-        mv cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/
-        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
-        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-      fi
-    - flutter doctor -v
+# Common setup script for Android SDK and Flutter
+.setup_common: &setup_common
+  - |
+    # Try to use alternative mirrors if main Ubuntu repos are slow
+    cp /etc/apt/sources.list /etc/apt/sources.list.bak
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy main restricted universe multiverse" > /etc/apt/sources.list
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy-updates main restricted universe multiverse" >> /etc/apt/sources.list
+    echo "deb http://mirror.math.princeton.edu/pub/ubuntu/ jammy-security main restricted universe multiverse" >> /etc/apt/sources.list
+    apt-get update -qy || {
+      echo "Alternative mirror failed, reverting to original"
+      cp /etc/apt/sources.list.bak /etc/apt/sources.list
+      apt-get update -qy
+    }
+  - apt-get install -y --fix-missing curl git unzip xz-utils zip libglu1-mesa wget openjdk-${JAVA_VERSION}-jdk make pkg-config || apt-get install -y --fix-missing curl git unzip xz-utils zip wget openjdk-${JAVA_VERSION}-jdk make pkg-config
+  - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+  - export PATH=$JAVA_HOME/bin:$PATH
+  # Install Android SDK
+  - mkdir -p $ANDROID_SDK_ROOT
+  - cd $ANDROID_SDK_ROOT
+  - wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip -O cmdtools.zip
+  - unzip -q cmdtools.zip
+  - mkdir -p cmdline-tools/latest
+  - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+  - rm -rf cmdline-tools/latest/cmdline-tools || true
+  - rm cmdtools.zip
+  - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+  # Accept licenses (critical for CI/CD)
+  - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  - sdkmanager --update || true
+  - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+  # Install Flutter
+  - cd /opt
+  - git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1 || (rm -rf flutter && git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1)
+  - export PATH="/opt/flutter/bin:$PATH"
+  # Fix Flutter cache permissions and set up directory structure
+  - mkdir -p /opt/flutter/bin/cache/{downloads,artifacts/gradle_wrapper}
+  - chown -R root:root /opt/flutter/bin/cache || true
+  - chmod -R 755 /opt/flutter/bin/cache || true
+  # Set environment variables to avoid tar ownership issues
+  - export TAR_OPTIONS="--no-same-owner"
+  - flutter config --android-sdk $ANDROID_SDK_ROOT
+  - flutter doctor -v || true
+  # Return to project directory
+  - cd $CI_PROJECT_DIR
+  - export PATH="/opt/flutter/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+  - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+  - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
+
+# Setup stage - Install Flutter and dependencies
+setup_flutter:
+  stage: setup
+  image: ubuntu:22.04
+  tags:
+    - android
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - unknown_failure
+      - api_failure
+      - stuck_or_timeout_failure
+
+  before_script:  
+    - *setup_common
   script:
-    - flutter pub get
-    - flutter pub deps
-    - echo "Dependencies installed successfully"
+    - |
+      # Set tar options to avoid ownership issues
+      export TAR_OPTIONS="--no-same-owner"
+      # Retry flutter pub get if needed with cache cleanup
+      for i in {1..3}; do
+        flutter pub get && break || {
+          echo "flutter pub get attempt $i failed, retrying..."
+          # Clear flutter cache and fix permissions before retry
+          flutter clean || true
+          rm -rf /opt/flutter/bin/cache/downloads/* || true
+          rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
+          chown -R root:root /opt/flutter/bin/cache || true
+          chmod -R 755 /opt/flutter/bin/cache || true
+          sleep 5
+        }
+      done
+      flutter clean || true
+      flutter doctor -v || true
+      # Verify the environment is correctly set up
+      ls -la $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/ || echo "SDK tools not found"
+      echo "SDK Manager available: $(which sdkmanager || echo 'not found')"
+      echo "Flutter version: $(flutter --version || echo 'flutter not found')"
+      mkdir -p builds
   artifacts:
     paths:
       - .pub-cache/
-      - .dart-tool/
-    expire_in: 2 hours
-  only:
-    changes:
-      - pubspec.yaml
-      - pubspec.lock
-      - lib/**/*
-      - android/**/*
+      - $ANDROID_SDK_ROOT/licenses/
+    expire_in: 1 hour
 
-# Fast build job - no setup overhead
+# Build stage - Build Android APK using Makefile
 build_android_debug:
   stage: build
+  image: ubuntu:22.04
+  tags:
+    - android
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - unknown_failure
+
   dependencies:
-    - install_dependencies
+    - setup_flutter
   before_script:
-    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
-    - export ANDROID_SDK_ROOT=/opt/android-sdk
-    - export ANDROID_HOME=/opt/android-sdk
-    - export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-    - flutter doctor -v
+    - *setup_common
   script:
     - |
-      # Quick pub get (should be fast with cache)
-      flutter pub get
-      
-      # Clean build if needed
-      flutter clean
-      
-      # Build APK directly (no Makefile needed)
-      echo "Building debug APK..."
-      flutter build apk --debug
-      
-      # Verify build output
-      ls -la build/app/outputs/flutter-apk/
-      
-      # Create organized output directory
+      # Set tar options to avoid ownership issues
+      export TAR_OPTIONS="--no-same-owner"
+      # Retry flutter pub get if needed with cache handling
+      flutter pub get || {
+        echo "Retrying flutter pub get..."
+        # Clear and fix Flutter cache permissions
+        flutter clean || true
+        rm -rf /opt/flutter/bin/cache/downloads/* || true
+        rm -rf /opt/flutter/bin/cache/artifacts/gradle_wrapper/* || true
+        chown -R root:root /opt/flutter/bin/cache || true
+        chmod -R 755 /opt/flutter/bin/cache || true
+        sleep 5
+        flutter pub get
+      }
+      echo "Environment: ANDROID_SDK_ROOT is $ANDROID_SDK_ROOT"
+      flutter doctor -v || true
+      echo "Running make android with explicit SDK paths..."
+      make ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_HOME=$ANDROID_SDK_ROOT android || {
+        echo "Build failed, checking logs..."
+        ls -la build/ || echo "No build directory"
+        exit 1
+      }
+      echo "Build completed, checking output..."
+      ls -la builds/ || echo "No builds directory"
       mkdir -p builds/$CI_PIPELINE_ID
-      cp build/app/outputs/flutter-apk/app-debug.apk builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
-      
-      echo "APK built successfully:"
+      find builds/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \; || {
+        echo "No APK found, checking build directory..."
+        find build/ -name "*.apk" -type f -exec cp {} builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk \; || {
+          echo "APK not found in expected locations"
+          exit 1
+        }
+      }
       ls -la builds/$CI_PIPELINE_ID/
   artifacts:
     paths:
       - builds/$CI_PIPELINE_ID/doudou-debug-$CI_PIPELINE_ID.apk
     expire_in: 30 days
-    reports:
-      # Add build size reporting
-      junit: build/app/outputs/flutter-apk/app-debug.apk
   only:
     - main
     - develop
     - merge_requests
-  except:
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /\[skip ci\]/
 
-# Optional: Build release APK for tags (runs in parallel)
-build_android_release:
-  stage: build
-  dependencies:
-    - install_dependencies
-  before_script:
-    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
-    - export ANDROID_SDK_ROOT=/opt/android-sdk
-    - export ANDROID_HOME=/opt/android-sdk
-    - export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-    - flutter doctor -v
-  script:
-    - flutter pub get
-    - flutter clean
-    - echo "Building release APK..."
-    - flutter build apk --release
-    - mkdir -p builds/$CI_PIPELINE_ID
-    - cp build/app/outputs/flutter-apk/app-release.apk builds/$CI_PIPELINE_ID/doudou-release-$CI_PIPELINE_ID.apk
-    - echo "Release APK built successfully"
-  artifacts:
-    paths:
-      - builds/$CI_PIPELINE_ID/doudou-release-$CI_PIPELINE_ID.apk
-    expire_in: 90 days
-  only:
-    - tags
-  when: manual
-
-# Optional: Build App Bundle for Play Store
-build_android_bundle:
-  stage: build
-  dependencies:
-    - install_dependencies
-  before_script:
-    - export PUB_CACHE=$CI_PROJECT_DIR/.pub-cache
-    - export ANDROID_SDK_ROOT=/opt/android-sdk
-    - export ANDROID_HOME=/opt/android-sdk
-    - export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-    - flutter doctor -v
-  script:
-    - flutter pub get
-    - flutter clean
-    - echo "Building Android App Bundle..."
-    - flutter build appbundle --release
-    - mkdir -p builds/$CI_PIPELINE_ID
-    - cp build/app/outputs/bundle/release/app-release.aab builds/$CI_PIPELINE_ID/doudou-bundle-$CI_PIPELINE_ID.aab
-  artifacts:
-    paths:
-      - builds/$CI_PIPELINE_ID/doudou-bundle-$CI_PIPELINE_ID.aab
-    expire_in: 90 days
-  only:
-    - tags
-  when: manual
-
-# GitLab Release for tagged commits
+# Release stage - Create GitLab Release with debug APK (for tagged commits)
 release_to_gitlab:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - android
+
   dependencies:
     - build_android_debug
   script:
-    - echo "Creating GitLab Release with debug APK for tag $CI_COMMIT_TAG..."
+    - |
+      echo "Creating GitLab Release with debug APK for tag $CI_COMMIT_TAG..."
   release:
     name: 'Release $CI_COMMIT_TAG'
-    description: |
-      Doudou Flutter App - Release $CI_COMMIT_TAG
-      
-      Pipeline: $CI_PIPELINE_ID
-      Commit: $CI_COMMIT_SHORT_SHA
-      
-      Built with Flutter stable on $(date)
+    description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
     tag_name: '$CI_COMMIT_TAG'
     ref: '$CI_COMMIT_TAG'
     assets:
@@ -206,35 +210,28 @@ release_to_gitlab:
         - name: 'doudou-debug-$CI_PIPELINE_ID.apk'
           url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-debug-${CI_PIPELINE_ID}.apk?job=build_android_debug&inline=false'
           link_type: 'package'
-        - name: 'doudou-release-$CI_PIPELINE_ID.apk'
-          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_REF_NAME}/raw/builds/${CI_PIPELINE_ID}/doudou-release-${CI_PIPELINE_ID}.apk?job=build_android_release&inline=false'
-          link_type: 'package'
   only:
     - tags
 
-# Create pipeline-based releases for main branch
+# Create a release for non-tagged pipelines (e.g., main branch)
 release_from_pipeline:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - android
   dependencies:
     - build_android_debug
   before_script:
-    - "apt-get update -qy && apt-get install -y grep sed"
-    - "VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\\([0-9.]*\\).*/\\1/' | head -1)"
-    - "echo \"App version from pubspec.yaml: $VERSION\""
+    - |
+      # Extract version from pubspec.yaml to use in release name
+      apt-get update -qy && apt-get install -y grep sed
+      VERSION=$(grep 'version:' pubspec.yaml | sed -e 's/version:[^0-9]*\([0-9.]*\).*/\1/')
+      echo "App version from pubspec.yaml: $VERSION"
   script:
     - echo "Creating GitLab Release with debug APK (pipeline-based)..."
   release:
     name: 'Build v$VERSION-$CI_PIPELINE_ID'
-    description: |
-      Doudou Flutter App - Development Build
-      
-      Version: $VERSION
-      Pipeline: $CI_PIPELINE_ID
-      Branch: $CI_COMMIT_REF_NAME
-      Commit: $CI_COMMIT_SHORT_SHA
-      
-      Built with Flutter stable on $(date)
+    description: 'Doudou Flutter App - Pipeline $CI_PIPELINE_ID'
     tag_name: 'build-$CI_PIPELINE_ID'
     ref: '$CI_COMMIT_SHA'
     assets:
@@ -246,15 +243,3 @@ release_from_pipeline:
     - main
   except:
     - tags
-
-# Cleanup old artifacts (runs weekly)
-cleanup_artifacts:
-  stage: release
-  image: alpine:latest
-  script:
-    - echo "Cleanup job - artifacts are automatically cleaned based on expire_in settings"
-    - echo "Debug APKs expire in 30 days"
-    - echo "Release APKs expire in 90 days"
-  only:
-    - schedules
-  when: manual
