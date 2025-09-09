@@ -154,7 +154,10 @@ build_android_debug:
       
       # Test network connectivity before building
       echo "Testing network connectivity..."
+      # Install ping if not available
+      which ping || (apt-get update -y && apt-get install -y iputils-ping)
       ping -c 3 dl.google.com || echo "Warning: Cannot reach dl.google.com"
+      ping -c 3 maven.google.com || echo "Warning: Cannot reach maven.google.com"
       
       # Configure Gradle for better network handling and prevent locking issues
       mkdir -p "$GRADLE_USER_HOME"
@@ -165,11 +168,17 @@ build_android_debug:
       org.gradle.daemon=false
       org.gradle.caching=false
       org.gradle.vfs.watch=false
+      org.gradle.console=plain
       systemProp.http.connectionTimeout=60000
       systemProp.http.socketTimeout=60000
       systemProp.https.connectionTimeout=60000
       systemProp.https.socketTimeout=60000
+      systemProp.http.nonProxyHosts=localhost|127.*|[::1]
       EOF
+      
+      # Add gradle debug information
+      echo "Gradle configuration created:"
+      cat "$GRADLE_USER_HOME/gradle.properties"
       
       # Clean any existing Gradle locks and caches
       echo "Cleaning Gradle locks and preparing build environment..."
