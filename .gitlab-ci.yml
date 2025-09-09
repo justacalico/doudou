@@ -13,7 +13,7 @@ variables:
 
 build_debug_apk:
   stage: build
-  image: cirrusci/flutter:stable
+  image: cirrusci/flutter:3.27.0
   tags:
     - android
   
