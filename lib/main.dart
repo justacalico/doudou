@@ -9,6 +9,12 @@ import 'screens/partials/navbar/navbar.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Lock orientation to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
   runApp(const DoudouApp());
 }
 
