@@ -184,58 +184,63 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           // Animate the album art based on playing state
                           if (isPlaying) {
                             _albumArtAnimationController.forward();
+                            _rotationAnimationController.repeat();
                           } else {
                             _albumArtAnimationController.reverse();
+                            _rotationAnimationController.stop();
                           }
                           
                           return AnimatedBuilder(
-                            animation: _albumArtScaleAnimation,
+                            animation: Listenable.merge([_albumArtScaleAnimation, _rotationAnimation]),
                             builder: (context, child) {
                               return Transform.scale(
                                 scale: _albumArtScaleAnimation.value,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _showVisualizer = !_showVisualizer;
-                                    });
-                                  },
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width * 0.75,
-                                    height: MediaQuery.of(context).size.width * 0.75,
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 320,
-                                      maxHeight: 320,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF000000).withOpacity(0.8),
-                                          blurRadius: 40,
-                                          offset: const Offset(0, 20),
-                                        ),
-                                      ],
-                                    ),
-                                    child: _showVisualizer
-                                        ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(20),
-                                            child: EmbeddedVisualizer(
-                                              trackName: currentTrack.name,
-                                              artistName: currentTrack.artistName,
-                                              isPlaying: audioHandler?.isPlaying ?? false,
-                                            ),
-                                          )
-                                        : AlbumArtWidget(
-                                            imageUrl: currentTrack.imageUrl != null
-                                                ? appState.jellyfinService.getImageUrl(
-                                                    currentTrack.imageUrl!,
-                                                    width: 800,
-                                                    height: 800,
-                                                  )
-                                                : null,
-                                            size: MediaQuery.of(context).size.width * 0.75,
-                                            borderRadius: BorderRadius.circular(20),
+                                child: Transform.rotate(
+                                  angle: _rotationAnimation.value * 2 * 3.14159, // Full rotation
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _showVisualizer = !_showVisualizer;
+                                      });
+                                    },
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width * 0.75,
+                                      height: MediaQuery.of(context).size.width * 0.75,
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 320,
+                                        maxHeight: 320,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFF000000).withOpacity(0.8),
+                                            blurRadius: 40,
+                                            offset: const Offset(0, 20),
                                           ),
+                                        ],
+                                      ),
+                                      child: _showVisualizer
+                                          ? ClipRRect(
+                                              borderRadius: BorderRadius.circular(20),
+                                              child: EmbeddedVisualizer(
+                                                trackName: currentTrack.name,
+                                                artistName: currentTrack.artistName,
+                                                isPlaying: audioHandler?.isPlaying ?? false,
+                                              ),
+                                            )
+                                          : AlbumArtWidget(
+                                              imageUrl: currentTrack.imageUrl != null
+                                                  ? appState.jellyfinService.getImageUrl(
+                                                      currentTrack.imageUrl!,
+                                                      width: 800,
+                                                      height: 800,
+                                                    )
+                                                  : null,
+                                              size: MediaQuery.of(context).size.width * 0.75,
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                    ),
                                   ),
                                 ),
                               );
