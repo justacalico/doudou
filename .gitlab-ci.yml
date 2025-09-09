@@ -94,7 +94,7 @@ build_android_debug:
   tags:
     - android
   retry:
-    max: 3
+    max: 2  # Fixed: Changed from 3 to 2 (GitLab maximum)
     when:
       - runner_system_failure
       - unknown_failure
