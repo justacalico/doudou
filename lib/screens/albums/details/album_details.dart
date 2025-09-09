@@ -220,6 +220,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                               ),
                             const SizedBox(height: 16),
                             
+                            // Track count and duration info
+                            if (tracks.isNotEmpty)
+                              Text(
+                                '${tracks.length} ${tracks.length == 1 ? 'track' : 'tracks'} • ${_formatTotalDuration()}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              ),
+                            
                             // Play and Shuffle buttons
                             Row(
                               children: [
