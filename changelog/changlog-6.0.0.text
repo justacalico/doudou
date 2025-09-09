@@ -17,6 +17,7 @@
 ## Removed
 - Music visualizer (not possible with the current audio provider).  
 - Now Playing option from the settings screen.  
+- Removed the abilty to scroll when on the now_playing page.
 
 ## Fixed
 - Fixed synced lyrics text being hidden in some cases.  
