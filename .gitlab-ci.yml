@@ -173,7 +173,7 @@ build_android_debug:
       echo "Cleaning Gradle locks and preparing build environment..."
       rm -rf android/.gradle/*/fileHashes/fileHashes.lock
       rm -rf android/.gradle/*/executionHistory/executionHistory.lock
-      rm -rf ~/.gradle/daemon/*/
+      rm -rf "$GRADLE_USER_HOME/daemon/"*
       
       # Pre-warm Gradle with lock cleanup
       echo "Pre-warming Gradle with clean state..."
