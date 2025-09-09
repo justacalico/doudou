@@ -1,0 +1,68 @@
+stages:
+  - build
+
+variables:
+  # Debug keystore for consistent signing
+  DEBUG_KEYSTORE_PASSWORD: "android"
+  DEBUG_KEY_PASSWORD: "android"
+  DEBUG_KEY_ALIAS: "androiddebugkey"
+  
+  # Flutter configuration
+  FLUTTER_VERSION: "3.24.3"
+  JAVA_VERSION: "11"
+
+build_debug_apk:
+  stage: build
+  image: cirrusci/flutter:3.24.3
+  
+  before_script:
+    # Update package lists
+    - apt-get update -qq
+    
+    # Install OpenJDK 11
+    - apt-get install -y openjdk-11-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    
+    # Verify Java version
+    - java -version
+    - javac -version
+    
+    # Flutter setup
+    - flutter --version
+    - flutter doctor -v
+    - flutter pub get
+    
+    # Create debug keystore if it doesn't exist
+    - mkdir -p android/app/
+    - |
+      if [ ! -f android/app/debug.keystore ]; then
+        keytool -genkey -v \
+          -keystore android/app/debug.keystore \
+          -storepass $DEBUG_KEYSTORE_PASSWORD \
+          -alias $DEBUG_KEY_ALIAS \
+          -keypass $DEBUG_KEY_PASSWORD \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -dname "CN=Android Debug,O=Android,C=US"
+      fi
+    
+  script:
+    # Build debug APK
+    - flutter build apk --debug --verbose
+    
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-debug.apk
+    expire_in: 1 week
+    
+  cache:
+    paths:
+      - .pub-cache/
+      - android/.gradle/
+      
+  only:
+    - main
+    - develop
+    - merge_requests
