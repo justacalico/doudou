@@ -96,48 +96,103 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
         children: [
           CustomScrollView(
             slivers: [
-              CupertinoSliverNavigationBar(
+              // Custom app bar with gradient overlay
+              SliverAppBar(
+                expandedHeight: 300.0,
+                pinned: true,
                 backgroundColor: const Color(0xFF000000),
-                border: null,
-                largeTitle: Text(
-                  widget.album.name,
-                  style: const TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 34,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                leading: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => Navigator.pop(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      const Icon(
-                        CupertinoIcons.chevron_left,
-                        color: Color(0xFFFF453A),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Home',
-                        style: TextStyle(
-                          color: Color(0xFFFF453A),
-                          fontSize: 17,
+                      // Album artwork background
+                      widget.album.imageUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: appState.jellyfinService.getImageUrl(
+                                widget.album.imageUrl!,
+                                width: 800,
+                                height: 800,
+                              ),
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: const Color(0xFF1C1C1E),
+                                child: const Center(
+                                  child: CupertinoActivityIndicator(),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: const Color(0xFF1C1C1E),
+                                child: const Center(
+                                  child: Icon(
+                                    CupertinoIcons.music_albums_fill,
+                                    size: 80,
+                                    color: Color(0xFF48484A),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              color: const Color(0xFF1C1C1E),
+                              child: const Center(
+                                child: Icon(
+                                  CupertinoIcons.music_albums_fill,
+                                  size: 80,
+                                  color: Color(0xFF48484A),
+                                ),
+                              ),
+                            ),
+                      // Gradient overlay
+                      Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.transparent,
+                              Color(0x99000000),
+                              Color(0xFF000000),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                trailing: CupertinoButton(
+                leading: CupertinoButton(
                   padding: EdgeInsets.zero,
-                  onPressed: () => _showMoreOptions(context, appState),
-                  child: const Icon(
-                    CupertinoIcons.ellipsis,
-                    color: CupertinoColors.white,
-                    size: 24,
+                  onPressed: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0x80000000),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      CupertinoIcons.chevron_left,
+                      color: CupertinoColors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
+                actions: [
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => _showMoreOptions(context, appState),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0x80000000),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        CupertinoIcons.ellipsis,
+                        color: CupertinoColors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SliverToBoxAdapter(
                 child: Container(
