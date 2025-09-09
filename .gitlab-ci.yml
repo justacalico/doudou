@@ -7,7 +7,7 @@ variables:
 
 build_debug_apk:
   stage: build
-  image: cirruslinstrumentisto/flutter:latest
+  image: cirruslinstrumentisto/flutter
   tags:
     - android
   script:
