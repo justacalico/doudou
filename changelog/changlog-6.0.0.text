@@ -1,28 +1,24 @@
 # 6.0.0
 
 ## Added
-
-- Added an animation when album art changes size.
-- Background for Now_playing.
-- Automatically build .apk's.
-- Indication if a song is being played locally/downloaded or streaming.
-- Adds shuffle favorites button for downlaoded songs.
+- Added an animation when album art changes size.  
+- Background for Now Playing.  
+- Automatically build .apk files.  
+- Indication if a song is being played locally/downloaded or streaming.  
+- Added shuffle favorites button for downloaded songs.  
 
 ## Changed
-
-- Grey out lyrics if there is no avilbe.
-- Locks devices to vertical.
-- Album art is smaller when paused.
-- Refactored the whole audio backend. (Hopefully not as buggy now lol.)
-- Redesigned the home page.
+- Grey out lyrics if none are available.  
+- Lock devices to vertical orientation.  
+- Album art is smaller when paused.  
+- Refactored the entire audio backend (hopefully less buggy now).  
+- Redesigned the home page.  
 
 ## Removed
-
-- Music visuzler as this is impossible on the current audio provider.
-- Now_playing from settings screen.
+- Music visualizer (not possible with the current audio provider).  
+- Now Playing option from the settings screen.  
 
 ## Fixed
-
-- Fixed synced lyrics text being hidden on some cases.
-- Fixed offline mode never being set to true.
-- Fixed autoplay.
+- Fixed synced lyrics text being hidden in some cases.  
+- Fixed offline mode never being set to true.  
+- Fixed autoplay.  
