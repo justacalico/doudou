@@ -101,21 +101,18 @@ class _HomeScreenState extends State<HomeScreen> {
         
         return Stack(
           children: [
-            ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                child: CupertinoTabScaffold(
-                  controller: _tabController,
-                  tabBar: CupertinoTabBar(
-                    backgroundColor: const Color(0xFF000000).withOpacity(0.8),
-                    activeColor: CupertinoColors.systemRed, // Red for active tab
-                    inactiveColor: CupertinoColors.systemGrey2,
-                    border: Border(
-                      top: BorderSide(
-                        color: const Color(0xFFFFFFFF).withOpacity(0.1),
-                        width: 0.5,
-                      ),
-                    ),
+            CupertinoTabScaffold(
+              controller: _tabController,
+              tabBar: CupertinoTabBar(
+                backgroundColor: const Color(0xFF000000).withOpacity(0.9),
+                activeColor: CupertinoColors.systemRed, // Red for active tab
+                inactiveColor: CupertinoColors.systemGrey2,
+                border: Border(
+                  top: BorderSide(
+                    color: const Color(0xFFFFFFFF).withOpacity(0.1),
+                    width: 0.5,
+                  ),
+                ),
                 items: const [
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.house_fill),
