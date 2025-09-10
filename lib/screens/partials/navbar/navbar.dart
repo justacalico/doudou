@@ -265,29 +265,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            // Frosted glass effect for tab bar
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    height: 83, // Height of the tab bar
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF000000).withOpacity(0.8),
-                      border: Border(
-                        top: BorderSide(
-                          color: const Color(0xFFFFFFFF).withOpacity(0.1),
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         );
       },
