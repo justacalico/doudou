@@ -260,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           right: 0,
                           bottom: 65, // Position mini player above nav bar (nav bar is 65px high)
                           child: Container(
-                            color: Colors.transparent, // Make sure background is transparent
+                            color: CupertinoColors.clear, // Make sure background is transparent
                             child: const MiniPlayer(),
                           ),
                         ),
