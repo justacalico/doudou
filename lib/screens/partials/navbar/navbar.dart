@@ -100,45 +100,38 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
         
-        return Stack(
-          children: [
-            CupertinoTabScaffold(
-              controller: _tabController,
-              tabBar: CupertinoTabBar(
-                backgroundColor: Colors.transparent, // Make transparent for frosted glass
-                activeColor: CupertinoColors.systemRed, // Red for active tab
-                inactiveColor: CupertinoColors.systemGrey2,
-                border: const Border(
-                  top: BorderSide(
-                    color: Colors.transparent,
-                    width: 0,
-                  ),
-                ),
-                iconSize: 26, // Slightly smaller for better centering
-                height: 65, // Slightly taller for better vertical centering
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.house_fill),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.music_note_list),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.arrow_down_circle),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.search),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.settings),
-                    label: '', // Empty label to hide text
-                  ),
-                ],
+        return CupertinoTabScaffold(
+          controller: _tabController,
+          tabBar: CupertinoTabBar(
+            backgroundColor: Colors.black.withOpacity(0.0), // Completely transparent
+            activeColor: CupertinoColors.systemRed, // Red for active tab
+            inactiveColor: CupertinoColors.systemGrey2,
+            border: null, // Remove border
+            iconSize: 26, // Slightly smaller for better centering
+            height: 65, // Slightly taller for better vertical centering
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.house_fill),
+                label: '', // Empty label to hide text
               ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.music_note_list),
+                label: '', // Empty label to hide text
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.arrow_down_circle),
+                label: '', // Empty label to hide text
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.search),
+                label: '', // Empty label to hide text
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.settings),
+                label: '', // Empty label to hide text
+              ),
+            ],
+          ),
               tabBuilder: (context, index) {
                 Widget content;
                 String title;
