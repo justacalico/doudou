@@ -324,9 +324,9 @@ class LibraryContent extends StatelessWidget {
                 ),
               ),
             ),
-            // Add a bit of bottom padding for scrolling
+            // Add bottom padding for mini player + nav bar
             const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
+              child: SizedBox(height: 150), // Space for mini player (70px) + nav bar (65px) + extra padding
             ),
           ],
         );
