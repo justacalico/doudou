@@ -48,15 +48,13 @@ publish_release:
   tags:
     - android
   needs: ["build_release_apk"]
-  rules:
-    - if: $CI_COMMIT_TAG
   script:
-    - echo "Publishing release with signed APK for tag $CI_COMMIT_TAG"
+    - echo "Publishing release with signed APK for pipeline $CI_PIPELINE_ID"
   release:
-    name: "Release $CI_COMMIT_TAG"
-    description: "Automated release for tag $CI_COMMIT_TAG"
-    tag_name: "$CI_COMMIT_TAG"
+    name: "Release Pipeline $CI_PIPELINE_ID"
+    description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
+    tag_name: "pipeline-$CI_PIPELINE_ID"
     assets:
       links:
         - name: "Release APK"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/build/app/outputs/flutter-apk/app-release.apk?job=build_release_apk"
+          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-release.apk?job=build_release_apk"
