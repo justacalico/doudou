@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../home/home.dart';
@@ -100,38 +99,45 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
         
-        return CupertinoTabScaffold(
-          controller: _tabController,
-          tabBar: CupertinoTabBar(
-            backgroundColor: Colors.black.withOpacity(0.0), // Completely transparent
-            activeColor: CupertinoColors.systemRed, // Red for active tab
-            inactiveColor: CupertinoColors.systemGrey2,
-            border: null, // Remove border
-            iconSize: 26, // Slightly smaller for better centering
-            height: 65, // Slightly taller for better vertical centering
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.house_fill),
-                label: '', // Empty label to hide text
+        return Stack(
+          children: [
+            CupertinoTabScaffold(
+              controller: _tabController,
+              tabBar: CupertinoTabBar(
+                backgroundColor: const Color(0xFF000000).withOpacity(0.95),
+                activeColor: CupertinoColors.systemRed, // Red for active tab
+                inactiveColor: CupertinoColors.systemGrey2,
+                border: Border(
+                  top: BorderSide(
+                    color: CupertinoColors.white.withOpacity(0.2),
+                    width: 0.5,
+                  ),
+                ),
+                iconSize: 26, // Slightly smaller for better centering
+                height: 65, // Slightly taller for better vertical centering
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(CupertinoIcons.house_fill),
+                    label: '', // Empty label to hide text
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(CupertinoIcons.music_note_list),
+                    label: '', // Empty label to hide text
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(CupertinoIcons.arrow_down_circle),
+                    label: '', // Empty label to hide text
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(CupertinoIcons.search),
+                    label: '', // Empty label to hide text
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(CupertinoIcons.settings),
+                    label: '', // Empty label to hide text
+                  ),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.music_note_list),
-                label: '', // Empty label to hide text
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.arrow_down_circle),
-                label: '', // Empty label to hide text
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.search),
-                label: '', // Empty label to hide text
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.settings),
-                label: '', // Empty label to hide text
-              ),
-            ],
-          ),
               tabBuilder: (context, index) {
                 Widget content;
                 String title;
@@ -250,57 +256,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       // Only show mini player when not on settings screen (index 4)
                       if (index != 4)
-                        Positioned(
+                        const Positioned(
                           left: 0,
                           right: 0,
                           bottom: 0, // Position mini player at the very bottom
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                              child: Container(
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.3),
-                                  border: Border(
-                                    top: BorderSide(
-                                      color: CupertinoColors.white.withOpacity(0.1),
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                ),
-                                child: const MiniPlayer(),
-                              ),
-                            ),
-                          ),
+                          child: MiniPlayer(),
                         ),
-                      // Frosted glass overlay for navigation bar
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: ClipRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                            child: Container(
-                              height: 65,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.3),
-                                border: Border(
-                                  top: BorderSide(
-                                    color: CupertinoColors.white.withOpacity(0.1),
-                                    width: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 );
               },
             ),
+          ],
         );
       },
     );
