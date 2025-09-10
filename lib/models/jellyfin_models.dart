@@ -69,6 +69,7 @@ class Album {
       'AlbumArtist': artistName,
       'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
       'ProductionYear': year,
+      'DateCreated': dateCreated?.toIso8601String(),
     };
   }
 }

@@ -153,7 +153,7 @@ class JellyfinService {
         queryParameters: {
           'IncludeItemTypes': 'MusicAlbum',
           'Recursive': true,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags',
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,DateCreated',
           'SortBy': 'SortName',
           'SortOrder': 'Ascending',
         },
