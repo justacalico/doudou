@@ -279,8 +279,8 @@ class _HomeScreenState extends State<HomeScreen> {
               right: 0,
               bottom: 0,
               child: Container(
-                height: 65,
-                margin: const EdgeInsets.all(16),
+                height: 97, // 65px height + 32px margin (16px top + 16px bottom)
+                padding: const EdgeInsets.all(16),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: BackdropFilter(
