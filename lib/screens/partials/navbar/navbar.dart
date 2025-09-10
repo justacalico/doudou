@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
@@ -85,6 +84,167 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // Force rebuild by triggering a setState
     setState(() {});
+  }
+
+  Widget _buildTabContent(int index, AppState appState) {
+    Widget content;
+    String title;
+    bool showNavBar = true;
+    
+    switch (index) {
+      case 0:
+        content = const HomeContent();
+        title = 'Home';
+        showNavBar = false; // Home has custom header
+        break;
+      case 1:
+        content = const LibraryContent();
+        title = 'Library';
+        showNavBar = false; // Library has custom header
+        break;
+      case 2:
+        content = const DownloadsScreen();
+        title = 'Downloads';
+        showNavBar = false; // Downloads has custom header
+        break;
+      case 3:
+        content = const SearchScreen();
+        title = 'Search';
+        showNavBar = false; // Search has custom header
+        break;
+      case 4:
+        content = const SettingsScreen();
+        title = 'Settings';
+        showNavBar = false; // Settings has custom header
+        break;
+      default:
+        content = const HomeContent();
+        title = 'Home';
+        showNavBar = false;
+    }
+    
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
+      navigationBar: showNavBar ? CupertinoNavigationBar(
+        middle: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: const TextStyle(color: CupertinoColors.white)),
+            if (appState.isOfflineMode)
+              const Text(
+                'Offline Mode',
+                style: TextStyle(
+                  color: CupertinoColors.systemOrange,
+                  fontSize: 12,
+                ),
+              ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF000000),
+        border: null,
+        trailing: appState.isOfflineMode 
+          ? const Icon(
+              CupertinoIcons.wifi_slash,
+              color: CupertinoColors.systemOrange,
+              size: 20,
+            )
+          : null,
+      ) : null,
+      child: Stack(
+        children: [
+          // Offline banner
+          if (appState.isOfflineMode)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                color: CupertinoColors.systemOrange,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      CupertinoIcons.wifi_slash,
+                      color: CupertinoColors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Offline Mode - Downloads Only',
+                      style: TextStyle(
+                        color: CupertinoColors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minSize: 0,
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 14,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      onPressed: () => appState.checkConnectivity(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          // Main content with offset for offline banner only - no bottom padding
+          Positioned.fill(
+            top: appState.isOfflineMode ? 40 : 0,
+            bottom: 0, // Let content extend to the bottom, overlays will handle spacing
+            child: content,
+          ),
+          // Only show mini player when not on settings screen (index 4) - positioned as overlay
+          if (index != 4)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 97, // Position mini player above glassmorphism nav bar (65px + 16px margin + 16px gap)
+              child: const MiniPlayer(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBarItem(int index, IconData icon, AppState appState) {
+    final isActive = _tabController.index == index;
+    
+    return Expanded(
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          setState(() {
+            if (_tabController.index == index) {
+              // Double tap - reload tab
+              _reloadCurrentTab(index);
+            } else {
+              _tabController.index = index;
+              _previousIndex = index;
+            }
+          });
+        },
+        child: Container(
+          height: 65,
+          alignment: Alignment.center,
+          child: Icon(
+            icon,
+            size: 26,
+            color: isActive 
+                ? CupertinoColors.systemRed
+                : CupertinoColors.systemGrey2,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
