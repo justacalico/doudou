@@ -6,6 +6,10 @@ variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
 
+cache:
+  paths:
+    - .pub-cache/
+
 build_debug_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
