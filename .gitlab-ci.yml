@@ -7,14 +7,10 @@ variables:
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
 
 cache:
-  - key: "$CI_COMMIT_REF_SLUG-pub-cache"
-    paths:
-      - .pub-cache/
-    policy: pull-push
-  - key: "$CI_COMMIT_REF_SLUG-gradle-cache"  
-    paths:
-      - android/.gradle/
-    policy: pull-push
+  key: "$CI_COMMIT_REF_SLUG-v2"
+  paths:
+    - .pub-cache/
+  policy: pull-push
 
 build_debug_apk:
   stage: build
