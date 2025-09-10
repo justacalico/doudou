@@ -33,6 +33,9 @@ build_release_apk:
   script:
     - flutter --version
     - flutter clean
+    # Kill any existing Gradle daemons and clean gradle cache
+    - pkill -f gradle || true
+    - rm -rf android/.gradle || true
     - flutter pub get
     # Decode keystore from base64 CI variable to expected location
     - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
@@ -44,7 +47,10 @@ build_release_apk:
       keyAlias=$KEY_ALIAS
       storeFile=key.jks
       EOF
-    - flutter build apk --release
+    - flutter build apk --release --verbose
+  after_script:
+    # Always kill gradle daemons after build
+    - pkill -f gradle || true
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-release.apk
