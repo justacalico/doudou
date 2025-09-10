@@ -62,7 +62,8 @@ build_release_apk:
     - flutter clean
     # Kill any existing Gradle daemons and clean gradle cache
     - pkill -f gradle || true
-    - flutter pub get
+    # Clean pub cache completely if pub get fails, then retry
+    - flutter pub get || (rm -rf .pub-cache && flutter pub get)
     # Decode keystore from base64 CI variable to expected location
     - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
     # Create key.properties for signing
