@@ -392,6 +392,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       return;
     }
     
+    // Double-check we're actually at completion
+    if (_player.processingState != ProcessingState.completed) {
+      final position = _player.position;
+      final duration = _player.duration;
+      
+      // Only proceed if we're very close to the end
+      if (duration == null || position.inMilliseconds < (duration.inMilliseconds * 0.95)) {
+        if (kDebugMode) {
+          print('Track completion called but not actually complete. Position: ${position.inMilliseconds}/${duration?.inMilliseconds}');
+        }
+        return;
+      }
+    }
+    
     _stateManager.setHandlingCompletion(true);
     _stateManager.setTransitioning(true);
     
@@ -405,6 +419,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Stop background monitoring during transition to prevent interference
       _stopBackgroundMonitoring();
+      
+      // Give codec time to properly cleanup before transitioning
+      await Future.delayed(const Duration(milliseconds: 200));
       
       if (_stateManager.incrementCurrentIndex()) {
         if (kDebugMode) {
@@ -583,12 +600,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Stop current player safely with longer delay for codec cleanup
     try {
       await _player.stop();
-      // Give codecs more time to properly cleanup
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Give codecs more time to properly cleanup - increased for better stability
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       if (kDebugMode) {
         print('Error stopping player: $e');
       }
+      // Even if stop fails, wait before proceeding
+      await Future.delayed(const Duration(milliseconds: 300));
     }
     
     // Try preloaded player first
