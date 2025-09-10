@@ -24,27 +24,33 @@ class MiniPlayer extends StatelessWidget {
         return Container(
           height: 70,
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Balanced margin for floating effect
-          decoration: BoxDecoration(
-            color: const Color(0xFF000000), // Pure black for OLED
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF1C1C1E), // Subtle border for definition
-              width: 0.5,
-            ),
-            // Enhanced shadow for better floating effect
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x40000000), // Stronger shadow
-                offset: Offset(0, 4), // Slightly more offset
-                blurRadius: 12, // More blur for floating effect
-              ),
-              BoxShadow(
-                color: Color(0x20000000), // Additional subtle shadow
-                offset: Offset(0, 2),
-                blurRadius: 6,
-              ),
-            ],
-          ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  // Glassmorphism effect
+                  color: const Color(0xFF000000).withOpacity(0.3), // Semi-transparent dark background
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFFFFFFF).withOpacity(0.2), // Subtle white border
+                    width: 1,
+                  ),
+                  // Enhanced shadow for floating effect
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x40000000), // Strong shadow
+                      offset: Offset(0, 8), // More dramatic offset
+                      blurRadius: 16, // More blur for floating effect
+                    ),
+                    BoxShadow(
+                      color: Color(0x20000000), // Additional subtle shadow
+                      offset: Offset(0, 4),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
           child: GestureDetector(
             onTap: () {
               Navigator.push(
