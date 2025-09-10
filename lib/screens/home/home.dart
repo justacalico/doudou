@@ -33,37 +33,21 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   List<Album> _getRecommendedAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
-    if (favoriteTracks.isEmpty) {
-      // If no favorites, return recently added albums
-      return allAlbums.take(6).toList();
-    }
-
-    // Get albums from favorite artists
-    final favoriteArtistNames = favoriteTracks
-        .where((track) => track.artistName != null)
-        .map((track) => track.artistName!)
-        .toSet();
-
-    final albumsByFavoriteArtists = allAlbums
-        .where((album) => 
-            album.artistName != null && 
-            favoriteArtistNames.contains(album.artistName!))
-        .toList()
-      ..shuffle();
-
-    // Mix with some random albums
-    final otherAlbums = allAlbums
-        .where((album) => 
-            album.artistName == null || 
-            !favoriteArtistNames.contains(album.artistName!))
-        .toList()
-      ..shuffle();
-
-    final recommended = <Album>[];
-    recommended.addAll(albumsByFavoriteArtists.take(4));
-    recommended.addAll(otherAlbums.take(2));
+    // Sort albums by date added (most recent first)
+    final sortedAlbums = List<Album>.from(allAlbums);
+    sortedAlbums.sort((a, b) {
+      // If both albums have dateCreated, compare them
+      if (a.dateCreated != null && b.dateCreated != null) {
+        return b.dateCreated!.compareTo(a.dateCreated!);
+      }
+      // If only one has dateCreated, prioritize it
+      if (a.dateCreated != null) return -1;
+      if (b.dateCreated != null) return 1;
+      // If neither has dateCreated, maintain original order
+      return 0;
+    });
     
-    return recommended.take(6).toList();
+    return sortedAlbums.take(6).toList();
   }
 
   List<Album> _getContinueListeningAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
