@@ -249,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Main content with offset for offline banner and bottom padding for mini player + nav bar
                       Positioned.fill(
                         top: appState.isOfflineMode ? 40 : 0,
-                        bottom: index == 4 ? 83 : 153, // Settings: nav bar only (83), others: mini player (70) + nav bar (83) = 153
+                        bottom: index == 4 ? 0 : 70, // Settings: no bottom padding, others: mini player height (70)
                         child: content,
                       ),
                       // Only show mini player when not on settings screen (index 4)
@@ -257,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const Positioned(
                           left: 0,
                           right: 0,
-                          bottom: 83, // Position mini player above the nav bar
+                          bottom: 0, // Position mini player at the very bottom
                           child: MiniPlayer(),
                         ),
                     ],
