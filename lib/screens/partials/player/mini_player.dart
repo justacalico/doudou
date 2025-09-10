@@ -22,7 +22,7 @@ class MiniPlayer extends StatelessWidget {
 
         return Container(
           height: 70,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Reduced bottom margin since we're above nav bar
           decoration: BoxDecoration(
             color: const Color(0xFF000000), // Pure black for OLED
             borderRadius: BorderRadius.circular(12),
