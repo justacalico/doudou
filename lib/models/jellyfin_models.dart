@@ -36,6 +36,7 @@ class Album {
   final String? artistName;
   final String? imageUrl;
   final int? year;
+  final DateTime? dateCreated;
 
   Album({
     required this.id,
@@ -43,6 +44,7 @@ class Album {
     this.artistName,
     this.imageUrl,
     this.year,
+    this.dateCreated,
   });
 
   factory Album.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,9 @@ class Album {
           ? json['Id'] // We'll construct the full URL in the service
           : null,
       year: json['ProductionYear'],
+      dateCreated: json['DateCreated'] != null
+          ? DateTime.tryParse(json['DateCreated'])
+          : null,
     );
   }
 
