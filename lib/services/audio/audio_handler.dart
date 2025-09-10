@@ -134,8 +134,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _startBackgroundMonitoring() {
     _stopBackgroundMonitoring();
     
-    // Reduce frequency to avoid interference with track transitions
-    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    // Further reduce frequency to avoid interference with track transitions and codec operations
+    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _checkBackgroundPlayback();
     });
   }
