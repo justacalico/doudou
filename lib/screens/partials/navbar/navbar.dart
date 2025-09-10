@@ -101,171 +101,67 @@ class _HomeScreenState extends State<HomeScreen> {
         
         return Stack(
           children: [
-            CupertinoTabScaffold(
-              controller: _tabController,
-              tabBar: CupertinoTabBar(
-                backgroundColor: const Color(0xFF000000).withOpacity(0.95),
-                activeColor: CupertinoColors.systemRed, // Red for active tab
-                inactiveColor: CupertinoColors.systemGrey2,
-                border: Border(
-                  top: BorderSide(
-                    color: CupertinoColors.white.withOpacity(0.2),
-                    width: 0.5,
+            // Main content without tab scaffold
+            IndexedStack(
+              index: _tabController.index,
+              children: [
+                _buildTabContent(0, appState), // Home
+                _buildTabContent(1, appState), // Library
+                _buildTabContent(2, appState), // Downloads
+                _buildTabContent(3, appState), // Search
+                _buildTabContent(4, appState), // Settings
+              ],
+            ),
+            
+            // Custom glassmorphism tab bar positioned at the bottom
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: 65,
+                margin: const EdgeInsets.all(16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        // Glassmorphism effect
+                        color: const Color(0xFF000000).withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFFFFF).withOpacity(0.2),
+                          width: 1,
+                        ),
+                        // Enhanced shadow for floating effect
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x40000000),
+                            offset: Offset(0, 8),
+                            blurRadius: 16,
+                          ),
+                          BoxShadow(
+                            color: Color(0x20000000),
+                            offset: Offset(0, 4),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildTabBarItem(0, CupertinoIcons.house_fill, appState),
+                          _buildTabBarItem(1, CupertinoIcons.music_note_list, appState),
+                          _buildTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
+                          _buildTabBarItem(3, CupertinoIcons.search, appState),
+                          _buildTabBarItem(4, CupertinoIcons.settings, appState),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                iconSize: 26, // Slightly smaller for better centering
-                height: 65, // Slightly taller for better vertical centering
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.house_fill),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.music_note_list),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.arrow_down_circle),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.search),
-                    label: '', // Empty label to hide text
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.settings),
-                    label: '', // Empty label to hide text
-                  ),
-                ],
               ),
-              tabBuilder: (context, index) {
-                Widget content;
-                String title;
-                bool showNavBar = true;
-                
-                switch (index) {
-                  case 0:
-                    content = const HomeContent();
-                    title = 'Home';
-                    showNavBar = false; // Home has custom header
-                    break;
-                  case 1:
-                    content = const LibraryContent();
-                    title = 'Library';
-                    showNavBar = false; // Library has custom header
-                    break;
-                  case 2:
-                    content = const DownloadsScreen();
-                    title = 'Downloads';
-                    showNavBar = false; // Downloads has custom header
-                    break;
-                  case 3:
-                    content = const SearchScreen();
-                    title = 'Search';
-                    showNavBar = false; // Search has custom header
-                    break;
-                  case 4:
-                    content = const SettingsScreen();
-                    title = 'Settings';
-                    showNavBar = false; // Settings has custom header
-                    break;
-                  default:
-                    content = const HomeContent();
-                    title = 'Home';
-                    showNavBar = false;
-                }
-                
-                return CupertinoPageScaffold(
-                  backgroundColor: CupertinoColors.black, // Use CupertinoColors.black instead
-                  navigationBar: showNavBar ? CupertinoNavigationBar(
-                    middle: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(title, style: const TextStyle(color: CupertinoColors.white)),
-                        if (appState.isOfflineMode)
-                          const Text(
-                            'Offline Mode',
-                            style: TextStyle(
-                              color: CupertinoColors.systemOrange,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
-                    ),
-                    backgroundColor: const Color(0xFF000000), // True black for OLED
-                    border: null,
-                    trailing: appState.isOfflineMode 
-                      ? const Icon(
-                          CupertinoIcons.wifi_slash,
-                          color: CupertinoColors.systemOrange,
-                          size: 20,
-                        )
-                      : null,
-                  ) : null,
-                  child: Stack(
-                    children: [
-                      // Offline banner
-                      if (appState.isOfflineMode)
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            color: CupertinoColors.systemOrange,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.wifi_slash,
-                                  color: CupertinoColors.white,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Offline Mode - Downloads Only',
-                                  style: TextStyle(
-                                    color: CupertinoColors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  minSize: 0,
-                                  child: const Text(
-                                    'Retry',
-                                    style: TextStyle(
-                                      color: CupertinoColors.white,
-                                      fontSize: 14,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                  onPressed: () => appState.checkConnectivity(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      // Main content with offset for offline banner only - no bottom padding
-                      Positioned.fill(
-                        top: appState.isOfflineMode ? 40 : 0,
-                        bottom: 0, // Let content extend to the bottom, overlays will handle spacing
-                        child: content,
-                      ),
-                      // Only show mini player when not on settings screen (index 4) - positioned as overlay
-                      if (index != 4)
-                        const Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 80, // Position mini player higher above nav bar (nav bar is 65px high + 15px gap)
-                          child: MiniPlayer(),
-                        ),
-                    ],
-                  ),
-                );
-              },
             ),
           ],
         );
