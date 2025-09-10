@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
                 
                 return CupertinoPageScaffold(
-                  backgroundColor: const Color(0xFF000000), // Dark background
+                  backgroundColor: CupertinoColors.black, // Use CupertinoColors.black instead
                   navigationBar: showNavBar ? CupertinoNavigationBar(
                     middle: Column(
                       mainAxisSize: MainAxisSize.min,
