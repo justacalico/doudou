@@ -91,8 +91,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('Track completed, handling transition...');
         }
-        // Use a microtask to ensure this runs even in background
-        Future.microtask(() => _handleTrackCompletion());
+        // Use a delay to allow codec cleanup and prevent racing
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!_stateManager.isHandlingCompletion && 
+              _player.processingState == ProcessingState.completed) {
+            _handleTrackCompletion();
+          }
+        });
       }
     });
 
