@@ -191,21 +191,12 @@ class _HomeContentState extends State<HomeContent> {
           color: const Color(0xFF000000),
           child: CustomScrollView(
             slivers: [
-              // Home header with profile and notification icons
+              // Header with profile and notification icons
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 50.0, 16.0, 0),
                   child: Row(
                     children: [
-                      const Spacer(),
-                      const Text(
-                        'Home',
-                        style: TextStyle(
-                          color: Color(0xFFFFFFFF),
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                       const Spacer(),
                       // Notification and Profile icons
                       Row(
