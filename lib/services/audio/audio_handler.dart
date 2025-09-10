@@ -150,11 +150,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_stateManager.isHandlingCompletion || 
         _stateManager.isTransitioning ||
         _player.processingState == ProcessingState.loading ||
-        _player.processingState == ProcessingState.buffering) {
+        _player.processingState == ProcessingState.buffering ||
+        _player.processingState == ProcessingState.completed) {
       return;
     }
     
     final playerState = _player.playerState;
+    final position = _player.position;
+    final duration = _player.duration;
+    
+    // Check if we're stuck near the end of a track
+    if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.98)) {
+      if (kDebugMode) {
+        print('Track very close to end, checking for completion...');
+      }
+      
+      // Give it a moment to naturally complete, then force if needed
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (_player.processingState != ProcessingState.completed && 
+            !_stateManager.isHandlingCompletion) {
+          if (kDebugMode) {
+            print('Forcing track completion from background check');
+          }
+          _handleTrackCompletion();
+        }
+      });
+      return;
+    }
     
     // Only handle if we're truly stuck, not during normal completion or transitions
     if (playbackState.value.playing && 
