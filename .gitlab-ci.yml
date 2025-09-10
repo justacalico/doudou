@@ -18,25 +18,19 @@ build_debug_apk:
   tags:
     - android
   before_script:
-    # Clean up any problematic files/directories before starting
-    - rm -rf build/ || true
-    - rm -rf .dart_tool/ || true
-    - rm -rf android/.gradle || true
-    - rm -rf android/.kotlin || true
-    - rm -rf .flutter-plugins-dependencies || true
-    # Clean pub cache if it exists and seems corrupted
-    - if [ -d ".pub-cache" ]; then rm -rf .pub-cache/_temp || true; fi
-    - flutter clean || true
+    # Fully clean build artifacts, caches, and temp directories
+    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
+    - rm -rf .pub-cache       # Completely delete pub-cache to prevent temp file errors
+    - flutter clean
   script:
     - flutter --version
     - flutter clean
-    # Kill any existing Gradle daemons and clean gradle cache
+    # Kill any existing Gradle daemons
     - pkill -f gradle || true
-    # Clean pub cache completely if pub get fails, then retry
-    - flutter pub get || (rm -rf .pub-cache && flutter pub get)
+    # Fetch dependencies safely
+    - flutter pub get --verbose
     - flutter build apk --debug --verbose
   after_script:
-    # Always kill gradle daemons after build
     - pkill -f gradle || true
   artifacts:
     paths:
@@ -49,22 +43,14 @@ build_release_apk:
   tags:
     - android
   before_script:
-    # Clean up any problematic files/directories before starting
-    - rm -rf build/ || true
-    - rm -rf .dart_tool/ || true
-    - rm -rf android/.gradle || true
-    - rm -rf android/.kotlin || true
-    - rm -rf .flutter-plugins-dependencies || true
-    # Clean pub cache if it exists and seems corrupted
-    - if [ -d ".pub-cache" ]; then rm -rf .pub-cache/_temp || true; fi
-    - flutter clean || true
+    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
+    - rm -rf .pub-cache
+    - flutter clean
   script:
     - flutter --version
     - flutter clean
-    # Kill any existing Gradle daemons and clean gradle cache
     - pkill -f gradle || true
-    # Clean pub cache completely if pub get fails, then retry
-    - flutter pub get || (rm -rf .pub-cache && flutter pub get)
+    - flutter pub get --verbose
     # Decode keystore from base64 CI variable to expected location
     - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
     # Create key.properties for signing
@@ -77,7 +63,6 @@ build_release_apk:
       EOF
     - flutter build apk --release --verbose
   after_script:
-    # Always kill gradle daemons after build
     - pkill -f gradle || true
   artifacts:
     paths:
@@ -92,7 +77,7 @@ publish_release:
   needs: 
     - job: "build_debug_apk"
     - job: "build_release_apk"
-      optional: true
+  allow_failure: true
   script:
     - echo "Publishing release with APKs for pipeline $CI_PIPELINE_ID"
   release:
