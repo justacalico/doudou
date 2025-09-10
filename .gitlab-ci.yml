@@ -31,7 +31,8 @@ build_debug_apk:
     - flutter clean
     # Kill any existing Gradle daemons and clean gradle cache
     - pkill -f gradle || true
-    - flutter pub get
+    # Clean pub cache completely if pub get fails, then retry
+    - flutter pub get || (rm -rf .pub-cache && flutter pub get)
     - flutter build apk --debug --verbose
   after_script:
     # Always kill gradle daemons after build
