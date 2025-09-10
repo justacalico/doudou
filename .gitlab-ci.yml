@@ -68,14 +68,19 @@ publish_release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
     - android
-  needs: ["build_release_apk"]
+  needs: 
+    - job: "build_debug_apk"
+    - job: "build_release_apk"
+      optional: true
   script:
-    - echo "Publishing release with signed APK for pipeline $CI_PIPELINE_ID"
+    - echo "Publishing release with APKs for pipeline $CI_PIPELINE_ID"
   release:
     name: "Release Pipeline $CI_PIPELINE_ID"
     description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
     tag_name: "pipeline-$CI_PIPELINE_ID"
     assets:
       links:
-        - name: "Release APK"
+        - name: "Debug APK"
+          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
+        - name: "Release APK (Signed)"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-release.apk?job=build_release_apk"
