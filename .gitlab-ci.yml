@@ -28,6 +28,8 @@ build_release_apk:
   script:
     - flutter --version
     - flutter pub get
+    # Decode keystore from base64 CI variable to expected location
+    - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
     # Create key.properties for signing
     - |
       cat > android/key.properties << EOF
