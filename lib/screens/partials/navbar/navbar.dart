@@ -113,8 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 0.5,
                   ),
                 ),
-                iconSize: 28, // Larger icons since no text
-                height: 60, // Reduce height since no text labels
+                iconSize: 26, // Slightly smaller for better centering
+                height: 65, // Slightly taller for better vertical centering
                 items: const [
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.house_fill),
