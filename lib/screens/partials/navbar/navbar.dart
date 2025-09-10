@@ -249,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Main content with offset for offline banner and bottom padding for mini player + nav bar
                       Positioned.fill(
                         top: appState.isOfflineMode ? 40 : 0,
-                        bottom: index == 4 ? 83 : 160, // Hide mini player on settings (index 4): nav bar only (83), otherwise space for mini player + nav bar (160)
+                        bottom: index == 4 ? 83 : 153, // Settings: nav bar only (83), others: mini player (70) + nav bar (83) = 153
                         child: content,
                       ),
                       // Only show mini player when not on settings screen (index 4)
@@ -264,31 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-            ),
-            // Frosted glass effect only for the bottom navigation area
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: IgnorePointer(
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      height: 83, // Height of just the tab bar
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.black.withOpacity(0.1),
-                        border: Border(
-                          top: BorderSide(
-                            color: CupertinoColors.white.withOpacity(0.1),
-                            width: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ),
           ],
         );
