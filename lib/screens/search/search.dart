@@ -380,8 +380,8 @@ class _SearchScreenState extends State<SearchScreen> {
               _showPlaylists(context, appState);
             },
           ),
-          // Add bottom padding for keyboard space
-          const SizedBox(height: 100),
+          // Add bottom padding for mini player + nav bar + keyboard space
+          const SizedBox(height: 150),
         ],
       ),
     );
