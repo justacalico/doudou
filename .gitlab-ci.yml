@@ -9,6 +9,7 @@ variables:
 cache:
   paths:
     - .pub-cache/
+  key: "$CI_COMMIT_REF_SLUG"
 
 build_debug_apk:
   stage: build
