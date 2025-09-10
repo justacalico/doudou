@@ -313,7 +313,7 @@ class _SearchScreenState extends State<SearchScreen> {
             _buildShowMoreButton('songs', _trackResults.length - 10),
         ],
         
-        const SizedBox(height: 100), // Bottom padding
+        const SizedBox(height: 150), // Bottom padding for mini player + nav bar
       ],
     );
   }
