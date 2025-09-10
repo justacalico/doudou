@@ -492,6 +492,8 @@ class _HomeContentState extends State<HomeContent> {
                           height: 400,
                         ),
                         fit: BoxFit.cover,
+                        width: 180,
+                        height: 180,
                         placeholder: (context, url) => const Center(
                           child: CupertinoActivityIndicator(),
                         ),
