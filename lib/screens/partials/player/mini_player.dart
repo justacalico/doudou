@@ -51,7 +51,7 @@ class MiniPlayer extends StatelessWidget {
                     ),
                   ],
                 ),
-          child: GestureDetector(
+                child: GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
@@ -163,8 +163,8 @@ class MiniPlayer extends StatelessWidget {
                 ],
               ),
             ),
-              ),
             ),
+          ),
         );
       },
     );
