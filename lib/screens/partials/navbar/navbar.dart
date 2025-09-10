@@ -255,14 +255,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       // Only show mini player when not on settings screen (index 4) - positioned as overlay
                       if (index != 4)
-                        Positioned(
+                        const Positioned(
                           left: 0,
                           right: 0,
                           bottom: 65, // Position mini player above nav bar (nav bar is 65px high)
-                          child: Container(
-                            color: CupertinoColors.clear, // Make sure background is transparent
-                            child: const MiniPlayer(),
-                          ),
+                          child: MiniPlayer(),
                         ),
                     ],
                   ),
