@@ -22,7 +22,7 @@ class MiniPlayer extends StatelessWidget {
 
         return Container(
           height: 70,
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Reduced bottom margin since we're above nav bar
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 4), // Small bottom margin for separation from nav bar
           decoration: BoxDecoration(
             color: const Color(0xFF000000), // Pure black for OLED
             borderRadius: BorderRadius.circular(12),
@@ -30,6 +30,15 @@ class MiniPlayer extends StatelessWidget {
               color: const Color(0xFF1C1C1E), // Subtle border for definition
               width: 0.5,
             ),
+            // Add a subtle shadow for separation from nav bar
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x20000000),
+                offset: Offset(0, 2),
+                blurRadius: 8,
+              ),
+            ],
+          ),
           ),
           child: GestureDetector(
             onTap: () {
