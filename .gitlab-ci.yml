@@ -1,5 +1,4 @@
 stages:
-- cleanup
 - build
 - release
 
