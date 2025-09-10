@@ -11,7 +11,7 @@ class LyricsLine {
 
 class LyricsResult {
   final String plainLyrics;
-  final List<LyricsLine>? syncedLyrics;
+  final List<LyricsLine>? syncedLyrics; 
   final bool hasSyncedLyrics;
   
   LyricsResult({
