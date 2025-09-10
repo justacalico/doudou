@@ -271,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     height: 83, // Height of the tab bar
                     decoration: BoxDecoration(
-                      color: const Color(0xFF000000).withOpacity(0.7),
+                      color: const Color(0xFF000000).withOpacity(0.8),
                       border: Border(
                         top: BorderSide(
                           color: const Color(0xFFFFFFFF).withOpacity(0.1),
