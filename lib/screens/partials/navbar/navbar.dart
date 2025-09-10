@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
@@ -107,12 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 activeColor: CupertinoColors.systemRed, // Red for active tab
                 inactiveColor: CupertinoColors.systemGrey2,
                 border: const Border(
+                border: Border(
                   top: BorderSide(
-                    color: CupertinoColors.clear,
+                    color: CupertinoColors.black.withOpacity(0.0),
                     width: 0,
                   ),
-                ),
-                items: const [
+                ),ems: const [
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.house_fill),
                     label: 'Home',
