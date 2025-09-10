@@ -171,9 +171,9 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                   else
                     const DownloadedPlaylistsTab(), // Default fallback
                   
-                  // Bottom padding for mini player
+                  // Bottom padding for mini player + nav bar
                   const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
+                    child: SizedBox(height: 150), // Space for mini player (70px) + nav bar (65px) + extra padding
                   ),
                 ],
               ),
