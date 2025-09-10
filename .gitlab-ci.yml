@@ -38,6 +38,8 @@ build_debug_apk:
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - android
+  needs:
+    - job: "cleanup_workspace"
   before_script:
     # Clean up any problematic files/directories before starting
     - git status || true
