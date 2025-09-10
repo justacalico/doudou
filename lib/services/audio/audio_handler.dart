@@ -91,8 +91,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('Track completed, handling transition...');
         }
-        // Use a delay to allow codec cleanup and prevent racing
-        Future.delayed(const Duration(milliseconds: 100), () {
+        // Use a longer delay to allow codec cleanup and prevent racing
+        Future.delayed(const Duration(milliseconds: 300), () {
           if (!_stateManager.isHandlingCompletion && 
               _player.processingState == ProcessingState.completed) {
             _handleTrackCompletion();
@@ -150,7 +150,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_stateManager.isHandlingCompletion || 
         _stateManager.isTransitioning ||
         _player.processingState == ProcessingState.loading ||
-        _player.processingState == ProcessingState.buffering ||
         _player.processingState == ProcessingState.completed) {
       return;
     }
@@ -158,6 +157,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final playerState = _player.playerState;
     final position = _player.position;
     final duration = _player.duration;
+    
+    // Check for stuck buffering state - this is often where tracks get stuck
+    if (_player.processingState == ProcessingState.buffering && 
+        playbackState.value.playing) {
+      if (kDebugMode) {
+        print('Track stuck in buffering state, checking position...');
+      }
+      
+      // If we're buffering near the end, force completion
+      if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.95)) {
+        if (kDebugMode) {
+          print('Buffering stuck near end, forcing completion');
+        }
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (_player.processingState == ProcessingState.buffering && 
+              !_stateManager.isHandlingCompletion) {
+            _handleTrackCompletion();
+          }
+        });
+        return;
+      }
+    }
     
     // Check if we're stuck near the end of a track
     if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.98)) {
