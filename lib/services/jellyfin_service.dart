@@ -154,8 +154,8 @@ class JellyfinService {
           'IncludeItemTypes': 'MusicAlbum',
           'Recursive': true,
           'Fields': 'PrimaryImageAspectRatio,ImageTags,DateCreated',
-          'SortBy': 'SortName',
-          'SortOrder': 'Ascending',
+          'SortBy': 'DateCreated',
+          'SortOrder': 'Descending',
         },
       );
 
