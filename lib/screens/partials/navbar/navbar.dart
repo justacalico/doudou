@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Main content with offset for offline banner and bottom padding for mini player + nav bar
                       Positioned.fill(
                         top: appState.isOfflineMode ? 40 : 0,
-                        bottom: index == 4 ? 0 : 70, // Settings: no bottom padding, others: mini player height (70)
+                        bottom: index == 4 ? 65 : 135, // Settings: nav bar only (65), others: mini player (70) + nav bar (65) = 135
                         child: content,
                       ),
                       // Only show mini player when not on settings screen (index 4)
@@ -290,16 +290,18 @@ class _HomeScreenState extends State<HomeScreen> {
               right: 0,
               bottom: 0,
               height: 65,
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF000000).withOpacity(0.3),
-                      border: Border(
-                        top: BorderSide(
-                          color: CupertinoColors.white.withOpacity(0.1),
-                          width: 0.5,
+              child: IgnorePointer( // Allow touches to pass through to tab bar
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF000000).withOpacity(0.3),
+                        border: Border(
+                          top: BorderSide(
+                            color: CupertinoColors.white.withOpacity(0.1),
+                            width: 0.5,
+                          ),
                         ),
                       ),
                     ),
