@@ -259,18 +259,22 @@ class _HomeContentState extends State<HomeContent> {
                           child: Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE91E63).withOpacity(0.8),
+                              color: Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFE91E63).withOpacity(0.8),
+                                width: 1.5,
+                              ),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(CupertinoIcons.heart, color: CupertinoColors.white, size: 20),
-                                SizedBox(width: 8),
+                                Icon(CupertinoIcons.heart, color: const Color(0xFFE91E63).withOpacity(0.8), size: 20),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Shuffle favorites',
                                   style: TextStyle(
-                                    color: CupertinoColors.white,
+                                    color: const Color(0xFFE91E63).withOpacity(0.8),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
