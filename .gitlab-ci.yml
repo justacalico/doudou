@@ -44,12 +44,19 @@ build_release_apk:
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - android
+  before_script:
+    # Clean up any problematic files/directories before starting
+    - git clean -ffdx || true
+    - rm -rf build/ || true
+    - rm -rf .dart_tool/ || true
+    - rm -rf android/.gradle || true
+    - rm -rf android/.kotlin || true
+    - rm -rf .flutter-plugins-dependencies || true
   script:
     - flutter --version
     - flutter clean
     # Kill any existing Gradle daemons and clean gradle cache
     - pkill -f gradle || true
-    - rm -rf android/.gradle || true
     - flutter pub get
     # Decode keystore from base64 CI variable to expected location
     - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
