@@ -207,6 +207,7 @@ class _HomeContentState extends State<HomeContent> {
                           },
                           child: Container(
                             height: 50,
+                            width: 50,
                             decoration: BoxDecoration(
                               color: Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
@@ -220,11 +221,14 @@ class _HomeContentState extends State<HomeContent> {
                               children: [
                                 Icon(CupertinoIcons.shuffle, color: Color(0xFFE91E63), size: 20),
                                 SizedBox(width: 8),
-                                Text(
-                                  'Shuffle all',
-                                  style: TextStyle(
-                                    color: Color(0xFFE91E63),
-                                    fontWeight: FontWeight.w600,
+                                Flexible(
+                                  child: Text(
+                                    'Shuffle all',
+                                    style: TextStyle(
+                                      color: Color(0xFFE91E63),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
