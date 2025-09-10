@@ -208,18 +208,22 @@ class _HomeContentState extends State<HomeContent> {
                           child: Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE91E63),
+                              color: Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFE91E63),
+                                width: 1.5,
+                              ),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 20),
+                                Icon(CupertinoIcons.shuffle, color: Color(0xFFE91E63), size: 20),
                                 SizedBox(width: 8),
                                 Text(
                                   'Shuffle all',
                                   style: TextStyle(
-                                    color: CupertinoColors.white,
+                                    color: Color(0xFFE91E63),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
