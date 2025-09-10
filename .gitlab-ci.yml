@@ -14,6 +14,25 @@ cache:
     - .pub-cache/
   key: "$CI_COMMIT_REF_SLUG"
 
+cleanup_workspace:
+  stage: cleanup
+  image: alpine/git:latest
+  tags:
+    - android
+  script:
+    - echo "Cleaning up workspace"
+    - git clean -ffdx || true
+    - rm -rf build/ || true
+    - rm -rf .dart_tool/ || true
+    - rm -rf android/.gradle || true
+    - rm -rf android/.kotlin || true
+    - rm -rf .flutter-plugins-dependencies || true
+    - echo "Workspace cleaned"
+  artifacts:
+    expire_in: 10 minutes
+    paths:
+      - .
+
 build_debug_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
