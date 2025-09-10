@@ -208,11 +208,11 @@ class _HomeContentState extends State<HomeContent> {
                           child: Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: Colors.transparent,
+                              color: const Color(0xFFE91E63).withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFFE91E63),
-                                width: 1.5,
+                                color: const Color(0xFFE91E63).withOpacity(0.2),
+                                width: 1,
                               ),
                             ),
                             child: const Row(
