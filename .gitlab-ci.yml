@@ -23,6 +23,8 @@ build_debug_apk:
     - rm -rf android/.gradle || true
     - rm -rf android/.kotlin || true
     - rm -rf .flutter-plugins-dependencies || true
+    # Clean pub cache if it exists and seems corrupted
+    - if [ -d ".pub-cache" ]; then rm -rf .pub-cache/_temp || true; fi
     - flutter clean || true
   script:
     - flutter --version
