@@ -265,6 +265,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            // Frosted glass effect only for the bottom navigation area
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: IgnorePointer(
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      height: 83, // Height of just the tab bar
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.black.withOpacity(0.1),
+                        border: Border(
+                          top: BorderSide(
+                            color: CupertinoColors.white.withOpacity(0.1),
+                            width: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       },
