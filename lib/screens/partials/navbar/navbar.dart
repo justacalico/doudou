@@ -113,26 +113,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 0.5,
                   ),
                 ),
+                iconSize: 28, // Larger icons since no text
+                height: 60, // Reduce height since no text labels
                 items: const [
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.house_fill),
-                    label: 'Home',
+                    label: '', // Empty label to hide text
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.music_note_list),
-                    label: 'Library',
+                    label: '', // Empty label to hide text
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.arrow_down_circle),
-                    label: 'Downloads',
+                    label: '', // Empty label to hide text
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.search),
-                    label: 'Search',
+                    label: '', // Empty label to hide text
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.settings),
-                    label: 'Settings',
+                    label: '', // Empty label to hide text
                   ),
                 ],
               ),
