@@ -413,17 +413,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       return;
     }
     
-    // Double-check we're actually at completion
+    // Double-check we're actually at completion or very close to it
     if (_player.processingState != ProcessingState.completed) {
       final position = _player.position;
       final duration = _player.duration;
       
-      // Only proceed if we're very close to the end
-      if (duration == null || position.inMilliseconds < (duration.inMilliseconds * 0.95)) {
+      // Only proceed if we're very close to the end or stuck in buffering
+      final isNearEnd = duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.95);
+      final isStuckBuffering = _player.processingState == ProcessingState.buffering && 
+                              duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.90);
+      
+      if (!isNearEnd && !isStuckBuffering) {
         if (kDebugMode) {
-          print('Track completion called but not actually complete. Position: ${position.inMilliseconds}/${duration?.inMilliseconds}');
+          print('Track completion called but not actually complete. Position: ${position.inMilliseconds}/${duration?.inMilliseconds}, State: ${_player.processingState}');
         }
         return;
+      }
+      
+      if (kDebugMode) {
+        print('Forcing completion - Near end: $isNearEnd, Stuck buffering: $isStuckBuffering');
       }
     }
     
@@ -441,8 +449,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Stop background monitoring during transition to prevent interference
       _stopBackgroundMonitoring();
       
-      // Give codec time to properly cleanup before transitioning
-      await Future.delayed(const Duration(milliseconds: 200));
+      // Force stop the player to clear any codec issues
+      try {
+        await _player.stop();
+        if (kDebugMode) {
+          print('Player stopped for codec cleanup');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error stopping player during completion: $e');
+        }
+      }
+      
+      // Give codec more time to properly cleanup before transitioning
+      await Future.delayed(const Duration(milliseconds: 500));
       
       if (_stateManager.incrementCurrentIndex()) {
         if (kDebugMode) {
