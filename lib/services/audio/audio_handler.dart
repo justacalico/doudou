@@ -27,6 +27,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Background playback tracking
   Timer? _backgroundPlaybackTimer;
   bool _isInBackground = false;
+  
+  // Codec loop detection
+  DateTime? _lastBufferingTime;
+  int _bufferingLoopCount = 0;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
@@ -81,23 +85,42 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
     });
 
-    // More robust completion detection with background handling
+    // Simplified completion detection - immediate handling without delays
     _player.processingStateStream.listen((state) {
       if (kDebugMode) {
         print('Processing state changed: $state');
       }
       
+      // Only handle codec loops in extreme cases, not during normal transitions
+      if (state == ProcessingState.buffering) {
+        final now = DateTime.now();
+        if (_lastBufferingTime != null && 
+            now.difference(_lastBufferingTime!) < const Duration(seconds: 2)) {
+          _bufferingLoopCount++;
+          // Increase threshold to avoid interfering with transitions
+          if (_bufferingLoopCount >= 5) {
+            if (kDebugMode) {
+              print('Detected extreme codec loop in buffering state, forcing recovery');
+            }
+            _handleCodecLoop();
+            return;
+          }
+        } else {
+          _bufferingLoopCount = 0;
+        }
+        _lastBufferingTime = now;
+      } else {
+        // Reset loop detection on state changes
+        _bufferingLoopCount = 0;
+        _lastBufferingTime = null;
+      }
+      
+      // Immediate completion handling without delays to prevent race conditions
       if (state == ProcessingState.completed && !_stateManager.isHandlingCompletion) {
         if (kDebugMode) {
-          print('Track completed, handling transition...');
+          print('Track completed, handling transition immediately...');
         }
-        // Use a longer delay to allow codec cleanup and prevent racing
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (!_stateManager.isHandlingCompletion && 
-              _player.processingState == ProcessingState.completed) {
-            _handleTrackCompletion();
-          }
-        });
+        _handleTrackCompletion();
       }
     });
 
@@ -134,8 +157,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _startBackgroundMonitoring() {
     _stopBackgroundMonitoring();
     
-    // Further reduce frequency to avoid interference with track transitions and codec operations
-    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    // Less frequent monitoring to reduce interference with transitions
+    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
       _checkBackgroundPlayback();
     });
   }
@@ -146,11 +169,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _checkBackgroundPlayback() {
-    // Don't interfere during transitions, completion handling, or when the player is loading
+    // Don't interfere during transitions, completion handling, or when the player is loading/buffering
     if (_stateManager.isHandlingCompletion || 
         _stateManager.isTransitioning ||
         _player.processingState == ProcessingState.loading ||
-        _player.processingState == ProcessingState.completed) {
+        _player.processingState == ProcessingState.completed ||
+        _player.processingState == ProcessingState.buffering) {
       return;
     }
     
@@ -158,29 +182,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final position = _player.position;
     final duration = _player.duration;
     
-    // Check for stuck buffering state - this is often where tracks get stuck
-    if (_player.processingState == ProcessingState.buffering && 
-        playbackState.value.playing) {
-      if (kDebugMode) {
-        print('Track stuck in buffering state, checking position...');
-      }
-      
-      // If we're buffering near the end, force completion
-      if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.95)) {
-        if (kDebugMode) {
-          print('Buffering stuck near end, forcing completion');
-        }
-        Future.delayed(const Duration(milliseconds: 200), () {
-          if (_player.processingState == ProcessingState.buffering && 
-              !_stateManager.isHandlingCompletion) {
-            _handleTrackCompletion();
-          }
-        });
-        return;
-      }
-    }
-    
-    // Check if we're stuck near the end of a track
+    // Simplified background check - only handle truly stuck states
     if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.98)) {
       if (kDebugMode) {
         print('Track very close to end, checking for completion...');
@@ -251,6 +253,55 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     } catch (e) {
       if (kDebugMode) {
         print('Failed to recover from background error: $e');
+      }
+    }
+  }
+
+  Future<void> _handleCodecLoop() async {
+    if (_stateManager.isHandlingCompletion || _stateManager.isTransitioning) {
+      return;
+    }
+    
+    if (kDebugMode) {
+      print('Handling codec loop by reloading track: ${_stateManager.currentTrack?.name}');
+    }
+    
+    try {
+      final currentTrack = _stateManager.currentTrack;
+      if (currentTrack == null) return;
+      
+      final wasPlaying = playbackState.value.playing;
+      final currentPosition = _player.position;
+      
+      // Force stop to break the codec loop
+      await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 500)); // Reduced delay for faster recovery
+      
+      // Reload the track
+      await _loadAndPlayTrack(currentTrack);
+      
+      // Restore position if significant
+      if (currentPosition.inMilliseconds > 5000) { // Only if more than 5 seconds
+        await _player.seek(currentPosition);
+      }
+      
+      // Resume playing if we were playing
+      if (wasPlaying) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        await _player.play();
+      }
+      
+      // Reset loop detection
+      _bufferingLoopCount = 0;
+      _lastBufferingTime = null;
+      
+      if (kDebugMode) {
+        print('Codec loop recovery completed for: ${currentTrack.name}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to recover from codec loop: $e');
       }
     }
   }
@@ -461,8 +512,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       
-      // Give codec more time to properly cleanup before transitioning
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Give codec time to cleanup before transitioning - reduced delay for smoother transitions
+      await Future.delayed(const Duration(milliseconds: 200));
       
       if (_stateManager.incrementCurrentIndex()) {
         if (kDebugMode) {
@@ -475,25 +526,47 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (wasPlaying) {
           _startBackgroundMonitoring();
           
-          // Additional verification that playback actually started
-          await Future.delayed(const Duration(milliseconds: 500));
+          // Reduced verification delay for faster transitions
+          await Future.delayed(const Duration(milliseconds: 300));
+          
+          // Check if we're stuck in a codec loop or not actually playing
           if (!_player.playing && wasPlaying) {
             if (kDebugMode) {
-              print('Playback verification failed, forcing play command');
+              print('Playback verification failed, attempting recovery');
             }
-            try {
-              await _player.play();
-              
-              // Update state to reflect the corrected state
-              playbackState.add(playbackState.value.copyWith(
-                playing: _player.playing,
-                processingState: AudioProcessingState.ready,
-              ));
-            } catch (e) {
-              if (kDebugMode) {
-                print('Failed to force play after track transition: $e');
+            
+            // Try multiple recovery attempts
+            for (int attempt = 0; attempt < 3; attempt++) {
+              try {
+                await _player.play();
+                await Future.delayed(const Duration(milliseconds: 200));
+                
+                if (_player.playing) {
+                  if (kDebugMode) {
+                    print('Playback recovered on attempt ${attempt + 1}');
+                  }
+                  break;
+                }
+                
+                if (attempt == 2) {
+                  // Final attempt - reload the track
+                  if (kDebugMode) {
+                    print('Final recovery attempt: reloading track');
+                  }
+                  await _handleCodecLoop();
+                }
+              } catch (e) {
+                if (kDebugMode) {
+                  print('Recovery attempt ${attempt + 1} failed: $e');
+                }
               }
             }
+            
+            // Update state to reflect actual player state
+            playbackState.add(playbackState.value.copyWith(
+              playing: _player.playing,
+              processingState: _player.playing ? AudioProcessingState.ready : AudioProcessingState.idle,
+            ));
           }
         }
         
