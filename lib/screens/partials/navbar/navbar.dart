@@ -247,19 +247,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                      // Main content with offset for offline banner and bottom padding for mini player + nav bar
+                      // Main content with offset for offline banner only - no bottom padding
                       Positioned.fill(
                         top: appState.isOfflineMode ? 40 : 0,
-                        bottom: index == 4 ? 65 : 135, // Settings: nav bar height (65), others: mini player (70) + nav bar (65)
+                        bottom: 0, // Let content extend to the bottom, overlays will handle spacing
                         child: content,
                       ),
-                      // Only show mini player when not on settings screen (index 4)
+                      // Only show mini player when not on settings screen (index 4) - positioned as overlay
                       if (index != 4)
-                        const Positioned(
+                        Positioned(
                           left: 0,
                           right: 0,
                           bottom: 65, // Position mini player above nav bar (nav bar is 65px high)
-                          child: MiniPlayer(),
+                          child: Container(
+                            color: Colors.transparent, // Make sure background is transparent
+                            child: const MiniPlayer(),
+                          ),
                         ),
                     ],
                   ),
