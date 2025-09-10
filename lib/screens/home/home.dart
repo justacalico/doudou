@@ -191,50 +191,6 @@ class _HomeContentState extends State<HomeContent> {
           color: const Color(0xFF000000),
           child: CustomScrollView(
             slivers: [
-              // Header with profile and notification icons
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 50.0, 16.0, 0),
-                  child: Row(
-                    children: [
-                      const Spacer(),
-                      // Notification and Profile icons
-                      Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF1C1C1E),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.bell,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE91E63),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.person_fill,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
               const SliverToBoxAdapter(child: SizedBox(height: 30)),
               
               // Shuffle buttons
