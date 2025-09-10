@@ -258,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const Positioned(
                           left: 0,
                           right: 0,
-                          bottom: 65, // Position mini player above nav bar (nav bar is 65px high)
+                          bottom: 80, // Position mini player higher above nav bar (nav bar is 65px high + 15px gap)
                           child: MiniPlayer(),
                         ),
                     ],
