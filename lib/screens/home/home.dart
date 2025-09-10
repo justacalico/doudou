@@ -256,7 +256,7 @@ class _HomeContentState extends State<HomeContent> {
                             height: 50,
                             decoration: BoxDecoration(
                               color: const Color(0xFFE91E63).withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
