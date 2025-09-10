@@ -22,7 +22,7 @@ class MiniPlayer extends StatelessWidget {
 
         return Container(
           height: 70,
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 4), // Small bottom margin for separation from nav bar
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Balanced margin for floating effect
           decoration: BoxDecoration(
             color: const Color(0xFF000000), // Pure black for OLED
             borderRadius: BorderRadius.circular(12),
@@ -30,12 +30,17 @@ class MiniPlayer extends StatelessWidget {
               color: const Color(0xFF1C1C1E), // Subtle border for definition
               width: 0.5,
             ),
-            // Add a subtle shadow for separation from nav bar
+            // Enhanced shadow for better floating effect
             boxShadow: const [
               BoxShadow(
-                color: Color(0x20000000),
+                color: Color(0x40000000), // Stronger shadow
+                offset: Offset(0, 4), // Slightly more offset
+                blurRadius: 12, // More blur for floating effect
+              ),
+              BoxShadow(
+                color: Color(0x20000000), // Additional subtle shadow
                 offset: Offset(0, 2),
-                blurRadius: 8,
+                blurRadius: 6,
               ),
             ],
           ),
