@@ -451,7 +451,7 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
               
-              const SliverToBoxAdapter(child: SizedBox(height: 100)), // Space for mini player
+              const SliverToBoxAdapter(child: SizedBox(height: 150)), // Space for mini player (70px) + nav bar (65px) + extra padding
             ],
           ),
         );
