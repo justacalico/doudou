@@ -5,8 +5,6 @@ stages:
 variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
-  GIT_CLEAN_FLAGS: "-ffdx"
-  GIT_CHECKOUT: "true"
 
 cache:
   paths:
