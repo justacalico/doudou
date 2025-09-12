@@ -23,6 +23,36 @@ class AudioPreloader {
   
   AudioPreloader(this._jellyfinService, this._downloadService);
   
+  /// Acquires preload operation lock to prevent race conditions
+  Future<void> _acquirePreloadLock() async {
+    while (_preloadLock != null && !_preloadLock!.isCompleted) {
+      await _preloadLock!.future;
+    }
+    _preloadLock = Completer<void>();
+  }
+  
+  /// Releases preload operation lock
+  void _releasePreloadLock() {
+    if (_preloadLock != null && !_preloadLock!.isCompleted) {
+      _preloadLock!.complete();
+    }
+  }
+  
+  /// Acquires cleanup operation lock to prevent race conditions
+  Future<void> _acquireCleanupLock() async {
+    while (_cleanupLock != null && !_cleanupLock!.isCompleted) {
+      await _cleanupLock!.future;
+    }
+    _cleanupLock = Completer<void>();
+  }
+  
+  /// Releases cleanup operation lock
+  void _releaseCleanupLock() {
+    if (_cleanupLock != null && !_cleanupLock!.isCompleted) {
+      _cleanupLock!.complete();
+    }
+  }
+
   Map<String, AudioPlayer> get preloadedPlayers => _preloadedPlayers;
   Set<String> get preloadingTracks => _preloadingTracks;
   Set<String> get bufferedTracks => _bufferedTracks;
