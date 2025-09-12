@@ -173,9 +173,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _checkBackgroundPlayback() {
-    // Don't interfere during transitions, completion handling, or when the player is loading/buffering
+    // Don't interfere during transitions, completion handling, or loading states
     if (_stateManager.isHandlingCompletion || 
         _stateManager.isTransitioning ||
+        _isHandlingTransition ||
         _player.processingState == ProcessingState.loading ||
         _player.processingState == ProcessingState.completed ||
         _player.processingState == ProcessingState.buffering) {
@@ -186,32 +187,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final position = _player.position;
     final duration = _player.duration;
     
-    // Simplified background check - only handle truly stuck states
-    if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.98)) {
-      if (kDebugMode) {
-        print('Track very close to end, checking for completion...');
-      }
-      
-      // Give it a moment to naturally complete, then force if needed
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (_player.processingState != ProcessingState.completed && 
-            !_stateManager.isHandlingCompletion) {
-          if (kDebugMode) {
-            print('Forcing track completion from background check');
-          }
-          _handleTrackCompletion();
-        }
-      });
-      return;
-    }
+    // Update position tracking
+    _lastPositionUpdate = DateTime.now();
     
-    // Only handle if we're truly stuck, not during normal completion or transitions
+    // REMOVED: Aggressive completion detection at 98% - let natural completion handle this
+    
+    // Only handle if we're truly stuck - position not advancing for 10+ seconds
+    // AND we're supposed to be playing but actually idle
     if (playbackState.value.playing && 
         playerState.processingState == ProcessingState.idle &&
         !_stateManager.isHandlingCompletion) {
       
       if (kDebugMode) {
-        print('Background playback issue detected. Player state: ${playerState.processingState}, Expected: playing');
+        print('Detected stuck playback state. Player: ${playerState.processingState}, Expected: playing');
       }
       
       _handleBackgroundPlaybackIssue();
