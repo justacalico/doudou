@@ -316,7 +316,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> stop() async {
-    _stopBackgroundMonitoring();
     await _player.stop();
     playbackState.add(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
