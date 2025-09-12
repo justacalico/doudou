@@ -606,6 +606,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await setShuffleMode(AudioServiceShuffleMode.none);
   }
 
+  // Radio Mode functionality (not implemented yet)
+  void toggleRadioMode() {
+    // TODO: Implement radio mode
+  }
+
+  void enableRadioMode() {
+    // TODO: Implement radio mode
+  }
+
+  void disableRadioMode() {
+    // TODO: Implement radio mode
+  }
+
   // Getters
   List<Track> get playlist => queue.valueOrNull?.map((item) => _mediaItemToTrack(item)).toList() ?? [];
   List<Track> get queueTracks => playlist; // Same as playlist for now
