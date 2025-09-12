@@ -786,6 +786,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Custom methods for the app
   Future<void> playTrack(Track track) async {
+    // Set user intent to playing since this is an explicit play action
+    _userIntendedPlaying = true;
+    
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
     
