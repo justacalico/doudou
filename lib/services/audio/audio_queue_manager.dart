@@ -105,10 +105,10 @@ class AudioQueueManager {
     }
   }
   
-  /// Add tracks to the end of the playlist (for radio mode)
-  void addTracksToPlaylist(List<Track> tracks) {
+  /// Add tracks to the end of the playlist (for radio mode) - Thread-safe
+  Future<void> addTracksToPlaylist(List<Track> tracks) async {
     for (final track in tracks) {
-      _stateManager.addToPlaylist(track);
+      await _stateManager.addToPlaylistAtomic(track);
     }
     
     if (kDebugMode) {
