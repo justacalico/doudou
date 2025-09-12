@@ -31,6 +31,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Codec loop detection
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
+  
+  // State management for atomic operations
+  bool _isHandlingTransition = false;
+  DateTime? _lastPositionUpdate;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
