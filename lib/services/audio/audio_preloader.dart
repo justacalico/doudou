@@ -7,14 +7,19 @@ import '../download_service.dart';
 import '../jellyfin_service.dart';
 
 /// Handles preloading and caching of audio tracks for instant playback
+/// Thread-safe implementation to prevent cleanup/creation race conditions
 class AudioPreloader {
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
   
-  // Preloading and caching
+  // Synchronized preloading state
   final Map<String, AudioPlayer> _preloadedPlayers = {};
   final Set<String> _preloadingTracks = {}; // Tracks currently being preloaded
   final Set<String> _bufferedTracks = {}; // Tracks with buffered content
+  
+  // Synchronization locks
+  Completer<void>? _preloadLock;
+  Completer<void>? _cleanupLock;
   
   AudioPreloader(this._jellyfinService, this._downloadService);
   
