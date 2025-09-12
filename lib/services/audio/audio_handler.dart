@@ -1006,11 +1006,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           
           if (stateData.wasPlaying) {
+            // Set user intent based on restored state
+            _userIntendedPlaying = true;
+            
             await _player.play();
             _statePersistence.startPeriodicSaving(_player.position, _player.playing);
             if (kDebugMode) {
               print('Automatically resumed playback: ${currentTrack.name}');
             }
+          } else {
+            _userIntendedPlaying = false;
           }
           
           playbackState.add(playbackState.value.copyWith(
