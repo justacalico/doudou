@@ -25,9 +25,9 @@ class AudioStatePersistence {
     _pendingPosition = position;
     _pendingIsPlaying = isPlaying;
     
-    // Cancel existing debounce timer and start new one
+    // Cancel existing debounce timer and start new one - increased debounce time
     _debounceSaveTimer?.cancel();
-    _debounceSaveTimer = Timer(const Duration(milliseconds: 300), () {
+    _debounceSaveTimer = Timer(const Duration(seconds: 2), () {
       _executeSavePlaybackState();
     });
   }
