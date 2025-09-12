@@ -223,8 +223,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       var idx = _player.currentIndex;
       if (idx != null) {
         if (_player.shuffleModeEnabled) {
-          var next = _player.shuffleIndices?.indexOf(idx);
-          idx = next == -1 || next == null ? null : next + 1;
+          var next = _player.shuffleIndices.indexOf(idx);
+          idx = next == -1 ? null : next + 1;
         } else {
           ++idx;
         }
