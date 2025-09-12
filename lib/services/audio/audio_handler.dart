@@ -815,6 +815,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
     
+    // Set user intent to playing since this is an explicit play action
+    _userIntendedPlaying = true;
+    
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
     
