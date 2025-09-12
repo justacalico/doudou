@@ -176,13 +176,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _startBackgroundMonitoring() {
     _stopBackgroundMonitoring();
     
-    // Much less frequent monitoring to prevent "CD skipping" - increased from 12s to 30s
-    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    // Only enable monitoring when explicitly requested (e.g., after detecting issues)
+    // Much longer interval to prevent interference - 2 minutes instead of 30 seconds
+    _backgroundPlaybackTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
       _checkBackgroundPlayback();
     });
     
     if (kDebugMode) {
-      print('Started background monitoring with 30-second interval');
+      print('Started background monitoring with 2-minute interval (issue recovery mode)');
     }
   }
 
