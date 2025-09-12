@@ -19,8 +19,35 @@ class AudioStatePersistence {
   
   AudioStatePersistence(this._stateManager);
   
+  /// Thread-safe debounced save to prevent conflicting operations
   Future<void> savePlaybackState(Duration position, bool isPlaying) async {
+    // Store pending values for debouncing
+    _pendingPosition = position;
+    _pendingIsPlaying = isPlaying;
+    
+    // Cancel existing debounce timer and start new one
+    _debounceSaveTimer?.cancel();
+    _debounceSaveTimer = Timer(const Duration(milliseconds: 300), () {
+      _executeSavePlaybackState();
+    });
+  }
+  
+  /// Internal method that actually performs the save operation
+  Future<void> _executeSavePlaybackState() async {
+    // Prevent concurrent saves
+    if (_isSaving) {
+      if (kDebugMode) {
+        print('Save already in progress, skipping...');
+      }
+      return;
+    }
+    
+    _isSaving = true;
+    
     try {
+      final position = _pendingPosition ?? Duration.zero;
+      final isPlaying = _pendingIsPlaying ?? false;
+      
       final prefs = await SharedPreferences.getInstance();
       
       // Save current playlist
@@ -38,11 +65,20 @@ class AudioStatePersistence {
         if (_stateManager.currentTrack != null) {
           await prefs.setString('current_track_id', _stateManager.currentTrack!.id);
         }
+        
+        if (kDebugMode) {
+          print('Debounced save completed: ${position.inMilliseconds}ms, playing: $isPlaying');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error saving playback state: $e');
       }
+    } finally {
+      _isSaving = false;
+      // Clear pending values after successful save
+      _pendingPosition = null;
+      _pendingIsPlaying = null;
     }
   }
   
