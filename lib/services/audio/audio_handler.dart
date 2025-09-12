@@ -33,24 +33,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
   
-  // Helper method to update playback state while filtering disruptive buffering
+  // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
-    // If we're trying to set buffering state while currently playing, skip it
-    // This prevents audio interruptions during normal network buffering
-    if (newState.processingState == AudioProcessingState.buffering && 
+    PlaybackState finalState = newState;
+    
+    // If we're buffering but user intended to play, override the playing state
+    if (newState.processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
+      // Force playing state to true during buffering if user intended to play
+      finalState = newState.copyWith(playing: true);
+      
+      if (kDebugMode) {
+        print('Buffering detected but maintaining playback (user intended playing)');
+      }
+    }
+    // If we're trying to set buffering state while currently playing, maintain playback
+    else if (newState.processingState == AudioProcessingState.buffering && 
         playbackState.value.playing && 
         playbackState.value.processingState == AudioProcessingState.ready) {
       
-      // Create a copy without the buffering state change
-      final filteredState = newState.copyWith(
-        processingState: playbackState.value.processingState, // Keep current state
+      // Keep current state but show buffering processing state
+      finalState = newState.copyWith(
+        playing: _userIntendedPlaying, // Use user intent instead of current state
       );
-      playbackState.add(filteredState);
-      return;
+      
+      if (kDebugMode) {
+        print('Network buffering - maintaining user intended playback state');
+      }
     }
     
-    // Normal state update
-    playbackState.add(newState);
+    playbackState.add(finalState);
   }
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
