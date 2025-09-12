@@ -76,7 +76,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     shuffleOrder: DoudouShuffleOrder(),
   );
   final JellyfinService _jellyfinService;
-  final DownloadService _downloadService;
 
   /// Set when shuffle mode is changed. If true, [onUpdateQueue] will create a
   /// shuffled [ConcatenatingAudioSource].
