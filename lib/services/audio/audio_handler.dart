@@ -274,7 +274,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print("Player error ${e.toString()}");
         }
       }
-      queue.add(_queueFromSource());
+      super.queue.add(_queueFromSource());
 
       // Sets the media item for the new queue. This will be whatever is
       // currently playing from the new queue (for example, the first song in
