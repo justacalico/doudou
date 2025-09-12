@@ -123,6 +123,9 @@ class AudioStatePersistence {
     return null;
   }
   
+  /// Check if periodic saving is currently active
+  bool get isPeriodicSavingActive => _saveStateTimer != null && _saveStateTimer!.isActive;
+  
   /// Thread-safe periodic saving with conflict detection
   void startPeriodicSaving(Duration position, bool isPlaying) {
     stopPeriodicSaving(); // Clear any existing timer
