@@ -809,6 +809,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> playTrack(Track track) async {
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
+    
+    // Reset all transition states
+    _isHandlingTransition = false;
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
     
@@ -832,6 +835,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
+    
+    // Reset all transition states
+    _isHandlingTransition = false;
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
     
