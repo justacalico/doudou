@@ -152,7 +152,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Set initial playback state
+    // Set initial playback state with proper volume
+    _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+    
     playbackState.add(PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
