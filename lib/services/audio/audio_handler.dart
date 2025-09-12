@@ -435,35 +435,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
-    if (_stateManager.isHandlingCompletion || _stateManager.isTransitioning) {
+    // Atomic check-and-set to prevent race conditions
+    if (_stateManager.isHandlingCompletion || _isHandlingTransition) {
       if (kDebugMode) {
         print('Already handling completion or transitioning, skipping...');
       }
       return;
     }
     
-    // Double-check we're actually at completion or very close to it
-    if (_player.processingState != ProcessingState.completed) {
-      final position = _player.position;
-      final duration = _player.duration;
-      
-      // Only proceed if we're very close to the end or stuck in buffering
-      final isNearEnd = duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.95);
-      final isStuckBuffering = _player.processingState == ProcessingState.buffering && 
-                              duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.90);
-      
-      if (!isNearEnd && !isStuckBuffering) {
-        if (kDebugMode) {
-          print('Track completion called but not actually complete. Position: ${position.inMilliseconds}/${duration?.inMilliseconds}, State: ${_player.processingState}');
-        }
-        return;
-      }
-      
-      if (kDebugMode) {
-        print('Forcing completion - Near end: $isNearEnd, Stuck buffering: $isStuckBuffering');
-      }
-    }
-    
+    // Set transition state atomically
+    _isHandlingTransition = true;
     _stateManager.setHandlingCompletion(true);
     _stateManager.setTransitioning(true);
     
@@ -472,87 +453,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Track completed: ${_stateManager.currentTrack?.name}');
       }
       
-      // Store the playing state before transition
-      final wasPlaying = playbackState.value.playing;
-      
       // Stop background monitoring during transition to prevent interference
       _stopBackgroundMonitoring();
       
-      // Force stop the player to clear any codec issues
+      // Simple, clean stop without aggressive delays
       try {
         await _player.stop();
-        if (kDebugMode) {
-          print('Player stopped for codec cleanup');
-        }
       } catch (e) {
         if (kDebugMode) {
           print('Error stopping player during completion: $e');
         }
       }
       
-      // Give codec time to cleanup before transitioning - reduced delay for smoother transitions
-      await Future.delayed(const Duration(milliseconds: 200));
+      // Minimal delay for codec cleanup - reduced from 200ms
+      await Future.delayed(const Duration(milliseconds: 100));
       
+      // Check if we can move to next track
       if (_stateManager.incrementCurrentIndex()) {
         if (kDebugMode) {
           print('Moving to next track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
         }
         
         await _playCurrentTrack();
-        
-        // Restart background monitoring if we were playing
-        if (wasPlaying) {
-          _startBackgroundMonitoring();
-          
-          // Reduced verification delay for faster transitions
-          await Future.delayed(const Duration(milliseconds: 300));
-          
-          // Check if we're stuck in a codec loop or not actually playing
-          if (!_player.playing && wasPlaying) {
-            if (kDebugMode) {
-              print('Playback verification failed, attempting recovery');
-            }
-            
-            // Try multiple recovery attempts
-            for (int attempt = 0; attempt < 3; attempt++) {
-              try {
-                await _player.play();
-                await Future.delayed(const Duration(milliseconds: 200));
-                
-                if (_player.playing) {
-                  if (kDebugMode) {
-                    print('Playback recovered on attempt ${attempt + 1}');
-                  }
-                  break;
-                }
-                
-                if (attempt == 2) {
-                  // Final attempt - reload the track
-                  if (kDebugMode) {
-                    print('Final recovery attempt: reloading track');
-                  }
-                  await _handleCodecLoop();
-                }
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Recovery attempt ${attempt + 1} failed: $e');
-                }
-              }
-            }
-            
-            // Update state to reflect actual player state
-            playbackState.add(playbackState.value.copyWith(
-              playing: _player.playing,
-              processingState: _player.playing ? AudioProcessingState.ready : AudioProcessingState.idle,
-            ));
-          }
-        }
-        
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
         
         if (kDebugMode) {
-          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}, playing: ${_player.playing}');
+          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
         }
+        
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
         // Radio mode handling
         final similarTracks = await _radioMode.getSimilarTracks(
@@ -560,29 +488,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _stateManager.playlist,
           limit: 15
         );
+        
         if (similarTracks.isNotEmpty) {
           _queueManager.addTracksToPlaylist(similarTracks);
           queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
           
           _stateManager.incrementCurrentIndex();
           await _playCurrentTrack();
-          
-          if (wasPlaying) {
-            _startBackgroundMonitoring();
-          }
-          
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
           
           if (kDebugMode) {
             print('Radio mode: Added ${similarTracks.length} tracks');
           }
         } else {
+          // End of radio mode
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.completed,
             playing: false,
           ));
         }
       } else {
+        // End of playlist
         playbackState.add(playbackState.value.copyWith(
           processingState: AudioProcessingState.completed,
           playing: false,
@@ -602,8 +528,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         playing: false,
       ));
     } finally {
+      // Always reset states
+      _isHandlingTransition = false;
       _stateManager.setHandlingCompletion(false);
       _stateManager.setTransitioning(false);
+      
+      // Restart background monitoring if playing
+      if (_player.playing) {
+        _startBackgroundMonitoring();
+      }
     }
   }
 
