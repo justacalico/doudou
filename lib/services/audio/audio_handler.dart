@@ -236,7 +236,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleCodecLoop() async {
-    if (_stateManager.isHandlingCompletion || _stateManager.isTransitioning) {
+    // Don't interfere with transitions or other recovery processes
+    if (_stateManager.isHandlingCompletion || _isHandlingTransition) {
       return;
     }
     
@@ -251,21 +252,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final wasPlaying = playbackState.value.playing;
       final currentPosition = _player.position;
       
-      // Force stop to break the codec loop
+      // Simple stop and reload - no complex recovery logic
       await _player.stop();
-      await Future.delayed(const Duration(milliseconds: 500)); // Reduced delay for faster recovery
+      await Future.delayed(const Duration(milliseconds: 200));
       
       // Reload the track
       await _loadAndPlayTrack(currentTrack);
       
       // Restore position if significant
-      if (currentPosition.inMilliseconds > 5000) { // Only if more than 5 seconds
+      if (currentPosition.inMilliseconds > 3000) {
         await _player.seek(currentPosition);
       }
       
       // Resume playing if we were playing
       if (wasPlaying) {
-        await Future.delayed(const Duration(milliseconds: 200));
         await _player.play();
       }
       
