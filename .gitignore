@@ -67,3 +67,4 @@ setup-signing.sh
 /builds
 .notes
 *.png
+/audiov2
