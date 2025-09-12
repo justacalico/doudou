@@ -94,16 +94,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Processing state changed: $state');
       }
       
-      // Handle codec loops only in extreme cases
+      // Handle codec loops only in extreme cases - MUCH less aggressive
       if (state == ProcessingState.buffering) {
         final now = DateTime.now();
         if (_lastBufferingTime != null && 
-            now.difference(_lastBufferingTime!) < const Duration(seconds: 2)) {
+            now.difference(_lastBufferingTime!) < const Duration(seconds: 5)) {
           _bufferingLoopCount++;
-          // Increase threshold to avoid interfering with transitions
-          if (_bufferingLoopCount >= 5) {
+          // Dramatically increased threshold to prevent false positives - was 5, now 15
+          if (_bufferingLoopCount >= 15) {
             if (kDebugMode) {
-              print('Detected extreme codec loop in buffering state, forcing recovery');
+              print('Detected extreme codec loop in buffering state after 15 attempts, forcing recovery');
             }
             _handleCodecLoop();
             return;
@@ -131,7 +131,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
         // Only start periodic saving if not already started
-        if (_statePersistence._saveStateTimer == null) {
+        if (!_statePersistence.isPeriodicSavingActive) {
           _statePersistence.startPeriodicSaving(_player.position, playerState.playing);
           if (kDebugMode) {
             print('Started periodic saving (was not running)');
@@ -169,10 +169,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _startBackgroundMonitoring() {
     _stopBackgroundMonitoring();
     
-    // Less frequent monitoring to reduce interference with transitions
-    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
+    // Much less frequent monitoring to prevent "CD skipping" - increased from 12s to 30s
+    _backgroundPlaybackTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       _checkBackgroundPlayback();
     });
+    
+    if (kDebugMode) {
+      print('Started background monitoring with 30-second interval');
+    }
   }
 
   void _stopBackgroundMonitoring() {
