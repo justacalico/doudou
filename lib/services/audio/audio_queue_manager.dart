@@ -8,39 +8,41 @@ class AudioQueueManager {
   
   AudioQueueManager(this._stateManager);
   
-  void addToQueue(Track track) {
-    _stateManager.addToPlaylist(track);
+  Future<void> addToQueue(Track track) async {
+    await _stateManager.addToPlaylistAtomic(track);
     
     if (kDebugMode) {
       print('Added track to queue: ${track.name}');
     }
   }
   
-  void addNext(Track track) {
+  Future<void> addNext(Track track) async {
     // Insert the track right after the current track
     final insertIndex = _stateManager.currentIndex + 1;
     
-    _stateManager.insertIntoPlaylist(insertIndex, track);
+    await _stateManager.insertIntoPlaylistAtomic(insertIndex, track);
     
     if (kDebugMode) {
       print('Added track to play next: ${track.name} at position $insertIndex');
     }
   }
   
-  void removeFromQueue(int index) {
+  Future<bool> removeFromQueue(int index) async {
     if (index < 0 || index >= _stateManager.queueLength || index == _stateManager.currentIndex) {
-      return;
+      return false;
     }
     
-    _stateManager.removeFromPlaylist(index);
+    final success = await _stateManager.removeFromPlaylistAtomic(index);
     
-    if (kDebugMode) {
+    if (success && kDebugMode) {
       print('Removed track from queue at index: $index');
     }
+    
+    return success;
   }
   
-  void clearQueue() {
-    _stateManager.clearPlaylist();
+  Future<void> clearQueue() async {
+    await _stateManager.clearPlaylistAtomic();
     
     if (kDebugMode) {
       print('Cleared entire queue');
