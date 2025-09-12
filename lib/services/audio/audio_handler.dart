@@ -11,6 +11,7 @@ import 'audio_preloader.dart';
 import 'audio_queue_manager.dart';
 import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
+import 'audio_transition_manager.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -23,6 +24,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioQueueManager _queueManager;
   late final AudioRadioMode _radioMode;
   late final AudioStatePersistence _statePersistence;
+  late final AudioTransitionManager _transitionManager;
 
   // Background playback tracking
   Timer? _backgroundPlaybackTimer;
@@ -31,9 +33,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Codec loop detection
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
-  
-  // State management for atomic operations
-  bool _isHandlingTransition = false;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
