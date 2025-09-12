@@ -493,7 +493,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         );
         
         if (similarTracks.isNotEmpty) {
-          _queueManager.addTracksToPlaylist(similarTracks);
+          await _queueManager.addTracksToPlaylist(similarTracks);
           queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
           
           await _stateManager.incrementCurrentIndexAtomic();
