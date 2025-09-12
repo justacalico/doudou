@@ -245,7 +245,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final currentTrack = _stateManager.currentTrack;
       if (currentTrack == null) return;
       
-      final wasPlaying = playbackState.value.playing;
+      final wasPlaying = _player.playing;
       final currentPosition = _player.position;
       
       // Simple stop and reload - no complex recovery logic
@@ -687,7 +687,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track) async {
-    final wasPlaying = playbackState.value.playing;
+    final wasPlaying = _player.playing;
     
     if (kDebugMode) {
       print('Loading track: ${track.name}, wasPlaying: $wasPlaying');
