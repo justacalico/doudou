@@ -33,6 +33,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Codec loop detection
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
+  
+  // Background monitoring position tracking
+  Duration? _lastKnownPosition;
+  DateTime? _lastPositionCheck;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
@@ -197,16 +201,30 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     final playerState = _player.playerState;
     
-    // REMOVED: Aggressive completion detection at 98% - let natural completion handle this
-    
-    // Only handle if we're truly stuck - position not advancing for 10+ seconds
-    // AND we're supposed to be playing but actually idle
+    // Only handle if we're truly stuck - much more conservative check
+    // AND we're supposed to be playing but actually idle for extended period
     if (playbackState.value.playing && 
         playerState.processingState == ProcessingState.idle &&
         !_stateManager.isHandlingCompletion) {
       
+      // Additional check: make sure we haven't had any progress recently
+      final currentPosition = _player.position;
+      static Duration? lastKnownPosition;
+      static DateTime? lastPositionCheck;
+      
+      final now = DateTime.now();
+      
+      // Only intervene if position hasn't changed for 45+ seconds
+      if (lastKnownPosition == null || lastPositionCheck == null ||
+          currentPosition != lastKnownPosition ||
+          now.difference(lastPositionCheck!) < const Duration(seconds: 45)) {
+        lastKnownPosition = currentPosition;
+        lastPositionCheck = now;
+        return; // Don't intervene yet
+      }
+      
       if (kDebugMode) {
-        print('Detected stuck playback state. Player: ${playerState.processingState}, Expected: playing');
+        print('Detected truly stuck playback state after 45s of no progress. Player: ${playerState.processingState}, Expected: playing');
       }
       
       _handleBackgroundPlaybackIssue();
