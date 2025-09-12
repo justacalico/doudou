@@ -407,27 +407,38 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Manual skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
     
-    // Reset all completion and transition handling to prevent conflicts
-    _isHandlingTransition = false;
-    _stateManager.setHandlingCompletion(false);
-    _stateManager.setTransitioning(false);
+    // Use atomic transition manager to prevent race conditions
+    if (!await _transitionManager.acquireTransitionLock('skipToNext')) {
+      if (kDebugMode) {
+        print('Skip to next rejected - another transition in progress');
+      }
+      return;
+    }
     
-    if (_stateManager.incrementCurrentIndex()) {
-      if (kDebugMode) {
-        print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
-      }
+    try {
+      // Reset all completion and transition handling atomically
+      _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
       
-      await _playCurrentTrack();
-      await _statePersistence.savePlaybackState(_player.position, _player.playing);
-    } else {
-      if (kDebugMode) {
-        print('Already at last track, cannot skip to next');
+      if (await _stateManager.incrementCurrentIndexAtomic()) {
+        if (kDebugMode) {
+          print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
+        }
+        
+        await _playCurrentTrack();
+        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+      } else {
+        if (kDebugMode) {
+          print('Already at last track, cannot skip to next');
+        }
+        
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.completed,
+          playing: false,
+        ));
       }
-      
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.completed,
-        playing: false,
-      ));
+    } finally {
+      _transitionManager.releaseTransitionLock();
     }
   }
 
