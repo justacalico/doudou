@@ -578,7 +578,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Restarting current song: ${_stateManager.currentTrack?.name}');
       }
     } else {
-      if (_stateManager.decrementCurrentIndex()) {
+      if (await _stateManager.decrementCurrentIndexAtomic()) {
         await _playCurrentTrack();
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
         if (kDebugMode) {
