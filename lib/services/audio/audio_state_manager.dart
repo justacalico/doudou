@@ -121,59 +121,142 @@ class AudioStateManager {
     _lastSkipToPreviousTime = time;
   }
   
-  // Playlist manipulation methods
-  void addToPlaylist(Track track) {
-    _playlist.add(track);
-    _queue.add(track);
+  /// Acquires atomic operation lock to prevent race conditions
+  Future<void> _acquireOperationLock() async {
+    while (_operationLock != null && !_operationLock!.isCompleted) {
+      await _operationLock!.future;
+    }
+    _operationLock = Completer<void>();
   }
   
-  void insertIntoPlaylist(int index, Track track) {
-    if (index >= 0 && index <= _playlist.length) {
-      _playlist.insert(index, track);
-      _queue.insert(index, track);
-      
-      // Adjust current index if needed
-      if (index <= _currentIndex) {
+  /// Releases atomic operation lock
+  void _releaseOperationLock() {
+    if (_operationLock != null && !_operationLock!.isCompleted) {
+      _operationLock!.complete();
+    }
+  }
+  
+  // Thread-safe playlist manipulation methods
+  Future<void> addToPlaylistAtomic(Track track) async {
+    await _acquireOperationLock();
+    try {
+      _playlist.add(track);
+      _queue.add(track);
+      if (kDebugMode) {
+        print('Atomically added track to playlist: ${track.name}');
+      }
+    } finally {
+      _releaseOperationLock();
+    }
+  }
+  
+  Future<void> insertIntoPlaylistAtomic(int index, Track track) async {
+    await _acquireOperationLock();
+    try {
+      if (index >= 0 && index <= _playlist.length) {
+        _playlist.insert(index, track);
+        _queue.insert(index, track);
+        
+        // Atomically adjust current index if needed
+        if (index <= _currentIndex) {
+          _currentIndex++;
+        }
+        
+        if (kDebugMode) {
+          print('Atomically inserted track at index $index: ${track.name}');
+        }
+      }
+    } finally {
+      _releaseOperationLock();
+    }
+  }
+  
+  Future<bool> removeFromPlaylistAtomic(int index) async {
+    await _acquireOperationLock();
+    try {
+      if (index >= 0 && index < _playlist.length && index != _currentIndex) {
+        final removedTrack = _playlist.removeAt(index);
+        _queue.removeAt(index);
+        
+        // Atomically adjust current index if needed
+        if (index < _currentIndex) {
+          _currentIndex--;
+          _currentTrack = _playlist[_currentIndex];
+        }
+        
+        if (kDebugMode) {
+          print('Atomically removed track at index $index: ${removedTrack.name}');
+        }
+        return true;
+      }
+      return false;
+    } finally {
+      _releaseOperationLock();
+    }
+  }
+  
+  Future<bool> incrementCurrentIndexAtomic() async {
+    await _acquireOperationLock();
+    try {
+      if (_currentIndex < _playlist.length - 1) {
         _currentIndex++;
+        _currentTrack = _playlist[_currentIndex];
+        if (kDebugMode) {
+          print('Atomically incremented index to $_currentIndex: ${_currentTrack?.name}');
+        }
+        return true;
       }
+      return false;
+    } finally {
+      _releaseOperationLock();
     }
   }
   
-  void removeFromPlaylist(int index) {
-    if (index >= 0 && index < _playlist.length && index != _currentIndex) {
-      _playlist.removeAt(index);
-      _queue.removeAt(index);
-      
-      // Adjust current index if needed
-      if (index < _currentIndex) {
+  Future<bool> decrementCurrentIndexAtomic() async {
+    await _acquireOperationLock();
+    try {
+      if (_currentIndex > 0) {
         _currentIndex--;
+        _currentTrack = _playlist[_currentIndex];
+        if (kDebugMode) {
+          print('Atomically decremented index to $_currentIndex: ${_currentTrack?.name}');
+        }
+        return true;
       }
+      return false;
+    } finally {
+      _releaseOperationLock();
     }
   }
   
-  void clearPlaylist() {
-    _playlist.clear();
-    _queue.clear();
-    _currentIndex = 0;
-    _currentTrack = null;
-    _isShuffled = false;
+  Future<void> setCurrentIndexAtomic(int index) async {
+    await _acquireOperationLock();
+    try {
+      if (index >= 0 && index < _playlist.length) {
+        _currentIndex = index;
+        _currentTrack = _playlist[index];
+        if (kDebugMode) {
+          print('Atomically set index to $index: ${_currentTrack?.name}');
+        }
+      }
+    } finally {
+      _releaseOperationLock();
+    }
   }
   
-  bool incrementCurrentIndex() {
-    if (_currentIndex < _playlist.length - 1) {
-      _currentIndex++;
-      _currentTrack = _playlist[_currentIndex];
-      return true;
+  Future<void> clearPlaylistAtomic() async {
+    await _acquireOperationLock();
+    try {
+      _playlist.clear();
+      _queue.clear();
+      _currentIndex = 0;
+      _currentTrack = null;
+      _isShuffled = false;
+      if (kDebugMode) {
+        print('Atomically cleared playlist');
+      }
+    } finally {
+      _releaseOperationLock();
     }
-    return false;
-  }
-  
-  bool decrementCurrentIndex() {
-    if (_currentIndex > 0) {
-      _currentIndex--;
-      _currentTrack = _playlist[_currentIndex];
-      return true;
-    }
-    return false;
   }
 }
