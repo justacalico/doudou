@@ -89,13 +89,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
     });
 
-    // Simplified completion detection - immediate handling without delays
+    // Simplified completion detection - only handle actual completion
     _player.processingStateStream.listen((state) {
       if (kDebugMode) {
         print('Processing state changed: $state');
       }
       
-      // Only handle codec loops in extreme cases, not during normal transitions
+      // Handle codec loops only in extreme cases
       if (state == ProcessingState.buffering) {
         final now = DateTime.now();
         if (_lastBufferingTime != null && 
@@ -119,10 +119,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _lastBufferingTime = null;
       }
       
-      // Immediate completion handling without delays to prevent race conditions
-      if (state == ProcessingState.completed && !_stateManager.isHandlingCompletion) {
+      // ONLY handle actual completion state - no forced completion
+      if (state == ProcessingState.completed) {
         if (kDebugMode) {
-          print('Track completed, handling transition immediately...');
+          print('Track actually completed, handling transition...');
         }
         _handleTrackCompletion();
       }
