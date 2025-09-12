@@ -233,7 +233,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   Future<void> _handleCodecLoop() async {
     // Don't interfere with transitions or other recovery processes
-    if (_stateManager.isHandlingCompletion || _isHandlingTransition) {
+    if (_stateManager.isHandlingCompletion || _transitionManager.isTransitionInProgress) {
       return;
     }
     
