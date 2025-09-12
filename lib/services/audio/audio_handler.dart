@@ -876,28 +876,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   // Queue management methods
-  void addToQueue(Track track) {
-    _queueManager.addToQueue(track);
+  void addToQueue(Track track) async {
+    await _queueManager.addToQueue(track);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
     final position = _stateManager.playlist.length - _stateManager.currentIndex - 1;
     _preloader.preloadQueueTrack(track, position);
   }
 
-  void addNext(Track track) {
-    _queueManager.addNext(track);
+  void addNext(Track track) async {
+    await _queueManager.addNext(track);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     _preloader.preloadPlayNextTrack(track);
   }
 
-  void removeFromQueue(int index) {
-    _queueManager.removeFromQueue(index);
-    queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
-    _preloader.cleanupOldPreloadedPlayers(_stateManager.playlist, _stateManager.currentIndex);
+  void removeFromQueue(int index) async {
+    if (await _queueManager.removeFromQueue(index)) {
+      queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+      _preloader.cleanupOldPreloadedPlayers(_stateManager.playlist, _stateManager.currentIndex);
+    }
   }
 
-  void clearQueue() {
-    _queueManager.clearQueue();
+  void clearQueue() async {
+    await _queueManager.clearQueue();
     _preloader.clearAllPreloadedPlayers();
     queue.add(<MediaItem>[]);
     mediaItem.add(null);
