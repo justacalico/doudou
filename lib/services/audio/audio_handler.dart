@@ -242,7 +242,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> newQueue) async {
+  Future<void> updateQueue(List<MediaItem> queue) async {
     try {
       // Convert the MediaItems to AudioSources
       List<AudioSource> audioSources = [];
