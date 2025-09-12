@@ -117,7 +117,7 @@ class AppState extends ChangeNotifier {
             // Try to initialize audio handler, but don't fail if it doesn't work
             try {
               _audioHandler = await AudioService.init(
-                builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                builder: () => DoudouAudioHandler(_jellyfinService),
                 config: const AudioServiceConfig(
                   androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                   androidNotificationChannelName: 'Doudou Music',
@@ -125,9 +125,9 @@ class AppState extends ChangeNotifier {
                 ),
               );
               
-              // Apply user settings to the audio handler
-              _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
-              _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+              // Apply user settings to the audio handler (methods removed in new implementation)
+              // _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+              // _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
               _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
               
               // Set up listeners for automatic UI updates
@@ -170,7 +170,7 @@ class AppState extends ChangeNotifier {
             // Try to initialize audio handler for offline playback
             try {
               _audioHandler = await AudioService.init(
-                builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                builder: () => DoudouAudioHandler(_jellyfinService),
                 config: const AudioServiceConfig(
                   androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                   androidNotificationChannelName: 'Doudou Music',
