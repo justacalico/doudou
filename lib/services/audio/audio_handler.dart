@@ -201,7 +201,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _handleBackgroundPlaybackIssue() async {
-    if (_stateManager.isHandlingCompletion || _isHandlingTransition) return;
+    if (_stateManager.isHandlingCompletion || _transitionManager.isTransitionInProgress) return;
     
     try {
       // REMOVED: Aggressive completion detection - only try to resume current track
