@@ -347,6 +347,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Pause command received');
     }
     
+    // Set user intent to not playing
+    _userIntendedPlaying = false;
+    
     try {
       await _player.pause();
       
@@ -355,7 +358,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
       
       if (kDebugMode) {
-        print('Pause command completed');
+        print('Pause command completed. User intended playing: $_userIntendedPlaying');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -366,6 +369,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> stop() async {
+    // Reset user intent on stop
+    _userIntendedPlaying = false;
+    
     await _player.stop();
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
