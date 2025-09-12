@@ -259,4 +259,60 @@ class AudioStateManager {
       _releaseOperationLock();
     }
   }
+  
+  // Legacy compatibility methods (non-atomic)
+  void addToPlaylist(Track track) {
+    _playlist.add(track);
+    _queue.add(track);
+  }
+  
+  void insertIntoPlaylist(int index, Track track) {
+    if (index >= 0 && index <= _playlist.length) {
+      _playlist.insert(index, track);
+      _queue.insert(index, track);
+      
+      // Adjust current index if needed
+      if (index <= _currentIndex) {
+        _currentIndex++;
+      }
+    }
+  }
+  
+  void removeFromPlaylist(int index) {
+    if (index >= 0 && index < _playlist.length && index != _currentIndex) {
+      _playlist.removeAt(index);
+      _queue.removeAt(index);
+      
+      // Adjust current index if needed
+      if (index < _currentIndex) {
+        _currentIndex--;
+      }
+    }
+  }
+  
+  void clearPlaylist() {
+    _playlist.clear();
+    _queue.clear();
+    _currentIndex = 0;
+    _currentTrack = null;
+    _isShuffled = false;
+  }
+  
+  bool incrementCurrentIndex() {
+    if (_currentIndex < _playlist.length - 1) {
+      _currentIndex++;
+      _currentTrack = _playlist[_currentIndex];
+      return true;
+    }
+    return false;
+  }
+  
+  bool decrementCurrentIndex() {
+    if (_currentIndex > 0) {
+      _currentIndex--;
+      _currentTrack = _playlist[_currentIndex];
+      return true;
+    }
+    return false;
+  }
 }
