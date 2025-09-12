@@ -34,7 +34,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // State management for atomic operations
   bool _isHandlingTransition = false;
-  DateTime? _lastPositionUpdate;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
