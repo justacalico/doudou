@@ -205,26 +205,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _handleBackgroundPlaybackIssue() async {
-    if (_stateManager.isHandlingCompletion) return;
+    if (_stateManager.isHandlingCompletion || _isHandlingTransition) return;
     
     try {
-      // Check if we should move to next track or restart current
-      final position = _player.position;
-      final duration = _player.duration;
-      
-      if (duration != null && position.inMilliseconds >= (duration.inMilliseconds * 0.95)) {
-        // Track is essentially complete, move to next
-        if (kDebugMode) {
-          print('Track near completion, moving to next');
-        }
-        await _handleTrackCompletion();
-      } else {
-        // Try to resume current track
-        if (kDebugMode) {
-          print('Attempting to resume current track from background issue');
-        }
-        await _resumeCurrentTrack();
+      // REMOVED: Aggressive completion detection - only try to resume current track
+      if (kDebugMode) {
+        print('Attempting to resume current track from background issue');
       }
+      await _resumeCurrentTrack();
     } catch (e) {
       if (kDebugMode) {
         print('Error handling background playback issue: $e');
