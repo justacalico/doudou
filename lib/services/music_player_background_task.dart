@@ -1,19 +1,28 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
+
 import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:finamp/services/offline_listen_helper.dart';
 import 'package:flutter/foundation.dart';
-import '../../models/jellyfin_models.dart';
-import '../jellyfin_service.dart';
+import 'package:get_it/get_it.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:logging/logging.dart';
+
+import '../models/finamp_models.dart';
+import '../models/jellyfin_models.dart';
+import 'finamp_settings_helper.dart';
+import 'finamp_user_helper.dart';
+import 'jellyfin_api_helper.dart';
 
 // Largely copied from just_audio's DefaultShuffleOrder, but with a mildly
 // stupid hack to insert() to make Play Next work
-class DoudouShuffleOrder extends ShuffleOrder {
+class FinampShuffleOrder extends ShuffleOrder {
   final Random _random;
   @override
   final indices = <int>[];
 
-  DoudouShuffleOrder({Random? random}) : _random = random ?? Random();
+  FinampShuffleOrder({Random? random}) : _random = random ?? Random();
 
   @override
   void shuffle({int? initialIndex}) {
@@ -67,14 +76,28 @@ class DoudouShuffleOrder extends ShuffleOrder {
 }
 
 /// This provider handles the currently playing music so that multiple widgets
-/// can control music. Based on Finamp's reliable audio implementation.
-class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final _player = AudioPlayer();
+/// can control music.
+class MusicPlayerBackgroundTask extends BaseAudioHandler {
+  final _player = AudioPlayer(
+    audioLoadConfiguration: AudioLoadConfiguration(
+        androidLoadControl: AndroidLoadControl(
+          minBufferDuration: FinampSettingsHelper.finampSettings.bufferDuration,
+          maxBufferDuration: FinampSettingsHelper.finampSettings.bufferDuration,
+          prioritizeTimeOverSizeThresholds: true,
+        ),
+        darwinLoadControl: DarwinLoadControl(
+          preferredForwardBufferDuration:
+              FinampSettingsHelper.finampSettings.bufferDuration,
+        )),
+  );
   ConcatenatingAudioSource _queueAudioSource = ConcatenatingAudioSource(
     children: [],
-    shuffleOrder: DoudouShuffleOrder(),
+    shuffleOrder: FinampShuffleOrder(),
   );
-  final JellyfinService _jellyfinService;
+  final _audioServiceBackgroundTaskLogger = Logger("MusicPlayerBackgroundTask");
+  final _jellyfinApiHelper = GetIt.instance<JellyfinApiHelper>();
+  final _offlineListenLogHelper = GetIt.instance<OfflineListenLogHelper>();
+  final _finampUserHelper = GetIt.instance<FinampUserHelper>();
 
   /// Set when shuffle mode is changed. If true, [onUpdateQueue] will create a
   /// shuffled [ConcatenatingAudioSource].
@@ -88,17 +111,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   /// progress reporting.
   bool _isStopping = false;
 
-  /// Holds the current sleep timer, if any.
+  /// Holds the current sleep timer, if any. This is a ValueNotifier so that
+  /// widgets like SleepTimerButton can update when the sleep timer is/isn't
+  /// null.
   bool _sleepTimerIsSet = false;
   Duration _sleepTimerDuration = Duration.zero;
-  Timer? _sleepTimer;
+  final ValueNotifier<Timer?> _sleepTimer = ValueNotifier<Timer?>(null);
 
   List<int>? get shuffleIndices => _player.shuffleIndices;
 
-  DoudouAudioHandler(this._jellyfinService) {
-    if (kDebugMode) {
-      print("Starting DoudouAudioHandler");
-    }
+  ValueListenable<Timer?> get sleepTimer => _sleepTimer;
+
+  MusicPlayerBackgroundTask() {
+    _audioServiceBackgroundTaskLogger.info("Starting audio service");
 
     // Propagate all events from the audio player to AudioService clients.
     _player.playbackEventStream.listen((event) async {
@@ -116,6 +141,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Differences in queue index or item id are considered track changes
         if (currentIndex != prevIndex || currentItem.id != prevItem?.id) {
           mediaItem.add(currentItem);
+
           onTrackChanged(currentItem, currentState, prevItem, prevState);
         }
       }
@@ -125,6 +151,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               AudioProcessingState.idle &&
           playbackState.valueOrNull?.processingState !=
               AudioProcessingState.completed &&
+          !FinampSettingsHelper.finampSettings.isOffline &&
           !_isStopping) {
         await _updatePlaybackProgress();
       }
@@ -152,7 +179,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     //  turned off, then reset the sleep timer.
     // This is useful if the sleep timer pauses play too early
     //  and the user wants to continue listening
-    if (_sleepTimerIsSet && _sleepTimer == null) {
+    if (_sleepTimerIsSet && _sleepTimer.value == null) {
       // restart the sleep timer for another period
       setSleepTimer(_sleepTimerDuration);
     }
@@ -166,11 +193,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> stop() async {
     try {
-      if (kDebugMode) {
-        print("Stopping audio service");
-      }
+      _audioServiceBackgroundTaskLogger.info("Stopping audio service");
 
       _isStopping = true;
+
+      // Tell Jellyfin we're no longer playing audio if we're online
+      if (!FinampSettingsHelper.finampSettings.isOffline) {
+        final playbackInfo = generateCurrentPlaybackProgressInfo();
+        if (playbackInfo != null) {
+          await _jellyfinApiHelper.stopPlaybackProgress(playbackInfo);
+        }
+      } else {
+        final currentIndex = _player.currentIndex;
+        if (_queueAudioSource.length != 0 && currentIndex != null) {
+          final item = _getQueueItem(currentIndex);
+          _offlineListenLogHelper.logOfflineListen(item);
+        }
+      }
 
       // Stop playing audio.
       await _player.stop();
@@ -181,16 +220,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _sleepTimerIsSet = false;
       _sleepTimerDuration = Duration.zero;
 
-      _sleepTimer?.cancel();
-      _sleepTimer = null;
+      _sleepTimer.value?.cancel();
+      _sleepTimer.value = null;
 
       await super.stop();
 
+      // await _player.dispose();
+      // await _eventSubscription?.cancel();
+      // // It is important to wait for this state to be broadcast before we shut
+      // // down the task. If we don't, the background task will be destroyed before
+      // // the message gets sent to the UI.
+      // await _broadcastState();
+      // // Shut down this background task
+      // await super.stop();
+
       _isStopping = false;
     } catch (e) {
-      if (kDebugMode) {
-        print("Error stopping audio service: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -207,11 +253,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final sources =
           await Future.wait(mediaItems.map((i) => _mediaItemToAudioSource(i)));
       await _queueAudioSource.addAll(sources);
-      super.queue.add(_queueFromSource());
+      queue.add(_queueFromSource());
     } catch (e) {
-      if (kDebugMode) {
-        print("Error adding queue items: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -221,8 +265,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       var idx = _player.currentIndex;
       if (idx != null) {
         if (_player.shuffleModeEnabled) {
-          var next = _player.shuffleIndices.indexOf(idx);
-          idx = next == -1 ? null : next + 1;
+          var next = _player.shuffleIndices?.indexOf(idx);
+          idx = next == -1 || next == null ? null : next + 1;
         } else {
           ++idx;
         }
@@ -232,28 +276,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final sources =
           await Future.wait(mediaItems.map((i) => _mediaItemToAudioSource(i)));
       await _queueAudioSource.insertAll(idx, sources);
-      super.queue.add(_queueFromSource());
+      queue.add(_queueFromSource());
     } catch (e) {
-      if (kDebugMode) {
-        print("Error inserting queue items: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> queue) async {
+  Future<void> updateQueue(List<MediaItem> newQueue) async {
     try {
       // Convert the MediaItems to AudioSources
       List<AudioSource> audioSources = [];
-      for (final mediaItem in queue) {
+      for (final mediaItem in newQueue) {
         audioSources.add(await _mediaItemToAudioSource(mediaItem));
       }
 
       // Create a new ConcatenatingAudioSource with the new queue.
       _queueAudioSource = ConcatenatingAudioSource(
         children: audioSources,
-        shuffleOrder: DoudouShuffleOrder(),
+        shuffleOrder: FinampShuffleOrder(),
       );
 
       try {
@@ -262,19 +304,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           initialIndex: nextInitialIndex,
         );
       } on PlayerException catch (e) {
-        if (kDebugMode) {
-          print("Player error code ${e.code}: ${e.message}");
-        }
+        _audioServiceBackgroundTaskLogger
+            .severe("Player error code ${e.code}: ${e.message}");
       } on PlayerInterruptedException catch (e) {
-        if (kDebugMode) {
-          print("Player interrupted: ${e.message}");
-        }
+        _audioServiceBackgroundTaskLogger
+            .warning("Player interrupted: ${e.message}");
       } catch (e) {
-        if (kDebugMode) {
-          print("Player error ${e.toString()}");
-        }
+        _audioServiceBackgroundTaskLogger
+            .severe("Player error ${e.toString()}");
       }
-      super.queue.add(_queueFromSource());
+      queue.add(_queueFromSource());
 
       // Sets the media item for the new queue. This will be whatever is
       // currently playing from the new queue (for example, the first song in
@@ -284,17 +323,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // when running this function.
       if (_player.shuffleModeEnabled) {
         if (_player.currentIndex == null) {
-          if (kDebugMode) {
-            print("_player.currentIndex is null during onUpdateQueue, not setting new media item");
-          }
+          _audioServiceBackgroundTaskLogger.severe(
+              "_player.currentIndex is null during onUpdateQueue, not setting new media item");
         } else {
           mediaItem.add(_getQueueItem(_player.currentIndex!));
         }
       } else {
         if (nextInitialIndex == null) {
-          if (kDebugMode) {
-            print("nextInitialIndex is null during onUpdateQueue, not setting new media item");
-          }
+          _audioServiceBackgroundTaskLogger.severe(
+              "nextInitialIndex is null during onUpdateQueue, not setting new media item");
         } else {
           mediaItem.add(_getQueueItem(nextInitialIndex!));
         }
@@ -303,9 +340,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       shuffleNextQueue = false;
       nextInitialIndex = null;
     } catch (e) {
-      if (kDebugMode) {
-        print("Error updating queue: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -319,9 +354,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _player.seek(Duration.zero, index: _player.previousIndex);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error skipping to previous: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -331,9 +364,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       await _player.seekToNext();
     } catch (e) {
-      if (kDebugMode) {
-        print("Error skipping to next: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -342,9 +373,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       await _player.seek(Duration.zero, index: index);
     } catch (e) {
-      if (kDebugMode) {
-        print("Error skipping to index: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -354,9 +383,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       await _player.seek(position);
     } catch (e) {
-      if (kDebugMode) {
-        print("Error seeking: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -375,12 +402,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           break;
         default:
           return Future.error(
-              "Unsupported AudioServiceRepeatMode! Received ${shuffleMode.toString()}, requires all or none.");
+              "Unsupported AudioServiceRepeatMode! Recieved ${shuffleMode.toString()}, requires all or none.");
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error setting shuffle mode: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -404,9 +429,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error setting repeat mode: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -417,9 +440,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await _queueAudioSource.removeAt(index);
       queue.add(_queueFromSource());
     } catch (e) {
-      if (kDebugMode) {
-        print("Error removing queue item: $e");
-      }
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -431,12 +452,122 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     MediaItem? previousItem,
     PlaybackState? previousState,
   ) async {
-    if (kDebugMode) {
-      print("Track changed to: ${currentItem.title}");
+    final isOffline = FinampSettingsHelper.finampSettings.isOffline;
+
+    if (previousItem != null &&
+        previousState != null &&
+        // don't submit stop events for idle tracks (at position 0 and not playing)
+        (previousState.playing ||
+            previousState.updatePosition != Duration.zero)) {
+      if (!isOffline) {
+        final playbackData = generatePlaybackProgressInfoFromState(
+          previousItem,
+          previousState,
+        );
+
+        if (playbackData != null) {
+          try {
+            await _jellyfinApiHelper.stopPlaybackProgress(playbackData);
+          } catch (e) {
+            _offlineListenLogHelper.logOfflineListen(previousItem);
+          }
+        }
+      } else {
+        _offlineListenLogHelper.logOfflineListen(previousItem);
+      }
     }
 
-    // We'll implement this later for Jellyfin integration
-    // For now, just log the track change
+    if (!isOffline) {
+      final playbackData = generatePlaybackProgressInfoFromState(
+        currentItem,
+        currentState,
+      );
+
+      if (playbackData != null) {
+        await _jellyfinApiHelper.reportPlaybackStart(playbackData);
+      }
+    }
+  }
+
+  /// Generates PlaybackProgressInfo for the supplied item and player info.
+  PlaybackProgressInfo? generatePlaybackProgressInfo(
+    MediaItem item, {
+    required bool isPaused,
+    required bool isMuted,
+    required Duration playerPosition,
+    required String repeatMode,
+    required bool includeNowPlayingQueue,
+  }) {
+    try {
+      return PlaybackProgressInfo(
+        itemId: item.extras!["itemJson"]["Id"],
+        isPaused: isPaused,
+        isMuted: isMuted,
+        positionTicks: playerPosition.inMicroseconds * 10,
+        repeatMode: repeatMode,
+        playMethod: item.extras!["shouldTranscode"] ?? false
+            ? "Transcode"
+            : "DirectPlay",
+        // We don't send the queue since it seems useless and it can cause
+        // issues with large queues.
+        // https://github.com/jmshrv/finamp/issues/387
+
+        // nowPlayingQueue: includeNowPlayingQueue
+        //     ? _queueFromSource()
+        //         .map(
+        //           (e) => QueueItem(
+        //               id: e.extras!["itemJson"]["Id"], playlistItemId: e.id),
+        //         )
+        //         .toList()
+        //     : null,
+      );
+    } catch (e) {
+      _audioServiceBackgroundTaskLogger.severe(e);
+      rethrow;
+    }
+  }
+
+  /// Generates PlaybackProgressInfo from current player info.
+  /// Returns null if _queue is empty.
+  /// If an item is not supplied, the current queue index will be used.
+  PlaybackProgressInfo? generateCurrentPlaybackProgressInfo() {
+    final currentIndex = _player.currentIndex;
+    if (_queueAudioSource.length == 0 || currentIndex == null) {
+      // This function relies on _queue having items,
+      // so we return null if it's empty or no index is played
+      // and no custom item was passed to avoid more errors.
+      return null;
+    }
+    final item = _getQueueItem(currentIndex);
+
+    return generatePlaybackProgressInfo(
+      item,
+      isPaused: !_player.playing,
+      isMuted: _player.volume == 0,
+      playerPosition: _player.position,
+      repeatMode: _jellyfinRepeatModeFromLoopMode(_player.loopMode),
+      includeNowPlayingQueue: false,
+    );
+  }
+
+  /// Generates PlaybackProgressInfo for the supplied item and playback state.
+  PlaybackProgressInfo? generatePlaybackProgressInfoFromState(
+    MediaItem item,
+    PlaybackState state,
+  ) {
+    final duration = item.duration;
+    return generatePlaybackProgressInfo(
+      item,
+      isPaused: !state.playing,
+      // always consider as unmuted
+      isMuted: false,
+      // ensure the (extrapolated) position doesn't exceed the duration
+      playerPosition: duration != null && state.position > duration
+          ? duration
+          : state.position,
+      repeatMode: _jellyfinRepeatModeFromRepeatMode(state.repeatMode),
+      includeNowPlayingQueue: true,
+    );
   }
 
   void setNextInitialIndex(int index) {
@@ -451,9 +582,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     await _queueAudioSource.move(oldIndex, newIndex);
     queue.add(_queueFromSource());
-    if (kDebugMode) {
-      print("Queue reordered");
-    }
+    _audioServiceBackgroundTaskLogger.log(Level.INFO, "Published queue");
   }
 
   /// Sets the sleep timer with the given [duration].
@@ -461,11 +590,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _sleepTimerIsSet = true;
     _sleepTimerDuration = duration;
 
-    _sleepTimer = Timer(duration, () async {
-      _sleepTimer = null;
+    _sleepTimer.value = Timer(duration, () async {
+      _sleepTimer.value = null;
       return await pause();
     });
-    return _sleepTimer!;
+    return _sleepTimer.value!;
   }
 
   /// Cancels the sleep timer and clears it.
@@ -473,8 +602,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _sleepTimerIsSet = false;
     _sleepTimerDuration = Duration.zero;
 
-    _sleepTimer?.cancel();
-    _sleepTimer = null;
+    _sleepTimer.value?.cancel();
+    _sleepTimer.value = null;
   }
 
   /// Transform a just_audio event into an audio_service state.
@@ -517,12 +646,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   Future<void> _updatePlaybackProgress() async {
     try {
-      // We'll implement progress reporting here later
-      // For now, just skip it
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error updating playback progress: $e");
+      JellyfinApiHelper jellyfinApiHelper = GetIt.instance<JellyfinApiHelper>();
+
+      final playbackInfo = generateCurrentPlaybackProgressInfo();
+      if (playbackInfo != null) {
+        await jellyfinApiHelper.updatePlaybackProgress(playbackInfo);
       }
+    } catch (e) {
+      _audioServiceBackgroundTaskLogger.severe(e);
       return Future.error(e);
     }
   }
@@ -538,129 +669,91 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   /// Syncs the list of MediaItems (_queue) with the internal queue of the player.
   /// Called by onAddQueueItem and onUpdateQueue.
   Future<AudioSource> _mediaItemToAudioSource(MediaItem mediaItem) async {
-    // For now, we'll use a simple URL-based approach
-    // Later we can add download support and transcoding
-    
-    final trackId = mediaItem.id;
-    final streamUrl = _jellyfinService.getStreamUrl(trackId);
-    
-    if (streamUrl.isNotEmpty) {
-      return AudioSource.uri(Uri.parse(streamUrl), tag: mediaItem);
+    if (mediaItem.extras!["downloadedSongJson"] == null) {
+      // If DownloadedSong wasn't passed, we assume that the item is not
+      // downloaded.
+
+      // If offline, we throw an error so that we don't accidentally stream from
+      // the internet. See the big comment in _songUri() to see why this was
+      // passed in extras.
+      if (mediaItem.extras!["isOffline"]) {
+        return Future.error(
+            "Offline mode enabled but downloaded song not found.");
+      } else {
+        if (mediaItem.extras!["shouldTranscode"] == true) {
+          return HlsAudioSource(await _songUri(mediaItem), tag: mediaItem);
+        } else {
+          return AudioSource.uri(await _songUri(mediaItem), tag: mediaItem);
+        }
+      }
     } else {
-      return Future.error("Unable to get stream URL for track: ${mediaItem.title}");
+      // We have to deserialize this because Dart is stupid and can't handle
+      // sending classes through isolates.
+      final downloadedSong =
+          DownloadedSong.fromJson(mediaItem.extras!["downloadedSongJson"]);
+
+      // Path verification and stuff is done in AudioServiceHelper, so this path
+      // should be valid.
+      final downloadUri = Uri.file(downloadedSong.file.path);
+      return AudioSource.uri(downloadUri, tag: mediaItem);
     }
   }
 
-  // Custom methods for app integration
-  Future<void> playTrack(Track track) async {
-    final mediaItem = _trackToMediaItem(track);
-    await updateQueue([mediaItem]);
-    await play();
-  }
+  Future<Uri> _songUri(MediaItem mediaItem) async {
+    // We need the platform to be Android or iOS to get device info
+    assert(Platform.isAndroid || Platform.isIOS,
+        "_songUri() only supports Android and iOS");
 
-  Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
-    if (tracks.isEmpty) return;
-    
-    final mediaItems = tracks.map(_trackToMediaItem).toList();
-    setNextInitialIndex(startIndex);
-    await updateQueue(mediaItems);
-    await play();
-  }
+    // When creating the MediaItem (usually in AudioServiceHelper), we specify
+    // whether or not to transcode. We used to pull from FinampSettings here,
+    // but since audio_service runs in an isolate (or at least, it does until
+    // 0.18), the value would be wrong if changed while a song was playing since
+    // Hive is bad at multi-isolate stuff.
 
-  MediaItem _trackToMediaItem(Track track) {
-    return MediaItem(
-      id: track.id,
-      album: track.albumName,
-      title: track.name,
-      artist: track.artistName,
-      duration: track.duration != null ? Duration(milliseconds: track.duration!) : null,
-      artUri: track.imageUrl != null 
-          ? Uri.parse(_jellyfinService.getImageUrl(track.imageUrl!, width: 300, height: 300))
-          : null,
-    );
-  }
 
-  // Queue management methods
-  void addToQueue(Track track) async {
-    await addQueueItems([_trackToMediaItem(track)]);
-  }
+    final parsedBaseUrl = Uri.parse(_finampUserHelper.currentUser!.baseUrl);
 
-  void addNext(Track track) async {
-    await insertQueueItemsNext([_trackToMediaItem(track)]);
-  }
+    List<String> builtPath = List.from(parsedBaseUrl.pathSegments);
 
-  void removeFromQueue(int index) async {
-    await removeQueueItemAt(index);
-  }
+    Map<String, String> queryParameters =
+        Map.from(parsedBaseUrl.queryParameters);
 
-  void clearQueue() async {
-    await updateQueue([]);
-    await stop();
-  }
+    // We include the user token as a query parameter because just_audio used to
+    // have issues with headers in HLS, and this solution still works fine
+    queryParameters["ApiKey"] = _finampUserHelper.currentUser!.accessToken;
 
-  void shuffle() async {
-    await setShuffleMode(AudioServiceShuffleMode.all);
-  }
+    if (mediaItem.extras!["shouldTranscode"]) {
+      builtPath.addAll([
+        "Audio",
+        mediaItem.extras!["itemJson"]["Id"],
+        "main.m3u8",
+      ]);
 
-  void unshuffle() async {
-    await setShuffleMode(AudioServiceShuffleMode.none);
-  }
-
-  // Radio Mode functionality (not implemented yet)
-  void toggleRadioMode() {
-    // TODO: Implement radio mode
-  }
-
-  void enableRadioMode() {
-    // TODO: Implement radio mode
-  }
-
-  void disableRadioMode() {
-    // TODO: Implement radio mode
-  }
-
-  // Getters
-  List<Track> get playlist => queue.valueOrNull?.map((item) => _mediaItemToTrack(item)).toList() ?? [];
-  List<Track> get queueTracks => playlist; // Same as playlist for now
-  List<Track> get upNext => currentIndex < playlist.length - 1 ? playlist.sublist(currentIndex + 1) : [];
-  Track? get currentTrack => mediaItem.valueOrNull != null ? _mediaItemToTrack(mediaItem.valueOrNull!) : null;
-  int get currentIndex => playbackState.valueOrNull?.queueIndex ?? 0;
-  bool get isPlaying => _player.playing;
-  bool get hasNext => _player.hasNext;
-  bool get hasPrevious => _player.hasPrevious;
-  bool get isShuffled => _player.shuffleModeEnabled;
-  bool get radioModeEnabled => false; // Not implemented yet
-  
-  Stream<Duration> get positionStream => _player.positionStream;
-  Stream<Duration?> get durationStream => _player.durationStream;
-  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
-  
-  Duration get position => _player.position;
-  Duration? get duration => _player.duration;
-  PlayerState get playerState => _player.playerState;
-
-  Track _mediaItemToTrack(MediaItem mediaItem) {
-    return Track(
-      id: mediaItem.id,
-      name: mediaItem.title,
-      artistName: mediaItem.artist,
-      albumName: mediaItem.album,
-      duration: mediaItem.duration?.inMilliseconds,
-      imageUrl: mediaItem.artUri?.toString(),
-    );
-  }
-
-  @override
-  Future<void> onTaskRemoved() async {
-    if (kDebugMode) {
-      print('App task removed, stopping playback');
+      queryParameters.addAll({
+        "audioCodec": "aac",
+        // Ideally we'd use 48kHz when the source is, realistically it doesn't
+        // matter too much
+        "audioSampleRate": "44100",
+        "maxAudioBitDepth": "16",
+        "audioBitRate":
+            FinampSettingsHelper.finampSettings.transcodeBitrate.toString(),
+      });
+    } else {
+      builtPath.addAll([
+        "Items",
+        mediaItem.extras!["itemJson"]["Id"],
+        "File",
+      ]);
     }
-    await stop();
-  }
 
-  Future<void> dispose() async {
-    _sleepTimer?.cancel();
-    await _player.dispose();
+    return Uri(
+      host: parsedBaseUrl.host,
+      port: parsedBaseUrl.port,
+      scheme: parsedBaseUrl.scheme,
+      userInfo: parsedBaseUrl.userInfo,
+      pathSegments: builtPath,
+      queryParameters: queryParameters,
+    );
   }
 }
 
@@ -672,5 +765,28 @@ AudioServiceRepeatMode _audioServiceRepeatMode(LoopMode loopMode) {
       return AudioServiceRepeatMode.one;
     case LoopMode.all:
       return AudioServiceRepeatMode.all;
+  }
+}
+
+String _jellyfinRepeatModeFromLoopMode(LoopMode loopMode) {
+  switch (loopMode) {
+    case LoopMode.off:
+      return "RepeatNone";
+    case LoopMode.one:
+      return "RepeatOne";
+    case LoopMode.all:
+      return "RepeatAll";
+  }
+}
+
+String _jellyfinRepeatModeFromRepeatMode(AudioServiceRepeatMode repeatMode) {
+  switch (repeatMode) {
+    case AudioServiceRepeatMode.none:
+      return "RepeatNone";
+    case AudioServiceRepeatMode.one:
+      return "RepeatOne";
+    case AudioServiceRepeatMode.all:
+    case AudioServiceRepeatMode.group:
+      return "RepeatAll";
   }
 }
