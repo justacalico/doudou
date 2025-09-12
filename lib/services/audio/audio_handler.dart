@@ -26,6 +26,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioStatePersistence _statePersistence;
   late final AudioTransitionManager _transitionManager;
 
+  // User intent tracking to prevent buffering pauses
+  bool _userIntendedPlaying = false;
+
   // Codec loop detection
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
