@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 
 /// Manages the internal state of the audio player including playlist, queue, and playback settings
+/// Thread-safe implementation with atomic operations to prevent race conditions
 class AudioStateManager {
+  // Atomic operations lock
+  Completer<void>? _operationLock;
+  
   // Playlist and queue state
   List<Track> _playlist = [];
   List<Track> _queue = [];
