@@ -209,17 +209,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Additional check: make sure we haven't had any progress recently
       final currentPosition = _player.position;
-      static Duration? lastKnownPosition;
-      static DateTime? lastPositionCheck;
-      
       final now = DateTime.now();
       
       // Only intervene if position hasn't changed for 45+ seconds
-      if (lastKnownPosition == null || lastPositionCheck == null ||
-          currentPosition != lastKnownPosition ||
-          now.difference(lastPositionCheck!) < const Duration(seconds: 45)) {
-        lastKnownPosition = currentPosition;
-        lastPositionCheck = now;
+      if (_lastKnownPosition == null || _lastPositionCheck == null ||
+          currentPosition != _lastKnownPosition ||
+          now.difference(_lastPositionCheck!) < const Duration(seconds: 45)) {
+        _lastKnownPosition = currentPosition;
+        _lastPositionCheck = now;
         return; // Don't intervene yet
       }
       

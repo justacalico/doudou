@@ -130,14 +130,14 @@ class AudioStatePersistence {
   void startPeriodicSaving(Duration position, bool isPlaying) {
     stopPeriodicSaving(); // Clear any existing timer
     
-    // Use longer interval to reduce conflicts and improve performance
-    _saveStateTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    // Use much longer interval to prevent "CD skipping" - was 15s, now 60s
+    _saveStateTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
       // Use debounced save to prevent conflicts
       savePlaybackState(position, isPlaying);
     });
     
     if (kDebugMode) {
-      print('Started periodic saving with 15-second interval');
+      print('Started periodic saving with 60-second interval (reduced interference)');
     }
   }
   
