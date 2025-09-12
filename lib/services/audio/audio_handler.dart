@@ -77,17 +77,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void _init() {
-    // Enhanced player state listener for background compatibility
+    // Enhanced player state listener for background compatibility with buffering fix
     _player.playerStateStream.listen((playerState) {
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
+      
+      // Determine final playing state based on user intent and current state
+      bool finalPlayingState = isPlaying;
+      
+      // During buffering, use user intent to maintain playback
+      if (processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
+        finalPlayingState = true;
+        if (kDebugMode) {
+          print('Player buffering but user intended playing - maintaining playback state');
+        }
+      }
       
       // Always update playback state to keep system informed
       final newPlaybackState = playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
-          if (isPlaying) MediaControl.pause else MediaControl.play,
-          MediaControl.skipToNext,
+          if (finalPlayingState) MediaControl.pause else MediaControl.play,
         ],
         systemActions: const {
           MediaAction.seek,
@@ -96,7 +106,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         },
         androidCompactActionIndices: const [0, 1, 2],
         processingState: processingState,
-        playing: isPlaying,
+        playing: finalPlayingState,
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
@@ -294,6 +304,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Play command received (background safe)');
     }
     
+    // Set user intent to playing
+    _userIntendedPlaying = true;
+    
     try {
       // Ensure we have a track to play
       if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
@@ -305,16 +318,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Always verify the play command worked
       await Future.delayed(const Duration(milliseconds: 100));
       
-      // Update state to reflect actual player state
+      // Update state to reflect actual player state, but force playing if user intended
       _updatePlaybackState(playbackState.value.copyWith(
-        playing: _player.playing, // Use actual player state
+        playing: true, // Force true since user explicitly requested play
         processingState: _player.processingState == ProcessingState.ready 
             ? AudioProcessingState.ready 
             : AudioProcessingState.loading,
       ));
       
       if (kDebugMode) {
-        print('Play command completed. Actually playing: ${_player.playing}');
+        print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
       }
     } catch (e) {
       if (kDebugMode) {
