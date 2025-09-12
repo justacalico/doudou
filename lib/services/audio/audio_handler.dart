@@ -175,7 +175,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Don't interfere during transitions, completion handling, or loading states
     if (_stateManager.isHandlingCompletion || 
         _stateManager.isTransitioning ||
-        _isHandlingTransition ||
+        _transitionManager.isTransitionInProgress ||
         _player.processingState == ProcessingState.loading ||
         _player.processingState == ProcessingState.completed ||
         _player.processingState == ProcessingState.buffering) {
