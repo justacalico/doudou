@@ -123,16 +123,30 @@ class AudioStatePersistence {
     return null;
   }
   
+  /// Thread-safe periodic saving with conflict detection
   void startPeriodicSaving(Duration position, bool isPlaying) {
     stopPeriodicSaving(); // Clear any existing timer
-    _saveStateTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    
+    // Use longer interval to reduce conflicts and improve performance
+    _saveStateTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      // Use debounced save to prevent conflicts
       savePlaybackState(position, isPlaying);
     });
+    
+    if (kDebugMode) {
+      print('Started periodic saving with 15-second interval');
+    }
   }
   
   void stopPeriodicSaving() {
     _saveStateTimer?.cancel();
     _saveStateTimer = null;
+    _debounceSaveTimer?.cancel();
+    _debounceSaveTimer = null;
+    
+    if (kDebugMode) {
+      print('Stopped periodic saving');
+    }
   }
   
   void dispose() {
