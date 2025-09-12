@@ -1,46 +1,150 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
 import '../download_service.dart';
-import 'audio_state_manager.dart';
-import 'audio_preloader.dart';
-import 'audio_queue_manager.dart';
-import 'audio_radio_mode.dart';
-import 'audio_state_persistence.dart';
 
+// Largely copied from just_audio's DefaultShuffleOrder, but with a mildly
+// stupid hack to insert() to make Play Next work
+class DoudouShuffleOrder extends ShuffleOrder {
+  final Random _random;
+  @override
+  final indices = <int>[];
+
+  DoudouShuffleOrder({Random? random}) : _random = random ?? Random();
+
+  @override
+  void shuffle({int? initialIndex}) {
+    assert(initialIndex == null || indices.contains(initialIndex));
+    if (indices.length <= 1) return;
+    indices.shuffle(_random);
+    if (initialIndex == null) return;
+
+    const initialPos = 0;
+    final swapPos = indices.indexOf(initialIndex);
+    // Swap the indices at initialPos and swapPos.
+    final swapIndex = indices[initialPos];
+    indices[initialPos] = initialIndex;
+    indices[swapPos] = swapIndex;
+  }
+
+  @override
+  void insert(int index, int count) {
+    // Offset indices after insertion point.
+    for (var i = 0; i < indices.length; i++) {
+      if (indices[i] >= index) {
+        indices[i] += count;
+      }
+    }
+
+    final newIndices = List.generate(count, (i) => index + i);
+    // This is the only modification from DefaultShuffleOrder: Only shuffle
+    // inserted indices amongst themselves, but keep them contiguous
+    newIndices.shuffle(_random);
+    indices.insertAll(index, newIndices);
+  }
+
+  @override
+  void removeRange(int start, int end) {
+    final count = end - start;
+    // Remove old indices.
+    final oldIndices = List.generate(count, (i) => start + i).toSet();
+    indices.removeWhere(oldIndices.contains);
+    // Offset indices after deletion point.
+    for (var i = 0; i < indices.length; i++) {
+      if (indices[i] >= end) {
+        indices[i] -= count;
+      }
+    }
+  }
+
+  @override
+  void clear() {
+    indices.clear();
+  }
+}
+
+/// This provider handles the currently playing music so that multiple widgets
+/// can control music. Based on Finamp's reliable audio implementation.
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final AudioPlayer _player = AudioPlayer();
+  final _player = AudioPlayer();
+  ConcatenatingAudioSource _queueAudioSource = ConcatenatingAudioSource(
+    children: [],
+    shuffleOrder: DoudouShuffleOrder(),
+  );
+  final _audioServiceLogger = Logger("DoudouAudioHandler");
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
-  
-  // Component managers
-  late final AudioStateManager _stateManager;
-  late final AudioPreloader _preloader;
-  late final AudioQueueManager _queueManager;
-  late final AudioRadioMode _radioMode;
-  late final AudioStatePersistence _statePersistence;
 
-  // Background playback tracking
-  Timer? _backgroundPlaybackTimer;
-  bool _isInBackground = false;
-  
-  // Codec loop detection
-  DateTime? _lastBufferingTime;
-  int _bufferingLoopCount = 0;
+  /// Set when shuffle mode is changed. If true, [onUpdateQueue] will create a
+  /// shuffled [ConcatenatingAudioSource].
+  bool shuffleNextQueue = false;
+
+  /// Set when creating a new queue. Will be used to set the first index in a
+  /// new queue.
+  int? nextInitialIndex;
+
+  /// Set to true when we're stopping the audio service. Used to avoid playback
+  /// progress reporting.
+  bool _isStopping = false;
+
+  /// Holds the current sleep timer, if any.
+  bool _sleepTimerIsSet = false;
+  Duration _sleepTimerDuration = Duration.zero;
+  Timer? _sleepTimer;
+
+  List<int>? get shuffleIndices => _player.shuffleIndices;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
-    _stateManager = AudioStateManager();
-    _preloader = AudioPreloader(_jellyfinService, _downloadService);
-    _queueManager = AudioQueueManager(_stateManager);
-    _radioMode = AudioRadioMode(_jellyfinService);
-    _statePersistence = AudioStatePersistence(_stateManager);
-    
-    _init();
-    _loadPlaybackState();
+    _audioServiceLogger.info("Starting audio service");
+
+    // Propagate all events from the audio player to AudioService clients.
+    _player.playbackEventStream.listen((event) async {
+      final prevState = playbackState.valueOrNull;
+      final prevIndex = prevState?.queueIndex;
+      final prevItem = mediaItem.valueOrNull;
+      final currentState = _transformEvent(event);
+      final currentIndex = currentState.queueIndex;
+
+      playbackState.add(currentState);
+
+      if (currentIndex != null) {
+        final currentItem = _getQueueItem(currentIndex);
+
+        // Differences in queue index or item id are considered track changes
+        if (currentIndex != prevIndex || currentItem.id != prevItem?.id) {
+          mediaItem.add(currentItem);
+          onTrackChanged(currentItem, currentState, prevItem, prevState);
+        }
+      }
+
+      if (playbackState.valueOrNull != null &&
+          playbackState.valueOrNull?.processingState !=
+              AudioProcessingState.idle &&
+          playbackState.valueOrNull?.processingState !=
+              AudioProcessingState.completed &&
+          !_isStopping) {
+        await _updatePlaybackProgress();
+      }
+    });
+
+    // Special processing for state transitions.
+    _player.processingStateStream.listen((event) {
+      if (event == ProcessingState.completed) {
+        stop();
+      }
+    });
+
+    // PlaybackEvent doesn't include shuffle/loops so we listen for changes here
+    _player.shuffleModeEnabledStream.listen(
+        (_) => playbackState.add(_transformEvent(_player.playbackEvent)));
+    _player.loopModeStream.listen(
+        (_) => playbackState.add(_transformEvent(_player.playbackEvent)));
   }
 
   void _init() {
