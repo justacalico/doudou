@@ -118,7 +118,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Monitor playback for background issues - FIXED: Don't restart saving on every state change
+    // Monitor playback for state persistence only
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
         // Only start periodic saving if not already started
@@ -128,14 +128,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Started periodic saving (was not running)');
           }
         }
-        // Only start background monitoring if we detect actual issues, not preemptively
-        // _startBackgroundMonitoring(); // Removed automatic monitoring
       } else {
         _statePersistence.stopPeriodicSaving();
         _statePersistence.savePlaybackState(_player.position, playerState.playing);
-        _stopBackgroundMonitoring();
         if (kDebugMode) {
-          print('Stopped playback - saved state and stopped monitoring');
+          print('Stopped playback - saved state');
         }
       }
     });
