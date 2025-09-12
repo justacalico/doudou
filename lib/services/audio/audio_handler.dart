@@ -443,18 +443,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
-    // Atomic check-and-set to prevent race conditions
-    if (_stateManager.isHandlingCompletion || _isHandlingTransition) {
+    // Use atomic transition manager to prevent race conditions with manual skips
+    if (!await _transitionManager.acquireTransitionLock('trackCompletion')) {
       if (kDebugMode) {
-        print('Already handling completion or transitioning, skipping...');
+        print('Track completion rejected - another transition in progress');
       }
       return;
     }
-    
-    // Set transition state atomically
-    _isHandlingTransition = true;
-    _stateManager.setHandlingCompletion(true);
-    _stateManager.setTransitioning(true);
     
     try {
       if (kDebugMode) {
@@ -476,8 +471,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Minimal delay for codec cleanup - reduced from 200ms
       await Future.delayed(const Duration(milliseconds: 100));
       
-      // Check if we can move to next track
-      if (_stateManager.incrementCurrentIndex()) {
+      // Check if we can move to next track atomically
+      if (await _stateManager.incrementCurrentIndexAtomic()) {
         if (kDebugMode) {
           print('Moving to next track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
         }
@@ -501,7 +496,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _queueManager.addTracksToPlaylist(similarTracks);
           queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
           
-          _stateManager.incrementCurrentIndex();
+          await _stateManager.incrementCurrentIndexAtomic();
           await _playCurrentTrack();
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
           
@@ -536,10 +531,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         playing: false,
       ));
     } finally {
-      // Always reset states
-      _isHandlingTransition = false;
+      // Always reset states and release lock
       _stateManager.setHandlingCompletion(false);
       _stateManager.setTransitioning(false);
+      _transitionManager.releaseTransitionLock();
       
       // Restart background monitoring if playing
       if (_player.playing) {
