@@ -247,54 +247,77 @@ class AudioPreloader {
     }
   }
   
+  /// Thread-safe cleanup of old preloaded players
+  Future<void> _cleanupOldPreloadedPlayersSynchronized(List<Track> playlist, int currentIndex) async {
+    await _acquireCleanupLock();
+    
+    try {
+      final currentTrackId = playlist.isNotEmpty && currentIndex < playlist.length 
+          ? playlist[currentIndex].id 
+          : null;
+      final upcomingTrackIds = <String>{};
+      
+      // Collect IDs of upcoming tracks (next 3 tracks + previous track)
+      const preloadCount = 3;
+      
+      // Add next tracks
+      for (int i = 1; i <= preloadCount; i++) {
+        final nextIndex = currentIndex + i;
+        if (nextIndex < playlist.length) {
+          upcomingTrackIds.add(playlist[nextIndex].id);
+        }
+      }
+      
+      // Add previous track for instant skip-back
+      if (currentIndex > 0) {
+        upcomingTrackIds.add(playlist[currentIndex - 1].id);
+      }
+      
+      // Find players to remove (synchronized check)
+      final keysToRemove = <String>[];
+      for (final trackId in _preloadedPlayers.keys) {
+        if (trackId != currentTrackId && !upcomingTrackIds.contains(trackId)) {
+          keysToRemove.add(trackId);
+        }
+      }
+      
+      if (keysToRemove.isNotEmpty && kDebugMode) {
+        if (kDebugMode) {
+          print('Cleaning up ${keysToRemove.length} old preloaded tracks');
+        }
+      }
+      
+      // Atomically remove and dispose players
+      for (final trackId in keysToRemove) {
+        final player = _preloadedPlayers.remove(trackId);
+        _bufferedTracks.remove(trackId);
+        
+        // Dispose player safely
+        if (player != null) {
+          try {
+            player.dispose();
+            if (kDebugMode) {
+              print('Cleaned up preloaded player for track: $trackId');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error disposing preloaded player: $e');
+            }
+          }
+        }
+      }
+      
+      if (kDebugMode) {
+        print('Currently buffered: ${_preloadedPlayers.length} tracks, Buffering: ${_preloadingTracks.length} tracks');
+      }
+    } finally {
+      _releaseCleanupLock();
+    }
+  }
+  
   void cleanupOldPreloadedPlayers(List<Track> playlist, int currentIndex) {
-    final currentTrackId = playlist.isNotEmpty && currentIndex < playlist.length 
-        ? playlist[currentIndex].id 
-        : null;
-    final upcomingTrackIds = <String>{};
-    
-    // Collect IDs of upcoming tracks (next 3 tracks + previous track)
-    const preloadCount = 3;
-    
-    // Add next tracks
-    for (int i = 1; i <= preloadCount; i++) {
-      final nextIndex = currentIndex + i;
-      if (nextIndex < playlist.length) {
-        upcomingTrackIds.add(playlist[nextIndex].id);
-      }
-    }
-    
-    // Add previous track for instant skip-back
-    if (currentIndex > 0) {
-      upcomingTrackIds.add(playlist[currentIndex - 1].id);
-    }
-    
-    // Remove preloaded players that are no longer needed
-    final keysToRemove = <String>[];
-    for (final trackId in _preloadedPlayers.keys) {
-      if (trackId != currentTrackId && !upcomingTrackIds.contains(trackId)) {
-        keysToRemove.add(trackId);
-      }
-    }
-    
-    if (keysToRemove.isNotEmpty && kDebugMode) {
-      if (kDebugMode) {
-        print('Cleaning up ${keysToRemove.length} old preloaded tracks');
-      }
-    }
-    
-    for (final trackId in keysToRemove) {
-      final player = _preloadedPlayers.remove(trackId);
-      player?.dispose();
-      _bufferedTracks.remove(trackId);
-      if (kDebugMode) {
-        print('Cleaned up preloaded player for track: $trackId');
-      }
-    }
-    
-    if (kDebugMode) {
-      print('Currently buffered: ${_preloadedPlayers.length} tracks, Buffering: ${_preloadingTracks.length} tracks');
-    }
+    // Delegate to synchronized version
+    Future(() => _cleanupOldPreloadedPlayersSynchronized(playlist, currentIndex));
   }
   
   /// Try to use a preloaded player if available
