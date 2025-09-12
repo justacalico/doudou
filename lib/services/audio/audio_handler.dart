@@ -78,11 +78,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       );
       
       playbackState.add(newPlaybackState);
-      
-      // Handle state changes that might indicate background issues
-      if (processingState == AudioProcessingState.error && _isInBackground) {
-        _handleBackgroundError();
-      }
     });
 
     // Enhanced position stream for background tracking
