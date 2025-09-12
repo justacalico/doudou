@@ -246,7 +246,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       // Convert the MediaItems to AudioSources
       List<AudioSource> audioSources = [];
-      for (final mediaItem in newQueue) {
+      for (final mediaItem in queue) {
         audioSources.add(await _mediaItemToAudioSource(mediaItem));
       }
 
