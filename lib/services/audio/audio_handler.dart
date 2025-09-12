@@ -184,8 +184,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     final playerState = _player.playerState;
-    final position = _player.position;
-    final duration = _player.duration;
     
     // Update position tracking
     _lastPositionUpdate = DateTime.now();
