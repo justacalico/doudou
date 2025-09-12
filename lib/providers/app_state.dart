@@ -763,8 +763,8 @@ class AppState extends ChangeNotifier {
   Future<void> toggleSmartCrossfade(bool enabled) async {
     _smartCrossfadeEnabled = enabled;
     
-    // Update the audio handler with the new crossfade setting
-    _audioHandler?.setSmartCrossfade(enabled);
+    // Update the audio handler with the new crossfade setting (removed in new implementation)
+    // _audioHandler?.setSmartCrossfade(enabled);
     
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
