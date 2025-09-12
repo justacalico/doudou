@@ -881,6 +881,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void clearQueue() async {
+    // Reset user intent when clearing queue
+    _userIntendedPlaying = false;
+    
     await _queueManager.clearQueue();
     _preloader.clearAllPreloadedPlayers();
     queue.add(<MediaItem>[]);
