@@ -98,6 +98,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         controls: [
           MediaControl.skipToPrevious,
           if (finalPlayingState) MediaControl.pause else MediaControl.play,
+          MediaControl.skipToNext,
         ],
         systemActions: const {
           MediaAction.seek,
