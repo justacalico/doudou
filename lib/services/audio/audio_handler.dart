@@ -381,9 +381,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Track completed: ${_stateManager.currentTrack?.name}');
       }
       
-      // Stop background monitoring during transition to prevent interference
-      _stopBackgroundMonitoring();
-      
       // Simple, clean stop without aggressive delays
       try {
         await _player.stop();
@@ -460,11 +457,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _stateManager.setHandlingCompletion(false);
       _stateManager.setTransitioning(false);
       _transitionManager.releaseTransitionLock();
-      
-      // Restart background monitoring if playing
-      if (_player.playing) {
-        _startBackgroundMonitoring();
-      }
     }
   }
 
@@ -981,15 +973,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  // Background state management
-  void setBackgroundState(bool isBackground) {
-    _isInBackground = isBackground;
-    
-    if (kDebugMode) {
-      print('App background state changed: $isBackground');
-    }
-  }
-
   // Transcoding support methods
   bool _shouldTranscodeTrack(Track track) {
     return true; // Enable transcoding for maximum compatibility
@@ -1008,7 +991,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> dispose() async {
-    _stopBackgroundMonitoring();
     _statePersistence.dispose();
     _preloader.dispose();
     await _player.dispose();
