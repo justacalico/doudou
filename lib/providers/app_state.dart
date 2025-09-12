@@ -776,8 +776,8 @@ class AppState extends ChangeNotifier {
   Future<void> toggleNormalizeVolume(bool enabled) async {
     _normalizeVolumeEnabled = enabled;
     
-    // Update the audio handler with the new normalize volume setting
-    _audioHandler?.setNormalizeVolume(enabled);
+    // Update the audio handler with the new normalize volume setting (removed in new implementation)
+    // _audioHandler?.setNormalizeVolume(enabled);
     
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
@@ -789,8 +789,8 @@ class AppState extends ChangeNotifier {
   Future<void> toggleGaplessPlayback(bool enabled) async {
     _gaplessPlaybackEnabled = enabled;
     
-    // Update the audio handler with the new gapless playback setting
-    _audioHandler?.setGaplessPlayback(enabled);
+    // Update the audio handler with the new gapless playback setting (removed in new implementation)
+    // _audioHandler?.setGaplessPlayback(enabled);
     
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
@@ -976,10 +976,10 @@ class AppState extends ChangeNotifier {
           ),
         );
         
-        // Apply user settings to the audio handler
-        _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
-        _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
-        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+        // Apply user settings to the audio handler (methods removed in new implementation)
+        // _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+        // _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+        // _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
         
         // Set up listeners for automatic UI updates
         _setupAudioHandlerListeners();

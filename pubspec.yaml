@@ -21,6 +21,9 @@ dependencies:
   # State management
   provider: ^6.1.5
   
+  # RxDart for streams
+  rxdart: ^0.28.0
+  
   # UI components
   cached_network_image: ^3.4.1
   
