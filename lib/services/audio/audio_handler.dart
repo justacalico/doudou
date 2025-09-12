@@ -95,7 +95,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   List<int>? get shuffleIndices => _player.shuffleIndices;
 
-  DoudouAudioHandler(this._jellyfinService, this._downloadService) {
+  DoudouAudioHandler(this._jellyfinService) {
     if (kDebugMode) {
       print("Starting DoudouAudioHandler");
     }
