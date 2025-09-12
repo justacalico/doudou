@@ -812,8 +812,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
     
-    // Reset all transition states
-    _isHandlingTransition = false;
+    // Reset all transition states atomically
+    await _transitionManager.waitForTransitionComplete();
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
     
