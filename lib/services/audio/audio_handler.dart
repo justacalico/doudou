@@ -961,6 +961,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _stateManager.setSmartCrossfadeEnabled(enabled);
     
     if (enabled) {
+      // Only set volume when explicitly changing settings, not during playback
       _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
       _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
     } else {
@@ -970,6 +971,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void setNormalizeVolume(bool enabled) {
     _stateManager.setNormalizeVolumeEnabled(enabled);
+    // Only set volume when explicitly requested, not during track changes
     _player.setVolume(enabled ? 0.8 : 1.0);
   }
 
