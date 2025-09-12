@@ -48,6 +48,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
+      // Filter out transient buffering states to prevent audio pauses
+      // Only update playback state for buffering if we're not currently playing
+      // This prevents momentary pauses during normal network buffering
+      final shouldUpdateProcessingState = processingState != AudioProcessingState.buffering || 
+                                        !playbackState.value.playing ||
+                                        !isPlaying;
+      
       // Always update playback state to keep system informed
       final newPlaybackState = playbackState.value.copyWith(
         controls: [
@@ -61,7 +68,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           MediaAction.seekBackward,
         },
         androidCompactActionIndices: const [0, 1, 2],
-        processingState: processingState,
+        processingState: shouldUpdateProcessingState ? processingState : playbackState.value.processingState,
         playing: isPlaying,
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
