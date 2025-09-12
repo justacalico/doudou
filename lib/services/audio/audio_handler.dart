@@ -127,15 +127,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Monitor playback for background issues
+    // Monitor playback for background issues - FIXED: Don't restart saving on every state change
     _player.playerStateStream.listen((playerState) {
       if (playerState.playing) {
-        _statePersistence.startPeriodicSaving(_player.position, playerState.playing);
+        // Only start periodic saving if not already started
+        if (_statePersistence._saveStateTimer == null) {
+          _statePersistence.startPeriodicSaving(_player.position, playerState.playing);
+          if (kDebugMode) {
+            print('Started periodic saving (was not running)');
+          }
+        }
         _startBackgroundMonitoring();
       } else {
         _statePersistence.stopPeriodicSaving();
         _statePersistence.savePlaybackState(_player.position, playerState.playing);
         _stopBackgroundMonitoring();
+        if (kDebugMode) {
+          print('Stopped playback - saved state and stopped monitoring');
+        }
       }
     });
 
