@@ -29,6 +29,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Codec loop detection
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
+  
+  // Helper method to update playback state while filtering disruptive buffering
+  void _updatePlaybackState(PlaybackState newState) {
+    // If we're trying to set buffering state while currently playing, skip it
+    // This prevents audio interruptions during normal network buffering
+    if (newState.processingState == AudioProcessingState.buffering && 
+        playbackState.value.playing && 
+        playbackState.value.processingState == AudioProcessingState.ready) {
+      
+      // Create a copy without the buffering state change
+      final filteredState = newState.copyWith(
+        processingState: playbackState.value.processingState, // Keep current state
+      );
+      playbackState.add(filteredState);
+      return;
+    }
+    
+    // Normal state update
+    playbackState.add(newState);
+  }
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
