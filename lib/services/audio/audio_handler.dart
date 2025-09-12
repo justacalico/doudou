@@ -588,8 +588,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update current media item immediately
     mediaItem.add(_trackToMediaItem(track));
     
-    // Store playing state for background compatibility
+    // Store playing state for background compatibility and user intent
     final wasPlaying = playbackState.value.playing;
+    
+    // Preserve user intent if they were playing
+    if (wasPlaying) {
+      _userIntendedPlaying = true;
+    }
     
     // Update to loading state
     _updatePlaybackState(playbackState.value.copyWith(
