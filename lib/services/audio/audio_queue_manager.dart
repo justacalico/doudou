@@ -35,7 +35,9 @@ class AudioQueueManager {
     final success = await _stateManager.removeFromPlaylistAtomic(index);
     
     if (success && kDebugMode) {
-      print('Removed track from queue at index: $index');
+      if (kDebugMode) {
+        print('Removed track from queue at index: $index');
+      }
     }
     
     return success;
