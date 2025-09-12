@@ -233,7 +233,7 @@ class AppState extends ChangeNotifier {
         // Try to initialize audio handler after successful login
         try {
           _audioHandler = await AudioService.init(
-            builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+            builder: () => DoudouAudioHandler(_jellyfinService),
             config: const AudioServiceConfig(
               androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
               androidNotificationChannelName: 'Doudou Music',
@@ -968,7 +968,7 @@ class AppState extends ChangeNotifier {
       // Try to initialize audio handler for offline playback
       try {
         _audioHandler = await AudioService.init(
-          builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+          builder: () => DoudouAudioHandler(_jellyfinService),
           config: const AudioServiceConfig(
             androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
             androidNotificationChannelName: 'Doudou Music',
