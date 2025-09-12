@@ -5,7 +5,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
-import '../download_service.dart';
 
 // Largely copied from just_audio's DefaultShuffleOrder, but with a mildly
 // stupid hack to insert() to make Play Next work
