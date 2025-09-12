@@ -411,7 +411,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Manual skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
     
-    // Reset completion and transition handling to prevent conflicts
+    // Reset all completion and transition handling to prevent conflicts
+    _isHandlingTransition = false;
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
     
