@@ -320,8 +320,9 @@ class AudioPreloader {
     Future(() => _cleanupOldPreloadedPlayersSynchronized(playlist, currentIndex));
   }
   
-  /// Try to use a preloaded player if available
+  /// Try to use a preloaded player if available - Thread-safe
   AudioPlayer? getPreloadedPlayer(String trackId) {
+    // Atomically remove and return the player
     return _preloadedPlayers.remove(trackId);
   }
   
