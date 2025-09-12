@@ -40,6 +40,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _queueManager = AudioQueueManager(_stateManager);
     _radioMode = AudioRadioMode(_jellyfinService);
     _statePersistence = AudioStatePersistence(_stateManager);
+    _transitionManager = AudioTransitionManager();
     
     _init();
     _loadPlaybackState();
