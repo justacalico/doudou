@@ -13,7 +13,7 @@ class AudioTransitionManager {
     // If there's already a transition in progress, reject this request
     if (_transitionLock != null && !_transitionLock!.isCompleted) {
       if (kDebugMode) {
-        print('Transition rejected: $operation (${_currentOperation} in progress)');
+        print('Transition rejected: $operation ($_currentOperation in progress)');
       }
       return false;
     }
