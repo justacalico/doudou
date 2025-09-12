@@ -57,34 +57,42 @@ class AudioPreloader {
   Set<String> get preloadingTracks => _preloadingTracks;
   Set<String> get bufferedTracks => _bufferedTracks;
   
-  /// Aggressively preload next tracks for instant playback
+  /// Thread-safe aggressive preload of next tracks
   void preloadNextTracks(List<Track> playlist, int currentIndex) async {
-    // Always preload next 3 tracks for instant switching
-    const preloadCount = 3;
+    // Acquire preload lock to prevent conflicts with cleanup
+    await _acquirePreloadLock();
     
-    if (kDebugMode) {
-      print('Starting aggressive preloading of next $preloadCount tracks...');
-    }
-    
-    cleanupOldPreloadedPlayers(playlist, currentIndex);
-    
-    for (int i = 1; i <= preloadCount; i++) {
-      final nextIndex = currentIndex + i;
-      if (nextIndex < playlist.length) {
-        final track = playlist[nextIndex];
-        if (!_preloadedPlayers.containsKey(track.id) && !_preloadingTracks.contains(track.id)) {
-          // Start preloading immediately without waiting
-          _preloadTrackAggressive(track, i);
+    try {
+      // Always preload next 3 tracks for instant switching
+      const preloadCount = 3;
+      
+      if (kDebugMode) {
+        print('Starting synchronized preloading of next $preloadCount tracks...');
+      }
+      
+      // Schedule cleanup without blocking (but synchronized)
+      Future(() => _cleanupOldPreloadedPlayersSynchronized(playlist, currentIndex));
+      
+      for (int i = 1; i <= preloadCount; i++) {
+        final nextIndex = currentIndex + i;
+        if (nextIndex < playlist.length) {
+          final track = playlist[nextIndex];
+          if (!_preloadedPlayers.containsKey(track.id) && !_preloadingTracks.contains(track.id)) {
+            // Start preloading without blocking
+            Future(() => _preloadTrackAggressive(track, i));
+          }
         }
       }
-    }
-    
-    // Also preload the previous track for instant skip-back
-    if (currentIndex > 0) {
-      final prevTrack = playlist[currentIndex - 1];
-      if (!_preloadedPlayers.containsKey(prevTrack.id) && !_preloadingTracks.contains(prevTrack.id)) {
-        _preloadTrackAggressive(prevTrack, 0);
+      
+      // Also preload the previous track for instant skip-back
+      if (currentIndex > 0) {
+        final prevTrack = playlist[currentIndex - 1];
+        if (!_preloadedPlayers.containsKey(prevTrack.id) && !_preloadingTracks.contains(prevTrack.id)) {
+          Future(() => _preloadTrackAggressive(prevTrack, 0));
+        }
       }
+    } finally {
+      _releasePreloadLock();
     }
   }
   
