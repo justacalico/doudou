@@ -608,12 +608,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Getters
   List<Track> get playlist => queue.valueOrNull?.map((item) => _mediaItemToTrack(item)).toList() ?? [];
+  List<Track> get queueTracks => playlist; // Same as playlist for now
+  List<Track> get upNext => currentIndex < playlist.length - 1 ? playlist.sublist(currentIndex + 1) : [];
   Track? get currentTrack => mediaItem.valueOrNull != null ? _mediaItemToTrack(mediaItem.valueOrNull!) : null;
   int get currentIndex => playbackState.valueOrNull?.queueIndex ?? 0;
   bool get isPlaying => _player.playing;
   bool get hasNext => _player.hasNext;
   bool get hasPrevious => _player.hasPrevious;
   bool get isShuffled => _player.shuffleModeEnabled;
+  bool get radioModeEnabled => false; // Not implemented yet
   
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
