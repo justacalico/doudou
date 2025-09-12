@@ -6,9 +6,16 @@ import '../../models/jellyfin_models.dart';
 import 'audio_state_manager.dart';
 
 /// Handles saving and loading playback state for session persistence
+/// Thread-safe implementation with debouncing to prevent conflicting saves
 class AudioStatePersistence {
   final AudioStateManager _stateManager;
   Timer? _saveStateTimer;
+  Timer? _debounceSaveTimer;
+  
+  // Debouncing and conflict resolution
+  bool _isSaving = false;
+  Duration? _pendingPosition;
+  bool? _pendingIsPlaying;
   
   AudioStatePersistence(this._stateManager);
   
