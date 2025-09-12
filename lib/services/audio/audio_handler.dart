@@ -207,7 +207,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final sources =
           await Future.wait(mediaItems.map((i) => _mediaItemToAudioSource(i)));
       await _queueAudioSource.addAll(sources);
-      queue.add(_queueFromSource());
+      super.queue.add(_queueFromSource());
     } catch (e) {
       if (kDebugMode) {
         print("Error adding queue items: $e");
