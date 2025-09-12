@@ -623,17 +623,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playing: wasPlaying,
     ));
     
-    // Stop current player safely with longer delay for codec cleanup
+    // Stop current player safely with appropriate delay for codec cleanup
     try {
       await _player.stop();
-      // Give codecs more time to properly cleanup - increased for better stability
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Allow codec cleanup time - reduced but sufficient
+      await Future.delayed(const Duration(milliseconds: 300));
     } catch (e) {
       if (kDebugMode) {
         print('Error stopping player: $e');
       }
       // Even if stop fails, wait before proceeding
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 200));
     }
     
     // Try preloaded player first
