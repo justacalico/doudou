@@ -735,7 +735,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (await localFile.exists()) {
         try {
           await _player.setFilePath(localFilePath);
-          _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+          // Removed: frequent volume setting that can cause buffering interruptions
           
           // Wait for player to be ready before playing
           await Future.delayed(const Duration(milliseconds: 200));
