@@ -26,17 +26,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioStatePersistence _statePersistence;
   late final AudioTransitionManager _transitionManager;
 
-  // Background playback tracking
-  Timer? _backgroundPlaybackTimer;
-  bool _isInBackground = false;
-  
   // Codec loop detection
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
-  
-  // Background monitoring position tracking
-  Duration? _lastKnownPosition;
-  DateTime? _lastPositionCheck;
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
     _stateManager = AudioStateManager();
