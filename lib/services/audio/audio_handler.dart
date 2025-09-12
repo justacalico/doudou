@@ -292,7 +292,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await Future.delayed(const Duration(milliseconds: 100));
       
       // Update state to reflect actual player state
-      playbackState.add(playbackState.value.copyWith(
+      _updatePlaybackState(playbackState.value.copyWith(
         playing: _player.playing, // Use actual player state
         processingState: _player.processingState == ProcessingState.ready 
             ? AudioProcessingState.ready 
@@ -323,7 +323,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       await _player.pause();
       
-      playbackState.add(playbackState.value.copyWith(
+      _updatePlaybackState(playbackState.value.copyWith(
         playing: false,
       ));
       
@@ -340,7 +340,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> stop() async {
     await _player.stop();
-    playbackState.add(playbackState.value.copyWith(
+    _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
       playing: false,
     ));
