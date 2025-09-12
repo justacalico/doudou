@@ -68,13 +68,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
-      // Filter out transient buffering states to prevent audio pauses
-      // Only update playback state for buffering if we're not currently playing
-      // This prevents momentary pauses during normal network buffering
-      final shouldUpdateProcessingState = processingState != AudioProcessingState.buffering || 
-                                        !playbackState.value.playing ||
-                                        !isPlaying;
-      
       // Always update playback state to keep system informed
       final newPlaybackState = playbackState.value.copyWith(
         controls: [
@@ -88,7 +81,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           MediaAction.seekBackward,
         },
         androidCompactActionIndices: const [0, 1, 2],
-        processingState: shouldUpdateProcessingState ? processingState : playbackState.value.processingState,
+        processingState: processingState,
         playing: isPlaying,
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
@@ -96,14 +89,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         queueIndex: _stateManager.currentIndex,
       );
       
-      playbackState.add(newPlaybackState);
+      _updatePlaybackState(newPlaybackState);
     });
 
     // Enhanced position stream for background tracking
     _player.positionStream.listen((position) {
-      playbackState.add(playbackState.value.copyWith(
-        updatePosition: position,
-      ));
+      // Only update position if not currently buffering to avoid conflicts
+      if (_player.processingState != ProcessingState.buffering) {
+        _updatePlaybackState(playbackState.value.copyWith(
+          updatePosition: position,
+        ));
+      }
     });
 
     // Simplified completion detection - only handle actual completion
