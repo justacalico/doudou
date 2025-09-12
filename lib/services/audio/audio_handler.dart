@@ -184,9 +184,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     final playerState = _player.playerState;
     
-    // Update position tracking
-    _lastPositionUpdate = DateTime.now();
-    
     // REMOVED: Aggressive completion detection at 98% - let natural completion handle this
     
     // Only handle if we're truly stuck - position not advancing for 10+ seconds
