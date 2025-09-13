@@ -295,60 +295,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                     }
 
                     if (index == 1) {
-                      // Check if all tracks are downloaded
-                      final appState = context.read<AppState>();
-                      final bool allTracksDownloaded =
-                          tracks.isNotEmpty &&
-                          tracks.every(
-                            (track) => appState.downloadService
-                                .isTrackDownloaded(track.id),
-                          );
-
-                      // Don't show download button if all tracks are already downloaded
-                      if (allTracksDownloaded) {
-                        return const SizedBox(height: 12);
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 12),
-                            // Download button
-                            SizedBox(
-                              width: double.infinity,
-                              child: CupertinoButton(
-                                color: CupertinoColors.systemGrey6.darkColor,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.cloud_download,
-                                      size: 20,
-                                      color: CupertinoColors.systemBlue,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    const Text(
-                                      'Download Album',
-                                      style: TextStyle(
-                                        color: CupertinoColors.systemBlue,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                onPressed: () => _downloadAlbum(),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        ),
-                      );
+                      return const SizedBox(height: 12);
                     }
 
                     final track = tracks[index - 2];
