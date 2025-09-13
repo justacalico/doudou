@@ -16,6 +16,7 @@
 - Redesigned the home page. 
 - Display album name as a title on the album_details page.
 - "Play All" -> "Play" on album_details page.
+- Bold "Play" & "Shuffle" button's on album_details.
 
 ## Removed
 - Music visualizer (not possible with the current audio provider).  
