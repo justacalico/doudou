@@ -64,11 +64,6 @@ class AudioPreloader {
   AudioSource? getPreloadedAudioSource(String trackId) {
     return _preloadedAudioSources[trackId];
   }
-
-  /// Get preloaded player (legacy method)
-  AudioPlayer? getPreloadedPlayer(String trackId) {
-    return _preloadedPlayers[trackId];
-  }
   
   /// Thread-safe aggressive preload of next tracks
   void preloadNextTracks(List<Track> playlist, int currentIndex) async {
