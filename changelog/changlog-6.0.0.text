@@ -34,3 +34,4 @@
 - Fixed autoplay.  
 - Recently added albums.
 - Fixed gapless audio playback.
+- Fixed lyrics overlay to automatically reload when track changes during playback.
