@@ -356,51 +356,59 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                  child: Consumer<AppState>(
+                                    builder: (context, appState, child) {
+                                      final currentTrack = appState.audioHandler?.currentTrack;
+                                      final displayTrackName = currentTrack?.name ?? _currentTrackName ?? 'Unknown Track';
+                                      final displayArtistName = currentTrack?.artistName ?? _currentArtistName ?? 'Unknown Artist';
+                                      
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Text(
-                                            'Lyrics',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          if (_lyricsResult?.hasSyncedLyrics == true) ...[
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.withOpacity(0.2),
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: Colors.green.withOpacity(0.3)),
-                                              ),
-                                              child: const Text(
-                                                'SYNC',
+                                          Row(
+                                            children: [
+                                              const Text(
+                                                'Lyrics',
                                                 style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontSize: 10,
+                                                  color: Colors.white,
+                                                  fontSize: 24,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
+                                              if (_lyricsResult?.hasSyncedLyrics == true) ...[
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green.withOpacity(0.2),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                                                  ),
+                                                  child: const Text(
+                                                    'SYNC',
+                                                    style: TextStyle(
+                                                      color: Colors.green,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '$displayTrackName • $displayArtistName',
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(0.8),
+                                              fontSize: 16,
                                             ),
-                                          ],
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${widget.trackName} • ${widget.artistName}',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.8),
-                                          fontSize: 16,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ),
                                 ),
                                 CupertinoButton(
