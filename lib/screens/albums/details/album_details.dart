@@ -342,88 +342,98 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
-        return CupertinoActionSheet(
-          title: Text(
-            widget.album.name,
-            style: const TextStyle(fontSize: 16),
-          ),
-          actions: [
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.cloud_download,
-                    color: CupertinoColors.systemBlue,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text('Download Album'),
-                ],
+        return Consumer<AppState>(
+          builder: (context, appState, child) {
+            // Find the current album in the appState to get updated favorite status
+            final currentAlbum = appState.albums.firstWhere(
+              (album) => album.id == widget.album.id,
+              orElse: () => widget.album,
+            );
+            
+            return CupertinoActionSheet(
+              title: Text(
+                currentAlbum.name,
+                style: const TextStyle(fontSize: 16),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                _downloadAlbum();
-              },
-            ),
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    widget.album.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                    color: widget.album.isFavorite ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
+              actions: [
+                CupertinoActionSheetAction(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.cloud_download,
+                        color: CupertinoColors.systemBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('Download Album'),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(widget.album.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
-                ],
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _toggleFavorite();
-              },
-            ),
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.forward,
-                    color: CupertinoColors.systemBlue,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _downloadAlbum();
+                  },
+                ),
+                CupertinoActionSheetAction(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        currentAlbum.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                        color: currentAlbum.isFavorite ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(currentAlbum.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  const Text('Play Next'),
-                ],
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _playNext();
-              },
-            ),
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.text_append,
-                    color: CupertinoColors.systemBlue,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _toggleFavorite();
+                  },
+                ),
+                CupertinoActionSheetAction(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.forward,
+                        color: CupertinoColors.systemBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('Play Next'),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  const Text('Play Later'),
-                ],
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _playNext();
+                  },
+                ),
+                CupertinoActionSheetAction(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.text_append,
+                        color: CupertinoColors.systemBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('Play Later'),
+                    ],
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _playLater();
+                  },
+                ),
+              ],
+              cancelButton: CupertinoActionSheetAction(
+                isDefaultAction: true,
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                _playLater();
-              },
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(
-            isDefaultAction: true,
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
+            );
+          },
         );
       },
     );
