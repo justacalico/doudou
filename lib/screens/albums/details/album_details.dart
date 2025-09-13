@@ -191,16 +191,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ],
-                          if (widget.album.year != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.album.year.toString(),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: CupertinoColors.white,
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
