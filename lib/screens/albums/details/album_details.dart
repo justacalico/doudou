@@ -558,19 +558,33 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   }
 
   void _toggleFavorite() {
-    final appState = context.read<AppState>();
-    // Check if album is already in favorites and toggle accordingly
-    if (appState.favoriteAlbums.contains(widget.album.id)) {
-      appState.removeFavoriteAlbum(widget.album.id);
-    } else {
-      appState.addFavoriteAlbum(widget.album);
-    }
+    // Album favorites not implemented yet - show info dialog
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Feature Coming Soon'),
+          content: const Text('Album favorites will be available in a future update. You can favorite individual tracks instead.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _playNext() {
     if (tracks.isNotEmpty) {
       final appState = context.read<AppState>();
-      appState.addTracksToQueueNext(tracks);
+      // Add each track to play next in reverse order so they maintain order
+      for (int i = tracks.length - 1; i >= 0; i--) {
+        appState.addNextInQueue(tracks[i]);
+      }
       
       // Show confirmation
       showCupertinoDialog(
@@ -596,7 +610,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   void _playLater() {
     if (tracks.isNotEmpty) {
       final appState = context.read<AppState>();
-      appState.addTracksToQueue(tracks);
+      // Add each track to the end of the queue
+      for (final track in tracks) {
+        appState.addToQueue(track);
+      }
       
       // Show confirmation
       showCupertinoDialog(
