@@ -1143,8 +1143,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Set user intent to playing since this is an explicit play action
     _userIntendedPlaying = true;
     
+    // Clear existing state
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
+    _audioSourceCache.clear();
+    _isUsingConcatenation = false;
+    _concatenatingSource = null;
     
     // Reset all transition states atomically
     await _transitionManager.waitForTransitionComplete();
@@ -1166,7 +1170,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _statePersistence.savePlaybackState(_player.position, _player.playing);
     
     if (kDebugMode) {
-      print('Playlist playback initiated: ${tracks.length} tracks');
+      print('Playlist playback initiated: ${tracks.length} tracks, gapless: ${_isUsingConcatenation}');
     }
   }
 
