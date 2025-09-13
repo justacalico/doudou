@@ -1322,9 +1322,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (enabled) {
       // Only set volume when explicitly changing settings, not during playback
       _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
-      _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+      
+      // If gapless is disabled but crossfade is enabled, preload for smooth transitions
+      if (!_stateManager.gaplessPlaybackEnabled) {
+        _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+      }
     } else {
-      _preloader.clearAllPreloadedPlayers();
+      // If both gapless and crossfade are disabled, clear preloaded players
+      if (!_stateManager.gaplessPlaybackEnabled) {
+        _preloader.clearAllPreloadedPlayers();
+      }
     }
   }
 
