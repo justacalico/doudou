@@ -1498,6 +1498,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> dispose() async {
     _statePersistence.dispose();
     _preloader.dispose();
+    _audioSourceCache.clear();
+    _isUsingConcatenation = false;
+    _concatenatingSource = null;
     await _player.dispose();
   }
 }
