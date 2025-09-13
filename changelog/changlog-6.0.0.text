@@ -14,6 +14,7 @@
 - Album art is smaller when paused.  
 - Refactored the entire audio backend (hopefully less buggy now).  
 - Redesigned the home page. 
+- Display album name as a title on the album_details page.
 
 ## Removed
 - Music visualizer (not possible with the current audio provider).  
