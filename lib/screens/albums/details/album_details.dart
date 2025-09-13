@@ -569,17 +569,30 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   void _toggleFavorite() async {
     final appState = context.read<AppState>();
+    
+    // Get the current album from AppState to ensure we have the latest favorite status
+    final currentAlbum = appState.albums.firstWhere(
+      (album) => album.id == widget.album.id,
+      orElse: () => widget.album,
+    );
+    
     try {
-      await appState.toggleAlbumFavorite(widget.album);
+      await appState.toggleAlbumFavorite(currentAlbum);
       
       // Show success message
       if (mounted) {
+        // Get updated album after toggle
+        final updatedAlbum = appState.albums.firstWhere(
+          (album) => album.id == widget.album.id,
+          orElse: () => currentAlbum,
+        );
+        
         showCupertinoDialog(
           context: context,
           builder: (BuildContext context) {
             return CupertinoAlertDialog(
-              title: Text(widget.album.isFavorite ? 'Added to Favorites' : 'Removed from Favorites'),
-              content: Text('Album "${widget.album.name}" has been ${widget.album.isFavorite ? 'added to' : 'removed from'} your favorites.'),
+              title: Text(updatedAlbum.isFavorite ? 'Added to Favorites' : 'Removed from Favorites'),
+              content: Text('Album "${updatedAlbum.name}" has been ${updatedAlbum.isFavorite ? 'added to' : 'removed from'} your favorites.'),
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
