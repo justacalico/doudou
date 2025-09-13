@@ -73,6 +73,7 @@ class Album {
       'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
       'ProductionYear': year,
       'DateCreated': dateCreated?.toIso8601String(),
+      'UserData': {'IsFavorite': isFavorite},
     };
   }
 }
