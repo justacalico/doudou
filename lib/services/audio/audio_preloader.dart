@@ -7,6 +7,7 @@ import '../download_service.dart';
 import '../jellyfin_service.dart';
 
 /// Handles preloading and caching of audio tracks for instant playback
+/// Enhanced for gapless playback with AudioSource generation
 /// Thread-safe implementation to prevent cleanup/creation race conditions
 class AudioPreloader {
   final JellyfinService _jellyfinService;
@@ -14,6 +15,7 @@ class AudioPreloader {
   
   // Synchronized preloading state
   final Map<String, AudioPlayer> _preloadedPlayers = {};
+  final Map<String, AudioSource> _preloadedAudioSources = {}; // New: Audio sources for concatenation
   final Set<String> _preloadingTracks = {}; // Tracks currently being preloaded
   final Set<String> _bufferedTracks = {}; // Tracks with buffered content
   
