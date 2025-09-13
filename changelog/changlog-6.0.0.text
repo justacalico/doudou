@@ -8,6 +8,7 @@
 - Added shuffle favorites button for downloaded songs.  
 - New options in the drop down menu on now_playing.
 - Added kebab menu (three dots) to album details page with download option.
+- Enhanced kebab menu with Play Next, Play Later, and Add to Favorites options.
 
 ## Changed
 - Grey out lyrics if none are available.  
