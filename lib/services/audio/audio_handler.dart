@@ -1184,7 +1184,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _statePersistence.savePlaybackState(_player.position, _player.playing);
     
     if (kDebugMode) {
-      print('Playlist playback initiated: ${tracks.length} tracks, gapless: ${_isUsingConcatenation}');
+      print('Playlist playback initiated: ${tracks.length} tracks, gapless: $_isUsingConcatenation');
     }
   }
 
