@@ -37,6 +37,7 @@ class Album {
   final String? imageUrl;
   final int? year;
   final DateTime? dateCreated;
+  final bool isFavorite;
 
   Album({
     required this.id,
@@ -45,6 +46,7 @@ class Album {
     this.imageUrl,
     this.year,
     this.dateCreated,
+    this.isFavorite = false,
   });
 
   factory Album.fromJson(Map<String, dynamic> json) {
