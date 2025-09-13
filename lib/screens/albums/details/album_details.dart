@@ -338,6 +338,46 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     }
   }
 
+  void _showAlbumMenu() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+          title: Text(
+            widget.album.name,
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: [
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.cloud_download,
+                    color: CupertinoColors.systemBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Download Album'),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _downloadAlbum();
+              },
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            isDefaultAction: true,
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        );
+      },
+    );
+  }
+
   void _downloadAlbum() async {
     final appState = context.read<AppState>();
 
