@@ -557,25 +557,53 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     );
   }
 
-  void _toggleFavorite() {
-    // Album favorites not implemented yet - show info dialog
-    showCupertinoDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: const Text('Feature Coming Soon'),
-          content: const Text('Album favorites will be available in a future update. You can favorite individual tracks instead.'),
-          actions: [
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+  void _toggleFavorite() async {
+    final appState = context.read<AppState>();
+    try {
+      await appState.toggleAlbumFavorite(widget.album);
+      
+      // Show success message
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: Text(widget.album.isFavorite ? 'Added to Favorites' : 'Removed from Favorites'),
+              content: Text('Album "${widget.album.name}" has been ${widget.album.isFavorite ? 'added to' : 'removed from'} your favorites.'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
         );
-      },
-    );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to update favorites: ${e.toString()}'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
   }
 
   void _playNext() {
