@@ -648,6 +648,8 @@ class AppState extends ChangeNotifier {
 
   List<Track> get favoriteTracks => _tracks.where((track) => track.isFavorite).toList();
 
+  List<Album> get favoriteAlbums => _albums.where((album) => album.isFavorite).toList();
+
   Future<void> toggleFavorite(Track track) async {
     try {
       final success = await _jellyfinService.toggleFavorite(track.id, track.isFavorite);
@@ -671,6 +673,22 @@ class AppState extends ChangeNotifier {
       }
     } catch (e) {
       _setError('Failed to toggle favorite: ${e.toString()}');
+    }
+  }
+
+  Future<void> toggleAlbumFavorite(Album album) async {
+    try {
+      final success = await _jellyfinService.toggleFavorite(album.id, album.isFavorite);
+      if (success) {
+        // Update the album in the local list
+        final index = _albums.indexWhere((a) => a.id == album.id);
+        if (index != -1) {
+          _albums[index] = album.copyWith(isFavorite: !album.isFavorite);
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      _setError('Failed to toggle album favorite: ${e.toString()}');
     }
   }
 
