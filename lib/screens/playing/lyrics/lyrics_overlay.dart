@@ -76,6 +76,10 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
       curve: Curves.easeOut,
     ));
     
+    // Initialize track tracking variables
+    _currentTrackName = widget.trackName;
+    _currentArtistName = widget.artistName;
+    
     _animationController.forward();
     _loadLyrics();
   }
