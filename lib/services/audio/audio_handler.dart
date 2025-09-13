@@ -1201,10 +1201,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     );
   }
 
-  // Queue management methods
+  // Queue management methods with gapless support
   void addToQueue(Track track) async {
     await _queueManager.addToQueue(track);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+    
+    // If using concatenation, add the track to the concatenating source
+    if (_isUsingConcatenation && _concatenatingSource != null) {
+      final audioSource = await _createAudioSource(track);
+      if (audioSource != null) {
+        await _concatenatingSource!.add(audioSource);
+        if (kDebugMode) {
+          print('Added track to concatenating source: ${track.name}');
+        }
+      }
+    }
     
     final position = _stateManager.playlist.length - _stateManager.currentIndex - 1;
     _preloader.preloadQueueTrack(track, position);
@@ -1213,12 +1224,36 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void addNext(Track track) async {
     await _queueManager.addNext(track);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+    
+    // If using concatenation, insert the track after current position
+    if (_isUsingConcatenation && _concatenatingSource != null) {
+      final audioSource = await _createAudioSource(track);
+      if (audioSource != null) {
+        final insertIndex = _stateManager.currentIndex + 1;
+        await _concatenatingSource!.insert(insertIndex, audioSource);
+        if (kDebugMode) {
+          print('Inserted track into concatenating source at index $insertIndex: ${track.name}');
+        }
+      }
+    }
+    
     _preloader.preloadPlayNextTrack(track);
   }
 
   void removeFromQueue(int index) async {
     if (await _queueManager.removeFromQueue(index)) {
       queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+      
+      // If using concatenation, remove from concatenating source
+      if (_isUsingConcatenation && _concatenatingSource != null) {
+        if (index < _concatenatingSource!.children.length) {
+          await _concatenatingSource!.removeAt(index);
+          if (kDebugMode) {
+            print('Removed track from concatenating source at index: $index');
+          }
+        }
+      }
+      
       _preloader.cleanupOldPreloadedPlayers(_stateManager.playlist, _stateManager.currentIndex);
     }
   }
@@ -1229,6 +1264,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     await _queueManager.clearQueue();
     _preloader.clearAllPreloadedPlayers();
+    _audioSourceCache.clear();
+    _isUsingConcatenation = false;
+    _concatenatingSource = null;
     queue.add(<MediaItem>[]);
     mediaItem.add(null);
     stop();
