@@ -43,6 +43,11 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   final ScrollController _scrollController = ScrollController();
   final List<GlobalKey> _lineKeys = [];
   
+  // Track change detection
+  String? _currentTrackId;
+  String? _currentTrackName;
+  String? _currentArtistName;
+  
   // Throttling for position updates
   Duration _lastPosition = Duration.zero;
   bool _isUpdatingLine = false;
