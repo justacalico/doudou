@@ -247,7 +247,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                     ),
                                     SizedBox(width: 8),
                                     Text(
-                                      'Play All',
+                                      'Play',
                                       style: TextStyle(
                                         color: CupertinoColors.white,
                                       ),
