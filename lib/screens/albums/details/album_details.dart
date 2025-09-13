@@ -99,15 +99,17 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     final appState = context.read<AppState>();
 
     return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          widget.album.name,
+          style: const TextStyle(color: CupertinoColors.white),
+        ),
+        backgroundColor: const Color(0xFF000000),
+      ),
       child: Stack(
         children: [
           CustomScrollView(
             slivers: [
-              CupertinoSliverNavigationBar(
-                largeTitle: Text(widget.album.name),
-                backgroundColor: const Color(0xFF000000),
-                stretch: true,
-              ),
               SliverToBoxAdapter(
                 child: Container(
                   color: const Color(0xFF000000),
