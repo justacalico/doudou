@@ -61,6 +61,7 @@ class Album {
       dateCreated: json['DateCreated'] != null
           ? DateTime.tryParse(json['DateCreated'])
           : null,
+      isFavorite: json['UserData']?['IsFavorite'] ?? false,
     );
   }
 
