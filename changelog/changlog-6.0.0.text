@@ -20,6 +20,7 @@
 - "Play All" -> "Play" on album_details page.
 - Bold "Play" & "Shuffle" button's on album_details.
 - Moved download album button to kebab menu in navigation bar.
+- Completely redesigned now playing screen with improved layout and spacing.
 
 ## Removed
 - Music visualizer (not possible with the current audio provider).  
