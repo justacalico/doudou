@@ -274,6 +274,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                       'Shuffle',
                                       style: TextStyle(
                                         color: const Color(0xFFFF453A),
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
