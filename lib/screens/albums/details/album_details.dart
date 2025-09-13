@@ -339,6 +339,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   }
 
   void _showAlbumMenu() {
+    final appState = context.read<AppState>();
+    final isFavorite = appState.isFavoriteAlbum(widget.album.id);
+    
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -363,6 +366,57 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               onPressed: () {
                 Navigator.pop(context);
                 _downloadAlbum();
+              },
+            ),
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                    color: isFavorite ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _toggleFavorite();
+              },
+            ),
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.forward,
+                    color: CupertinoColors.systemBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Play Next'),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _playNext();
+              },
+            ),
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.text_append,
+                    color: CupertinoColors.systemBlue,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Play Later'),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _playLater();
               },
             ),
           ],
