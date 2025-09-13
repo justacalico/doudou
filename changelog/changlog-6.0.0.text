@@ -19,9 +19,11 @@
 - Music visualizer (not possible with the current audio provider).  
 - Now Playing option from the settings screen.  
 - Removed the abilty to scroll when on the now_playing page.
+- Removed year form album_details page.
 
 ## Fixed
 - Fixed synced lyrics text being hidden in some cases.  
 - Fixed offline mode never being set to true.  
 - Fixed autoplay.  
 - Recently added albums.
+- Fixed gapless audio playback.
