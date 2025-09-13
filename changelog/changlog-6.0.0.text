@@ -7,6 +7,7 @@
 - Indication if a song is being played locally/downloaded or streaming.  
 - Added shuffle favorites button for downloaded songs.  
 - New options in the drop down menu on now_playing.
+- Added kebab menu (three dots) to album details page with download option.
 
 ## Changed
 - Grey out lyrics if none are available.  
