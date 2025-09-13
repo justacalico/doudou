@@ -105,6 +105,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           style: const TextStyle(color: CupertinoColors.white),
         ),
         backgroundColor: const Color(0xFF000000),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: const Icon(
+            CupertinoIcons.ellipsis,
+            color: CupertinoColors.white,
+          ),
+          onPressed: () => _showAlbumMenu(),
+        ),
       ),
       child: Stack(
         children: [
