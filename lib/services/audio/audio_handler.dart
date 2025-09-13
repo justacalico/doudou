@@ -1343,6 +1343,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void setGaplessPlayback(bool enabled) {
     _stateManager.setGaplessPlaybackEnabled(enabled);
+    
+    if (enabled) {
+      // Try to enable gapless playback if we have a playlist
+      if (_stateManager.playlist.length > 1 && !_isUsingConcatenation) {
+        Future.microtask(() async {
+          final gaplessResult = await _tryGaplessPlayback();
+          if (kDebugMode) {
+            print('Gapless playback ${gaplessResult ? 'enabled' : 'failed to enable'}');
+          }
+        });
+      }
+    } else {
+      // Disable gapless and fall back to individual track playback
+      if (_isUsingConcatenation) {
+        _isUsingConcatenation = false;
+        _concatenatingSource = null;
+        _audioSourceCache.clear();
+        
+        if (kDebugMode) {
+          print('Gapless playback disabled, fell back to individual tracks');
+        }
+      }
+    }
   }
 
   // Getters
