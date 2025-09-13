@@ -413,7 +413,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   /// Build concatenating audio source from playlist
-  Future<ConcatenatingAudioSource?> _buildConcatenatingSource(List<Track> tracks, {int startIndex = 0}) async {
+  Future<ConcatenatingAudioSource?> _buildConcatenatingSource(List<Track> tracks) async {
     if (tracks.isEmpty) return null;
 
     final audioSources = <AudioSource>[];
