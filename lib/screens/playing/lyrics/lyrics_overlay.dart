@@ -428,6 +428,26 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
   Widget _buildSyncedLyrics() {
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        // Check for track changes
+        final currentTrack = appState.audioHandler?.currentTrack;
+        final trackId = currentTrack?.id;
+        final trackName = currentTrack?.name;
+        final artistName = currentTrack?.artistName;
+        
+        // If the track has changed, reload lyrics
+        if (trackId != _currentTrackId && trackId != null) {
+          _currentTrackId = trackId;
+          _currentTrackName = trackName;
+          _currentArtistName = artistName;
+          
+          // Reload lyrics for the new track
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && trackName != null && artistName != null) {
+              _loadLyricsForTrack(trackName, artistName);
+            }
+          });
+        }
+        
         return StreamBuilder<Duration>(
           stream: appState.audioHandler?.positionStream,
           builder: (context, snapshot) {
