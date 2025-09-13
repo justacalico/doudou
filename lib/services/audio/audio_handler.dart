@@ -1274,9 +1274,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void shuffle() {
     _preloader.clearAllPreloadedPlayers();
+    _audioSourceCache.clear();
+    
+    // If using concatenation, need to rebuild the concatenating source
+    if (_isUsingConcatenation) {
+      _isUsingConcatenation = false;
+      _concatenatingSource = null;
+    }
+    
     _queueManager.shuffle();
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
-    _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+    
+    // Try to rebuild gapless playback if it was enabled
+    if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1) {
+      Future.microtask(() async {
+        final gaplessResult = await _tryGaplessPlayback();
+        if (!gaplessResult) {
+          _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+        }
+      });
+    } else {
+      _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+    }
   }
 
   void unshuffle() {
