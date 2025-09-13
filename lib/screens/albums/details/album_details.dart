@@ -559,4 +559,66 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       },
     );
   }
+
+  void _toggleFavorite() {
+    final appState = context.read<AppState>();
+    // Check if album is already in favorites and toggle accordingly
+    if (appState.favoriteAlbums.contains(widget.album.id)) {
+      appState.removeFavoriteAlbum(widget.album.id);
+    } else {
+      appState.addFavoriteAlbum(widget.album);
+    }
+  }
+
+  void _playNext() {
+    if (tracks.isNotEmpty) {
+      final appState = context.read<AppState>();
+      appState.addTracksToQueueNext(tracks);
+      
+      // Show confirmation
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('Added to Queue'),
+            content: Text('Added "${widget.album.name}" to play next'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _playLater() {
+    if (tracks.isNotEmpty) {
+      final appState = context.read<AppState>();
+      appState.addTracksToQueue(tracks);
+      
+      // Show confirmation
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('Added to Queue'),
+            content: Text('Added "${widget.album.name}" to play later'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 }
