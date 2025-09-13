@@ -250,6 +250,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                       'Play',
                                       style: TextStyle(
                                         color: CupertinoColors.white,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
