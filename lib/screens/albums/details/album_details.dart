@@ -339,9 +339,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   }
 
   void _showAlbumMenu() {
-    final appState = context.read<AppState>();
-    final isFavorite = appState.isFavoriteAlbum(widget.album.id);
-    
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -373,11 +370,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                    color: isFavorite ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
+                    widget.album.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                    color: widget.album.isFavorite ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
                   ),
                   const SizedBox(width: 8),
-                  Text(isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
+                  Text(widget.album.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
                 ],
               ),
               onPressed: () {
