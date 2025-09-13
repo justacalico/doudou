@@ -126,6 +126,57 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
     }
   }
 
+  Future<void> _loadLyricsForTrack(String trackName, String artistName) async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _currentLineIndex = -1; // Reset current line
+      });
+      
+      final result = await LyricsService.fetchLyrics(trackName, artistName);
+      
+      if (mounted) {
+        setState(() {
+          _lyricsResult = result;
+          _isLoading = false;
+          
+          // Reset and initialize line keys for scrolling
+          if (result?.syncedLyrics != null) {
+            _lineKeys.clear();
+            for (int i = 0; i < result!.syncedLyrics!.length; i++) {
+              _lineKeys.add(GlobalKey());
+            }
+            
+            // Reset scroll position to top
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _scrollController.hasClients) {
+                _scrollController.animateTo(
+                  0.0,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                );
+                
+                // Check current position and scroll to appropriate line
+                final appState = Provider.of<AppState>(context, listen: false);
+                final currentPosition = appState.audioHandler?.playbackState.value.position ?? Duration.zero;
+                if (currentPosition > Duration.zero) {
+                  _updateCurrentLine(currentPosition);
+                }
+              }
+            });
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _lyricsResult = null;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   void _updateCurrentLine(Duration position) {
     if (_lyricsResult?.syncedLyrics == null || _isUpdatingLine) return;
     
