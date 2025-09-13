@@ -76,6 +76,26 @@ class Album {
       'UserData': {'IsFavorite': isFavorite},
     };
   }
+
+  Album copyWith({
+    String? id,
+    String? name,
+    String? artistName,
+    String? imageUrl,
+    int? year,
+    DateTime? dateCreated,
+    bool? isFavorite,
+  }) {
+    return Album(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      artistName: artistName ?? this.artistName,
+      imageUrl: imageUrl ?? this.imageUrl,
+      year: year ?? this.year,
+      dateCreated: dateCreated ?? this.dateCreated,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
+  }
 }
 
 class Track {
