@@ -56,8 +56,19 @@ class AudioPreloader {
   }
 
   Map<String, AudioPlayer> get preloadedPlayers => _preloadedPlayers;
+  Map<String, AudioSource> get preloadedAudioSources => _preloadedAudioSources;
   Set<String> get preloadingTracks => _preloadingTracks;
   Set<String> get bufferedTracks => _bufferedTracks;
+
+  /// Get preloaded audio source for gapless playback
+  AudioSource? getPreloadedAudioSource(String trackId) {
+    return _preloadedAudioSources[trackId];
+  }
+
+  /// Get preloaded player (legacy method)
+  AudioPlayer? getPreloadedPlayer(String trackId) {
+    return _preloadedPlayers[trackId];
+  }
   
   /// Thread-safe aggressive preload of next tracks
   void preloadNextTracks(List<Track> playlist, int currentIndex) async {
