@@ -370,11 +370,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    widget.album.isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                    color: widget.album.isFavorite ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
+                    CupertinoIcons.heart,
+                    color: CupertinoColors.systemBlue,
                   ),
                   const SizedBox(width: 8),
-                  Text(widget.album.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
+                  const Text('Add to Favorites'),
                 ],
               ),
               onPressed: () {
