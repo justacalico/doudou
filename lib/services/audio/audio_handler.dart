@@ -26,6 +26,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioStatePersistence _statePersistence;
   late final AudioTransitionManager _transitionManager;
 
+  // Gapless playback with ConcatenatingAudioSource
+  ConcatenatingAudioSource? _concatenatingSource;
+  bool _isUsingConcatenation = false;
+  final Map<String, AudioSource> _audioSourceCache = {};
+
   // User intent tracking to prevent buffering pauses
   bool _userIntendedPlaying = false;
 
@@ -115,6 +120,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       );
       
       _updatePlaybackState(newPlaybackState);
+    });
+
+    // Listen to current index changes for gapless transitions
+    _player.currentIndexStream.listen((index) {
+      if (index != null && _isUsingConcatenation) {
+        if (kDebugMode) {
+          print('Gapless transition to index: $index');
+        }
+        
+        // Update state manager without stopping playback
+        _stateManager.setCurrentIndex(index);
+        
+        // Update media item
+        if (index < _stateManager.playlist.length) {
+          final track = _stateManager.playlist[index];
+          mediaItem.add(_trackToMediaItem(track));
+          
+          // Trigger preloading of upcoming tracks
+          Future.microtask(() {
+            _preloader.preloadNextTracks(_stateManager.playlist, index);
+          });
+        }
+        
+        // Update playback state with new index
+        _updatePlaybackState(playbackState.value.copyWith(
+          queueIndex: index,
+        ));
+      }
     });
 
     // Enhanced position stream for background tracking
@@ -298,6 +331,174 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  /// Create audio source for a track with caching
+  Future<AudioSource?> _createAudioSource(Track track) async {
+    // Check cache first
+    if (_audioSourceCache.containsKey(track.id)) {
+      if (kDebugMode) {
+        print('Using cached audio source for: ${track.name}');
+      }
+      return _audioSourceCache[track.id]!;
+    }
+
+    try {
+      // Try local file first
+      final localFilePath = _downloadService.getLocalFilePath(track.id);
+      if (localFilePath != null) {
+        final localFile = File(localFilePath);
+        if (await localFile.exists()) {
+          final source = AudioSource.file(localFilePath);
+          _audioSourceCache[track.id] = source;
+          if (kDebugMode) {
+            print('Created local file audio source for: ${track.name}');
+          }
+          return source;
+        }
+      }
+
+      // Check preloaded player
+      final preloadedPlayer = _preloader.getPreloadedPlayer(track.id);
+      if (preloadedPlayer?.audioSource != null) {
+        _audioSourceCache[track.id] = preloadedPlayer!.audioSource!;
+        if (kDebugMode) {
+          print('Using preloaded audio source for: ${track.name}');
+        }
+        return preloadedPlayer.audioSource!;
+      }
+
+      // Stream URLs fallback
+      final streamUrls = [
+        _jellyfinService.getDirectStreamUrl(track.id),
+        _jellyfinService.getStreamUrl(track.id),
+        _jellyfinService.getUniversalStreamUrl(track.id),
+      ];
+
+      for (final streamUrl in streamUrls) {
+        if (streamUrl.isNotEmpty) {
+          AudioSource source;
+          
+          if (_shouldTranscodeTrack(track)) {
+            final hlsUrl = _getHlsStreamUrl(track);
+            source = hlsUrl.isNotEmpty 
+                ? HlsAudioSource(Uri.parse(hlsUrl))
+                : AudioSource.uri(Uri.parse(streamUrl));
+          } else {
+            source = AudioSource.uri(Uri.parse(streamUrl));
+          }
+          
+          _audioSourceCache[track.id] = source;
+          if (kDebugMode) {
+            print('Created stream audio source for: ${track.name}');
+          }
+          return source;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to create audio source for ${track.name}: $e');
+      }
+    }
+
+    return null;
+  }
+
+  /// Build concatenating audio source from playlist
+  Future<ConcatenatingAudioSource?> _buildConcatenatingSource(List<Track> tracks, {int startIndex = 0}) async {
+    if (tracks.isEmpty) return null;
+
+    final audioSources = <AudioSource>[];
+    
+    for (final track in tracks) {
+      final audioSource = await _createAudioSource(track);
+      if (audioSource != null) {
+        audioSources.add(audioSource);
+      } else {
+        // If we can't create a source for a track, fall back to individual playback
+        if (kDebugMode) {
+          print('Failed to create audio source for concatenation: ${track.name}');
+        }
+        return null;
+      }
+    }
+
+    if (audioSources.length == tracks.length) {
+      return ConcatenatingAudioSource(children: audioSources);
+    }
+
+    return null;
+  }
+
+  /// Crossfade transition between tracks
+  Future<void> _crossfadeToTrack(Track track) async {
+    if (kDebugMode) {
+      print('Starting crossfade transition to: ${track.name}');
+    }
+
+    try {
+      // Create a secondary player for the new track
+      final secondaryPlayer = AudioPlayer();
+      
+      // Load the new track on the secondary player
+      final audioSource = await _createAudioSource(track);
+      if (audioSource == null) {
+        if (kDebugMode) {
+          print('Failed to create audio source for crossfade, using direct transition');
+        }
+        await _loadAndPlayTrack(track);
+        return;
+      }
+
+      await secondaryPlayer.setAudioSource(audioSource);
+      
+      // Start the crossfade
+      final crossfadeDuration = _stateManager.crossfadeDuration;
+      final steps = 20; // Number of volume steps
+      final stepDuration = Duration(milliseconds: crossfadeDuration.inMilliseconds ~/ steps);
+      
+      // Start playing the new track at volume 0
+      await secondaryPlayer.setVolume(0.0);
+      await secondaryPlayer.play();
+      
+      // Gradually fade out old track and fade in new track
+      for (int i = 0; i < steps; i++) {
+        final progress = (i + 1) / steps;
+        final oldVolume = (1.0 - progress) * (_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+        final newVolume = progress * (_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+        
+        await _player.setVolume(oldVolume);
+        await secondaryPlayer.setVolume(newVolume);
+        
+        await Future.delayed(stepDuration);
+      }
+      
+      // Switch to the new player
+      await _player.stop();
+      await _player.setAudioSource(audioSource);
+      await _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+      await _player.play();
+      
+      // Clean up secondary player
+      await secondaryPlayer.dispose();
+      
+      // Update playback state
+      _updatePlaybackState(playbackState.value.copyWith(
+        processingState: AudioProcessingState.ready,
+        playing: true,
+        queueIndex: _stateManager.currentIndex,
+      ));
+      
+      if (kDebugMode) {
+        print('Crossfade transition completed for: ${track.name}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Crossfade failed, falling back to direct transition: $e');
+      }
+      await _loadAndPlayTrack(track);
+    }
+  }
+
   // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
@@ -386,9 +587,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> skipToNext() async {
     if (kDebugMode) {
-      print('Manual skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
+      print('Skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
     
+    // Use gapless transition if concatenation is active
+    if (_isUsingConcatenation && _concatenatingSource != null) {
+      final nextIndex = _stateManager.currentIndex + 1;
+      if (nextIndex < _stateManager.playlist.length) {
+        if (kDebugMode) {
+          print('Using gapless skip to next track: $nextIndex');
+        }
+        
+        try {
+          await _player.seekToNext();
+          // State will be updated automatically via currentIndexStream
+          await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          return;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Gapless skip failed, falling back to traditional method: $e');
+          }
+        }
+      }
+    }
+    
+    // Fallback to traditional skip method
     // Use atomic transition manager to prevent race conditions
     if (!await _transitionManager.acquireTransitionLock('skipToNext')) {
       if (kDebugMode) {
@@ -425,6 +648,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
+    // If using concatenation, the transition is automatic - just handle state updates
+    if (_isUsingConcatenation && _concatenatingSource != null) {
+      if (kDebugMode) {
+        print('Track completion with gapless - letting concatenation handle transition');
+      }
+      
+      // The currentIndexStream listener will handle state updates automatically
+      // Just need to handle end-of-playlist scenarios
+      if (_stateManager.currentIndex >= _stateManager.playlist.length - 1) {
+        if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
+          await _handleRadioModeExpansion();
+        } else {
+          // End of playlist
+          _isUsingConcatenation = false;
+          _concatenatingSource = null;
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.completed,
+            playing: false,
+          ));
+        }
+      }
+      return;
+    }
+    
+    // Traditional track completion handling for non-gapless mode
     // Use atomic transition manager to prevent race conditions with manual skips
     if (!await _transitionManager.acquireTransitionLock('trackCompletion')) {
       if (kDebugMode) {
@@ -448,7 +696,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Minimal delay for codec cleanup - reduced from 200ms
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
       
       // Check if we can move to next track atomically
       if (await _stateManager.incrementCurrentIndexAtomic()) {
@@ -464,31 +712,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
       } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
-        // Radio mode handling
-        final similarTracks = await _radioMode.getSimilarTracks(
-          _stateManager.currentTrack!, 
-          _stateManager.playlist,
-          limit: 15
-        );
-        
-        if (similarTracks.isNotEmpty) {
-          await _queueManager.addTracksToPlaylist(similarTracks);
-          queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
-          
-          await _stateManager.incrementCurrentIndexAtomic();
-          await _playCurrentTrack();
-          await _statePersistence.savePlaybackState(_player.position, _player.playing);
-          
-          if (kDebugMode) {
-            print('Radio mode: Added ${similarTracks.length} tracks');
-          }
-        } else {
-          // End of radio mode
-          playbackState.add(playbackState.value.copyWith(
-            processingState: AudioProcessingState.completed,
-            playing: false,
-          ));
-        }
+        await _handleRadioModeExpansion();
       } else {
         // End of playlist
         playbackState.add(playbackState.value.copyWith(
@@ -517,8 +741,76 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  /// Handle radio mode expansion when reaching end of playlist
+  Future<void> _handleRadioModeExpansion() async {
+    // Radio mode handling
+    final similarTracks = await _radioMode.getSimilarTracks(
+      _stateManager.currentTrack!, 
+      _stateManager.playlist,
+      limit: 15
+    );
+    
+    if (similarTracks.isNotEmpty) {
+      await _queueManager.addTracksToPlaylist(similarTracks);
+      queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+      
+      // If using concatenation, add tracks to the concatenating source
+      if (_isUsingConcatenation && _concatenatingSource != null) {
+        for (final track in similarTracks) {
+          final audioSource = await _createAudioSource(track);
+          if (audioSource != null) {
+            await _concatenatingSource!.add(audioSource);
+          }
+        }
+        
+        if (kDebugMode) {
+          print('Radio mode: Added ${similarTracks.length} tracks to concatenating source');
+        }
+      } else {
+        // Traditional radio mode handling
+        await _stateManager.incrementCurrentIndexAtomic();
+        await _playCurrentTrack();
+        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        
+        if (kDebugMode) {
+          print('Radio mode: Added ${similarTracks.length} tracks');
+        }
+      }
+    } else {
+      // End of radio mode
+      _isUsingConcatenation = false;
+      _concatenatingSource = null;
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.completed,
+        playing: false,
+      ));
+    }
+  }
+
   @override
   Future<void> skipToPrevious() async {
+    // Use gapless transition if concatenation is active
+    if (_isUsingConcatenation && _concatenatingSource != null) {
+      final prevIndex = _stateManager.currentIndex - 1;
+      if (prevIndex >= 0) {
+        if (kDebugMode) {
+          print('Using gapless skip to previous track: $prevIndex');
+        }
+        
+        try {
+          await _player.seekToPrevious();
+          // State will be updated automatically via currentIndexStream
+          await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          return;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Gapless skip to previous failed, falling back: $e');
+          }
+        }
+      }
+    }
+    
+    // Fallback to traditional skip logic with restart behavior
     final now = DateTime.now();
     final currentPosition = _player.position;
     final duration = _player.duration;
@@ -571,7 +863,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  // Enhanced track loading with better error handling
+  // Enhanced track loading with gapless support and better error handling
   Future<void> _playCurrentTrack() async {
     if (_stateManager.playlist.isEmpty || _stateManager.currentIndex >= _stateManager.playlist.length) {
       if (kDebugMode) {
@@ -597,6 +889,76 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _userIntendedPlaying = true;
     }
     
+    // Try gapless playback first if enabled and conditions are met
+    if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1) {
+      final gaplessResult = await _tryGaplessPlayback();
+      if (gaplessResult) {
+        if (kDebugMode) {
+          print('Successfully initiated gapless playback for playlist');
+        }
+        return;
+      }
+    }
+    
+    // Fall back to individual track playback with crossfade if available
+    await _playIndividualTrack(track, wasPlaying);
+  }
+
+  /// Attempt to set up gapless playback using ConcatenatingAudioSource
+  Future<bool> _tryGaplessPlayback() async {
+    try {
+      // Build concatenating source for entire playlist
+      final concatenatingSource = await _buildConcatenatingSource(_stateManager.playlist);
+      
+      if (concatenatingSource != null) {
+        if (kDebugMode) {
+          print('Built concatenating source with ${concatenatingSource.children.length} tracks');
+        }
+        
+        // Set the concatenating source with current index
+        await _player.setAudioSource(
+          concatenatingSource, 
+          initialIndex: _stateManager.currentIndex,
+        );
+        
+        // Store references for gapless operations
+        _concatenatingSource = concatenatingSource;
+        _isUsingConcatenation = true;
+        
+        // Resume playing if user intended it
+        if (_userIntendedPlaying) {
+          await _player.play();
+        }
+        
+        // Update playback state
+        _updatePlaybackState(playbackState.value.copyWith(
+          processingState: AudioProcessingState.ready,
+          playing: _userIntendedPlaying ? _player.playing : false,
+          queueIndex: _stateManager.currentIndex,
+        ));
+        
+        // Start preloading for upcoming tracks
+        Future.microtask(() {
+          _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+        });
+        
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to set up gapless playback, falling back to individual: $e');
+      }
+    }
+    
+    return false;
+  }
+
+  /// Play individual track with crossfade support
+  Future<void> _playIndividualTrack(Track track, bool wasPlaying) async {
+    // Disable concatenation mode
+    _isUsingConcatenation = false;
+    _concatenatingSource = null;
+    
     // Update to loading state
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.loading,
@@ -604,69 +966,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playing: wasPlaying,
     ));
     
-    // Stop current player safely with appropriate delay for codec cleanup
-    try {
-      await _player.stop();
-      // Allow codec cleanup time - reduced but sufficient
-      await Future.delayed(const Duration(milliseconds: 300));
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error stopping player: $e');
-      }
-      // Even if stop fails, wait before proceeding
-      await Future.delayed(const Duration(milliseconds: 200));
-    }
+    // Apply crossfade if enabled and we have a current track playing
+    bool useCrossfade = _stateManager.smartCrossfadeEnabled && 
+                       wasPlaying && 
+                       _player.playing;
     
-    // Try preloaded player first
-    final preloadedPlayer = _preloader.getPreloadedPlayer(track.id);
-    if (preloadedPlayer != null) {
+    if (useCrossfade) {
+      await _crossfadeToTrack(track);
+    } else {
+      // Minimal stop for codec cleanup - no excessive delays
       try {
-        if (preloadedPlayer.audioSource != null && 
-            preloadedPlayer.processingState == ProcessingState.ready) {
-          
-          await _player.setAudioSource(preloadedPlayer.audioSource!);
-          
-          if (wasPlaying) {
-            // Add delay before playing to ensure everything is ready
-            await Future.delayed(const Duration(milliseconds: 100));
-            await _player.play();
-            if (kDebugMode) {
-              print('Auto-playing preloaded track: ${track.name}');
-            }
-          }
-          
-          _updatePlaybackState(playbackState.value.copyWith(
-            processingState: AudioProcessingState.ready,
-            playing: wasPlaying ? _player.playing : false,
-            queueIndex: _stateManager.currentIndex,
-          ));
-          
-          if (kDebugMode) {
-            print('Successfully played preloaded track: ${track.name}, playing: ${_player.playing}');
-          }
-          
-          preloadedPlayer.dispose();
-          _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
-          return;
-        } else {
-          if (kDebugMode) {
-            print('Preloaded player not ready, falling back to normal loading');
-          }
-          preloadedPlayer.dispose();
-        }
+        await _player.stop();
+        await Future.delayed(const Duration(milliseconds: 100)); // Reduced from 300ms
       } catch (e) {
         if (kDebugMode) {
-          print('Failed to use preloaded track: $e');
+          print('Error stopping player: $e');
         }
-        preloadedPlayer.dispose();
+        await Future.delayed(const Duration(milliseconds: 50));
       }
+      
+      // Load and play the track
+      await _loadAndPlayTrack(track);
     }
     
-    // Load track normally with improved error handling
-    await _loadAndPlayTrack(track);
-    
-    // Only start preloading after current track is fully loaded
-    Future.delayed(const Duration(milliseconds: 500), () {
+    // Start preloading after current track is loaded
+    Future.delayed(const Duration(milliseconds: 200), () {
       _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
     });
   }
