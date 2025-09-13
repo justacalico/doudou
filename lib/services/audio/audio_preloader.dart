@@ -163,6 +163,10 @@ class AudioPreloader {
           
           // Don't wait for full buffer - just start the buffering process
           _preloadedPlayers[track.id] = player;
+          // Store audio source for gapless concatenation
+          if (player.audioSource != null) {
+            _preloadedAudioSources[track.id] = player.audioSource!;
+          }
           _bufferedTracks.add(track.id);
           loaded = true;
           
