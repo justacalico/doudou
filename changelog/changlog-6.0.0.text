@@ -13,7 +13,7 @@
 - Lock devices to vertical orientation.  
 - Album art is smaller when paused.  
 - Refactored the entire audio backend (hopefully less buggy now).  
-- Redesigned the home page.  
+- Redesigned the home page. 
 
 ## Removed
 - Music visualizer (not possible with the current audio provider).  
