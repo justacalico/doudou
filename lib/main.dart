@@ -31,8 +31,8 @@ class DoudouApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: AudioServiceWidget(
-        child: CupertinoApp(
+      child: _buildAppWithPlatformServices(
+        CupertinoApp(
           title: 'Doudou - Jellyfin Music Player',
           theme: const CupertinoThemeData(
             primaryColor: CupertinoColors.systemPurple,
@@ -73,5 +73,16 @@ class DoudouApp extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Wraps the app with platform-specific services
+  Widget _buildAppWithPlatformServices(Widget app) {
+    // On Android, use AudioServiceWidget for background audio and Android Auto
+    if (Platform.isAndroid) {
+      return AudioServiceWidget(child: app);
+    }
+    
+    // On other platforms, return the app directly
+    return app;
   }
 }
