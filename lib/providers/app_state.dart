@@ -394,6 +394,14 @@ class AppState extends ChangeNotifier {
     _tracks = results[2] as List<Track>;
     _playlists = results[3] as List<Playlist>;
     
+    // Update audio handler with media library for Android Auto browsing
+    _audioHandler?.updateMediaLibrary(
+      albums: _albums,
+      artists: _artists,
+      tracks: _tracks,
+      playlists: _playlists,
+    );
+    
     // Cache the fresh data
     await Future.wait([
       _cacheService.cacheAlbums(_albums),
