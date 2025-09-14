@@ -517,6 +517,56 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAutoHomeSection(AppState appState) {
+    // Check if we need to show loading state
+    if (appState.isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading your music library...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Check if user is not logged in
+    if (!appState.isLoggedIn) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.person_circle,
+              size: 60,
+              color: CupertinoColors.systemGrey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Not connected to server',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Please check your connection settings',
+              style: TextStyle(
+                color: CupertinoColors.systemGrey2,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,55 +586,118 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Your music, everywhere you go',
-                  style: TextStyle(
+                Text(
+                  appState.tracks.isNotEmpty 
+                    ? 'Your music, everywhere you go - ${appState.tracks.length} tracks available'
+                    : 'Your music, everywhere you go',
+                  style: const TextStyle(
                     color: CupertinoColors.systemGrey2,
                     fontSize: 18,
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Quick action buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildQuickActionButton(
-                        'Shuffle All',
-                        CupertinoIcons.shuffle,
-                        () async {
-                          await appState.shuffleAllTracks();
-                        },
+                // Quick action buttons - only show if we have tracks
+                if (appState.tracks.isNotEmpty)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildQuickActionButton(
+                          'Shuffle All',
+                          CupertinoIcons.shuffle,
+                          () async {
+                            await appState.shuffleAllTracks();
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildQuickActionButton(
-                        'Favorites',
-                        CupertinoIcons.heart_fill,
-                        () {
-                          setState(() {
-                            _selectedAutoSection = 2; // Go to favorites
-                          });
-                        },
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildQuickActionButton(
+                          'Favorites',
+                          CupertinoIcons.heart_fill,
+                          () {
+                            setState(() {
+                              _selectedAutoSection = 2; // Go to favorites
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
               ],
             ),
           ),
 
-          // Recent albums section
+          // Show message if no content is available
+          if (appState.albums.isEmpty && appState.tracks.isEmpty && !appState.isLoading)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C1E),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF2C2C2E), width: 1),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      CupertinoIcons.music_note,
+                      size: 48,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No Music Found',
+                      style: TextStyle(
+                        color: CupertinoColors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Make sure your Jellyfin server has music content and the connection is working properly.',
+                      style: TextStyle(
+                        color: CupertinoColors.systemGrey2,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => _refreshAndroidAutoData(appState),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemBlue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Try Again',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Recent albums section - only show if we have albums
           if (appState.albums.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Recent Albums',
-                    style: TextStyle(
+                  Text(
+                    'Recent Albums (${appState.albums.length} total)',
+                    style: const TextStyle(
                       color: CupertinoColors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
