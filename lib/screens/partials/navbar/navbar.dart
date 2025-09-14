@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../../providers/app_state.dart';
@@ -48,12 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final size = MediaQuery.of(context).size;
     final aspectRatio = size.width / size.height;
     
+    if (kDebugMode) {
+      print('Screen detection - Width: ${size.width}, Height: ${size.height}, Aspect Ratio: $aspectRatio');
+    }
+    
     // Android Auto screens are typically landscape and wide (around 2.5:1 to 3:1 ratio)
     // Also check if we're running on Android with specific screen characteristics
-    if (aspectRatio > 2.2 && size.width > 800) {
+    // Lowered threshold for better detection
+    if (aspectRatio > 1.5 && size.width > 600) {
       setState(() {
         _isAndroidAuto = true;
       });
+      if (kDebugMode) {
+        print('Android Auto mode detected!');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Regular mobile mode detected');
+      }
     }
   }
   
@@ -270,6 +283,17 @@ class _HomeScreenState extends State<HomeScreen> {
       color: const Color(0xFF000000),
       child: Column(
         children: [
+          // Debug indicator
+          if (kDebugMode)
+            Container(
+              padding: const EdgeInsets.all(8),
+              color: CupertinoColors.systemGreen,
+              child: const Text(
+                'ANDROID AUTO MODE ACTIVE',
+                style: TextStyle(color: CupertinoColors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          
           // Top navigation bar with Home, Albums, Playlists, Favorites
           Container(
             height: 80,
