@@ -1543,133 +1543,134 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return StreamBuilder(
-      stream: audioHandler.playerStateStream,
-      builder: (context, snapshot) {
-        final currentTrack = audioHandler.currentTrack;
+      stream: audioHandler.playbackState,
+      builder: (context, playbackStateSnapshot) {
+        return StreamBuilder(
+          stream: audioHandler.mediaItem,
+          builder: (context, mediaItemSnapshot) {
+            final currentTrack = audioHandler.currentTrack;
+            final playbackState = playbackStateSnapshot.data;
+            final isPlaying = playbackState?.playing ?? false;
 
-        if (currentTrack == null) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.music_note,
-                    size: 60,
-                    color: CupertinoColors.systemGrey,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No music playing',
-                    style: TextStyle(
-                      color: CupertinoColors.systemGrey,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              // Album art
-              Expanded(
-                flex: 3,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2C2C2E),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: currentTrack.imageUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            appState.jellyfinService.getImageUrl(
-                              currentTrack.imageUrl!,
-                              width: 300,
-                              height: 300,
-                            ),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(
-                                  CupertinoIcons.music_albums,
-                                  size: 80,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              );
-                            },
-                          ),
-                        )
-                      : const Center(
-                          child: Icon(
-                            CupertinoIcons.music_albums,
-                            size: 80,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                        ),
+            if (currentTrack == null) {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C1E),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Track info
-              Expanded(
-                flex: 2,
-                child: Column(
-                  children: [
-                    Text(
-                      currentTrack.name,
-                      style: const TextStyle(
-                        color: CupertinoColors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.music_note,
+                        size: 60,
+                        color: CupertinoColors.systemGrey,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    if (currentTrack.artistName != null)
+                      SizedBox(height: 16),
                       Text(
-                        currentTrack.artistName!,
-                        style: const TextStyle(
-                          color: CupertinoColors.systemGrey2,
-                          fontSize: 16,
+                        'No music playing',
+                        style: TextStyle(
+                          color: CupertinoColors.systemGrey,
+                          fontSize: 18,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
                       ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
-                    const Spacer(),
+            final isFavorite = appState.favoriteTracks.any(
+              (track) => track.id == currentTrack.id,
+            );
 
-                    // Control buttons
-                    StreamBuilder(
-                      stream: audioHandler.playerStateStream,
-                      builder: (context, snapshot) {
-                        final isPlaying = audioHandler.isPlaying;
-                        final isFavorite = appState.favoriteTracks.any(
-                          (track) => track.id == currentTrack.id,
-                        );
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  // Album art
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2C2C2E),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: currentTrack.imageUrl != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                appState.jellyfinService.getImageUrl(
+                                  currentTrack.imageUrl!,
+                                  width: 300,
+                                  height: 300,
+                                ),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(
+                                    child: Icon(
+                                      CupertinoIcons.music_albums,
+                                      size: 80,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : const Center(
+                              child: Icon(
+                                CupertinoIcons.music_albums,
+                                size: 80,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                            ),
+                    ),
+                  ),
 
-                        return Column(
+                  const SizedBox(height: 20),
+
+                  // Track info and controls
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        Text(
+                          currentTrack.name,
+                          style: const TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        if (currentTrack.artistName != null)
+                          Text(
+                            currentTrack.artistName!,
+                            style: const TextStyle(
+                              color: CupertinoColors.systemGrey2,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+
+                        const Spacer(),
+
+                        // Control buttons
+                        Column(
                           children: [
                             // Main playback controls
                             Row(
@@ -1695,11 +1696,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 // Play/pause button
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () {
+                                  onPressed: () async {
                                     if (isPlaying) {
-                                      audioHandler.pause();
+                                      await audioHandler.pause();
                                     } else {
-                                      audioHandler.play();
+                                      await audioHandler.play();
                                     }
                                   },
                                   child: Container(
@@ -1775,14 +1776,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ],
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
