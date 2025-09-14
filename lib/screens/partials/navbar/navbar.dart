@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../../providers/app_state.dart';
+import '../../../models/jellyfin_models.dart';
 import '../../home/home.dart';
 import '../../libary/library.dart';
 import '../../settings/settings.dart';
