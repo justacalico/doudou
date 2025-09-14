@@ -454,6 +454,9 @@ class AppState extends ChangeNotifier {
         // Load fresh data in background and update cache
         _loadFreshDataInBackground();
       } else {
+        if (kDebugMode) {
+          print('AppState: No valid cache found, loading fresh data...');
+        }
         // No cache available - must load fresh data
         await _loadFreshData();
       }
