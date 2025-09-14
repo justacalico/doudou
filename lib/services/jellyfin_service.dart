@@ -185,6 +185,10 @@ class JellyfinService {
     }
 
     try {
+      if (kDebugMode) {
+        print('JellyfinService.getAlbums(): Making API call to /Users/${_server!.userId}/Items');
+      }
+      
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
         queryParameters: {
@@ -198,6 +202,9 @@ class JellyfinService {
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
+        if (kDebugMode) {
+          print('JellyfinService.getAlbums(): Successfully loaded ${items.length} albums');
+        }
         return items.map((item) => Album.fromJson(item)).toList();
       }
     } catch (e) {
