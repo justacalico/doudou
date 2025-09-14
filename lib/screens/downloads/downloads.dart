@@ -141,12 +141,15 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       child: _buildPlaylistSection('Future', 28, appState),
     ));
 
-    // Downloaded albums
-    for (final album in downloadedAlbums) {
-      final albumTracks = downloadedTracks.where((track) => track.albumId == album.id).toList();
-      slivers.add(SliverToBoxAdapter(
-        child: _buildAlbumSection(album, albumTracks.length, appState),
-      ));
+    // Show all albums (first few)
+    final albumsToShow = allAlbums.take(5).toList(); // Show first 5 albums
+    for (final album in albumsToShow) {
+      final albumTracks = allTracks.where((track) => track.albumId == album.id).toList();
+      if (albumTracks.isNotEmpty) {
+        slivers.add(SliverToBoxAdapter(
+          child: _buildAlbumSection(album, albumTracks.length, appState),
+        ));
+      }
     }
 
     // Download queue (show items currently downloading)
