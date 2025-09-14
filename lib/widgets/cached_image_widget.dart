@@ -123,7 +123,6 @@ class AlbumArtWidget extends StatelessWidget {
               size: size * 0.4,
             ),
           ),
-          ),
         ),
       ),
     );
