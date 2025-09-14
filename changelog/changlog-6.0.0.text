@@ -23,6 +23,7 @@
 - Moved download album button to kebab menu in navigation bar.
 - Completely redesigned now playing screen with improved layout and spacing.
 - Mini_player will no longer show up when a keyboard is opened.
+- Completely redesigned search page with unified results and recent searches.
 
 ## Removed
 - Music visualizer (not possible with the current audio provider).  
@@ -35,6 +36,7 @@
 - Fixed offline mode never being set to true.  
 - Fixed autoplay.  
 - Recently added albums.
-- Fixed gapless audio playback.
+- Fixed gapless audio playbook.
 - Fixed lyrics overlay to automatically reload when track changes during playback.
 - Fixed images for top results not working on the search page.
+- Search page now shows clean unified results without section headers.
