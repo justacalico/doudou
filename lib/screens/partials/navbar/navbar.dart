@@ -234,7 +234,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: content,
           ),
           // Only show mini player when not on settings screen (index 4) - positioned as overlay
-          if (index != 4)
+          // Also hide on search screen (index 3) when keyboard is open
+          if (index != 4 && !(index == 3 && MediaQuery.of(context).viewInsets.bottom > 0))
             Positioned(
               left: 0,
               right: 0,
