@@ -1164,17 +1164,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Wait for player to be ready before playing
           await Future.delayed(const Duration(milliseconds: 200));
           
-          if (wasPlaying) {
+          if (_userIntendedPlaying) {
             await _player.play();
             if (kDebugMode) {
-              print('Auto-playing stream: ${track.name}');
+              print('Auto-playing stream: ${track.name} - user intended playing');
+            }
+          } else {
+            if (kDebugMode) {
+              print('Not auto-playing stream: ${track.name} - user paused');
             }
           }
           
           // Update playback state after successful load
           playbackState.add(playbackState.value.copyWith(
             processingState: AudioProcessingState.ready,
-            playing: wasPlaying ? _player.playing : false,
+            playing: _userIntendedPlaying && _player.playing,
             queueIndex: _stateManager.currentIndex,
           ));
           
