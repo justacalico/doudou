@@ -1923,15 +1923,58 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           )).toList();
 
         case 'tracks':
-          return _tracks.take(50).map((track) => _trackToMediaItem(track)).toList(); // Limit for performance
+          if (_tracks.isEmpty) {
+            if (kDebugMode) {
+              print('AudioHandler: No tracks available');
+            }
+            return [];
+          }
+          // Limit tracks for performance and prevent crashes with huge libraries
+          final limitedTracks = _tracks.take(100).toList();
+          return limitedTracks.map((track) {
+            try {
+              return _trackToMediaItem(track);
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error converting track to MediaItem: $e, track: ${track.name}');
+              }
+              // Return a safe fallback MediaItem to prevent crashes
+              return MediaItem(
+                id: track.id,
+                title: track.name,
+                artist: track.artistName ?? 'Unknown Artist',
+                album: track.albumName ?? 'Unknown Album',
+              );
+            }
+          }).toList();
 
         default:
-          // Handle album, artist, or playlist contents
+          // Handle album, artist, or playlist contents with comprehensive error handling
           if (parentMediaId.startsWith('album:')) {
             final albumId = parentMediaId.substring(6);
             try {
               final tracks = await _jellyfinService.getAlbumTracks(albumId);
-              return tracks.map((track) => _trackToMediaItem(track)).toList();
+              if (tracks.isEmpty) {
+                if (kDebugMode) {
+                  print('No tracks found for album: $albumId');
+                }
+                return [];
+              }
+              return tracks.map((track) {
+                try {
+                  return _trackToMediaItem(track);
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('Error converting album track to MediaItem: $e');
+                  }
+                  return MediaItem(
+                    id: track.id,
+                    title: track.name,
+                    artist: track.artistName ?? 'Unknown Artist',
+                    album: track.albumName ?? 'Unknown Album',
+                  );
+                }
+              }).toList();
             } catch (e) {
               if (kDebugMode) {
                 print('Error loading album tracks: $e');
@@ -1941,9 +1984,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           } else if (parentMediaId.startsWith('artist:')) {
             final artistId = parentMediaId.substring(7);
             try {
-              // Find the artist name from the artist ID
+              // Find the artist name from the artist ID with null safety
               final artist = _artists.where((a) => a.id == artistId).firstOrNull;
-              if (artist == null) return [];
+              if (artist == null) {
+                if (kDebugMode) {
+                  print('Artist not found: $artistId');
+                }
+                return [];
+              }
               
               // Get all albums and filter by artist name
               final allAlbums = await _jellyfinService.getAlbums();
@@ -1951,17 +1999,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 album.artistName == artist.name
               ).toList();
               
-              return artistAlbums.map((album) => MediaItem(
-                id: 'album:${album.id}',
-                title: album.name,
-                album: album.name,
-                artist: album.artistName ?? 'Unknown Artist',
-                artUri: album.imageUrl != null 
-                  ? Uri.parse(_jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
-                  : null,
-                playable: true,
-                extras: {'browsable': true},
-              )).toList();
+              if (artistAlbums.isEmpty) {
+                if (kDebugMode) {
+                  print('No albums found for artist: ${artist.name}');
+                }
+                return [];
+              }
+              
+              return artistAlbums.map((album) {
+                try {
+                  return MediaItem(
+                    id: 'album:${album.id}',
+                    title: album.name,
+                    album: album.name,
+                    artist: album.artistName ?? 'Unknown Artist',
+                    artUri: album.imageUrl != null 
+                      ? Uri.parse(_jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
+                      : null,
+                    playable: true,
+                    extras: {'browsable': true},
+                  );
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('Error creating MediaItem for album: $e');
+                  }
+                  return MediaItem(
+                    id: 'album:${album.id}',
+                    title: album.name,
+                    album: album.name,
+                    artist: album.artistName ?? 'Unknown Artist',
+                    playable: true,
+                    extras: {'browsable': true},
+                  );
+                }
+              }).toList();
             } catch (e) {
               if (kDebugMode) {
                 print('Error loading artist albums: $e');
@@ -1972,7 +2043,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             final playlistId = parentMediaId.substring(9);
             try {
               final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
-              return tracks.map((track) => _trackToMediaItem(track)).toList();
+              if (tracks.isEmpty) {
+                if (kDebugMode) {
+                  print('No tracks found for playlist: $playlistId');
+                }
+                return [];
+              }
+              return tracks.map((track) {
+                try {
+                  return _trackToMediaItem(track);
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('Error converting playlist track to MediaItem: $e');
+                  }
+                  return MediaItem(
+                    id: track.id,
+                    title: track.name,
+                    artist: track.artistName ?? 'Unknown Artist',
+                    album: track.albumName ?? 'Unknown Album',
+                  );
+                }
+              }).toList();
             } catch (e) {
               if (kDebugMode) {
                 print('Error loading playlist tracks: $e');
@@ -1981,11 +2072,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             }
           }
           
+          if (kDebugMode) {
+            print('Unknown parentMediaId: $parentMediaId');
+          }
           return [];
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error in getChildren: $e');
+        print('Critical error in getChildren: $e');
+      }
+      // Return a safe fallback to prevent complete Android Auto failure
+      if (parentMediaId == AudioService.browsableRootId) {
+        return [
+          MediaItem(
+            id: 'error',
+            title: 'Content Unavailable',
+            album: 'Please check connection and try refreshing',
+            artist: 'Doudou',
+            playable: false,
+          ),
+        ];
       }
       return [];
     }
