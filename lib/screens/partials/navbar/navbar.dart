@@ -567,68 +567,109 @@ class _HomeScreenState extends State<HomeScreen> {
                       stream: audioHandler.playerStateStream,
                       builder: (context, snapshot) {
                         final isPlaying = audioHandler.isPlaying;
+                        final isFavorite = appState.favoriteTracks.any((track) => track.id == currentTrack.id);
                         
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        return Column(
                           children: [
-                            // Previous button
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: audioHandler.hasPrevious == true 
-                                ? () => audioHandler.skipToPrevious()
-                                : null,
-                              child: Icon(
-                                CupertinoIcons.backward_fill,
-                                size: 32,
-                                color: audioHandler.hasPrevious == true 
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.systemGrey3,
-                              ),
+                            // Main playback controls
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Previous button
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: audioHandler.hasPrevious == true 
+                                    ? () => audioHandler.skipToPrevious()
+                                    : null,
+                                  child: Icon(
+                                    CupertinoIcons.backward_fill,
+                                    size: 32,
+                                    color: audioHandler.hasPrevious == true 
+                                      ? CupertinoColors.white
+                                      : CupertinoColors.systemGrey3,
+                                  ),
+                                ),
+                                
+                                const SizedBox(width: 20),
+                                
+                                // Play/pause button
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    if (isPlaying) {
+                                      audioHandler.pause();
+                                    } else {
+                                      audioHandler.play();
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemRed,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Icon(
+                                      isPlaying 
+                                        ? CupertinoIcons.pause_fill
+                                        : CupertinoIcons.play_fill,
+                                      size: 28,
+                                      color: CupertinoColors.white,
+                                    ),
+                                  ),
+                                ),
+                                
+                                const SizedBox(width: 20),
+                                
+                                // Next button
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: audioHandler.hasNext == true 
+                                    ? () => audioHandler.skipToNext()
+                                    : null,
+                                  child: Icon(
+                                    CupertinoIcons.forward_fill,
+                                    size: 32,
+                                    color: audioHandler.hasNext == true 
+                                      ? CupertinoColors.white
+                                      : CupertinoColors.systemGrey3,
+                                  ),
+                                ),
+                              ],
                             ),
                             
-                            const SizedBox(width: 20),
+                            const SizedBox(height: 16),
                             
-                            // Play/pause button
+                            // Heart (favorite) button
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
-                                if (isPlaying) {
-                                  audioHandler.pause();
-                                } else {
-                                  audioHandler.play();
-                                }
+                                appState.toggleFavorite(currentTrack);
                               },
                               child: Container(
-                                width: 60,
-                                height: 60,
+                                width: 50,
+                                height: 50,
                                 decoration: BoxDecoration(
-                                  color: CupertinoColors.systemRed,
-                                  borderRadius: BorderRadius.circular(30),
+                                  color: isFavorite 
+                                    ? CupertinoColors.systemRed.withOpacity(0.2)
+                                    : const Color(0xFF2C2C2E),
+                                  borderRadius: BorderRadius.circular(25),
+                                  border: Border.all(
+                                    color: isFavorite 
+                                      ? CupertinoColors.systemRed
+                                      : const Color(0xFF3C3C3E),
+                                    width: 2,
+                                  ),
                                 ),
                                 child: Icon(
-                                  isPlaying 
-                                    ? CupertinoIcons.pause_fill
-                                    : CupertinoIcons.play_fill,
-                                  size: 28,
-                                  color: CupertinoColors.white,
+                                  isFavorite 
+                                    ? CupertinoIcons.heart_fill
+                                    : CupertinoIcons.heart,
+                                  size: 24,
+                                  color: isFavorite 
+                                    ? CupertinoColors.systemRed
+                                    : CupertinoColors.systemGrey2,
                                 ),
-                              ),
-                            ),
-                            
-                            const SizedBox(width: 20),
-                            
-                            // Next button
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: audioHandler.hasNext == true 
-                                ? () => audioHandler.skipToNext()
-                                : null,
-                              child: Icon(
-                                CupertinoIcons.forward_fill,
-                                size: 32,
-                                color: audioHandler.hasNext == true 
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.systemGrey3,
                               ),
                             ),
                           ],
