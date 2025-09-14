@@ -808,15 +808,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     );
   }
 
-  void _navigateToPlaylists(BuildContext context, AppState appState) {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const PlaylistsView(),
-      ),
-    );
-  }
-
   void _navigateToAlbum(Album album, AppState appState, BuildContext context) {
     Navigator.push(
       context,
