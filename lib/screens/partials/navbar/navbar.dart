@@ -999,13 +999,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _playAlbum(AppState appState, Album album) async {
+    if (kDebugMode) {
+      print('Android Auto: Starting album playback - ${album.name}');
+    }
+    
     try {
       final tracks = await appState.getAlbumTracks(album.id);
       if (tracks.isNotEmpty) {
+        if (kDebugMode) {
+          print('Android Auto: Playing album with ${tracks.length} tracks');
+        }
         await appState.playPlaylist(tracks, 0);
+        
+        if (kDebugMode) {
+          print('Android Auto: Album playback initiated successfully');
+        }
+      } else {
+        if (kDebugMode) {
+          print('Android Auto: Album has no tracks');
+        }
       }
     } catch (e) {
-      // Handle error silently for now
+      if (kDebugMode) {
+        print('Android Auto: Error playing album - $e');
+      }
     }
   }
 
