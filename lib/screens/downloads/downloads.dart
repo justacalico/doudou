@@ -802,7 +802,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => const FavoritesView(),
+        builder: (context) => const FavoritesView(showDownloadedOnly: true),
       ),
     );
   }
