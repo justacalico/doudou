@@ -1203,18 +1203,45 @@ class _SearchScreenState extends State<SearchScreen> {
         },
         child: Row(
           children: [
+            // Album artwork or fallback icon
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: const Color(0xFF30D158),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
-                CupertinoIcons.music_albums,
-                color: Color(0xFFFFFFFF),
-                size: 24,
-              ),
+              child: album.imageUrl != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedImageWidget(
+                        imageUrl: appState.jellyfinService.getImageUrl(album.imageUrl!, width: 100, height: 100),
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorWidget: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF30D158),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.music_albums,
+                            color: Color(0xFFFFFFFF),
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF30D158),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        CupertinoIcons.music_albums,
+                        color: Color(0xFFFFFFFF),
+                        size: 24,
+                      ),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(
