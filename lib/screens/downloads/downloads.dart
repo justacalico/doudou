@@ -813,6 +813,24 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
   }
 
+  void _navigateToFavorites(BuildContext context, AppState appState) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const FavoritesScreen(),
+      ),
+    );
+  }
+
+  void _navigateToPlaylists(BuildContext context, AppState appState) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const PlaylistsScreen(),
+      ),
+    );
+  }
+
   void _navigateToAlbum(Album album, AppState appState, BuildContext context) {
     Navigator.push(
       context,
