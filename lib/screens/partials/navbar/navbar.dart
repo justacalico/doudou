@@ -63,6 +63,14 @@ class _HomeScreenState extends State<HomeScreen> {
       if (kDebugMode) {
         print('Android Auto mode detected!');
       }
+      
+      // Load library data when Android Auto is detected to ensure items are available
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final appState = Provider.of<AppState>(context, listen: false);
+        if (appState.isLoggedIn && appState.tracks.isEmpty) {
+          appState.loadLibraryData();
+        }
+      });
     } else {
       if (kDebugMode) {
         print('Regular mobile mode detected');
