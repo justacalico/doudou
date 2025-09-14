@@ -273,7 +273,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        onPressed: () {},
+        onPressed: () => _navigateToPlaylists(context, appState),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
