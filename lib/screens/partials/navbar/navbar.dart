@@ -67,11 +67,40 @@ class _HomeScreenState extends State<HomeScreen> {
         print('Android Auto mode detected!');
       }
 
-      // Load library data when Android Auto is detected to ensure items are available
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Ensure proper data loading for Android Auto with multiple attempts
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         final appState = Provider.of<AppState>(context, listen: false);
-        if (appState.isLoggedIn && appState.tracks.isEmpty) {
-          appState.loadLibraryData();
+        
+        // Force reload library data for Android Auto to ensure fresh content
+        if (appState.isLoggedIn) {
+          if (kDebugMode) {
+            print('Loading library data for Android Auto...');
+          }
+          
+          try {
+            await appState.loadLibraryData();
+            
+            // If still no data after first load, try again
+            if (appState.albums.isEmpty || appState.tracks.isEmpty) {
+              if (kDebugMode) {
+                print('First load incomplete, retrying...');
+              }
+              await Future.delayed(const Duration(seconds: 2));
+              await appState.loadLibraryData();
+            }
+            
+            if (kDebugMode) {
+              print('Android Auto data loaded - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error loading data for Android Auto: $e');
+            }
+          }
+        } else {
+          if (kDebugMode) {
+            print('User not logged in for Android Auto');
+          }
         }
       });
     } else {
