@@ -215,15 +215,8 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       );
     }
 
-    // Real playlists (show available playlists)
-    final availablePlaylists = appState.playlists.take(3).toList();
-    for (final playlist in availablePlaylists) {
-      slivers.add(
-        SliverToBoxAdapter(
-          child: _buildPlaylistSection(playlist.name, playlist.trackCount, appState),
-        ),
-      );
-    }
+    // Don't show playlists in downloads view - focus on downloaded content only
+    // Playlists can be accessed through the main playlists tab
 
     // Downloaded albums (albums that have at least one downloaded track)
     for (final album in downloadedAlbums) {
