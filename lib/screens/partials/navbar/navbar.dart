@@ -8,7 +8,7 @@ import '../../home/home.dart';
 import '../../libary/library.dart';
 import '../../settings/settings.dart';
 import '../../search/search.dart';
-import '../../downloads/downloads-old.dart';
+import '../../downloads/downloads.dart';
 import '../player/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
