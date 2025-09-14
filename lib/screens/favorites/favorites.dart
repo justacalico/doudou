@@ -104,9 +104,9 @@ class FavoritesView extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Favorites',
-                                      style: TextStyle(
+                                    Text(
+                                      showDownloadedOnly ? 'Downloaded Favorites' : 'Favorites',
+                                      style: const TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFFFFFFFF),
