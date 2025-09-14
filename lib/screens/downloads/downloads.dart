@@ -620,6 +620,114 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     );
   }
 
+  Widget _buildTrackItem(Track track, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => _playTrack(track, appState),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C1C1E),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              // Track artwork
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: track.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedImageWidget(
+                          imageUrl: appState.jellyfinService.getImageUrl(track.imageUrl!, width: 100, height: 100),
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorWidget: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF007AFF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.music_note,
+                              color: Color(0xFFFFFFFF),
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF007AFF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.music_note,
+                          color: Color(0xFFFFFFFF),
+                          size: 24,
+                        ),
+                      ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      track.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      track.artistName ?? 'Unknown Artist',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Download indicator if downloaded
+              if (appState.downloadService.isTrackDownloaded(track.id))
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: const Icon(
+                    CupertinoIcons.arrow_down_circle_fill,
+                    color: Color(0xFF30D158),
+                    size: 20,
+                  ),
+                ),
+              
+              // Chevron
+              const Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey3,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  }
+
   Color _getStatusColor(DownloadStatus status) {
     switch (status) {
       case DownloadStatus.downloading:
@@ -681,6 +789,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         builder: (context) => AlbumDetailScreen(album: album),
       ),
     );
+  }
+
+  void _playTrack(Track track, AppState appState) {
+    appState.playTrack(track);
   }
 
   void _retryDownload(DownloadTask task, AppState appState) {
