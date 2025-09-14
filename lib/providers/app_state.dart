@@ -253,31 +253,44 @@ class AppState extends ChangeNotifier {
         await _cacheService.initialize();
         
         // Try to initialize audio handler after successful login
-        try {
-          _audioHandler = await AudioService.init(
-            builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
-            config: const AudioServiceConfig(
-              androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-              androidNotificationChannelName: 'Doudou Music',
-              androidNotificationOngoing: true,
-            ),
-          );
-          
-          // Apply user settings to the audio handler
-          _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
-          _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
-          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-          
-          // Set up listeners for automatic UI updates
-          _setupAudioHandlerListeners();
-          
-          // Notify listeners after audio handler is ready
-          notifyListeners();
-        } catch (audioError) {
-          if (kDebugMode) {
-            print('Failed to initialize audio service: $audioError');
+        // Only initialize audio service on Android (needed for background audio and Android Auto)
+        if (Platform.isAndroid) {
+          try {
+            _audioHandler = await AudioService.init(
+              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+              config: const AudioServiceConfig(
+                androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
+                androidNotificationChannelName: 'Doudou Music',
+                androidNotificationOngoing: true,
+              ),
+            );
+            
+            // Apply user settings to the audio handler
+            _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+            
+            // Set up listeners for automatic UI updates
+            _setupAudioHandlerListeners();
+            
+            // Notify listeners after audio handler is ready
+            notifyListeners();
+          } catch (audioError) {
+            if (kDebugMode) {
+              print('Failed to initialize audio service: $audioError');
+            }
+            // Continue without audio service
           }
-          // Continue without audio service
+        } else {
+          if (kDebugMode) {
+            print('Audio service initialization skipped on non-Android platform');
+          }
+          // On non-Android platforms, we don't use AudioService
+          _audioHandler = null;
+          
+          // Notify listeners that login is complete
+          notifyListeners();
+        }
         }
         
         await _saveServer();
