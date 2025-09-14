@@ -163,24 +163,60 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Refreshing Android Auto data...');
     }
     
-    if (appState.isLoggedIn) {
-      try {
-        await appState.loadLibraryData();
-        
-        // If still no data after load, show debug info
+    // Show that refresh is in progress
+    setState(() {});
+    
+    try {
+      if (!appState.isLoggedIn) {
         if (kDebugMode) {
-          print('After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}');
+          print('Cannot refresh - user not logged in');
         }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error refreshing Android Auto data: $e');
+        // Try to handle the case where user needs to login
+        return;
+      }
+
+      await appState.loadLibraryData();
+      
+      // Update AudioHandler with fresh data for Android Auto MediaBrowser
+      final audioHandler = appState.audioHandler;
+      if (audioHandler != null) {
+        try {
+          // Update the media library in audio handler for MediaBrowser
+          audioHandler.updateMediaLibrary(
+            albums: appState.albums,
+            artists: appState.artists,
+            tracks: appState.tracks,
+            playlists: appState.playlists,
+          );
+          
+          if (kDebugMode) {
+            print('Updated AudioHandler MediaBrowser with fresh library data');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning: Failed to update AudioHandler MediaBrowser: $e');
+          }
+          // Don't throw - this is not critical for the UI
         }
       }
-    } else {
+      
+      // If still no data after load, show debug info
       if (kDebugMode) {
-        print('Cannot refresh - user not logged in');
+        print('After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Artists: ${appState.artists.length}, Playlists: ${appState.playlists.length}');
       }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error refreshing Android Auto data: $e');
+      }
+      
+      // In a real app, you might want to show a user-visible error message
+      // For Android Auto, we need to be more resilient and not crash
+      // The UI will show the "No Content Available" message instead
     }
+    
+    // Force rebuild to show updated state
+    setState(() {});
   }
 
   Widget _buildTabContent(int index, AppState appState) {
@@ -369,6 +405,53 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: CupertinoColors.white,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+            ),
+
+          // Connection status indicator for Android Auto
+          if (!appState.isLoading && 
+              appState.albums.isEmpty && 
+              appState.tracks.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: CupertinoColors.systemOrange, width: 2),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.wifi_exclamationmark,
+                    color: CupertinoColors.systemOrange,
+                    size: 24,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'No Content Available',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Please ensure you are logged in and your Jellyfin server is accessible. Tap Refresh to try again.',
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -1016,13 +1099,15 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       } else {
         if (kDebugMode) {
-          print('Android Auto: Album has no tracks');
+          print('Android Auto: Album ${album.name} has no tracks');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Android Auto: Error playing album - $e');
+        print('Android Auto: Error playing album ${album.name}: $e');
       }
+      // Don't throw - prevent crashes in Android Auto
+      // The UI will continue to work even if one album fails
     }
   }
 
