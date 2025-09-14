@@ -1110,8 +1110,6 @@ class _HomeScreenState extends State<HomeScreen> {
       // The UI will continue to work even if one album fails
     }
   }
-    }
-  }
 
   Widget _buildAutoPlaylistsSection(AppState appState) {
     // If still loading library data, show loading indicator
