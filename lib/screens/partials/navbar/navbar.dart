@@ -1099,13 +1099,17 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       } else {
         if (kDebugMode) {
-          print('Android Auto: Album has no tracks');
+          print('Android Auto: Album ${album.name} has no tracks');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Android Auto: Error playing album - $e');
+        print('Android Auto: Error playing album ${album.name}: $e');
       }
+      // Don't throw - prevent crashes in Android Auto
+      // The UI will continue to work even if one album fails
+    }
+  }
     }
   }
 
