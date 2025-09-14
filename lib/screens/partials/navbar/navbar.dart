@@ -578,9 +578,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAutoAlbumsSection(AppState appState) {
     if (appState.albums.isEmpty) {
       return const Center(
-        child: Text(
-          'No albums available',
-          style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.music_albums,
+              size: 60,
+              color: CupertinoColors.systemGrey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No albums available',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
         ),
       );
     }
@@ -595,48 +606,96 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: appState.albums.length,
       itemBuilder: (context, index) {
         final album = appState.albums[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2C2C2E),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      CupertinoIcons.music_albums,
-                      size: 40,
-                      color: CupertinoColors.systemGrey,
+        return GestureDetector(
+          onTap: () => _playAlbum(appState, album),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2C2C2E),
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    child: album.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            appState.jellyfinService.getImageUrl(album.imageUrl!, width: 200, height: 200),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(
+                                  CupertinoIcons.music_albums,
+                                  size: 40,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : const Center(
+                          child: Icon(
+                            CupertinoIcons.music_albums,
+                            size: 40,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  album.name,
-                  style: const TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Text(
+                        album.name,
+                        style: const TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      if (album.artistName != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          album.artistName!,
+                          style: const TextStyle(
+                            color: CupertinoColors.systemGrey2,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  Future<void> _playAlbum(AppState appState, Album album) async {
+    try {
+      final tracks = await appState.getAlbumTracks(album.id);
+      if (tracks.isNotEmpty) {
+        await appState.playPlaylist(tracks, 0);
+      }
+    } catch (e) {
+      // Handle error silently for now
+    }
   }
 
   Widget _buildAutoPlaylistsSection(AppState appState) {
