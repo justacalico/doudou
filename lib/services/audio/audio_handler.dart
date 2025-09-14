@@ -1053,11 +1053,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _isUsingConcatenation = false;
     _concatenatingSource = null;
     
-    // Update to loading state
+    // Update to loading state with user intent
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.loading,
       queueIndex: _stateManager.currentIndex,
-      playing: wasPlaying,
+      playing: _userIntendedPlaying, // Use user intent instead of wasPlaying
     ));
     
     // Apply crossfade if enabled and we have a current track playing
