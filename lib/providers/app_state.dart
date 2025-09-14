@@ -158,7 +158,7 @@ class AppState extends ChangeNotifier {
             notifyListeners();
             
             // Load initial data in background
-            loadLibraryData();
+            await loadLibraryData();
           } else {
             // Credentials are invalid, clear them
             await prefs.remove('jellyfin_server');
