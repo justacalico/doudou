@@ -301,7 +301,14 @@ class AppState extends ChangeNotifier {
           print('AppState: About to call loadLibraryData after successful login...');
         }
         
-        await loadLibraryData();
+        try {
+          await loadLibraryData();
+        } catch (e) {
+          if (kDebugMode) {
+            print('AppState: Exception during loadLibraryData: $e');
+          }
+        }
+        
         _setLoading(false);
         return true;
       } else {
