@@ -73,6 +73,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     playbackState.add(finalState);
+    
+    if (kDebugMode) {
+      print('Updated playback state - Playing: ${finalState.playing}, Processing: ${finalState.processingState}');
+    }
   }
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
