@@ -663,6 +663,118 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   @override
+  Future<void> playFromMediaId(String mediaId, [Map<String, dynamic>? extras]) async {
+    if (kDebugMode) {
+      print('Android Auto: playFromMediaId called with ID: $mediaId');
+    }
+
+    try {
+      // Parse the media ID to determine what to play
+      if (mediaId.startsWith('album:')) {
+        final albumId = mediaId.substring(6);
+        if (kDebugMode) {
+          print('Android Auto: Playing album with ID: $albumId');
+        }
+        
+        // Find the album
+        final album = _albums.firstWhere(
+          (album) => album.id == albumId,
+          orElse: () => throw Exception('Album not found: $albumId'),
+        );
+        
+        // Get album tracks from Jellyfin service
+        final tracks = await _jellyfinService.getAlbumTracks(albumId);
+        if (tracks.isNotEmpty) {
+          await playPlaylist(tracks, 0);
+          if (kDebugMode) {
+            print('Android Auto: Successfully started album playback: ${album.name}');
+          }
+        } else {
+          if (kDebugMode) {
+            print('Android Auto: Album has no tracks: ${album.name}');
+          }
+        }
+      } 
+      else if (mediaId.startsWith('artist:')) {
+        final artistId = mediaId.substring(7);
+        if (kDebugMode) {
+          print('Android Auto: Playing artist with ID: $artistId');
+        }
+        
+        // Find the artist name from our artists list
+        final artist = _artists.firstWhere(
+          (artist) => artist.id == artistId,
+          orElse: () => throw Exception('Artist not found: $artistId'),
+        );
+        
+        // Get tracks for this artist by filtering by artist name
+        final artistTracks = _tracks.where((track) => track.artistName == artist.name).toList();
+        if (artistTracks.isNotEmpty) {
+          await playPlaylist(artistTracks, 0);
+          if (kDebugMode) {
+            print('Android Auto: Successfully started artist playback - ${artist.name} with ${artistTracks.length} tracks');
+          }
+        } else {
+          if (kDebugMode) {
+            print('Android Auto: No tracks found for artist: ${artist.name}');
+          }
+        }
+      }
+      else if (mediaId.startsWith('playlist:')) {
+        final playlistId = mediaId.substring(9);
+        if (kDebugMode) {
+          print('Android Auto: Playing playlist with ID: $playlistId');
+        }
+        
+        // Get playlist tracks from Jellyfin service
+        final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+        if (tracks.isNotEmpty) {
+          await playPlaylist(tracks, 0);
+          if (kDebugMode) {
+            print('Android Auto: Successfully started playlist playback');
+          }
+        }
+      }
+      else if (mediaId.startsWith('track:')) {
+        final trackId = mediaId.substring(6);
+        if (kDebugMode) {
+          print('Android Auto: Playing track with ID: $trackId');
+        }
+        
+        // Find the track
+        final track = _tracks.firstWhere(
+          (track) => track.id == trackId,
+          orElse: () => throw Exception('Track not found: $trackId'),
+        );
+        
+        await playPlaylist([track], 0);
+        if (kDebugMode) {
+          print('Android Auto: Successfully started track playback: ${track.name}');
+        }
+      }
+      else if (mediaId == 'shuffle_all') {
+        if (kDebugMode) {
+          print('Android Auto: Shuffle all tracks');
+        }
+        
+        final shuffledTracks = List<Track>.from(_tracks);
+        shuffledTracks.shuffle();
+        await playPlaylist(shuffledTracks, 0);
+        shuffle(); // Enable shuffle mode
+      }
+      else {
+        if (kDebugMode) {
+          print('Android Auto: Unknown media ID format: $mediaId');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Android Auto: Error playing from media ID $mediaId: $e');
+      }
+    }
+  }
+
+  @override
   Future<void> stop() async {
     // Reset user intent on stop
     _userIntendedPlaying = false;
