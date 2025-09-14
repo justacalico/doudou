@@ -807,12 +807,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
   }
 
-  void _playFavorites(List<Track> favoriteTracks, AppState appState) {
-    if (favoriteTracks.isNotEmpty) {
-      appState.playPlaylist(favoriteTracks, 0);
-    }
-  }
-
   void _navigateToFavorites(BuildContext context, AppState appState) {
     Navigator.push(
       context,
