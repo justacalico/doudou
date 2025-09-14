@@ -1795,7 +1795,13 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, appState, child) {
         // Check if Android Auto mode should be used
         if (_isAndroidAuto) {
-          return _buildAndroidAutoUI(appState);
+          // For Android Auto, we want to be extra responsive to state changes
+          return StreamBuilder<PlaybackState>(
+            stream: appState.audioHandler?.playbackState,
+            builder: (context, playbackSnapshot) {
+              return _buildAndroidAutoUI(appState);
+            },
+          );
         }
 
         // When offline mode changes, update the tab to show downloads
