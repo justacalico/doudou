@@ -303,40 +303,17 @@ class _HomeScreenState extends State<HomeScreen> {
       color: const Color(0xFF000000),
       child: Column(
         children: [
-  Widget _buildAndroidAutoUI(AppState appState) {
-    return Container(
-      color: const Color(0xFF000000),
-      child: Column(
-        children: [
           // Debug indicator
           if (kDebugMode)
             Container(
               padding: const EdgeInsets.all(8),
               color: CupertinoColors.systemGreen,
-              child: Column(
-                children: [
-                  const Text(
-                    'ANDROID AUTO MODE ACTIVE',
-                    style: TextStyle(
-                      color: CupertinoColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Logged In: ${appState.isLoggedIn}, Loading: ${appState.isLoading}',
-                    style: const TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                  Text(
-                    'Tracks: ${appState.tracks.length}, Albums: ${appState.albums.length}, Favorites: ${appState.favoriteTracks.length}',
-                    style: const TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+              child: const Text(
+                'ANDROID AUTO MODE ACTIVE',
+                style: TextStyle(
+                  color: CupertinoColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
