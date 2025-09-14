@@ -1244,8 +1244,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
     
+    if (kDebugMode) {
+      print('=== PLAYPLAYLIST DEBUG START ===');
+      print('Starting playPlaylist with ${tracks.length} tracks, startIndex: $startIndex');
+      print('Track to play: ${tracks[startIndex].name}');
+    }
+    
     // Set user intent to playing since this is an explicit play action
     _userIntendedPlaying = true;
+    
+    if (kDebugMode) {
+      print('Set _userIntendedPlaying to: $_userIntendedPlaying');
+    }
     
     // Clear existing state
     await _player.stop();
@@ -1253,6 +1263,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
     _concatenatingSource = null;
+    
+    if (kDebugMode) {
+      print('Cleared existing player state');
+    }
     
     // Reset all transition states atomically
     await _transitionManager.waitForTransitionComplete();
@@ -1262,13 +1276,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _queueManager.setPlaylist(tracks, startIndex);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
+    if (kDebugMode) {
+      print('Set playlist and queue');
+    }
+    
     playbackState.add(playbackState.value.copyWith(
       playing: true,
       processingState: AudioProcessingState.loading,
       queueIndex: _stateManager.currentIndex,
     ));
     
+    if (kDebugMode) {
+      print('Updated playback state to loading with playing: true');
+    }
+    
     await _playCurrentTrack();
+    
+    if (kDebugMode) {
+      print('_playCurrentTrack() completed');
+      print('Final player state - playing: ${_player.playing}, userIntent: $_userIntendedPlaying');
+      print('=== PLAYPLAYLIST DEBUG END ===');
+    }
     
     Future.microtask(() => _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex));
     await _statePersistence.savePlaybackState(_player.position, _player.playing);
