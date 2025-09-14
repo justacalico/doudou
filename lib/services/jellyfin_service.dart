@@ -112,6 +112,11 @@ class JellyfinService {
     try {
       _dio.options.baseUrl = serverUrl;
       
+      if (kDebugMode) {
+        print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
+        print('Platform: ${Platform.operatingSystem}');
+      }
+      
       final response = await _dio.post(
         '/Users/AuthenticateByName',
         data: {
@@ -121,6 +126,8 @@ class JellyfinService {
         options: Options(
           headers: {
             'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
           },
         ),
       );
