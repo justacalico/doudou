@@ -3,10 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../models/download_models.dart';
-import '../../services/download_service.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../albums/details/album_details.dart';
-import '../playlists/playlists.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
