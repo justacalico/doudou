@@ -158,6 +158,9 @@ class AppState extends ChangeNotifier {
             notifyListeners();
             
             // Load initial data in background
+            if (kDebugMode) {
+              print('Platform.isAndroid: ${Platform.isAndroid}, about to load library data...');
+            }
             await loadLibraryData();
           } else {
             // Credentials are invalid, clear them

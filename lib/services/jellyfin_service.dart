@@ -145,7 +145,16 @@ class JellyfinService {
   }
 
   Future<List<Album>> getAlbums() async {
-    if (_server == null) throw Exception('Server not configured');
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService.getAlbums(): Server not configured');
+      }
+      throw Exception('Server not configured');
+    }
+
+    if (kDebugMode) {
+      print('JellyfinService.getAlbums(): Server URL: ${_server!.serverUrl}, Token exists: ${_server!.accessToken != null}');
+    }
 
     try {
       final response = await _dio.get(
