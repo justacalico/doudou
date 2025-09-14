@@ -6,6 +6,7 @@ import '../partials/tracks/track_list_item.dart';
 import '../artists/details/artist_detail.dart';
 import '../albums/details/album_details.dart';
 import '../playlists/playlists.dart';
+import '../../widgets/cached_image_widget.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
