@@ -85,6 +85,9 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
+    // Add to recent searches when performing search
+    _addToRecentSearches(query);
+
     setState(() {
       _isSearching = true;
       _searchQuery = query;
