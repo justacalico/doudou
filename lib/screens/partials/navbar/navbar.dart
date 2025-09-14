@@ -157,6 +157,31 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  Future<void> _refreshAndroidAutoData(AppState appState) async {
+    if (kDebugMode) {
+      print('Refreshing Android Auto data...');
+    }
+    
+    if (appState.isLoggedIn) {
+      try {
+        await appState.loadLibraryData();
+        
+        // If still no data after load, show debug info
+        if (kDebugMode) {
+          print('After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error refreshing Android Auto data: $e');
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('Cannot refresh - user not logged in');
+      }
+    }
+  }
+
   Widget _buildTabContent(int index, AppState appState) {
     Widget content;
     String title;
