@@ -958,9 +958,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Enhanced track loading with gapless support and better error handling
   Future<void> _playCurrentTrack() async {
+    if (kDebugMode) {
+      print('=== _playCurrentTrack DEBUG START ===');
+      print('Playlist size: ${_stateManager.playlist.length}');
+      print('Current index: ${_stateManager.currentIndex}');
+      print('User intended playing: $_userIntendedPlaying');
+    }
+    
     if (_stateManager.playlist.isEmpty || _stateManager.currentIndex >= _stateManager.playlist.length) {
       if (kDebugMode) {
         print('Cannot play current track: playlist empty or index out of bounds');
+        print('=== _playCurrentTrack DEBUG END (ERROR) ===');
       }
       return;
     }
@@ -985,17 +993,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Try gapless playback first if enabled and conditions are met
     if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1) {
+      if (kDebugMode) {
+        print('Attempting gapless playback...');
+      }
       final gaplessResult = await _tryGaplessPlayback();
       if (gaplessResult) {
         if (kDebugMode) {
           print('Successfully initiated gapless playback for playlist');
+          print('=== _playCurrentTrack DEBUG END (GAPLESS) ===');
         }
         return;
+      }
+      if (kDebugMode) {
+        print('Gapless playback failed, falling back to individual track');
       }
     }
     
     // Fall back to individual track playback with crossfade if available
+    if (kDebugMode) {
+      print('Playing individual track...');
+    }
     await _playIndividualTrack(track, wasPlaying);
+    
+    if (kDebugMode) {
+      print('=== _playCurrentTrack DEBUG END ===');
+    }
   }
 
   /// Attempt to set up gapless playback using ConcatenatingAudioSource
