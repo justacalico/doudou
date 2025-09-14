@@ -341,13 +341,18 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> loadLibraryData() async {
-    if (!_isLoggedIn) return;
+    if (!_isLoggedIn) {
+      if (kDebugMode) {
+        print('AppState: Cannot load library data - user not logged in');
+      }
+      return;
+    }
 
     _setLoading(true);
     _clearError();
 
     try {
-      // Try to load from cache first
+      // Try to load from cache first to provide immediate data
       final cachedAlbums = await _cacheService.getCachedAlbums();
       final cachedArtists = await _cacheService.getCachedArtists();
       final cachedTracks = await _cacheService.getCachedTracks();
@@ -357,35 +362,82 @@ class AppState extends ChangeNotifier {
                           cachedTracks != null && cachedPlaylists != null;
       
       if (hasValidCache) {
-        // Use cached data
+        // Use cached data immediately for better user experience
         _albums = cachedAlbums;
         _artists = cachedArtists;
         _tracks = cachedTracks;
         _playlists = cachedPlaylists;
         
-        // Update audio handler with cached media library
-        _audioHandler?.updateMediaLibrary(
-          albums: _albums,
-          artists: _artists,
-          tracks: _tracks,
-          playlists: _playlists,
-        );
+        // Update audio handler with cached media library for Android Auto
+        try {
+          _audioHandler?.updateMediaLibrary(
+            albums: _albums,
+            artists: _artists,
+            tracks: _tracks,
+            playlists: _playlists,
+          );
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning: Failed to update AudioHandler with cached data: $e');
+          }
+          // Don't fail completely - UI still works with cached data
+        }
         
         _setLoading(false);
         
         if (kDebugMode) {
-          print('Loaded library data from cache');
+          print('Loaded library data from cache - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}');
         }
         
         // Load fresh data in background and update cache
         _loadFreshDataInBackground();
       } else {
-        // Load fresh data
+        // No cache available - must load fresh data
         await _loadFreshData();
       }
     } catch (e) {
-      _setError('Failed to load library: ${e.toString()}');
+      if (kDebugMode) {
+        print('AppState: Error in loadLibraryData: $e');
+      }
+      
+      // Provide user-friendly error messages based on error type
+      String userMessage = 'Failed to load library';
+      if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+        userMessage = 'Authentication failed. Please log in again.';
+        // Auto-logout on auth failure to force re-login
+        logout();
+      } else if (e.toString().contains('timeout') || e.toString().contains('connection')) {
+        userMessage = 'Connection timeout. Please check your network and server.';
+      } else if (e.toString().contains('404') || e.toString().contains('not found')) {
+        userMessage = 'Server not found. Please check your server URL.';
+      } else if (e.toString().contains('500') || e.toString().contains('server error')) {
+        userMessage = 'Server error. Please try again later.';
+      }
+      
+      _setError(userMessage);
       _setLoading(false);
+      
+      // For Android Auto safety, ensure we have empty but valid collections
+      if (_albums.isEmpty && _artists.isEmpty && _tracks.isEmpty && _playlists.isEmpty) {
+        _albums = <Album>[];
+        _artists = <Artist>[];
+        _tracks = <Track>[];
+        _playlists = <Playlist>[];
+        
+        // Update audio handler with empty but safe data
+        try {
+          _audioHandler?.updateMediaLibrary(
+            albums: _albums,
+            artists: _artists,
+            tracks: _tracks,
+            playlists: _playlists,
+          );
+        } catch (audioError) {
+          if (kDebugMode) {
+            print('Warning: Failed to update AudioHandler with empty data: $audioError');
+          }
+        }
+      }
     }
   }
   
