@@ -44,7 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _previousIndex = 2;
       }
       // Check if we're in Android Auto after the first frame
-      _checkIfAndroidAuto();
+      // Only check for Android Auto on Android platform
+      if (Platform.isAndroid) {
+        _checkIfAndroidAuto();
+      }
     });
   }
 
