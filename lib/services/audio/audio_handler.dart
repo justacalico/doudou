@@ -540,6 +540,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   @override
   Future<void> play() async {
+    final now = DateTime.now();
+    
+    // Throttle rapid play commands
+    if (_lastPlayCommand != null && 
+        now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
+      if (kDebugMode) {
+        print('Play command throttled - too recent');
+      }
+      return;
+    }
+    
+    // Prevent play immediately after pause
+    if (_lastPauseCommand != null && 
+        now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+      if (kDebugMode) {
+        print('Play command blocked - recent pause command detected');
+      }
+      return;
+    }
+    
+    _lastPlayCommand = now;
+    
     if (kDebugMode) {
       print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
     }
