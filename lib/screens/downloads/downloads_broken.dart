@@ -124,6 +124,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     final downloadedTracks = appState.tracks.where((track) => 
       appState.downloadService.isTrackDownloaded(track.id)).toList();
     final downloadedAlbums = _getDownloadedAlbums(appState, downloadedTracks);
+    final downloadedPlaylists = await _getDownloadedPlaylists(appState, downloadedTracks);
     final favoriteDownloaded = downloadedTracks.where((track) => track.isFavorite).toList();
 
     // Favorites section
@@ -133,14 +134,16 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       ));
     }
 
-    // Sample playlists (mock data matching your image)
-    slivers.add(SliverToBoxAdapter(
-      child: _buildPlaylistSection('中文', 10, appState),
-    ));
-    
-    slivers.add(SliverToBoxAdapter(
-      child: _buildPlaylistSection('Future', 28, appState),
-    ));
+    // Downloaded playlists
+    for (final playlist in downloadedPlaylists) {
+      final playlistTracks = downloadedTracks.where((track) => 
+        appState.playlistTracks[playlist.id]?.contains(track.id) ?? false).toList();
+      if (playlistTracks.isNotEmpty) {
+        slivers.add(SliverToBoxAdapter(
+          child: _buildPlaylistSection(playlist, playlistTracks.length, appState),
+        ));
+      }
+    }
 
     // Downloaded albums
     for (final album in downloadedAlbums) {
@@ -154,6 +157,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     final downloadService = appState.downloadService;
     final activeDownloads = downloadService.downloadTasks.where((task) => 
       task.status == DownloadStatus.downloading || 
+      task.status == DownloadStatus.queued ||
       task.status == DownloadStatus.failed
     ).toList();
 
@@ -181,9 +185,17 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     return appState.albums.where((album) => albumIds.contains(album.id)).toList();
   }
 
+  List<Playlist> _getDownloadedPlaylists(AppState appState, List<Track> downloadedTracks) {
+    final downloadedTrackIds = downloadedTracks.map((track) => track.id).toSet();
+    return appState.playlists.where((playlist) {
+      final playlistTracks = appState.playlistTracks[playlist.id] ?? [];
+      return playlistTracks.any((trackId) => downloadedTrackIds.contains(trackId));
+    }).toList();
+  }
+
   Widget _buildFavoritesSection(List<Track> favoriteTracks, AppState appState) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () => _playFavorites(favoriteTracks, appState),
@@ -245,12 +257,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     );
   }
 
-  Widget _buildPlaylistSection(String playlistName, int trackCount, AppState appState) {
+  Widget _buildPlaylistSection(Playlist playlist, int trackCount, AppState appState) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        onPressed: () {},
+        onPressed: () => _navigateToPlaylist(playlist, appState),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -259,66 +271,45 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           ),
           child: Row(
             children: [
-              // Playlist artwork (composite for sample data)
+              // Playlist artwork
               Container(
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Stack(
-                  children: [
-                    // Create a composite artwork look
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        width: 25,
-                        height: 25,
+                child: playlist.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedImageWidget(
+                          imageUrl: appState.jellyfinService.getImageUrl(playlist.imageUrl!, width: 100, height: 100),
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorWidget: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF8E4EC6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.music_note_list,
+                              color: Color(0xFFFFFFFF),
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
                         decoration: BoxDecoration(
                           color: const Color(0xFF8E4EC6),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.music_note_list,
+                          color: Color(0xFFFFFFFF),
+                          size: 24,
                         ),
                       ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Container(
-                        width: 25,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF30D158),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      child: Container(
-                        width: 25,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF453A),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 25,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF007AFF),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -326,7 +317,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      playlistName,
+                      playlist.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -360,7 +351,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
   Widget _buildAlbumSection(Album album, int trackCount, AppState appState) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () => _navigateToAlbum(album, appState),
@@ -584,7 +575,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           ),
           
           // Action button
-          if (task.status == DownloadStatus.downloading)
+          if (task.status == DownloadStatus.downloading || task.status == DownloadStatus.queued)
             CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: () => appState.downloadService.cancelDownload(task.trackId),
@@ -619,13 +610,13 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     switch (status) {
       case DownloadStatus.downloading:
         return const Color(0xFF007AFF);
-      case DownloadStatus.downloaded:
+      case DownloadStatus.completed:
         return const Color(0xFF30D158);
       case DownloadStatus.failed:
         return const Color(0xFFFF453A);
+      case DownloadStatus.queued:
+        return const Color(0xFFFF9500);
       case DownloadStatus.paused:
-        return const Color(0xFF8E8E93);
-      case DownloadStatus.notDownloaded:
         return const Color(0xFF8E8E93);
     }
   }
@@ -634,38 +625,36 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     switch (status) {
       case DownloadStatus.downloading:
         return 'Downloading...';
-      case DownloadStatus.downloaded:
+      case DownloadStatus.completed:
         return 'Complete';
       case DownloadStatus.failed:
         return 'Failed';
+      case DownloadStatus.queued:
+        return 'Queued';
       case DownloadStatus.paused:
         return 'Paused';
-      case DownloadStatus.notDownloaded:
-        return 'Not Downloaded';
     }
   }
 
   // Actions
   void _playAllDownloaded(AppState appState) {
-    final downloadedTracks = appState.tracks.where((track) => 
-      appState.downloadService.isTrackDownloaded(track.id)).toList();
+    final downloadedTracks = appState.tracks.where((track) => track.isDownloaded ?? false).toList();
     if (downloadedTracks.isNotEmpty) {
-      appState.playPlaylist(downloadedTracks, 0);
+      appState.playTrackList(downloadedTracks, 0);
     }
   }
 
   void _shuffleAllDownloaded(AppState appState) {
-    final downloadedTracks = appState.tracks.where((track) => 
-      appState.downloadService.isTrackDownloaded(track.id)).toList();
+    final downloadedTracks = appState.tracks.where((track) => track.isDownloaded ?? false).toList();
     if (downloadedTracks.isNotEmpty) {
       downloadedTracks.shuffle();
-      appState.playPlaylist(downloadedTracks, 0);
+      appState.playTrackList(downloadedTracks, 0);
     }
   }
 
   void _playFavorites(List<Track> favoriteTracks, AppState appState) {
     if (favoriteTracks.isNotEmpty) {
-      appState.playPlaylist(favoriteTracks, 0);
+      appState.playTrackList(favoriteTracks, 0);
     }
   }
 
@@ -674,6 +663,15 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       context,
       CupertinoPageRoute(
         builder: (context) => AlbumDetailScreen(album: album),
+      ),
+    );
+  }
+
+  void _navigateToPlaylist(Playlist playlist, AppState appState) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => PlaylistsScreen(),
       ),
     );
   }
