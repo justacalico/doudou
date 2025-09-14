@@ -817,7 +817,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => const FavoritesScreen(),
+        builder: (context) => const FavoritesView(),
       ),
     );
   }
@@ -826,7 +826,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => const PlaylistsScreen(),
+        builder: (context) => const PlaylistsView(),
       ),
     );
   }
