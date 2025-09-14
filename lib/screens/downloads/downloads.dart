@@ -368,7 +368,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        onPressed: () => _navigateToAlbum(album, appState),
+        onPressed: () => _navigateToAlbum(context, album, appState),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -782,7 +782,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
   }
 
-  void _navigateToAlbum(Album album, AppState appState) {
+  void _navigateToAlbum(BuildContext context, Album album, AppState appState) {
     Navigator.push(
       context,
       CupertinoPageRoute(
