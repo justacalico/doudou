@@ -607,6 +607,52 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAutoAlbumsSection(AppState appState) {
+    // If still loading library data, show loading indicator
+    if (appState.isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading albums...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // If no albums loaded yet, trigger refresh
+    if (appState.albums.isEmpty && !appState.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (appState.isLoggedIn) {
+          appState.loadLibraryData();
+        }
+      });
+      
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading albums...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+    
     if (appState.albums.isEmpty) {
       return const Center(
         child: Column(
