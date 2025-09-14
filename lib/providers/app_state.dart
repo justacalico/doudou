@@ -571,14 +571,44 @@ class AppState extends ChangeNotifier {
   
   Future<void> _loadFreshDataInBackground() async {
     try {
+      if (kDebugMode) {
+        print('AppState: Loading fresh data in background...');
+      }
+      
       await _loadFreshData();
+      
       // Notify listeners to update UI with fresh data
       notifyListeners();
+      
+      if (kDebugMode) {
+        print('AppState: Background data refresh completed successfully');
+      }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to load fresh data in background: $e');
+        print('AppState: Background data refresh failed: $e');
       }
-      // Don't show error to user since we have cached data
+      
+      // Handle specific error types for background refresh
+      if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+        if (kDebugMode) {
+          print('AppState: Authentication error in background refresh - user may need to re-login');
+        }
+        // Could consider auto-logout here, but that might be disruptive
+        // Instead, just log the warning and let the user discover it naturally
+      }
+      
+      // Don't show error to user since we have cached data and this is background
+      // But do set connection status if it's a network issue
+      if (e.toString().contains('timeout') || e.toString().contains('connection')) {
+        _isConnected = false;
+        notifyListeners();
+        
+        // Try to restore connection status after some time
+        Future.delayed(const Duration(minutes: 1), () {
+          _isConnected = true;
+          notifyListeners();
+        });
+      }
     }
   }
 
