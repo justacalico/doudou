@@ -176,12 +176,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       // Search Bar
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF000000),
+                          color: const Color(0xFF1C1C1E),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: const Color(0xFF2C2C2E),
-                            width: 1,
-                          ),
                         ),
                         child: CupertinoSearchTextField(
                           controller: _searchController,
