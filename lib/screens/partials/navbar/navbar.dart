@@ -1149,13 +1149,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: const Color(0xFF2C2C2E),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(
-                    child: Icon(
-                      CupertinoIcons.music_albums,
-                      size: 80,
-                      color: CupertinoColors.systemGrey,
-                    ),
-                  ),
+                  child: currentTrack.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          appState.jellyfinService.getImageUrl(currentTrack.imageUrl!, width: 300, height: 300),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                CupertinoIcons.music_albums,
+                                size: 80,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(
+                          CupertinoIcons.music_albums,
+                          size: 80,
+                          color: CupertinoColors.systemGrey,
+                        ),
+                      ),
                 ),
               ),
               
