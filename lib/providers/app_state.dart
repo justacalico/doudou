@@ -363,6 +363,14 @@ class AppState extends ChangeNotifier {
         _tracks = cachedTracks;
         _playlists = cachedPlaylists;
         
+        // Update audio handler with cached media library
+        _audioHandler?.updateMediaLibrary(
+          albums: _albums,
+          artists: _artists,
+          tracks: _tracks,
+          playlists: _playlists,
+        );
+        
         _setLoading(false);
         
         if (kDebugMode) {
