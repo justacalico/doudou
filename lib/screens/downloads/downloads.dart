@@ -121,9 +121,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     List<Widget> slivers = [];
 
     // Get downloaded content
-    final downloadedTracks = appState.tracks.where((track) => track.isDownloaded ?? false).toList();
+    final downloadedTracks = appState.tracks.where((track) => 
+      appState.downloadService.isTrackDownloaded(track.id)).toList();
     final downloadedAlbums = _getDownloadedAlbums(appState, downloadedTracks);
-    final downloadedPlaylists = _getDownloadedPlaylists(appState, downloadedTracks);
+    final downloadedPlaylists = await _getDownloadedPlaylists(appState, downloadedTracks);
     final favoriteDownloaded = downloadedTracks.where((track) => track.isFavorite).toList();
 
     // Favorites section
