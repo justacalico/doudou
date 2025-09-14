@@ -6,14 +6,23 @@ import '../partials/tracks/track_list_item.dart';
 import '../partials/player/mini_player.dart';
 
 class FavoritesView extends StatelessWidget {
-  const FavoritesView({super.key});
+  final bool showDownloadedOnly;
+  
+  const FavoritesView({super.key, this.showDownloadedOnly = false});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         // Filter tracks to only show favorites
-        final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
+        List<Track> favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
+        
+        // If coming from downloads page, only show downloaded favorites
+        if (showDownloadedOnly) {
+          favoriteTracks = favoriteTracks.where((track) => 
+            appState.downloadService.isTrackDownloaded(track.id)
+          ).toList();
+        }
 
         if (favoriteTracks.isEmpty) {
           return Container(
