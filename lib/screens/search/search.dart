@@ -24,13 +24,52 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Artist> _artistResults = [];
   List<Playlist> _playlistResults = [];
   
+  // Recent searches
+  List<String> _recentSearches = [];
+  
   bool _isSearching = false;
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentSearches();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _loadRecentSearches() {
+    // For now, using hardcoded recent searches
+    // In a real app, this would load from SharedPreferences
+    setState(() {
+      _recentSearches = [
+        'Bonzai Chan',
+        'Andrew Horowitz', 
+        'Karen Skladany',
+        'OG Maco',
+        'Michael Wyckoff & Xye',
+        'Shotgun Willy',
+        'Jelly House, Elliot Cox',
+        'Jullian, Sophie Wood',
+      ];
+    });
+  }
+
+  void _addToRecentSearches(String query) {
+    if (query.trim().isEmpty) return;
+    
+    setState(() {
+      _recentSearches.removeWhere((search) => search.toLowerCase() == query.toLowerCase());
+      _recentSearches.insert(0, query);
+      if (_recentSearches.length > 10) {
+        _recentSearches = _recentSearches.take(10).toList();
+      }
+    });
+    // In a real app, save to SharedPreferences here
   }
 
   void _performSearch(String query, AppState appState) async {
