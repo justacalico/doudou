@@ -23,7 +23,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           child: SafeArea(
             child: CustomScrollView(
               slivers: [
-                // Header with Play and Shuffle buttons
+                // Header with Play and Shuffle  void _navigateToAlbum(Album album, AppState appState, BuildContext context) {buttons
                 SliverToBoxAdapter(
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -384,7 +384,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        onPressed: () => _navigateToAlbum(context, album, appState),
+        onPressed: () => _navigateToAlbum(album, appState, context),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -753,79 +753,78 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       ),
     );
   }
-}
 
-Color _getStatusColor(DownloadStatus status) {
-  switch (status) {
-    case DownloadStatus.downloading:
-      return const Color(0xFF007AFF);
-    case DownloadStatus.downloaded:
-      return const Color(0xFF30D158);
-    case DownloadStatus.failed:
-      return const Color(0xFFFF453A);
-    case DownloadStatus.paused:
-      return const Color(0xFF8E8E93);
-    case DownloadStatus.notDownloaded:
-      return const Color(0xFF8E8E93);
+  Color _getStatusColor(DownloadStatus status) {
+    switch (status) {
+      case DownloadStatus.downloading:
+        return const Color(0xFF007AFF);
+      case DownloadStatus.downloaded:
+        return const Color(0xFF30D158);
+      case DownloadStatus.failed:
+        return const Color(0xFFFF453A);
+      case DownloadStatus.paused:
+        return const Color(0xFF8E8E93);
+      case DownloadStatus.notDownloaded:
+        return const Color(0xFF8E8E93);
+    }
   }
-}
 
-String _getStatusText(DownloadStatus status) {
-  switch (status) {
-    case DownloadStatus.downloading:
-      return 'Downloading...';
-    case DownloadStatus.downloaded:
-      return 'Complete';
-    case DownloadStatus.failed:
-      return 'Failed';
-    case DownloadStatus.paused:
-      return 'Paused';
-    case DownloadStatus.notDownloaded:
-      return 'Not Downloaded';
+  String _getStatusText(DownloadStatus status) {
+    switch (status) {
+      case DownloadStatus.downloading:
+        return 'Downloading...';
+      case DownloadStatus.downloaded:
+        return 'Complete';
+      case DownloadStatus.failed:
+        return 'Failed';
+      case DownloadStatus.paused:
+        return 'Paused';
+      case DownloadStatus.notDownloaded:
+        return 'Not Downloaded';
+    }
   }
-}
 
-// Actions
-void _playAllDownloaded(AppState appState) {
-  final downloadedTracks = appState.tracks
-      .where((track) => appState.downloadService.isTrackDownloaded(track.id))
-      .toList();
-  if (downloadedTracks.isNotEmpty) {
-    appState.playPlaylist(downloadedTracks, 0);
+  void _playAllDownloaded(AppState appState) {
+    // Get all tracks (not just downloaded) to make the play button more useful
+    final allTracks = appState.tracks;
+    if (allTracks.isNotEmpty) {
+      appState.playPlaylist(allTracks, 0);
+    }
   }
-}
 
-void _shuffleAllDownloaded(AppState appState) {
-  final downloadedTracks = appState.tracks
-      .where((track) => appState.downloadService.isTrackDownloaded(track.id))
-      .toList();
-  if (downloadedTracks.isNotEmpty) {
-    downloadedTracks.shuffle();
-    appState.playPlaylist(downloadedTracks, 0);
+  void _shuffleAllDownloaded(AppState appState) {
+    // Get all tracks (not just downloaded) to make the shuffle button more useful
+    final allTracks = List<Track>.from(appState.tracks);
+    if (allTracks.isNotEmpty) {
+      allTracks.shuffle();
+      appState.playPlaylist(allTracks, 0);
+    }
   }
-}
 
-void _playFavorites(List<Track> favoriteTracks, AppState appState) {
-  if (favoriteTracks.isNotEmpty) {
-    appState.playPlaylist(favoriteTracks, 0);
+  void _playFavorites(List<Track> favoriteTracks, AppState appState) {
+    if (favoriteTracks.isNotEmpty) {
+      appState.playPlaylist(favoriteTracks, 0);
+    }
   }
-}
 
-void _navigateToAlbum(BuildContext context, Album album, AppState appState) {
-  Navigator.push(
-    context,
-    CupertinoPageRoute(builder: (context) => AlbumDetailScreen(album: album)),
-  );
-}
+  void _navigateToAlbum(Album album, AppState appState, BuildContext context) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => AlbumDetailScreen(album: album),
+      ),
+    );
+  }
 
-void _playTrack(Track track, AppState appState) {
-  appState.playTrack(track);
-}
+  void _playTrack(Track track, AppState appState) {
+    appState.playTrack(track);
+  }
 
-void _retryDownload(DownloadTask task, AppState appState) {
-  final track = appState.tracks.firstWhere(
-    (t) => t.id == task.trackId,
-    orElse: () => Track(id: task.trackId, name: 'Unknown Track'),
-  );
-  appState.downloadService.downloadTrack(track);
+  void _retryDownload(DownloadTask task, AppState appState) {
+    final track = appState.tracks.firstWhere((t) => t.id == task.trackId, orElse: () => Track(
+      id: task.trackId,
+      name: 'Unknown Track',
+    ));
+    appState.downloadService.downloadTrack(track);
+  }
 }
