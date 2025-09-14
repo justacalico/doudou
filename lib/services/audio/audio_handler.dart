@@ -974,12 +974,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update current media item immediately
     mediaItem.add(_trackToMediaItem(track));
     
-    // Store playing state for background compatibility and user intent
+    // Store playing state for background compatibility
     final wasPlaying = playbackState.value.playing;
     
-    // Preserve user intent if they were playing
-    if (wasPlaying) {
-      _userIntendedPlaying = true;
+    // Don't override user intent - if playPlaylist() set it to true, keep it
+    // This preserves the user's explicit action to start playback
+    if (kDebugMode) {
+      print('Playing track with user intent: $_userIntendedPlaying, was previously playing: $wasPlaying');
     }
     
     // Try gapless playback first if enabled and conditions are met
