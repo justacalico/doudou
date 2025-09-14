@@ -250,6 +250,10 @@ class AppState extends ChangeNotifier {
       final success = await _jellyfinService.authenticate(serverUrl, username, password);
       
       if (success) {
+        if (kDebugMode) {
+          print('AppState: Authentication success, setting up login state...');
+        }
+        
         _isLoggedIn = true;
         
         // Initialize cache service first
