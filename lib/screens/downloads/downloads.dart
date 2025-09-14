@@ -785,19 +785,23 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   }
 
   void _playAllDownloaded(AppState appState) {
-    // Get all tracks (not just downloaded) to make the play button more useful
-    final allTracks = appState.tracks;
-    if (allTracks.isNotEmpty) {
-      appState.playPlaylist(allTracks, 0);
+    // Get only downloaded tracks
+    final downloadedTracks = appState.tracks
+        .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+        .toList();
+    if (downloadedTracks.isNotEmpty) {
+      appState.playPlaylist(downloadedTracks, 0);
     }
   }
 
   void _shuffleAllDownloaded(AppState appState) {
-    // Get all tracks (not just downloaded) to make the shuffle button more useful
-    final allTracks = List<Track>.from(appState.tracks);
-    if (allTracks.isNotEmpty) {
-      allTracks.shuffle();
-      appState.playPlaylist(allTracks, 0);
+    // Get only downloaded tracks and shuffle them
+    final downloadedTracks = appState.tracks
+        .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+        .toList();
+    if (downloadedTracks.isNotEmpty) {
+      downloadedTracks.shuffle();
+      appState.playPlaylist(downloadedTracks, 0);
     }
   }
 
