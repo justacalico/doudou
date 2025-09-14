@@ -269,12 +269,14 @@ class _HomeScreenState extends State<HomeScreen> {
       color: const Color(0xFF000000),
       child: Column(
         children: [
-          // Top navigation bar with Albums, Playlists, Favorites
+          // Top navigation bar with Home, Albums, Playlists, Favorites
           Container(
             height: 80,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               children: [
+                _buildAutoNavButton('Home', -1, CupertinoIcons.house_fill),
+                const SizedBox(width: 20),
                 _buildAutoNavButton('Albums', 0, CupertinoIcons.music_albums),
                 const SizedBox(width: 20),
                 _buildAutoNavButton('Playlists', 1, CupertinoIcons.music_note_list),
@@ -361,6 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAutoSectionContent(AppState appState) {
     switch (_selectedAutoSection) {
+      case -1: // Home
+        return _buildAutoHomeSection(appState);
       case 0: // Albums
         return _buildAutoAlbumsSection(appState);
       case 1: // Playlists
@@ -368,8 +372,206 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2: // Favorites
         return _buildAutoFavoritesSection(appState);
       default:
-        return const Center(child: Text('Select a section'));
+        return _buildAutoHomeSection(appState);
     }
+  }
+
+  Widget _buildAutoHomeSection(AppState appState) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Welcome section
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome to Doudou',
+                  style: TextStyle(
+                    color: CupertinoColors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Your music, everywhere you go',
+                  style: TextStyle(
+                    color: CupertinoColors.systemGrey2,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Quick action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildQuickActionButton(
+                        'Shuffle All',
+                        CupertinoIcons.shuffle,
+                        () async {
+                          await appState.shuffleAllTracks();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildQuickActionButton(
+                        'Favorites',
+                        CupertinoIcons.heart_fill,
+                        () {
+                          setState(() {
+                            _selectedAutoSection = 2; // Go to favorites
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Recent albums section
+          if (appState.albums.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Recent Albums',
+                    style: TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Album grid
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 6,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.8,
+                    ),
+                    itemCount: appState.albums.length > 6 ? 6 : appState.albums.length,
+                    itemBuilder: (context, index) {
+                      final album = appState.albums[index];
+                      return GestureDetector(
+                        onTap: () {
+                          // TODO: Navigate to album detail or play album
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1C1C1E),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  margin: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2C2C2E),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: album.imageUrl != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          appState.jellyfinService.getImageUrl(album.imageUrl!, width: 150, height: 150),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return const Center(
+                                              child: Icon(
+                                                CupertinoIcons.music_albums,
+                                                size: 40,
+                                                color: CupertinoColors.systemGrey,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          CupertinoIcons.music_albums,
+                                          size: 40,
+                                          color: CupertinoColors.systemGrey,
+                                        ),
+                                      ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  album.name,
+                                  style: const TextStyle(
+                                    color: CupertinoColors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionButton(String title, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF2C2C2E),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: CupertinoColors.systemRed,
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: CupertinoColors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildAutoAlbumsSection(AppState appState) {
