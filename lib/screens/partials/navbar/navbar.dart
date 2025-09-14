@@ -163,24 +163,60 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Refreshing Android Auto data...');
     }
     
-    if (appState.isLoggedIn) {
-      try {
-        await appState.loadLibraryData();
-        
-        // If still no data after load, show debug info
+    // Show that refresh is in progress
+    setState(() {});
+    
+    try {
+      if (!appState.isLoggedIn) {
         if (kDebugMode) {
-          print('After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}');
+          print('Cannot refresh - user not logged in');
         }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error refreshing Android Auto data: $e');
+        // Try to handle the case where user needs to login
+        return;
+      }
+
+      await appState.loadLibraryData();
+      
+      // Update AudioHandler with fresh data for Android Auto MediaBrowser
+      final audioHandler = appState.audioHandler;
+      if (audioHandler != null) {
+        try {
+          // Update the media library in audio handler for MediaBrowser
+          audioHandler.updateMediaLibrary(
+            albums: appState.albums,
+            artists: appState.artists,
+            tracks: appState.tracks,
+            playlists: appState.playlists,
+          );
+          
+          if (kDebugMode) {
+            print('Updated AudioHandler MediaBrowser with fresh library data');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning: Failed to update AudioHandler MediaBrowser: $e');
+          }
+          // Don't throw - this is not critical for the UI
         }
       }
-    } else {
+      
+      // If still no data after load, show debug info
       if (kDebugMode) {
-        print('Cannot refresh - user not logged in');
+        print('After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Artists: ${appState.artists.length}, Playlists: ${appState.playlists.length}');
       }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error refreshing Android Auto data: $e');
+      }
+      
+      // In a real app, you might want to show a user-visible error message
+      // For Android Auto, we need to be more resilient and not crash
+      // The UI will show the "No Content Available" message instead
     }
+    
+    // Force rebuild to show updated state
+    setState(() {});
   }
 
   Widget _buildTabContent(int index, AppState appState) {
@@ -364,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(8),
               color: CupertinoColors.systemGreen,
               child: Text(
-                'ANDROID AUTO MODE - Albums: ${appState.albums?.length ?? 0}, Tracks: ${appState.tracks?.length ?? 0}, Loading: ${appState.isLoading ?? false}',
+                'ANDROID AUTO MODE - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Loading: ${appState.isLoading}',
                 style: const TextStyle(
                   color: CupertinoColors.white,
                   fontWeight: FontWeight.bold,
@@ -374,8 +410,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Connection status indicator for Android Auto
           if (!appState.isLoading && 
-              (appState.albums?.isEmpty ?? true) && 
-              (appState.tracks?.isEmpty ?? true))
+              appState.albums.isEmpty && 
+              appState.tracks.isEmpty)
             Container(
               padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

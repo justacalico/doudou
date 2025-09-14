@@ -1782,12 +1782,61 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
 
     try {
+      // Ensure we have data available - return safe empty results if not
+      if (_albums.isEmpty && _artists.isEmpty && _tracks.isEmpty && _playlists.isEmpty) {
+        if (kDebugMode) {
+          print('AudioHandler: No media library data available, returning safe empty result');
+        }
+        
+        switch (parentMediaId) {
+          case AudioService.browsableRootId:
+            // Always return the main categories even if empty - Android Auto expects this structure
+            return [
+              MediaItem(
+                id: 'albums',
+                title: 'Albums',
+                album: '',
+                artist: '',
+                playable: false,
+                extras: {'browsable': true},
+              ),
+              MediaItem(
+                id: 'artists',
+                title: 'Artists',
+                album: '',
+                artist: '',
+                playable: false,
+                extras: {'browsable': true},
+              ),
+              MediaItem(
+                id: 'playlists',
+                title: 'Playlists',
+                album: '',
+                artist: '',
+                playable: false,
+                extras: {'browsable': true},
+              ),
+              MediaItem(
+                id: 'tracks',
+                title: 'All Songs',
+                album: '',
+                artist: '',
+                playable: false,
+                extras: {'browsable': true},
+              ),
+            ];
+          default:
+            // Return empty for any subcategory when no data
+            return [];
+        }
+      }
+
       switch (parentMediaId) {
         case AudioService.browsableRootId:
           return [
             MediaItem(
               id: 'albums',
-              title: 'Albums',
+              title: 'Albums (${_albums.length})',
               album: '',
               artist: '',
               playable: false,
@@ -1795,7 +1844,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             ),
             MediaItem(
               id: 'artists',
-              title: 'Artists',
+              title: 'Artists (${_artists.length})',
               album: '',
               artist: '',
               playable: false,
@@ -1803,7 +1852,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             ),
             MediaItem(
               id: 'playlists',
-              title: 'Playlists',
+              title: 'Playlists (${_playlists.length})',
               album: '',
               artist: '',
               playable: false,
@@ -1811,7 +1860,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             ),
             MediaItem(
               id: 'tracks',
-              title: 'All Songs',
+              title: 'All Songs (${_tracks.length})',
               album: '',
               artist: '',
               playable: false,
@@ -1820,6 +1869,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           ];
 
         case 'albums':
+          if (_albums.isEmpty) {
+            if (kDebugMode) {
+              print('AudioHandler: No albums available');
+            }
+            return [];
+          }
           return _albums.map((album) => MediaItem(
             id: 'album:${album.id}',
             title: album.name,
@@ -1833,6 +1888,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           )).toList();
 
         case 'artists':
+          if (_artists.isEmpty) {
+            if (kDebugMode) {
+              print('AudioHandler: No artists available');
+            }
+            return [];
+          }
           return _artists.map((artist) => MediaItem(
             id: 'artist:${artist.id}',
             title: artist.name,
@@ -1846,6 +1907,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           )).toList();
 
         case 'playlists':
+          if (_playlists.isEmpty) {
+            if (kDebugMode) {
+              print('AudioHandler: No playlists available');
+            }
+            return [];
+          }
           return _playlists.map((playlist) => MediaItem(
             id: 'playlist:${playlist.id}',
             title: playlist.name,
