@@ -296,6 +296,11 @@ class AppState extends ChangeNotifier {
         }
         
         await _saveServer();
+        
+        if (kDebugMode) {
+          print('AppState: About to call loadLibraryData after successful login...');
+        }
+        
         await loadLibraryData();
         _setLoading(false);
         return true;
