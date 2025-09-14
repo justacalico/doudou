@@ -27,30 +27,32 @@ class FavoritesView extends StatelessWidget {
         if (favoriteTracks.isEmpty) {
           return Container(
             color: const Color(0xFF000000), // Pure black for OLED
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.heart,
                     size: 80,
                     color: Color(0xFF333333),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
-                    'No favorite songs',
-                    style: TextStyle(
+                    showDownloadedOnly ? 'No downloaded favorites' : 'No favorite songs',
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFFFFFFFF),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Songs you love will appear here. Tap the heart icon to add songs to your favorites.',
-                      style: TextStyle(
+                      showDownloadedOnly 
+                        ? 'Download your favorite songs to see them here when offline.'
+                        : 'Songs you love will appear here. Tap the heart icon to add songs to your favorites.',
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Color(0xFF8E8E93),
                         height: 1.4,
