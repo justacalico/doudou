@@ -149,42 +149,34 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       );
     }
 
-    // Real playlists that have downloaded tracks
-    final playlistsWithDownloads = appState.playlists
-        .where((playlist) => playlist.tracks
-            .any((track) => appState.downloadService.isTrackDownloaded(track.id)))
-        .toList();
-
-    for (final playlist in playlistsWithDownloads) {
-      final downloadedPlaylistTracks = playlist.tracks
-          .where((track) => appState.downloadService.isTrackDownloaded(track.id))
-          .length;
-      
+    // Real playlists (show available playlists)
+    final availablePlaylists = appState.playlists.take(3).toList();
+    for (final playlist in availablePlaylists) {
       slivers.add(
         SliverToBoxAdapter(
-          child: _buildPlaylistSection(playlist.name, downloadedPlaylistTracks, appState, playlist: playlist),
+          child: _buildPlaylistSection(playlist.name, playlist.trackCount, appState),
         ),
       );
     }
 
-    // Show all albums (first few)
-    final albumsToShow = allAlbums.take(5).toList(); // Show first 5 albums
-    for (final album in albumsToShow) {
-      final albumTracks = allTracks
+    // Downloaded albums (albums that have at least one downloaded track)
+    for (final album in downloadedAlbums) {
+      final albumDownloadedTracks = downloadedTracks
           .where((track) => track.albumId == album.id)
-          .toList();
-      if (albumTracks.isNotEmpty) {
+          .length;
+      
+      if (albumDownloadedTracks > 0) {
         slivers.add(
           SliverToBoxAdapter(
-            child: _buildAlbumSection(album, albumTracks.length, appState),
+            child: _buildAlbumSection(album, albumDownloadedTracks, appState),
           ),
         );
       }
     }
 
-    // Show some individual tracks
-    final tracksToShow = allTracks.take(10).toList(); // Show first 10 tracks
-    for (final track in tracksToShow) {
+    // Individual downloaded tracks (show recent downloads)
+    final recentDownloadedTracks = downloadedTracks.take(10).toList();
+    for (final track in recentDownloadedTracks) {
       slivers.add(SliverToBoxAdapter(child: _buildTrackItem(track, appState)));
     }
 
