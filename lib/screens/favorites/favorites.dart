@@ -216,7 +216,7 @@ class FavoritesView extends StatelessWidget {
                           showTrackNumber: false,
                           showDuration: true,
                           showDownloadButton: true,
-                          showFavoriteButton: true,
+                          showFavoriteButton: true, // Keep this to allow removing from favorites
                         );
                       },
                       childCount: favoriteTracks.length,
