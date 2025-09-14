@@ -134,6 +134,11 @@ class JellyfinService {
         );
         
         _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
+        
+        if (kDebugMode) {
+          print('JellyfinService: Authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Token: ${_server!.accessToken?.substring(0, 8)}...');
+        }
+        
         return true;
       }
     } catch (e) {
