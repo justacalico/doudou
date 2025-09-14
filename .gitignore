@@ -68,3 +68,4 @@ setup-signing.sh
 .notes
 *.png
 /audiov2
+.notes.txt
