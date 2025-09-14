@@ -362,131 +362,89 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               color: CupertinoColors.systemGreen,
-              child: const Text(
-                'ANDROID AUTO MODE - SIMPLE UI',
-                style: TextStyle(
+              child: Text(
+                'ANDROID AUTO MODE - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Loading: ${appState.isLoading}',
+                style: const TextStyle(
                   color: CupertinoColors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
 
-          // Simple header
+          // Top navigation bar with Home, Albums, Playlists, Favorites
           Container(
             height: 80,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
-                  CupertinoIcons.music_note_2,
-                  color: CupertinoColors.systemRed,
-                  size: 40,
+                _buildAutoNavButton('Home', -1, CupertinoIcons.house_fill),
+                const SizedBox(width: 20),
+                _buildAutoNavButton('Albums', 0, CupertinoIcons.music_albums),
+                const SizedBox(width: 20),
+                _buildAutoNavButton(
+                  'Playlists',
+                  1,
+                  CupertinoIcons.music_note_list,
                 ),
-                SizedBox(width: 16),
-                Text(
-                  'Doudou Music Player',
-                  style: TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 20),
+                _buildAutoNavButton('Favorites', 2, CupertinoIcons.heart_fill),
+                const Spacer(),
+                // Add refresh button for Android Auto
+                GestureDetector(
+                  onTap: () => _refreshAndroidAutoData(appState),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.refresh,
+                          color: CupertinoColors.systemBlue,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: CupertinoColors.systemBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Main content area - Simple Hello World
+          // Main content area
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    CupertinoIcons.music_note,
-                    color: CupertinoColors.systemRed,
-                    size: 120,
+            child: Row(
+              children: [
+                // Left side - Selected section content
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    child: _buildAutoSectionContent(appState),
                   ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Hello from Android Auto!',
-                    style: TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Your music companion on the road',
-                    style: TextStyle(
-                      color: CupertinoColors.systemGrey,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-                  
-                  // Simple info cards
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildSimpleInfoCard(
-                        'Library',
-                        '${appState.albums.length} Albums',
-                        CupertinoIcons.music_albums,
-                      ),
-                      _buildSimpleInfoCard(
-                        'Tracks',
-                        '${appState.tracks.length} Songs',
-                        CupertinoIcons.music_note_list,
-                      ),
-                      _buildSimpleInfoCard(
-                        'Artists',
-                        '${appState.artists.length} Artists',
-                        CupertinoIcons.person_2,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                ),
 
-  Widget _buildSimpleInfoCard(String title, String subtitle, IconData icon) {
-    return Container(
-      width: 200,
-      height: 120,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2C2C2E), width: 2),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: CupertinoColors.systemRed,
-            size: 32,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              color: CupertinoColors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              color: CupertinoColors.systemGrey,
-              fontSize: 14,
+                // Right side - Currently playing
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    child: _buildCurrentlyPlaying(appState),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
