@@ -152,6 +152,14 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       }
     }
 
+    // Show some individual tracks
+    final tracksToShow = allTracks.take(10).toList(); // Show first 10 tracks
+    for (final track in tracksToShow) {
+      slivers.add(SliverToBoxAdapter(
+        child: _buildTrackItem(track, appState),
+      ));
+    }
+
     // Download queue (show items currently downloading)
     final downloadService = appState.downloadService;
     final activeDownloads = downloadService.downloadTasks.where((task) => 
@@ -176,11 +184,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     ));
 
     return slivers;
-  }
-
-  List<Album> _getDownloadedAlbums(AppState appState, List<Track> downloadedTracks) {
-    final albumIds = downloadedTracks.map((track) => track.albumId).where((id) => id != null).toSet();
-    return appState.albums.where((album) => albumIds.contains(album.id)).toList();
   }
 
   Widget _buildFavoritesSection(List<Track> favoriteTracks, AppState appState) {
