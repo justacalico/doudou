@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late CupertinoTabController _tabController;
   int _previousIndex = 0;
   bool _isAndroidAuto = false;
-  int _selectedAutoSection = 0; // 0: Albums, 1: Playlists, 2: Favorites
+  int _selectedAutoSection = -1; // -1: Home, 0: Albums, 1: Playlists, 2: Favorites
   
   @override
   void initState() {
