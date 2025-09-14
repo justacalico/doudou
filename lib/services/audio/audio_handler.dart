@@ -1089,10 +1089,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track) async {
-    final wasPlaying = _player.playing;
-    
     if (kDebugMode) {
-      print('Loading track: ${track.name}, wasPlaying: $wasPlaying');
+      print('Loading track: ${track.name}, user intended playing: $_userIntendedPlaying');
     }
     
     // Try local file first
@@ -1108,10 +1106,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Wait for player to be ready before playing
           await Future.delayed(const Duration(milliseconds: 200));
           
-          if (wasPlaying) {
+          if (_userIntendedPlaying) {
             await _player.play();
             if (kDebugMode) {
-              print('Auto-playing local file: ${track.name}');
+              print('Auto-playing local file: ${track.name} - user intended playing');
+            }
+          } else {
+            if (kDebugMode) {
+              print('Not auto-playing local file: ${track.name} - user paused');
             }
           }
           
