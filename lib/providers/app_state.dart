@@ -214,13 +214,6 @@ class AppState extends ChangeNotifier {
               // On non-Android platforms, we don't use AudioService
               _audioHandler = null;
             }
-              
-            } catch (audioError) {
-              if (kDebugMode) {
-                print('Failed to initialize audio service for offline mode: $audioError');
-              }
-              // Continue without audio service
-            }
             
             if (kDebugMode) {
               print('Entered offline mode with saved credentials');
