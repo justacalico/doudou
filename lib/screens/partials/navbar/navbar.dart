@@ -22,16 +22,17 @@ class _HomeScreenState extends State<HomeScreen> {
   late CupertinoTabController _tabController;
   int _previousIndex = 0;
   bool _isAndroidAuto = false;
-  int _selectedAutoSection = -1; // -1: Home, 0: Albums, 1: Playlists, 2: Favorites
-  
+  int _selectedAutoSection =
+      -1; // -1: Home, 0: Albums, 1: Playlists, 2: Favorites
+
   @override
   void initState() {
     super.initState();
     _tabController = CupertinoTabController();
-    
+
     // Listen to tab changes to detect double-taps
     _tabController.addListener(_handleTabChange);
-    
+
     // Check after a delay if we should navigate to downloads (if in offline mode)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = Provider.of<AppState>(context, listen: false);
@@ -48,11 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _checkIfAndroidAuto() {
     final size = MediaQuery.of(context).size;
     final aspectRatio = size.width / size.height;
-    
+
     if (kDebugMode) {
-      print('Screen detection - Width: ${size.width}, Height: ${size.height}, Aspect Ratio: $aspectRatio');
+      print(
+        'Screen detection - Width: ${size.width}, Height: ${size.height}, Aspect Ratio: $aspectRatio',
+      );
     }
-    
+
     // Android Auto screens are typically landscape and wide (around 2.5:1 to 3:1 ratio)
     // Also check if we're running on Android with specific screen characteristics
     // Lowered threshold for better detection
@@ -63,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (kDebugMode) {
         print('Android Auto mode detected!');
       }
-      
+
       // Load library data when Android Auto is detected to ensure items are available
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final appState = Provider.of<AppState>(context, listen: false);
@@ -77,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-  
+
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChange);
@@ -87,18 +90,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleTabChange() {
     final currentIndex = _tabController.index;
-    
+
     // If user tapped the same tab twice, reload/refresh that page
     if (currentIndex == _previousIndex) {
       _reloadCurrentTab(currentIndex);
     }
-    
+
     _previousIndex = currentIndex;
   }
 
   void _reloadCurrentTab(int index) {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     switch (index) {
       case 0: // Home
         // Refresh home data and scroll to top
@@ -120,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Settings will refresh its own data
         break;
     }
-    
+
     // Force rebuild by triggering a setState
     setState(() {});
   }
@@ -129,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Widget content;
     String title;
     bool showNavBar = true;
-    
+
     switch (index) {
       case 0:
         content = const HomeContent();
@@ -161,34 +164,39 @@ class _HomeScreenState extends State<HomeScreen> {
         title = 'Home';
         showNavBar = false;
     }
-    
+
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.black,
-      navigationBar: showNavBar ? CupertinoNavigationBar(
-        middle: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title, style: const TextStyle(color: CupertinoColors.white)),
-            if (appState.isOfflineMode)
-              const Text(
-                'Offline Mode',
-                style: TextStyle(
-                  color: CupertinoColors.systemOrange,
-                  fontSize: 12,
-                ),
+      navigationBar: showNavBar
+          ? CupertinoNavigationBar(
+              middle: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(color: CupertinoColors.white),
+                  ),
+                  if (appState.isOfflineMode)
+                    const Text(
+                      'Offline Mode',
+                      style: TextStyle(
+                        color: CupertinoColors.systemOrange,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF000000),
-        border: null,
-        trailing: appState.isOfflineMode 
-          ? const Icon(
-              CupertinoIcons.wifi_slash,
-              color: CupertinoColors.systemOrange,
-              size: 20,
+              backgroundColor: const Color(0xFF000000),
+              border: null,
+              trailing: appState.isOfflineMode
+                  ? const Icon(
+                      CupertinoIcons.wifi_slash,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    )
+                  : null,
             )
           : null,
-      ) : null,
       child: Stack(
         children: [
           // Offline banner
@@ -238,16 +246,19 @@ class _HomeScreenState extends State<HomeScreen> {
           // Main content with offset for offline banner only - no bottom padding
           Positioned.fill(
             top: appState.isOfflineMode ? 40 : 0,
-            bottom: 0, // Let content extend to the bottom, overlays will handle spacing
+            bottom:
+                0, // Let content extend to the bottom, overlays will handle spacing
             child: content,
           ),
           // Only show mini player when not on settings screen (index 4) - positioned as overlay
           // Also hide on search screen (index 3) when keyboard is open
-          if (index != 4 && !(index == 3 && MediaQuery.of(context).viewInsets.bottom > 0))
+          if (index != 4 &&
+              !(index == 3 && MediaQuery.of(context).viewInsets.bottom > 0))
             Positioned(
               left: 0,
               right: 0,
-              bottom: 97, // Position mini player above glassmorphism nav bar (65px + 16px margin + 16px gap)
+              bottom:
+                  97, // Position mini player above glassmorphism nav bar (65px + 16px margin + 16px gap)
               child: const MiniPlayer(),
             ),
         ],
@@ -257,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTabBarItem(int index, IconData icon, AppState appState) {
     final isActive = _tabController.index == index;
-    
+
     return Expanded(
       child: CupertinoButton(
         padding: EdgeInsets.zero,
@@ -278,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Icon(
             icon,
             size: 26,
-            color: isActive 
+            color: isActive
                 ? CupertinoColors.systemRed
                 : CupertinoColors.systemGrey2,
           ),
@@ -299,10 +310,13 @@ class _HomeScreenState extends State<HomeScreen> {
               color: CupertinoColors.systemGreen,
               child: const Text(
                 'ANDROID AUTO MODE ACTIVE',
-                style: TextStyle(color: CupertinoColors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: CupertinoColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          
+
           // Top navigation bar with Home, Albums, Playlists, Favorites
           Container(
             height: 80,
@@ -313,14 +327,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 20),
                 _buildAutoNavButton('Albums', 0, CupertinoIcons.music_albums),
                 const SizedBox(width: 20),
-                _buildAutoNavButton('Playlists', 1, CupertinoIcons.music_note_list),
+                _buildAutoNavButton(
+                  'Playlists',
+                  1,
+                  CupertinoIcons.music_note_list,
+                ),
                 const SizedBox(width: 20),
                 _buildAutoNavButton('Favorites', 2, CupertinoIcons.heart_fill),
                 const Spacer(),
               ],
             ),
           ),
-          
+
           // Main content area
           Expanded(
             child: Row(
@@ -333,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _buildAutoSectionContent(appState),
                   ),
                 ),
-                
+
                 // Right side - Currently playing
                 Expanded(
                   flex: 2,
@@ -361,14 +379,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected 
-            ? CupertinoColors.systemRed 
-            : const Color(0xFF1C1C1E),
+          color: isSelected
+              ? CupertinoColors.systemRed
+              : const Color(0xFF1C1C1E),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected 
-              ? CupertinoColors.systemRed 
-              : const Color(0xFF2C2C2E),
+            color: isSelected
+                ? CupertinoColors.systemRed
+                : const Color(0xFF2C2C2E),
             width: 2,
           ),
         ),
@@ -377,14 +395,18 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? CupertinoColors.white : CupertinoColors.systemGrey2,
+              color: isSelected
+                  ? CupertinoColors.white
+                  : CupertinoColors.systemGrey2,
               size: 24,
             ),
             const SizedBox(width: 12),
             Text(
               title,
               style: TextStyle(
-                color: isSelected ? CupertinoColors.white : CupertinoColors.systemGrey2,
+                color: isSelected
+                    ? CupertinoColors.white
+                    : CupertinoColors.systemGrey2,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -438,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Quick action buttons
                 Row(
                   children: [
@@ -468,7 +490,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          
+
           // Recent albums section
           if (appState.albums.isNotEmpty) ...[
             Padding(
@@ -485,18 +507,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Album grid
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 6,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.8,
-                    ),
-                    itemCount: appState.albums.length > 6 ? 6 : appState.albums.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 6,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.8,
+                        ),
+                    itemCount: appState.albums.length > 6
+                        ? 6
+                        : appState.albums.length,
                     itemBuilder: (context, index) {
                       final album = appState.albums[index];
                       return GestureDetector(
@@ -516,29 +541,39 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: album.imageUrl != null
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          appState.jellyfinService.getImageUrl(album.imageUrl!, width: 150, height: 150),
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Center(
-                                              child: Icon(
-                                                CupertinoIcons.music_albums,
-                                                size: 40,
-                                                color: CupertinoColors.systemGrey,
-                                              ),
-                                            );
-                                          },
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Image.network(
+                                            appState.jellyfinService
+                                                .getImageUrl(
+                                                  album.imageUrl!,
+                                                  width: 150,
+                                                  height: 150,
+                                                ),
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return const Center(
+                                                    child: Icon(
+                                                      CupertinoIcons
+                                                          .music_albums,
+                                                      size: 40,
+                                                      color: CupertinoColors
+                                                          .systemGrey,
+                                                    ),
+                                                  );
+                                                },
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Icon(
+                                            CupertinoIcons.music_albums,
+                                            size: 40,
+                                            color: CupertinoColors.systemGrey,
+                                          ),
                                         ),
-                                      )
-                                    : const Center(
-                                        child: Icon(
-                                          CupertinoIcons.music_albums,
-                                          size: 40,
-                                          color: CupertinoColors.systemGrey,
-                                        ),
-                                      ),
                                 ),
                               ),
                               Padding(
@@ -570,7 +605,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActionButton(String title, IconData icon, VoidCallback onTap) {
+  Widget _buildQuickActionButton(
+    String title,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -578,19 +617,12 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1C1C1E),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFF2C2C2E),
-            width: 2,
-          ),
+          border: Border.all(color: const Color(0xFF2C2C2E), width: 2),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: CupertinoColors.systemRed,
-              size: 28,
-            ),
+            Icon(icon, color: CupertinoColors.systemRed, size: 28),
             const SizedBox(height: 8),
             Text(
               title,
@@ -626,7 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    
+
     // If no albums loaded yet, trigger refresh
     if (appState.albums.isEmpty && !appState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -634,7 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
           appState.loadLibraryData();
         }
       });
-      
+
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -652,7 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    
+
     if (appState.albums.isEmpty) {
       return const Center(
         child: Column(
@@ -700,29 +732,33 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: album.imageUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            appState.jellyfinService.getImageUrl(album.imageUrl!, width: 200, height: 200),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(
-                                  CupertinoIcons.music_albums,
-                                  size: 40,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              );
-                            },
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              appState.jellyfinService.getImageUrl(
+                                album.imageUrl!,
+                                width: 200,
+                                height: 200,
+                              ),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    CupertinoIcons.music_albums,
+                                    size: 40,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              CupertinoIcons.music_albums,
+                              size: 40,
+                              color: CupertinoColors.systemGrey,
+                            ),
                           ),
-                        )
-                      : const Center(
-                          child: Icon(
-                            CupertinoIcons.music_albums,
-                            size: 40,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                        ),
                   ),
                 ),
                 Padding(
@@ -776,6 +812,52 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAutoPlaylistsSection(AppState appState) {
+    // If still loading library data, show loading indicator
+    if (appState.isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading playlists...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // If no playlists loaded yet, trigger refresh
+    if (appState.playlists.isEmpty && !appState.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (appState.isLoggedIn) {
+          appState.loadLibraryData();
+        }
+      });
+
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading playlists...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (appState.playlists.isEmpty) {
       return const Center(
         child: Column(
@@ -794,7 +876,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 8),
             Text(
               'Create playlists to organize your music',
-              style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+              style: TextStyle(
+                color: CupertinoColors.systemGrey2,
+                fontSize: 14,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -829,29 +914,33 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: playlist.imageUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            appState.jellyfinService.getImageUrl(playlist.imageUrl!, width: 150, height: 150),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(
-                                  CupertinoIcons.music_note_list,
-                                  size: 40,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              );
-                            },
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              appState.jellyfinService.getImageUrl(
+                                playlist.imageUrl!,
+                                width: 150,
+                                height: 150,
+                              ),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    CupertinoIcons.music_note_list,
+                                    size: 40,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              CupertinoIcons.music_note_list,
+                              size: 40,
+                              color: CupertinoColors.systemGrey,
+                            ),
                           ),
-                        )
-                      : const Center(
-                          child: Icon(
-                            CupertinoIcons.music_note_list,
-                            size: 40,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                        ),
                   ),
                 ),
                 Padding(
@@ -902,7 +991,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAutoFavoritesSection(AppState appState) {
     final favoriteTracks = appState.favoriteTracks;
-    
+
     // If still loading library data, show loading indicator
     if (appState.isLoading) {
       return const Center(
@@ -922,7 +1011,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    
+
     // If no tracks are loaded yet but not in loading state, trigger a refresh
     if (appState.tracks.isEmpty && !appState.isLoading) {
       // Trigger library data load
@@ -931,7 +1020,7 @@ class _HomeScreenState extends State<HomeScreen> {
           appState.loadLibraryData();
         }
       });
-      
+
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -949,7 +1038,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    
+
     // If tracks are loaded but no favorites
     if (favoriteTracks.isEmpty) {
       return Center(
@@ -969,7 +1058,10 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             const Text(
               'Tap the heart icon on songs to add them here',
-              style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+              style: TextStyle(
+                color: CupertinoColors.systemGrey2,
+                fontSize: 14,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -981,7 +1073,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: CupertinoColors.systemRed,
                   borderRadius: BorderRadius.circular(12),
@@ -1118,7 +1213,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        
+
         // Favorites list
         Expanded(
           child: ListView.builder(
@@ -1145,33 +1240,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: track.imageUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                appState.jellyfinService.getImageUrl(track.imageUrl!, width: 100, height: 100),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Center(
-                                    child: Icon(
-                                      CupertinoIcons.music_note,
-                                      size: 20,
-                                      color: CupertinoColors.systemGrey,
-                                    ),
-                                  );
-                                },
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  appState.jellyfinService.getImageUrl(
+                                    track.imageUrl!,
+                                    width: 100,
+                                    height: 100,
+                                  ),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(
+                                      child: Icon(
+                                        CupertinoIcons.music_note,
+                                        size: 20,
+                                        color: CupertinoColors.systemGrey,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                            : const Center(
+                                child: Icon(
+                                  CupertinoIcons.music_note,
+                                  size: 20,
+                                  color: CupertinoColors.systemGrey,
+                                ),
                               ),
-                            )
-                          : const Center(
-                              child: Icon(
-                                CupertinoIcons.music_note,
-                                size: 20,
-                                color: CupertinoColors.systemGrey,
-                              ),
-                            ),
                       ),
-                      
+
                       const SizedBox(width: 16),
-                      
+
                       // Track info
                       Expanded(
                         child: Column(
@@ -1201,7 +1300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-                      
+
                       // Heart icon
                       const Icon(
                         CupertinoIcons.heart_fill,
@@ -1250,7 +1349,7 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: audioHandler.playerStateStream,
       builder: (context, snapshot) {
         final currentTrack = audioHandler.currentTrack;
-        
+
         if (currentTrack == null) {
           return Container(
             padding: const EdgeInsets.all(20),
@@ -1299,34 +1398,38 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: currentTrack.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          appState.jellyfinService.getImageUrl(currentTrack.imageUrl!, width: 300, height: 300),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Center(
-                              child: Icon(
-                                CupertinoIcons.music_albums,
-                                size: 80,
-                                color: CupertinoColors.systemGrey,
-                              ),
-                            );
-                          },
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            appState.jellyfinService.getImageUrl(
+                              currentTrack.imageUrl!,
+                              width: 300,
+                              height: 300,
+                            ),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(
+                                  CupertinoIcons.music_albums,
+                                  size: 80,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : const Center(
+                          child: Icon(
+                            CupertinoIcons.music_albums,
+                            size: 80,
+                            color: CupertinoColors.systemGrey,
+                          ),
                         ),
-                      )
-                    : const Center(
-                        child: Icon(
-                          CupertinoIcons.music_albums,
-                          size: 80,
-                          color: CupertinoColors.systemGrey,
-                        ),
-                      ),
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Track info
               Expanded(
                 flex: 2,
@@ -1343,9 +1446,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     if (currentTrack.artistName != null)
                       Text(
                         currentTrack.artistName!,
@@ -1357,16 +1460,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                       ),
-                    
+
                     const Spacer(),
-                    
+
                     // Control buttons
                     StreamBuilder(
                       stream: audioHandler.playerStateStream,
                       builder: (context, snapshot) {
                         final isPlaying = audioHandler.isPlaying;
-                        final isFavorite = appState.favoriteTracks.any((track) => track.id == currentTrack.id);
-                        
+                        final isFavorite = appState.favoriteTracks.any(
+                          (track) => track.id == currentTrack.id,
+                        );
+
                         return Column(
                           children: [
                             // Main playback controls
@@ -1376,20 +1481,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                 // Previous button
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: audioHandler.hasPrevious == true 
-                                    ? () => audioHandler.skipToPrevious()
-                                    : null,
+                                  onPressed: audioHandler.hasPrevious == true
+                                      ? () => audioHandler.skipToPrevious()
+                                      : null,
                                   child: Icon(
                                     CupertinoIcons.backward_fill,
                                     size: 32,
-                                    color: audioHandler.hasPrevious == true 
-                                      ? CupertinoColors.white
-                                      : CupertinoColors.systemGrey3,
+                                    color: audioHandler.hasPrevious == true
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.systemGrey3,
                                   ),
                                 ),
-                                
+
                                 const SizedBox(width: 20),
-                                
+
                                 // Play/pause button
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
@@ -1408,36 +1513,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                     child: Icon(
-                                      isPlaying 
-                                        ? CupertinoIcons.pause_fill
-                                        : CupertinoIcons.play_fill,
+                                      isPlaying
+                                          ? CupertinoIcons.pause_fill
+                                          : CupertinoIcons.play_fill,
                                       size: 28,
                                       color: CupertinoColors.white,
                                     ),
                                   ),
                                 ),
-                                
+
                                 const SizedBox(width: 20),
-                                
+
                                 // Next button
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: audioHandler.hasNext == true 
-                                    ? () => audioHandler.skipToNext()
-                                    : null,
+                                  onPressed: audioHandler.hasNext == true
+                                      ? () => audioHandler.skipToNext()
+                                      : null,
                                   child: Icon(
                                     CupertinoIcons.forward_fill,
                                     size: 32,
-                                    color: audioHandler.hasNext == true 
-                                      ? CupertinoColors.white
-                                      : CupertinoColors.systemGrey3,
+                                    color: audioHandler.hasNext == true
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.systemGrey3,
                                   ),
                                 ),
                               ],
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Heart (favorite) button
                             CupertinoButton(
                               padding: EdgeInsets.zero,
@@ -1448,25 +1553,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: isFavorite 
-                                    ? CupertinoColors.systemRed.withOpacity(0.2)
-                                    : const Color(0xFF2C2C2E),
+                                  color: isFavorite
+                                      ? CupertinoColors.systemRed.withOpacity(
+                                          0.2,
+                                        )
+                                      : const Color(0xFF2C2C2E),
                                   borderRadius: BorderRadius.circular(25),
                                   border: Border.all(
-                                    color: isFavorite 
-                                      ? CupertinoColors.systemRed
-                                      : const Color(0xFF3C3C3E),
+                                    color: isFavorite
+                                        ? CupertinoColors.systemRed
+                                        : const Color(0xFF3C3C3E),
                                     width: 2,
                                   ),
                                 ),
                                 child: Icon(
-                                  isFavorite 
-                                    ? CupertinoIcons.heart_fill
-                                    : CupertinoIcons.heart,
+                                  isFavorite
+                                      ? CupertinoIcons.heart_fill
+                                      : CupertinoIcons.heart,
                                   size: 24,
-                                  color: isFavorite 
-                                    ? CupertinoColors.systemRed
-                                    : CupertinoColors.systemGrey2,
+                                  color: isFavorite
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.systemGrey2,
                                 ),
                               ),
                             ),
@@ -1492,7 +1599,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_isAndroidAuto) {
           return _buildAndroidAutoUI(appState);
         }
-        
+
         // When offline mode changes, update the tab to show downloads
         if (appState.isOfflineMode && _tabController.index != 2) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1500,7 +1607,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _previousIndex = 2; // Update tracking for double-tap detection
           });
         }
-        
+
         return Stack(
           children: [
             // Main content without tab scaffold
@@ -1514,14 +1621,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildTabContent(4, appState), // Settings
               ],
             ),
-            
+
             // Custom glassmorphism tab bar positioned at the bottom
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: Container(
-                height: 97, // 65px height + 32px margin (16px top + 16px bottom)
+                height:
+                    97, // 65px height + 32px margin (16px top + 16px bottom)
                 padding: const EdgeInsets.all(16),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
@@ -1553,11 +1661,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildTabBarItem(0, CupertinoIcons.house_fill, appState),
-                          _buildTabBarItem(1, CupertinoIcons.music_note_list, appState),
-                          _buildTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
+                          _buildTabBarItem(
+                            0,
+                            CupertinoIcons.house_fill,
+                            appState,
+                          ),
+                          _buildTabBarItem(
+                            1,
+                            CupertinoIcons.music_note_list,
+                            appState,
+                          ),
+                          _buildTabBarItem(
+                            2,
+                            CupertinoIcons.arrow_down_circle,
+                            appState,
+                          ),
                           _buildTabBarItem(3, CupertinoIcons.search, appState),
-                          _buildTabBarItem(4, CupertinoIcons.settings, appState),
+                          _buildTabBarItem(
+                            4,
+                            CupertinoIcons.settings,
+                            appState,
+                          ),
                         ],
                       ),
                     ),
