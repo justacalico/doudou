@@ -36,3 +36,4 @@
 - Recently added albums.
 - Fixed gapless audio playback.
 - Fixed lyrics overlay to automatically reload when track changes during playback.
+- Fixed images for top results not working on the search page.
