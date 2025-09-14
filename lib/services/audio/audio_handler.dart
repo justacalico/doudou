@@ -517,9 +517,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Audio Service Methods - Enhanced for background compatibility
   @override
+  @override
   Future<void> play() async {
     if (kDebugMode) {
-      print('Play command received (background safe)');
+      print('Play command received (Android Auto/MediaSession compatible)');
     }
     
     // Set user intent to playing
