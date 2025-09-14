@@ -98,14 +98,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final processingState = _mapProcessingState(playerState.processingState);
       
       // Determine final playing state based on user intent and current state
-      bool finalPlayingState = isPlaying;
+      // IMPORTANT: Respect user intent over raw player state
+      bool finalPlayingState;
       
+      // If user explicitly paused, respect that regardless of player state
+      if (!_userIntendedPlaying) {
+        finalPlayingState = false;
+        if (kDebugMode && isPlaying) {
+          print('Player wants to play but user paused - respecting user intent');
+        }
+      }
       // During buffering, use user intent to maintain playback
-      if (processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
+      else if (processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
         finalPlayingState = true;
         if (kDebugMode) {
           print('Player buffering but user intended playing - maintaining playback state');
         }
+      }
+      // Otherwise use actual player state
+      else {
+        finalPlayingState = isPlaying;
       }
       
       // Always update playback state to keep system informed
