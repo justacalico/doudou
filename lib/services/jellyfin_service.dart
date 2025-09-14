@@ -209,7 +209,7 @@ class JellyfinService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching albums: $e');
+        print('JellyfinService.getAlbums(): Error fetching albums: $e');
       }
     }
     return [];
