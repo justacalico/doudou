@@ -31,6 +31,72 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
+                        // Download statistics
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Column(
+                                children: [
+                                  Text(
+                                    '${appState.tracks.where((track) => appState.downloadService.isTrackDownloaded(track.id)).length}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: CupertinoColors.white,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Songs',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    '${appState.downloadService.downloadTasks.where((task) => task.status == DownloadStatus.downloading).length}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: CupertinoColors.systemBlue,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Downloading',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    '${appState.downloadService.downloadTasks.where((task) => task.status == DownloadStatus.failed).length}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: CupertinoColors.systemRed,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Failed',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                         // Play and Shuffle buttons
                         Row(
                           children: [
