@@ -536,7 +536,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> play() async {
     if (kDebugMode) {
-      print('Play command received (Android Auto/MediaSession compatible)');
+      print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
     }
     
     // Set user intent to playing
@@ -545,8 +545,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       // Ensure we have a track to play
       if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
+        if (kDebugMode) {
+          print('No current track, loading from playlist');
+        }
         await _playCurrentTrack();
       } else {
+        if (kDebugMode) {
+          print('Playing existing track');
+        }
         await _player.play();
       }
       
