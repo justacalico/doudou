@@ -9,10 +9,13 @@ import 'screens/partials/navbar/navbar.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Lock orientation to portrait only
+  // Allow both orientations for Android Auto compatibility
+  // Android Auto requires landscape orientation support
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
   ]);
   
   runApp(const DoudouApp());
