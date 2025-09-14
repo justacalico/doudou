@@ -385,6 +385,10 @@ class AppState extends ChangeNotifier {
       return;
     }
 
+    if (kDebugMode) {
+      print('AppState: Starting loadLibraryData...');
+    }
+
     _setLoading(true);
     _clearError();
 
