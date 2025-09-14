@@ -337,9 +337,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               color: CupertinoColors.systemGreen,
-              child: const Text(
-                'ANDROID AUTO MODE ACTIVE',
-                style: TextStyle(
+              child: Text(
+                'ANDROID AUTO MODE - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Loading: ${appState.isLoading}',
+                style: const TextStyle(
                   color: CupertinoColors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -364,6 +364,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 20),
                 _buildAutoNavButton('Favorites', 2, CupertinoIcons.heart_fill),
                 const Spacer(),
+                // Add refresh button for Android Auto
+                GestureDetector(
+                  onTap: () => _refreshAndroidAutoData(appState),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.refresh,
+                          color: CupertinoColors.systemBlue,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: CupertinoColors.systemBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
