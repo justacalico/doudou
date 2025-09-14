@@ -26,6 +26,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioStatePersistence _statePersistence;
   late final AudioTransitionManager _transitionManager;
 
+  // Media browsing data for Android Auto
+  List<Album> _albums = [];
+  List<Artist> _artists = [];
+  List<Track> _tracks = [];
+  List<Playlist> _playlists = [];
+
   // Gapless playback with ConcatenatingAudioSource
   ConcatenatingAudioSource? _concatenatingSource;
   bool _isUsingConcatenation = false;
