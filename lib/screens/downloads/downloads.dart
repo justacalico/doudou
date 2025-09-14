@@ -205,6 +205,45 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       );
     }
 
+    // Show empty state if no downloads
+    if (slivers.length <= 1) { // Only header/padding might be present
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.all(32),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.arrow_down_circle,
+                  size: 64,
+                  color: CupertinoColors.systemGrey,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No Downloaded Music',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Download songs to listen offline',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     // Bottom padding
     slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 150)));
 
