@@ -9,7 +9,7 @@
 - New options in the drop down menu on now_playing.
 - Added kebab menu (three dots) to album details page with download option.
 - Enhanced kebab menu with Play Next, Play Later, and Add to Favorites options.
-- Added Android Auto*. (Android Auto is still not really there but it works.)
+- Added Android Auto.
 
 ## Changed
 - Grey out lyrics if none are available.  
