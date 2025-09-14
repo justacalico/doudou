@@ -405,6 +405,10 @@ class AppState extends ChangeNotifier {
     _clearError();
 
     try {
+      if (kDebugMode) {
+        print('AppState: Loading cached data...');
+      }
+      
       // Try to load from cache first to provide immediate data
       final cachedAlbums = await _cacheService.getCachedAlbums();
       final cachedArtists = await _cacheService.getCachedArtists();
@@ -413,6 +417,11 @@ class AppState extends ChangeNotifier {
       
       bool hasValidCache = cachedAlbums != null && cachedArtists != null && 
                           cachedTracks != null && cachedPlaylists != null;
+      
+      if (kDebugMode) {
+        print('AppState: Cache check - Albums: ${cachedAlbums?.length}, Artists: ${cachedArtists?.length}, Tracks: ${cachedTracks?.length}, Playlists: ${cachedPlaylists?.length}');
+        print('AppState: hasValidCache: $hasValidCache');
+      }
       
       if (hasValidCache) {
         // Use cached data immediately for better user experience
