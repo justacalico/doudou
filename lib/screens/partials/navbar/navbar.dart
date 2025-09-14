@@ -765,12 +765,266 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAutoFavoritesSection(AppState appState) {
-    return const Center(
-      child: Text(
-        'Favorites - Coming Soon',
-        style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
-      ),
+    final favoriteTracks = appState.favoriteTracks;
+    
+    if (favoriteTracks.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.heart,
+              size: 60,
+              color: CupertinoColors.systemGrey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No favorite songs',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Tap the heart icon on songs to add them here',
+              style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        // Header with play controls
+        Container(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              // Favorites info
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemRed.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CupertinoColors.systemRed.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(
+                  CupertinoIcons.heart_fill,
+                  color: CupertinoColors.systemRed,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Favorite Songs',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${favoriteTracks.length} song${favoriteTracks.length == 1 ? '' : 's'}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Play all button
+              GestureDetector(
+                onTap: () => _playFavorites(appState, false),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemRed,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CupertinoIcons.play_fill,
+                        color: CupertinoColors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Play All',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Shuffle button
+              GestureDetector(
+                onTap: () => _playFavorites(appState, true),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1E),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF2C2C2E),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CupertinoIcons.shuffle,
+                        color: CupertinoColors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Shuffle',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // Favorites list
+        Expanded(
+          child: ListView.builder(
+            itemCount: favoriteTracks.length,
+            itemBuilder: (context, index) {
+              final track = favoriteTracks[index];
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C1C1E),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: GestureDetector(
+                  onTap: () => _playFavoriteTrack(appState, track, index),
+                  child: Row(
+                    children: [
+                      // Album artwork
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2C2C2E),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: track.imageUrl != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                appState.jellyfinService.getImageUrl(track.imageUrl!, width: 100, height: 100),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(
+                                    child: Icon(
+                                      CupertinoIcons.music_note,
+                                      size: 20,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : const Center(
+                              child: Icon(
+                                CupertinoIcons.music_note,
+                                size: 20,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                            ),
+                      ),
+                      
+                      const SizedBox(width: 16),
+                      
+                      // Track info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              track.name,
+                              style: const TextStyle(
+                                color: CupertinoColors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            if (track.artistName != null)
+                              Text(
+                                track.artistName!,
+                                style: const TextStyle(
+                                  color: CupertinoColors.systemGrey2,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Heart icon
+                      const Icon(
+                        CupertinoIcons.heart_fill,
+                        color: CupertinoColors.systemRed,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
+  }
+
+  void _playFavorites(AppState appState, bool shuffle) async {
+    final favoriteTracks = appState.favoriteTracks;
+    if (favoriteTracks.isNotEmpty) {
+      if (shuffle) {
+        await appState.shuffleFavoriteTracks();
+      } else {
+        await appState.playPlaylist(favoriteTracks, 0);
+      }
+    }
+  }
+
+  void _playFavoriteTrack(AppState appState, Track track, int index) async {
+    final favoriteTracks = appState.favoriteTracks;
+    await appState.playPlaylist(favoriteTracks, index);
   }
 
   Widget _buildCurrentlyPlaying(AppState appState) {
