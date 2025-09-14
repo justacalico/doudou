@@ -110,7 +110,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (!_userIntendedPlaying) {
         finalPlayingState = false;
         if (kDebugMode && isPlaying) {
-          print('Player wants to play but user paused - respecting user intent');
+          if (kDebugMode) {
+            print('Player wants to play but user paused - respecting user intent');
+          }
         }
       }
       // During buffering, use user intent to maintain playback
@@ -324,7 +326,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_stateManager.currentTrack == null) return;
     
     final currentPosition = _player.position;
-    final wasPlaying = playbackState.value.playing;
     
     try {
       await _loadAndPlayTrack(_stateManager.currentTrack!);
