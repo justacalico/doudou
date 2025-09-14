@@ -100,34 +100,29 @@ class AlbumArtWidget extends StatelessWidget {
       );
     }
 
-    return Container(
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-      ),
-      child: AspectRatio(
-        aspectRatio: 1.0, // Force square aspect ratio
-        child: ClipRRect(
-          borderRadius: borderRadius ?? BorderRadius.zero,
-          child: CachedImageWidget(
-            imageUrl: imageUrl!,
+      child: ClipRRect(
+        borderRadius: borderRadius ?? BorderRadius.zero,
+        child: CachedImageWidget(
+          imageUrl: imageUrl!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover, // Crop and scale to fill the entire container
+          errorWidget: Container(
             width: size,
             height: size,
-            fit: BoxFit.cover, // This will now crop to maintain square aspect ratio
-            errorWidget: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2C2C2E),
-                borderRadius: borderRadius,
-              ),
-              child: Icon(
-                CupertinoIcons.music_albums,
-                color: CupertinoColors.systemGrey,
-                size: size * 0.4,
-              ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2C2C2E),
+              borderRadius: borderRadius,
             ),
+            child: Icon(
+              CupertinoIcons.music_albums,
+              color: CupertinoColors.systemGrey,
+              size: size * 0.4,
+            ),
+          ),
           ),
         ),
       ),
