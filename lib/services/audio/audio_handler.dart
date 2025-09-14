@@ -563,7 +563,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> pause() async {
     if (kDebugMode) {
-      print('Pause command received');
+      print('Pause command received (Android Auto/MediaSession compatible)');
     }
     
     // Set user intent to not playing
