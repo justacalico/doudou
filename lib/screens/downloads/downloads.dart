@@ -120,16 +120,15 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   List<Widget> _buildDownloadedContent(AppState appState) {
     List<Widget> slivers = [];
 
-    // Get downloaded content
-    final downloadedTracks = appState.tracks.where((track) => 
-      appState.downloadService.isTrackDownloaded(track.id)).toList();
-    final downloadedAlbums = _getDownloadedAlbums(appState, downloadedTracks);
-    final favoriteDownloaded = downloadedTracks.where((track) => track.isFavorite).toList();
+    // Get all tracks and albums (not just downloaded)
+    final allTracks = appState.tracks;
+    final allAlbums = appState.albums;
+    final favoriteTracks = allTracks.where((track) => track.isFavorite).toList();
 
     // Favorites section
-    if (favoriteDownloaded.isNotEmpty) {
+    if (favoriteTracks.isNotEmpty) {
       slivers.add(SliverToBoxAdapter(
-        child: _buildFavoritesSection(favoriteDownloaded, appState),
+        child: _buildFavoritesSection(favoriteTracks, appState),
       ));
     }
 
