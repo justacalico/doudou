@@ -857,26 +857,98 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAutoFavoritesSection(AppState appState) {
     final favoriteTracks = appState.favoriteTracks;
     
-    if (favoriteTracks.isEmpty) {
+    // If still loading library data, show loading indicator
+    if (appState.isLoading) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading your music library...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // If no tracks are loaded yet but not in loading state, trigger a refresh
+    if (appState.tracks.isEmpty && !appState.isLoading) {
+      // Trigger library data load
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (appState.isLoggedIn) {
+          appState.loadLibraryData();
+        }
+      });
+      
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 20,
+              color: CupertinoColors.systemRed,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading your music library...',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // If tracks are loaded but no favorites
+    if (favoriteTracks.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
               CupertinoIcons.heart,
               size: 60,
               color: CupertinoColors.systemGrey,
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'No favorite songs',
               style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
             ),
-            SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'Tap the heart icon on songs to add them here',
               style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            // Add button to navigate to home or albums to find music to favorite
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedAutoSection = -1; // Go to home
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemRed,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Browse Music',
+                  style: TextStyle(
+                    color: CupertinoColors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
