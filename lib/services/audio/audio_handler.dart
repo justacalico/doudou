@@ -1509,4 +1509,196 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _concatenatingSource = null;
     await _player.dispose();
   }
+
+  // Media browsing methods for Android Auto support
+  
+  /// Update the media library data for browsing
+  void updateMediaLibrary({
+    List<Album>? albums,
+    List<Artist>? artists, 
+    List<Track>? tracks,
+    List<Playlist>? playlists,
+  }) {
+    if (albums != null) _albums = albums;
+    if (artists != null) _artists = artists;
+    if (tracks != null) _tracks = tracks;
+    if (playlists != null) _playlists = playlists;
+    
+    if (kDebugMode) {
+      print('AudioHandler: Updated media library - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}');
+    }
+  }
+
+  @override
+  Future<List<MediaItem>> getChildren(String parentMediaId, [Map<String, dynamic>? options]) async {
+    if (kDebugMode) {
+      print('AudioHandler: getChildren called with parentMediaId: $parentMediaId');
+    }
+
+    try {
+      switch (parentMediaId) {
+        case AudioService.browsableRootId:
+          return [
+            MediaItem(
+              id: 'albums',
+              title: 'Albums',
+              album: '',
+              artist: '',
+              playable: false,
+              extras: {'browsable': true},
+            ),
+            MediaItem(
+              id: 'artists',
+              title: 'Artists',
+              album: '',
+              artist: '',
+              playable: false,
+              extras: {'browsable': true},
+            ),
+            MediaItem(
+              id: 'playlists',
+              title: 'Playlists',
+              album: '',
+              artist: '',
+              playable: false,
+              extras: {'browsable': true},
+            ),
+            MediaItem(
+              id: 'tracks',
+              title: 'All Songs',
+              album: '',
+              artist: '',
+              playable: false,
+              extras: {'browsable': true},
+            ),
+          ];
+
+        case 'albums':
+          return _albums.map((album) => MediaItem(
+            id: 'album:${album.id}',
+            title: album.name,
+            album: album.name,
+            artist: album.artistName ?? 'Unknown Artist',
+            artUri: album.imageUrl != null 
+              ? Uri.parse(_jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
+              : null,
+            playable: true,
+            extras: {'browsable': true},
+          )).toList();
+
+        case 'artists':
+          return _artists.map((artist) => MediaItem(
+            id: 'artist:${artist.id}',
+            title: artist.name,
+            album: '',
+            artist: artist.name,
+            artUri: artist.imageUrl != null
+              ? Uri.parse(_jellyfinService.getImageUrl(artist.imageUrl!, width: 300, height: 300))
+              : null,
+            playable: false,
+            extras: {'browsable': true},
+          )).toList();
+
+        case 'playlists':
+          return _playlists.map((playlist) => MediaItem(
+            id: 'playlist:${playlist.id}',
+            title: playlist.name,
+            album: '',
+            artist: 'Playlist',
+            playable: true,
+            extras: {'browsable': true},
+          )).toList();
+
+        case 'tracks':
+          return _tracks.take(50).map((track) => _trackToMediaItem(track)).toList(); // Limit for performance
+
+        default:
+          // Handle album, artist, or playlist contents
+          if (parentMediaId.startsWith('album:')) {
+            final albumId = parentMediaId.substring(6);
+            try {
+              final tracks = await _jellyfinService.getAlbumTracks(albumId);
+              return tracks.map((track) => _trackToMediaItem(track)).toList();
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error loading album tracks: $e');
+              }
+              return [];
+            }
+          } else if (parentMediaId.startsWith('artist:')) {
+            final artistId = parentMediaId.substring(7);
+            try {
+              final albums = await _jellyfinService.getArtistAlbums(artistId);
+              return albums.map((album) => MediaItem(
+                id: 'album:${album.id}',
+                title: album.name,
+                album: album.name,
+                artist: album.artistName ?? 'Unknown Artist',
+                artUri: album.imageUrl != null 
+                  ? Uri.parse(_jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
+                  : null,
+                playable: true,
+                extras: {'browsable': true},
+              )).toList();
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error loading artist albums: $e');
+              }
+              return [];
+            }
+          } else if (parentMediaId.startsWith('playlist:')) {
+            final playlistId = parentMediaId.substring(9);
+            try {
+              final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+              return tracks.map((track) => _trackToMediaItem(track)).toList();
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error loading playlist tracks: $e');
+              }
+              return [];
+            }
+          }
+          
+          return [];
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in getChildren: $e');
+      }
+      return [];
+    }
+  }
+
+  @override
+  Future<void> playMediaItem(MediaItem mediaItem) async {
+    if (kDebugMode) {
+      print('AudioHandler: playMediaItem called with: ${mediaItem.title}');
+    }
+
+    try {
+      if (mediaItem.id.startsWith('album:')) {
+        final albumId = mediaItem.id.substring(6);
+        final tracks = await _jellyfinService.getAlbumTracks(albumId);
+        if (tracks.isNotEmpty) {
+          await playPlaylist(tracks, 0);
+        }
+      } else if (mediaItem.id.startsWith('playlist:')) {
+        final playlistId = mediaItem.id.substring(9);
+        final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+        if (tracks.isNotEmpty) {
+          await playPlaylist(tracks, 0);
+        }
+      } else {
+        // Find the track and play it
+        final track = _tracks.where((t) => t.id == mediaItem.id).firstOrNull;
+        if (track != null) {
+          await playTrack(track);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in playMediaItem: $e');
+      }
+    }
+  }
 }
