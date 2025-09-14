@@ -364,11 +364,58 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(8),
               color: CupertinoColors.systemGreen,
               child: Text(
-                'ANDROID AUTO MODE - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Loading: ${appState.isLoading}',
+                'ANDROID AUTO MODE - Albums: ${appState.albums?.length ?? 0}, Tracks: ${appState.tracks?.length ?? 0}, Loading: ${appState.isLoading ?? false}',
                 style: const TextStyle(
                   color: CupertinoColors.white,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+            ),
+
+          // Connection status indicator for Android Auto
+          if (!appState.isLoading && 
+              (appState.albums?.isEmpty ?? true) && 
+              (appState.tracks?.isEmpty ?? true))
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: CupertinoColors.systemOrange, width: 2),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.wifi_exclamationmark,
+                    color: CupertinoColors.systemOrange,
+                    size: 24,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'No Content Available',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Please ensure you are logged in and your Jellyfin server is accessible. Tap Refresh to try again.',
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
 
