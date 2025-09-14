@@ -442,38 +442,130 @@ class AppState extends ChangeNotifier {
   }
   
   Future<void> _loadFreshData() async {
-    final albumsFuture = _jellyfinService.getAlbums();
-    final artistsFuture = _jellyfinService.getArtists();
-    final tracksFuture = _jellyfinService.getAllTracks();
-    final playlistsFuture = _jellyfinService.getPlaylists();
-    
-    final results = await Future.wait([albumsFuture, artistsFuture, tracksFuture, playlistsFuture]);
-    
-    _albums = results[0] as List<Album>;
-    _artists = results[1] as List<Artist>;
-    _tracks = results[2] as List<Track>;
-    _playlists = results[3] as List<Playlist>;
-    
-    // Update audio handler with media library for Android Auto browsing
-    _audioHandler?.updateMediaLibrary(
-      albums: _albums,
-      artists: _artists,
-      tracks: _tracks,
-      playlists: _playlists,
-    );
-    
-    // Cache the fresh data
-    await Future.wait([
-      _cacheService.cacheAlbums(_albums),
-      _cacheService.cacheArtists(_artists),
-      _cacheService.cacheTracks(_tracks),
-      _cacheService.cachePlaylists(_playlists),
-    ]);
-    
-    _setLoading(false);
-    
-    if (kDebugMode) {
-      print('Loaded fresh library data and cached it');
+    try {
+      if (kDebugMode) {
+        print('AppState: Loading fresh library data from server...');
+      }
+      
+      // Load all library data concurrently with individual error handling
+      final List<Future> futures = [
+        _jellyfinService.getAlbums().catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to load albums: $e');
+          }
+          return <Album>[];
+        }),
+        _jellyfinService.getArtists().catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to load artists: $e');
+          }
+          return <Artist>[];
+        }),
+        _jellyfinService.getAllTracks().catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to load tracks: $e');
+          }
+          return <Track>[];
+        }),
+        _jellyfinService.getPlaylists().catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to load playlists: $e');
+          }
+          return <Playlist>[];
+        }),
+      ];
+      
+      final results = await Future.wait(futures);
+      
+      _albums = results[0] as List<Album>;
+      _artists = results[1] as List<Artist>;
+      _tracks = results[2] as List<Track>;
+      _playlists = results[3] as List<Playlist>;
+      
+      if (kDebugMode) {
+        print('AppState: Loaded fresh data - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}');
+      }
+      
+      // Update audio handler with media library for Android Auto browsing
+      try {
+        _audioHandler?.updateMediaLibrary(
+          albums: _albums,
+          artists: _artists,
+          tracks: _tracks,
+          playlists: _playlists,
+        );
+        
+        if (kDebugMode) {
+          print('AppState: Updated AudioHandler MediaBrowser with fresh library data');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Warning: Failed to update AudioHandler: $e');
+        }
+        // Don't fail completely - the data is still loaded in AppState
+      }
+      
+      // Cache the fresh data with individual error handling
+      final cacheFutures = [
+        _cacheService.cacheAlbums(_albums).catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to cache albums: $e');
+          }
+        }),
+        _cacheService.cacheArtists(_artists).catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to cache artists: $e');
+          }
+        }),
+        _cacheService.cacheTracks(_tracks).catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to cache tracks: $e');
+          }
+        }),
+        _cacheService.cachePlaylists(_playlists).catchError((e) {
+          if (kDebugMode) {
+            print('Warning: Failed to cache playlists: $e');
+          }
+        }),
+      ];
+      
+      await Future.wait(cacheFutures);
+      
+      _setLoading(false);
+      
+      if (kDebugMode) {
+        print('AppState: Successfully loaded and cached fresh library data');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Critical error in _loadFreshData: $e');
+      }
+      
+      _setLoading(false);
+      
+      // Ensure we have safe empty collections for Android Auto
+      if (_albums.isEmpty && _artists.isEmpty && _tracks.isEmpty && _playlists.isEmpty) {
+        _albums = <Album>[];
+        _artists = <Artist>[];
+        _tracks = <Track>[];
+        _playlists = <Playlist>[];
+        
+        try {
+          _audioHandler?.updateMediaLibrary(
+            albums: _albums,
+            artists: _artists,
+            tracks: _tracks,
+            playlists: _playlists,
+          );
+        } catch (audioError) {
+          if (kDebugMode) {
+            print('Warning: Failed to update AudioHandler with empty collections: $audioError');
+          }
+        }
+      }
+      
+      // Re-throw for parent error handling
+      rethrow;
     }
   }
   
