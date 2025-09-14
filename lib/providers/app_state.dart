@@ -299,6 +299,10 @@ class AppState extends ChangeNotifier {
           notifyListeners();
         }
         
+        if (kDebugMode) {
+          print('AppState: About to save server and load library data...');
+        }
+        
         await _saveServer();
         
         if (kDebugMode) {
