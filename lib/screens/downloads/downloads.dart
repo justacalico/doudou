@@ -123,30 +123,49 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   List<Widget> _buildDownloadedContent(AppState appState) {
     List<Widget> slivers = [];
 
-    // Get all tracks and albums (not just downloaded)
-    final allTracks = appState.tracks;
-    final allAlbums = appState.albums;
-    final favoriteTracks = allTracks
+    // Get downloaded tracks only
+    final downloadedTracks = appState.tracks
+        .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+        .toList();
+    
+    // Get downloaded albums (albums that have at least one downloaded track)
+    final downloadedAlbums = appState.albums
+        .where((album) => appState.tracks
+            .where((track) => track.albumId == album.id)
+            .any((track) => appState.downloadService.isTrackDownloaded(track.id)))
+        .toList();
+
+    // Get favorite downloaded tracks
+    final favoriteDownloadedTracks = downloadedTracks
         .where((track) => track.isFavorite)
         .toList();
 
-    // Favorites section
-    if (favoriteTracks.isNotEmpty) {
+    // Favorites section (only show if there are downloaded favorites)
+    if (favoriteDownloadedTracks.isNotEmpty) {
       slivers.add(
         SliverToBoxAdapter(
-          child: _buildFavoritesSection(favoriteTracks, appState),
+          child: _buildFavoritesSection(favoriteDownloadedTracks, appState),
         ),
       );
     }
 
-    // Sample playlists (mock data matching your image)
-    slivers.add(
-      SliverToBoxAdapter(child: _buildPlaylistSection('中文', 10, appState)),
-    );
+    // Real playlists that have downloaded tracks
+    final playlistsWithDownloads = appState.playlists
+        .where((playlist) => playlist.tracks
+            .any((track) => appState.downloadService.isTrackDownloaded(track.id)))
+        .toList();
 
-    slivers.add(
-      SliverToBoxAdapter(child: _buildPlaylistSection('Future', 28, appState)),
-    );
+    for (final playlist in playlistsWithDownloads) {
+      final downloadedPlaylistTracks = playlist.tracks
+          .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+          .length;
+      
+      slivers.add(
+        SliverToBoxAdapter(
+          child: _buildPlaylistSection(playlist.name, downloadedPlaylistTracks, appState, playlist: playlist),
+        ),
+      );
+    }
 
     // Show all albums (first few)
     final albumsToShow = allAlbums.take(5).toList(); // Show first 5 albums
