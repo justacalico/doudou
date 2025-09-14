@@ -1,7 +1,7 @@
 name: doudou
 description: "A Jellyfin music player app"
 publish_to: 'none'
-version: 6.0.0
+version: 6.0.0-pre.1
 
 environment:
   sdk: '^3.8.0'
