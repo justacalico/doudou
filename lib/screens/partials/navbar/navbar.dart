@@ -639,12 +639,128 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAutoPlaylistsSection(AppState appState) {
-    return const Center(
-      child: Text(
-        'Playlists - Coming Soon',
-        style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+    if (appState.playlists.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.music_note_list,
+              size: 60,
+              color: CupertinoColors.systemGrey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No playlists available',
+              style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 18),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Create playlists to organize your music',
+              style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.9,
       ),
+      itemCount: appState.playlists.length,
+      itemBuilder: (context, index) {
+        final playlist = appState.playlists[index];
+        return GestureDetector(
+          onTap: () => _playPlaylist(appState, playlist),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2C2C2E),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: playlist.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            appState.jellyfinService.getImageUrl(playlist.imageUrl!, width: 150, height: 150),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(
+                                  CupertinoIcons.music_note_list,
+                                  size: 40,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : const Center(
+                          child: Icon(
+                            CupertinoIcons.music_note_list,
+                            size: 40,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Text(
+                        playlist.name,
+                        style: const TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${playlist.trackCount} ${playlist.trackCount == 1 ? 'song' : 'songs'}',
+                        style: const TextStyle(
+                          color: CupertinoColors.systemGrey2,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  Future<void> _playPlaylist(AppState appState, Playlist playlist) async {
+    try {
+      final tracks = await appState.getPlaylistTracks(playlist.id);
+      if (tracks.isNotEmpty) {
+        await appState.playPlaylist(tracks, 0);
+      }
+    } catch (e) {
+      // Handle error silently for now
+    }
   }
 
   Widget _buildAutoFavoritesSection(AppState appState) {
