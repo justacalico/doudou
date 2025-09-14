@@ -5,6 +5,8 @@ import '../../models/jellyfin_models.dart';
 import '../../models/download_models.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../albums/details/album_details.dart';
+import '../favorites/favorites.dart';
+import '../playlists/playlists.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
