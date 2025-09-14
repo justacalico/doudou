@@ -1628,8 +1628,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           } else if (parentMediaId.startsWith('artist:')) {
             final artistId = parentMediaId.substring(7);
             try {
-              final albums = await _jellyfinService.getArtistAlbums(artistId);
-              return albums.map((album) => MediaItem(
+              // Get all albums and filter by artist ID
+              final allAlbums = await _jellyfinService.getAlbums();
+              final artistAlbums = allAlbums.where((album) => 
+                album.artistId == artistId || album.artistIds?.contains(artistId) == true
+              ).toList();
+              
+              return artistAlbums.map((album) => MediaItem(
                 id: 'album:${album.id}',
                 title: album.name,
                 album: album.name,
