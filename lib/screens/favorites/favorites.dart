@@ -212,7 +212,7 @@ class FavoritesView extends StatelessWidget {
                         return TrackListItem(
                           track: track,
                           onTap: () => _playTrack(context, track, index),
-                          showAlbumArt: true,
+                          showAlbumArt: false,
                           showTrackNumber: false,
                           showDuration: true,
                           showDownloadButton: true,
