@@ -70,7 +70,8 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                             Expanded(
                               child: CupertinoButton(
                                 padding: EdgeInsets.zero,
-                                onPressed: () => _shuffleAllDownloaded(appState),
+                                onPressed: () =>
+                                    _shuffleAllDownloaded(appState),
                                 child: Container(
                                   height: 50,
                                   decoration: BoxDecoration(
@@ -106,7 +107,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Downloaded content
                 ..._buildDownloadedContent(appState),
               ],
@@ -123,65 +124,76 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     // Get all tracks and albums (not just downloaded)
     final allTracks = appState.tracks;
     final allAlbums = appState.albums;
-    final favoriteTracks = allTracks.where((track) => track.isFavorite).toList();
+    final favoriteTracks = allTracks
+        .where((track) => track.isFavorite)
+        .toList();
 
     // Favorites section
     if (favoriteTracks.isNotEmpty) {
-      slivers.add(SliverToBoxAdapter(
-        child: _buildFavoritesSection(favoriteTracks, appState),
-      ));
+      slivers.add(
+        SliverToBoxAdapter(
+          child: _buildFavoritesSection(favoriteTracks, appState),
+        ),
+      );
     }
 
     // Sample playlists (mock data matching your image)
-    slivers.add(SliverToBoxAdapter(
-      child: _buildPlaylistSection('中文', 10, appState),
-    ));
-    
-    slivers.add(SliverToBoxAdapter(
-      child: _buildPlaylistSection('Future', 28, appState),
-    ));
+    slivers.add(
+      SliverToBoxAdapter(child: _buildPlaylistSection('中文', 10, appState)),
+    );
+
+    slivers.add(
+      SliverToBoxAdapter(child: _buildPlaylistSection('Future', 28, appState)),
+    );
 
     // Show all albums (first few)
     final albumsToShow = allAlbums.take(5).toList(); // Show first 5 albums
     for (final album in albumsToShow) {
-      final albumTracks = allTracks.where((track) => track.albumId == album.id).toList();
+      final albumTracks = allTracks
+          .where((track) => track.albumId == album.id)
+          .toList();
       if (albumTracks.isNotEmpty) {
-        slivers.add(SliverToBoxAdapter(
-          child: _buildAlbumSection(album, albumTracks.length, appState),
-        ));
+        slivers.add(
+          SliverToBoxAdapter(
+            child: _buildAlbumSection(album, albumTracks.length, appState),
+          ),
+        );
       }
     }
 
     // Show some individual tracks
     final tracksToShow = allTracks.take(10).toList(); // Show first 10 tracks
     for (final track in tracksToShow) {
-      slivers.add(SliverToBoxAdapter(
-        child: _buildTrackItem(track, appState),
-      ));
+      slivers.add(SliverToBoxAdapter(child: _buildTrackItem(track, appState)));
     }
 
     // Download queue (show items currently downloading)
     final downloadService = appState.downloadService;
-    final activeDownloads = downloadService.downloadTasks.where((task) => 
-      task.status == DownloadStatus.downloading || 
-      task.status == DownloadStatus.failed
-    ).toList();
+    final activeDownloads = downloadService.downloadTasks
+        .where(
+          (task) =>
+              task.status == DownloadStatus.downloading ||
+              task.status == DownloadStatus.failed,
+        )
+        .toList();
 
     if (activeDownloads.isNotEmpty) {
-      slivers.add(SliverToBoxAdapter(
-        child: Container(
-          margin: const EdgeInsets.only(top: 20),
-          child: Column(
-            children: activeDownloads.map((task) => _buildDownloadQueueItem(task, appState)).toList(),
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.only(top: 20),
+            child: Column(
+              children: activeDownloads
+                  .map((task) => _buildDownloadQueueItem(task, appState))
+                  .toList(),
+            ),
           ),
         ),
-      ));
+      );
     }
 
     // Bottom padding
-    slivers.add(const SliverToBoxAdapter(
-      child: SizedBox(height: 150),
-    ));
+    slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 150)));
 
     return slivers;
   }
@@ -250,7 +262,11 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     );
   }
 
-  Widget _buildPlaylistSection(String playlistName, int trackCount, AppState appState) {
+  Widget _buildPlaylistSection(
+    String playlistName,
+    int trackCount,
+    AppState appState,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: CupertinoButton(
@@ -388,7 +404,11 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(album.imageUrl!, width: 100, height: 100),
+                          imageUrl: appState.jellyfinService.getImageUrl(
+                            album.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          ),
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
@@ -458,10 +478,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   }
 
   Widget _buildDownloadQueueItem(DownloadTask task, AppState appState) {
-    final track = appState.tracks.firstWhere((t) => t.id == task.trackId, orElse: () => Track(
-      id: task.trackId,
-      name: 'Unknown Track',
-    ));
+    final track = appState.tracks.firstWhere(
+      (t) => t.id == task.trackId,
+      orElse: () => Track(id: task.trackId, name: 'Unknown Track'),
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -476,14 +496,16 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             child: track.imageUrl != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedImageWidget(
-                      imageUrl: appState.jellyfinService.getImageUrl(track.imageUrl!, width: 100, height: 100),
+                      imageUrl: appState.jellyfinService.getImageUrl(
+                        track.imageUrl!,
+                        width: 100,
+                        height: 100,
+                      ),
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
@@ -538,7 +560,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Progress bar
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,12 +609,13 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               ],
             ),
           ),
-          
+
           // Action button
           if (task.status == DownloadStatus.downloading)
             CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: () => appState.downloadService.cancelDownload(task.trackId),
+              onPressed: () =>
+                  appState.downloadService.cancelDownload(task.trackId),
               child: Container(
                 padding: const EdgeInsets.all(8),
                 child: const Icon(
@@ -645,7 +668,11 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(track.imageUrl!, width: 100, height: 100),
+                          imageUrl: appState.jellyfinService.getImageUrl(
+                            track.imageUrl!,
+                            width: 100,
+                            height: 100,
+                          ),
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
@@ -702,7 +729,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   ],
                 ),
               ),
-              
+
               // Download indicator if downloaded
               if (appState.downloadService.isTrackDownloaded(track.id))
                 Container(
@@ -713,7 +740,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     size: 20,
                   ),
                 ),
-              
+
               // Chevron
               const Icon(
                 CupertinoIcons.chevron_right,
@@ -726,80 +753,79 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       ),
     );
   }
-  }
+}
 
-  Color _getStatusColor(DownloadStatus status) {
-    switch (status) {
-      case DownloadStatus.downloading:
-        return const Color(0xFF007AFF);
-      case DownloadStatus.downloaded:
-        return const Color(0xFF30D158);
-      case DownloadStatus.failed:
-        return const Color(0xFFFF453A);
-      case DownloadStatus.paused:
-        return const Color(0xFF8E8E93);
-      case DownloadStatus.notDownloaded:
-        return const Color(0xFF8E8E93);
-    }
+Color _getStatusColor(DownloadStatus status) {
+  switch (status) {
+    case DownloadStatus.downloading:
+      return const Color(0xFF007AFF);
+    case DownloadStatus.downloaded:
+      return const Color(0xFF30D158);
+    case DownloadStatus.failed:
+      return const Color(0xFFFF453A);
+    case DownloadStatus.paused:
+      return const Color(0xFF8E8E93);
+    case DownloadStatus.notDownloaded:
+      return const Color(0xFF8E8E93);
   }
+}
 
-  String _getStatusText(DownloadStatus status) {
-    switch (status) {
-      case DownloadStatus.downloading:
-        return 'Downloading...';
-      case DownloadStatus.downloaded:
-        return 'Complete';
-      case DownloadStatus.failed:
-        return 'Failed';
-      case DownloadStatus.paused:
-        return 'Paused';
-      case DownloadStatus.notDownloaded:
-        return 'Not Downloaded';
-    }
+String _getStatusText(DownloadStatus status) {
+  switch (status) {
+    case DownloadStatus.downloading:
+      return 'Downloading...';
+    case DownloadStatus.downloaded:
+      return 'Complete';
+    case DownloadStatus.failed:
+      return 'Failed';
+    case DownloadStatus.paused:
+      return 'Paused';
+    case DownloadStatus.notDownloaded:
+      return 'Not Downloaded';
   }
+}
 
-  // Actions
-  void _playAllDownloaded(AppState appState) {
-    final downloadedTracks = appState.tracks.where((track) => 
-      appState.downloadService.isTrackDownloaded(track.id)).toList();
-    if (downloadedTracks.isNotEmpty) {
-      appState.playPlaylist(downloadedTracks, 0);
-    }
+// Actions
+void _playAllDownloaded(AppState appState) {
+  final downloadedTracks = appState.tracks
+      .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+      .toList();
+  if (downloadedTracks.isNotEmpty) {
+    appState.playPlaylist(downloadedTracks, 0);
   }
+}
 
-  void _shuffleAllDownloaded(AppState appState) {
-    final downloadedTracks = appState.tracks.where((track) => 
-      appState.downloadService.isTrackDownloaded(track.id)).toList();
-    if (downloadedTracks.isNotEmpty) {
-      downloadedTracks.shuffle();
-      appState.playPlaylist(downloadedTracks, 0);
-    }
+void _shuffleAllDownloaded(AppState appState) {
+  final downloadedTracks = appState.tracks
+      .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+      .toList();
+  if (downloadedTracks.isNotEmpty) {
+    downloadedTracks.shuffle();
+    appState.playPlaylist(downloadedTracks, 0);
   }
+}
 
-  void _playFavorites(List<Track> favoriteTracks, AppState appState) {
-    if (favoriteTracks.isNotEmpty) {
-      appState.playPlaylist(favoriteTracks, 0);
-    }
+void _playFavorites(List<Track> favoriteTracks, AppState appState) {
+  if (favoriteTracks.isNotEmpty) {
+    appState.playPlaylist(favoriteTracks, 0);
   }
+}
 
-  void _navigateToAlbum(BuildContext context, Album album, AppState appState) {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => AlbumDetailScreen(album: album),
-      ),
-    );
-  }
+void _navigateToAlbum(BuildContext context, Album album, AppState appState) {
+  Navigator.push(
+    context,
+    CupertinoPageRoute(builder: (context) => AlbumDetailScreen(album: album)),
+  );
+}
 
-  void _playTrack(Track track, AppState appState) {
-    appState.playTrack(track);
-  }
+void _playTrack(Track track, AppState appState) {
+  appState.playTrack(track);
+}
 
-  void _retryDownload(DownloadTask task, AppState appState) {
-    final track = appState.tracks.firstWhere((t) => t.id == task.trackId, orElse: () => Track(
-      id: task.trackId,
-      name: 'Unknown Track',
-    ));
-    appState.downloadService.downloadTrack(track);
-  }
+void _retryDownload(DownloadTask task, AppState appState) {
+  final track = appState.tracks.firstWhere(
+    (t) => t.id == task.trackId,
+    orElse: () => Track(id: task.trackId, name: 'Unknown Track'),
+  );
+  appState.downloadService.downloadTrack(track);
 }
