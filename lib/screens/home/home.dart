@@ -180,10 +180,13 @@ class _HomeContentState extends State<HomeContent> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CupertinoButton(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 180, // Fixed width instead of Expanded
+                          child: CupertinoButton(
                           padding: EdgeInsets.zero,
                           onPressed: () async {
                             await appState.shuffleAllTracks();
