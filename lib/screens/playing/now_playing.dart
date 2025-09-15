@@ -254,7 +254,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               ),
                             ),
                             
-                            // Track info section
+                            // Track info section - with proper overflow handling
                             Expanded(
                               flex: 1,
                               child: Padding(
@@ -262,26 +262,33 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      currentTrack.name,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFFFFFFF),
+                                    // Track name with flexible sizing
+                                    Flexible(
+                                      child: Text(
+                                        currentTrack.name,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFFFFFFF),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 3, // Allow more lines for large fonts
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 8),
-                                    Text(
-                                      currentTrack.artistName ?? 'Unknown Artist',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: CupertinoColors.systemGrey,
+                                    // Artist name with flexible sizing
+                                    Flexible(
+                                      child: Text(
+                                        currentTrack.artistName ?? 'Unknown Artist',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: CupertinoColors.systemGrey,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2, // Allow more lines for large fonts
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
