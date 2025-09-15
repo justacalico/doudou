@@ -64,11 +64,15 @@ class AppState extends ChangeNotifier {
       await _loadUserSettings();
       await _loadSavedServer();
       _isInitialized = true;
+      notifyListeners();
     } catch (e) {
       if (kDebugMode) {
         print('Error initializing app: $e');
       }
       _setError('Failed to initialize app: ${e.toString()}');
+      // Even if initialization fails, mark as initialized to prevent infinite loading
+      _isInitialized = true;
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
