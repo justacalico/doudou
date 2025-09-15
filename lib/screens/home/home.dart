@@ -244,7 +244,7 @@ class _HomeContentState extends State<HomeContent> {
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              height: 50,
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE91E63).withOpacity(0.06),
                                 borderRadius: BorderRadius.circular(12),
@@ -253,21 +253,17 @@ class _HomeContentState extends State<HomeContent> {
                                   width: 1,
                                 ),
                               ),
-                              child: Column(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(CupertinoIcons.heart, color: const Color(0xFFE91E63).withOpacity(0.8), size: 20),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(width: 8),
                                   Text(
                                     'Shuffle favorites',
                                     style: TextStyle(
                                       color: const Color(0xFFE91E63).withOpacity(0.8),
                                       fontWeight: FontWeight.w600,
                                     ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
