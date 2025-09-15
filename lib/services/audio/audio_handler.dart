@@ -93,6 +93,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _statePersistence = AudioStatePersistence(_stateManager);
     _transitionManager = AudioTransitionManager();
     
+    // Initialize iOS audio session FIRST before any other audio setup
+    _initializeAudioSession();
+    
     _init();
     _loadPlaybackState();
   }
