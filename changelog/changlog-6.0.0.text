@@ -40,3 +40,4 @@
 - Fixed lyrics overlay to automatically reload when track changes during playback.
 - Fixed images for top results not working on the search page.
 - Search page now shows clean unified results without section headers.
+- Fixed iOS unable to play audio.
