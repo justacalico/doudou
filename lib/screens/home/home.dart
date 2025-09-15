@@ -253,21 +253,21 @@ class _HomeContentState extends State<HomeContent> {
                                   width: 1,
                                 ),
                               ),
-                              child: Row(
+                              child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(CupertinoIcons.heart, color: const Color(0xFFE91E63).withOpacity(0.8), size: 20),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      'Shuffle favorites',
-                                      style: TextStyle(
-                                        color: const Color(0xFFE91E63).withOpacity(0.8),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.visible,
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Shuffle favorites',
+                                    style: TextStyle(
+                                      color: const Color(0xFFE91E63).withOpacity(0.8),
+                                      fontWeight: FontWeight.w600,
                                     ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
