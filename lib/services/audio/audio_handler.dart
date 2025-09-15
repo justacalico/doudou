@@ -287,30 +287,30 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Audio interruption: ${event.type}');
         }
         
-        switch (event.type) {
-          case AudioInterruptionType.begin:
-            // Audio was interrupted (e.g., phone call)
-            if (_player.playing) {
-              _userIntendedPlaying = true; // Remember user wanted to play
-              pause();
+        if (event.type == AudioInterruptionType.pause) {
+          // Audio was interrupted (e.g., phone call)
+          if (_player.playing) {
+            _userIntendedPlaying = true; // Remember user wanted to play
+            pause();
+            if (kDebugMode) {
+              print('Audio interrupted - paused playback');
+            }
+          }
+        } else if (event.type == AudioInterruptionType.duck) {
+          // Lower volume but continue playing
+          if (kDebugMode) {
+            print('Audio ducking - lowering volume');
+          }
+        } else if (event.type == AudioInterruptionType.unknown) {
+          // Handle unknown interruption
+          if (_player.playing && _userIntendedPlaying) {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              play();
               if (kDebugMode) {
-                print('Audio interrupted - paused playback');
+                print('Audio interruption ended - resuming playback');
               }
-            }
-            break;
-            
-          case AudioInterruptionType.end:
-            // Interruption ended
-            if (event.shouldResume == true && _userIntendedPlaying) {
-              // Only resume if user intended to play before interruption
-              Future.delayed(const Duration(milliseconds: 500), () {
-                play();
-                if (kDebugMode) {
-                  print('Audio interruption ended - resuming playback');
-                }
-              });
-            }
-            break;
+            });
+          }
         }
       });
       
