@@ -244,7 +244,7 @@ class _HomeContentState extends State<HomeContent> {
                               }
                             },
                             child: Container(
-                              height: 50,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE91E63).withOpacity(0.06),
                                 borderRadius: BorderRadius.circular(12),
@@ -258,11 +258,15 @@ class _HomeContentState extends State<HomeContent> {
                                 children: [
                                   Icon(CupertinoIcons.heart, color: const Color(0xFFE91E63).withOpacity(0.8), size: 20),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'Shuffle favorites',
-                                    style: TextStyle(
-                                      color: const Color(0xFFE91E63).withOpacity(0.8),
-                                      fontWeight: FontWeight.w600,
+                                  Flexible(
+                                    child: Text(
+                                      'Shuffle favorites',
+                                      style: TextStyle(
+                                        color: const Color(0xFFE91E63).withOpacity(0.8),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.visible,
                                     ),
                                   ),
                                 ],
