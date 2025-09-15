@@ -45,5 +45,34 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Audio session and background modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>background-processing</string>
+	</array>
+	
+	<!-- Network security for HTTP connections -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	
+	<!-- Audio session category -->
+	<key>AVAudioSessionCategory</key>
+	<string>AVAudioSessionCategoryPlayback</string>
+	
+	<!-- Privacy usage descriptions -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Doudou needs to access local network to connect to your Jellyfin server.</string>
+	
+	<!-- Required for iOS 14+ local network access -->
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+		<string>_https._tcp</string>
+	</array>
 </dict>
 </plist>
