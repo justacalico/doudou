@@ -268,6 +268,102 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     ));
   }
 
+  /// Initialize iOS audio session for proper background audio and interruption handling
+  Future<void> _initializeAudioSession() async {
+    try {
+      // Get the audio session instance
+      final audioSession = await AudioSession.instance;
+      
+      // Configure for music playback with proper iOS settings
+      await audioSession.configure(const AudioSessionConfiguration.music());
+      
+      if (kDebugMode) {
+        print('iOS Audio session configured for music playback');
+      }
+      
+      // Listen for audio interruptions (phone calls, notifications, etc.)
+      audioSession.interruptionEventStream.listen((event) {
+        if (kDebugMode) {
+          print('Audio interruption: ${event.type}');
+        }
+        
+        switch (event.type) {
+          case AudioInterruptionType.begin:
+            // Audio was interrupted (e.g., phone call)
+            if (_player.playing) {
+              _userIntendedPlaying = true; // Remember user wanted to play
+              pause();
+              if (kDebugMode) {
+                print('Audio interrupted - paused playback');
+              }
+            }
+            break;
+            
+          case AudioInterruptionType.end:
+            // Interruption ended
+            if (event.shouldResume == true && _userIntendedPlaying) {
+              // Only resume if user intended to play before interruption
+              Future.delayed(const Duration(milliseconds: 500), () {
+                play();
+                if (kDebugMode) {
+                  print('Audio interruption ended - resuming playback');
+                }
+              });
+            }
+            break;
+        }
+      });
+      
+      // Listen for "becoming noisy" events (headphones disconnected)
+      audioSession.becomingNoisyEventStream.listen((_) {
+        if (_player.playing) {
+          _userIntendedPlaying = false; // User didn't explicitly pause, but we should stop
+          pause();
+          if (kDebugMode) {
+            print('Audio becoming noisy (headphones disconnected) - paused playback');
+          }
+        }
+      });
+      
+      // Handle iOS device gain changes (volume changes from control center, etc.)
+      audioSession.devicesChangedEventStream.listen((event) {
+        if (kDebugMode) {
+          print('Audio devices changed: ${event.devicesAdded.length} added, ${event.devicesRemoved.length} removed');
+        }
+        
+        // If headphones were removed and we're playing, pause
+        if (event.devicesRemoved.isNotEmpty && _player.playing) {
+          final removedDevices = event.devicesRemoved
+              .where((device) => device.type == AudioDeviceType.bluetoothA2dp || 
+                               device.type == AudioDeviceType.wiredHeadphones ||
+                               device.type == AudioDeviceType.wiredHeadset)
+              .toList();
+          
+          if (removedDevices.isNotEmpty) {
+            _userIntendedPlaying = false;
+            pause();
+            if (kDebugMode) {
+              print('Audio output device removed - paused playback');
+            }
+          }
+        }
+      });
+      
+      // Activate the audio session
+      await audioSession.setActive(true);
+      
+      if (kDebugMode) {
+        print('iOS Audio session activated successfully');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize iOS audio session: $e');
+      }
+      // Continue without iOS audio session - fallback for Android
+    }
+  }
+
   Future<void> _handleCodecLoop() async {
     // Don't interfere with transitions or other recovery processes
     if (_stateManager.isHandlingCompletion || _transitionManager.isTransitionInProgress) {
