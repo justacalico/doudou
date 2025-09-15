@@ -119,9 +119,9 @@ class AppState extends ChangeNotifier {
             // Initialize cache service first
             await _cacheService.initialize();
             
-            // Try to initialize audio handler, but don't fail if it doesn't work
-            // Only initialize audio service on Android (needed for background audio and Android Auto)
+            // Try to initialize audio handler with platform-specific handling
             if (Platform.isAndroid) {
+              // Android: Use AudioService for background audio and Android Auto
               try {
                 _audioHandler = await AudioService.init(
                   builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
@@ -140,23 +140,45 @@ class AppState extends ChangeNotifier {
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
                 
-                // Notify listeners after audio handler is ready (this will update UI with restored state)
-                notifyListeners();
+                if (kDebugMode) {
+                  print('Android audio service initialized successfully');
+                }
               } catch (audioError) {
                 if (kDebugMode) {
-                  print('Failed to initialize audio service: $audioError');
+                  print('Failed to initialize Android audio service: $audioError');
                 }
                 // Continue without audio service
+                _audioHandler = null;
+              }
+            } else if (Platform.isIOS) {
+              // iOS: Initialize audio handler without AudioService wrapper
+              try {
+                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+                
+                // Apply user settings to the audio handler
+                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+                
+                // Set up listeners for automatic UI updates
+                _setupAudioHandlerListeners();
+                
+                if (kDebugMode) {
+                  print('iOS audio handler initialized successfully');
+                }
+              } catch (audioError) {
+                if (kDebugMode) {
+                  print('Failed to initialize iOS audio handler: $audioError');
+                }
+                // Continue without audio handler
+                _audioHandler = null;
               }
             } else {
               if (kDebugMode) {
-                print('Audio service initialization skipped on non-Android platform');
+                print('Audio service initialization skipped on unsupported platform');
               }
-              // On non-Android platforms, we don't use AudioService
+              // On other platforms, we don't use audio services
               _audioHandler = null;
-              
-              // Notify listeners that initialization is complete
-              notifyListeners();
             }
             
             notifyListeners();
