@@ -219,7 +219,8 @@ class _HomeContentState extends State<HomeContent> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
+                      SizedBox(
+                        width: 180, // Fixed width instead of Expanded
                         child: CupertinoButton(
                           padding: EdgeInsets.zero,
                           onPressed: () async {
