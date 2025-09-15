@@ -30,7 +30,6 @@
 - Now Playing option from the settings screen.  
 - Removed the abilty to scroll when on the now_playing page.
 - Removed year form album_details page.
-- Removed the iOS platform.
 
 ## Fixed
 - Fixed synced lyrics text being hidden in some cases.  
