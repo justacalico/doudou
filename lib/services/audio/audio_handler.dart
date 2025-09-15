@@ -1403,6 +1403,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Loading track: ${track.name}, user intended playing: $_userIntendedPlaying');
     }
     
+    // Activate audio session before loading (iOS specific)
+    try {
+      final audioSession = await AudioSession.instance;
+      await audioSession.setActive(true);
+      if (kDebugMode) {
+        print('Audio session activated for track loading');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to activate audio session: $e');
+      }
+    }
+    
     // Try local file first
     final localFilePath = _downloadService.getLocalFilePath(track.id);
     
@@ -1411,10 +1424,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (await localFile.exists()) {
         try {
           await _player.setFilePath(localFilePath);
-          // Removed: frequent volume setting that can cause buffering interruptions
           
-          // Wait for player to be ready before playing
-          await Future.delayed(const Duration(milliseconds: 200));
+          // iOS needs longer delays for audio initialization
+          if (Platform.isIOS) {
+            await Future.delayed(const Duration(milliseconds: 500));
+          } else {
+            await Future.delayed(const Duration(milliseconds: 200));
+          }
           
           if (_userIntendedPlaying) {
             await _player.play();
@@ -1446,33 +1462,62 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Stream the track with enhanced error handling
-    final streamUrls = [
-      _jellyfinService.getDirectStreamUrl(track.id),
-      _jellyfinService.getStreamUrl(track.id),
-      _jellyfinService.getUniversalStreamUrl(track.id),
-    ];
+    // Stream the track with enhanced error handling and iOS optimizations
+    List<String> streamUrls;
+    
+    // Prioritize transcoded streams for iOS for better compatibility
+    if (Platform.isIOS) {
+      streamUrls = [
+        _jellyfinService.getStreamUrl(track.id),          // Transcoded (iOS preferred)
+        _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
+        _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort on iOS)
+      ];
+    } else {
+      streamUrls = [
+        _jellyfinService.getDirectStreamUrl(track.id),    // Direct (Android preferred)
+        _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
+        _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
+      ];
+    }
     
     bool loaded = false;
     Exception? lastError;
     
-    for (final streamUrl in streamUrls) {
+    for (int i = 0; i < streamUrls.length; i++) {
+      final streamUrl = streamUrls[i];
+      
       try {
         if (streamUrl.isNotEmpty) {
+          if (kDebugMode) {
+            print('Attempting to load stream ${i + 1}/${streamUrls.length}: ${Platform.isIOS ? "iOS optimized" : "Android optimized"} order');
+          }
+          
           if (_shouldTranscodeTrack(track)) {
             final hlsUrl = _getHlsStreamUrl(track);
             if (hlsUrl.isNotEmpty) {
               await _player.setAudioSource(HlsAudioSource(Uri.parse(hlsUrl)));
+              if (kDebugMode) {
+                print('Using HLS stream for: ${track.name}');
+              }
             } else {
               await _player.setUrl(streamUrl);
+              if (kDebugMode) {
+                print('Using regular stream URL for: ${track.name}');
+              }
             }
           } else {
             await _player.setUrl(streamUrl);
+            if (kDebugMode) {
+              print('Using direct stream URL for: ${track.name}');
+            }
           }
-          // Removed: frequent volume setting that can cause buffering interruptions
-           
-          // Wait for player to be ready before playing
-          await Future.delayed(const Duration(milliseconds: 200));
+          
+          // iOS needs longer delays for stream initialization and buffering
+          if (Platform.isIOS) {
+            await Future.delayed(const Duration(milliseconds: 800)); // Longer delay for iOS
+          } else {
+            await Future.delayed(const Duration(milliseconds: 200)); // Shorter for Android
+          }
           
           if (_userIntendedPlaying) {
             await _player.play();
@@ -1501,7 +1546,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       } catch (e) {
         lastError = e as Exception?;
         if (kDebugMode) {
-          print('Failed to load stream URL: $e');
+          print('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e');
+        }
+        
+        // On iOS, try the next URL immediately without delay
+        if (Platform.isIOS && i < streamUrls.length - 1) {
+          if (kDebugMode) {
+            print('iOS: Trying next stream URL immediately...');
+          }
+          continue;
         }
       }
     }
@@ -1509,6 +1562,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (!loaded) {
       if (kDebugMode) {
         print('Failed to load any stream for: ${track.name}, last error: $lastError');
+        if (Platform.isIOS) {
+          print('iOS: Consider checking stream format compatibility');
+        }
       }
       
       playbackState.add(playbackState.value.copyWith(
