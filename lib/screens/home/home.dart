@@ -187,90 +187,91 @@ class _HomeContentState extends State<HomeContent> {
                         SizedBox(
                           width: 180, // Fixed width instead of Expanded
                           child: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () async {
-                            await appState.shuffleAllTracks();
-                          },
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE91E63).withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFE91E63).withOpacity(0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(CupertinoIcons.shuffle, color: Color(0xFFE91E63), size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Shuffle all',
-                                  style: TextStyle(
-                                    color: Color(0xFFE91E63),
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                            padding: EdgeInsets.zero,
+                            onPressed: () async {
+                              await appState.shuffleAllTracks();
+                            },
+                            child: Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE91E63).withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFFE91E63).withOpacity(0.2),
+                                  width: 1,
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 180, // Fixed width instead of Expanded
-                        child: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () async {
-                            final favoriteCount = appState.favoriteTracks.length;
-                            if (favoriteCount > 0) {
-                              await appState.shuffleFavoriteTracks();
-                            } else {
-                              showCupertinoDialog(
-                                context: context,
-                                builder: (BuildContext context) => CupertinoAlertDialog(
-                                  title: const Text('No Favorites'),
-                                  content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
-                                  actions: <CupertinoDialogAction>[
-                                    CupertinoDialogAction(
-                                      child: const Text('OK'),
-                                      onPressed: () => Navigator.of(context).pop(),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.shuffle, color: Color(0xFFE91E63), size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Shuffle all',
+                                    style: TextStyle(
+                                      color: Color(0xFFE91E63),
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  ],
-                                ),
-                              );
-                            }
-                          },
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE91E63).withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFE91E63).withOpacity(0.15),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(CupertinoIcons.heart, color: const Color(0xFFE91E63).withOpacity(0.8), size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Shuffle favorites',
-                                  style: TextStyle(
-                                    color: const Color(0xFFE91E63).withOpacity(0.8),
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 180, // Fixed width instead of Expanded
+                          child: CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () async {
+                              final favoriteCount = appState.favoriteTracks.length;
+                              if (favoriteCount > 0) {
+                                await appState.shuffleFavoriteTracks();
+                              } else {
+                                showCupertinoDialog(
+                                  context: context,
+                                  builder: (BuildContext context) => CupertinoAlertDialog(
+                                    title: const Text('No Favorites'),
+                                    content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
+                                    actions: <CupertinoDialogAction>[
+                                      CupertinoDialogAction(
+                                        child: const Text('OK'),
+                                        onPressed: () => Navigator.of(context).pop(),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE91E63).withOpacity(0.06),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFFE91E63).withOpacity(0.15),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.heart, color: const Color(0xFFE91E63).withOpacity(0.8), size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Shuffle favorites',
+                                    style: TextStyle(
+                                      color: const Color(0xFFE91E63).withOpacity(0.8),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
