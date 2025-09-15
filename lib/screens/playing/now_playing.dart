@@ -301,7 +301,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                       // Bottom section - fixed height
                       Column(
                         children: [
-                          // Progress slider and time
+                          // Progress slider and time - responsive to font size
                           StreamBuilder<Duration>(
                             stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
                             builder: (context, snapshot) {
@@ -329,28 +329,37 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                       activeColor: const Color(0xFFFFFFFF),
                                       thumbColor: const Color(0xFFFFFFFF),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            _formatDuration(position),
-                                            style: const TextStyle(
-                                              color: CupertinoColors.systemGrey2, 
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
+                                    // Use Flexible to prevent overflow with large fonts
+                                    Flexible(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                _formatDuration(position),
+                                                style: const TextStyle(
+                                                  color: CupertinoColors.systemGrey2, 
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            _formatDuration(duration),
-                                            style: const TextStyle(
-                                              color: CupertinoColors.systemGrey2, 
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
+                                            Flexible(
+                                              child: Text(
+                                                _formatDuration(duration),
+                                                style: const TextStyle(
+                                                  color: CupertinoColors.systemGrey2, 
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
