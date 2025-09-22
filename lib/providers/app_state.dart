@@ -566,6 +566,53 @@ class AppState extends ChangeNotifier {
       }
     }
   }
+
+  /// Force refresh library data from server, bypassing cache
+  Future<void> refreshLibraryData() async {
+    if (!_isLoggedIn) {
+      if (kDebugMode) {
+        print('AppState: Cannot refresh library data - user not logged in');
+      }
+      return;
+    }
+
+    if (kDebugMode) {
+      print('AppState: Force refreshing library data from server...');
+    }
+
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Skip cache and load fresh data directly
+      await _loadFreshData();
+      _setLoading(false);
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error during force refresh: $e');
+      }
+      
+      // Provide user-friendly error messages based on error type
+      String userMessage = 'Failed to refresh library';
+      if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+        userMessage = 'Authentication failed. Please log in again.';
+        // Auto-logout on auth failure to force re-login
+        logout();
+      } else if (e.toString().contains('timeout') || e.toString().contains('connection')) {
+        userMessage = 'Connection timeout. Please check your network and server.';
+      } else if (e.toString().contains('404') || e.toString().contains('not found')) {
+        userMessage = 'Server not found. Please check your server URL.';
+      } else if (e.toString().contains('500') || e.toString().contains('server error')) {
+        userMessage = 'Server error. Please try again later.';
+      }
+      
+      _setError(userMessage);
+      _setLoading(false);
+      
+      // Re-throw the error so the UI can handle it
+      rethrow;
+    }
+  }
   
   Future<void> _loadFreshData() async {
     try {
