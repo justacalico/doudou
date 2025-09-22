@@ -731,4 +731,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+
+  Future<void> _refreshLibraryData(BuildContext context, AppState appState) async {
+    try {
+      // Show a brief feedback to user
+      HapticFeedback.lightImpact();
+      
+      // Refresh the library data from the server
+      await appState.loadLibraryData();
+      
+      // Show success feedback
+      if (context.mounted) {
+        _showRefreshSuccessDialog(context);
+      }
+    } catch (e) {
+      // Show error dialog if refresh fails
+      if (context.mounted) {
+        _showRefreshErrorDialog(context, e.toString());
+      }
+    }
+  }
+
+  void _showRefreshSuccessDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: const Text('Library Refreshed'),
+        content: const Text('Your music library has been successfully updated with the latest content from the server.'),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRefreshErrorDialog(BuildContext context, String error) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: const Text('Refresh Failed'),
+        content: Text('Failed to refresh library data. Please check your connection and try again.\n\nError: $error'),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 }
