@@ -191,6 +191,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
+                // Refresh Data Section
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF007AFF),
+                          Color(0xFF5856D6),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF007AFF).withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: CupertinoButton(
+                      onPressed: appState.isLoading ? null : () => _refreshLibraryData(context, appState),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (appState.isLoading)
+                            const CupertinoActivityIndicator(
+                              color: Color(0xFFFFFFFF),
+                            )
+                          else
+                            const Icon(
+                              CupertinoIcons.refresh,
+                              color: Color(0xFFFFFFFF),
+                              size: 20,
+                            ),
+                          const SizedBox(width: 12),
+                          Text(
+                            appState.isLoading ? 'Refreshing...' : 'Refresh Library',
+                            style: TextStyle(
+                              color: appState.isLoading ? const Color(0xFFFFFFFF).withOpacity(0.6) : const Color(0xFFFFFFFF),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
                 // Logout Section
                 SliverToBoxAdapter(
                   child: Container(
