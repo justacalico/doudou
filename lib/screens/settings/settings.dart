@@ -737,8 +737,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Show a brief feedback to user
       HapticFeedback.lightImpact();
       
-      // Refresh the library data from the server
-      await appState.loadLibraryData();
+      // Force refresh the library data from the server (bypassing cache)
+      await appState.refreshLibraryData();
       
       // Show success feedback
       if (context.mounted) {
