@@ -1,6 +1,7 @@
 # 6.0.0
 
 ## Added
+- Adds a button to reload all data from the jellyfin server.
 - Added an animation that plays when album art changes size.
 - Added a background for the "Now Playing" screen.
 - Automatically build .apk files.
