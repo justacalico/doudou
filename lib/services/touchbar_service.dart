@@ -11,15 +11,16 @@ class TouchBarService {
   static VoidCallback? _onPlayPause;
   static VoidCallback? _onPrevious;
   static VoidCallback? _onNext;
-  static Function(Duration)? _onSeek;
   static VoidCallback? _onFavorite;
+  static TouchBar? _touchBar;
 
   /// Initialize Touch Bar support (macOS only)
   static Future<void> initialize() async {
     if (!Platform.isMacOS) return;
     
     try {
-      await TouchBar.setTouchBar(_createTouchBar());
+      _touchBar = _createTouchBar();
+      await setTouchBar(_touchBar!);
       _isInitialized = true;
       
       if (kDebugMode) {
@@ -33,30 +34,25 @@ class TouchBarService {
   }
 
   /// Create the TouchBar layout
-  static TouchBarItem _createTouchBar() {
-    return TouchBarGroup(
-      identifier: 'media-controls',
-      items: [
+  static TouchBar _createTouchBar() {
+    return TouchBar(
+      children: [
         TouchBarButton(
-          identifier: 'previous',
-          text: '⏮',
-          onPressed: () => _onPrevious?.call(),
+          label: '⏮',
+          onClick: () => _onPrevious?.call(),
         ),
         TouchBarButton(
-          identifier: 'play-pause',
-          text: '⏸',
-          onPressed: () => _onPlayPause?.call(),
+          label: '⏸',
+          onClick: () => _onPlayPause?.call(),
         ),
         TouchBarButton(
-          identifier: 'next',
-          text: '⏭',
-          onPressed: () => _onNext?.call(),
+          label: '⏭',
+          onClick: () => _onNext?.call(),
         ),
         TouchBarSpace.flexible(),
         TouchBarButton(
-          identifier: 'favorite',
-          text: '♡',
-          onPressed: () => _onFavorite?.call(),
+          label: '♡',
+          onClick: () => _onFavorite?.call(),
         ),
       ],
     );
@@ -73,8 +69,13 @@ class TouchBarService {
     _onPlayPause = onPlayPause;
     _onPrevious = onPrevious;
     _onNext = onNext;
-    _onSeek = onSeek;
     _onFavorite = onFavorite;
+    
+    // Recreate TouchBar with updated callbacks
+    if (_isInitialized) {
+      _touchBar = _createTouchBar();
+      setTouchBar(_touchBar!);
+    }
     
     if (kDebugMode) {
       print('Touch Bar callbacks set successfully');
@@ -86,19 +87,15 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
+      // Update TouchBar with current track info (could add a label with track name)
       if (track != null) {
-        // Stub implementation - would call native method
         if (kDebugMode) {
-          print('Would update Touch Bar with: ${track.name} - ${track.artistName ?? 'Unknown Artist'}');
+          print('Touch Bar updated with track: ${track.name} - ${track.artistName ?? 'Unknown Artist'}');
         }
       } else {
         if (kDebugMode) {
-          print('Would clear Touch Bar now playing');
+          print('Touch Bar cleared now playing');
         }
-      }
-      
-      if (kDebugMode) {
-        print('Touch Bar updated with track: ${track?.name ?? 'No track'}');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -117,9 +114,34 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
-      // Stub implementation - would call native method
+      // Update the play/pause button icon
+      final updatedTouchBar = TouchBar(
+        children: [
+          TouchBarButton(
+            label: '⏮',
+            onClick: () => _onPrevious?.call(),
+          ),
+          TouchBarButton(
+            label: isPlaying ? '⏸' : '▶',
+            onClick: () => _onPlayPause?.call(),
+          ),
+          TouchBarButton(
+            label: '⏭',
+            onClick: () => _onNext?.call(),
+          ),
+          TouchBarSpace.flexible(),
+          TouchBarButton(
+            label: (isFavorite ?? false) ? '♥' : '♡',
+            onClick: () => _onFavorite?.call(),
+          ),
+        ],
+      );
+      
+      await setTouchBar(updatedTouchBar);
+      _touchBar = updatedTouchBar;
+      
       if (kDebugMode) {
-        print('Would update Touch Bar - Playing: $isPlaying, Position: ${_formatDuration(position)}/${_formatDuration(duration)}, Favorite: ${isFavorite ?? false}');
+        print('Touch Bar updated - Playing: $isPlaying, Position: ${_formatDuration(position)}/${_formatDuration(duration)}, Favorite: ${isFavorite ?? false}');
       }
     } catch (e) {
       if (kDebugMode) {
