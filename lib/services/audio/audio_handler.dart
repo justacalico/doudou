@@ -2579,7 +2579,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         lyricsText = syncedLyrics[newLineIndex].text;
         
         // Only update if we have valid lyrics text
-        if (lyricsText != null && lyricsText.trim().isNotEmpty) {
+        if (lyricsText.trim().isNotEmpty) {
           TouchBarService.updateLyrics(lyricsText);
         }
       }
