@@ -2553,6 +2553,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     );
   }
 
+  void _updateTouchBarLyrics(Duration position) {
+    if (!_touchBarEnabled || _currentLyrics?.syncedLyrics == null) return;
+    
+    final syncedLyrics = _currentLyrics!.syncedLyrics!;
+    if (syncedLyrics.isEmpty) return;
+    
+    // Find the current lyrics line based on position
+    int newLineIndex = -1;
+    for (int i = 0; i < syncedLyrics.length; i++) {
+      if (syncedLyrics[i].timestamp <= position) {
+        newLineIndex = i;
+      } else {
+        break;
+      }
+    }
+    
+    // Update TouchBar if line changed
+    if (newLineIndex != _currentLyricsLineIndex) {
+      _currentLyricsLineIndex = newLineIndex;
+      
+      String? lyricsText;
+      if (newLineIndex >= 0 && newLineIndex < syncedLyrics.length) {
+        lyricsText = syncedLyrics[newLineIndex].text;
+      }
+      
+      TouchBarService.updateLyrics(lyricsText);
+    }
+  }
+
   void _disposeTouchBar() {
     if (_touchBarEnabled) {
       TouchBarService.dispose();
