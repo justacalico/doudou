@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
 import '../download_service.dart';
+import '../touchbar_service.dart';
 import 'audio_state_manager.dart';
 import 'audio_preloader.dart';
 import 'audio_queue_manager.dart';
