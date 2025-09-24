@@ -1295,6 +1295,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update current media item immediately
     mediaItem.add(_trackToMediaItem(track));
     
+    // Update Touch Bar with new track
+    if (Platform.isMacOS) {
+      _updateTouchBarWithCurrentTrack();
+    }
+    
     // Store playing state for background compatibility
     final wasPlaying = playbackState.value.playing;
     
