@@ -17,25 +17,41 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 
 ## ✨ Features
 
-- 🎵 **Beautiful Interface** - Clean, intuitive design inspired by modern music apps
-- 🔒 **Privacy First** - Zero data collection, no analytics, no tracking
-- 🌐 **Full Jellyfin Integration** - Browse albums, artists, playlists, and songs
-- 🎧 **Advanced Audio** - Smart crossfade, gapless playback, and 10-track preloading
-- 📱 **Background Playback** - Keep your music playing while using other apps
-- 📋 **Queue Management** - Add, remove, and reorder tracks in your queue
-- ⭐ **Favorites** - Mark and easily access your favorite tracks
-- 🔄 **Smart Controls** - Intelligent skip-to-previous behavior
-- 📦 **Offline Ready** - Automatic caching for smooth playback
+### 🎵 **Music Experience**
+- **Beautiful Interface** - Clean, intuitive design inspired by modern music apps
+- **Advanced Audio** - Smart crossfade, volume normalization, and gapless playback
+- **Queue Management** - Add, remove, and reorder tracks with drag-and-drop support
+- **Smart Preloading** - Intelligent buffering of next tracks for seamless playback
+- **Radio Mode** - Endless music discovery based on your listening preferences
+
+### 🔒 **Privacy & Control**
+- **Zero Data Collection** - No analytics, no tracking, no telemetry
+- **Self-Hosted** - Your music stays on your server, under your control
+- **Offline Capable** - Download tracks for offline listening
+- **Local Caching** - Smart caching reduces server load and improves performance
+
+### 📱 **Platform Features**
+- **Cross-Platform** - Android, iOS, macOS, Linux, Windows support
+- **Background Playback** - Music continues while using other apps
+- **Media Controls** - Lock screen, notification, and system media controls
+- **Android Auto & CarPlay** - Safe driving integration *(Android Auto ready, CarPlay coming soon)*
+
+### 🎧 **Audio Features**
+- **Multiple Audio Formats** - MP3, FLAC, AAC, OGG, M4A, and more
+- **Transcoding Support** - Automatic format conversion when needed
+- **Custom Audio Session** - Optimized audio handling per platform
+- **Crossfade & Gapless** - Professional-grade audio transitions
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Personal Jellyfin media server (version 10.8+)
-- Android device (5.0+ / API level 21)
-- IOS (12+)
-- macOS (12+)
-- Linux
-- Windows* (Complety untested)
+- **Jellyfin Server** version 10.8 or newer
+- **Device Requirements:**
+  - Android 5.0+ (API level 21)
+  - iOS 12.0+
+  - macOS 10.15+
+  - Linux (various distributions)
+  - Windows 10+ *(community tested)*
 - Network connection to your Jellyfin server
 
 ### Installation
