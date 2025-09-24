@@ -77,8 +77,8 @@ class DoudouApp extends StatelessWidget {
 
   /// Wraps the app with platform-specific services
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On Android, use AudioServiceWidget for background audio and Android Auto
-    if (Platform.isAndroid) {
+    // On Android and macOS, use AudioServiceWidget for background audio support
+    if (Platform.isAndroid || Platform.isMacOS) {
       return AudioServiceWidget(child: app);
     }
     
