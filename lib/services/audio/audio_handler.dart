@@ -2561,6 +2561,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final syncedLyrics = _currentLyrics!.syncedLyrics!;
     if (syncedLyrics.isEmpty) return;
     
+    // Throttle updates to avoid excessive TouchBar refreshes (max once per 500ms)
+    final now = DateTime.now();
+    if (_lastLyricsUpdate != null && 
+        now.difference(_lastLyricsUpdate!) < const Duration(milliseconds: 500)) {
+      return;
+    }
+    
     // Find the current lyrics line based on position
     int newLineIndex = -1;
     for (int i = 0; i < syncedLyrics.length; i++) {
@@ -2574,6 +2581,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update TouchBar if line changed
     if (newLineIndex != _currentLyricsLineIndex) {
       _currentLyricsLineIndex = newLineIndex;
+      _lastLyricsUpdate = now;
       
       String? lyricsText;
       if (newLineIndex >= 0 && newLineIndex < syncedLyrics.length) {
@@ -2582,6 +2590,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Only update if we have valid lyrics text
         if (lyricsText.trim().isNotEmpty) {
           TouchBarService.updateLyrics(lyricsText);
+          
+          if (kDebugMode) {
+            print('TouchBar lyrics updated: $lyricsText');
+          }
         }
       }
       // Don't clear the TouchBar when there's no current line - keep the last lyrics visible
