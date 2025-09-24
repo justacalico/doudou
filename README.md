@@ -92,16 +92,31 @@ make windows    # Windows executable
 
 > **💡 Tip:** Make sure your Jellyfin server is accessible from your device's network. For remote access, consider setting up a VPN or reverse proxy.
 
-## 🔒 Privacy & Data
+## 🔒 Privacy & Security
 
-**We collect NO data whatsoever.**
-- No personal information
-- No usage analytics  
-- No crash reporting to external services
-- No advertising or tracking
-- Your music stays between you and your server
+### **Zero Data Collection Promise**
+Doudou is built with privacy as a core principle:
 
-All data (server settings, preferences) stays locally on your device.
+- ✅ **No Personal Information** collected or transmitted
+- ✅ **No Usage Analytics** or behavioral tracking
+- ✅ **No Crash Reports** sent to external services
+- ✅ **No Advertising** or third-party trackers
+- ✅ **No Cloud Dependencies** - works entirely with your server
+
+### **What Data Stays Local**
+All application data remains on your device:
+- Server connection details
+- User preferences and settings
+- Downloaded music files
+- Playback history and favorites
+- Cache and temporary files
+
+### **Network Communications**
+Doudou only communicates with:
+- Your Jellyfin server (music streaming and metadata)
+- No other external services or APIs
+
+> **🛡️ Your Music, Your Rules:** Complete control over your music library and listening data.
 
 ## 🛠️ Development
 
