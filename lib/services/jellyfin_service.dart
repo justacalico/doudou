@@ -359,7 +359,12 @@ class JellyfinService {
     
     final queryString = params.isEmpty ? '' : '?${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
     
-    return '${_server!.serverUrl}/Items/$itemId/Images/Primary$queryString';
+    // Remove trailing slash from serverUrl to prevent double slashes
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
+    return '$baseUrl/Items/$itemId/Images/Primary$queryString';
   }
 
   String getStreamUrl(String itemId) {
