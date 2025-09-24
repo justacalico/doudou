@@ -216,39 +216,43 @@ make android-bundle    # App Bundle for Play Store
 
 > **🔐 Security:** Signing files and passwords are automatically excluded from version control via `.gitignore`.
 
-### Release Preparation
+## 📱 Store Information
 
-For Google Play Store release preparation:
+### Google Play Store
+- **Status:** Preparing for launch
+- **Target:** Q4 2024
+- **Content Rating:** Everyone
+- **Category:** Music & Audio
 
-```bash
-# Generate release keystore
-./scripts/generate-keystore.sh
+### Apple App Store  
+- **Status:** In review process
+- **Target:** Q1 2025
+- **Content Rating:** 4+
+- **Category:** Music
 
-# Build app bundle for Play Store
-flutter build appbundle --release
-```
+### Data Safety Declaration
+✅ **No data collection or sharing**
+- No personal information collected
+- No financial or payment data
+- No location data accessed
+- No device identifiers tracked
+- No app activity or performance data
 
-See [Release Checklist](docs/release-checklist.md) for complete Play Store submission guide.
+### App Permissions
 
-## 📋 Play Store Information
+#### Android
+| Permission | Purpose | Required |
+|------------|---------|----------|
+| `INTERNET` | Connect to Jellyfin server | Yes |
+| `ACCESS_NETWORK_STATE` | Check connectivity status | Yes |
+| `WAKE_LOCK` | Background audio playback | Yes |
+| `FOREGROUND_SERVICE` | Media notification controls | Yes |
+| `FOREGROUND_SERVICE_MEDIA_PLAYBOOK` | Audio service (Android 14+) | Yes |
 
-### Data Safety
-✅ **This app does NOT collect any user data**
-- No personal information
-- No financial data
-- No location data  
-- No device identifiers
-- No usage analytics
-
-### Permissions
-- **Internet** - Connect to your Jellyfin server
-- **Network State** - Check connection status
-- **Wake Lock** - Keep music playing in background
-- **Foreground Service** - Background audio playback
-
-### Content Rating
-- **Everyone** - No objectionable content
-- Music streaming app for personal media libraries
+#### iOS & macOS
+- **Network Access** - Connect to Jellyfin server
+- **Background Audio** - Continue playback when app is backgrounded
+- **Media Controls** - Lock screen and control center integration
 
 ## 🤝 Contributing
 
