@@ -13,6 +13,7 @@ class TouchBarService {
   static VoidCallback? _onNext;
   static VoidCallback? _onFavorite;
   static TouchBar? _touchBar;
+  static String? _currentLyricsText;
 
   /// Initialize Touch Bar support (macOS only)
   static Future<void> initialize() async {
