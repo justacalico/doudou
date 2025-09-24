@@ -34,11 +34,10 @@ class TouchBarService {
     Function(Duration)? onSeek,
     VoidCallback? onFavorite,
   }) {
-    _onPlayPausePressed = onPlayPause;
-    _onPreviousPressed = onPrevious;
-    _onNextPressed = onNext;
-    _onSeekPressed = onSeek;
-    _onFavoritePressed = onFavorite;
+    // Stub implementation - would store callbacks for native Touch Bar
+    if (kDebugMode) {
+      print('Touch Bar callbacks set (stub implementation)');
+    }
   }
 
   /// Update the now playing information on Touch Bar
