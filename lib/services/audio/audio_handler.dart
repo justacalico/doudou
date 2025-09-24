@@ -2620,6 +2620,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _currentLyricsLineIndex = -1;
         _lastLyricsTrackId = currentTrack.id;
         
+        // Initialize TouchBar with first available lyrics line if playing
+        if (lyricsResult.syncedLyrics!.isNotEmpty && _player.playing) {
+          final currentPosition = _player.position;
+          _updateTouchBarLyrics(currentPosition);
+        }
+        
         if (kDebugMode) {
           print('Loaded synced lyrics for TouchBar with ${lyricsResult.syncedLyrics?.length ?? 0} lines');
         }
