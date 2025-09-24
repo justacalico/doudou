@@ -575,7 +575,13 @@ class JellyfinService {
   // Get download URL for a track
   String getDownloadUrl(String itemId) {
     if (_server == null) return '';
-    return '${_server!.serverUrl}/Items/$itemId/Download?api_key=${_server!.accessToken}';
+    
+    // Remove trailing slash from serverUrl to prevent double slashes
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
+    return '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
   }
 
   // Get authentication headers for HTTP requests
