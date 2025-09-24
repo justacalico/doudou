@@ -21,7 +21,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final DownloadService _downloadService;
   
   // Touch Bar service for macOS
-  TouchBarService? _touchBarService;
+  bool _touchBarEnabled = false;
   
   // Component managers
   late final AudioStateManager _stateManager;
