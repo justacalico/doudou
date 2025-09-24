@@ -408,8 +408,13 @@ class JellyfinService {
   String getUniversalStreamUrl(String itemId) {
     if (_server == null) return '';
     
+    // Remove trailing slash from serverUrl to prevent double slashes
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
     // Alternative: universal endpoint with minimal params
-    return '${_server!.serverUrl}/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
+    return '$baseUrl/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
   }
 
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
