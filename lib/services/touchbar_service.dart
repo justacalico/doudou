@@ -22,14 +22,11 @@ class TouchBarService {
     if (!Platform.isMacOS) return;
     
     try {
-      await _channel.invokeMethod('initialize');
+      // For now, just mark as initialized without native implementation
       _isInitialized = true;
       
-      // Set up method call handler for Touch Bar button presses
-      _channel.setMethodCallHandler(_handleMethodCall);
-      
       if (kDebugMode) {
-        print('Touch Bar initialized successfully');
+        print('Touch Bar service initialized (stub implementation)');
       }
     } catch (e) {
       if (kDebugMode) {
