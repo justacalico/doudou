@@ -32,7 +32,7 @@ Note: Icon is planned to be changed once someone makes a new one this is just so
 - Network connection to your Jellyfin server
 
 ### Installation
-1. Download from Google Play Store *(coming soon)*
+1. Download from Google Play Store *(coming VERY soon)*
 2. Open Doudou and enter your Jellyfin server details
 3. Login with your Jellyfin credentials
 4. Start enjoying your music!
