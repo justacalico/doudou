@@ -36,7 +36,7 @@ class TouchBarService {
 
   /// Create the TouchBar layout
   static TouchBar _createTouchBar() {
-    List<dynamic> children = [
+    List<AbstractTouchBarItem> children = [
       TouchBarButton(
         label: '⏮',
         onClick: () => _onPrevious?.call(),
@@ -55,7 +55,7 @@ class TouchBarService {
     if (_currentLyricsText != null && _currentLyricsText!.isNotEmpty) {
       children.addAll([
         TouchBarSpace.flexible(),
-        TouchBarLabel(text: _currentLyricsText!),
+        TouchBarLabel(_currentLyricsText!),
         TouchBarSpace.flexible(),
       ]);
     } else {
