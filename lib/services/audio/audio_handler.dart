@@ -24,6 +24,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Touch Bar service for macOS
   bool _touchBarEnabled = false;
   
+  // Lyrics state for TouchBar display
+  LyricsResult? _currentLyrics;
+  int _currentLyricsLineIndex = -1;
+  String? _lastLyricsTrackId;
+  
   // Component managers
   late final AudioStateManager _stateManager;
   late final AudioPreloader _preloader;
