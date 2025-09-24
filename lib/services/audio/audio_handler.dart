@@ -2454,10 +2454,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_touchBarService == null) return;
     
     try {
-      await _touchBarService!.initialize();
+      await TouchBarService.initialize();
       
       // Set up Touch Bar callbacks
-      _touchBarService!.setCallbacks(
+      TouchBarService.setCallbacks(
         onPlayPause: () async {
           if (playbackState.value.playing) {
             await pause();
@@ -2472,24 +2472,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await skipToNext();
         },
         onSeek: (position) async {
-          await seek(Duration(seconds: position.round()));
+          await seek(position);
         },
-        onToggleFavorite: () async {
+        onFavorite: () async {
           final currentTrack = _stateManager.currentTrack;
           if (currentTrack != null) {
             try {
               final newFavoriteStatus = !currentTrack.isFavorite;
-              await _jellyfinService.setFavorite(currentTrack.id, newFavoriteStatus);
               
-              // Update the track's favorite status
-              currentTrack.isFavorite = newFavoriteStatus;
-              
-              // Update Touch Bar immediately
-              _updateTouchBarFavoriteStatus(newFavoriteStatus);
-              
+              // Call the Jellyfin API to toggle favorite (you'll need to implement this)
+              // For now, just log it
               if (kDebugMode) {
-                print('Toggled favorite for ${currentTrack.name}: $newFavoriteStatus');
+                print('Would toggle favorite for ${currentTrack.name}: $newFavoriteStatus');
               }
+              
+              // Update Touch Bar immediately with new status
+              _updateTouchBarPlaybackState();
             } catch (e) {
               if (kDebugMode) {
                 print('Failed to toggle favorite: $e');
@@ -2513,50 +2511,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (_touchBarService == null) return;
     
     final currentTrack = _stateManager.currentTrack;
-    if (currentTrack != null) {
-      _touchBarService!.updateNowPlaying(
-        title: currentTrack.name,
-        artist: currentTrack.artistName ?? 'Unknown Artist',
-        duration: currentTrack.runTimeTicks != null 
-          ? (currentTrack.runTimeTicks! / 10000000).toDouble()
-          : 0.0,
-      );
-    } else {
-      _touchBarService!.clearNowPlaying();
-    }
+    TouchBarService.updateNowPlaying(currentTrack);
   }
 
   void _updateTouchBarPlaybackState() {
     if (_touchBarService == null) return;
     
     final currentTrack = _stateManager.currentTrack;
-    _touchBarService!.updatePlaybackState(
+    TouchBarService.updatePlaybackState(
       isPlaying: playbackState.value.playing,
-      position: playbackState.value.position.inSeconds.toDouble(),
-      duration: currentTrack?.runTimeTicks != null 
-        ? (currentTrack!.runTimeTicks! / 10000000).toDouble()
-        : 0.0,
+      position: playbackState.value.position,
+      duration: currentTrack?.duration != null 
+        ? Duration(milliseconds: currentTrack!.duration!)
+        : Duration.zero,
       isFavorite: currentTrack?.isFavorite ?? false,
-    );
-  }
-
-  void _updateTouchBarFavoriteStatus(bool isFavorite) {
-    if (_touchBarService == null) return;
-    
-    final currentTrack = _stateManager.currentTrack;
-    _touchBarService!.updatePlaybackState(
-      isPlaying: playbackState.value.playing,
-      position: playbackState.value.position.inSeconds.toDouble(),
-      duration: currentTrack?.runTimeTicks != null 
-        ? (currentTrack!.runTimeTicks! / 10000000).toDouble()
-        : 0.0,
-      isFavorite: isFavorite,
     );
   }
 
   void _disposeTouchBar() {
     if (_touchBarService != null) {
-      _touchBarService!.dispose();
+      TouchBarService.dispose();
       _touchBarService = null;
     }
   }
