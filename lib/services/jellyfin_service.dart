@@ -385,14 +385,24 @@ class JellyfinService {
     
     final queryString = params.entries.map((e) => '${e.key}=${e.value}').join('&');
     
-    return '${_server!.serverUrl}/Audio/$itemId/stream?$queryString';
+    // Remove trailing slash from serverUrl to prevent double slashes
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
+    return '$baseUrl/Audio/$itemId/stream?$queryString';
   }
 
   String getDirectStreamUrl(String itemId) {
     if (_server == null) return '';
     
+    // Remove trailing slash from serverUrl to prevent double slashes
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
     // Alternative: direct download URL (no transcoding)
-    return '${_server!.serverUrl}/Items/$itemId/Download?api_key=${_server!.accessToken}';
+    return '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
   }
 
   String getUniversalStreamUrl(String itemId) {
