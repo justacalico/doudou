@@ -36,7 +36,7 @@ class TouchBarService {
 
   /// Create the TouchBar layout
   static TouchBar _createTouchBar() {
-    List<AbstractTouchBarItem> children = [
+    var children = <Object>[
       TouchBarButton(
         label: '⏮',
         onClick: () => _onPrevious?.call(),
