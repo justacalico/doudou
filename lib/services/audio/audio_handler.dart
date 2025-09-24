@@ -212,6 +212,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           updatePosition: position,
         ));
       }
+      
+      // Update TouchBar with current lyrics line
+      _updateTouchBarLyrics(position);
     });
 
     // Simplified completion detection - only handle actual completion
