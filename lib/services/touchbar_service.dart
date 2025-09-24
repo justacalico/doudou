@@ -7,13 +7,6 @@ import '../models/jellyfin_models.dart';
 /// Only active on macOS devices with Touch Bar support
 class TouchBarService {
   static bool _isInitialized = false;
-  
-  // Callback functions for Touch Bar interactions
-  static VoidCallback? _onPlayPausePressed;
-  static VoidCallback? _onPreviousPressed;
-  static VoidCallback? _onNextPressed;
-  static Function(Duration)? _onSeekPressed;
-  static VoidCallback? _onFavoritePressed;
 
   /// Initialize Touch Bar support (macOS only)
   static Future<void> initialize() async {
