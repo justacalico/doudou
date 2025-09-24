@@ -36,38 +36,58 @@ class TouchBarService {
 
   /// Create the TouchBar layout
   static TouchBar _createTouchBar() {
-    var children = <Object>[
-      TouchBarButton(
-        label: '⏮',
-        onClick: () => _onPrevious?.call(),
-      ),
-      TouchBarButton(
-        label: '⏸',
-        onClick: () => _onPlayPause?.call(),
-      ),
-      TouchBarButton(
-        label: '⏭',
-        onClick: () => _onNext?.call(),
-      ),
-    ];
-    
-    // Add lyrics display if available
     if (_currentLyricsText != null && _currentLyricsText!.isNotEmpty) {
-      children.addAll([
-        TouchBarSpace.flexible(),
-        TouchBarLabel(_currentLyricsText!),
-        TouchBarSpace.flexible(),
-      ]);
+      // Show lyrics-focused layout
+      return TouchBar(
+        children: [
+          TouchBarButton(
+            label: '⏮',
+            onClick: () => _onPrevious?.call(),
+          ),
+          TouchBarButton(
+            label: '⏸',
+            onClick: () => _onPlayPause?.call(),
+          ),
+          TouchBarButton(
+            label: '⏭',
+            onClick: () => _onNext?.call(),
+          ),
+          TouchBarSpace.flexible(),
+          TouchBarButton(
+            label: _truncateLyricsText(_currentLyricsText!),
+            onClick: () {}, // No action for lyrics display
+          ),
+          TouchBarSpace.flexible(),
+          TouchBarButton(
+            label: '♡',
+            onClick: () => _onFavorite?.call(),
+          ),
+        ],
+      );
     } else {
-      children.add(TouchBarSpace.flexible());
+      // Default layout without lyrics
+      return TouchBar(
+        children: [
+          TouchBarButton(
+            label: '⏮',
+            onClick: () => _onPrevious?.call(),
+          ),
+          TouchBarButton(
+            label: '⏸',
+            onClick: () => _onPlayPause?.call(),
+          ),
+          TouchBarButton(
+            label: '⏭',
+            onClick: () => _onNext?.call(),
+          ),
+          TouchBarSpace.flexible(),
+          TouchBarButton(
+            label: '♡',
+            onClick: () => _onFavorite?.call(),
+          ),
+        ],
+      );
     }
-    
-    children.add(TouchBarButton(
-      label: '♡',
-      onClick: () => _onFavorite?.call(),
-    ));
-
-    return TouchBar(children: children);
   }
 
   /// Set callback functions for Touch Bar button presses
