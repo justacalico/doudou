@@ -104,7 +104,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Initialize Touch Bar service on macOS
     if (Platform.isMacOS) {
-      _touchBarService = TouchBarService();
+      _touchBarEnabled = true;
       _initializeTouchBar();
     }
     
