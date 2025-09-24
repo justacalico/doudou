@@ -19,6 +19,9 @@ dependencies:
   audio_service: ^0.18.12
   audio_session: ^0.1.13
   
+  # Touch Bar support for macOS
+  touch_bar: ^0.3.0-alpha.1
+  
   # State management
   provider: ^6.1.5
   
