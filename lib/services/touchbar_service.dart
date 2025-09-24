@@ -212,6 +212,36 @@ class TouchBarService {
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
+  /// Truncate lyrics text to fit TouchBar constraints
+  static String _truncateLyricsText(String lyrics) {
+    const int maxLength = 30; // TouchBar has limited space
+    if (lyrics.length <= maxLength) {
+      return lyrics;
+    }
+    return '${lyrics.substring(0, maxLength - 3)}...';
+  }
+
+  /// Update TouchBar with current lyrics line
+  static Future<void> updateLyrics(String? lyricsText) async {
+    if (!Platform.isMacOS || !_isInitialized) return;
+
+    try {
+      _currentLyricsText = lyricsText;
+      
+      // Recreate TouchBar with updated lyrics
+      _touchBar = _createTouchBar();
+      await setTouchBar(_touchBar!);
+      
+      if (kDebugMode) {
+        print('TouchBar updated with lyrics: ${lyricsText ?? 'No lyrics'}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to update TouchBar lyrics: $e');
+      }
+    }
+  }
+
   /// Clean up Touch Bar resources
   static Future<void> dispose() async {
     if (!Platform.isMacOS || !_isInitialized) return;
