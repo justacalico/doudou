@@ -2448,4 +2448,116 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
   }
+
+  // Touch Bar Integration Methods
+  Future<void> _initializeTouchBar() async {
+    if (_touchBarService == null) return;
+    
+    try {
+      await _touchBarService!.initialize();
+      
+      // Set up Touch Bar callbacks
+      _touchBarService!.setCallbacks(
+        onPlayPause: () async {
+          if (playbackState.value.playing) {
+            await pause();
+          } else {
+            await play();
+          }
+        },
+        onPrevious: () async {
+          await skipToPrevious();
+        },
+        onNext: () async {
+          await skipToNext();
+        },
+        onSeek: (position) async {
+          await seek(Duration(seconds: position.round()));
+        },
+        onToggleFavorite: () async {
+          final currentTrack = _stateManager.currentTrack;
+          if (currentTrack != null) {
+            try {
+              final newFavoriteStatus = !currentTrack.isFavorite;
+              await _jellyfinService.setFavorite(currentTrack.id, newFavoriteStatus);
+              
+              // Update the track's favorite status
+              currentTrack.isFavorite = newFavoriteStatus;
+              
+              // Update Touch Bar immediately
+              _updateTouchBarFavoriteStatus(newFavoriteStatus);
+              
+              if (kDebugMode) {
+                print('Toggled favorite for ${currentTrack.name}: $newFavoriteStatus');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('Failed to toggle favorite: $e');
+              }
+            }
+          }
+        },
+      );
+      
+      if (kDebugMode) {
+        print('Touch Bar initialized successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize Touch Bar: $e');
+      }
+    }
+  }
+
+  void _updateTouchBarWithCurrentTrack() {
+    if (_touchBarService == null) return;
+    
+    final currentTrack = _stateManager.currentTrack;
+    if (currentTrack != null) {
+      _touchBarService!.updateNowPlaying(
+        title: currentTrack.name,
+        artist: currentTrack.artistName ?? 'Unknown Artist',
+        duration: currentTrack.runTimeTicks != null 
+          ? (currentTrack.runTimeTicks! / 10000000).toDouble()
+          : 0.0,
+      );
+    } else {
+      _touchBarService!.clearNowPlaying();
+    }
+  }
+
+  void _updateTouchBarPlaybackState() {
+    if (_touchBarService == null) return;
+    
+    final currentTrack = _stateManager.currentTrack;
+    _touchBarService!.updatePlaybackState(
+      isPlaying: playbackState.value.playing,
+      position: playbackState.value.position.inSeconds.toDouble(),
+      duration: currentTrack?.runTimeTicks != null 
+        ? (currentTrack!.runTimeTicks! / 10000000).toDouble()
+        : 0.0,
+      isFavorite: currentTrack?.isFavorite ?? false,
+    );
+  }
+
+  void _updateTouchBarFavoriteStatus(bool isFavorite) {
+    if (_touchBarService == null) return;
+    
+    final currentTrack = _stateManager.currentTrack;
+    _touchBarService!.updatePlaybackState(
+      isPlaying: playbackState.value.playing,
+      position: playbackState.value.position.inSeconds.toDouble(),
+      duration: currentTrack?.runTimeTicks != null 
+        ? (currentTrack!.runTimeTicks! / 10000000).toDouble()
+        : 0.0,
+      isFavorite: isFavorite,
+    );
+  }
+
+  void _disposeTouchBar() {
+    if (_touchBarService != null) {
+      _touchBarService!.dispose();
+      _touchBarService = null;
+    }
+  }
 }
