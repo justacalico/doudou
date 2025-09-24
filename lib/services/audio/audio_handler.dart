@@ -2467,7 +2467,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Touch Bar Integration Methods
   Future<void> _initializeTouchBar() async {
-    if (_touchBarService == null) return;
+    if (!_touchBarEnabled) return;
     
     try {
       await TouchBarService.initialize();
