@@ -290,29 +290,87 @@ Before submitting a merge request:
 
 > **💡 First time contributor?** Look for issues labeled `good first issue` to get started!
 
-## 📝 Legal
+## � Support & Community
 
-- [Privacy Policy](docs/privacy-policy.md)
-- [Terms of Service](docs/terms-of-service.md)
-- [Data Safety Information](docs/data-safety-info.md)
+### Getting Help
+- 🐛 **Bug Reports:** [GitLab Issues](https://gitlab.com/Openlyst/doudou/issues)
+- 💬 **Discussions:** [GitLab Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
+- 📧 **Direct Contact:** [Email Support](mailto:support@openlyst.com)
+- 📖 **Documentation:** [Project Wiki](https://gitlab.com/Openlyst/doudou/-/wikis/home)
 
-## 📞 Support
+### Jellyfin Community
+- 🌐 **Jellyfin Website:** [jellyfin.org](https://jellyfin.org/)
+- 💬 **Community Forum:** [forum.jellyfin.org](https://forum.jellyfin.org/)
+- 💭 **Discord Chat:** [Official Jellyfin Discord](https://discord.gg/zHBxVSXdBV)
+- 📱 **Mobile Apps:** [Third-party clients](https://jellyfin.org/clients/)
 
-- **Issues:** [GitHub Issues](https://gitlab.com/Openlyst/doudou/issues)
-  
+### Frequently Asked Questions
+
+<details>
+<summary><strong>Q: Can I use this with Plex or other media servers?</strong></summary>
+A: No, Doudou is specifically designed for Jellyfin servers. Each media server has different APIs and authentication methods.
+</details>
+
+<details>
+<summary><strong>Q: Does this work over the internet (remote access)?</strong></summary>
+A: Yes, as long as your Jellyfin server is accessible from your device's network. Consider using a VPN or properly configured reverse proxy for security.
+</details>
+
+<details>
+<summary><strong>Q: Why can't I see all my music?</strong></summary>
+A: Check your Jellyfin server's library scanning and user permissions. The user account must have access to music libraries.
+</details>
+
+<details>
+<summary><strong>Q: How do I enable offline downloads?</strong></summary>
+A: Long-press any track, album, or playlist and select "Download for offline listening." Downloads are stored locally on your device.
+</details>
+
 ## 🙏 Acknowledgments
 
-- [Jellyfin Project](https://jellyfin.org/) - Amazing open-source media server
-- [Flutter Team](https://flutter.dev/) - Excellent mobile development framework
-- [just_audio](https://pub.dev/packages/just_audio) - Reliable audio playback
-- [audio_service](https://pub.dev/packages/audio_service) - Background audio support
+This project wouldn't be possible without these amazing open-source projects:
+
+### Core Technologies
+- **[Jellyfin](https://jellyfin.org/)** - The free software media system that powers our backend
+- **[Flutter](https://flutter.dev/)** - Google's UI toolkit for building natively compiled applications
+- **[Dart](https://dart.dev/)** - The programming language optimized for apps on multiple platforms
+
+### Audio Libraries
+- **[just_audio](https://pub.dev/packages/just_audio)** - Feature-rich audio player for Flutter
+- **[audio_service](https://pub.dev/packages/audio_service)** - Background audio and system media controls  
+- **[audio_session](https://pub.dev/packages/audio_session)** - Audio session management and interruption handling
+
+### UI & Utilities
+- **[provider](https://pub.dev/packages/provider)** - State management solution
+- **[cached_network_image](https://pub.dev/packages/cached_network_image)** - Image caching and loading
+- **[shared_preferences](https://pub.dev/packages/shared_preferences)** - Persistent key-value storage
+
+### Community & Inspiration
+- **Jellyfin Community** - For creating an amazing self-hosted media ecosystem
+- **Flutter Community** - For continuous improvements and plugins
+- **Open Source Contributors** - Everyone who makes privacy-respecting software possible
 
 ## 📄 License
 
-This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for complete details.
+
+### What this means:
+- ✅ **Free to use** for personal and commercial purposes
+- ✅ **Free to modify** and distribute
+- ✅ **Source code** must remain available
+- ✅ **Derivative works** must use the same license
+- ❌ **No warranty** or liability provided
 
 ---
+
+<div align="center">
 
 **Made with ❤️ for the Jellyfin community**
 
 *Self-hosted music, beautifully presented*
+
+[![GitLab](https://img.shields.io/badge/GitLab-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/Openlyst/doudou)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?style=for-the-badge&logo=jellyfin&logoColor=white)](https://jellyfin.org)
+
+</div>
