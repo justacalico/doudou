@@ -11,6 +11,7 @@
 - Added a kebab menu (three dots) to the album details page with a download option.
 - Enhanced the kebab menu with "Play Next," "Play Later," and "Add to Favorites" options.
 - Added Android Auto support.
+- Added support for the macOS platform.
 
 ## Changed
 - Lyrics are now greyed out if none are available.
