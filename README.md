@@ -186,35 +186,35 @@ make windows   # Windows installer
 
 ### Android Release Signing
 
-For production builds and Google Play Store:
+For Google Play Store and production releases:
 
 ```bash
-# 1. Generate a keystore (one-time setup)
+# 1. Generate signing keystore (one-time setup)
 make generate-keystore
 
-# 2. Create environment setup script
+# 2. Create environment configuration
 make setup-signing
 
-# 3. Edit setup-signing.sh with your actual passwords
+# 3. Edit the generated script with your passwords
 nano setup-signing.sh
 
-# 4. Load environment variables
+# 4. Load signing environment
 source setup-signing.sh
 
-# 5. Build signed APK
-make android-signed
-
-# 6. Build App Bundle for Play Store
-make android-bundle
+# 5. Build signed release
+make android-signed    # Signed APK
+make android-bundle    # App Bundle for Play Store
 ```
 
-**Environment Variables Required:**
-- `KEYSTORE_PASSWORD` - Password for the keystore file
-- `KEY_PASSWORD` - Password for the signing key
-- `KEY_ALIAS` - Alias name for the signing key (default: 'doudou')
-- `KEYSTORE_PATH` - Path to keystore file (default: 'android/app/key.jks')
+#### Required Environment Variables
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `KEYSTORE_PASSWORD` | Keystore file password | `your_keystore_password` |
+| `KEY_PASSWORD` | Signing key password | `your_key_password` |  
+| `KEY_ALIAS` | Key alias name | `doudou` |
+| `KEYSTORE_PATH` | Keystore file path | `android/app/key.jks` |
 
-**Security Note:** Never commit signing files or passwords to version control. The keystore file and setup script are automatically excluded via `.gitignore`.
+> **🔐 Security:** Signing files and passwords are automatically excluded from version control via `.gitignore`.
 
 ### Release Preparation
 
