@@ -25,6 +25,10 @@ Note: Icon is planned to be changed once someone makes a new one this is just so
 ### Prerequisites
 - Personal Jellyfin media server (version 10.8+)
 - Android device (5.0+ / API level 21)
+- IOS (12+)
+- macOS (12+)
+- Linux
+- Windows* (Complety untested)
 - Network connection to your Jellyfin server
 
 ### Installation
