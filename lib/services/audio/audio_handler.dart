@@ -2082,6 +2082,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
     _concatenatingSource = null;
+    
+    // Dispose Touch Bar on macOS
+    if (Platform.isMacOS) {
+      _disposeTouchBar();
+    }
+    
     await _player.dispose();
   }
 
