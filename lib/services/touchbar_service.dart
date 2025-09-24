@@ -33,36 +33,6 @@ class TouchBarService {
     }
   }
 
-  /// Handle method calls from native Touch Bar
-  static Future<dynamic> _handleMethodCall(MethodCall call) async {
-    if (kDebugMode) {
-      print('Touch Bar method call: ${call.method}');
-    }
-    
-    switch (call.method) {
-      case 'playPause':
-        _onPlayPausePressed?.call();
-        break;
-      case 'previousTrack':
-        _onPreviousPressed?.call();
-        break;
-      case 'nextTrack':
-        _onNextPressed?.call();
-        break;
-      case 'seekTo':
-        final position = call.arguments['position'] as double;
-        _onSeekPressed?.call(Duration(milliseconds: (position * 1000).round()));
-        break;
-      case 'toggleFavorite':
-        _onFavoritePressed?.call();
-        break;
-      default:
-        if (kDebugMode) {
-          print('Unhandled Touch Bar method: ${call.method}');
-        }
-    }
-  }
-
   /// Set callback functions for Touch Bar button presses
   static void setCallbacks({
     VoidCallback? onPlayPause,
