@@ -58,8 +58,8 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 
 #### Option 1: Official Releases *(Recommended)*
 - 📱 **Google Play Store** - *Coming very soon!*
-- 🍎 **Apple App Store** - *In review process*
 - 💻 **GitHub Releases** - Download for desktop platforms
+- 🍎 **iOS** - Build from source (see development section)
 
 #### Option 2: Build from Source
 Perfect for developers and early adopters who want the latest features.
