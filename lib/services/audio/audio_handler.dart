@@ -517,12 +517,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         return preloadedPlayer.audioSource!;
       }
 
-      // Stream URLs fallback
-      final streamUrls = [
-        _jellyfinService.getDirectStreamUrl(track.id),
-        _jellyfinService.getStreamUrl(track.id),
-        _jellyfinService.getUniversalStreamUrl(track.id),
-      ];
+      // Stream URLs fallback with platform-optimized prioritization
+      List<String> streamUrls;
+      if (Platform.isMacOS) {
+        // macOS: Universal first, then transcoded, then direct
+        streamUrls = [
+          _jellyfinService.getUniversalStreamUrl(track.id),
+          _jellyfinService.getStreamUrl(track.id),
+          _jellyfinService.getDirectStreamUrl(track.id),
+        ];
+      } else {
+        // Android/other: Direct first, then transcoded, then universal
+        streamUrls = [
+          _jellyfinService.getDirectStreamUrl(track.id),
+          _jellyfinService.getStreamUrl(track.id),
+          _jellyfinService.getUniversalStreamUrl(track.id),
+        ];
+      }
 
       for (final streamUrl in streamUrls) {
         if (streamUrl.isNotEmpty) {
