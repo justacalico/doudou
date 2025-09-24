@@ -97,6 +97,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _statePersistence = AudioStatePersistence(_stateManager);
     _transitionManager = AudioTransitionManager();
     
+    // Initialize Touch Bar service on macOS
+    if (Platform.isMacOS) {
+      _touchBarService = TouchBarService();
+      _initializeTouchBar();
+    }
+    
     // Initialize iOS audio session FIRST before any other audio setup
     _initializeAudioSession();
     
