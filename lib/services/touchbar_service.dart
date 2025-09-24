@@ -1,29 +1,65 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:touch_bar/touch_bar.dart';
 import '../models/jellyfin_models.dart';
 
 /// Service for managing macOS Touch Bar integration
 /// Only active on macOS devices with Touch Bar support
 class TouchBarService {
   static bool _isInitialized = false;
+  static VoidCallback? _onPlayPause;
+  static VoidCallback? _onPrevious;
+  static VoidCallback? _onNext;
+  static Function(Duration)? _onSeek;
+  static VoidCallback? _onFavorite;
 
   /// Initialize Touch Bar support (macOS only)
   static Future<void> initialize() async {
     if (!Platform.isMacOS) return;
     
     try {
-      // For now, just mark as initialized without native implementation
+      await TouchBar.setTouchBar(_createTouchBar());
       _isInitialized = true;
       
       if (kDebugMode) {
-        print('Touch Bar service initialized (stub implementation)');
+        print('Touch Bar service initialized successfully');
       }
     } catch (e) {
       if (kDebugMode) {
         print('Touch Bar initialization failed: $e');
       }
     }
+  }
+
+  /// Create the TouchBar layout
+  static TouchBarItem _createTouchBar() {
+    return TouchBarGroup(
+      identifier: 'media-controls',
+      items: [
+        TouchBarButton(
+          identifier: 'previous',
+          text: '⏮',
+          onPressed: () => _onPrevious?.call(),
+        ),
+        TouchBarButton(
+          identifier: 'play-pause',
+          text: '⏸',
+          onPressed: () => _onPlayPause?.call(),
+        ),
+        TouchBarButton(
+          identifier: 'next',
+          text: '⏭',
+          onPressed: () => _onNext?.call(),
+        ),
+        TouchBarSpace.flexible(),
+        TouchBarButton(
+          identifier: 'favorite',
+          text: '♡',
+          onPressed: () => _onFavorite?.call(),
+        ),
+      ],
+    );
   }
 
   /// Set callback functions for Touch Bar button presses
@@ -34,9 +70,14 @@ class TouchBarService {
     Function(Duration)? onSeek,
     VoidCallback? onFavorite,
   }) {
-    // Stub implementation - would store callbacks for native Touch Bar
+    _onPlayPause = onPlayPause;
+    _onPrevious = onPrevious;
+    _onNext = onNext;
+    _onSeek = onSeek;
+    _onFavorite = onFavorite;
+    
     if (kDebugMode) {
-      print('Touch Bar callbacks set (stub implementation)');
+      print('Touch Bar callbacks set successfully');
     }
   }
 
