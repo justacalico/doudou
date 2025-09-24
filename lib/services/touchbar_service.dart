@@ -156,11 +156,11 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
-      await _channel.invokeMethod('dispose');
+      // Stub implementation
       _isInitialized = false;
       
       if (kDebugMode) {
-        print('Touch Bar disposed');
+        print('Touch Bar service disposed');
       }
     } catch (e) {
       if (kDebugMode) {
