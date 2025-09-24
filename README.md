@@ -1,10 +1,17 @@
 # 🎵 Doudou - Jellyfin Music Player
 
-A beautiful, privacy-focused music player for your personal Jellyfin media server.
+A beautiful, privacy-focused music player for your personal Jellyfin media server. Enjoy your self-hosted music collection with a modern, intuitive interface across all your devices.
 
-![Doudou Logo](android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
+<div align="center">
 
-Note: Icon is planned to be changed once someone makes a new one this is just so there is one in place and as a refernce.
+![Platform Support](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Linux%20%7C%20Windows-blue)
+![License](https://img.shields.io/badge/License-GPL--3.0-green)
+![Flutter](https://img.shields.io/badge/Built%20with-Flutter-02569B?logo=flutter)
+![Jellyfin](https://img.shields.io/badge/Works%20with-Jellyfin-00A4DC?logo=jellyfin)
+
+</div>
+
+> **Note:** Icon is planned to be updated once a new design is created. Current icon serves as a placeholder and reference.
 
 ---
 
