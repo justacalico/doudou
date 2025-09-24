@@ -155,9 +155,15 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
-      // Stub implementation
+      if (enabled && _touchBar != null) {
+        await setTouchBar(_touchBar!);
+      } else {
+        // Clear the TouchBar by setting an empty one
+        await setTouchBar(TouchBar(children: []));
+      }
+      
       if (kDebugMode) {
-        print('Would ${enabled ? 'enable' : 'disable'} Touch Bar controls');
+        print('Touch Bar controls ${enabled ? 'enabled' : 'disabled'}');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -179,7 +185,9 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
-      // Stub implementation
+      // Clear the TouchBar
+      await setTouchBar(TouchBar(children: []));
+      _touchBar = null;
       _isInitialized = false;
       
       if (kDebugMode) {
