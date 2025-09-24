@@ -84,6 +84,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     playbackState.add(finalState);
     
+    // Update Touch Bar with new playback state
+    if (Platform.isMacOS) {
+      _updateTouchBarPlaybackState();
+    }
+    
     if (kDebugMode) {
       print('Updated playback state - Playing: ${finalState.playing}, Processing: ${finalState.processingState}');
     }
