@@ -1307,6 +1307,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Update Touch Bar with new track
     if (Platform.isMacOS) {
       _updateTouchBarWithCurrentTrack();
+      _loadLyricsForCurrentTrack();
     }
     
     // Store playing state for background compatibility
