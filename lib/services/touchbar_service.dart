@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import '../models/jellyfin_models.dart';
 
 /// Service for managing macOS Touch Bar integration
 /// Only active on macOS devices with Touch Bar support
 class TouchBarService {
-  static const _channel = MethodChannel('com.openlyst.doudou/touchbar');
   static bool _isInitialized = false;
   
   // Callback functions for Touch Bar interactions
