@@ -86,15 +86,14 @@ class TouchBarService {
     
     try {
       if (track != null) {
-        await _channel.invokeMethod('updateNowPlaying', {
-          'title': track.name,
-          'artist': track.artistName ?? 'Unknown Artist',
-          'album': track.albumName ?? 'Unknown Album',
-          'duration': track.duration?.inMilliseconds.toDouble() ?? 0.0,
-          'trackId': track.id,
-        });
+        // Stub implementation - would call native method
+        if (kDebugMode) {
+          print('Would update Touch Bar with: ${track.name} - ${track.artistName ?? 'Unknown Artist'}');
+        }
       } else {
-        await _channel.invokeMethod('clearNowPlaying');
+        if (kDebugMode) {
+          print('Would clear Touch Bar now playing');
+        }
       }
       
       if (kDebugMode) {
@@ -117,15 +116,9 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
-      await _channel.invokeMethod('updatePlaybackState', {
-        'isPlaying': isPlaying,
-        'position': position.inMilliseconds.toDouble(),
-        'duration': duration.inMilliseconds.toDouble(),
-        'isFavorite': isFavorite ?? false,
-      });
-      
+      // Stub implementation - would call native method
       if (kDebugMode) {
-        print('Touch Bar updated - Playing: $isPlaying, Position: ${_formatDuration(position)}');
+        print('Would update Touch Bar - Playing: $isPlaying, Position: ${_formatDuration(position)}/${_formatDuration(duration)}, Favorite: ${isFavorite ?? false}');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -139,7 +132,10 @@ class TouchBarService {
     if (!Platform.isMacOS || !_isInitialized) return;
     
     try {
-      await _channel.invokeMethod('setControlsEnabled', {'enabled': enabled});
+      // Stub implementation
+      if (kDebugMode) {
+        print('Would ${enabled ? 'enable' : 'disable'} Touch Bar controls');
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Failed to set Touch Bar controls enabled: $e');
