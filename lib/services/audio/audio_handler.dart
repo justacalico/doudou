@@ -28,7 +28,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   LyricsResult? _currentLyrics;
   int _currentLyricsLineIndex = -1;
   String? _lastLyricsTrackId;
-  DateTime? _lastLyricsUpdate;
   
   // Component managers
   late final AudioStateManager _stateManager;
