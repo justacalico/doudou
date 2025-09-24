@@ -120,25 +120,68 @@ Doudou only communicates with:
 
 ## 🛠️ Development
 
-### Building from Source
+### Development Environment Setup
 
 ```bash
-# Clone the repository
+# Prerequisites
+flutter --version  # Ensure Flutter 3.8.0+
+dart --version     # Ensure Dart 3.0.0+
+
+# Clone and setup
 git clone https://gitlab.com/Openlyst/doudou.git
 cd doudou
-
-# Install dependencies
 flutter pub get
 
-# Run in development
-flutter run
+# Run on device/emulator
+flutter run --debug    # Development build
+flutter run --release  # Performance testing
+```
 
-# Build
-makae android
+### Project Structure
+```
+doudou/
+├── lib/
+│   ├── models/          # Data models (Jellyfin API)
+│   ├── providers/       # State management
+│   ├── screens/         # UI screens
+│   ├── services/        # Business logic
+│   └── widgets/         # Reusable components
+├── android/             # Android-specific code
+├── ios/                 # iOS-specific code
+├── macos/              # macOS-specific code
+├── linux/              # Linux-specific code
+├── windows/            # Windows-specific code
+└── docs/               # Documentation
+```
+
+### Building Releases
+
+#### Android
+```bash
+# Development APK
+make android
+
+# Signed release (requires keystore setup)
+make generate-keystore  # One-time setup
+make setup-signing      # Configure environment
+source setup-signing.sh # Load signing credentials  
+make android-signed     # Signed APK
+make android-bundle     # Play Store bundle
+```
+
+#### iOS & macOS
+```bash
+# iOS (requires Xcode and Apple Developer account)
 make ios
-make linux
+
+# macOS
 make macos
-make windows
+```
+
+#### Desktop Platforms
+```bash
+make linux    # Linux AppImage/deb
+make windows   # Windows installer
 ```
 
 ### Android Release Signing
