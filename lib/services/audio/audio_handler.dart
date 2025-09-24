@@ -1568,10 +1568,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e');
         }
         
-        // On iOS, try the next URL immediately without delay
-        if (Platform.isIOS && i < streamUrls.length - 1) {
+        // Platform-specific URL retry logic
+        if ((Platform.isIOS || Platform.isMacOS) && i < streamUrls.length - 1) {
           if (kDebugMode) {
-            print('iOS: Trying next stream URL immediately...');
+            print('${Platform.isIOS ? "iOS" : "macOS"}: Trying next stream URL immediately...');
           }
           continue;
         }
@@ -1583,6 +1583,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Failed to load any stream for: ${track.name}, last error: $lastError');
         if (Platform.isIOS) {
           print('iOS: Consider checking stream format compatibility');
+        } else if (Platform.isMacOS) {
+          print('macOS: Consider checking network permissions and stream format compatibility');
         }
       }
       
