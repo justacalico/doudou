@@ -55,10 +55,42 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 - Network connection to your Jellyfin server
 
 ### Installation
-1. Download from Google Play Store *(coming VERY soon)*
-2. Open Doudou and enter your Jellyfin server details
-3. Login with your Jellyfin credentials
-4. Start enjoying your music!
+
+#### Option 1: Official Releases *(Recommended)*
+- 📱 **Google Play Store** - *Coming very soon!*
+- 🍎 **Apple App Store** - *In review process*
+- 💻 **GitHub Releases** - Download for desktop platforms
+
+#### Option 2: Build from Source
+Perfect for developers and early adopters who want the latest features.
+
+```bash
+# Clone the repository
+git clone https://gitlab.com/Openlyst/doudou.git
+cd doudou
+
+# Install dependencies
+flutter pub get
+
+# Run in development mode
+flutter run
+
+# Build for your platform
+make android    # Android APK
+make ios        # iOS app
+make macos      # macOS app
+make linux      # Linux executable
+make windows    # Windows executable
+```
+
+### Quick Setup
+1. **Install** Doudou on your device
+2. **Launch** the app and tap "Add Server"
+3. **Enter** your Jellyfin server URL (e.g., `http://192.168.1.100:8096`)
+4. **Login** with your Jellyfin username and password
+5. **Enjoy** your music collection!
+
+> **💡 Tip:** Make sure your Jellyfin server is accessible from your device's network. For remote access, consider setting up a VPN or reverse proxy.
 
 ## 🔒 Privacy & Data
 
