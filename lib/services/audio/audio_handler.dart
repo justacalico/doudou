@@ -1495,8 +1495,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       try {
         if (streamUrl.isNotEmpty) {
+          String platformOptimization;
+          if (Platform.isIOS) {
+            platformOptimization = "iOS optimized";
+          } else if (Platform.isMacOS) {
+            platformOptimization = "macOS optimized";
+          } else {
+            platformOptimization = "Android optimized";
+          }
+          
           if (kDebugMode) {
-            print('Attempting to load stream ${i + 1}/${streamUrls.length}: ${Platform.isIOS ? "iOS optimized" : "Android optimized"} order');
+            print('Attempting to load stream ${i + 1}/${streamUrls.length}: $platformOptimization order');
+            print('Stream URL: $streamUrl');
           }
           
           if (_shouldTranscodeTrack(track)) {
