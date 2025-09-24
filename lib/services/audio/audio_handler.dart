@@ -1529,9 +1529,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             }
           }
           
-          // iOS needs longer delays for stream initialization and buffering
+          // Platform-specific delays for stream initialization and buffering
           if (Platform.isIOS) {
             await Future.delayed(const Duration(milliseconds: 800)); // Longer delay for iOS
+          } else if (Platform.isMacOS) {
+            await Future.delayed(const Duration(milliseconds: 500)); // Medium delay for macOS
           } else {
             await Future.delayed(const Duration(milliseconds: 200)); // Shorter for Android
           }
