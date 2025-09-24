@@ -153,9 +153,18 @@ class AudioPreloader {
       }
       
       if (!loaded) {
-        // Stream preloading - use optimized URL selection
-        final fallbackUrl = _jellyfinService.getDirectStreamUrl(track.id);
-        final primaryUrl = _jellyfinService.getStreamUrl(track.id);
+        // Stream preloading - use platform-optimized URL selection
+        String primaryUrl, fallbackUrl;
+        
+        if (Platform.isMacOS) {
+          // macOS: Universal first, then transcoded
+          primaryUrl = _jellyfinService.getUniversalStreamUrl(track.id);
+          fallbackUrl = _jellyfinService.getStreamUrl(track.id);
+        } else {
+          // Android/other: Direct first, then transcoded
+          primaryUrl = _jellyfinService.getDirectStreamUrl(track.id);
+          fallbackUrl = _jellyfinService.getStreamUrl(track.id);
+        }
         
         // Try direct stream first (optimized based on server behavior)
         try {
