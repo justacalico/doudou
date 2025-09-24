@@ -2583,6 +2583,62 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  void _loadLyricsForCurrentTrack() async {
+    if (!_touchBarEnabled) return;
+    
+    final currentTrack = _stateManager.currentTrack;
+    if (currentTrack == null) {
+      _currentLyrics = null;
+      _currentLyricsLineIndex = -1;
+      _lastLyricsTrackId = null;
+      TouchBarService.updateLyrics(null);
+      return;
+    }
+    
+    // Skip if we already have lyrics for this track
+    if (_lastLyricsTrackId == currentTrack.id && _currentLyrics != null) {
+      return;
+    }
+    
+    try {
+      if (kDebugMode) {
+        print('Loading lyrics for: ${currentTrack.name} - ${currentTrack.artistName ?? 'Unknown Artist'}');
+      }
+      
+      final lyricsResult = await LyricsService.fetchLyrics(
+        currentTrack.name,
+        currentTrack.artistName ?? 'Unknown Artist',
+      );
+      
+      if (lyricsResult != null && lyricsResult.hasSyncedLyrics) {
+        _currentLyrics = lyricsResult;
+        _currentLyricsLineIndex = -1;
+        _lastLyricsTrackId = currentTrack.id;
+        
+        if (kDebugMode) {
+          print('Loaded synced lyrics for TouchBar with ${lyricsResult.syncedLyrics?.length ?? 0} lines');
+        }
+      } else {
+        _currentLyrics = null;
+        _currentLyricsLineIndex = -1;
+        _lastLyricsTrackId = currentTrack.id;
+        TouchBarService.updateLyrics(null);
+        
+        if (kDebugMode) {
+          print('No synced lyrics available for TouchBar');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading lyrics for TouchBar: $e');
+      }
+      _currentLyrics = null;
+      _currentLyricsLineIndex = -1;
+      _lastLyricsTrackId = currentTrack.id;
+      TouchBarService.updateLyrics(null);
+    }
+  }
+
   void _disposeTouchBar() {
     if (_touchBarEnabled) {
       TouchBarService.dispose();
