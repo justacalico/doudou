@@ -36,27 +36,38 @@ class TouchBarService {
 
   /// Create the TouchBar layout
   static TouchBar _createTouchBar() {
-    return TouchBar(
-      children: [
-        TouchBarButton(
-          label: '⏮',
-          onClick: () => _onPrevious?.call(),
-        ),
-        TouchBarButton(
-          label: '⏸',
-          onClick: () => _onPlayPause?.call(),
-        ),
-        TouchBarButton(
-          label: '⏭',
-          onClick: () => _onNext?.call(),
-        ),
+    List<dynamic> children = [
+      TouchBarButton(
+        label: '⏮',
+        onClick: () => _onPrevious?.call(),
+      ),
+      TouchBarButton(
+        label: '⏸',
+        onClick: () => _onPlayPause?.call(),
+      ),
+      TouchBarButton(
+        label: '⏭',
+        onClick: () => _onNext?.call(),
+      ),
+    ];
+    
+    // Add lyrics display if available
+    if (_currentLyricsText != null && _currentLyricsText!.isNotEmpty) {
+      children.addAll([
         TouchBarSpace.flexible(),
-        TouchBarButton(
-          label: '♡',
-          onClick: () => _onFavorite?.call(),
-        ),
-      ],
-    );
+        TouchBarLabel(text: _currentLyricsText!),
+        TouchBarSpace.flexible(),
+      ]);
+    } else {
+      children.add(TouchBarSpace.flexible());
+    }
+    
+    children.add(TouchBarButton(
+      label: '♡',
+      onClick: () => _onFavorite?.call(),
+    ));
+
+    return TouchBar(children: children);
   }
 
   /// Set callback functions for Touch Bar button presses
