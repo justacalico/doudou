@@ -59,11 +59,12 @@ flutter pub get
 # Run in development
 flutter run
 
-# Build debug APK
-make android
-
-# Build release APK (debug signed)
-flutter build apk --release
+# Build
+makae android
+make ios
+make linux
+make macos
+make windows
 ```
 
 ### Android Release Signing
