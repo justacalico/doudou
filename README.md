@@ -224,11 +224,7 @@ make android-bundle    # App Bundle for Play Store
 - **Content Rating:** Everyone
 - **Category:** Music & Audio
 
-### Apple App Store  
-- **Status:** In review process
-- **Target:** Q1 2025
-- **Content Rating:** 4+
-- **Category:** Music
+> **📱 iOS Users:** While we don't distribute through the App Store, you can build the app from source using Xcode. See the development section for instructions.
 
 ### Data Safety Declaration
 ✅ **No data collection or sharing**
