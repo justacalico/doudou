@@ -225,6 +225,9 @@ class TouchBarService {
   static Future<void> updateLyrics(String? lyricsText) async {
     if (!Platform.isMacOS || !_isInitialized) return;
 
+    // Don't update if the lyrics text hasn't changed
+    if (_currentLyricsText == lyricsText) return;
+
     try {
       _currentLyricsText = lyricsText;
       
