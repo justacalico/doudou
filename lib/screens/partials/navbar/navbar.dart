@@ -2192,4 +2192,67 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildPlaylistItem(Playlist playlist, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () async {
+          // Play the playlist
+          try {
+            await appState.playPlaylist(playlist);
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error playing playlist: $e');
+            }
+            // Show error dialog
+            if (mounted) {
+              showCupertinoDialog(
+                context: context,
+                builder: (BuildContext context) => CupertinoAlertDialog(
+                  title: const Text('Error'),
+                  content: Text('Failed to play playlist: ${playlist.name}'),
+                  actions: <CupertinoDialogAction>[
+                    CupertinoDialogAction(
+                      child: const Text('OK'),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                CupertinoIcons.music_note_list,
+                size: 16,
+                color: CupertinoColors.systemGrey2,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  playlist.name,
+                  style: const TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
