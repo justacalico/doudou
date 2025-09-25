@@ -69,3 +69,4 @@ setup-signing.sh
 *.png
 /audiov2
 .notes.txt
+/.vscode

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'dart:ui';
@@ -11,6 +12,7 @@ import '../../libary/library.dart';
 import '../../settings/settings.dart';
 import '../../search/search.dart';
 import '../../downloads/downloads.dart';
+import '../../playlists/playlists.dart';
 import '../player/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -1919,90 +1921,322 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
 
-        return Stack(
-          children: [
-            // Main content without tab scaffold
-            IndexedStack(
-              index: _tabController.index,
-              children: [
-                _buildTabContent(0, appState), // Home
-                _buildTabContent(1, appState), // Library
-                _buildTabContent(2, appState), // Downloads
-                _buildTabContent(3, appState), // Search
-                _buildTabContent(4, appState), // Settings
-              ],
-            ),
+        // Check if we're on a desktop platform
+        final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+        
+        if (isDesktop) {
+          // Desktop layout with sidebar
+          return _buildDesktopLayout(appState);
+        } else {
+          // Mobile layout with bottom navigation
+          return _buildMobileLayout(appState);
+        }
+      },
+    );
+  }
 
-            // Custom glassmorphism tab bar positioned at the bottom
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                height:
-                    97, // 65px height + 32px margin (16px top + 16px bottom)
-                padding: const EdgeInsets.all(16),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        // Glassmorphism effect
-                        color: const Color(0xFF000000).withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFFFFFFFF).withOpacity(0.2),
-                          width: 1,
-                        ),
-                        // Enhanced shadow for floating effect
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x40000000),
-                            offset: Offset(0, 8),
-                            blurRadius: 16,
-                          ),
-                          BoxShadow(
-                            color: Color(0x20000000),
-                            offset: Offset(0, 4),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildTabBarItem(
-                            0,
-                            CupertinoIcons.house_fill,
-                            appState,
-                          ),
-                          _buildTabBarItem(
-                            1,
-                            CupertinoIcons.music_note_list,
-                            appState,
-                          ),
-                          _buildTabBarItem(
-                            2,
-                            CupertinoIcons.arrow_down_circle,
-                            appState,
-                          ),
-                          _buildTabBarItem(3, CupertinoIcons.search, appState),
-                          _buildTabBarItem(
-                            4,
-                            CupertinoIcons.settings,
-                            appState,
-                          ),
-                        ],
-                      ),
+  Widget _buildMobileLayout(AppState appState) {
+    return Stack(
+      children: [
+        // Main content without tab scaffold
+        IndexedStack(
+          index: _tabController.index,
+          children: [
+            _buildTabContent(0, appState), // Home
+            _buildTabContent(1, appState), // Library
+            _buildTabContent(2, appState), // Downloads
+            _buildTabContent(3, appState), // Search
+            _buildTabContent(4, appState), // Settings
+          ],
+        ),
+
+        // Custom glassmorphism tab bar positioned at the bottom
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            height: 97, // 65px height + 32px margin (16px top + 16px bottom)
+            padding: const EdgeInsets.all(16),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    // Glassmorphism effect
+                    color: const Color(0xFF000000).withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFFFFFFF).withOpacity(0.2),
+                      width: 1,
                     ),
+                    // Enhanced shadow for floating effect
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x40000000),
+                        offset: Offset(0, 8),
+                        blurRadius: 16,
+                      ),
+                      BoxShadow(
+                        color: Color(0x20000000),
+                        offset: Offset(0, 4),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildTabBarItem(0, CupertinoIcons.house_fill, appState),
+                      _buildTabBarItem(1, CupertinoIcons.music_note_list, appState),
+                      _buildTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
+                      _buildTabBarItem(3, CupertinoIcons.search, appState),
+                      _buildTabBarItem(4, CupertinoIcons.settings, appState),
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(AppState appState) {
+    return Row(
+      children: [
+        // Sidebar
+        Container(
+          width: 240,
+          decoration: const BoxDecoration(
+            color: Color(0xFF1C1C1E),
+            border: Border(
+              right: BorderSide(
+                color: Color(0xFF38383A),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    const Icon(
+                      CupertinoIcons.music_note,
+                      color: CupertinoColors.systemPurple,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Doudou',
+                      style: TextStyle(
+                        color: CupertinoColors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (appState.isOfflineMode) ...[
+                      const Spacer(),
+                      const Icon(
+                        CupertinoIcons.wifi_slash,
+                        color: CupertinoColors.systemOrange,
+                        size: 16,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              
+              // Offline mode banner
+              if (appState.isOfflineMode)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemOrange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: CupertinoColors.systemOrange.withOpacity(0.3),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        CupertinoIcons.wifi_slash,
+                        color: CupertinoColors.systemOrange,
+                        size: 16,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Offline Mode',
+                        style: TextStyle(
+                          color: CupertinoColors.systemOrange,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              
+              // Navigation items
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    _buildSidebarItem(0, CupertinoIcons.house_fill, 'Home', appState),
+                    _buildSidebarItem(1, CupertinoIcons.music_note_list, 'Library', appState),
+                    _buildSidebarItem(2, CupertinoIcons.arrow_down_circle, 'Downloads', appState),
+                    _buildSidebarItem(3, CupertinoIcons.search, 'Search', appState),
+                    _buildSidebarItem(4, CupertinoIcons.settings, 'Settings', appState),
+                    
+                    // Playlists section (only on desktop)
+                    if (appState.playlists.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: const Text(
+                          'Playlists',
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...appState.playlists.take(8).map((playlist) => 
+                        _buildPlaylistItem(playlist, appState)
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // Main content area
+        Expanded(
+          child: IndexedStack(
+            index: _tabController.index,
+            children: [
+              _buildTabContent(0, appState), // Home
+              _buildTabContent(1, appState), // Library
+              _buildTabContent(2, appState), // Downloads
+              _buildTabContent(3, appState), // Search
+              _buildTabContent(4, appState), // Settings
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSidebarItem(int index, IconData icon, String label, AppState appState) {
+    final isActive = _tabController.index == index;
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          setState(() {
+            if (_tabController.index == index) {
+              // Double tap - reload tab
+              _reloadCurrentTab(index);
+            } else {
+              _tabController.index = index;
+              _previousIndex = index;
+            }
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive 
+                ? CupertinoColors.systemPurple.withOpacity(0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: isActive 
+                ? Border.all(color: CupertinoColors.systemPurple.withOpacity(0.3))
+                : null,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isActive
+                    ? CupertinoColors.systemPurple
+                    : CupertinoColors.systemGrey,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isActive
+                      ? CupertinoColors.systemPurple
+                      : CupertinoColors.white,
+                  fontSize: 16,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaylistItem(Playlist playlist, AppState appState) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          // Navigate to playlist detail screen
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => PlaylistDetailScreen(playlist: playlist),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                CupertinoIcons.music_note_list,
+                size: 16,
+                color: CupertinoColors.systemGrey2,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  playlist.name,
+                  style: const TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
