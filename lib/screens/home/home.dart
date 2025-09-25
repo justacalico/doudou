@@ -884,4 +884,62 @@ class _HomeContentState extends State<HomeContent> {
       ),
     );
   }
+
+  Widget _buildShuffleButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required bool isPrimary,
+  }) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: onPressed,
+      child: Container(
+        height: 56, // Slightly taller for desktop
+        decoration: BoxDecoration(
+          color: isPrimary 
+              ? const Color(0xFFE91E63).withOpacity(0.12)
+              : const Color(0xFFE91E63).withOpacity(0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isPrimary
+                ? const Color(0xFFE91E63).withOpacity(0.3)
+                : const Color(0xFFE91E63).withOpacity(0.15),
+            width: 1,
+          ),
+          // Enhanced shadow for desktop
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFE91E63).withOpacity(0.1),
+              offset: const Offset(0, 4),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon, 
+              color: isPrimary
+                  ? const Color(0xFFE91E63)
+                  : const Color(0xFFE91E63).withOpacity(0.8), 
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                color: isPrimary
+                    ? const Color(0xFFE91E63)
+                    : const Color(0xFFE91E63).withOpacity(0.8),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
