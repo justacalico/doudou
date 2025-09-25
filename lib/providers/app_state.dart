@@ -217,7 +217,16 @@ class AppState extends ChangeNotifier {
             if (kDebugMode) {
               print('Platform.isAndroid: ${Platform.isAndroid}, about to load library data...');
             }
-            await loadLibraryData();
+            
+            // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
+            if (Platform.isLinux) {
+              if (kDebugMode) {
+                print('AppState: Using refreshLibraryData for Linux platform during initialization to ensure UI updates');
+              }
+              await refreshLibraryData();
+            } else {
+              await loadLibraryData();
+            }
           } else {
             // Credentials are invalid, clear them
             await prefs.remove('jellyfin_server');
@@ -423,7 +432,15 @@ class AppState extends ChangeNotifier {
         }
         
         try {
-          await loadLibraryData();
+          // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
+          if (Platform.isLinux) {
+            if (kDebugMode) {
+              print('AppState: Using refreshLibraryData for Linux platform to ensure UI updates');
+            }
+            await refreshLibraryData();
+          } else {
+            await loadLibraryData();
+          }
         } catch (e) {
           if (kDebugMode) {
             print('AppState: Exception during loadLibraryData: $e');
