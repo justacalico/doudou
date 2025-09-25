@@ -203,6 +203,29 @@ class AppState extends ChangeNotifier {
                 // Continue without audio handler
                 _audioHandler = null;
               }
+            } else if (Platform.isLinux) {
+              // Linux: Initialize audio handler without AudioService wrapper (like iOS)
+              try {
+                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+                
+                // Apply user settings to the audio handler
+                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+                
+                // Set up listeners for automatic UI updates
+                _setupAudioHandlerListeners();
+                
+                if (kDebugMode) {
+                  print('Linux audio handler initialized successfully');
+                }
+              } catch (audioError) {
+                if (kDebugMode) {
+                  print('Failed to initialize Linux audio handler: $audioError');
+                }
+                // Continue without audio handler
+                _audioHandler = null;
+              }
             } else {
               if (kDebugMode) {
                 print('Audio service initialization skipped on unsupported platform');
