@@ -2112,7 +2112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 8),
                       ...appState.playlists.take(8).map((playlist) => 
                         _buildPlaylistItem(playlist, appState)
-                      ).toList(),
+                      ),
                     ],
                   ],
                 ),
