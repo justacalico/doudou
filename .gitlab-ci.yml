@@ -169,9 +169,11 @@ publish_release:
     - job: "build_release_apk"
     - job: "build_debug_linux"
     - job: "build_release_linux"
+    - job: "build_debug_web"
+    - job: "build_release_web"
   allow_failure: true
   script:
-    - echo "Publishing release with APKs and Linux builds for pipeline $CI_PIPELINE_ID"
+    - echo "Publishing release with APKs, Linux builds, and Web builds for pipeline $CI_PIPELINE_ID"
   release:
     name: "Release Pipeline $CI_PIPELINE_ID"
     description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
