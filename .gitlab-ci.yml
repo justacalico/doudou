@@ -28,8 +28,8 @@ build_debug_apk:
     # Kill any existing Gradle daemons
     - pkill -f gradle || true
     # Fetch dependencies safely
-    - flutter pub get --verbose
-    - flutter build apk --debug --verbose
+    - flutter pub get 
+    - flutter build apk --debug 
   after_script:
     - pkill -f gradle || true
   artifacts:
@@ -50,7 +50,7 @@ build_release_apk:
     - flutter --version
     - flutter clean
     - pkill -f gradle || true
-    - flutter pub get --verbose
+    - flutter pub get 
     # Decode keystore from base64 CI variable to expected location
     - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
     # Create key.properties for signing
@@ -61,7 +61,7 @@ build_release_apk:
       keyAlias=$KEY_ALIAS
       storeFile=key.jks
       EOF
-    - flutter build apk --release --verbose
+    - flutter build apk --release 
   after_script:
     - pkill -f gradle || true
   artifacts:
@@ -86,8 +86,8 @@ build_debug_linux:
     - flutter --version
     - flutter config --enable-linux-desktop
     - flutter clean
-    - flutter pub get --verbose
-    - flutter build linux --debug --verbose
+    - flutter pub get 
+    - flutter build linux --debug 
   artifacts:
     paths:
       - build/linux/x64/debug/bundle/
@@ -110,8 +110,8 @@ build_release_linux:
     - flutter --version
     - flutter config --enable-linux-desktop
     - flutter clean
-    - flutter pub get --verbose
-    - flutter build linux --release --verbose
+    - flutter pub get 
+    - flutter build linux --release 
   artifacts:
     paths:
       - build/linux/x64/release/bundle/
@@ -131,8 +131,8 @@ build_debug_web:
     - flutter --version
     - flutter config --enable-web
     - flutter clean
-    - flutter pub get --verbose
-    - flutter build web --debug --verbose
+    - flutter pub get 
+    - flutter build web --debug 
   artifacts:
     paths:
       - build/web/
@@ -152,8 +152,8 @@ build_release_web:
     - flutter --version
     - flutter config --enable-web
     - flutter clean
-    - flutter pub get --verbose
-    - flutter build web --release --verbose
+    - flutter pub get 
+    - flutter build web --release 
   artifacts:
     paths:
       - build/web/
