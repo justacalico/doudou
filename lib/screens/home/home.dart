@@ -276,8 +276,7 @@ class _HomeContentState extends State<HomeContent> {
                                       );
                                     }
                                   },
-                                    isPrimary: false,
-                                  ),
+                                  isPrimary: false,
                                 ),
                               ),
                             ],
