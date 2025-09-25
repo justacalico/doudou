@@ -114,8 +114,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _initializeTouchBar();
     }
     
-    // Initialize iOS audio session FIRST before any other audio setup
-    _initializeAudioSession();
+    // Initialize iOS audio session FIRST before any other audio setup (iOS only)
+    if (Platform.isIOS) {
+      _initializeAudioSession();
+    }
     
     _init();
     _loadPlaybackState();
