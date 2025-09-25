@@ -2093,6 +2093,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildSidebarItem(2, CupertinoIcons.arrow_down_circle, 'Downloads', appState),
                     _buildSidebarItem(3, CupertinoIcons.search, 'Search', appState),
                     _buildSidebarItem(4, CupertinoIcons.settings, 'Settings', appState),
+                    
+                    // Playlists section (only on desktop)
+                    if (appState.playlists.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: const Text(
+                          'Playlists',
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...appState.playlists.take(8).map((playlist) => 
+                        _buildPlaylistItem(playlist, appState)
+                      ).toList(),
+                    ],
                   ],
                 ),
               ),
