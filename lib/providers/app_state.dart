@@ -433,11 +433,38 @@ class AppState extends ChangeNotifier {
             }
             // Continue without audio service
           }
+        } else if (Platform.isLinux) {
+          // Linux: Initialize audio handler without AudioService wrapper (like iOS)
+          try {
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+            
+            // Apply user settings to the audio handler
+            _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+            
+            // Set up listeners for automatic UI updates
+            _setupAudioHandlerListeners();
+            
+            if (kDebugMode) {
+              print('Linux audio handler initialized successfully after login');
+            }
+            
+            // Notify listeners that login is complete
+            notifyListeners();
+          } catch (audioError) {
+            if (kDebugMode) {
+              print('Failed to initialize Linux audio handler after login: $audioError');
+            }
+            // Continue without audio handler
+            _audioHandler = null;
+            notifyListeners();
+          }
         } else {
           if (kDebugMode) {
             print('Audio service initialization skipped on non-Android platform');
           }
-          // On non-Android platforms, we don't use AudioService
+          // On other platforms, we don't use AudioService
           _audioHandler = null;
           
           // Notify listeners that login is complete
