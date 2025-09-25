@@ -12,6 +12,7 @@ import '../../libary/library.dart';
 import '../../settings/settings.dart';
 import '../../search/search.dart';
 import '../../downloads/downloads.dart';
+import '../../playlists/playlists.dart';
 import '../player/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -2198,51 +2199,14 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        onPressed: () async {
-          // Play the playlist by fetching its tracks first
-          try {
-            final playlistTracks = await appState.jellyfinService.getPlaylistTracks(playlist.id);
-            if (playlistTracks.isNotEmpty) {
-              await appState.playPlaylist(playlistTracks, 0);
-            } else {
-              // Show empty playlist message
-              if (mounted) {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (BuildContext context) => CupertinoAlertDialog(
-                    title: const Text('Empty Playlist'),
-                    content: Text('The playlist "${playlist.name}" is empty.'),
-                    actions: <CupertinoDialogAction>[
-                      CupertinoDialogAction(
-                        child: const Text('OK'),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Error playing playlist: $e');
-            }
-            // Show error dialog
-            if (mounted) {
-              showCupertinoDialog(
-                context: context,
-                builder: (BuildContext context) => CupertinoAlertDialog(
-                  title: const Text('Error'),
-                  content: Text('Failed to play playlist: ${playlist.name}'),
-                  actions: <CupertinoDialogAction>[
-                    CupertinoDialogAction(
-                      child: const Text('OK'),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-              );
-            }
-          }
+        onPressed: () {
+          // Navigate to playlist detail screen
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => PlaylistDetailScreen(playlist: playlist),
+            ),
+          );
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
