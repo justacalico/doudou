@@ -2199,9 +2199,29 @@ class _HomeScreenState extends State<HomeScreen> {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () async {
-          // Play the playlist
+          // Play the playlist by fetching its tracks first
           try {
-            await appState.playPlaylist(playlist);
+            final playlistTracks = await appState.jellyfinService.getPlaylistTracks(playlist.id);
+            if (playlistTracks.isNotEmpty) {
+              await appState.playPlaylist(playlistTracks, 0);
+            } else {
+              // Show empty playlist message
+              if (mounted) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (BuildContext context) => CupertinoAlertDialog(
+                    title: const Text('Empty Playlist'),
+                    content: Text('The playlist "${playlist.name}" is empty.'),
+                    actions: <CupertinoDialogAction>[
+                      CupertinoDialogAction(
+                        child: const Text('OK'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
           } catch (e) {
             if (kDebugMode) {
               print('Error playing playlist: $e');
