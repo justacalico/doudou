@@ -272,8 +272,9 @@ class _HomeContentState extends State<HomeContent> {
                                               onPressed: () => Navigator.of(context).pop(),
                                             ),
                                           ],
-                                        );
-                                      }
+                                        ),
+                                      );
+                                    }
                                     },
                                     isPrimary: false,
                                   ),
