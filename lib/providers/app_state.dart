@@ -413,10 +413,17 @@ class AppState extends ChangeNotifier {
           print('AppState: Authentication success, setting up login state...');
         }
         
-        _isLoggedIn = true;
-        
-        // Initialize cache service first
-        await _cacheService.initialize();
+        try {
+          _isLoggedIn = true;
+          
+          // Initialize cache service first
+          if (kDebugMode) {
+            print('AppState: Initializing cache service...');
+          }
+          await _cacheService.initialize();
+          if (kDebugMode) {
+            print('AppState: Cache service initialized successfully');
+          }
         
         // Try to initialize audio handler after successful login
         // Only initialize audio service on Android (needed for background audio and Android Auto)
