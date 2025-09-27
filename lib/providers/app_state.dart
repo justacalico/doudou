@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -657,7 +658,7 @@ class AppState extends ChangeNotifier {
           _isOfflineMode = false;
           
           // Reload library data in background
-          unawaited(_loadFreshDataInBackground());
+          _loadFreshDataInBackground();
         } else {
           if (kDebugMode) {
             print('AppState: Failed to refresh token after network change');
