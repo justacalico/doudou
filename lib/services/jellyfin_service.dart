@@ -154,6 +154,8 @@ class JellyfinService {
           serverUrl: serverUrl,
           userId: data['User']['Id'],
           accessToken: data['AccessToken'],
+          username: username,
+          password: password,
         );
         
         _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
