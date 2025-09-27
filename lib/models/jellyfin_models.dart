@@ -3,12 +3,16 @@ class JellyfinServer {
   final String? apiKey;
   final String? userId;
   final String? accessToken;
+  final String? username;
+  final String? password;
 
   JellyfinServer({
     required this.serverUrl,
     this.apiKey,
     this.userId,
     this.accessToken,
+    this.username,
+    this.password,
   });
 
   Map<String, dynamic> toJson() {
@@ -17,6 +21,8 @@ class JellyfinServer {
       'apiKey': apiKey,
       'userId': userId,
       'accessToken': accessToken,
+      'username': username,
+      'password': password,
     };
   }
 
@@ -26,6 +32,8 @@ class JellyfinServer {
       apiKey: json['apiKey'],
       userId: json['userId'],
       accessToken: json['accessToken'],
+      username: json['username'],
+      password: json['password'],
     );
   }
 }
