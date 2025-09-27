@@ -112,6 +112,10 @@ class AppState extends ChangeNotifier {
               .timeout(const Duration(seconds: 10));
           
           if (isValid) {
+            if (kDebugMode) {
+              print('AppState: Saved credentials validated successfully during initialization');
+            }
+            
             // If successful, we're logged in and online
             _isLoggedIn = true;
             _isConnected = true;
