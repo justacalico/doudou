@@ -53,12 +53,52 @@ class JellyfinService {
     // Add error handling interceptor
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (error, handler) {
-        final networkError = _handleDioError(error);
-        handler.reject(DioException(
-          requestOptions: error.requestOptions,
-          error: networkError,
-          message: networkError.message,
-        ));
+        // Handle 401 errors with automatic token refresh
+        if (error.response?.statusCode == 401 && _server != null && _server!.username != null && _server!.password != null) {
+          // Attempt to refresh the token
+          _refreshToken().then((success) {
+            if (success) {
+              // Retry the original request with the new token
+              final options = error.requestOptions;
+              options.headers['X-Emby-Token'] = _server!.accessToken;
+              _dio.request(
+                options.path,
+                data: options.data,
+                queryParameters: options.queryParameters,
+                options: Options(
+                  method: options.method,
+                  headers: options.headers,
+                ),
+              ).then((response) {
+                handler.resolve(response);
+              }).catchError((retryError) {
+                // If retry fails, proceed with original error handling
+                final networkError = _handleDioError(error);
+                handler.reject(DioException(
+                  requestOptions: error.requestOptions,
+                  error: networkError,
+                  message: networkError.message,
+                ));
+              });
+            } else {
+              // Token refresh failed, proceed with original error handling
+              final networkError = _handleDioError(error);
+              handler.reject(DioException(
+                requestOptions: error.requestOptions,
+                error: networkError,
+                message: networkError.message,
+              ));
+            }
+          });
+        } else {
+          // Not a 401 or no credentials to refresh, handle normally
+          final networkError = _handleDioError(error);
+          handler.reject(DioException(
+            requestOptions: error.requestOptions,
+            error: networkError,
+            message: networkError.message,
+          ));
+        }
       },
     ));
   }
