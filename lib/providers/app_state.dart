@@ -620,27 +620,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Handle authentication errors with token refresh attempt
-  Future<bool> _handleAuthError(String operation) async {
-    if (kDebugMode) {
-      print('AppState: Authentication error during $operation, attempting token refresh...');
-    }
-
-    final refreshSuccess = await _attemptTokenRefresh();
-    
-    if (!refreshSuccess) {
-      if (kDebugMode) {
-        print('AppState: Token refresh failed, user needs to log in again');
-      }
-      
-      // Only logout if token refresh fails
-      logout();
-      return false;
-    }
-
-    return true;
-  }
-
   Future<void> loadLibraryData() async {
     if (!_isLoggedIn) {
       if (kDebugMode) {
