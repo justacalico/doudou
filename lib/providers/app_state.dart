@@ -518,7 +518,7 @@ class AppState extends ChangeNotifier {
 
         try {
           // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
-          if (Platform.isLinux) {
+          if (_isLinux) {
             if (kDebugMode) {
               print('AppState: Using refreshLibraryData for Linux platform to ensure UI updates');
             }
