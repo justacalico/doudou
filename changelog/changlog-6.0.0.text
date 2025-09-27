@@ -13,6 +13,7 @@
 - Added Android Auto support.
 - Added support for the macOS platform.
 - New desktop sidebar.
+- Added web builds.
 
 ## Changed
 - Lyrics are now greyed out if none are available.
