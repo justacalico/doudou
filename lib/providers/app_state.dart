@@ -18,6 +18,13 @@ class AppState extends ChangeNotifier {
   late final DownloadService _downloadService;
   DoudouAudioHandler? _audioHandler;
   
+  // Platform detection helpers (web-safe)
+  bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  bool get _isMacOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
+  bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
+  bool get _isWeb => kIsWeb;
+  
   bool _isLoggedIn = false;
   bool _isLoading = false;
   bool _isInitialized = false;
