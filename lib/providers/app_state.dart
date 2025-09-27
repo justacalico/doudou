@@ -239,7 +239,7 @@ class AppState extends ChangeNotifier {
             
             // Load initial data in background
             if (kDebugMode) {
-              print('Platform.isAndroid: ${Platform.isAndroid}, about to load library data...');
+              print('Platform.isLinux: ${Platform.isLinux}, Platform.isAndroid: ${Platform.isAndroid}, about to load library data...');
             }
             
             // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
@@ -247,7 +247,16 @@ class AppState extends ChangeNotifier {
               if (kDebugMode) {
                 print('AppState: Using refreshLibraryData for Linux platform during initialization to ensure UI updates');
               }
-              await refreshLibraryData();
+              try {
+                await refreshLibraryData();
+                if (kDebugMode) {
+                  print('AppState: Linux initialization library loading completed successfully');
+                }
+              } catch (e) {
+                if (kDebugMode) {
+                  print('AppState: Error during Linux initialization library loading: $e');
+                }
+              }
             } else {
               await loadLibraryData();
             }
