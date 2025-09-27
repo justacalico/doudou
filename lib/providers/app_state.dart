@@ -192,7 +192,7 @@ class AppState extends ChangeNotifier {
                 // Continue without audio service
                 _audioHandler = null;
               }
-            } else if (Platform.isIOS) {
+            } else if (_isIOS) {
               // iOS: Initialize audio handler without AudioService wrapper
               try {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
@@ -215,7 +215,7 @@ class AppState extends ChangeNotifier {
                 // Continue without audio handler
                 _audioHandler = null;
               }
-            } else if (Platform.isLinux) {
+            } else if (_isLinux) {
               // Linux: Initialize audio handler without AudioService wrapper (like iOS)
               try {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
