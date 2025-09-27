@@ -660,6 +660,8 @@ class JellyfinService {
           serverUrl: _server!.serverUrl,
           userId: data['User']['Id'],
           accessToken: data['AccessToken'],
+          username: _server!.username,
+          password: _server!.password,
         );
         
         // Update Dio headers with new token
@@ -674,6 +676,65 @@ class JellyfinService {
     } catch (e) {
       if (kDebugMode) {
         print('JellyfinService: Re-authentication failed: $e');
+      }
+    }
+    return false;
+  }
+
+  /// Internal method to refresh token using stored credentials
+  Future<bool> _refreshToken() async {
+    if (_server == null || _server!.username == null || _server!.password == null) {
+      if (kDebugMode) {
+        print('JellyfinService: Cannot refresh token - missing server or credentials');
+      }
+      return false;
+    }
+
+    try {
+      if (kDebugMode) {
+        print('JellyfinService: Attempting to refresh token for user ${_server!.username}');
+      }
+
+      final response = await _dio.post(
+        '/Users/AuthenticateByName',
+        data: {
+          'Username': _server!.username,
+          'Pw': _server!.password,
+        },
+        options: Options(
+          headers: {
+            'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
+          },
+          // Don't include the old token in the refresh request
+          extra: {'skipAuth': true},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        // Update the server with new access token
+        _server = JellyfinServer(
+          serverUrl: _server!.serverUrl,
+          userId: data['User']['Id'],
+          accessToken: data['AccessToken'],
+          username: _server!.username,
+          password: _server!.password,
+        );
+        
+        // Update Dio headers with new token
+        _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
+        
+        if (kDebugMode) {
+          print('JellyfinService: Token refresh successful. New token: ${_server!.accessToken?.substring(0, 8)}...');
+        }
+        
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('JellyfinService: Token refresh failed: $e');
       }
     }
     return false;
