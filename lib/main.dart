@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +12,7 @@ void main() async {
   
   // Allow both orientations for Android Auto compatibility
   // Android Auto requires landscape orientation support
-  if (Platform.isAndroid) {
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -78,11 +78,11 @@ class DoudouApp extends StatelessWidget {
   /// Wraps the app with platform-specific services
   Widget _buildAppWithPlatformServices(Widget app) {
     // On Android and macOS, use AudioServiceWidget for background audio support
-    if (Platform.isAndroid || Platform.isMacOS) {
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.macOS)) {
       return AudioServiceWidget(child: app);
     }
     
-    // On other platforms, return the app directly
+    // On other platforms (including web), return the app directly
     return app;
   }
 }
