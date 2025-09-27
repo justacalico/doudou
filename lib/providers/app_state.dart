@@ -999,10 +999,31 @@ class AppState extends ChangeNotifier {
       // Handle specific error types for background refresh
       if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
         if (kDebugMode) {
-          print('AppState: Authentication error in background refresh - user may need to re-login');
+          print('AppState: Authentication error in background refresh - attempting token refresh');
         }
-        // Could consider auto-logout here, but that might be disruptive
-        // Instead, just log the warning and let the user discover it naturally
+        
+        // Attempt token refresh in background
+        final refreshSuccess = await _attemptTokenRefresh();
+        if (refreshSuccess) {
+          if (kDebugMode) {
+            print('AppState: Token refresh successful, retrying background data load');
+          }
+          // Try loading fresh data again after token refresh
+          try {
+            await _loadFreshData();
+            notifyListeners();
+            return; // Success, exit early
+          } catch (retryError) {
+            if (kDebugMode) {
+              print('AppState: Retry after token refresh failed in background: $retryError');
+            }
+          }
+        } else {
+          if (kDebugMode) {
+            print('AppState: Token refresh failed in background - user may need to re-login');
+          }
+        }
+        // Don't logout in background refresh - let user discover the issue naturally
       }
       
       // Don't show error to user since we have cached data and this is background
