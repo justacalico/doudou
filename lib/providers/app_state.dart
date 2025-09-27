@@ -577,6 +577,70 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Attempt to refresh authentication token and retry failed operations
+  Future<bool> _attemptTokenRefresh() async {
+    if (!_isLoggedIn) return false;
+
+    final server = _jellyfinService.currentServer;
+    if (server == null || server.username == null || server.password == null) {
+      if (kDebugMode) {
+        print('AppState: Cannot refresh token - missing credentials');
+      }
+      return false;
+    }
+
+    try {
+      if (kDebugMode) {
+        print('AppState: Attempting to refresh authentication token...');
+      }
+
+      final success = await _jellyfinService.reauthenticateWithCredentials(
+        server.username!,
+        server.password!,
+      );
+
+      if (success) {
+        // Save the updated server with new token
+        await _saveServer();
+        if (kDebugMode) {
+          print('AppState: Token refresh successful');
+        }
+        return true;
+      } else {
+        if (kDebugMode) {
+          print('AppState: Token refresh failed');
+        }
+        return false;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Token refresh error: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Handle authentication errors with token refresh attempt
+  Future<bool> _handleAuthError(String operation) async {
+    if (kDebugMode) {
+      print('AppState: Authentication error during $operation, attempting token refresh...');
+    }
+
+    final refreshSuccess = await _attemptTokenRefresh();
+    
+    if (!refreshSuccess) {
+      if (kDebugMode) {
+        print('AppState: Token refresh failed, user needs to log in again');
+      }
+      
+      // Only logout if token refresh fails
+      logout();
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> loadLibraryData() async {
     if (!_isLoggedIn) {
       if (kDebugMode) {
