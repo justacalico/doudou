@@ -808,9 +808,31 @@ class AppState extends ChangeNotifier {
       // Provide user-friendly error messages based on error type
       String userMessage = 'Failed to refresh library';
       if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+        // Attempt token refresh before giving up
+        if (kDebugMode) {
+          print('AppState: Authentication error during refresh, attempting token refresh...');
+        }
+        
+        final refreshSuccess = await _attemptTokenRefresh();
+        if (refreshSuccess) {
+          // Token refresh successful, try refreshing library again
+          try {
+            await _loadFreshData();
+            _setLoading(false);
+            return; // Success, exit without error
+          } catch (retryError) {
+            if (kDebugMode) {
+              print('AppState: Retry after token refresh failed: $retryError');
+            }
+            // Fall through to handle as normal error
+          }
+        }
+        
         userMessage = 'Authentication failed. Please log in again.';
-        // Auto-logout on auth failure to force re-login
-        logout();
+        // Only logout if token refresh fails
+        if (!refreshSuccess) {
+          logout();
+        }
       } else if (e.toString().contains('timeout') || e.toString().contains('connection')) {
         userMessage = 'Connection timeout. Please check your network and server.';
       } else if (e.toString().contains('404') || e.toString().contains('not found')) {
