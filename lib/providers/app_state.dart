@@ -162,7 +162,7 @@ class AppState extends ChangeNotifier {
                 // Continue without audio service
                 _audioHandler = null;
               }
-            } else if (Platform.isMacOS) {
+            } else if (_isMacOS) {
               // macOS: Use AudioService for background audio like Android
               try {
                 _audioHandler = await AudioService.init(
