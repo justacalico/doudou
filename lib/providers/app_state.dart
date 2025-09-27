@@ -434,7 +434,7 @@ class AppState extends ChangeNotifier {
         
         // Try to initialize audio handler after successful login
         // Only initialize audio service on Android (needed for background audio and Android Auto)
-        if (Platform.isAndroid) {
+        if (_isAndroid) {
           try {
             _audioHandler = await AudioService.init(
               builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
