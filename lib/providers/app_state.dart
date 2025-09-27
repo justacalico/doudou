@@ -250,11 +250,11 @@ class AppState extends ChangeNotifier {
             
             // Load initial data in background
             if (kDebugMode) {
-              print('Platform.isLinux: ${Platform.isLinux}, Platform.isAndroid: ${Platform.isAndroid}, about to load library data...');
+              print('Platform.isLinux: $_isLinux, Platform.isAndroid: $_isAndroid, about to load library data...');
             }
             
             // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
-            if (Platform.isLinux) {
+            if (_isLinux) {
               if (kDebugMode) {
                 print('AppState: Using refreshLibraryData for Linux platform during initialization to ensure UI updates');
               }
