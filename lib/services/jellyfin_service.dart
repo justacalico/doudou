@@ -570,6 +570,73 @@ class JellyfinService {
     }
   }
 
+  /// Attempt to re-authenticate using stored credentials
+  Future<bool> refreshAuthentication() async {
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService: Cannot refresh authentication - no server configured');
+      }
+      return false;
+    }
+
+    // For Jellyfin, we need to get fresh credentials from storage since we don't store the password
+    // This method will be called by AppState when it has access to stored credentials
+    if (kDebugMode) {
+      print('JellyfinService: refreshAuthentication called, but requires credentials from AppState');
+    }
+    return false;
+  }
+
+  /// Re-authenticate with provided credentials (called from AppState)
+  Future<bool> reauthenticateWithCredentials(String username, String password) async {
+    if (_server == null) return false;
+
+    try {
+      if (kDebugMode) {
+        print('JellyfinService: Attempting to re-authenticate user $username');
+      }
+
+      final response = await _dio.post(
+        '/Users/AuthenticateByName',
+        data: {
+          'Username': username,
+          'Pw': password,
+        },
+        options: Options(
+          headers: {
+            'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        // Update the existing server with new access token
+        _server = JellyfinServer(
+          serverUrl: _server!.serverUrl,
+          userId: data['User']['Id'],
+          accessToken: data['AccessToken'],
+        );
+        
+        // Update Dio headers with new token
+        _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
+        
+        if (kDebugMode) {
+          print('JellyfinService: Re-authentication successful. New token: ${_server!.accessToken?.substring(0, 8)}...');
+        }
+        
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('JellyfinService: Re-authentication failed: $e');
+      }
+    }
+    return false;
+  }
+
   JellyfinServer? get currentServer => _server;
 
   // Get download URL for a track
