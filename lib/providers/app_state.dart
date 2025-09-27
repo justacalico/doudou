@@ -620,6 +620,77 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Handle network reconnection (e.g., after VPN change, network switch)
+  Future<void> handleNetworkReconnection() async {
+    if (!_isLoggedIn) return;
+
+    if (kDebugMode) {
+      print('AppState: Handling network reconnection...');
+    }
+
+    try {
+      // First, try to validate current credentials
+      final isValid = await _jellyfinService.validateCredentials()
+          .timeout(const Duration(seconds: 15));
+      
+      if (isValid) {
+        if (kDebugMode) {
+          print('AppState: Network reconnection successful - credentials still valid');
+        }
+        
+        // Credentials are still valid, refresh data
+        _isConnected = true;
+        _isOfflineMode = false;
+        
+        // Reload library data in background
+        _loadFreshDataInBackground();
+      } else {
+        // Credentials invalid, try to refresh token
+        if (kDebugMode) {
+          print('AppState: Credentials invalid after network change, attempting refresh...');
+        }
+        
+        final refreshSuccess = await _attemptTokenRefresh();
+        
+        if (refreshSuccess) {
+          _isConnected = true;
+          _isOfflineMode = false;
+          
+          // Reload library data in background
+          unawaited(_loadFreshDataInBackground());
+        } else {
+          if (kDebugMode) {
+            print('AppState: Failed to refresh token after network change');
+          }
+          
+          // Check if we can fall back to offline mode
+          if (await _hasDownloadedContent()) {
+            _isConnected = false;
+            _isOfflineMode = true;
+            await _enterOfflineMode();
+          } else {
+            // No offline content available, user needs to re-login
+            logout();
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Network reconnection failed: $e');
+      }
+      
+      // Network still unreachable, check if we can go offline
+      if (await _hasDownloadedContent()) {
+        _isConnected = false;
+        _isOfflineMode = true;
+        await _enterOfflineMode();
+      }
+      // If no offline content, stay in current state and let user retry manually
+    }
+    
+    notifyListeners();
+  }
+
   Future<void> loadLibraryData() async {
     if (!_isLoggedIn) {
       if (kDebugMode) {
