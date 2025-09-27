@@ -461,7 +461,7 @@ class AppState extends ChangeNotifier {
             }
             // Continue without audio service
           }
-        } else if (Platform.isLinux) {
+        } else if (_isLinux) {
           // Linux: Initialize audio handler without AudioService wrapper (like iOS)
           if (kDebugMode) {
             print('AppState: Starting Linux audio handler initialization after login');
