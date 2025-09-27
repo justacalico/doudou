@@ -530,8 +530,19 @@ class AppState extends ChangeNotifier {
             print('AppState: Exception during library loading: $e');
             print('Stack trace: ${StackTrace.current}');
           }
-        }        _setLoading(false);
+        }
+        
+        _setLoading(false);
         return true;
+      } catch (setupError) {
+        if (kDebugMode) {
+          print('AppState: Exception during login setup: $setupError');
+          print('Stack trace: ${StackTrace.current}');
+        }
+        _setError('Login setup failed: ${setupError.toString()}');
+        _setLoading(false);
+        return false;
+      }
       } else {
         _setError('Authentication failed. Please check your credentials.');
         _setLoading(false);
