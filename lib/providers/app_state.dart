@@ -449,6 +449,9 @@ class AppState extends ChangeNotifier {
           }
         } else if (Platform.isLinux) {
           // Linux: Initialize audio handler without AudioService wrapper (like iOS)
+          if (kDebugMode) {
+            print('AppState: Starting Linux audio handler initialization after login');
+          }
           try {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
             
@@ -469,10 +472,14 @@ class AppState extends ChangeNotifier {
           } catch (audioError) {
             if (kDebugMode) {
               print('Failed to initialize Linux audio handler after login: $audioError');
+              print('Stack trace: ${StackTrace.current}');
             }
             // Continue without audio handler
             _audioHandler = null;
             notifyListeners();
+          }
+          if (kDebugMode) {
+            print('AppState: Linux audio handler initialization block completed');
           }
         } else {
           if (kDebugMode) {
@@ -488,13 +495,13 @@ class AppState extends ChangeNotifier {
         if (kDebugMode) {
           print('AppState: About to save server and load library data...');
         }
-        
+
         await _saveServer();
-        
+
         if (kDebugMode) {
           print('AppState: About to call loadLibraryData after successful login...');
         }
-        
+
         try {
           // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
           if (Platform.isLinux) {
@@ -502,16 +509,21 @@ class AppState extends ChangeNotifier {
               print('AppState: Using refreshLibraryData for Linux platform to ensure UI updates');
             }
             await refreshLibraryData();
+            if (kDebugMode) {
+              print('AppState: refreshLibraryData completed successfully for Linux');
+            }
           } else {
             await loadLibraryData();
+            if (kDebugMode) {
+              print('AppState: loadLibraryData completed successfully for non-Linux platforms');
+            }
           }
         } catch (e) {
           if (kDebugMode) {
-            print('AppState: Exception during loadLibraryData: $e');
+            print('AppState: Exception during library loading: $e');
+            print('Stack trace: ${StackTrace.current}');
           }
-        }
-        
-        _setLoading(false);
+        }        _setLoading(false);
         return true;
       } else {
         _setError('Authentication failed. Please check your credentials.');
