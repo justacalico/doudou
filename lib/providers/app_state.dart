@@ -353,7 +353,7 @@ class AppState extends ChangeNotifier {
                 // Continue without audio service
                 _audioHandler = null;
               }
-            } else if (Platform.isIOS) {
+            } else if (_isIOS) {
               // iOS: Initialize audio handler without AudioService wrapper
               try {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
