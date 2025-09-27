@@ -293,7 +293,7 @@ class AppState extends ChangeNotifier {
             await _cacheService.initialize();
             
             // Try to initialize audio handler for offline playback with platform-specific handling
-            if (Platform.isAndroid) {
+            if (_isAndroid) {
               // Android: Use AudioService for background audio and Android Auto
               try {
                 _audioHandler = await AudioService.init(
