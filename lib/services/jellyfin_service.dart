@@ -52,15 +52,36 @@ class JellyfinService {
     
     // Add error handling interceptor
     _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        // Skip adding auth headers if skipAuth is specified
+        if (options.extra['skipAuth'] == true) {
+          // Remove any existing auth headers for this request
+          options.headers.remove('X-Emby-Token');
+        }
+        handler.next(options);
+      },
       onError: (error, handler) {
         // Handle 401 errors with automatic token refresh
-        if (error.response?.statusCode == 401 && _server != null && _server!.username != null && _server!.password != null) {
+        if (error.response?.statusCode == 401 && 
+            _server != null && 
+            _server!.username != null && 
+            _server!.password != null &&
+            error.requestOptions.extra['skipAuth'] != true) { // Don't retry skipAuth requests
+          
+          if (kDebugMode) {
+            print('JellyfinService: 401 error detected, attempting token refresh...');
+          }
+          
           // Attempt to refresh the token
           _refreshToken().then((success) {
             if (success) {
+              if (kDebugMode) {
+                print('JellyfinService: Token refresh successful, retrying request...');
+              }
               // Retry the original request with the new token
               final options = error.requestOptions;
               options.headers['X-Emby-Token'] = _server!.accessToken;
+              
               _dio.request(
                 options.path,
                 data: options.data,
@@ -68,10 +89,14 @@ class JellyfinService {
                 options: Options(
                   method: options.method,
                   headers: options.headers,
+                  extra: options.extra,
                 ),
               ).then((response) {
                 handler.resolve(response);
               }).catchError((retryError) {
+                if (kDebugMode) {
+                  print('JellyfinService: Retry after token refresh failed: $retryError');
+                }
                 // If retry fails, proceed with original error handling
                 final networkError = _handleDioError(error);
                 handler.reject(DioException(
@@ -81,6 +106,9 @@ class JellyfinService {
                 ));
               });
             } else {
+              if (kDebugMode) {
+                print('JellyfinService: Token refresh failed, proceeding with 401 error');
+              }
               // Token refresh failed, proceed with original error handling
               final networkError = _handleDioError(error);
               handler.reject(DioException(
@@ -89,9 +117,20 @@ class JellyfinService {
                 message: networkError.message,
               ));
             }
+          }).catchError((refreshError) {
+            if (kDebugMode) {
+              print('JellyfinService: Token refresh threw error: $refreshError');
+            }
+            // Token refresh threw an error, proceed with original error handling
+            final networkError = _handleDioError(error);
+            handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: networkError,
+              message: networkError.message,
+            ));
           });
         } else {
-          // Not a 401 or no credentials to refresh, handle normally
+          // Not a 401, no credentials to refresh, or skipAuth request - handle normally
           final networkError = _handleDioError(error);
           handler.reject(DioException(
             requestOptions: error.requestOptions,
