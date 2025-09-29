@@ -33,7 +33,8 @@ class MiniPlayer extends StatelessWidget {
           height: 70,
           margin: EdgeInsets.fromLTRB(
             isDesktop ? 0 : 16, // Full width on desktop, margins on mobile
-            isDesktop ? 0 : 8,  // No top margin on desktop for full bar effect
+            // On desktop: if detail screen, stick to bottom (0), if main screen, add margin (32)
+            isDesktop ? (isOnDetailScreen ? 0 : 32) : 8,
             isDesktop ? 0 : 16, // Full width on desktop, margins on mobile
             0 // No bottom margin for full bar
           ),
