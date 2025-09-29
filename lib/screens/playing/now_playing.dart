@@ -1099,7 +1099,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         // Shuffle
                         CupertinoButton(
                           padding: EdgeInsets.zero,
-                          onPressed: () => appState.toggleShuffle(),
+                          onPressed: () {
+                            if (audioHandler.isShuffled) {
+                              audioHandler.unshuffle();
+                            } else {
+                              audioHandler.shuffle();
+                            }
+                          },
                           child: Icon(
                             CupertinoIcons.shuffle,
                             size: 28,
