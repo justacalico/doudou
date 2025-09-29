@@ -22,9 +22,19 @@ class MiniPlayer extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
+        // Determine if we're on a desktop platform
+        final isDesktop = !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
+                                      defaultTargetPlatform == TargetPlatform.macOS ||
+                                      defaultTargetPlatform == TargetPlatform.windows) || kIsWeb;
+        
         return Container(
           height: 70,
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Balanced margin for floating effect
+          margin: EdgeInsets.fromLTRB(
+            16, 
+            isDesktop ? 32 : 8, // More top margin on desktop platforms
+            16, 
+            8
+          ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: BackdropFilter(
