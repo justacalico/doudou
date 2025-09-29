@@ -1,7 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
-import '../providers/app_state.dart';
 import '../models/jellyfin_models.dart';
 import '../screens/partials/player/mini_player.dart';
 import '../widgets/cached_image_widget.dart';
