@@ -1193,7 +1193,20 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             
                             return CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () => appState.toggleRepeat(),
+                              onPressed: () {
+                                // Cycle through repeat modes
+                                switch (repeatMode) {
+                                  case AudioServiceRepeatMode.none:
+                                    audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                    break;
+                                  case AudioServiceRepeatMode.all:
+                                    audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                    break;
+                                  case AudioServiceRepeatMode.one:
+                                    audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                    break;
+                                }
+                              },
                               child: Icon(icon, size: 28, color: color),
                             );
                           },
