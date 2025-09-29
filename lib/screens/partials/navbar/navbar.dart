@@ -13,6 +13,7 @@ import '../../settings/settings.dart';
 import '../../search/search.dart';
 import '../../downloads/downloads.dart';
 import '../../playlists/playlists.dart';
+import '../../shared/detail_track_view.dart';
 import '../player/mini_player.dart';
 
 class HomeScreen extends StatefulWidget {
