@@ -1,10 +1,10 @@
 # 6.0.0
 
 ## Added
-- Adds a button to reload all data from the jellyfin server.
+- Added a button to reload all data from the Jellyfin server.
 - Added an animation that plays when album art changes size.
 - Added a background for the "Now Playing" screen.
-- Automatically build .apk files.
+- Automatically build `.apk` files.
 - Added an indication if a song is playing locally (downloaded) or streaming.
 - Added a "Shuffle Favorites" button for downloaded songs.
 - Added new options to the drop-down menu on the "Now Playing" screen.
@@ -12,21 +12,21 @@
 - Enhanced the kebab menu with "Play Next," "Play Later," and "Add to Favorites" options.
 - Added Android Auto support.
 - Added support for the macOS platform.
-- New desktop sidebar.
+- Added a new desktop sidebar.
 - Added web builds.
 
 ## Changed
 - Lyrics are now greyed out if none are available.
-- Devices are now locked to a vertical orientation.
-- The album art is smaller when the song is paused.
-- The entire audio backend was refactored, which will hopefully lead to fewer bugs.
+- Devices are now locked to vertical orientation.
+- Album art is smaller when the song is paused.
+- The entire audio backend was refactored, which should hopefully lead to fewer bugs.
 - The home page was redesigned.
 - The album name is now displayed as the title on the album details page.
 - "Play All" was changed to "Play" on the album details page.
 - The "Play" and "Shuffle" buttons are now bolded on the album details page.
 - The "Download Album" button was moved to the kebab menu in the navigation bar.
 - The "Now Playing" screen was completely redesigned with an improved layout and spacing.
-- The mini-player will no longer show up when a keyboard is open.
+- The mini-player will no longer show when a keyboard is open.
 - The search page was completely redesigned with unified results and recent searches.
 
 ## Removed
@@ -46,4 +46,4 @@
 - The search page now shows clean, unified results without section headers.
 - Fixed iOS being unable to play audio.
 - Fixed the "Now Playing" screen overflowing when a large font size is used.
-- Fixed linux builds not probbly initation database.
+- Fixed Linux builds not properly initializing the database.
