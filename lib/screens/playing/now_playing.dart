@@ -1203,6 +1203,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                     audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
                                     break;
                                   case AudioServiceRepeatMode.one:
+                                  case AudioServiceRepeatMode.group:
                                     audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
                                     break;
                                 }
