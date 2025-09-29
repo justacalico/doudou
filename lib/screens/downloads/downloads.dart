@@ -4,7 +4,7 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../models/download_models.dart';
 import '../../widgets/cached_image_widget.dart';
-import '../albums/details/album_details.dart';
+import '../shared/detail_track_view.dart';
 import '../favorites/favorites.dart';
 
 class DownloadsScreen extends StatefulWidget {
@@ -811,7 +811,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => AlbumDetailScreen(album: album),
+        builder: (context) => DetailTrackView.album(album),
       ),
     );
   }
