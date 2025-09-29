@@ -46,3 +46,4 @@
 - The search page now shows clean, unified results without section headers.
 - Fixed iOS being unable to play audio.
 - Fixed the "Now Playing" screen overflowing when a large font size is used.
+- Fixed linux builds not probbly initation database.
