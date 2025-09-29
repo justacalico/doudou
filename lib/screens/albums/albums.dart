@@ -5,7 +5,7 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
 import '../../widgets/cached_image_widget.dart';
-import 'details/album_details.dart';
+import '../shared/detail_track_view.dart';
 
 class AlbumsTab extends StatelessWidget {
   const AlbumsTab({super.key});
@@ -199,7 +199,7 @@ class AlbumCard extends StatelessWidget {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => AlbumDetailScreen(album: album),
+            builder: (context) => DetailTrackView.album(album),
           ),
         );
       },
