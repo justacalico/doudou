@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import '../albums/details/album_details.dart';
+import '../shared/detail_track_view.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
