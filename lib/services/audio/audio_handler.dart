@@ -666,7 +666,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await _player.play();
       
       // Clean up secondary player
-      await secondaryPlayer.dispose();
+      try {
+        await secondaryPlayer.dispose();
+      } catch (e) {
+        // Handle platform-specific limitations (e.g., MissingPluginException on Linux)
+        if (kDebugMode) {
+          print('Secondary audio player disposal error (this may be expected on some platforms): $e');
+        }
+      }
       
       // Update playback state
       _updatePlaybackState(playbackState.value.copyWith(
