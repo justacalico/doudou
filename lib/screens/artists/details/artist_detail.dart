@@ -5,7 +5,7 @@ import '../../../models/jellyfin_models.dart';
 import '../../partials/tracks/track_list_item.dart';
 import '../../partials/player/mini_player.dart';
 import '../../../widgets/cached_image_widget.dart';
-import '../../albums/details/album_details.dart';
+import '../../shared/detail_track_view.dart';
 
 class ArtistDetailScreen extends StatefulWidget {
   final Artist artist;
@@ -495,7 +495,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => AlbumDetailScreen(album: album),
+              builder: (context) => DetailTrackView.album(album),
             ),
           );
         },
