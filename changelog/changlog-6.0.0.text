@@ -28,6 +28,7 @@
 - The "Now Playing" screen was completely redesigned with an improved layout and spacing.
 - The mini-player will no longer show when a keyboard is open.
 - The search page was completely redesigned with unified results and recent searches.
+- Use a template for album and playlists screen.
 
 ## Removed
 - The music visualizer was removed (this is not possible with the current audio provider).
