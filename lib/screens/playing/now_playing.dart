@@ -79,6 +79,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
         final currentTrack = audioHandler?.currentTrack;
+        final screenSize = MediaQuery.of(context).size;
+        final isDesktop = screenSize.width > 800; // Consider desktop if width > 800px
         
         // Check lyrics availability when track changes
         if (currentTrack != null && currentTrack.artistName != null) {
