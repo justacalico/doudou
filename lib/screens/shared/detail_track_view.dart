@@ -268,16 +268,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                         const SizedBox(height: 8),
                       ],
                       
-                      // Duration
-                      if (widget.duration != null) ...[
-                        Text(
-                          _formatDuration(widget.duration!),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: CupertinoColors.systemGrey2,
-                          ),
-                        ),
-                      ],
+
                     ],
                   ),
                 ),
@@ -343,16 +334,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
     );
   }
 
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    } else {
-      return '${minutes}m';
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
