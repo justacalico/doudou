@@ -248,7 +248,7 @@ class MediaGridService {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '${playlist.trackCount ?? 0} songs',
+          '${playlist.trackCount} songs',
           style: const TextStyle(
             color: Color(0xFF888888),
             fontSize: 14,
