@@ -11,6 +11,15 @@ import 'screens/partials/navbar/navbar.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize sqflite for Linux/Windows/macOS
+  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
+                  defaultTargetPlatform == TargetPlatform.windows ||
+                  defaultTargetPlatform == TargetPlatform.macOS)) {
+    // Initialize the ffi database factory for desktop platforms
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+  
   // Allow both orientations for Android Auto compatibility
   // Android Auto requires landscape orientation support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
