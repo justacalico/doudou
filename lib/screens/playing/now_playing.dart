@@ -9,6 +9,7 @@ import '../../models/jellyfin_models.dart';
 import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../../widgets/cached_image_widget.dart';
+import '../shared/detail_track_view.dart';
 import '../albums/details/album_details.dart';
 import '../artists/details/artist_detail.dart';
 import '../../services/lyrics_service.dart';
@@ -987,7 +988,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       debugPrint('Found album: ${album.name}, navigating...');
       Navigator.of(context).push(
         CupertinoPageRoute(
-          builder: (context) => AlbumDetailScreen(album: album),
+          builder: (context) => DetailTrackView.album(album),
         ),
       );
     } catch (e) {
