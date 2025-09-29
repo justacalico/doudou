@@ -8,7 +8,9 @@ import '../../playing/now_playing.dart';
 import '../../../widgets/cached_image_widget.dart';
 
 class MiniPlayer extends StatelessWidget {
-  const MiniPlayer({super.key});
+  final bool isOnDetailScreen;
+  
+  const MiniPlayer({super.key, this.isOnDetailScreen = false});
 
   @override
   Widget build(BuildContext context) {
