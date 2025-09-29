@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../artists/details/artist_detail.dart';
-import '../albums/details/album_details.dart';
+import '../shared/detail_track_view.dart';
 import '../../widgets/cached_image_widget.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -421,7 +421,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => AlbumDetailScreen(album: album),
+              builder: (context) => DetailTrackView.album(album),
             ),
           );
         },
