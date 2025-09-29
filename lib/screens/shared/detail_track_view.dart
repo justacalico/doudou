@@ -428,7 +428,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                         showTrackNumber: widget.viewType == DetailViewType.album,
                         onTap: () {
                           final appState = context.read<AppState>();
-                          appState.playTrackList(tracks, index);
+                          appState.playPlaylist(tracks, index);
                         },
                       );
                     },
