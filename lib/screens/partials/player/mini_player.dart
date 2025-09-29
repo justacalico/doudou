@@ -30,13 +30,13 @@ class MiniPlayer extends StatelessWidget {
         return Container(
           height: 70,
           margin: EdgeInsets.fromLTRB(
-            16, 
-            isDesktop ? 32 : 8, // More top margin on desktop platforms
-            16, 
-            8
+            isDesktop ? 0 : 16, // Full width on desktop, margins on mobile
+            isDesktop ? 0 : 8,  // No top margin on desktop for full bar effect
+            isDesktop ? 0 : 16, // Full width on desktop, margins on mobile
+            0 // No bottom margin for full bar
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isDesktop ? 0 : 12), // No rounded corners on desktop
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
