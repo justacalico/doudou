@@ -207,9 +207,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             Expanded(
                               flex: 3,
                               child: StreamBuilder(
-                                stream: audioHandler?.playerStateStream,
+                                stream: audioHandler.playerStateStream,
                                 builder: (context, snapshot) {
-                                  final isPlaying = audioHandler?.isPlaying ?? false;
+                                  final isPlaying = audioHandler.isPlaying ?? false;
                                   
                                   return LayoutBuilder(
                                     builder: (context, constraints) {
@@ -311,10 +311,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         children: [
                           // Progress slider and time
                           StreamBuilder<Duration>(
-                            stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
+                            stream: audioHandler.positionStream ?? Stream.value(Duration.zero),
                             builder: (context, snapshot) {
                               final position = snapshot.data ?? Duration.zero;
-                              final duration = audioHandler?.duration ?? Duration.zero;
+                              final duration = audioHandler.duration ?? Duration.zero;
                               
                               double sliderValue = 0.0;
                               if (duration.inMilliseconds > 0) {
@@ -371,10 +371,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           
                           // Control buttons
                           StreamBuilder(
-                            stream: audioHandler?.playerStateStream,
+                            stream: audioHandler.playerStateStream,
                             builder: (context, snapshot) {
-                              final isPlaying = audioHandler?.isPlaying ?? false;
-                              final processingState = audioHandler?.playerState.processingState;
+                              final isPlaying = audioHandler.isPlaying ?? false;
+                              final processingState = audioHandler.playerState.processingState;
                               
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -394,7 +394,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                       },
                                       child: Icon(
                                         CupertinoIcons.shuffle,
-                                        color: audioHandler?.isShuffled == true 
+                                        color: audioHandler.isShuffled == true 
                                             ? const Color(0xFFFFFFFF)
                                             : CupertinoColors.systemGrey2,
                                         size: 24,
@@ -403,13 +403,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                     // Previous button
                                     CupertinoButton(
                                       padding: EdgeInsets.zero,
-                                      onPressed: audioHandler?.hasPrevious == true
+                                      onPressed: audioHandler.hasPrevious == true
                                           ? () => appState.skipToPrevious()
                                           : null,
                                       child: Icon(
                                         CupertinoIcons.backward_fill,
                                         size: 32,
-                                        color: audioHandler?.hasPrevious == true 
+                                        color: audioHandler.hasPrevious == true 
                                             ? const Color(0xFFFFFFFF)
                                             : CupertinoColors.systemGrey2,
                                       ),
@@ -444,13 +444,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                     // Next button
                                     CupertinoButton(
                                       padding: EdgeInsets.zero,
-                                      onPressed: audioHandler?.hasNext == true
+                                      onPressed: audioHandler.hasNext == true
                                           ? () => appState.skipToNext()
                                           : null,
                                       child: Icon(
                                         CupertinoIcons.forward_fill,
                                         size: 32,
-                                        color: audioHandler?.hasNext == true 
+                                        color: audioHandler.hasNext == true 
                                             ? const Color(0xFFFFFFFF)
                                             : CupertinoColors.systemGrey2,
                                       ),
@@ -481,7 +481,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                         }
                                       },
                                       child: StreamBuilder<AudioServiceRepeatMode>(
-                                        stream: audioHandler?.playbackState.map((state) => state.repeatMode),
+                                        stream: audioHandler.playbackState.map((state) => state.repeatMode),
                                         builder: (context, snapshot) {
                                           final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
                                           
