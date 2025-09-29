@@ -2204,7 +2204,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => PlaylistDetailScreen(playlist: playlist),
+              builder: (context) => DetailTrackView.playlist(playlist),
             ),
           );
         },
