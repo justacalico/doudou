@@ -2100,7 +2100,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _disposeTouchBar();
     }
     
-    await _player.dispose();
+    try {
+      await _player.dispose();
+    } catch (e) {
+      // Handle platform-specific limitations (e.g., MissingPluginException on Linux)
+      if (kDebugMode) {
+        print('Audio player disposal error (this may be expected on some platforms): $e');
+      }
+    }
   }
 
   // Media browsing methods for Android Auto support
