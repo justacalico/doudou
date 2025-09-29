@@ -191,7 +191,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         ),
                       ),
                       
-                      // Flexible content area
+                      // Responsive content area
+                      Expanded(
+                        child: isDesktop 
+                            ? _buildDesktopLayout(context, appState, audioHandler!, currentTrack)
+                            : _buildMobileLayout(context, appState, audioHandler!, currentTrack),
+                      ),
                       Expanded(
                         child: Column(
                           children: [
