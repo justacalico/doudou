@@ -42,14 +42,14 @@ class MiniPlayer extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   // Glassmorphism effect
-                  color: const Color(0xFF000000).withOpacity(0.3), // Semi-transparent dark background
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.2), // Subtle white border
+                  color: const Color(0xFF000000).withOpacity(isDesktop ? 0.8 : 0.3), // More opaque on desktop for full bar
+                  borderRadius: BorderRadius.circular(isDesktop ? 0 : 12), // No rounded corners on desktop
+                  border: isDesktop ? null : Border.all(
+                    color: const Color(0xFFFFFFFF).withOpacity(0.2), // No border on desktop
                     width: 1,
                   ),
-                  // Enhanced shadow for floating effect
-                  boxShadow: const [
+                  // Shadow only on mobile for floating effect
+                  boxShadow: isDesktop ? null : const [
                     BoxShadow(
                       color: Color(0x40000000), // Strong shadow
                       offset: Offset(0, 8), // More dramatic offset
