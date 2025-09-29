@@ -6,7 +6,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import '../../services/audio/audio_handler.dart';
 import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../../widgets/cached_image_widget.dart';
@@ -80,8 +79,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
         final currentTrack = audioHandler?.currentTrack;
-        final screenSize = MediaQuery.of(context).size;
-        final isDesktop = screenSize.width > 800; // Consider desktop if width > 800px
         
         // Check lyrics availability when track changes
         if (currentTrack != null && currentTrack.artistName != null) {
@@ -192,12 +189,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         ),
                       ),
                       
-                      // Responsive content area
-                      Expanded(
-                        child: isDesktop 
-                            ? _buildDesktopLayout(context, appState, audioHandler!, currentTrack)
-                            : _buildMobileLayout(context, appState, audioHandler!, currentTrack),
-                      ),
+                      // Flexible content area
                       Expanded(
                         child: Column(
                           children: [
@@ -207,9 +199,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             Expanded(
                               flex: 3,
                               child: StreamBuilder(
-                                stream: audioHandler.playerStateStream,
+                                stream: audioHandler?.playerStateStream,
                                 builder: (context, snapshot) {
-                                  final isPlaying = audioHandler.isPlaying;
+                                  final isPlaying = audioHandler?.isPlaying ?? false;
                                   
                                   return LayoutBuilder(
                                     builder: (context, constraints) {
@@ -311,10 +303,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         children: [
                           // Progress slider and time
                           StreamBuilder<Duration>(
-                            stream: audioHandler.positionStream,
+                            stream: audioHandler?.positionStream ?? Stream.value(Duration.zero),
                             builder: (context, snapshot) {
                               final position = snapshot.data ?? Duration.zero;
-                              final duration = audioHandler.duration ?? Duration.zero;
+                              final duration = audioHandler?.duration ?? Duration.zero;
                               
                               double sliderValue = 0.0;
                               if (duration.inMilliseconds > 0) {
@@ -371,10 +363,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           
                           // Control buttons
                           StreamBuilder(
-                            stream: audioHandler.playerStateStream,
+                            stream: audioHandler?.playerStateStream,
                             builder: (context, snapshot) {
-                              final isPlaying = audioHandler.isPlaying;
-                              final processingState = audioHandler.playerState.processingState;
+                              final isPlaying = audioHandler?.isPlaying ?? false;
+                              final processingState = audioHandler?.playerState.processingState;
                               
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -394,7 +386,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                       },
                                       child: Icon(
                                         CupertinoIcons.shuffle,
-                                        color: audioHandler.isShuffled == true 
+                                        color: audioHandler?.isShuffled == true 
                                             ? const Color(0xFFFFFFFF)
                                             : CupertinoColors.systemGrey2,
                                         size: 24,
@@ -403,13 +395,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                     // Previous button
                                     CupertinoButton(
                                       padding: EdgeInsets.zero,
-                                      onPressed: audioHandler.hasPrevious == true
+                                      onPressed: audioHandler?.hasPrevious == true
                                           ? () => appState.skipToPrevious()
                                           : null,
                                       child: Icon(
                                         CupertinoIcons.backward_fill,
                                         size: 32,
-                                        color: audioHandler.hasPrevious == true 
+                                        color: audioHandler?.hasPrevious == true 
                                             ? const Color(0xFFFFFFFF)
                                             : CupertinoColors.systemGrey2,
                                       ),
@@ -444,13 +436,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                     // Next button
                                     CupertinoButton(
                                       padding: EdgeInsets.zero,
-                                      onPressed: audioHandler.hasNext == true
+                                      onPressed: audioHandler?.hasNext == true
                                           ? () => appState.skipToNext()
                                           : null,
                                       child: Icon(
                                         CupertinoIcons.forward_fill,
                                         size: 32,
-                                        color: audioHandler.hasNext == true 
+                                        color: audioHandler?.hasNext == true 
                                             ? const Color(0xFFFFFFFF)
                                             : CupertinoColors.systemGrey2,
                                       ),
@@ -481,7 +473,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                         }
                                       },
                                       child: StreamBuilder<AudioServiceRepeatMode>(
-                                        stream: audioHandler.playbackState.map((state) => state.repeatMode),
+                                        stream: audioHandler?.playbackState.map((state) => state.repeatMode),
                                         builder: (context, snapshot) {
                                           final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
                                           
@@ -948,388 +940,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
         );
       }
     }
-  }
-
-  Widget _buildDesktopLayout(BuildContext context, AppState appState, DoudouAudioHandler audioHandler, Track currentTrack) {
-    return Padding(
-      padding: const EdgeInsets.all(40.0),
-      child: Row(
-        children: [
-          // Left side - Album Art
-          Expanded(
-            flex: 1,
-            child: StreamBuilder(
-              stream: audioHandler.playerStateStream,
-              builder: (context, snapshot) {
-                final isPlaying = audioHandler.isPlaying;
-                
-                return Center(
-                  child: AnimatedScale(
-                    scale: isPlaying ? 1.0 : 0.95,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        maxWidth: 400,
-                        maxHeight: 400,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF000000).withOpacity(0.6),
-                            blurRadius: 30,
-                            offset: const Offset(0, 15),
-                          ),
-                        ],
-                      ),
-                      child: AlbumArtWidget(
-                        imageUrl: currentTrack.imageUrl != null
-                            ? appState.jellyfinService.getImageUrl(
-                                currentTrack.imageUrl!,
-                                width: 800,
-                                height: 800,
-                              )
-                            : null,
-                        size: 400,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
-          const SizedBox(width: 60),
-          
-          // Right side - Track info and controls
-          Expanded(
-            flex: 1,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Track name
-                Text(
-                  currentTrack.name,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFFFFFF),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                // Artist name
-                Text(
-                  currentTrack.artistName ?? 'Unknown Artist',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: CupertinoColors.systemGrey,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 40),
-                
-                // Progress slider and time
-                StreamBuilder<Duration>(
-                  stream: audioHandler.positionStream,
-                  builder: (context, snapshot) {
-                    final position = snapshot.data ?? Duration.zero;
-                    final duration = audioHandler.duration ?? Duration.zero;
-                    
-                    double sliderValue = 0.0;
-                    if (duration.inMilliseconds > 0) {
-                      sliderValue = position.inMilliseconds / duration.inMilliseconds;
-                      sliderValue = sliderValue.clamp(0.0, 1.0);
-                    }
-                    
-                    return Column(
-                      children: [
-                        CupertinoSlider(
-                          value: sliderValue,
-                          onChanged: (value) {
-                            final newPosition = Duration(
-                              milliseconds: (value * duration.inMilliseconds).round(),
-                            );
-                            appState.seekTo(newPosition);
-                          },
-                          activeColor: const Color(0xFFFFFFFF),
-                          thumbColor: const Color(0xFFFFFFFF),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDuration(position),
-                              style: const TextStyle(
-                                color: CupertinoColors.systemGrey2,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              _formatDuration(duration),
-                              style: const TextStyle(
-                                color: CupertinoColors.systemGrey2,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                
-                const SizedBox(height: 40),
-                
-                // Control buttons
-                StreamBuilder(
-                  stream: audioHandler.playerStateStream,
-                  builder: (context, snapshot) {
-                    final isPlaying = audioHandler.isPlaying;
-                    final processingState = audioHandler.playerState.processingState;
-                    
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Shuffle
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            if (audioHandler.isShuffled) {
-                              audioHandler.unshuffle();
-                            } else {
-                              audioHandler.shuffle();
-                            }
-                          },
-                          child: Icon(
-                            CupertinoIcons.shuffle,
-                            size: 28,
-                            color: audioHandler.isShuffled == true
-                                ? CupertinoColors.systemPurple
-                                : const Color(0xFFFFFFFF),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        // Previous
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: audioHandler.hasPrevious == true
-                              ? () => appState.skipToPrevious()
-                              : null,
-                          child: Icon(
-                            CupertinoIcons.backward_fill,
-                            size: 32,
-                            color: audioHandler.hasPrevious == true
-                                ? const Color(0xFFFFFFFF)
-                                : CupertinoColors.systemGrey2,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        // Play/Pause
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => appState.playPause(),
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFFFFFFF),
-                            ),
-                            child: Icon(
-                              processingState == ProcessingState.loading ||
-                                      processingState == ProcessingState.buffering
-                                  ? CupertinoIcons.refresh
-                                  : isPlaying
-                                      ? CupertinoIcons.pause_fill
-                                      : CupertinoIcons.play_fill,
-                              size: 36,
-                              color: const Color(0xFF000000),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        // Next
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: audioHandler.hasNext == true
-                              ? () => appState.skipToNext()
-                              : null,
-                          child: Icon(
-                            CupertinoIcons.forward_fill,
-                            size: 32,
-                            color: audioHandler.hasNext == true
-                                ? const Color(0xFFFFFFFF)
-                                : CupertinoColors.systemGrey2,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        // Repeat
-                        StreamBuilder(
-                          stream: audioHandler.playbackState.map((state) => state.repeatMode),
-                          builder: (context, snapshot) {
-                            final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
-                            IconData icon;
-                            Color color;
-                            
-                            switch (repeatMode) {
-                              case AudioServiceRepeatMode.one:
-                                icon = CupertinoIcons.repeat_1;
-                                color = CupertinoColors.systemPurple;
-                                break;
-                              case AudioServiceRepeatMode.all:
-                                icon = CupertinoIcons.repeat;
-                                color = CupertinoColors.systemPurple;
-                                break;
-                              default:
-                                icon = CupertinoIcons.repeat;
-                                color = const Color(0xFFFFFFFF);
-                            }
-                            
-                            return CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () {
-                                // Cycle through repeat modes
-                                switch (repeatMode) {
-                                  case AudioServiceRepeatMode.none:
-                                    audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                    break;
-                                  case AudioServiceRepeatMode.all:
-                                    audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
-                                    break;
-                                  case AudioServiceRepeatMode.one:
-                                  case AudioServiceRepeatMode.group:
-                                    audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-                                    break;
-                                }
-                              },
-                              child: Icon(icon, size: 28, color: color),
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context, AppState appState, DoudouAudioHandler audioHandler, Track currentTrack) {
-    return Column(
-      children: [
-        const SizedBox(height: 20),
-        
-        // Album Art - responsive to available space
-        Expanded(
-          flex: 3,
-          child: StreamBuilder(
-            stream: audioHandler.playerStateStream,
-            builder: (context, snapshot) {
-              final isPlaying = audioHandler.isPlaying;
-              
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  // Calculate album art size based on available space
-                  final availableSize = constraints.maxHeight * 0.9;
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  final albumArtSize = (availableSize < screenWidth * 0.8) 
-                      ? availableSize 
-                      : screenWidth * 0.8;
-                  
-                  return Center(
-                    child: AnimatedScale(
-                      scale: isPlaying ? 1.0 : 0.85,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: Container(
-                        width: albumArtSize,
-                        height: albumArtSize,
-                        constraints: const BoxConstraints(
-                          maxWidth: 350,
-                          maxHeight: 350,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF000000).withOpacity(0.6),
-                              blurRadius: 30,
-                              offset: const Offset(0, 15),
-                            ),
-                          ],
-                        ),
-                        child: AlbumArtWidget(
-                          imageUrl: currentTrack.imageUrl != null
-                              ? appState.jellyfinService.getImageUrl(
-                                  currentTrack.imageUrl!,
-                                  width: 800,
-                                  height: 800,
-                                )
-                              : null,
-                          size: albumArtSize,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        
-        // Track info section - with proper overflow handling
-        Expanded(
-          flex: 1,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Track name with flexible sizing
-                Flexible(
-                  child: Text(
-                    currentTrack.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFFFFFF),
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 3, // Allow more lines for large fonts
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Artist name with flexible sizing
-                Flexible(
-                  child: Text(
-                    currentTrack.artistName ?? 'Unknown Artist',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: CupertinoColors.systemGrey,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2, // Allow more lines for large fonts
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   String _formatDuration(Duration duration) {
