@@ -482,7 +482,7 @@ class _HomeContentState extends State<HomeContent> {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => AlbumDetailScreen(album: album),
+            builder: (context) => DetailTrackView.album(album),
           ),
         );
       },
