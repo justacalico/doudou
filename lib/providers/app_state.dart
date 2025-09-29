@@ -613,7 +613,14 @@ class AppState extends ChangeNotifier {
     await prefs.remove('jellyfin_server');
     
     // Dispose audio handler
-    _audioHandler?.dispose();
+    try {
+      await _audioHandler?.dispose();
+    } catch (e) {
+      // Handle platform-specific limitations (e.g., MissingPluginException on Linux)
+      if (kDebugMode) {
+        print('Audio handler disposal error during logout (this may be expected on some platforms): $e');
+      }
+    }
     _audioHandler = null;
     
     _isLoggedIn = false;
