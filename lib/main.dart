@@ -21,6 +21,11 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   
+  // Initialize MediaKit for Linux audio support
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+    JustAudioMediaKit.ensureInitialized();
+  }
+  
   // Allow both orientations for Android Auto compatibility
   // Android Auto requires landscape orientation support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
