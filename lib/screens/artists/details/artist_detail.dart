@@ -470,7 +470,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: MiniPlayer(isOnDetailScreen: true),
+                child: MiniPlayer(),
               ),
             ],
           ),

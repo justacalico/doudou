@@ -313,7 +313,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 ),
             ],
           ),
-          const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer(isOnDetailScreen: true)),
+          const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer()),
         ],
       ),
     );
