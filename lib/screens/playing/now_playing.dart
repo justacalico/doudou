@@ -10,7 +10,6 @@ import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../shared/detail_track_view.dart';
-import '../albums/details/album_details.dart';
 import '../artists/details/artist_detail.dart';
 import '../../services/lyrics_service.dart';
 
