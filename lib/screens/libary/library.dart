@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../artists/artists.dart';
-import '../albums/details/album_details.dart';
+import '../shared/detail_track_view.dart';
 import '../songs/songs.dart';
 import '../playlists/playlists.dart';
 import '../favorites/favorites.dart';
@@ -240,7 +240,7 @@ class LibraryContent extends StatelessWidget {
                         Navigator.push(
                           context,
                           CupertinoPageRoute(
-                            builder: (context) => AlbumDetailScreen(album: album),
+                            builder: (context) => DetailTrackView.album(album),
                           ),
                         );
                       },
