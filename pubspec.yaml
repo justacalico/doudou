@@ -15,7 +15,7 @@ dependencies:
   http: ^1.1.0
   
   # Audio playbook
-  just_audio: ^0.10.4
+  just_audio: ^0.9.38
   audio_service: ^0.18.12
   audio_session: ^0.1.13
   
