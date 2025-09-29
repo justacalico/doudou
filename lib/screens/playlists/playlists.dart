@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
+import '../shared/detail_track_view.dart';
 
 class PlaylistsView extends StatelessWidget {
   const PlaylistsView({super.key});
@@ -79,7 +80,7 @@ class PlaylistsView extends StatelessWidget {
                             Navigator.push(
                               context,
                               CupertinoPageRoute(
-                                builder: (context) => PlaylistDetailScreen(playlist: playlist),
+                                builder: (context) => DetailTrackView.playlist(playlist),
                               ),
                             );
                           },
