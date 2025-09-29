@@ -209,7 +209,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               child: StreamBuilder(
                                 stream: audioHandler.playerStateStream,
                                 builder: (context, snapshot) {
-                                  final isPlaying = audioHandler.isPlaying ?? false;
+                                  final isPlaying = audioHandler.isPlaying;
                                   
                                   return LayoutBuilder(
                                     builder: (context, constraints) {
@@ -311,7 +311,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         children: [
                           // Progress slider and time
                           StreamBuilder<Duration>(
-                            stream: audioHandler.positionStream ?? Stream.value(Duration.zero),
+                            stream: audioHandler.positionStream,
                             builder: (context, snapshot) {
                               final position = snapshot.data ?? Duration.zero;
                               final duration = audioHandler.duration ?? Duration.zero;
@@ -373,7 +373,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           StreamBuilder(
                             stream: audioHandler.playerStateStream,
                             builder: (context, snapshot) {
-                              final isPlaying = audioHandler.isPlaying ?? false;
+                              final isPlaying = audioHandler.isPlaying;
                               final processingState = audioHandler.playerState.processingState;
                               
                               return Padding(
