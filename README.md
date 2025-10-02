@@ -57,9 +57,15 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 ### Installation
 
 #### Option 1: Official Releases *(Recommended)*
+� **[Download Latest Version →](releases.md)**
+
+For the latest downloads and platform-specific builds, please visit our **[Releases page](releases.md)** which includes:
+- Android APK files
+- Linux executables  
+- Web application
+- Source code for Windows, macOS, and iOS
+
 - 📱 **Google Play Store** - *Coming very soon!*
-- 💻 **GitHub Releases** - Download for desktop platforms
-- 🍎 **iOS** - Build from source (see development section)
 
 #### Option 2: Build from Source
 Perfect for developers and early adopters who want the latest features.
