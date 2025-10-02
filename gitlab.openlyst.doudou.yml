@@ -1,23 +1,23 @@
-app-id: com.example.myapp
+app-id: gitlab.openlyst.doudou
 runtime: org.freedesktop.Platform
 runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
-command: myapp
+command: doudou
 
 finish-args:
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
-  - --share=network  # if your app needs internet
+  - --share=network 
 
 modules:
-  - name: myapp
+  - name: doudou
     buildsystem: simple
     build-commands:
-      - install -Dm755 myapp /app/bin/myapp
-      - install -Dm644 com.example.myapp.desktop /app/share/applications/com.example.myapp.desktop
-      - install -Dm644 icon.png /app/share/icons/hicolor/256x256/apps/com.example.myapp.png
+      - install -Dm755 doudou /app/bin/doudou
+      - install -Dm644 gitlab.openlyst.doudou.desktop /app/share/applications/gitlab.openlyst.doudou.desktop
+      - install -Dm644 icon.png /app/share/icons/hicolor/256x256/apps/gitlab.openlyst.doudou.png
     sources:
       - type: dir
         path: build/linux/x64/release/bundle
