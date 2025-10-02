@@ -14,7 +14,3 @@
 - *Add release notes here for version 6.0.0*
 
 ---
-
-## Previous Releases
-
-*Add information about previous releases here*
