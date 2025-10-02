@@ -80,7 +80,54 @@
 | **iOS** | *Coming soon* |
 
 ### Release Notes
-- *Add release notes here for version 5.0.0*
+
+## Added
+- Pop-out for tracks.  
+- **"Add to Queue"** button.  
+- **"Play Next"** button.  
+- Download manager.  
+- Ability to download playlists.  
+- "Play All" and "Shuffle" buttons for downloaded songs.  
+- Ability to download albums.  
+- Navigate to the album by clicking the album name in **Now Playing**.  
+- Navigate to the artist page by clicking the artist name in **Now Playing**.  
+- Offline mode that keeps users logged in and restricts functionality to downloaded content when connectivity is lost.
+- **Global Search**: Search across artists, albums, songs, and playlists
+
+## Changed
+- Embedded the visualizer instead of using a separate page.  
+- Changed the visualizer to a bar style.  
+- Added a universal partial component for tracks.  
+- Album detail page now uses the shared track list template.  
+- Song page now uses the shared track list template.  
+- Favorites page now uses the shared track list template.  
+- Scaled album art for better display.  
+- Plays local versions of songs if already downloaded.  
+- Displays more privacy-conscious data for account info (less identifiable/doxxing content).  
+- Changed app ID to reflect new FOSS group.  
+- Displays subtitle as "**Album – Artist**".  
+- Navbar now has a glass (blurred) effect.  
+- Mini-player now has a glass (blurred) effect.  
+- Moved account information into its own file/module.  
+- Added scroll effect for album name and artist in Now Playing.  
+- Downloaded albums now reuse the existing album detail screen.  
+- Downloaded playlists now reuse the playlist screen.
+- Moved the queue to its own .dart file.
+
+## Removed
+- Removed **Download** and **Favorite** buttons from track list views.  
+- Removed **Display Settings** from the Settings screen.  
+- Removed **Audio Quality** options from the Settings screen.  
+- Removed **Settings** icon from the Library screen.
+
+## Fixed
+- Fixed playback of favorites from the dedicated favorites page.  
+- Fixed screen breakage when overlays were active.  
+- Fixed background playback issues.  
+- Fixed the download page not displaying properly.  
+- Fixed downloads getting stuck at 100%.  
+- Fixed **Cancel Download** button functionality.  
+- Fixed **Redo Download** button functionality.
 
 ---
 
