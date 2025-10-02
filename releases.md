@@ -116,7 +116,23 @@
 | **iOS** | *Coming soon* |
 
 ### Release Notes
-- *Add release notes here for version 3.0.0*
+
+## Added
+- Added lyrics.
+- Added looping.
+- Added caching to images.
+- Ability to go to the album page from an artist.
+
+## Changed
+- Made the queue into a widget rather than a page.
+- Updated the favorites page with the new OLED theme.
+- Updated the albums page with the new OLED theme.
+- Updated the theme for the artist detail page.
+
+## Fixed
+- Fixed the queue having overflow issues.
+- Fixed cached songs still needing to be loaded.
+- Fixed albums not loading tracks in some cases.
 
 ---
 
@@ -134,8 +150,6 @@
 | **iOS** | *Coming soon* |
 
 ### Release Notes
-
-This version refines a lot of 1.0.0 and adds some cool things.
 
 # Added
 - Visulizer for music.
