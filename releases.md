@@ -137,12 +137,12 @@
 
 | Platform | Download |
 |----------|----------|
-| **Android** | *https://github.com/HttpAnimation/awdawd/releases/download/4.0.0/doudou-flutter-4.0.0-android-debug.apk* |
-| **Linux** | *Coming soon* |
-| **Web** | *Coming soon* |
-| **Windows** | *Coming soon* |
-| **macOS** | *Coming soon* |
-| **iOS** | *Coming soon* |
+| **Android** | [Download APK](https://github.com/HttpAnimation/awdawd/releases/download/4.0.0/doudou-flutter-4.0.0-android-debug.apk) |
+| **Linux** | Not available |
+| **Web** | Not available |
+| **Windows** | Not available |
+| **macOS** | Not available |
+| **iOS** | Not available |
 
 ### Release Notes
 
