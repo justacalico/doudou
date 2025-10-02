@@ -126,12 +126,6 @@ A comprehensive list of potential features and enhancements for Doudou Music Pla
 - **Progressive Download**: Smart downloading based on listening habits
 - **Cache Management**: More granular cache control
 
-### Accessibility
-- **VoiceOver Support**: Full screen reader compatibility
-- **Large Text**: Support for larger text sizes
-- **High Contrast**: High contrast mode for better visibility
-- **Motor Accessibility**: Alternative input methods
-
 ## 🌟 Premium Features (Optional)
 
 ### Advanced Audio
