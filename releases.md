@@ -108,7 +108,7 @@
 
 | Platform | Download |
 |----------|----------|
-| **Android** | *Coming soon* |
+| **Android** | *https://github.com/HttpAnimation/awdawd/releases/download/3.0.0/doudou-flutter-3.0.0-android-debug.apk* |
 | **Linux** | *Coming soon* |
 | **Web** | *Coming soon* |
 | **Windows** | *Coming soon* |
