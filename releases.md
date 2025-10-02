@@ -65,3 +65,39 @@
 - Fixed Linux builds not properly initializing the database.
 
 ---
+
+## Version 5.0.0
+
+### Download Links
+
+| Platform | Download |
+|----------|----------|
+| **Android** | *Coming soon* |
+| **Linux** | *Coming soon* |
+| **Web** | *Coming soon* |
+| **Windows** | *Coming soon* |
+| **macOS** | *Coming soon* |
+| **iOS** | *Coming soon* |
+
+### Release Notes
+- *Add release notes here for version 5.0.0*
+
+---
+
+## Version 4.0.0
+
+### Download Links
+
+| Platform | Download |
+|----------|----------|
+| **Android** | *Coming soon* |
+| **Linux** | *Coming soon* |
+| **Web** | *Coming soon* |
+| **Windows** | *Coming soon* |
+| **macOS** | *Coming soon* |
+| **iOS** | *Coming soon* |
+
+### Release Notes
+- *Add release notes here for version 4.0.0*
+
+---
