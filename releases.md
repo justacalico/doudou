@@ -152,6 +152,6 @@
 | **iOS** | *Coming soon* |
 
 ### Release Notes
-- *Add release notes here for version 1.0.0*
+- *After many months of hard work the app is finally ready for public usage. Some features are still not implemented but I am working on it*
 
 ---
