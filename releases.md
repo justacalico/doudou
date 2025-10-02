@@ -101,3 +101,57 @@
 - *Add release notes here for version 4.0.0*
 
 ---
+
+## Version 3.0.0
+
+### Download Links
+
+| Platform | Download |
+|----------|----------|
+| **Android** | *Coming soon* |
+| **Linux** | *Coming soon* |
+| **Web** | *Coming soon* |
+| **Windows** | *Coming soon* |
+| **macOS** | *Coming soon* |
+| **iOS** | *Coming soon* |
+
+### Release Notes
+- *Add release notes here for version 3.0.0*
+
+---
+
+## Version 2.0.0
+
+### Download Links
+
+| Platform | Download |
+|----------|----------|
+| **Android** | *Coming soon* |
+| **Linux** | *Coming soon* |
+| **Web** | *Coming soon* |
+| **Windows** | *Coming soon* |
+| **macOS** | *Coming soon* |
+| **iOS** | *Coming soon* |
+
+### Release Notes
+- *Add release notes here for version 2.0.0*
+
+---
+
+## Version 1.0.0
+
+### Download Links
+
+| Platform | Download |
+|----------|----------|
+| **Android** | *Coming soon* |
+| **Linux** | *Coming soon* |
+| **Web** | *Coming soon* |
+| **Windows** | *Coming soon* |
+| **macOS** | *Coming soon* |
+| **iOS** | *Coming soon* |
+
+### Release Notes
+- *Add release notes here for version 1.0.0*
+
+---
