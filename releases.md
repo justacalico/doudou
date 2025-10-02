@@ -231,12 +231,12 @@
 
 | Platform | Download |
 |----------|----------|
-| **Android** | *https://github.com/HttpAnimation/awdawd/raw/refs/heads/main/doudou-flutter-1.0.0-android.apk* |
-| **Linux** | *Coming soon* |
-| **Web** | *Coming soon* |
-| **Windows** | *Coming soon* |
-| **macOS** | *Coming soon* |
-| **iOS** | *Coming soon* |
+| **Android** | [Download APK](https://github.com/HttpAnimation/awdawd/raw/refs/heads/main/doudou-flutter-1.0.0-android.apk) |
+| **Linux** | Not available |
+| **Web** | Not available |
+| **Windows** | Not available |
+| **macOS** | Not available |
+| **iOS** | Not available |
 
 ### Release Notes
 - *After many months of hard work the app is finally ready for public usage. Some features are still not implemented but I am working on it*
