@@ -65,7 +65,7 @@ For the latest downloads and platform-specific builds, please visit our **[Relea
 - Web application
 - Source code for Windows, macOS, and iOS
 
-- 📱 **Google Play Store** - *Coming very soon!*
+- 📱 **Google Play Store** - Currently in **closed testing**. Google's policies require limited testing before public release. [**Request access here**](https://gitlab.com/Openlyst/doudou/-/issues/new) - all requests are accepted!
 
 #### Option 2: Build from Source
 Perfect for developers and early adopters who want the latest features.
