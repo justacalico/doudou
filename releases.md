@@ -144,7 +144,7 @@
 
 | Platform | Download |
 |----------|----------|
-| **Android** | *Coming soon* |
+| **Android** | *https://github.com/HttpAnimation/awdawd/raw/refs/heads/main/doudou-flutter-1.0.0-android.apk* |
 | **Linux** | *Coming soon* |
 | **Web** | *Coming soon* |
 | **Windows** | *Coming soon* |
