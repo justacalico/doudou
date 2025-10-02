@@ -134,7 +134,18 @@
 | **iOS** | *Coming soon* |
 
 ### Release Notes
-- *Add release notes here for version 2.0.0*
+
+This version refines a lot of 1.0.0 and adds some cool things.
+
+# Added
+- Visulizer for music.
+
+# Changed
+- Pages support the OLED theme much better.
+
+# Fixed
+- Home page showing the same 6-7 albums
+- Bug in the new audio stream is causing the app to break.
 
 ---
 
