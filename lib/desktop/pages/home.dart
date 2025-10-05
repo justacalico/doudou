@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../templates/music_cards.dart';
 import '../../providers/app_state.dart';
+import 'details/album_details.dart';
+import 'details/artist_details.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
