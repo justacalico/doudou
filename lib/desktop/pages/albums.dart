@@ -5,7 +5,12 @@ import '../../providers/app_state.dart';
 import 'details/album_details.dart';
 
 class AlbumsPage extends StatefulWidget {
-  const AlbumsPage({super.key});
+  final Function(Widget) onNavigateToDetail;
+  
+  const AlbumsPage({
+    super.key,
+    required this.onNavigateToDetail,
+  });
 
   @override
   State<AlbumsPage> createState() => _AlbumsPageState();
