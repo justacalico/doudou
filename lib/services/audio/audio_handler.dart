@@ -621,7 +621,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> play() async {
     final now = DateTime.now();
-    
     // Throttle rapid play commands
     if (_lastPlayCommand != null && 
         now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
@@ -1828,25 +1827,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _stateManager.setRadioModeEnabled(false);
   }
 
-  // Audio settings
-  void setSmartCrossfade(bool enabled) {
-    _stateManager.setSmartCrossfadeEnabled(enabled);
-    
-    if (enabled) {
-      // Only set volume when explicitly changing settings, not during playback
-      _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
-      
-      // If gapless is disabled but crossfade is enabled, preload for smooth transitions
-      if (!_stateManager.gaplessPlaybackEnabled) {
-        _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
-      }
-    } else {
-      // If both gapless and crossfade are disabled, clear preloaded players
-      if (!_stateManager.gaplessPlaybackEnabled) {
-        _preloader.clearAllPreloadedPlayers();
-      }
-    }
-  }
+
 
   void setNormalizeVolume(bool enabled) {
     _stateManager.setNormalizeVolumeEnabled(enabled);
