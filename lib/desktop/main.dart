@@ -10,6 +10,7 @@ import '../screens/login/login.dart';
 import 'pages/home.dart';
 import 'pages/albums.dart';
 import 'pages/playlists.dart';
+import 'pages/artists.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -328,20 +329,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildArtistsContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.person, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Artists',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text('Browse by artist'),
-        ],
-      ),
-    );
+    return const ArtistsPage();
   }
 
   Widget _buildSettingsContent() {
