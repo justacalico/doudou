@@ -8,6 +8,7 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import '../providers/app_state.dart';
 import '../screens/login/login.dart';
 import 'pages/home.dart';
+import 'pages/albums.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
