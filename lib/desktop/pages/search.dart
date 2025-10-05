@@ -552,7 +552,7 @@ class _SearchPageState extends State<SearchPage> {
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        _selectedFilter = type + 's'; // Convert to plural
+                        _selectedFilter = '${type}s'; // Convert to plural
                       });
                     },
                     child: Text('View All (${items.length})'),
