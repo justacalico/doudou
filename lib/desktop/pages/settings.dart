@@ -1116,21 +1116,5 @@ class _SettingsPageState extends State<SettingsPage> {
     return Platform.operatingSystem;
   }
 
-  String _getFlutterVersion() {
-    try {
-      final result = Process.runSync('flutter', ['--version', '--machine']);
-      if (result.exitCode == 0) {
-        // Parse JSON output if available
-        final output = result.stdout.toString();
-        // Simple extraction of version number
-        final match = RegExp(r'"flutterVersion":"([^"]+)"').firstMatch(output);
-        if (match != null) {
-          return match.group(1) ?? 'Unknown';
-        }
-      }
-    } catch (e) {
-      // Flutter command not available or failed
-    }
-    return 'Unknown (Flutter not in PATH)';
-  }
+
 }
