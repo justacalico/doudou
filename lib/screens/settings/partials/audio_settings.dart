@@ -23,15 +23,7 @@ class AudioSettingsSection extends StatelessWidget {
           child: Column(
             children: [
               _buildSectionHeader('Audio Settings'),
-              _buildSwitchTile(
-                icon: CupertinoIcons.volume_up,
-                title: 'Smart Crossfade',
-                subtitle: 'Smooth transitions between tracks',
-                value: appState.smartCrossfadeEnabled,
-                onChanged: (value) {
-                  appState.toggleSmartCrossfade(value);
-                },
-              ),
+
               _buildSwitchTile(
                 icon: CupertinoIcons.speaker_2,
                 title: 'Normalize Volume',

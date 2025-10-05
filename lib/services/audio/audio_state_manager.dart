@@ -48,7 +48,7 @@ class AudioStateManager {
   // Getters for playback configuration
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
-  Duration get crossfadeDuration => _crossfadeDuration;
+
   
   // Getters for completion tracking
   bool get isHandlingCompletion => _isHandlingCompletion;

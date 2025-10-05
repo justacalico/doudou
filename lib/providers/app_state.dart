@@ -34,7 +34,7 @@ class AppState extends ChangeNotifier {
   List<Artist> _artists = [];
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
-  bool _smartCrossfadeEnabled = false;
+
   bool _normalizeVolumeEnabled = false;
   bool _gaplessPlaybackEnabled = true;
   bool _oledDarkModeEnabled = true;
@@ -58,7 +58,7 @@ class AppState extends ChangeNotifier {
   JellyfinService get jellyfinService => _jellyfinService;
   DownloadService get downloadService => _downloadService;
   DoudouAudioHandler? get audioHandler => _audioHandler;
-  bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
+
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
@@ -1503,15 +1503,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleSmartCrossfade(bool enabled) async {
-    _smartCrossfadeEnabled = enabled;
-     
-    // Save the setting to preferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('smart_crossfade_enabled', enabled);
-    
-    notifyListeners();
-  }
+
 
   Future<void> toggleNormalizeVolume(bool enabled) async {
     _normalizeVolumeEnabled = enabled;
@@ -1561,7 +1553,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    _smartCrossfadeEnabled = prefs.getBool('smart_crossfade_enabled') ?? true;
+
     _normalizeVolumeEnabled = prefs.getBool('normalize_volume_enabled') ?? false;
     _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
