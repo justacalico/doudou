@@ -659,10 +659,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await Future.delayed(stepDuration);
       }
       
-      // Switch to the new player
+      // Get the current position from the secondary player before switching
+      final currentPosition = secondaryPlayer.position;
+      
+      // Switch to the new player, but preserve the playback position
       await _player.stop();
       await _player.setAudioSource(audioSource);
       await _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
+      
+      // Seek to the position where the secondary player was, then play
+      if (currentPosition > Duration.zero) {
+        await _player.seek(currentPosition);
+      }
       await _player.play();
       
       // Clean up secondary player
