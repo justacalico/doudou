@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
@@ -38,6 +39,10 @@ class AppState extends ChangeNotifier {
   bool _gaplessPlaybackEnabled = true;
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
+  
+  // Theme settings
+  ThemeMode _themeMode = ThemeMode.system;
+  Color _accentColor = Colors.purple;
   
   // Getters
   bool get isLoggedIn => _isLoggedIn;
