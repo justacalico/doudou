@@ -5,7 +5,12 @@ import '../../providers/app_state.dart';
 import 'details/artist_details.dart';
 
 class ArtistsPage extends StatefulWidget {
-  const ArtistsPage({super.key});
+  final Function(Widget) onNavigateToDetail;
+  
+  const ArtistsPage({
+    super.key,
+    required this.onNavigateToDetail,
+  });
 
   @override
   State<ArtistsPage> createState() => _ArtistsPageState();
@@ -343,12 +348,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ArtistDetailsPage(artist: artist),
-            ),
-          );
+          widget.onNavigateToDetail(ArtistDetailsPage(artist: artist));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
