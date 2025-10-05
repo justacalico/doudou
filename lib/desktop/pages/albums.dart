@@ -366,7 +366,10 @@ class _AlbumsPageState extends State<AlbumsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          widget.onNavigateToDetail(AlbumDetailsPage(album: album));
+          widget.onNavigateToDetail(AlbumDetailsPage(
+            album: album,
+            onNavigateToDetail: widget.onNavigateToDetail,
+          ));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
