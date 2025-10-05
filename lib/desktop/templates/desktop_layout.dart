@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../pages/home.dart';
+import '../services/navigation_service.dart';
 import '../pages/albums.dart';
 import '../pages/playlists.dart';
 import '../pages/artists.dart';
@@ -13,6 +14,7 @@ class DesktopLayout extends StatefulWidget {
   final VoidCallback? onNavigationChanged;
   final bool showBackButton;
   final String? title;
+  final Function(int)? onMainPageNavigation;
 
   const DesktopLayout({
     super.key,
@@ -21,6 +23,7 @@ class DesktopLayout extends StatefulWidget {
     this.onNavigationChanged,
     this.showBackButton = false,
     this.title,
+    this.onMainPageNavigation,
   });
 
   @override
@@ -29,6 +32,7 @@ class DesktopLayout extends StatefulWidget {
 
 class _DesktopLayoutState extends State<DesktopLayout> {
   int _selectedIndex = 0;
+  final NavigationService _navigationService = NavigationService();
   
   final List<String> _navigationItems = [
     'Home',
@@ -157,10 +161,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   if (widget.child != null && widget.showBackButton) {
                                     // If we're on a detail page, navigate back to main app
                                     Navigator.popUntil(context, (route) => route.isFirst);
+                                    // Update the navigation service to show correct page
+                                    _navigationService.navigateToMainPage(index);
                                   } else {
                                     setState(() {
                                       _selectedIndex = index;
                                     });
+                                    // Also update the navigation service for consistency
+                                    _navigationService.selectPage(index);
                                     widget.onNavigationChanged?.call();
                                   }
                                 },

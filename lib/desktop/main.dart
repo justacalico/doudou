@@ -8,6 +8,7 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import '../providers/app_state.dart';
 import '../screens/login/login.dart';
 import 'templates/desktop_layout.dart';
+import 'services/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,11 +115,47 @@ class DesktopDoudouApp extends StatelessWidget {
   }
 }
 
-class DesktopHomeLayout extends StatelessWidget {
+class DesktopHomeLayout extends StatefulWidget {
   const DesktopHomeLayout({super.key});
 
   @override
+  State<DesktopHomeLayout> createState() => _DesktopHomeLayoutState();
+}
+
+class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
+  final NavigationService _navigationService = NavigationService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to navigation changes from detail pages
+    _navigationService.selectedPageIndex.addListener(_onNavigationChanged);
+  }
+
+  @override
+  void dispose() {
+    _navigationService.selectedPageIndex.removeListener(_onNavigationChanged);
+    super.dispose();
+  }
+
+  void _onNavigationChanged() {
+    setState(() {
+      // Trigger rebuild when navigation changes
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const DesktopLayout();
+    return ValueListenableBuilder<int>(
+      valueListenable: _navigationService.selectedPageIndex,
+      builder: (context, selectedIndex, child) {
+        return DesktopLayout(
+          selectedIndex: selectedIndex,
+          onNavigationChanged: () {
+            setState(() {});
+          },
+        );
+      },
+    );
   }
 }
