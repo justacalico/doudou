@@ -209,8 +209,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               },
               items: const [
                 DropdownMenuItem(value: 'all', child: Text('All Playlists')),
-                DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
-                DropdownMenuItem(value: 'created', child: Text('Created by Me')),
+                // Remove favorites and created filters since they're not supported yet
+                // DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
+                // DropdownMenuItem(value: 'created', child: Text('Created by Me')),
               ],
             ),
             
