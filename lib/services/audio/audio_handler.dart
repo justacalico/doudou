@@ -640,41 +640,81 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Start the crossfade
       final crossfadeDuration = _stateManager.crossfadeDuration;
-      final steps = 20; // Number of volume steps
+      final steps = 50; // More steps for smoother transition
       final stepDuration = Duration(milliseconds: crossfadeDuration.inMilliseconds ~/ steps);
+      
+      // Get initial volumes
+      final maxVolume = _stateManager.normalizeVolumeEnabled ? 0.8 : 1.0;
       
       // Start playing the new track at volume 0
       await secondaryPlayer.setVolume(0.0);
       await secondaryPlayer.play();
       
-      // Gradually fade out old track and fade in new track
+      // Give the secondary player a moment to start properly
+      await Future.delayed(const Duration(milliseconds: 50));
+      
+      // Gradually fade out old track and fade in new track using smooth curves
       for (int i = 0; i < steps; i++) {
         final progress = (i + 1) / steps;
-        final oldVolume = (1.0 - progress) * (_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
-        final newVolume = progress * (_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
         
-        await _player.setVolume(oldVolume);
-        await secondaryPlayer.setVolume(newVolume);
+        // Use smooth fade curves (ease-in-out) instead of linear
+        final fadeProgress = _smoothFade(progress);
+        
+        final oldVolume = (1.0 - fadeProgress) * maxVolume;
+        final newVolume = fadeProgress * maxVolume;
+        
+        // Set volumes simultaneously to minimize timing differences
+        await Future.wait([
+          _player.setVolume(oldVolume),
+          secondaryPlayer.setVolume(newVolume),
+        ]);
         
         await Future.delayed(stepDuration);
       }
       
-      // Get the current position from the secondary player before switching
-      final currentPosition = secondaryPlayer.position;
+      // At this point the secondary player should be at full volume and primary at 0
+      // Now we need to smoothly transfer playback without any gaps
       
-      // Switch to the new player, but preserve the playback position
-      await _player.stop();
+      // Get the exact position from secondary player
+      final transferPosition = secondaryPlayer.position;
+      
+      // Prepare the main player with the new source
       await _player.setAudioSource(audioSource);
-      await _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
       
-      // Seek to the position where the secondary player was, then play
-      if (currentPosition > Duration.zero) {
-        await _player.seek(currentPosition);
-      }
+      // Seek to the transfer position with a small buffer to account for processing time
+      final bufferOffset = Duration(milliseconds: 20); // Small buffer for processing delay
+      final seekPosition = transferPosition + bufferOffset;
+      
+      await _player.seek(seekPosition);
+      await _player.setVolume(0.0); // Start at zero volume
+      
+      // Start the main player
       await _player.play();
+      
+      // Quick fade from secondary to main player to eliminate any gap
+      const quickFadeSteps = 10;
+      const quickFadeDuration = Duration(milliseconds: 100);
+      final quickStepDuration = Duration(milliseconds: quickFadeDuration.inMilliseconds ~/ quickFadeSteps);
+      
+      for (int i = 0; i < quickFadeSteps; i++) {
+        final progress = (i + 1) / quickFadeSteps;
+        final secondaryVolume = (1.0 - progress) * maxVolume;
+        final mainVolume = progress * maxVolume;
+        
+        await Future.wait([
+          secondaryPlayer.setVolume(secondaryVolume),
+          _player.setVolume(mainVolume),
+        ]);
+        
+        await Future.delayed(quickStepDuration);
+      }
+      
+      // Ensure main player is at full volume
+      await _player.setVolume(maxVolume);
       
       // Clean up secondary player
       try {
+        await secondaryPlayer.stop();
         await secondaryPlayer.dispose();
       } catch (e) {
         // Handle platform-specific limitations (e.g., MissingPluginException on Linux)
@@ -699,6 +739,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Crossfade failed, falling back to direct transition: $e');
       }
       await _loadAndPlayTrack(track);
+    }
+  }
+
+  /// Smooth fade curve function (ease-in-out)
+  double _smoothFade(double t) {
+    // Use cubic ease-in-out curve for smoother transitions
+    if (t < 0.5) {
+      return 4 * t * t * t;
+    } else {
+      return 1 - 4 * (1 - t) * (1 - t) * (1 - t);
     }
   }
 
