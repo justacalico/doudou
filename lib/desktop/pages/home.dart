@@ -97,7 +97,10 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: album.artistName ?? 'Unknown Artist',
                                       imageUrl: _getImageUrl(appState, album.imageUrl),
                                       onTap: () {
-                                        widget.onNavigateToDetail(AlbumDetailsPage(album: album));
+                                        widget.onNavigateToDetail(AlbumDetailsPage(
+                                          album: album,
+                                          onNavigateToDetail: widget.onNavigateToDetail,
+                                        ));
                                       },
                                     ),
                                   );
@@ -179,7 +182,10 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: 'Artist',
                                       imageUrl: _getImageUrl(appState, artist.imageUrl),
                                       onTap: () {
-                                        widget.onNavigateToDetail(ArtistDetailsPage(artist: artist));
+                                        widget.onNavigateToDetail(ArtistDetailsPage(
+                                          artist: artist,
+                                          onNavigateToDetail: widget.onNavigateToDetail,
+                                        ));
                                       },
                                     ),
                                   );
