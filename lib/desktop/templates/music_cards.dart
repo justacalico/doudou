@@ -24,6 +24,7 @@ class MusicCard extends StatelessWidget {
     
     return SizedBox(
       width: size,
+      height: size, // Set fixed height to prevent overflow
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -34,7 +35,7 @@ class MusicCard extends StatelessWidget {
               // Image/Album art
               Container(
                 width: size,
-                height: size - 40,
+                height: size * 0.7, // Use percentage of total size
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceVariant,
                 ),
@@ -49,30 +50,37 @@ class MusicCard extends StatelessWidget {
                     : _buildPlaceholder(theme),
               ),
               
-              // Text content
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+              // Text content - use Expanded to fill remaining space
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 4),
+                      Flexible(
+                        child: Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
