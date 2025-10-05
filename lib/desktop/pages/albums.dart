@@ -366,12 +366,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AlbumDetailsPage(album: album),
-            ),
-          );
+          widget.onNavigateToDetail(AlbumDetailsPage(album: album));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
