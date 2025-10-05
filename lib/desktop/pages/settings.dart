@@ -408,7 +408,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: const Text('App theme'),
-                    subtitle: const Text('System default'),
+                    subtitle: Text(_getThemeDisplayName(appState.themeMode)),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       _showThemeDialog();
@@ -416,12 +416,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     title: const Text('Accent color'),
-                    subtitle: const Text('Purple'),
+                    subtitle: Text(_getColorDisplayName(appState.accentColor)),
                     trailing: Container(
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: Colors.purple,
+                        color: appState.accentColor,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -871,6 +871,27 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  String _getThemeDisplayName(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.system:
+        return 'System default';
+    }
+  }
+
+  String _getColorDisplayName(Color color) {
+    if (color == Colors.purple) return 'Purple';
+    if (color == Colors.blue) return 'Blue';
+    if (color == Colors.green) return 'Green';
+    if (color == Colors.orange) return 'Orange';
+    if (color == Colors.red) return 'Red';
+    if (color == Colors.teal) return 'Teal';
+    return 'Custom';
+  }
+
   void _showColorDialog() {
     final colors = [
       {'name': 'Purple', 'color': Colors.purple},
@@ -892,7 +913,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return InkWell(
               onTap: () {
                 Navigator.pop(context);
-                // Handle color change
+                context.read<AppState>().setAccentColor(colorData['color'] as Color);
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(
