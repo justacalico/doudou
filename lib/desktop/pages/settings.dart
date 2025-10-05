@@ -782,13 +782,18 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: const Text('Platform'),
-                    subtitle: const Text('Linux Desktop'),
+                    subtitle: Text('${Theme.of(context).platform.name} ${_getArchitecture()}'),
                     leading: const Icon(Icons.computer),
                   ),
                   ListTile(
                     title: const Text('Build Date'),
-                    subtitle: const Text('October 5, 2025'),
+                    subtitle: Text(_getBuildDate()),
                     leading: const Icon(Icons.calendar_today),
+                  ),
+                  ListTile(
+                    title: const Text('Flutter Version'),
+                    subtitle: const Text('3.24.0'),
+                    leading: const Icon(Icons.flutter_dash),
                   ),
                 ],
               ),
