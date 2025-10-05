@@ -8,11 +8,7 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'providers/app_state.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
-
-// Conditional import for desktop platforms
-import 'desktop/main.dart' as desktop_main
-    if (dart.library.io) 'desktop/main.dart'
-    if (dart.library.html) 'desktop/main.dart';
+import 'desktop/main.dart' as desktop_main;
 
 void main() async {
   // Check if we're on a desktop or web platform
