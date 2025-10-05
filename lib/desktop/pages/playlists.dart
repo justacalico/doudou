@@ -231,8 +231,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               },
               items: const [
                 DropdownMenuItem(value: 'name', child: Text('Name')),
-                DropdownMenuItem(value: 'dateCreated', child: Text('Date Created')),
                 DropdownMenuItem(value: 'trackCount', child: Text('Track Count')),
+                // Remove dateCreated since Playlist model doesn't have this field
+                // DropdownMenuItem(value: 'dateCreated', child: Text('Date Created')),
               ],
             ),
             
