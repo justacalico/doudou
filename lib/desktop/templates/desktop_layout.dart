@@ -251,7 +251,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 final currentTrack = mediaSnapshot.data;
                 
                 return Container(
-                  height: 80,
+                  height: 100,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     border: Border(
@@ -331,38 +331,51 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           ),
                         ),
                         
-                        // Player controls
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: audioHandler != null && audioHandler.hasPrevious
-                                  ? () => appState.skipToPrevious()
-                                  : null,
-                              icon: const Icon(Icons.skip_previous),
-                              iconSize: 28,
-                            ),
-                            IconButton(
-                              onPressed: audioHandler != null && currentTrack != null
-                                  ? () => appState.playPause()
-                                  : null,
-                              icon: Icon(
-                                isPlaying ? Icons.pause : Icons.play_arrow,
+                        // Player controls with progress bar
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Control buttons
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: audioHandler != null && audioHandler.hasPrevious
+                                        ? () => appState.skipToPrevious()
+                                        : null,
+                                    icon: const Icon(Icons.skip_previous),
+                                    iconSize: 28,
+                                  ),
+                                  IconButton(
+                                    onPressed: audioHandler != null && currentTrack != null
+                                        ? () => appState.playPause()
+                                        : null,
+                                    icon: Icon(
+                                      isPlaying ? Icons.pause : Icons.play_arrow,
+                                    ),
+                                    iconSize: 32,
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: theme.colorScheme.primary,
+                                      foregroundColor: theme.colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: audioHandler != null && audioHandler.hasNext
+                                        ? () => appState.skipToNext()
+                                        : null,
+                                    icon: const Icon(Icons.skip_next),
+                                    iconSize: 28,
+                                  ),
+                                ],
                               ),
-                              iconSize: 32,
-                              style: IconButton.styleFrom(
-                                backgroundColor: theme.colorScheme.primary,
-                                foregroundColor: theme.colorScheme.onPrimary,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: audioHandler != null && audioHandler.hasNext
-                                  ? () => appState.skipToNext()
-                                  : null,
-                              icon: const Icon(Icons.skip_next),
-                              iconSize: 28,
-                            ),
-                          ],
+                              
+                              // Progress bar
+                              if (audioHandler != null && currentTrack != null)
+                                _buildProgressBar(theme, audioHandler),
+                            ],
+                          ),
                         ),
                         
                         const SizedBox(width: 16),
@@ -434,5 +447,80 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         ],
       ),
     );
+  }
+
+  Widget _buildProgressBar(ThemeData theme, dynamic audioHandler) {
+    return StreamBuilder<Duration>(
+      stream: audioHandler.positionStream,
+      builder: (context, positionSnapshot) {
+        final position = positionSnapshot.data ?? Duration.zero;
+        
+        return StreamBuilder<Duration?>(
+          stream: audioHandler.durationStream,
+          builder: (context, durationSnapshot) {
+            final duration = durationSnapshot.data ?? Duration.zero;
+            final progress = duration.inMilliseconds > 0 
+                ? position.inMilliseconds / duration.inMilliseconds 
+                : 0.0;
+            
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // Current time
+                  Text(
+                    _formatDuration(position),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 8),
+                  
+                  // Progress slider
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        trackHeight: 4,
+                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                      ),
+                      child: Slider(
+                        value: progress.clamp(0.0, 1.0),
+                        onChanged: (value) {
+                          // Seek to position
+                          final newPosition = Duration(
+                            milliseconds: (value * duration.inMilliseconds).round(),
+                          );
+                          audioHandler.seek(newPosition);
+                        },
+                        activeColor: theme.colorScheme.primary,
+                        inactiveColor: theme.colorScheme.outline.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 8),
+                  
+                  // Total duration
+                  Text(
+                    _formatDuration(duration),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
