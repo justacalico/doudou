@@ -4,7 +4,12 @@ import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 
 class LibraryPage extends StatefulWidget {
-  const LibraryPage({super.key});
+  final Function(Widget) onNavigateToDetail;
+  
+  const LibraryPage({
+    super.key,
+    required this.onNavigateToDetail,
+  });
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
