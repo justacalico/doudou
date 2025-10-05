@@ -79,12 +79,7 @@ class AudioStateManager {
     _isShuffled = shuffled;
   }
   
-  void setSmartCrossfadeEnabled(bool enabled) {
-    _smartCrossfadeEnabled = enabled;
-    if (kDebugMode) {
-      print('Smart crossfade ${enabled ? 'enabled' : 'disabled'}');
-    }
-  }
+
   
   void setNormalizeVolumeEnabled(bool enabled) {
     _normalizeVolumeEnabled = enabled;
