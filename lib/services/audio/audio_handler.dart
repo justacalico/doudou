@@ -616,8 +616,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return null;
   }
 
-
-
   // Audio Service Methods - Enhanced for background compatibility
   @override
   @override
@@ -1343,28 +1341,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playing: _userIntendedPlaying, // Use user intent instead of wasPlaying
     ));
     
-    // Apply crossfade if enabled and we have a current track playing
-    bool useCrossfade = _stateManager.smartCrossfadeEnabled && 
-                       wasPlaying && 
-                       _player.playing;
-    
-    if (useCrossfade) {
-      await _crossfadeToTrack(track);
-    } else {
-      // Minimal stop for codec cleanup - no excessive delays
-      try {
-        await _player.stop();
-        await Future.delayed(const Duration(milliseconds: 100)); // Reduced from 300ms
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error stopping player: $e');
-        }
-        await Future.delayed(const Duration(milliseconds: 50));
+    // Minimal stop for codec cleanup - no excessive delays
+    try {
+      await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 100)); // Reduced from 300ms
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error stopping player: $e');
       }
-      
-      // Load and play the track
-      await _loadAndPlayTrack(track);
+      await Future.delayed(const Duration(milliseconds: 50));
     }
+    
+    // Load and play the track
+    await _loadAndPlayTrack(track);
     
     // Start preloading after current track is loaded
     Future.delayed(const Duration(milliseconds: 200), () {
