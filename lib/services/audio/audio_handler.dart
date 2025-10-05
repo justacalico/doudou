@@ -935,6 +935,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
     
+    // Preserve playing state when skipping - if music was playing, it should continue playing
+    final wasPlaying = playbackState.value.playing;
+    if (wasPlaying) {
+      _userIntendedPlaying = true;
+    }
+    
     // Use gapless transition if concatenation is active
     if (_isUsingConcatenation && _concatenatingSource != null) {
       final nextIndex = _stateManager.currentIndex + 1;
