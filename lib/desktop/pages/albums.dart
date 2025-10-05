@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import '../../models/jellyfin_models.dart';
 import 'details/album_details.dart';
 
 class AlbumsPage extends StatefulWidget {
@@ -271,13 +272,13 @@ class _AlbumsPageState extends State<AlbumsPage> {
               onPressed: () async {
                 final filteredAlbums = _getFilteredAndSortedAlbums(appState);
                 if (filteredAlbums.isNotEmpty) {
-                  List<dynamic> allTracks = [];
+                  List<Track> allTracks = [];
                   for (var album in filteredAlbums) {
                     final tracks = await appState.getAlbumTracks(album.id);
                     allTracks.addAll(tracks);
                   }
                   if (allTracks.isNotEmpty) {
-                    await appState.playPlaylist(allTracks.cast<dynamic>(), 0);
+                    await appState.playPlaylist(allTracks, 0);
                   }
                 }
               },
