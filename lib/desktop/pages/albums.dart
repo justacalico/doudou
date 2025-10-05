@@ -201,7 +201,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
           children: [
             // Results count
             Text(
-              '${filteredCount} albums',
+              '$filteredCount albums',
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
