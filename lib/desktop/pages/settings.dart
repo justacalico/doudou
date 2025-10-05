@@ -893,6 +893,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showColorDialog() {
+    final appState = context.read<AppState>();
     final colors = [
       {'name': 'Purple', 'color': Colors.purple},
       {'name': 'Blue', 'color': Colors.blue},
@@ -910,32 +911,48 @@ class _SettingsPageState extends State<SettingsPage> {
           spacing: 12,
           runSpacing: 12,
           children: colors.map((colorData) {
+            final color = colorData['color'] as Color;
+            final isSelected = color.value == appState.accentColor.value;
+            
             return InkWell(
               onTap: () {
                 Navigator.pop(context);
-                context.read<AppState>().setAccentColor(colorData['color'] as Color);
+                appState.setAccentColor(color);
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: colorData['color'] as Color,
+                  color: color,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
-                    width: 1,
+                    color: isSelected 
+                        ? Colors.white
+                        : Theme.of(context).colorScheme.outline,
+                    width: isSelected ? 3 : 1,
                   ),
                 ),
                 child: Center(
-                  child: Text(
-                    colorData['name'] as String,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isSelected)
+                        const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      Text(
+                        colorData['name'] as String,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),
