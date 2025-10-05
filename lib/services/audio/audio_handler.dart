@@ -1140,6 +1140,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> skipToPrevious() async {
+    // Preserve playing state when skipping - if music was playing, it should continue playing
+    final wasPlaying = playbackState.value.playing;
+    if (wasPlaying) {
+      _userIntendedPlaying = true;
+    }
+    
     // Use gapless transition if concatenation is active
     if (_isUsingConcatenation && _concatenatingSource != null) {
       final prevIndex = _stateManager.currentIndex - 1;
