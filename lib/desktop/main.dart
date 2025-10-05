@@ -11,6 +11,7 @@ import 'pages/home.dart';
 import 'pages/albums.dart';
 import 'pages/playlists.dart';
 import 'pages/artists.dart';
+import 'pages/search.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
