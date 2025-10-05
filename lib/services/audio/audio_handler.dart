@@ -1352,7 +1352,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     // Load and play the track
-    await _loadAndPlayTrack(track);
+    await _loadAndPlayTrack(track, wasPlaying);
     
     // Start preloading after current track is loaded
     Future.delayed(const Duration(milliseconds: 200), () {
