@@ -805,6 +805,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showThemeDialog() {
+    final appState = context.read<AppState>();
+    final currentTheme = _themeModeToString(appState.themeMode);
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -816,10 +819,10 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('System Default'),
               leading: Radio<String>(
                 value: 'system',
-                groupValue: 'system', // This would come from preferences
+                groupValue: currentTheme,
                 onChanged: (value) {
                   Navigator.pop(context);
-                  // Handle theme change
+                  appState.setThemeMode(ThemeMode.system);
                 },
               ),
             ),
@@ -827,10 +830,10 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Light'),
               leading: Radio<String>(
                 value: 'light',
-                groupValue: 'system',
+                groupValue: currentTheme,
                 onChanged: (value) {
                   Navigator.pop(context);
-                  // Handle theme change
+                  appState.setThemeMode(ThemeMode.light);
                 },
               ),
             ),
@@ -838,10 +841,10 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Dark'),
               leading: Radio<String>(
                 value: 'dark',
-                groupValue: 'system',
+                groupValue: currentTheme,
                 onChanged: (value) {
                   Navigator.pop(context);
-                  // Handle theme change
+                  appState.setThemeMode(ThemeMode.dark);
                 },
               ),
             ),
@@ -855,6 +858,17 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+
+  String _themeModeToString(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
+      case ThemeMode.system:
+        return 'system';
+    }
   }
 
   void _showColorDialog() {
