@@ -56,19 +56,19 @@ class _TracksPageState extends State<TracksPage> {
       int comparison;
       switch (_sortBy) {
         case 'title':
-          comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
           break;
         case 'artist':
-          comparison = (a.artist ?? '').toLowerCase().compareTo((b.artist ?? '').toLowerCase());
+          comparison = (a.artistName ?? '').toLowerCase().compareTo((b.artistName ?? '').toLowerCase());
           break;
         case 'album':
-          comparison = (a.album ?? '').toLowerCase().compareTo((b.album ?? '').toLowerCase());
+          comparison = (a.albumName ?? '').toLowerCase().compareTo((b.albumName ?? '').toLowerCase());
           break;
         case 'duration':
           comparison = (a.duration ?? 0).compareTo(b.duration ?? 0);
           break;
         default:
-          comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
       }
       return _sortAscending ? comparison : -comparison;
     });
