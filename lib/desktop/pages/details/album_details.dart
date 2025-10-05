@@ -52,7 +52,9 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       }
     } catch (e) {
       // Handle error
-      print('Error loading album tracks: $e');
+      if (kDebugMode) {
+        print('Error loading album tracks: $e');
+      }
       _albumTracks = [];
     } finally {
       setState(() {
