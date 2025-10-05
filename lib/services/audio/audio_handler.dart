@@ -454,7 +454,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final currentPosition = _player.position;
     
     try {
-      await _loadAndPlayTrack(_stateManager.currentTrack!);
+      await _loadAndPlayTrack(_stateManager.currentTrack!, _userIntendedPlaying);
       
       // Restore position if we had one
       if (currentPosition.inMilliseconds > 0) {
