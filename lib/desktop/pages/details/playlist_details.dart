@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../templates/page_template.dart';
+import '../../templates/desktop_layout.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 
@@ -57,88 +57,102 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return PageTemplate(
+        return DesktopLayout(
+          showBackButton: true,
           title: widget.playlist.name,
-          actions: [
-            // Play all button
-            ElevatedButton.icon(
-              onPressed: () {
-                // Play all tracks in playlist
-              },
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Play All'),
-            ),
-            const SizedBox(width: 8),
-            // Shuffle button
-            OutlinedButton.icon(
-              onPressed: () {
-                // Shuffle play playlist
-              },
-              icon: const Icon(Icons.shuffle),
-              label: const Text('Shuffle'),
-            ),
-            const SizedBox(width: 8),
-            // More options
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'edit':
-                    _showEditPlaylistDialog();
-                    break;
-                  case 'delete':
-                    _showDeletePlaylistDialog();
-                    break;
-                  case 'share':
-                    // Share playlist
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('Edit Playlist'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete, color: Colors.red),
-                    title: Text('Delete Playlist', style: TextStyle(color: Colors.red)),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'share',
-                  child: ListTile(
-                    leading: Icon(Icons.share),
-                    title: Text('Share'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Action buttons row
+                _buildActionButtons(theme),
+                
+                const SizedBox(height: 24),
+                
+                // Playlist header
+                _buildPlaylistHeader(theme, appState),
+                
+                const SizedBox(height: 32),
+                
+                // Track list
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildTrackList(theme, appState),
                 ),
               ],
             ),
-          ],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Playlist header
-              _buildPlaylistHeader(theme, appState),
-              
-              const SizedBox(height: 32),
-              
-              // Track list
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildTrackList(theme, appState),
-              ),
-            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildActionButtons(ThemeData theme) {
+    return Row(
+      children: [
+        // Play all button
+        ElevatedButton.icon(
+          onPressed: () {
+            // Play all tracks in playlist
+          },
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Play All'),
+        ),
+        const SizedBox(width: 8),
+        // Shuffle button
+        OutlinedButton.icon(
+          onPressed: () {
+            // Shuffle play playlist
+          },
+          icon: const Icon(Icons.shuffle),
+          label: const Text('Shuffle'),
+        ),
+        const SizedBox(width: 8),
+        // More options
+        PopupMenuButton<String>(
+          onSelected: (value) {
+            switch (value) {
+              case 'edit':
+                _showEditPlaylistDialog();
+                break;
+              case 'delete':
+                _showDeletePlaylistDialog();
+                break;
+              case 'share':
+                // Share playlist
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'edit',
+              child: ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('Edit Playlist'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Delete Playlist', style: TextStyle(color: Colors.red)),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'share',
+              child: ListTile(
+                leading: Icon(Icons.share),
+                title: Text('Share'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

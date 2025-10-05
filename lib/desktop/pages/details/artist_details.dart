@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../templates/page_template.dart';
+import '../../templates/desktop_layout.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import 'album_details.dart';
@@ -73,101 +73,115 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return PageTemplate(
+        return DesktopLayout(
+          showBackButton: true,
           title: widget.artist.name,
-          actions: [
-            // Play all button
-            ElevatedButton.icon(
-              onPressed: () {
-                // Play all tracks by artist
-              },
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Play All'),
-            ),
-            const SizedBox(width: 8),
-            // Shuffle button
-            OutlinedButton.icon(
-              onPressed: () {
-                // Shuffle play artist tracks
-              },
-              icon: const Icon(Icons.shuffle),
-              label: const Text('Shuffle'),
-            ),
-            const SizedBox(width: 8),
-            // Favorite button
-            IconButton(
-              onPressed: () {
-                // Toggle favorite artist
-              },
-              icon: const Icon(Icons.favorite_border),
-              tooltip: 'Add to favorites',
-            ),
-            // More options
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'follow':
-                    // Follow/unfollow artist
-                    break;
-                  case 'share':
-                    // Share artist
-                    break;
-                  case 'radio':
-                    // Start artist radio
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'follow',
-                  child: ListTile(
-                    leading: Icon(Icons.person_add),
-                    title: Text('Follow Artist'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'radio',
-                  child: ListTile(
-                    leading: Icon(Icons.radio),
-                    title: Text('Start Radio'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'share',
-                  child: ListTile(
-                    leading: Icon(Icons.share),
-                    title: Text('Share'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Action buttons row
+                _buildActionButtons(theme),
+                
+                const SizedBox(height: 24),
+                
+                // Artist header
+                _buildArtistHeader(theme, appState),
+                
+                const SizedBox(height: 32),
+                
+                // Tab selector
+                _buildTabSelector(theme),
+                
+                const SizedBox(height: 16),
+                
+                // Content based on selected tab
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildTabContent(theme, appState),
                 ),
               ],
             ),
-          ],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Artist header
-              _buildArtistHeader(theme, appState),
-              
-              const SizedBox(height: 32),
-              
-              // Tab selector
-              _buildTabSelector(theme),
-              
-              const SizedBox(height: 16),
-              
-              // Content based on selected tab
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildTabContent(theme, appState),
-              ),
-            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildActionButtons(ThemeData theme) {
+    return Row(
+      children: [
+        // Play all button
+        ElevatedButton.icon(
+          onPressed: () {
+            // Play all tracks by artist
+          },
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Play All'),
+        ),
+        const SizedBox(width: 8),
+        // Shuffle button
+        OutlinedButton.icon(
+          onPressed: () {
+            // Shuffle play artist tracks
+          },
+          icon: const Icon(Icons.shuffle),
+          label: const Text('Shuffle'),
+        ),
+        const SizedBox(width: 8),
+        // Favorite button
+        IconButton(
+          onPressed: () {
+            // Toggle favorite artist
+          },
+          icon: const Icon(Icons.favorite_border),
+          tooltip: 'Add to favorites',
+        ),
+        // More options
+        PopupMenuButton<String>(
+          onSelected: (value) {
+            switch (value) {
+              case 'follow':
+                // Follow/unfollow artist
+                break;
+              case 'share':
+                // Share artist
+                break;
+              case 'radio':
+                // Start artist radio
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'follow',
+              child: ListTile(
+                leading: Icon(Icons.person_add),
+                title: Text('Follow Artist'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'radio',
+              child: ListTile(
+                leading: Icon(Icons.radio),
+                title: Text('Start Radio'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'share',
+              child: ListTile(
+                leading: Icon(Icons.share),
+                title: Text('Share'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
