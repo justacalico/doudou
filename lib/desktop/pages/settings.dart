@@ -279,23 +279,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Show quality options
                     },
                   ),
-                  SwitchListTile(
-                    title: const Text('Crossfade'),
-                    subtitle: const Text('Smooth transitions between songs'),
-                    value: false,
-                    onChanged: (value) {
-                      // Handle crossfade setting
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Crossfade duration'),
-                    subtitle: const Text('3 seconds'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    enabled: false, // Enable when crossfade is on
-                    onTap: () {
-                      // Show duration slider
-                    },
-                  ),
+
                 ],
               ),
             ),
