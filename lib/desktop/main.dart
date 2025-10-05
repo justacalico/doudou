@@ -336,20 +336,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildAlbumsContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.album, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Albums',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text('Browse by album'),
-        ],
-      ),
-    );
+    return const AlbumsPage();
   }
 
   Widget _buildArtistsContent() {
