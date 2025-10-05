@@ -100,6 +100,46 @@ class _TracksPageState extends State<TracksPage> {
     return PageTemplate(
       title: 'Tracks',
       actions: [
+        // Play All button
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            return IconButton(
+              onPressed: _tracks.isNotEmpty ? () => _playAllTracks(appState) : null,
+              icon: const Icon(Icons.play_arrow),
+              tooltip: 'Play all tracks',
+              iconSize: 28,
+            );
+          },
+        ),
+        
+        // Shuffle button
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            return IconButton(
+              onPressed: _tracks.isNotEmpty ? () => _shuffleAllTracks(appState) : null,
+              icon: const Icon(Icons.shuffle),
+              tooltip: 'Shuffle all tracks',
+              iconSize: 28,
+            );
+          },
+        ),
+        
+        // Play Favorites button
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            final favoriteCount = _tracks.where((track) => track.isFavorite).length;
+            return IconButton(
+              onPressed: favoriteCount > 0 ? () => _playFavoriteTracks(appState) : null,
+              icon: Icon(
+                Icons.favorite,
+                color: favoriteCount > 0 ? Colors.red : null,
+              ),
+              tooltip: favoriteCount > 0 ? 'Play favorites ($favoriteCount)' : 'No favorite tracks',
+              iconSize: 28,
+            );
+          },
+        ),
+        
         PopupMenuButton<String>(
           icon: const Icon(Icons.sort),
           tooltip: 'Sort by',
@@ -527,6 +567,47 @@ class _TracksPageState extends State<TracksPage> {
           },
         ),
       ),
+    );
+  }
+
+  void _playAllTracks(AppState appState) {
+    if (_tracks.isEmpty) return;
+    
+    // Play all tracks starting from the first one
+    appState.playPlaylist(_tracks, 0);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Playing all ${_tracks.length} tracks')),
+    );
+  }
+
+  void _shuffleAllTracks(AppState appState) {
+    if (_tracks.isEmpty) return;
+    
+    // Create a shuffled copy of the tracks
+    final shuffledTracks = List<Track>.from(_tracks)..shuffle();
+    appState.playPlaylist(shuffledTracks, 0);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Shuffling all ${_tracks.length} tracks')),
+    );
+  }
+
+  void _playFavoriteTracks(AppState appState) {
+    final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
+    
+    if (favoriteTracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No favorite tracks found')),
+      );
+      return;
+    }
+    
+    // Play favorite tracks
+    appState.playPlaylist(favoriteTracks, 0);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Playing ${favoriteTracks.length} favorite tracks')),
     );
   }
 }
