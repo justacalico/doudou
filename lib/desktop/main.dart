@@ -9,6 +9,7 @@ import '../providers/app_state.dart';
 import '../screens/login/login.dart';
 import 'pages/home.dart';
 import 'pages/albums.dart';
+import 'pages/playlists.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

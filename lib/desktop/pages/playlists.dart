@@ -249,7 +249,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             
             // Quick action buttons
             TextButton.icon(
-              onPressed: filteredPlaylists.isNotEmpty ? () {
+              onPressed: filteredCount > 0 ? () {
                 // Play all playlists
               } : null,
               icon: const Icon(Icons.play_arrow),
@@ -259,7 +259,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             const SizedBox(width: 8),
             
             TextButton.icon(
-              onPressed: filteredPlaylists.isNotEmpty ? () {
+              onPressed: filteredCount > 0 ? () {
                 // Shuffle all playlists
               } : null,
               icon: const Icon(Icons.shuffle),
