@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../templates/page_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 
 class PlaylistDetailsPage extends StatefulWidget {
   final Playlist playlist;
+  final Function(Widget)? onNavigateToDetail;
 
   const PlaylistDetailsPage({
     super.key,
     required this.playlist,
+    this.onNavigateToDetail,
   });
 
   @override
@@ -57,86 +58,105 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return PageTemplate(
-          title: widget.playlist.name,
-          actions: [
-            // Play all button
-            ElevatedButton.icon(
-              onPressed: () {
-                // Play all tracks in playlist
-              },
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Play All'),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with title and actions
+            Container(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.playlist.name,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // Action buttons
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Play all tracks in playlist
+                    },
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Play All'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      // Shuffle play playlist
+                    },
+                    icon: const Icon(Icons.shuffle),
+                    label: const Text('Shuffle'),
+                  ),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _showEditPlaylistDialog();
+                          break;
+                        case 'delete':
+                          _showDeletePlaylistDialog();
+                          break;
+                        case 'share':
+                          // Share playlist
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: ListTile(
+                          leading: Icon(Icons.edit),
+                          title: Text('Edit Playlist'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: Icon(Icons.delete, color: Colors.red),
+                          title: Text('Delete Playlist', style: TextStyle(color: Colors.red)),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'share',
+                        child: ListTile(
+                          leading: Icon(Icons.share),
+                          title: Text('Share'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 8),
-            // Shuffle button
-            OutlinedButton.icon(
-              onPressed: () {
-                // Shuffle play playlist
-              },
-              icon: const Icon(Icons.shuffle),
-              label: const Text('Shuffle'),
-            ),
-            const SizedBox(width: 8),
-            // More options
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'edit':
-                    _showEditPlaylistDialog();
-                    break;
-                  case 'delete':
-                    _showDeletePlaylistDialog();
-                    break;
-                  case 'share':
-                    // Share playlist
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('Edit Playlist'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
+            
+            // Content area
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Playlist header
+                    _buildPlaylistHeader(theme, appState),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Track list
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildTrackList(theme, appState),
+                  ],
                 ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete, color: Colors.red),
-                    title: Text('Delete Playlist', style: TextStyle(color: Colors.red)),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'share',
-                  child: ListTile(
-                    leading: Icon(Icons.share),
-                    title: Text('Share'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Playlist header
-              _buildPlaylistHeader(theme, appState),
-              
-              const SizedBox(height: 32),
-              
-              // Track list
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildTrackList(theme, appState),
-              ),
-            ],
-          ),
         );
       },
     );
