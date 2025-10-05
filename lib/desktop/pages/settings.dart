@@ -1086,4 +1086,56 @@ class _SettingsPageState extends State<SettingsPage> {
     // For development, we can use the compile date or a fixed date
     return '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
   }
+
+  String _getOSVersion() {
+    try {
+      if (Platform.isLinux) {
+        // Try to get Linux distribution info
+        final result = Process.runSync('lsb_release', ['-d', '-s']);
+        if (result.exitCode == 0) {
+          return result.stdout.toString().trim().replaceAll('"', '');
+        }
+        // Fallback to kernel version
+        final kernelResult = Process.runSync('uname', ['-r']);
+        if (kernelResult.exitCode == 0) {
+          return 'Linux ${kernelResult.stdout.toString().trim()}';
+        }
+      } else if (Platform.isWindows) {
+        final result = Process.runSync('wmic', ['os', 'get', 'Caption', '/value']);
+        if (result.exitCode == 0) {
+          final output = result.stdout.toString();
+          final match = RegExp(r'Caption=(.+)').firstMatch(output);
+          if (match != null) {
+            return match.group(1)?.trim() ?? 'Windows';
+          }
+        }
+      } else if (Platform.isMacOS) {
+        final result = Process.runSync('sw_vers', ['-productVersion']);
+        if (result.exitCode == 0) {
+          return 'macOS ${result.stdout.toString().trim()}';
+        }
+      }
+    } catch (e) {
+      // Fallback if commands fail
+    }
+    return Platform.operatingSystem;
+  }
+
+  String _getFlutterVersion() {
+    try {
+      final result = Process.runSync('flutter', ['--version', '--machine']);
+      if (result.exitCode == 0) {
+        // Parse JSON output if available
+        final output = result.stdout.toString();
+        // Simple extraction of version number
+        final match = RegExp(r'"flutterVersion":"([^"]+)"').firstMatch(output);
+        if (match != null) {
+          return match.group(1) ?? 'Unknown';
+        }
+      }
+    } catch (e) {
+      // Flutter command not available or failed
+    }
+    return 'Unknown (Flutter not in PATH)';
+  }
 }
