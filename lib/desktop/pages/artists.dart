@@ -348,7 +348,10 @@ class _ArtistsPageState extends State<ArtistsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          widget.onNavigateToDetail(ArtistDetailsPage(artist: artist));
+          widget.onNavigateToDetail(ArtistDetailsPage(
+            artist: artist,
+            onNavigateToDetail: widget.onNavigateToDetail,
+          ));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
