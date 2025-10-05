@@ -1039,22 +1039,46 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  String _getPlatformInfo() {
+    final platform = Platform.operatingSystem;
+    final architecture = _getArchitecture();
+    
+    switch (platform) {
+      case 'linux':
+        return 'Linux Desktop ($architecture)';
+      case 'windows':
+        return 'Windows Desktop ($architecture)';
+      case 'macos':
+        return 'macOS Desktop ($architecture)';
+      default:
+        return '$platform ($architecture)';
+    }
+  }
+
   String _getArchitecture() {
     try {
-      // Get system architecture
-      final result = Process.runSync('uname', ['-m']);
-      if (result.exitCode == 0) {
-        return result.stdout.toString().trim();
+      if (Platform.isLinux || Platform.isMacOS) {
+        final result = Process.runSync('uname', ['-m']);
+        if (result.exitCode == 0) {
+          return result.stdout.toString().trim();
+        }
+      } else if (Platform.isWindows) {
+        final result = Process.runSync('wmic', ['computersystem', 'get', 'systemtype', '/value']);
+        if (result.exitCode == 0) {
+          final output = result.stdout.toString();
+          if (output.contains('x64')) return 'x64';
+          if (output.contains('x86')) return 'x86';
+        }
       }
     } catch (e) {
-      // Fallback for non-Unix systems or if uname fails
+      // Fallback if commands fail
     }
     return 'Unknown';
   }
 
   String _getBuildDate() {
-    // This would ideally come from build-time constants
-    // For now, we'll use a compile-time constant or try to get it from package info
-    return DateTime.now().toLocal().toString().split(' ')[0]; // Current date as fallback
+    // In a real build system, this would come from build-time constants
+    // For development, we can use the compile date or a fixed date
+    return '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
   }
 }
