@@ -372,12 +372,15 @@ class _AlbumsPageState extends State<AlbumsPage> {
                 children: [
                   Container(
                     width: double.infinity,
+                    height: double.infinity,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceVariant,
                     ),
                     child: album.imageUrl != null
                         ? Image.network(
                             _getImageUrl(appState, album.imageUrl)!,
+                            width: double.infinity,
+                            height: double.infinity,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildAlbumPlaceholder(theme);
