@@ -1360,9 +1360,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
   }
 
-  Future<void> _loadAndPlayTrack(Track track) async {
+  Future<void> _loadAndPlayTrack(Track track, bool shouldPlay) async {
     if (kDebugMode) {
-      print('Loading track: ${track.name}, user intended playing: $_userIntendedPlaying');
+      print('Loading track: ${track.name}, should play: $shouldPlay');
     }
     
     // Activate audio session before loading (iOS specific)
