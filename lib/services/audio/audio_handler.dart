@@ -1333,11 +1333,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _isUsingConcatenation = false;
     _concatenatingSource = null;
     
-    // Update to loading state with user intent
+    // Update to loading state preserving current playing state
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.loading,
       queueIndex: _stateManager.currentIndex,
-      playing: _userIntendedPlaying, // Use user intent instead of wasPlaying
+      playing: wasPlaying, // Preserve the playing state from when we skipped
     ));
     
     // Minimal stop for codec cleanup - no excessive delays
