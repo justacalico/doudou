@@ -294,20 +294,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildLibraryContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.library_music, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Library',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text('Your music collection'),
-        ],
-      ),
-    );
+    return const LibraryPage();
   }
 
   Widget _buildPlaylistsContent() {
@@ -323,20 +310,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildSettingsContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.settings, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Settings',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text('App preferences and configuration'),
-        ],
-      ),
-    );
+    return const SettingsPage();
   }
 
   Widget _buildBottomPlayerBar(ThemeData theme) {
