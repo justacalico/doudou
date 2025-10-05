@@ -133,6 +133,9 @@ class DesktopHomeLayout extends StatefulWidget {
 class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   int _selectedIndex = 0;
   
+  // Navigation stack for detail views
+  final List<Widget> _navigationStack = [];
+  
   final List<String> _navigationItems = [
     'Home',
     'Search',
@@ -142,6 +145,22 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
     'Artists',
     'Settings',
   ];
+  
+  // Method to navigate to detail view
+  void navigateToDetail(Widget detailWidget) {
+    setState(() {
+      _navigationStack.add(detailWidget);
+    });
+  }
+  
+  // Method to go back from detail view
+  void navigateBack() {
+    if (_navigationStack.isNotEmpty) {
+      setState(() {
+        _navigationStack.removeLast();
+      });
+    }
+  }
 
   final List<IconData> _navigationIcons = [
     Icons.home_outlined,
