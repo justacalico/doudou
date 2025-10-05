@@ -678,18 +678,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Get the exact position from secondary player
       final transferPosition = secondaryPlayer.position;
       
+      // Stop the old player cleanly
+      await _player.stop();
+      
       // Prepare the main player with the new source
       await _player.setAudioSource(audioSource);
       
-      // Seek to the transfer position with a small buffer to account for processing time
-      final bufferOffset = Duration(milliseconds: 20); // Small buffer for processing delay
-      final seekPosition = transferPosition + bufferOffset;
-      
-      await _player.seek(seekPosition);
+      // Seek to the transfer position - be more conservative with timing
+      await _player.seek(transferPosition);
       await _player.setVolume(0.0); // Start at zero volume
       
       // Start the main player
       await _player.play();
+      
+      // Wait a moment for the main player to stabilize
+      await Future.delayed(const Duration(milliseconds: 50));
       
       // Quick fade from secondary to main player to eliminate any gap
       const quickFadeSteps = 10;
@@ -711,6 +714,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Ensure main player is at full volume
       await _player.setVolume(maxVolume);
+      
+      // Force a position stream update to sync the UI
+      await Future.delayed(const Duration(milliseconds: 100));
+      _updatePlaybackState(playbackState.value.copyWith(
+        updatePosition: _player.position,
+      ));
       
       // Clean up secondary player
       try {
