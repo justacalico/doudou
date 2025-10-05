@@ -57,10 +57,12 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     // Filter by category
     switch (_filterBy) {
       case 'favorites':
-        playlists = playlists.where((playlist) => playlist.isFavorite ?? false).toList();
+        // Skip favorites filter since Playlist model doesn't have isFavorite
+        // playlists = playlists.where((playlist) => playlist.isFavorite ?? false).toList();
         break;
       case 'created':
         // Filter user-created playlists (assuming there's a way to distinguish them)
+        // For now, skip this filter as well
         break;
     }
     
@@ -72,10 +74,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
           break;
         case 'dateCreated':
-          comparison = (a.dateCreated ?? DateTime(1970)).compareTo(b.dateCreated ?? DateTime(1970));
+          // Skip date sorting since Playlist model doesn't have dateCreated
+          comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
           break;
         case 'trackCount':
-          comparison = (a.trackCount ?? 0).compareTo(b.trackCount ?? 0);
+          comparison = a.trackCount.compareTo(b.trackCount);
           break;
       }
       return _isAscending ? comparison : -comparison;
