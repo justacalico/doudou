@@ -500,7 +500,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${playlist.trackCount ?? 0} songs',
+                      '${playlist.trackCount} songs',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
