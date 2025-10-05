@@ -20,7 +20,7 @@ class AudioStateManager {
   bool _normalizeVolumeEnabled = false;
   bool _gaplessPlaybackEnabled = true;
   bool _radioModeEnabled = false;
-  final Duration _crossfadeDuration = const Duration(seconds: 3);
+
   
   // Completion tracking to prevent race conditions
   bool _isHandlingCompletion = false;
