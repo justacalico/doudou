@@ -10,4 +10,8 @@
 
 ## Removed
 
+- Removed cross fade's
+
 ## Fixed
+
+- Fixed skipping on linux
