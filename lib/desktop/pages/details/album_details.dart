@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../templates/desktop_layout.dart';
@@ -45,7 +46,9 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       });
       
       if (_albumTracks.isEmpty) {
-        print('No tracks found for album: ${widget.album.name} (ID: ${widget.album.id})');
+        if (kDebugMode) {
+          print('No tracks found for album: ${widget.album.name} (ID: ${widget.album.id})');
+        }
       }
     } catch (e) {
       // Handle error
