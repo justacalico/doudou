@@ -203,6 +203,12 @@ class JellyfinService {
     }
   }
 
+  // Public getters for server information
+  String? get serverUrl => _server?.serverUrl;
+  String? get username => _server?.username;
+  String? get userId => _server?.userId;
+  bool get isConnected => _server != null;
+
   Future<bool> authenticate(String serverUrl, String username, String password) async {
     try {
       _dio.options.baseUrl = serverUrl;
