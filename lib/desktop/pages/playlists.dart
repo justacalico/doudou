@@ -405,7 +405,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     ),
                   ),
                   
-                  // Favorite button
+                  // Favorite button (disabled for now since Playlist model doesn't support favorites)
                   Positioned(
                     top: 8,
                     right: 8,
@@ -415,12 +415,17 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: IconButton(
-                        icon: Icon(
-                          (playlist.isFavorite ?? false) ? Icons.favorite : Icons.favorite_border,
-                          color: (playlist.isFavorite ?? false) ? Colors.red : Colors.white,
+                        icon: const Icon(
+                          Icons.favorite_border,
+                          color: Colors.white,
                         ),
                         onPressed: () {
-                          // Toggle favorite
+                          // Toggle favorite - not implemented yet
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Favorites not yet implemented for playlists'),
+                            ),
+                          );
                         },
                         iconSize: 20,
                       ),
