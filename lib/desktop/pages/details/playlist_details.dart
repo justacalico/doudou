@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../templates/desktop_layout.dart';
@@ -37,7 +38,9 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
       _playlistTracks = await appState.jellyfinService.getPlaylistTracks(widget.playlist.id);
     } catch (e) {
       // Handle error
-      print('Error loading playlist tracks: $e');
+      if (kDebugMode) {
+        print('Error loading playlist tracks: $e');
+      }
       _playlistTracks = [];
     } finally {
       setState(() {
