@@ -272,7 +272,8 @@ class DesktopLyricsService {
         }
         
         // Prefer results with synced lyrics
-        if (result['syncedLyrics']?.toString()?.isNotEmpty == true) {
+        final syncedLyrics = result['syncedLyrics']?.toString();
+        if (syncedLyrics != null && syncedLyrics.isNotEmpty) {
           score += 0.1;
         }
         
