@@ -43,6 +43,10 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
         final bTrack = b.trackNumber ?? 999;
         return aTrack.compareTo(bTrack);
       });
+      
+      if (_albumTracks.isEmpty) {
+        print('No tracks found for album: ${widget.album.name} (ID: ${widget.album.id})');
+      }
     } catch (e) {
       // Handle error
       print('Error loading album tracks: $e');
