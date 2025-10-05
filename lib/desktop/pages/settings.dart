@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 
@@ -1036,5 +1037,24 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+
+  String _getArchitecture() {
+    try {
+      // Get system architecture
+      final result = Process.runSync('uname', ['-m']);
+      if (result.exitCode == 0) {
+        return result.stdout.toString().trim();
+      }
+    } catch (e) {
+      // Fallback for non-Unix systems or if uname fails
+    }
+    return 'Unknown';
+  }
+
+  String _getBuildDate() {
+    // This would ideally come from build-time constants
+    // For now, we'll use a compile-time constant or try to get it from package info
+    return DateTime.now().toLocal().toString().split(' ')[0]; // Current date as fallback
   }
 }
