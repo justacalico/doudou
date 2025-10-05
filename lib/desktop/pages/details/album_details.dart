@@ -64,7 +64,11 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return PageTemplate(
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           title: widget.album.name,
           actions: [
             // Play album button
