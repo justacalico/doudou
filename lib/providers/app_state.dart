@@ -1587,6 +1587,48 @@ class AppState extends ChangeNotifier {
     _accentColor = Color(accentColorValue);
   }
 
+  // Theme management methods
+  ThemeMode _parseThemeMode(String value) {
+    switch (value) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      case 'system':
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  String _themeModeToString(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
+      case ThemeMode.system:
+        return 'system';
+    }
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    if (_themeMode != mode) {
+      _themeMode = mode;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('theme_mode', _themeModeToString(mode));
+      notifyListeners();
+    }
+  }
+
+  Future<void> setAccentColor(Color color) async {
+    if (_accentColor != color) {
+      _accentColor = color;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('accent_color', color.value);
+      notifyListeners();
+    }
+  }
+
   // Cache management methods
   Future<void> clearAllCache() async {
     try {
