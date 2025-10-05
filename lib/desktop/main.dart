@@ -280,20 +280,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildHomeContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.home, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Home',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text('Welcome to your music library'),
-        ],
-      ),
-    );
+    return const HomePage();
   }
 
   Widget _buildSearchContent() {
