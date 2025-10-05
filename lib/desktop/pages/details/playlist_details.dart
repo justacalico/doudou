@@ -202,15 +202,6 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (widget.playlist.description != null) ...[
-                    Text(
-                      widget.playlist.description!,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
                   Row(
                     children: [
                       Text(
