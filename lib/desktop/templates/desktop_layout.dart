@@ -814,3 +814,255 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     }
   }
 }
+
+class _NowPlayingTabs extends StatefulWidget {
+  final dynamic audioHandler;
+  
+  const _NowPlayingTabs({required this.audioHandler});
+  
+  @override
+  State<_NowPlayingTabs> createState() => _NowPlayingTabsState();
+}
+
+class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+  
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Tab bar
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              labelColor: theme.colorScheme.onPrimary,
+              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+              tabs: const [
+                Tab(
+                  text: 'Lyrics',
+                  icon: Icon(Icons.lyrics),
+                ),
+                Tab(
+                  text: 'Queue',
+                  icon: Icon(Icons.queue_music),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildLyricsTab(),
+                _buildQueueTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildLyricsTab() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.lyrics,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Lyrics not available',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Lyrics functionality coming soon...',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildQueueTab() {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final queue = appState.queue;
+        final currentIndex = appState.currentIndex;
+        
+        if (queue.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.queue_music,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No songs in queue',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add songs to your queue to see them here',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: queue.length,
+            itemBuilder: (context, index) {
+              final track = queue[index];
+              final isCurrentTrack = index == currentIndex;
+              
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 2),
+                decoration: BoxDecoration(
+                  color: isCurrentTrack 
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                    : null,
+                  borderRadius: BorderRadius.circular(8),
+                  border: isCurrentTrack 
+                    ? Border.all(
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      )
+                    : null,
+                ),
+                child: ListTile(
+                  dense: true,
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: track.albumArt != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              track.albumArt!,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.music_note,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  size: 20,
+                                );
+                              },
+                            ),
+                          )
+                        : Icon(
+                            Icons.music_note,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            size: 20,
+                          ),
+                  ),
+                  title: Text(
+                    track.name,
+                    style: TextStyle(
+                      color: isCurrentTrack 
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurface,
+                      fontWeight: isCurrentTrack ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${track.artistName} • ${track.albumName}',
+                    style: TextStyle(
+                      color: isCurrentTrack 
+                        ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: isCurrentTrack 
+                    ? Icon(
+                        Icons.play_arrow,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                  onTap: () {
+                    // Play the selected track
+                    appState.skipToQueueItem(index);
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
