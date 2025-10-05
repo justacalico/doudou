@@ -340,10 +340,11 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'This album appears to be empty',
+                'This album appears to be empty or the tracks couldn\'t be loaded',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
