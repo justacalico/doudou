@@ -292,14 +292,14 @@ class _AlbumsPageState extends State<AlbumsPage> {
               onPressed: () async {
                 final filteredAlbums = _getFilteredAndSortedAlbums(appState);
                 if (filteredAlbums.isNotEmpty) {
-                  List<dynamic> allTracks = [];
+                  List<Track> allTracks = [];
                   for (var album in filteredAlbums) {
                     final tracks = await appState.getAlbumTracks(album.id);
                     allTracks.addAll(tracks);
                   }
                   if (allTracks.isNotEmpty) {
                     allTracks.shuffle();
-                    await appState.playPlaylist(allTracks.cast<dynamic>(), 0);
+                    await appState.playPlaylist(allTracks, 0);
                   }
                 }
               },
