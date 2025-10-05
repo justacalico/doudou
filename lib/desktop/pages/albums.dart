@@ -268,8 +268,18 @@ class _AlbumsPageState extends State<AlbumsPage> {
             
             // Quick action buttons
             TextButton.icon(
-              onPressed: () {
-                // Play all albums
+              onPressed: () async {
+                final filteredAlbums = _getFilteredAndSortedAlbums(appState);
+                if (filteredAlbums.isNotEmpty) {
+                  List<dynamic> allTracks = [];
+                  for (var album in filteredAlbums) {
+                    final tracks = await appState.getAlbumTracks(album.id);
+                    allTracks.addAll(tracks);
+                  }
+                  if (allTracks.isNotEmpty) {
+                    await appState.playPlaylist(allTracks.cast<dynamic>(), 0);
+                  }
+                }
               },
               icon: const Icon(Icons.play_arrow),
               label: const Text('Play All'),
@@ -278,8 +288,19 @@ class _AlbumsPageState extends State<AlbumsPage> {
             const SizedBox(width: 8),
             
             TextButton.icon(
-              onPressed: () {
-                // Shuffle all albums
+              onPressed: () async {
+                final filteredAlbums = _getFilteredAndSortedAlbums(appState);
+                if (filteredAlbums.isNotEmpty) {
+                  List<dynamic> allTracks = [];
+                  for (var album in filteredAlbums) {
+                    final tracks = await appState.getAlbumTracks(album.id);
+                    allTracks.addAll(tracks);
+                  }
+                  if (allTracks.isNotEmpty) {
+                    allTracks.shuffle();
+                    await appState.playPlaylist(allTracks.cast<dynamic>(), 0);
+                  }
+                }
               },
               icon: const Icon(Icons.shuffle),
               label: const Text('Shuffle All'),
@@ -400,8 +421,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-                          // Play album
+                        onTap: () async {
+                          final tracks = await appState.getAlbumTracks(album.id);
+                          if (tracks.isNotEmpty) {
+                            await appState.playPlaylist(tracks, 0);
+                          }
                         },
                         child: Container(
                           decoration: BoxDecoration(
