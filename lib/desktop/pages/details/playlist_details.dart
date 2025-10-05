@@ -33,12 +33,12 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
     });
 
     try {
-      // Get tracks for this playlist
-      // For now, we'll use a subset of all tracks as placeholder
-      final allTracks = appState.tracks;
-      _playlistTracks = allTracks.take(10).toList();
+      // Fetch tracks specifically for this playlist from Jellyfin
+      _playlistTracks = await appState.jellyfinService.getPlaylistTracks(widget.playlist.id);
     } catch (e) {
       // Handle error
+      print('Error loading playlist tracks: $e');
+      _playlistTracks = [];
     } finally {
       setState(() {
         _isLoading = false;
