@@ -276,7 +276,46 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
                 Expanded(
                   child: Container(
                     color: theme.colorScheme.background,
-                    child: _buildMainContent(),
+                    child: Column(
+                      children: [
+                        // Back button bar for detail views
+                        if (_navigationStack.isNotEmpty)
+                          Container(
+                            height: 56,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: theme.colorScheme.outline.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  onPressed: navigateBack,
+                                  icon: const Icon(Icons.arrow_back),
+                                  tooltip: 'Back',
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Back to ${_navigationItems[_selectedIndex]}',
+                                  style: theme.textTheme.titleMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                        
+                        // Main content
+                        Expanded(
+                          child: _navigationStack.isNotEmpty 
+                            ? _navigationStack.last 
+                            : _buildMainContent(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -312,27 +351,27 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildHomeContent() {
-    return const HomePage();
+    return HomePage(onNavigateToDetail: navigateToDetail);
   }
 
   Widget _buildSearchContent() {
-    return const SearchPage();
+    return SearchPage(onNavigateToDetail: navigateToDetail);
   }
 
   Widget _buildLibraryContent() {
-    return const LibraryPage();
+    return LibraryPage(onNavigateToDetail: navigateToDetail);
   }
 
   Widget _buildPlaylistsContent() {
-    return const PlaylistsPage();
+    return PlaylistsPage(onNavigateToDetail: navigateToDetail);
   }
 
   Widget _buildAlbumsContent() {
-    return const AlbumsPage();
+    return AlbumsPage(onNavigateToDetail: navigateToDetail);
   }
 
   Widget _buildArtistsContent() {
-    return const ArtistsPage();
+    return ArtistsPage(onNavigateToDetail: navigateToDetail);
   }
 
   Widget _buildSettingsContent() {
