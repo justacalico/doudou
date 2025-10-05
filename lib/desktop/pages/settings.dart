@@ -47,7 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
       {'id': 'about', 'title': 'About', 'icon': Icons.info},
     ];
 
-    return Container(
+    return SizedBox(
       width: 200,
       child: Card(
         child: Padding(
