@@ -5,7 +5,12 @@ import '../../providers/app_state.dart';
 import 'details/playlist_details.dart';
 
 class PlaylistsPage extends StatefulWidget {
-  const PlaylistsPage({super.key});
+  final Function(Widget) onNavigateToDetail;
+  
+  const PlaylistsPage({
+    super.key,
+    required this.onNavigateToDetail,
+  });
 
   @override
   State<PlaylistsPage> createState() => _PlaylistsPageState();
