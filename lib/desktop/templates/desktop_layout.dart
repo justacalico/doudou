@@ -487,16 +487,302 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   void _showNowPlayingDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Now Playing'),
-        content: const Text('Full now playing interface coming soon...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+      barrierDismissible: true,
+      builder: (context) => Consumer<AppState>(
+        builder: (context, appState, child) {
+          final audioHandler = appState.audioHandler;
+          
+          return Dialog(
+            insetPadding: const EdgeInsets.all(16),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.height * 0.8,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  // Header with close button
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Now Playing',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Main content area
+                  Expanded(
+                    child: StreamBuilder<MediaItem?>(
+                      stream: audioHandler?.mediaItem,
+                      builder: (context, mediaSnapshot) {
+                        final currentTrack = mediaSnapshot.data;
+                        
+                        return Row(
+                          children: [
+                            // Left side - Album art
+                            Expanded(
+                              flex: 1,
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // Album art
+                                    Container(
+                                      width: 280,
+                                      height: 280,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surfaceVariant,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 20,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: currentTrack?.artUri != null
+                                          ? ClipRRect(
+                                              borderRadius: BorderRadius.circular(16),
+                                              child: Image.network(
+                                                currentTrack!.artUri.toString(),
+                                                width: 280,
+                                                height: 280,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Icon(
+                                                    Icons.music_note,
+                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                    size: 80,
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          : Icon(
+                                              Icons.music_note,
+                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              size: 80,
+                                            ),
+                                    ),
+                                    
+                                    const SizedBox(height: 24),
+                                    
+                                    // Track info
+                                    Text(
+                                      currentTrack?.title ?? 'No track playing',
+                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    
+                                    const SizedBox(height: 8),
+                                    
+                                    Text(
+                                      currentTrack?.artist ?? 'Unknown Artist',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    
+                                    if (currentTrack?.album != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        currentTrack!.album!,
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                            
+                            // Right side - Tabs (Lyrics & Queue)
+                            Expanded(
+                              flex: 1,
+                              child: _NowPlayingTabs(audioHandler: audioHandler),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  
+                  // Bottom player controls
+                  _buildNowPlayingControls(context, audioHandler),
+                ],
+              ),
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildNowPlayingControls(BuildContext context, dynamic audioHandler) {
+    final theme = Theme.of(context);
+    
+    return StreamBuilder<PlaybackState>(
+      stream: audioHandler?.playbackState,
+      builder: (context, playbackSnapshot) {
+        final playbackState = playbackSnapshot.data;
+        final isPlaying = playbackState?.playing ?? false;
+        
+        return StreamBuilder<MediaItem?>(
+          stream: audioHandler?.mediaItem,
+          builder: (context, mediaSnapshot) {
+            final currentTrack = mediaSnapshot.data;
+            
+            return StreamBuilder<Duration>(
+              stream: audioHandler?.positionStream,
+              builder: (context, positionSnapshot) {
+                final position = positionSnapshot.data ?? Duration.zero;
+                
+                return StreamBuilder<Duration?>(
+                  stream: audioHandler?.mediaItem.map((item) => item?.duration),
+                  builder: (context, durationSnapshot) {
+                    final duration = durationSnapshot.data ?? Duration.zero;
+                    final progress = duration.inMilliseconds > 0 
+                        ? position.inMilliseconds / duration.inMilliseconds
+                        : 0.0;
+                    
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: theme.colorScheme.outline.withOpacity(0.2),
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // Progress bar with time labels
+                          Row(
+                            children: [
+                              Text(
+                                _formatDuration(position),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 6,
+                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                                      activeTrackColor: theme.colorScheme.primary,
+                                      inactiveTrackColor: theme.colorScheme.outline.withOpacity(0.2),
+                                      thumbColor: theme.colorScheme.primary,
+                                      overlayColor: theme.colorScheme.primary.withOpacity(0.2),
+                                    ),
+                                    child: Slider(
+                                      value: progress.clamp(0.0, 1.0),
+                                      onChanged: currentTrack != null && audioHandler != null ? (value) {
+                                        final newPosition = Duration(
+                                          milliseconds: (value * duration.inMilliseconds).round(),
+                                        );
+                                        audioHandler.seek(newPosition);
+                                      } : null,
+                                      min: 0.0,
+                                      max: 1.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                _formatDuration(duration),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Player controls
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                onPressed: audioHandler != null && audioHandler.hasPrevious
+                                    ? () => Provider.of<AppState>(context, listen: false).skipToPrevious()
+                                    : null,
+                                icon: const Icon(Icons.skip_previous),
+                                iconSize: 36,
+                              ),
+                              const SizedBox(width: 16),
+                              IconButton(
+                                onPressed: audioHandler != null && currentTrack != null
+                                    ? () => Provider.of<AppState>(context, listen: false).playPause()
+                                    : null,
+                                icon: Icon(
+                                  isPlaying ? Icons.pause : Icons.play_arrow,
+                                ),
+                                iconSize: 48,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: theme.colorScheme.onPrimary,
+                                  padding: const EdgeInsets.all(16),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              IconButton(
+                                onPressed: audioHandler != null && audioHandler.hasNext
+                                    ? () => Provider.of<AppState>(context, listen: false).skipToNext()
+                                    : null,
+                                icon: const Icon(Icons.skip_next),
+                                iconSize: 36,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
