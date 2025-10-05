@@ -63,6 +63,10 @@ class AppState extends ChangeNotifier {
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
+  
+  // Theme getters
+  ThemeMode get themeMode => _themeMode;
+  Color get accentColor => _accentColor;
 
   AppState() {
     _downloadService = DownloadService(_jellyfinService);
@@ -1574,6 +1578,13 @@ class AppState extends ChangeNotifier {
     _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
+    
+    // Load theme settings
+    final themeModeString = prefs.getString('theme_mode') ?? 'system';
+    _themeMode = _parseThemeMode(themeModeString);
+    
+    final accentColorValue = prefs.getInt('accent_color') ?? Colors.purple.value;
+    _accentColor = Color(accentColorValue);
   }
 
   // Cache management methods
