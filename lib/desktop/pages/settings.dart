@@ -792,8 +792,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     leading: const Icon(Icons.calendar_today),
                   ),
                   ListTile(
+                    title: const Text('Operating System'),
+                    subtitle: Text(_getOSVersion()),
+                    leading: const Icon(Icons.settings_system_daydream),
+                  ),
+                  ListTile(
                     title: const Text('Flutter Version'),
-                    subtitle: const Text('3.24.0'),
+                    subtitle: Text(_getFlutterVersion()),
                     leading: const Icon(Icons.flutter_dash),
                   ),
                 ],
