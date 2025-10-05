@@ -112,25 +112,28 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
   }
 
   Widget _buildActionButtons(ThemeData theme) {
-    return Row(
-      children: [
-        // Play all button
-        ElevatedButton.icon(
-          onPressed: () {
-            // Play all tracks by artist
-          },
-          icon: const Icon(Icons.play_arrow),
-          label: const Text('Play All'),
-        ),
-        const SizedBox(width: 8),
-        // Shuffle button
-        OutlinedButton.icon(
-          onPressed: () {
-            // Shuffle play artist tracks
-          },
-          icon: const Icon(Icons.shuffle),
-          label: const Text('Shuffle'),
-        ),
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return Row(
+          children: [
+            // Play all button
+            ElevatedButton.icon(
+              onPressed: _popularTracks.isNotEmpty ? () async {
+                await appState.playPlaylist(_popularTracks, 0);
+              } : null,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Play All'),
+            ),
+            const SizedBox(width: 8),
+            // Shuffle button
+            OutlinedButton.icon(
+              onPressed: _popularTracks.isNotEmpty ? () async {
+                final shuffledTracks = List<Track>.from(_popularTracks)..shuffle();
+                await appState.playPlaylist(shuffledTracks, 0);
+              } : null,
+              icon: const Icon(Icons.shuffle),
+              label: const Text('Shuffle'),
+            ),
         const SizedBox(width: 8),
         // Favorite button
         IconButton(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:audio_service/audio_service.dart';
 import '../pages/home.dart';
 import '../services/navigation_service.dart';
+import '../../providers/app_state.dart';
 import '../pages/albums.dart';
 import '../pages/playlists.dart';
 import '../pages/artists.dart';
@@ -232,112 +235,203 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   }
 
   Widget _buildBottomPlayerBar(ThemeData theme) {
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.2),
-            width: 1,
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final audioHandler = appState.audioHandler;
+        
+        return StreamBuilder<PlaybackState>(
+          stream: audioHandler?.playbackState,
+          builder: (context, playbackSnapshot) {
+            final playbackState = playbackSnapshot.data;
+            final isPlaying = playbackState?.playing ?? false;
+            
+            return StreamBuilder<MediaItem?>(
+              stream: audioHandler?.mediaItem,
+              builder: (context, mediaSnapshot) {
+                final currentTrack = mediaSnapshot.data;
+                
+                return Container(
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.outline.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        // Album art
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceVariant,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: currentTrack?.artUri != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    currentTrack!.artUri.toString(),
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
+                                        Icons.music_note,
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                        size: 28,
+                                      );
+                                    },
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.music_note,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  size: 28,
+                                ),
+                        ),
+                        
+                        const SizedBox(width: 16),
+                        
+                        // Track info
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: currentTrack != null ? () {
+                              // Navigate to now playing screen
+                              _showNowPlayingDialog(context);
+                            } : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  currentTrack?.title ?? 'No track playing',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  currentTrack?.artist ?? 'Select a song to play',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
+                        // Player controls
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: audioHandler != null && audioHandler.hasPrevious
+                                  ? () => appState.skipToPrevious()
+                                  : null,
+                              icon: const Icon(Icons.skip_previous),
+                              iconSize: 28,
+                            ),
+                            IconButton(
+                              onPressed: audioHandler != null && currentTrack != null
+                                  ? () => appState.playPause()
+                                  : null,
+                              icon: Icon(
+                                isPlaying ? Icons.pause : Icons.play_arrow,
+                              ),
+                              iconSize: 32,
+                              style: IconButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: audioHandler != null && audioHandler.hasNext
+                                  ? () => appState.skipToNext()
+                                  : null,
+                              icon: const Icon(Icons.skip_next),
+                              iconSize: 28,
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(width: 16),
+                        
+                        // Volume and additional controls
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: currentTrack != null ? () {
+                                // Toggle favorite
+                              } : null,
+                              icon: const Icon(Icons.favorite_border),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                // Show volume slider
+                                _showVolumeDialog(context);
+                              },
+                              icon: const Icon(Icons.volume_up),
+                            ),
+                            IconButton(
+                              onPressed: currentTrack != null ? () {
+                                _showNowPlayingDialog(context);
+                              } : null,
+                              icon: const Icon(Icons.fullscreen),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showNowPlayingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Now Playing'),
+        content: const Text('Full now playing interface coming soon...'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
-        ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            // Album art placeholder
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.music_note,
-                color: theme.colorScheme.onSurfaceVariant,
-                size: 28,
-              ),
-            ),
-            
-            const SizedBox(width: 16),
-            
-            // Track info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'No track playing',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    'Select a song to play',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            
-            // Player controls
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.skip_previous),
-                  iconSize: 28,
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.play_arrow),
-                  iconSize: 32,
-                  style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.skip_next),
-                  iconSize: 28,
-                ),
-              ],
-            ),
-            
-            const SizedBox(width: 16),
-            
-            // Volume and additional controls
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.favorite_border),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.volume_up),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.fullscreen),
-                ),
-              ],
-            ),
-          ],
-        ),
+    );
+  }
+
+  void _showVolumeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Volume'),
+        content: const Text('Volume control coming soon...'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

@@ -99,91 +99,96 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
   }
 
   Widget _buildActionButtons(ThemeData theme) {
-    return Row(
-      children: [
-        // Play album button
-        ElevatedButton.icon(
-          onPressed: () {
-            // Play all tracks in album
-          },
-          icon: const Icon(Icons.play_arrow),
-          label: const Text('Play Album'),
-        ),
-        const SizedBox(width: 8),
-        // Shuffle button
-        OutlinedButton.icon(
-          onPressed: () {
-            // Shuffle play album
-          },
-          icon: const Icon(Icons.shuffle),
-          label: const Text('Shuffle'),
-        ),
-        const SizedBox(width: 8),
-        // Favorite button
-        IconButton(
-          onPressed: () {
-            // Toggle favorite
-          },
-          icon: Icon(
-            widget.album.isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: widget.album.isFavorite ? Colors.red : null,
-          ),
-          tooltip: widget.album.isFavorite ? 'Remove from favorites' : 'Add to favorites',
-        ),
-        // More options
-        PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'add_playlist':
-                _showAddToPlaylistDialog();
-                break;
-              case 'download':
-                // Download album
-                break;
-              case 'share':
-                // Share album
-                break;
-              case 'artist':
-                _navigateToArtist();
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'add_playlist',
-              child: ListTile(
-                leading: Icon(Icons.playlist_add),
-                title: Text('Add to Playlist'),
-                contentPadding: EdgeInsets.zero,
-              ),
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return Row(
+          children: [
+            // Play album button
+            ElevatedButton.icon(
+              onPressed: _albumTracks.isNotEmpty ? () async {
+                await appState.playPlaylist(_albumTracks, 0);
+              } : null,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Play Album'),
             ),
-            const PopupMenuItem(
-              value: 'download',
-              child: ListTile(
-                leading: Icon(Icons.download),
-                title: Text('Download'),
-                contentPadding: EdgeInsets.zero,
-              ),
+            const SizedBox(width: 8),
+            // Shuffle button
+            OutlinedButton.icon(
+              onPressed: _albumTracks.isNotEmpty ? () async {
+                final shuffledTracks = List<Track>.from(_albumTracks)..shuffle();
+                await appState.playPlaylist(shuffledTracks, 0);
+              } : null,
+              icon: const Icon(Icons.shuffle),
+              label: const Text('Shuffle'),
             ),
-            const PopupMenuItem(
-              value: 'share',
-              child: ListTile(
-                leading: Icon(Icons.share),
-                title: Text('Share'),
-                contentPadding: EdgeInsets.zero,
+            const SizedBox(width: 8),
+            // Favorite button
+            IconButton(
+              onPressed: () {
+                // Toggle favorite
+              },
+              icon: Icon(
+                widget.album.isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: widget.album.isFavorite ? Colors.red : null,
               ),
+              tooltip: widget.album.isFavorite ? 'Remove from favorites' : 'Add to favorites',
             ),
-            const PopupMenuItem(
-              value: 'artist',
-              child: ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Go to Artist'),
-                contentPadding: EdgeInsets.zero,
-              ),
+            // More options
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'add_playlist':
+                    _showAddToPlaylistDialog();
+                    break;
+                  case 'download':
+                    // Download album
+                    break;
+                  case 'share':
+                    // Share album
+                    break;
+                  case 'artist':
+                    _navigateToArtist();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'add_playlist',
+                  child: ListTile(
+                    leading: Icon(Icons.playlist_add),
+                    title: Text('Add to Playlist'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'download',
+                  child: ListTile(
+                    leading: Icon(Icons.download),
+                    title: Text('Download'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'share',
+                  child: ListTile(
+                    leading: Icon(Icons.share),
+                    title: Text('Share'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'artist',
+                  child: ListTile(
+                    leading: Icon(Icons.person),
+                    title: Text('Go to Artist'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -435,13 +440,14 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
           ),
           const SizedBox(width: 8),
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
+              final appState = context.read<AppState>();
               switch (value) {
                 case 'play':
-                  // Play track
+                  await appState.playPlaylist(_albumTracks, trackNumber - 1);
                   break;
                 case 'play_next':
-                  // Play next
+                  // Play next - add to queue
                   break;
                 case 'add_queue':
                   // Add to queue
@@ -510,8 +516,9 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
           ),
         ],
       ),
-      onTap: () {
-        // Play track
+      onTap: () async {
+        final appState = context.read<AppState>();
+        await appState.playPlaylist(_albumTracks, trackNumber - 1);
       },
     );
   }
