@@ -11,6 +11,7 @@ import '../pages/search.dart';
 import '../pages/library.dart';
 import '../pages/tracks.dart';
 import '../pages/settings.dart';
+import '../../services/lyrics_service.dart';
 
 class DesktopLayout extends StatefulWidget {
   final Widget? child;
