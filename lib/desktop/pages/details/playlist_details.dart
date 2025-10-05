@@ -60,6 +60,7 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
         return DesktopLayout(
           showBackButton: true,
           title: widget.playlist.name,
+          selectedIndex: 3, // Playlists page index
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(

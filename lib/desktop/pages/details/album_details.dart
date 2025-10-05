@@ -68,6 +68,7 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
         return DesktopLayout(
           showBackButton: true,
           title: widget.album.name,
+          selectedIndex: 4, // Albums page index
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
