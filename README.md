@@ -34,7 +34,7 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 - **Cross-Platform** - Android, iOS, macOS, Linux, Windows support
 - **Background Playback** - Music continues while using other apps
 - **Media Controls** - Lock screen, notification, and system media controls
-- **Android Auto & CarPlay** - Safe driving integration *(Android Auto ready, CarPlay coming soon)*
+- **Android Auto & CarPlay** - Safe driving integration *(Android Auto ready, CarPlay coming soon hopefully)*
 
 ### 🎧 **Audio Features**
 - **Multiple Audio Formats** - MP3, FLAC, AAC, OGG, M4A, and more
