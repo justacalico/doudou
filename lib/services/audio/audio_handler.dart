@@ -414,7 +414,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await Future.delayed(const Duration(milliseconds: 200));
       
       // Reload the track
-      await _loadAndPlayTrack(currentTrack);
+      await _loadAndPlayTrack(currentTrack, _userIntendedPlaying);
       
       // Restore position if significant
       if (currentPosition.inMilliseconds > 3000) {
