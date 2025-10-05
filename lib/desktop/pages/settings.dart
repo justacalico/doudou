@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 
