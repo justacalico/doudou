@@ -5,10 +5,12 @@ import '../../../models/jellyfin_models.dart';
 
 class AlbumDetailsPage extends StatefulWidget {
   final Album album;
+  final Function(Widget)? onNavigateToDetail;
 
   const AlbumDetailsPage({
     super.key,
     required this.album,
+    this.onNavigateToDetail,
   });
 
   @override
