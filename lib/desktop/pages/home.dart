@@ -92,7 +92,12 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: album.artistName ?? 'Unknown Artist',
                                       imageUrl: _getImageUrl(appState, album.imageUrl),
                                       onTap: () {
-                                        // Navigate to album details
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AlbumDetailsPage(album: album),
+                                          ),
+                                        );
                                       },
                                     ),
                                   );
