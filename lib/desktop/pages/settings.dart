@@ -783,7 +783,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: const Text('Platform'),
-                    subtitle: Text('${Theme.of(context).platform.name} ${_getArchitecture()}'),
+                    subtitle: Text(_getPlatformInfo()),
                     leading: const Icon(Icons.computer),
                   ),
                   ListTile(
