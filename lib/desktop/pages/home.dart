@@ -7,7 +7,12 @@ import 'details/album_details.dart';
 import 'details/artist_details.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Function(Widget) onNavigateToDetail;
+  
+  const HomePage({
+    super.key,
+    required this.onNavigateToDetail,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -92,12 +97,7 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: album.artistName ?? 'Unknown Artist',
                                       imageUrl: _getImageUrl(appState, album.imageUrl),
                                       onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AlbumDetailsPage(album: album),
-                                          ),
-                                        );
+                                        widget.onNavigateToDetail(AlbumDetailsPage(album: album));
                                       },
                                     ),
                                   );
@@ -179,12 +179,7 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: 'Artist',
                                       imageUrl: _getImageUrl(appState, artist.imageUrl),
                                       onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ArtistDetailsPage(artist: artist),
-                                          ),
-                                        );
+                                        widget.onNavigateToDetail(ArtistDetailsPage(artist: artist));
                                       },
                                     ),
                                   );
