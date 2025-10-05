@@ -571,7 +571,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: const Text('Server URL'),
-                    subtitle: Text(appState.jellyfinService._server?.serverUrl ?? 'Not set'),
+                    subtitle: Text(appState.jellyfinService.serverUrl ?? 'Not set'),
                     trailing: const Icon(Icons.edit),
                     onTap: () {
                       // Edit server URL
@@ -579,7 +579,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     title: const Text('Username'),
-                    subtitle: Text(appState.jellyfinService._server?.username ?? 'Not logged in'),
+                    subtitle: Text(appState.jellyfinService.username ?? 'Not logged in'),
                     trailing: const Icon(Icons.person),
                     onTap: () {
                       // Show user info
