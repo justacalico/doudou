@@ -732,6 +732,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       
+      // Update media item and playback state
+      final mediaItem = _trackToMediaItem(track);
+      this.mediaItem.add(mediaItem);
+      
       // Update playback state
       _updatePlaybackState(playbackState.value.copyWith(
         processingState: AudioProcessingState.ready,
