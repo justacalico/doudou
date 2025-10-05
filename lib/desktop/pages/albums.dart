@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import 'details/album_details.dart';
 
 class AlbumsPage extends StatefulWidget {
   const AlbumsPage({super.key});
