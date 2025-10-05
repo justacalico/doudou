@@ -987,7 +987,7 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
           ),
           const SizedBox(height: 8),
           Text(
-            'Lyrics powered by LRCLib.net',
+            'Lyrics powered by LRCLib.net • Desktop Enhanced',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
