@@ -947,8 +947,8 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.pop(context);
               appState.logout();
             },
-            child: const Text('Sign Out'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Sign Out'),
           ),
         ],
       ),
