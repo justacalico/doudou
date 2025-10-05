@@ -276,13 +276,30 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           ),
                           child: Column(
                             children: [
-                              // Progress bar
+                              // Progress bar with seeking
                               SizedBox(
-                                height: 4,
-                                child: LinearProgressIndicator(
-                                  value: progress.clamp(0.0, 1.0),
-                                  backgroundColor: theme.colorScheme.outline.withOpacity(0.2),
-                                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                                height: 20,
+                                child: SliderTheme(
+                                  data: SliderTheme.of(context).copyWith(
+                                    trackHeight: 4,
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                                    activeTrackColor: theme.colorScheme.primary,
+                                    inactiveTrackColor: theme.colorScheme.outline.withOpacity(0.2),
+                                    thumbColor: theme.colorScheme.primary,
+                                    overlayColor: theme.colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                  child: Slider(
+                                    value: progress.clamp(0.0, 1.0),
+                                    onChanged: currentTrack != null && audioHandler != null ? (value) {
+                                      final newPosition = Duration(
+                                        milliseconds: (value * duration.inMilliseconds).round(),
+                                      );
+                                      audioHandler.seek(newPosition);
+                                    } : null,
+                                    min: 0.0,
+                                    max: 1.0,
+                                  ),
                                 ),
                               ),
                               
