@@ -9,7 +9,30 @@ import 'providers/app_state.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
 
+// Conditional import for desktop platforms
+import 'desktop/main.dart' as desktop_main
+    if (dart.library.io) 'desktop/main.dart'
+    if (dart.library.html) 'desktop/main.dart';
+
 void main() async {
+  // Check if we're on a desktop or web platform
+  if (_isDesktopOrWebPlatform()) {
+    // Delegate to desktop main
+    return desktop_main.main();
+  }
+  
+  // Original mobile main logic
+  _runMobileApp();
+}
+
+bool _isDesktopOrWebPlatform() {
+  return kIsWeb || 
+         defaultTargetPlatform == TargetPlatform.macOS ||
+         defaultTargetPlatform == TargetPlatform.windows ||
+         defaultTargetPlatform == TargetPlatform.linux;
+}
+
+void _runMobileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize sqflite for Linux/Windows/macOS
