@@ -6,6 +6,7 @@ class PageTemplate extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? floatingActionButton;
   final EdgeInsets? padding;
+  final bool showBackButton;
 
   const PageTemplate({
     super.key,
@@ -14,6 +15,7 @@ class PageTemplate extends StatelessWidget {
     this.actions,
     this.floatingActionButton,
     this.padding,
+    this.showBackButton = false,
   });
 
   @override
