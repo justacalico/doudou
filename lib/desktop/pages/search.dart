@@ -187,8 +187,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildFilterChips(Map<String, List<dynamic>> results) {
-    final theme = Theme.of(context);
-    
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8),
