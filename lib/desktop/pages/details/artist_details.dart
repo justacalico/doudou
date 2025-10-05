@@ -99,11 +99,8 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
               onPressed: () {
                 // Toggle favorite artist
               },
-              icon: Icon(
-                widget.artist.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: widget.artist.isFavorite ? Colors.red : null,
-              ),
-              tooltip: widget.artist.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+              icon: const Icon(Icons.favorite_border),
+              tooltip: 'Add to favorites',
             ),
             // More options
             PopupMenuButton<String>(
@@ -259,17 +256,6 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                       ),
                     ],
                   ),
-                  if (widget.artist.overview != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.artist.overview!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
                 ],
               ),
             ),
