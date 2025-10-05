@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import 'details/artist_details.dart';
 
 class ArtistsPage extends StatefulWidget {
   const ArtistsPage({super.key});
