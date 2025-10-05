@@ -9,6 +9,7 @@ import '../pages/playlists.dart';
 import '../pages/artists.dart';
 import '../pages/search.dart';
 import '../pages/library.dart';
+import '../pages/tracks.dart';
 import '../pages/settings.dart';
 
 class DesktopLayout extends StatefulWidget {
@@ -224,12 +225,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       case 2:
         return const LibraryPage();
       case 3:
-        return const PlaylistsPage();
+        return const TracksPage();
       case 4:
-        return const AlbumsPage();
+        return const PlaylistsPage();
       case 5:
-        return const ArtistsPage();
+        return const AlbumsPage();
       case 6:
+        return const ArtistsPage();
+      case 7:
         return const SettingsPage();
       default:
         return const HomePage();
