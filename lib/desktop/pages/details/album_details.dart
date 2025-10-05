@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../templates/page_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
-import 'artist_details.dart';
 
 class AlbumDetailsPage extends StatefulWidget {
   final Album album;
-  final Function(Widget)? onNavigateToDetail;
 
   const AlbumDetailsPage({
     super.key,
     required this.album,
-    this.onNavigateToDetail,
   });
 
   @override
@@ -66,126 +64,108 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with title and actions
-            Container(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.album.name,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  // Action buttons
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Play all tracks in album
-                    },
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Play Album'),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      // Shuffle play album
-                    },
-                    icon: const Icon(Icons.shuffle),
-                    label: const Text('Shuffle'),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {
-                      // Toggle favorite
-                    },
-                    icon: Icon(
-                      widget.album.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: widget.album.isFavorite ? Colors.red : null,
-                    ),
-                    tooltip: widget.album.isFavorite ? 'Remove from favorites' : 'Add to favorites',
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'add_playlist':
-                          _showAddToPlaylistDialog();
-                          break;
-                        case 'download':
-                          // Download album
-                          break;
-                        case 'share':
-                          // Share album
-                          break;
-                        case 'artist':
-                          _navigateToArtist();
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'add_playlist',
-                        child: ListTile(
-                          leading: Icon(Icons.playlist_add),
-                          title: Text('Add to Playlist'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'download',
-                        child: ListTile(
-                          leading: Icon(Icons.download),
-                          title: Text('Download'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'share',
-                        child: ListTile(
-                          leading: Icon(Icons.share),
-                          title: Text('Share'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'artist',
-                        child: ListTile(
-                          leading: Icon(Icons.person),
-                          title: Text('Go to Artist'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+        return PageTemplate(
+          title: widget.album.name,
+          actions: [
+            // Play album button
+            ElevatedButton.icon(
+              onPressed: () {
+                // Play all tracks in album
+              },
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Play Album'),
             ),
-            
-            // Content area
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Album header
-                    _buildAlbumHeader(theme, appState),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // Track list
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildTrackList(theme, appState),
-                  ],
-                ),
+            const SizedBox(width: 8),
+            // Shuffle button
+            OutlinedButton.icon(
+              onPressed: () {
+                // Shuffle play album
+              },
+              icon: const Icon(Icons.shuffle),
+              label: const Text('Shuffle'),
+            ),
+            const SizedBox(width: 8),
+            // Favorite button
+            IconButton(
+              onPressed: () {
+                // Toggle favorite
+              },
+              icon: Icon(
+                widget.album.isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: widget.album.isFavorite ? Colors.red : null,
               ),
+              tooltip: widget.album.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            ),
+            // More options
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'add_playlist':
+                    _showAddToPlaylistDialog();
+                    break;
+                  case 'download':
+                    // Download album
+                    break;
+                  case 'share':
+                    // Share album
+                    break;
+                  case 'artist':
+                    _navigateToArtist();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'add_playlist',
+                  child: ListTile(
+                    leading: Icon(Icons.playlist_add),
+                    title: Text('Add to Playlist'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'download',
+                  child: ListTile(
+                    leading: Icon(Icons.download),
+                    title: Text('Download'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'share',
+                  child: ListTile(
+                    leading: Icon(Icons.share),
+                    title: Text('Share'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'artist',
+                  child: ListTile(
+                    leading: Icon(Icons.person),
+                    title: Text('Go to Artist'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Album header
+              _buildAlbumHeader(theme, appState),
+              
+              const SizedBox(height: 32),
+              
+              // Track list
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildTrackList(theme, appState),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -560,22 +540,8 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
   }
 
   void _navigateToArtist() {
-    if (widget.onNavigateToDetail != null && widget.album.artistName != null) {
-      final appState = context.read<AppState>();
-      final artist = appState.artists.firstWhere(
-        (artist) => artist.name == widget.album.artistName,
-        orElse: () => Artist(
-          id: 'unknown',
-          name: widget.album.artistName!,
-          imageUrl: null,
-        ),
-      );
-      
-      widget.onNavigateToDetail!(ArtistDetailsPage(
-        artist: artist,
-        onNavigateToDetail: widget.onNavigateToDetail,
-      ));
-    }
+    // Navigate to artist page
+    // This would require finding the artist and navigating to ArtistDetailsPage
   }
 
   void _showAddToPlaylistDialog() {

@@ -5,12 +5,7 @@ import '../../providers/app_state.dart';
 import 'details/playlist_details.dart';
 
 class PlaylistsPage extends StatefulWidget {
-  final Function(Widget) onNavigateToDetail;
-  
-  const PlaylistsPage({
-    super.key,
-    required this.onNavigateToDetail,
-  });
+  const PlaylistsPage({super.key});
 
   @override
   State<PlaylistsPage> createState() => _PlaylistsPageState();
@@ -354,10 +349,12 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          widget.onNavigateToDetail(PlaylistDetailsPage(
-            playlist: playlist,
-            onNavigateToDetail: widget.onNavigateToDetail,
-          ));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PlaylistDetailsPage(playlist: playlist),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

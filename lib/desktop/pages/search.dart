@@ -4,12 +4,7 @@ import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 
 class SearchPage extends StatefulWidget {
-  final Function(Widget) onNavigateToDetail;
-  
-  const SearchPage({
-    super.key,
-    required this.onNavigateToDetail,
-  });
+  const SearchPage({super.key});
 
   @override
   State<SearchPage> createState() => _SearchPageState();

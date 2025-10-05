@@ -5,12 +5,7 @@ import '../../providers/app_state.dart';
 import 'details/album_details.dart';
 
 class AlbumsPage extends StatefulWidget {
-  final Function(Widget) onNavigateToDetail;
-  
-  const AlbumsPage({
-    super.key,
-    required this.onNavigateToDetail,
-  });
+  const AlbumsPage({super.key});
 
   @override
   State<AlbumsPage> createState() => _AlbumsPageState();
@@ -366,10 +361,12 @@ class _AlbumsPageState extends State<AlbumsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          widget.onNavigateToDetail(AlbumDetailsPage(
-            album: album,
-            onNavigateToDetail: widget.onNavigateToDetail,
-          ));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AlbumDetailsPage(album: album),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -130,9 +130,6 @@ class DesktopHomeLayout extends StatefulWidget {
 class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   int _selectedIndex = 0;
   
-  // Navigation stack for detail views
-  final List<Widget> _navigationStack = [];
-  
   final List<String> _navigationItems = [
     'Home',
     'Search',
@@ -142,22 +139,6 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
     'Artists',
     'Settings',
   ];
-  
-  // Method to navigate to detail view
-  void navigateToDetail(Widget detailWidget) {
-    setState(() {
-      _navigationStack.add(detailWidget);
-    });
-  }
-  
-  // Method to go back from detail view
-  void navigateBack() {
-    if (_navigationStack.isNotEmpty) {
-      setState(() {
-        _navigationStack.removeLast();
-      });
-    }
-  }
 
   final List<IconData> _navigationIcons = [
     Icons.home_outlined,
@@ -273,46 +254,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
                 Expanded(
                   child: Container(
                     color: theme.colorScheme.background,
-                    child: Column(
-                      children: [
-                        // Back button bar for detail views
-                        if (_navigationStack.isNotEmpty)
-                          Container(
-                            height: 56,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: theme.colorScheme.outline.withOpacity(0.2),
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  onPressed: navigateBack,
-                                  icon: const Icon(Icons.arrow_back),
-                                  tooltip: 'Back',
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Back to ${_navigationItems[_selectedIndex]}',
-                                  style: theme.textTheme.titleMedium,
-                                ),
-                              ],
-                            ),
-                          ),
-                        
-                        // Main content
-                        Expanded(
-                          child: _navigationStack.isNotEmpty 
-                            ? _navigationStack.last 
-                            : _buildMainContent(),
-                        ),
-                      ],
-                    ),
+                    child: _buildMainContent(),
                   ),
                 ),
               ],
@@ -348,27 +290,27 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildHomeContent() {
-    return HomePage(onNavigateToDetail: navigateToDetail);
+    return const HomePage();
   }
 
   Widget _buildSearchContent() {
-    return SearchPage(onNavigateToDetail: navigateToDetail);
+    return const SearchPage();
   }
 
   Widget _buildLibraryContent() {
-    return LibraryPage(onNavigateToDetail: navigateToDetail);
+    return const LibraryPage();
   }
 
   Widget _buildPlaylistsContent() {
-    return PlaylistsPage(onNavigateToDetail: navigateToDetail);
+    return const PlaylistsPage();
   }
 
   Widget _buildAlbumsContent() {
-    return AlbumsPage(onNavigateToDetail: navigateToDetail);
+    return const AlbumsPage();
   }
 
   Widget _buildArtistsContent() {
-    return ArtistsPage(onNavigateToDetail: navigateToDetail);
+    return const ArtistsPage();
   }
 
   Widget _buildSettingsContent() {

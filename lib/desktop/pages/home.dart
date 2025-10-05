@@ -7,12 +7,7 @@ import 'details/album_details.dart';
 import 'details/artist_details.dart';
 
 class HomePage extends StatefulWidget {
-  final Function(Widget) onNavigateToDetail;
-  
-  const HomePage({
-    super.key,
-    required this.onNavigateToDetail,
-  });
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -97,10 +92,12 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: album.artistName ?? 'Unknown Artist',
                                       imageUrl: _getImageUrl(appState, album.imageUrl),
                                       onTap: () {
-                                        widget.onNavigateToDetail(AlbumDetailsPage(
-                                          album: album,
-                                          onNavigateToDetail: widget.onNavigateToDetail,
-                                        ));
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AlbumDetailsPage(album: album),
+                                          ),
+                                        );
                                       },
                                     ),
                                   );
@@ -182,10 +179,12 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: 'Artist',
                                       imageUrl: _getImageUrl(appState, artist.imageUrl),
                                       onTap: () {
-                                        widget.onNavigateToDetail(ArtistDetailsPage(
-                                          artist: artist,
-                                          onNavigateToDetail: widget.onNavigateToDetail,
-                                        ));
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ArtistDetailsPage(artist: artist),
+                                          ),
+                                        );
                                       },
                                     ),
                                   );
