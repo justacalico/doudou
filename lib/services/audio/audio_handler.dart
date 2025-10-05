@@ -1394,14 +1394,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await Future.delayed(const Duration(milliseconds: 200));
           }
           
-          if (_userIntendedPlaying) {
+          if (shouldPlay) {
             await _player.play();
             if (kDebugMode) {
-              print('Auto-playing local file: ${track.name} - user intended playing');
+              print('Auto-playing local file: ${track.name} - should play: true');
             }
           } else {
             if (kDebugMode) {
-              print('Not auto-playing local file: ${track.name} - user paused');
+              print('Not auto-playing local file: ${track.name} - should play: false');
             }
           }
           
@@ -1500,14 +1500,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await Future.delayed(const Duration(milliseconds: 200)); // Shorter for Android
           }
           
-          if (_userIntendedPlaying) {
+          if (shouldPlay) {
             await _player.play();
             if (kDebugMode) {
-              print('Auto-playing stream: ${track.name} - user intended playing');
+              print('Auto-playing stream: ${track.name} - should play: true');
             }
           } else {
             if (kDebugMode) {
-              print('Not auto-playing stream: ${track.name} - user paused');
+              print('Not auto-playing stream: ${track.name} - should play: false');
             }
           }
           
