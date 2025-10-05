@@ -354,12 +354,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PlaylistDetailsPage(playlist: playlist),
-            ),
-          );
+          widget.onNavigateToDetail(PlaylistDetailsPage(playlist: playlist));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
