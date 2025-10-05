@@ -932,7 +932,7 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final queue = appState.queue;
-        final currentIndex = appState.currentIndex;
+        final audioHandler = appState.audioHandler;
         
         if (queue.isEmpty) {
           return Container(
@@ -974,90 +974,97 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
             color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: queue.length,
-            itemBuilder: (context, index) {
-              final track = queue[index];
-              final isCurrentTrack = index == currentIndex;
+          child: StreamBuilder<int?>(
+            stream: audioHandler?.queueIndexStream,
+            builder: (context, queueIndexSnapshot) {
+              final currentIndex = queueIndexSnapshot.data ?? 0;
               
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 2),
-                decoration: BoxDecoration(
-                  color: isCurrentTrack 
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                    : null,
-                  borderRadius: BorderRadius.circular(8),
-                  border: isCurrentTrack 
-                    ? Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                      )
-                    : null,
-                ),
-                child: ListTile(
-                  dense: true,
-                  leading: Container(
-                    width: 40,
-                    height: 40,
+              return ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: queue.length,
+                itemBuilder: (context, index) {
+                  final track = queue[index];
+                  final isCurrentTrack = index == currentIndex;
+                  
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 2),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: track.albumArt != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: Image.network(
-                              track.albumArt!,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.music_note,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  size: 20,
-                                );
-                              },
-                            ),
+                      color: isCurrentTrack 
+                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                        : null,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isCurrentTrack 
+                        ? Border.all(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                           )
-                        : Icon(
-                            Icons.music_note,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                  ),
-                  title: Text(
-                    track.name,
-                    style: TextStyle(
-                      color: isCurrentTrack 
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.onSurface,
-                      fontWeight: isCurrentTrack ? FontWeight.w600 : FontWeight.normal,
+                        : null,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    '${track.artistName} • ${track.albumName}',
-                    style: TextStyle(
-                      color: isCurrentTrack 
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    child: ListTile(
+                      dense: true,
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: track.imageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: Image.network(
+                                  track.imageUrl!,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.music_note,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      size: 20,
+                                    );
+                                  },
+                                ),
+                              )
+                            : Icon(
+                                Icons.music_note,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                size: 20,
+                              ),
+                      ),
+                      title: Text(
+                        track.name,
+                        style: TextStyle(
+                          color: isCurrentTrack 
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: isCurrentTrack ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        '${track.artistName} • ${track.albumName}',
+                        style: TextStyle(
+                          color: isCurrentTrack 
+                            ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: isCurrentTrack 
+                        ? Icon(
+                            Icons.play_arrow,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                      onTap: () {
+                        // Play the selected track
+                        appState.skipToIndex(index);
+                      },
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: isCurrentTrack 
-                    ? Icon(
-                        Icons.play_arrow,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-                  onTap: () {
-                    // Play the selected track
-                    appState.skipToQueueItem(index);
-                  },
-                ),
+                  );
+                },
               );
             },
           ),
