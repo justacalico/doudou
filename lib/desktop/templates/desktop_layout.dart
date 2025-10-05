@@ -895,6 +895,69 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
   }
   
   Widget _buildLyricsTab() {
+    return StreamBuilder<MediaItem?>(
+      stream: widget.audioHandler?.mediaItem,
+      builder: (context, snapshot) {
+        final currentTrack = snapshot.data;
+        
+        if (currentTrack == null) {
+          return _buildLyricsEmptyState('No track playing');
+        }
+        
+        return FutureBuilder<LyricsResult?>(
+          future: LyricsService.fetchLyrics(
+            currentTrack.title,
+            currentTrack.artist ?? 'Unknown Artist',
+          ),
+          builder: (context, lyricsSnapshot) {
+            if (lyricsSnapshot.connectionState == ConnectionState.waiting) {
+              return _buildLyricsLoadingState();
+            }
+            
+            final lyrics = lyricsSnapshot.data;
+            if (lyrics == null) {
+              return _buildLyricsEmptyState('Lyrics not found');
+            }
+            
+            // Show synced lyrics if available
+            if (lyrics.hasSyncedLyrics && lyrics.syncedLyrics != null) {
+              return _buildSyncedLyricsView(lyrics.syncedLyrics!);
+            }
+            
+            // Fall back to plain lyrics
+            return _buildPlainLyricsView(lyrics.plainLyrics);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLyricsLoadingState() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Loading lyrics...',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLyricsEmptyState(String message) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -911,15 +974,15 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
           ),
           const SizedBox(height: 16),
           Text(
-            'Lyrics not available',
+            message,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Lyrics functionality coming soon...',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            'Lyrics powered by LRCLib.net',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
             textAlign: TextAlign.center,
@@ -927,6 +990,162 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
         ],
       ),
     );
+  }
+
+  Widget _buildPlainLyricsView(String lyrics) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(
+                Icons.lyrics,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Lyrics',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Lyrics content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Text(
+                lyrics,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSyncedLyricsView(List<LyricsLine> lyricsLines) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(
+                Icons.lyrics,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Synced Lyrics',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'LIVE',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Synced lyrics content
+          Expanded(
+            child: StreamBuilder<Duration>(
+              stream: widget.audioHandler?.positionStream,
+              builder: (context, positionSnapshot) {
+                final position = positionSnapshot.data ?? Duration.zero;
+                final currentLineIndex = _getCurrentLyricLineIndex(lyricsLines, position);
+                
+                return ListView.builder(
+                  itemCount: lyricsLines.length,
+                  itemBuilder: (context, index) {
+                    final line = lyricsLines[index];
+                    final isCurrentLine = index == currentLineIndex;
+                    final isPastLine = index < currentLineIndex;
+                    
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isCurrentLine 
+                          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                          : null,
+                        borderRadius: BorderRadius.circular(8),
+                        border: isCurrentLine 
+                          ? Border.all(
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            )
+                          : null,
+                      ),
+                      child: Text(
+                        line.text,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isCurrentLine
+                            ? Theme.of(context).colorScheme.primary
+                            : isPastLine
+                              ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: isCurrentLine ? FontWeight.w600 : FontWeight.normal,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _getCurrentLyricLineIndex(List<LyricsLine> lines, Duration position) {
+    if (lines.isEmpty) return -1;
+    
+    for (int i = lines.length - 1; i >= 0; i--) {
+      if (position >= lines[i].timestamp) {
+        return i;
+      }
+    }
+    
+    return -1; // Before first line
   }
   
   Widget _buildQueueTab() {
