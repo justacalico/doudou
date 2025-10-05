@@ -179,7 +179,12 @@ class _HomePageState extends State<HomePage> {
                                       subtitle: 'Artist',
                                       imageUrl: _getImageUrl(appState, artist.imageUrl),
                                       onTap: () {
-                                        // Navigate to artist details
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ArtistDetailsPage(artist: artist),
+                                          ),
+                                        );
                                       },
                                     ),
                                   );
