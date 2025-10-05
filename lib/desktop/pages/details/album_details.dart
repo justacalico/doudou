@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
+import 'artist_details.dart';
 
 class AlbumDetailsPage extends StatefulWidget {
   final Album album;
