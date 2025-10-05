@@ -978,8 +978,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               );
             },
-            child: const Text('Clear'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear'),
           ),
         ],
       ),
