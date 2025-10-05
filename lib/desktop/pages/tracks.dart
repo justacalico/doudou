@@ -401,7 +401,7 @@ class _TracksPageState extends State<TracksPage> {
             Expanded(
               flex: 3,
               child: Text(
-                track.title,
+                track.name,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
@@ -412,7 +412,7 @@ class _TracksPageState extends State<TracksPage> {
             Expanded(
               flex: 2,
               child: Text(
-                track.artist ?? 'Unknown Artist',
+                track.artistName ?? 'Unknown Artist',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -423,7 +423,7 @@ class _TracksPageState extends State<TracksPage> {
             Expanded(
               flex: 2,
               child: Text(
-                track.album ?? 'Unknown Album',
+                track.albumName ?? 'Unknown Album',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
