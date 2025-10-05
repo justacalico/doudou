@@ -16,7 +16,7 @@ class AudioStateManager {
   
   // Playback configuration
   bool _isShuffled = false;
-  bool _smartCrossfadeEnabled = false;
+
   bool _normalizeVolumeEnabled = false;
   bool _gaplessPlaybackEnabled = true;
   bool _radioModeEnabled = false;
@@ -46,7 +46,6 @@ class AudioStateManager {
   int get queueLength => _queue.length;
   
   // Getters for playback configuration
-  bool get smartCrossfadeEnabled => _smartCrossfadeEnabled;
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   Duration get crossfadeDuration => _crossfadeDuration;
