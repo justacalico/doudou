@@ -11,7 +11,7 @@ import '../pages/search.dart';
 import '../pages/library.dart';
 import '../pages/tracks.dart';
 import '../pages/settings.dart';
-import '../../services/lyrics_service.dart';
+import '../../services/desktop_lyrics_service.dart';
 
 class DesktopLayout extends StatefulWidget {
   final Widget? child;
@@ -904,10 +904,12 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
           return _buildLyricsEmptyState('No track playing');
         }
         
-        return FutureBuilder<LyricsResult?>(
-          future: LyricsService.fetchLyrics(
-            currentTrack.title,
-            currentTrack.artist ?? 'Unknown Artist',
+        return FutureBuilder<DesktopLyrics?>(
+          future: DesktopLyricsService.fetchLyrics(
+            trackName: currentTrack.title,
+            artistName: currentTrack.artist ?? 'Unknown Artist',
+            albumName: currentTrack.album,
+            durationSeconds: currentTrack.duration?.inSeconds,
           ),
           builder: (context, lyricsSnapshot) {
             if (lyricsSnapshot.connectionState == ConnectionState.waiting) {
@@ -920,12 +922,16 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
             }
             
             // Show synced lyrics if available
-            if (lyrics.hasSyncedLyrics && lyrics.syncedLyrics != null) {
-              return _buildSyncedLyricsView(lyrics.syncedLyrics!);
+            if (lyrics.isTimeSynced && lyrics.syncedLines.isNotEmpty) {
+              return _buildSyncedLyricsView(lyrics.syncedLines);
             }
             
             // Fall back to plain lyrics
-            return _buildPlainLyricsView(lyrics.plainLyrics);
+            if (lyrics.plainText != null) {
+              return _buildPlainLyricsView(lyrics.plainText!);
+            }
+            
+            return _buildLyricsEmptyState('No lyrics available');
           },
         );
       },
@@ -1039,7 +1045,7 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
     );
   }
 
-  Widget _buildSyncedLyricsView(List<LyricsLine> lyricsLines) {
+  Widget _buildSyncedLyricsView(List<DesktopLyricsLine> lyricsLines) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1136,11 +1142,11 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
     );
   }
 
-  int _getCurrentLyricLineIndex(List<LyricsLine> lines, Duration position) {
+  int _getCurrentLyricLineIndex(List<DesktopLyricsLine> lines, Duration position) {
     if (lines.isEmpty) return -1;
     
     for (int i = lines.length - 1; i >= 0; i--) {
-      if (position >= lines[i].timestamp) {
+      if (position >= lines[i].time) {
         return i;
       }
     }
