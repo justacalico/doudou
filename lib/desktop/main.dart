@@ -53,52 +53,56 @@ class DesktopDoudouApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
       child: _buildAppWithPlatformServices(
-        MaterialApp(
-          title: 'Doudou - Jellyfin Music Player',
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.purple,
-              brightness: Brightness.light,
-            ),
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.purple,
-              brightness: Brightness.dark,
-            ),
-          ),
-          themeMode: ThemeMode.system,
-          home: Consumer<AppState>(
-            builder: (context, appState, child) {
-              // Show loading screen while initializing
-              if (!appState.isInitialized) {
-                return const Scaffold(
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text(
-                          'Loading Desktop App...',
-                          style: TextStyle(fontSize: 16),
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            return MaterialApp(
+              title: 'Doudou - Jellyfin Music Player',
+              theme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: appState.accentColor,
+                  brightness: Brightness.light,
+                ),
+              ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: appState.accentColor,
+                  brightness: Brightness.dark,
+                ),
+              ),
+              themeMode: appState.themeMode,
+              home: Consumer<AppState>(
+                builder: (context, appState, child) {
+                  // Show loading screen while initializing
+                  if (!appState.isInitialized) {
+                    return const Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text(
+                              'Loading Desktop App...',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-              
-              if (appState.isLoggedIn) {
-                return const DesktopHomeLayout();
-              } else {
-                return const LoginScreen();
-              }
-            },
-          ),
-          debugShowCheckedModeBanner: false,
+                      ),
+                    );
+                  }
+                  
+                  if (appState.isLoggedIn) {
+                    return const DesktopHomeLayout();
+                  } else {
+                    return const LoginScreen();
+                  }
+                },
+              ),
+              debugShowCheckedModeBanner: false,
+            );
+          },
         ),
       ),
     );
