@@ -559,8 +559,22 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
   }
 
   void _navigateToArtist() {
-    // Navigate to artist page
-    // This would require finding the artist and navigating to ArtistDetailsPage
+    if (widget.onNavigateToDetail != null && widget.album.artistName != null) {
+      final appState = context.read<AppState>();
+      final artist = appState.artists.firstWhere(
+        (artist) => artist.name == widget.album.artistName,
+        orElse: () => Artist(
+          id: 'unknown',
+          name: widget.album.artistName!,
+          imageUrl: null,
+        ),
+      );
+      
+      widget.onNavigateToDetail!(ArtistDetailsPage(
+        artist: artist,
+        onNavigateToDetail: widget.onNavigateToDetail,
+      ));
+    }
   }
 
   void _showAddToPlaylistDialog() {

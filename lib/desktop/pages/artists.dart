@@ -350,7 +350,6 @@ class _ArtistsPageState extends State<ArtistsPage> {
         onTap: () {
           widget.onNavigateToDetail(ArtistDetailsPage(
             artist: artist,
-            onNavigateToDetail: widget.onNavigateToDetail,
           ));
         },
         child: Column(
