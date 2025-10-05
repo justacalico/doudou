@@ -250,151 +250,209 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               builder: (context, mediaSnapshot) {
                 final currentTrack = mediaSnapshot.data;
                 
-                return Container(
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    border: Border(
-                      top: BorderSide(
-                        color: theme.colorScheme.outline.withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      children: [
-                        // Album art
-                        Container(
-                          width: 56,
-                          height: 56,
+                return StreamBuilder<Duration>(
+                  stream: audioHandler?.positionStream,
+                  builder: (context, positionSnapshot) {
+                    final position = positionSnapshot.data ?? Duration.zero;
+                    
+                    return StreamBuilder<Duration?>(
+                      stream: audioHandler?.mediaItem.map((item) => item?.duration),
+                      builder: (context, durationSnapshot) {
+                        final duration = durationSnapshot.data ?? Duration.zero;
+                        final progress = duration.inMilliseconds > 0 
+                            ? position.inMilliseconds / duration.inMilliseconds
+                            : 0.0;
+                        
+                        return Container(
+                          height: 96,
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: currentTrack?.artUri != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    currentTrack!.artUri.toString(),
-                                    width: 56,
-                                    height: 56,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(
-                                        Icons.music_note,
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                        size: 28,
-                                      );
-                                    },
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.music_note,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  size: 28,
-                                ),
-                        ),
-                        
-                        const SizedBox(width: 16),
-                        
-                        // Track info
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: currentTrack != null ? () {
-                              // Navigate to now playing screen
-                              _showNowPlayingDialog(context);
-                            } : null,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  currentTrack?.title ?? 'No track playing',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  currentTrack?.artist ?? 'Select a song to play',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        
-                        // Player controls
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: audioHandler != null && audioHandler.hasPrevious
-                                  ? () => appState.skipToPrevious()
-                                  : null,
-                              icon: const Icon(Icons.skip_previous),
-                              iconSize: 28,
-                            ),
-                            IconButton(
-                              onPressed: audioHandler != null && currentTrack != null
-                                  ? () => appState.playPause()
-                                  : null,
-                              icon: Icon(
-                                isPlaying ? Icons.pause : Icons.play_arrow,
-                              ),
-                              iconSize: 32,
-                              style: IconButton.styleFrom(
-                                backgroundColor: theme.colorScheme.primary,
-                                foregroundColor: theme.colorScheme.onPrimary,
+                            color: theme.colorScheme.surface,
+                            border: Border(
+                              top: BorderSide(
+                                color: theme.colorScheme.outline.withOpacity(0.2),
+                                width: 1,
                               ),
                             ),
-                            IconButton(
-                              onPressed: audioHandler != null && audioHandler.hasNext
-                                  ? () => appState.skipToNext()
-                                  : null,
-                              icon: const Icon(Icons.skip_next),
-                              iconSize: 28,
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(width: 16),
-                        
-                        // Volume and additional controls
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: currentTrack != null ? () {
-                                // Toggle favorite
-                              } : null,
-                              icon: const Icon(Icons.favorite_border),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                // Show volume slider
-                                _showVolumeDialog(context);
-                              },
-                              icon: const Icon(Icons.volume_up),
-                            ),
-                            IconButton(
-                              onPressed: currentTrack != null ? () {
-                                _showNowPlayingDialog(context);
-                              } : null,
-                              icon: const Icon(Icons.fullscreen),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                          ),
+                          child: Column(
+                            children: [
+                              // Progress bar
+                              SizedBox(
+                                height: 4,
+                                child: LinearProgressIndicator(
+                                  value: progress.clamp(0.0, 1.0),
+                                  backgroundColor: theme.colorScheme.outline.withOpacity(0.2),
+                                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                                ),
+                              ),
+                              
+                              // Main player content
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                  child: Row(
+                                    children: [
+                                      // Album art
+                                      Container(
+                                        width: 56,
+                                        height: 56,
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.surfaceVariant,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: currentTrack?.artUri != null
+                                            ? ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.network(
+                                                  currentTrack!.artUri.toString(),
+                                                  width: 56,
+                                                  height: 56,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return Icon(
+                                                      Icons.music_note,
+                                                      color: theme.colorScheme.onSurfaceVariant,
+                                                      size: 28,
+                                                    );
+                                                  },
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.music_note,
+                                                color: theme.colorScheme.onSurfaceVariant,
+                                                size: 28,
+                                              ),
+                                      ),
+                                      
+                                      const SizedBox(width: 16),
+                                      
+                                      // Track info with time
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            GestureDetector(
+                                              onTap: currentTrack != null ? () {
+                                                // Navigate to now playing screen
+                                                _showNowPlayingDialog(context);
+                                              } : null,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    currentTrack?.title ?? 'No track playing',
+                                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        currentTrack?.artist ?? 'Select a song to play',
+                                                        style: theme.textTheme.bodySmall?.copyWith(
+                                                          color: theme.colorScheme.onSurfaceVariant,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                      if (currentTrack != null) ...[
+                                                        Text(
+                                                          ' • ',
+                                                          style: theme.textTheme.bodySmall?.copyWith(
+                                                            color: theme.colorScheme.onSurfaceVariant,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          '${_formatDuration(position)} / ${_formatDuration(duration)}',
+                                                          style: theme.textTheme.bodySmall?.copyWith(
+                                                            color: theme.colorScheme.onSurfaceVariant,
+                                                            fontFamily: 'monospace',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      
+                                      // Player controls
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            onPressed: audioHandler != null && audioHandler.hasPrevious
+                                                ? () => appState.skipToPrevious()
+                                                : null,
+                                            icon: const Icon(Icons.skip_previous),
+                                            iconSize: 28,
+                                          ),
+                                          IconButton(
+                                            onPressed: audioHandler != null && currentTrack != null
+                                                ? () => appState.playPause()
+                                                : null,
+                                            icon: Icon(
+                                              isPlaying ? Icons.pause : Icons.play_arrow,
+                                            ),
+                                            iconSize: 32,
+                                            style: IconButton.styleFrom(
+                                              backgroundColor: theme.colorScheme.primary,
+                                              foregroundColor: theme.colorScheme.onPrimary,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: audioHandler != null && audioHandler.hasNext
+                                                ? () => appState.skipToNext()
+                                                : null,
+                                            icon: const Icon(Icons.skip_next),
+                                            iconSize: 28,
+                                          ),
+                                        ],
+                                      ),
+                                      
+                                      const SizedBox(width: 16),
+                                      
+                                      // Volume and additional controls
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            onPressed: currentTrack != null ? () {
+                                              // Toggle favorite
+                                            } : null,
+                                            icon: const Icon(Icons.favorite_border),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              // Show volume slider
+                                              _showVolumeDialog(context);
+                                            },
+                                            icon: const Icon(Icons.volume_up),
+                                          ),
+                                          IconButton(
+                                            onPressed: currentTrack != null ? () {
+                                              _showNowPlayingDialog(context);
+                                            } : null,
+                                            icon: const Icon(Icons.fullscreen),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
                 );
               },
             );
@@ -434,5 +492,17 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         ],
       ),
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    
+    if (duration.inHours > 0) {
+      return '${duration.inHours}:$twoDigitMinutes:$twoDigitSeconds';
+    } else {
+      return '$twoDigitMinutes:$twoDigitSeconds';
+    }
   }
 }
