@@ -1,54 +1,97 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../templates/music_cards.dart';
+import '../../providers/app_state.dart';
+import '../../models/jellyfin_models.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    final appState = context.read<AppState>();
+    // Load library data when page loads
+    appState.loadLibraryData();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return PageTemplate(
-      title: 'Home',
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Refresh',
-        ),
-      ],
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Recently played section
-            SectionHeader(
-              title: 'Recently Played',
-              subtitle: 'Your recent listening history',
-              trailing: TextButton(
-                onPressed: () {},
-                child: const Text('View All'),
-              ),
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return PageTemplate(
+          title: 'Home',
+          actions: [
+            IconButton(
+              onPressed: () => appState.loadLibraryData(),
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh',
             ),
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(bottom: 16),
-                itemCount: 8,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: MusicCard(
-                      title: 'Album ${index + 1}',
-                      subtitle: 'Artist Name',
-                      onTap: () {
-                        // Navigate to album details
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
+          ],
+          child: appState.isLoading
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading your music library...'),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Recently Added Albums section
+                      SectionHeader(
+                        title: 'Recently Added Albums',
+                        subtitle: 'Your newest additions',
+                        trailing: TextButton(
+                          onPressed: () {},
+                          child: const Text('View All'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 200,
+                        child: appState.albums.isEmpty
+                            ? const Center(
+                                child: Text('No albums found'),
+                              )
+                            : ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.only(bottom: 16),
+                                itemCount: appState.albums.length > 10 
+                                    ? 10 
+                                    : appState.albums.length,
+                                itemBuilder: (context, index) {
+                                  final album = appState.albums[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 16),
+                                    child: MusicCard(
+                                      title: album.name,
+                                      subtitle: album.artistName ?? 'Unknown Artist',
+                                      imageUrl: album.imageUrl != null
+                                          ? appState.getImageUrl(album.imageUrl!)
+                                          : null,
+                                      onTap: () {
+                                        // Navigate to album details
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
 
             const SizedBox(height: 32),
 
