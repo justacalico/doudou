@@ -290,18 +290,14 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           Text(
             _searchQuery.isNotEmpty 
                 ? 'No playlists found for "$_searchQuery"'
-                : _filterBy == 'favorites'
-                    ? 'No favorite playlists yet'
-                    : 'No playlists found',
+                : 'No playlists found',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty
                 ? 'Try a different search term'
-                : _filterBy == 'favorites'
-                    ? 'Add playlists to favorites by clicking the heart icon'
-                    : 'Create your first playlist to get started',
+                : 'Create your first playlist to get started',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
