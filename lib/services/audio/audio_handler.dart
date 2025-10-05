@@ -1214,6 +1214,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> skipToQueueItem(int index) async {
     if (index >= 0 && index < _stateManager.playlist.length) {
+      // Preserve playing state when skipping to queue item
+      final wasPlaying = playbackState.value.playing;
+      if (wasPlaying) {
+        _userIntendedPlaying = true;
+      }
+      
       await _stateManager.setCurrentIndexAtomic(index);
       await _playCurrentTrack();
       await _statePersistence.savePlaybackState(_player.position, _player.playing);
