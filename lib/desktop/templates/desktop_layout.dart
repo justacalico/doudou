@@ -974,17 +974,17 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
             color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: StreamBuilder<int?>(
-            stream: audioHandler?.queueIndexStream,
-            builder: (context, queueIndexSnapshot) {
-              final currentIndex = queueIndexSnapshot.data ?? 0;
+          child: StreamBuilder<MediaItem?>(
+            stream: audioHandler?.mediaItem,
+            builder: (context, mediaSnapshot) {
+              final currentMediaItem = mediaSnapshot.data;
               
               return ListView.builder(
                 padding: const EdgeInsets.all(8),
                 itemCount: queue.length,
                 itemBuilder: (context, index) {
                   final track = queue[index];
-                  final isCurrentTrack = index == currentIndex;
+                  final isCurrentTrack = currentMediaItem?.id == track.id;
                   
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 2),
