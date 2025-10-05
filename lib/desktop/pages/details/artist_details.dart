@@ -134,58 +134,60 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
               icon: const Icon(Icons.shuffle),
               label: const Text('Shuffle'),
             ),
-        const SizedBox(width: 8),
-        // Favorite button
-        IconButton(
-          onPressed: () {
-            // Toggle favorite artist
-          },
-          icon: const Icon(Icons.favorite_border),
-          tooltip: 'Add to favorites',
-        ),
-        // More options
-        PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'follow':
-                // Follow/unfollow artist
-                break;
-              case 'share':
-                // Share artist
-                break;
-              case 'radio':
-                // Start artist radio
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'follow',
-              child: ListTile(
-                leading: Icon(Icons.person_add),
-                title: Text('Follow Artist'),
-                contentPadding: EdgeInsets.zero,
-              ),
+            const SizedBox(width: 8),
+            // Favorite button
+            IconButton(
+              onPressed: () {
+                // Toggle favorite artist
+              },
+              icon: const Icon(Icons.favorite_border),
+              tooltip: 'Add to favorites',
             ),
-            const PopupMenuItem(
-              value: 'radio',
-              child: ListTile(
-                leading: Icon(Icons.radio),
-                title: Text('Start Radio'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'share',
-              child: ListTile(
-                leading: Icon(Icons.share),
-                title: Text('Share'),
-                contentPadding: EdgeInsets.zero,
-              ),
+            // More options
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'follow':
+                    // Follow/unfollow artist
+                    break;
+                  case 'share':
+                    // Share artist
+                    break;
+                  case 'radio':
+                    // Start artist radio
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'follow',
+                  child: ListTile(
+                    leading: Icon(Icons.person_add),
+                    title: Text('Follow Artist'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'radio',
+                  child: ListTile(
+                    leading: Icon(Icons.radio),
+                    title: Text('Start Radio'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'share',
+                  child: ListTile(
+                    leading: Icon(Icons.share),
+                    title: Text('Share'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
