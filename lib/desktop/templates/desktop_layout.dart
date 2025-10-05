@@ -138,7 +138,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           itemCount: _navigationItems.length,
                           itemBuilder: (context, index) {
-                            final isSelected = index == _selectedIndex;
+                            final currentSelectedIndex = widget.selectedIndex ?? _selectedIndex;
+                            final isSelected = index == currentSelectedIndex;
                             return Container(
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 8,
