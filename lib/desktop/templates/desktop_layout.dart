@@ -61,6 +61,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   }
 
   @override
+  void didUpdateWidget(DesktopLayout oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedIndex != null && widget.selectedIndex != _selectedIndex) {
+      setState(() {
+        _selectedIndex = widget.selectedIndex!;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     

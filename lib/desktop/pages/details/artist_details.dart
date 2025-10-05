@@ -76,6 +76,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
         return DesktopLayout(
           showBackButton: true,
           title: widget.artist.name,
+          selectedIndex: 5, // Artists page index
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
