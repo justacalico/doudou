@@ -670,7 +670,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 final position = positionSnapshot.data ?? Duration.zero;
                 
                 return StreamBuilder<Duration?>(
-                  stream: audioHandler?.mediaItem.map((item) => item?.duration),
+                  stream: audioHandler?.durationStream,
                   builder: (context, durationSnapshot) {
                     final duration = durationSnapshot.data ?? Duration.zero;
                     final progress = duration.inMilliseconds > 0 
