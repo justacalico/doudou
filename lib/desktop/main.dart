@@ -14,6 +14,9 @@ import 'pages/artists.dart';
 import 'pages/search.dart';
 import 'pages/library.dart';
 import 'pages/settings.dart';
+import 'pages/details/album_details.dart';
+import 'pages/details/artist_details.dart';
+import 'pages/details/playlist_details.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
