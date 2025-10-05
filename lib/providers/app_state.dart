@@ -152,7 +152,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -182,7 +181,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -205,7 +203,6 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -228,7 +225,6 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -313,7 +309,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -343,7 +338,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -366,7 +360,6 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
                 _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
@@ -453,7 +446,6 @@ class AppState extends ChangeNotifier {
             );
             
             // Apply user settings to the audio handler
-            _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
             _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
@@ -477,7 +469,6 @@ class AppState extends ChangeNotifier {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
             
             // Apply user settings to the audio handler
-            _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
             _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
@@ -1514,10 +1505,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> toggleSmartCrossfade(bool enabled) async {
     _smartCrossfadeEnabled = enabled;
-    
-    // Update the audio handler with the new crossfade setting
-    _audioHandler?.setSmartCrossfade(enabled);
-    
+     
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('smart_crossfade_enabled', enabled);
@@ -1780,7 +1768,6 @@ class AppState extends ChangeNotifier {
           );
           
           // Apply user settings to the audio handler
-          _audioHandler?.setSmartCrossfade(_smartCrossfadeEnabled);
           _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
           _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           

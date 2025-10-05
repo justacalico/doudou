@@ -1267,7 +1267,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Fall back to individual track playback with crossfade if available
+    // Fall back to individual track playback
     if (kDebugMode) {
       print('Playing individual track...');
     }
@@ -1327,7 +1327,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return false;
   }
 
-  /// Play individual track with crossfade support
+  /// Play individual track
   Future<void> _playIndividualTrack(Track track, bool wasPlaying) async {
     // Disable concatenation mode
     _isUsingConcatenation = false;
@@ -1874,7 +1874,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   bool get isShuffled => _stateManager.isShuffled;
   bool get radioModeEnabled => _stateManager.radioModeEnabled;
   int get queueLength => _stateManager.queueLength;
-  bool get smartCrossfadeEnabled => _stateManager.smartCrossfadeEnabled;
+
   bool get normalizeVolumeEnabled => _stateManager.normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _stateManager.gaplessPlaybackEnabled;
   
