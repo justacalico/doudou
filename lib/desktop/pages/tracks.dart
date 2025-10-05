@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import '../../models/track.dart';
+import '../../models/jellyfin_models.dart';
 
 class TracksPage extends StatefulWidget {
   const TracksPage({super.key});
