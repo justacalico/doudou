@@ -545,7 +545,7 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
                 labelText: 'Description (Optional)',
                 border: OutlineInputBorder(),
               ),
-              controller: TextEditingController(text: widget.playlist.description ?? ''),
+              controller: TextEditingController(text: ''),
               maxLines: 3,
             ),
           ],
