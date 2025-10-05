@@ -320,20 +320,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   Widget _buildPlaylistsContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.playlist_play, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Playlists',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text('Your curated playlists'),
-        ],
-      ),
-    );
+    return const PlaylistsPage();
   }
 
   Widget _buildAlbumsContent() {
