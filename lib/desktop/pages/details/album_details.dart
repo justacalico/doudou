@@ -34,12 +34,10 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
     });
 
     try {
-      // Get tracks for this album
-      _albumTracks = appState.tracks
-          .where((track) => track.albumId == widget.album.id)
-          .toList();
+      // Fetch tracks specifically for this album from Jellyfin
+      _albumTracks = await appState.jellyfinService.getAlbumTracks(widget.album.id);
       
-      // Sort by track number if available
+      // Sort by track number if available (already sorted by API, but just in case)
       _albumTracks.sort((a, b) {
         final aTrack = a.trackNumber ?? 999;
         final bTrack = b.trackNumber ?? 999;
@@ -47,6 +45,8 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       });
     } catch (e) {
       // Handle error
+      print('Error loading album tracks: $e');
+      _albumTracks = [];
     } finally {
       setState(() {
         _isLoading = false;
