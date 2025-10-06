@@ -1,1 +1,0 @@
-Beautiful, privacy-focused music player for your personal Jellyfin media server
