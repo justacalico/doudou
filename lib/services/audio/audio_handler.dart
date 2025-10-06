@@ -229,12 +229,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (state == ProcessingState.buffering) {
         final now = DateTime.now();
         if (_lastBufferingTime != null && 
-            now.difference(_lastBufferingTime!) < const Duration(seconds: 5)) {
+            now.difference(_lastBufferingTime!) < const Duration(seconds: 10)) {
           _bufferingLoopCount++;
-          // Dramatically increased threshold to prevent false positives - was 5, now 15
-          if (_bufferingLoopCount >= 15) {
+          // Dramatically increased threshold to prevent false positives - was 15, now 25
+          if (_bufferingLoopCount >= 25) {
             if (kDebugMode) {
-              print('Detected extreme codec loop in buffering state after 15 attempts, forcing recovery');
+              print('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery');
             }
             _handleCodecLoop();
             return;
@@ -250,11 +250,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // ONLY handle actual completion state - no forced completion
-      if (state == ProcessingState.completed) {
+      // Add extra protection to prevent race conditions
+      if (state == ProcessingState.completed && !_transitionManager.isTransitionInProgress) {
         if (kDebugMode) {
           print('Track actually completed, handling transition...');
         }
-        _handleTrackCompletion();
+        Future.microtask(() => _handleTrackCompletion());
       }
     });
 
