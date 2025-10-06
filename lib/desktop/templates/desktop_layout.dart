@@ -563,12 +563,15 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     // Album art
-                                    LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final size = (constraints.maxWidth * 0.7).clamp(200.0, 320.0);
-                                        return Container(
-                                          width: size,
-                                          height: size,
+                                    Flexible(
+                                      flex: 3,
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final maxSize = constraints.maxHeight * 0.8;
+                                          final size = (constraints.maxWidth * 0.7).clamp(150.0, maxSize.clamp(200.0, 280.0));
+                                          return Container(
+                                            width: size,
+                                            height: size,
                                           decoration: BoxDecoration(
                                             color: Theme.of(context).colorScheme.surfaceVariant,
                                             borderRadius: BorderRadius.circular(16),
@@ -602,14 +605,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                                                   size: size * 0.3,
                                                 ),
-                                        );
-                                      },
+                                          );
+                                        },
+                                      ),
                                     ),
                                     
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: 16),
                                     
                                     // Track info
                                     Flexible(
+                                      flex: 1,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
