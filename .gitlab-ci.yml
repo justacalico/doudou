@@ -170,8 +170,9 @@ publish_release:
     - job: "build_release_web"
   script:
     # Extract version from pubspec.yaml
-    - export APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
-    - echo "App version from pubspec.yaml: $APP_VERSION"
+    - |
+      export APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+      echo "App version from pubspec.yaml: $APP_VERSION"
 
     # --- Use the 'release-cli' tool instead of manual cURL for cleaner releases ---
 
