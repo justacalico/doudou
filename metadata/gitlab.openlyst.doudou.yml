@@ -1,0 +1,71 @@
+Categories:
+  - Multimedia
+  - Internet
+
+License: GPL-3.0-or-later
+AuthorName: Openlyst Team
+AuthorEmail: support@openlyst.com
+AuthorWebSite: https://gitlab.com/Openlyst
+
+SourceCode: https://gitlab.com/Openlyst/doudou
+IssueTracker: https://gitlab.com/Openlyst/doudou/-/issues
+Changelog: https://gitlab.com/Openlyst/doudou/-/blob/main/changelog/
+
+Summary: Beautiful, privacy-focused music player for your personal Jellyfin media server
+
+Description: |-
+    A beautiful, privacy-focused music player for your personal Jellyfin media server. 
+    Enjoy your self-hosted music collection with a modern, intuitive interface.
+
+    Features:
+    * Beautiful Interface - Clean, intuitive design inspired by modern music apps
+    * Advanced Audio - Volume normalization and gapless playback
+    * Queue Management - Add, remove, and reorder tracks with drag-and-drop support
+    * Smart Preloading - Intelligent buffering of next tracks for seamless playback
+    * Radio Mode - Endless music discovery based on your listening preferences
+    * Lyrics Support - Time-synced lyrics with LRCLib integration
+    * Background Playback - Music continues while using other apps
+    * Media Controls - Lock screen, notification, and system media controls
+    * Android Auto - Safe driving integration
+    * Multiple Audio Formats - MP3, FLAC, AAC, OGG, M4A, and more
+    * Zero Data Collection - No analytics, no tracking, no telemetry
+    * Self-Hosted - Your music stays on your server, under your control
+    * Offline Capable - Download tracks for offline listening
+
+    Privacy & Security:
+    * No Personal Information collected or transmitted
+    * No Usage Analytics or behavioral tracking
+    * No Crash Reports sent to external services
+    * No Advertising or third-party trackers
+    * No Cloud Dependencies - works entirely with your server
+    * Only communicates with your Jellyfin server
+
+    Requirements:
+    * Jellyfin Server version 10.8 or newer
+    * Network connection to your Jellyfin server
+
+RepoType: git
+Repo: https://gitlab.com/Openlyst/doudou.git
+
+Builds:
+  - versionName: '7.0.0'
+    versionCode: 1
+    commit: HEAD
+    subdir: android
+    sudo:
+      - apt-get update
+      - apt-get install -y openjdk-17-jdk-headless
+      - update-java-alternatives -a
+    gradle:
+      - yes
+    output: build/app/outputs/flutter-apk/app-release.apk
+    prebuild: |-
+      cd ..
+      export PUB_CACHE=$(pwd)/.pub-cache
+      $$flutter$$/bin/flutter config --no-analytics
+      $$flutter$$/bin/flutter pub get
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '7.0.0'
+CurrentVersionCode: 1

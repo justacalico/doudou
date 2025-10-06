@@ -1,0 +1,7 @@
+• Major audio system improvements - removed crossfade issues
+• Fixed race conditions in skip operations for better playback flow
+• Added comprehensive lyrics support with LRCLib integration
+• Improved desktop lyrics service with better reliability
+• Enhanced caching system with smart memory management
+• Better error handling throughout the application
+• UI improvements and stability fixes

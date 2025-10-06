@@ -1,0 +1,52 @@
+🎵 Doudou - Jellyfin Music Player
+
+A beautiful, privacy-focused music player for your personal Jellyfin media server. Enjoy your self-hosted music collection with a modern, intuitive interface across all your devices.
+
+✨ FEATURES
+
+🎵 Music Experience
+• Beautiful Interface - Clean, intuitive design inspired by modern music apps
+• Advanced Audio - Volume normalization and gapless playback
+• Queue Management - Add, remove, and reorder tracks with drag-and-drop support
+• Smart Preloading - Intelligent buffering of next tracks for seamless playback
+• Radio Mode - Endless music discovery based on your listening preferences
+• Lyrics Support - Time-synced lyrics with LRCLib integration
+
+🔒 Privacy & Control
+• Zero Data Collection - No analytics, no tracking, no telemetry
+• Self-Hosted - Your music stays on your server, under your control
+• Offline Capable - Download tracks for offline listening
+• Local Caching - Smart caching reduces server load and improves performance
+
+📱 Platform Features
+• Background Playback - Music continues while using other apps
+• Media Controls - Lock screen, notification, and system media controls
+• Android Auto - Safe driving integration
+
+🎧 Audio Features
+• Multiple Audio Formats - MP3, FLAC, AAC, OGG, M4A, and more
+• Transcoding Support - Automatic format conversion when needed
+• Custom Audio Session - Optimized audio handling
+• Gapless Playback - Professional-grade audio transitions
+
+🔒 PRIVACY & SECURITY
+
+Zero Data Collection Promise:
+✅ No Personal Information collected or transmitted
+✅ No Usage Analytics or behavioral tracking
+✅ No Crash Reports sent to external services
+✅ No Advertising or third-party trackers
+✅ No Cloud Dependencies - works entirely with your server
+
+Network Communications:
+Doudou only communicates with your Jellyfin server for music streaming and metadata. No other external services or APIs are contacted.
+
+🚀 REQUIREMENTS
+
+• Jellyfin Server version 10.8 or newer
+• Android 5.0+ (API level 21)
+• Network connection to your Jellyfin server
+
+🛡️ Your Music, Your Rules: Complete control over your music library and listening data.
+
+Made with ❤️ for the Jellyfin community by the Openlyst team.

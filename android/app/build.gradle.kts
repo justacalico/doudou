@@ -41,8 +41,11 @@ android {
 
     buildTypes {
         release {
-            // Signing configuration for release build
-            signingConfig = signingConfigs.getByName("release")
+            // Signing configuration for release build - only if keystore exists
+            val keystoreFile = file("key.jks")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
