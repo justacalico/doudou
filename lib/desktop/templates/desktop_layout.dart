@@ -501,7 +501,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         builder: (context, appState, child) {
           final audioHandler = appState.audioHandler;
           
-          return Dialog(
+          return StreamBuilder<MediaItem?>(
+            stream: audioHandler?.mediaItem,
+            builder: (context, mediaItemSnapshot) {
+              return Dialog(
             insetPadding: const EdgeInsets.all(16),
             child: Container(
               width: MediaQuery.of(context).size.width * 0.85,
@@ -676,7 +679,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 ],
               ),
             ),
-          );
+            );
+          },
+        );
         },
       ),
     );
