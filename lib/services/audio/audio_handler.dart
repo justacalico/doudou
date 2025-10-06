@@ -1385,9 +1385,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         // Update playback state
+        // Use _userIntendedPlaying directly instead of checking _player.playing
+        // because the player state might not be updated immediately after play() call
         _updatePlaybackState(playbackState.value.copyWith(
           processingState: AudioProcessingState.ready,
-          playing: _userIntendedPlaying ? _player.playing : false,
+          playing: _userIntendedPlaying,
           queueIndex: _stateManager.currentIndex,
         ));
         
