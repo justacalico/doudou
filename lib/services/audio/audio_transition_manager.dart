@@ -22,6 +22,16 @@ class AudioTransitionManager {
     _transitionLock = Completer<void>();
     _currentOperation = operation;
     
+    // Set up automatic timeout to prevent deadlocks (30 seconds)
+    Timer(const Duration(seconds: 30), () {
+      if (_transitionLock != null && !_transitionLock!.isCompleted) {
+        if (kDebugMode) {
+          print('Transition lock timeout for: $_currentOperation - force releasing');
+        }
+        forceRelease();
+      }
+    });
+    
     if (kDebugMode) {
       print('Transition lock acquired: $operation');
     }
