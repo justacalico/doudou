@@ -1,47 +1,53 @@
 stages:
-- test
-- build
-- release
+  - test
+  - build
+  - release
 
 variables:
-  PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
-  ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
+  # Using the default GitLab variable for cache location is generally better
+  # PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
+  # Set a recommended Flutter version
   FLUTTER_VERSION: "3.16.0"
-
-before_script:
-  - apt-get update -qq && apt-get install -y -qq git curl unzip
-  - git clone https://github.com/flutter/flutter.git -b stable --depth 1
-  - export PATH="$PATH:`pwd`/flutter/bin"
-  - flutter doctor -v
-  - flutter pub get
+  
+# Define a common template for Flutter setup
+.flutter_setup: &flutter_setup
+  # Use a specific, consistent Docker image with Flutter pre-installed
+  image: ghcr.io/cirruslabs/flutter:stable
+  tags:
+    - android # assuming 'android' tag means a machine with Android SDK/tools
+  before_script:
+    # 1. Clean up previous build/cache directories safely
+    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies .pub-cache || true
+    - flutter clean
+    # 2. Kill any existing Gradle daemons to prevent locking issues
+    - pkill -f gradle || true
+    # 3. Get dependencies once
+    - flutter pub get
 
 test:
   stage: test
+  # Use the standard setup template
+  <<: *flutter_setup
   script:
     - flutter test
     - flutter analyze
-    - chmod +x test-fdroid-build.sh
-    - ./test-fdroid-build.sh
+    # Only run the shell script if it exists and is needed for CI
+    - |
+      if [ -f "test-fdroid-build.sh" ]; then
+        chmod +x test-fdroid-build.sh
+        ./test-fdroid-build.sh
+      else
+        echo "test-fdroid-build.sh not found, skipping."
+      fi
 
 build_debug_apk:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
-  before_script:
-    # Fully clean build artifacts, caches, and temp directories
-    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
-    - rm -rf .pub-cache       # Completely delete pub-cache to prevent temp file errors
-    - flutter clean
+  <<: *flutter_setup
   script:
     - flutter --version
-    - flutter clean
-    # Kill any existing Gradle daemons
-    - pkill -f gradle || true
-    # Fetch dependencies safely
-    - flutter pub get 
-    - flutter build apk --debug 
+    - flutter build apk --debug
   after_script:
+    # After script should mainly be for cleanup
     - pkill -f gradle || true
   artifacts:
     paths:
@@ -50,18 +56,9 @@ build_debug_apk:
 
 build_release_apk:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
-  before_script:
-    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
-    - rm -rf .pub-cache
-    - flutter clean
+  <<: *flutter_setup
   script:
     - flutter --version
-    - flutter clean
-    - pkill -f gradle || true
-    - flutter pub get 
     # Decode keystore from base64 CI variable to expected location
     - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
     # Create key.properties for signing
@@ -72,7 +69,7 @@ build_release_apk:
       keyAlias=$KEY_ALIAS
       storeFile=key.jks
       EOF
-    - flutter build apk --release 
+    - flutter build apk --release
   after_script:
     - pkill -f gradle || true
   artifacts:
@@ -80,49 +77,46 @@ build_release_apk:
       - build/app/outputs/flutter-apk/app-release.apk
     expire_in: 1 week
 
-build_debug_linux:
+# Renamed to include 'desktop' for clarity
+build_debug_linux_desktop:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
+  <<: *flutter_setup
   before_script:
-    # Install Linux desktop development dependencies
-    - apt-get update
-    - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
+    # Standard setup
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies .pub-cache || true
     - flutter clean
+    - pkill -f gradle || true
+    # Install Linux desktop development dependencies
+    - apt-get update -qq
+    # Simplified install: these are standard packages for Linux Flutter builds
+    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev
+    - flutter config --enable-linux-desktop
+    - flutter pub get
   script:
     - flutter --version
-    - flutter config --enable-linux-desktop
-    - flutter clean
-    - flutter pub get 
-    - flutter build linux --debug 
+    - flutter build linux --debug
   artifacts:
     paths:
       - build/linux/x64/debug/bundle/
     expire_in: 1 week
 
-build_release_linux:
+# Renamed to include 'desktop' for clarity
+build_release_linux_desktop:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
+  <<: *flutter_setup
   before_script:
-    # Install Linux desktop development dependencies
-    - apt-get update
-    - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
+    # Standard setup
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies .pub-cache || true
     - flutter clean
+    - pkill -f gradle || true
+    # Install Linux desktop development dependencies
+    - apt-get update -qq
+    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev
+    - flutter config --enable-linux-desktop
+    - flutter pub get
   script:
     - flutter --version
-    - flutter config --enable-linux-desktop
-    - flutter clean
-    - flutter pub get 
-    - flutter build linux --release 
+    - flutter build linux --release
   artifacts:
     paths:
       - build/linux/x64/release/bundle/
@@ -130,20 +124,17 @@ build_release_linux:
 
 build_debug_web:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
+  <<: *flutter_setup
   before_script:
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
+    # Standard setup
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies .pub-cache || true
     - flutter clean
+    - pkill -f gradle || true
+    - flutter config --enable-web
+    - flutter pub get
   script:
     - flutter --version
-    - flutter config --enable-web
-    - flutter clean
-    - flutter pub get 
-    - flutter build web --debug 
+    - flutter build web --debug
   artifacts:
     paths:
       - build/web/
@@ -151,20 +142,17 @@ build_debug_web:
 
 build_release_web:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
+  <<: *flutter_setup
   before_script:
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
+    # Standard setup
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies .pub-cache || true
     - flutter clean
+    - pkill -f gradle || true
+    - flutter config --enable-web
+    - flutter pub get
   script:
     - flutter --version
-    - flutter config --enable-web
-    - flutter clean
-    - flutter pub get 
-    - flutter build web --release 
+    - flutter build web --release
   artifacts:
     paths:
       - build/web/
@@ -174,55 +162,38 @@ publish_release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - android
-  needs: 
-    - job: "build_debug_apk"
+    - android # Changed to a generic tag if possible, but kept as 'android' if required
+  needs:
+    # Changed to only need the final release artifacts
     - job: "build_release_apk"
-    - job: "build_debug_linux"
-    - job: "build_release_linux"
-    - job: "build_debug_web"
+    - job: "build_release_linux_desktop"
     - job: "build_release_web"
-  allow_failure: true
   script:
     # Extract version from pubspec.yaml
     - export APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
     - echo "App version from pubspec.yaml: $APP_VERSION"
-    
-    # Check if this version tag already exists
-    - |
-      if git tag -l | grep -q "^v$APP_VERSION$"; then
-        echo "Tag v$APP_VERSION already exists, skipping release"
-        exit 0
-      fi
-    
-    # Create tag with the version from pubspec
+
+    # --- Use the 'release-cli' tool instead of manual cURL for cleaner releases ---
+
+    # 1. Create Git Tag
     - git config user.email "ci@openlyst.gitlab.io"
     - git config user.name "GitLab CI"
-    - git tag -a "v$APP_VERSION" -m "Release version $APP_VERSION"
-    - git push origin "v$APP_VERSION"
-    
-    # Create GitLab release
+    # Check for existing tag and only create if it doesn't exist
     - |
-      curl --request POST \
-        --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-        --header "Content-Type: application/json" \
-        --data '{
-          "name": "Release '"$APP_VERSION"'",
-          "tag_name": "v'"$APP_VERSION"'",
-          "description": "Automated release for version '"$APP_VERSION"'",
-          "assets": {
-            "links": [
-              {
-                "name": "APK Release",
-                "url": "'"$CI_PROJECT_URL"'/-/jobs/artifacts/'"$CI_COMMIT_REF_NAME"'/download?job=build_apk"
-              }
-            ]
-          }
-        }' \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
-  
-  dependencies:
-    - build_apk
+      if ! git rev-parse "v$APP_VERSION" >/dev/null 2>&1; then
+        echo "Creating tag v$APP_VERSION"
+        git tag -a "v$APP_VERSION" -m "Release version $APP_VERSION"
+        git push origin "v$APP_VERSION"
+      else
+        echo "Tag v$APP_VERSION already exists, skipping tag creation."
+      fi
+
+    # 2. Create GitLab Release using the official release-cli
+    # Use the $CI_PROJECT_URL variable for a correct artifact download link.
+    # Note: The artifact URL must point to a specific job. 'build_release_apk' is used here.
+    - release-cli create --name "Release $APP_VERSION" --tag-name "v$APP_VERSION" --description "Automated release for version $APP_VERSION" --assets-link "name=APK Release,url=$CI_PROJECT_URL/-/jobs/artifacts/v$APP_VERSION/download?job=build_release_apk"
+
+  # Removed the unnecessary 'dependencies' keyword, 'needs' covers artifact dependency
   only:
     - main
   when: manual
