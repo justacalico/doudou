@@ -180,29 +180,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Listen to current index changes for gapless transitions
     _player.currentIndexStream.listen((index) {
-      if (index != null && _isUsingConcatenation) {
+      if (index != null && _isUsingConcatenation && !_stateManager.isHandlingCompletion) {
         if (kDebugMode) {
           print('Gapless transition to index: $index');
         }
         
-        // Update state manager without stopping playback
-        _stateManager.setCurrentIndex(index);
-        
-        // Update media item
-        if (index < _stateManager.playlist.length) {
-          final track = _stateManager.playlist[index];
-          mediaItem.add(_trackToMediaItem(track));
+        // Only update if this is a legitimate gapless transition
+        if (index != _stateManager.currentIndex) {
+          // Update state manager without stopping playback
+          _stateManager.setCurrentIndex(index);
           
-          // Trigger preloading of upcoming tracks
-          Future.microtask(() {
-            _preloader.preloadNextTracks(_stateManager.playlist, index);
-          });
+          // Update media item
+          if (index < _stateManager.playlist.length) {
+            final track = _stateManager.playlist[index];
+            mediaItem.add(_trackToMediaItem(track));
+            
+            // Trigger preloading of upcoming tracks
+            Future.microtask(() {
+              _preloader.preloadNextTracks(_stateManager.playlist, index);
+            });
+          }
+          
+          // Update playback state with new index
+          _updatePlaybackState(playbackState.value.copyWith(
+            queueIndex: index,
+          ));
         }
-        
-        // Update playback state with new index
-        _updatePlaybackState(playbackState.value.copyWith(
-          queueIndex: index,
-        ));
       }
     });
 
