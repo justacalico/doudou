@@ -828,6 +828,10 @@ class _NowPlayingTabs extends StatefulWidget {
 class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   
+  // Cache for lyrics to prevent constant reloading
+  String? _cachedTrackId;
+  Future<DesktopLyrics?>? _cachedLyricsFuture;
+  
   @override
   void initState() {
     super.initState();
@@ -901,16 +905,28 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
         final currentTrack = snapshot.data;
         
         if (currentTrack == null) {
+          // Reset cache when no track is playing
+          _cachedTrackId = null;
+          _cachedLyricsFuture = null;
           return _buildLyricsEmptyState('No track playing');
         }
         
-        return FutureBuilder<DesktopLyrics?>(
-          future: DesktopLyricsService.fetchLyrics(
+        // Use track ID as cache key (fallback to title if ID not available)
+        final trackId = currentTrack.id;
+        
+        // Only fetch lyrics if the track has changed
+        if (_cachedTrackId != trackId) {
+          _cachedTrackId = trackId;
+          _cachedLyricsFuture = DesktopLyricsService.fetchLyrics(
             trackName: currentTrack.title,
             artistName: currentTrack.artist ?? 'Unknown Artist',
             albumName: currentTrack.album,
             durationSeconds: currentTrack.duration?.inSeconds,
-          ),
+          );
+        }
+        
+        return FutureBuilder<DesktopLyrics?>(
+          future: _cachedLyricsFuture,
           builder: (context, lyricsSnapshot) {
             if (lyricsSnapshot.connectionState == ConnectionState.waiting) {
               return _buildLyricsLoadingState();
