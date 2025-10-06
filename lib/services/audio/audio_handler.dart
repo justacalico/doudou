@@ -1408,11 +1408,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _isUsingConcatenation = false;
     _concatenatingSource = null;
     
-    // Update to loading state preserving current playing state
+    // Use user intent instead of previous playing state for automatic transitions
+    final shouldPlay = _userIntendedPlaying;
+    
+    // Update to loading state preserving user intent
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.loading,
       queueIndex: _stateManager.currentIndex,
-      playing: wasPlaying, // Preserve the playing state from when we skipped
+      playing: shouldPlay, // Use user intent, not previous state
     ));
     
     // Minimal stop for codec cleanup - no excessive delays
@@ -1426,8 +1429,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await Future.delayed(const Duration(milliseconds: 50));
     }
     
-    // Load and play the track
-    await _loadAndPlayTrack(track, wasPlaying);
+    // Load and play the track using user intent
+    await _loadAndPlayTrack(track, shouldPlay);
     
     // Start preloading after current track is loaded
     Future.delayed(const Duration(milliseconds: 200), () {
