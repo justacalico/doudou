@@ -1130,6 +1130,119 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
     
     return -1; // Before first line
   }
+}
+
+class _SyncedLyricsContent extends StatefulWidget {
+  final dynamic audioHandler;
+  final List<DesktopLyricsLine> lyricsLines;
+
+  const _SyncedLyricsContent({
+    required this.audioHandler,
+    required this.lyricsLines,
+  });
+
+  @override
+  State<_SyncedLyricsContent> createState() => _SyncedLyricsContentState();
+}
+
+class _SyncedLyricsContentState extends State<_SyncedLyricsContent> {
+  final ScrollController _scrollController = ScrollController();
+  int _previousCurrentLine = -1;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  int _getCurrentLyricLineIndex(List<DesktopLyricsLine> lines, Duration position) {
+    if (lines.isEmpty) return -1;
+    
+    for (int i = lines.length - 1; i >= 0; i--) {
+      if (position >= lines[i].time) {
+        return i;
+      }
+    }
+    
+    return -1; // Before first line
+  }
+
+  void _scrollToCurrentLine(int currentLineIndex) {
+    if (currentLineIndex >= 0 && 
+        currentLineIndex != _previousCurrentLine && 
+        _scrollController.hasClients) {
+      
+      _previousCurrentLine = currentLineIndex;
+      
+      // Calculate the position to scroll to (center the current line)
+      const itemHeight = 56.0; // Approximate height of each lyrics line item
+      final targetOffset = (currentLineIndex * itemHeight) - 
+                          (_scrollController.position.viewportDimension / 2) + 
+                          (itemHeight / 2);
+      
+      // Animate to the target position
+      _scrollController.animateTo(
+        targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<Duration>(
+      stream: widget.audioHandler?.positionStream,
+      builder: (context, positionSnapshot) {
+        final position = positionSnapshot.data ?? Duration.zero;
+        final currentLineIndex = _getCurrentLyricLineIndex(widget.lyricsLines, position);
+        
+        // Auto-scroll to current line
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToCurrentLine(currentLineIndex);
+        });
+        
+        return ListView.builder(
+          controller: _scrollController,
+          itemCount: widget.lyricsLines.length,
+          itemBuilder: (context, index) {
+            final line = widget.lyricsLines[index];
+            final isCurrentLine = index == currentLineIndex;
+            final isPastLine = index < currentLineIndex;
+            
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isCurrentLine 
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                  : null,
+                borderRadius: BorderRadius.circular(8),
+                border: isCurrentLine 
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    )
+                  : null,
+              ),
+              child: Text(
+                line.text,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isCurrentLine
+                    ? Theme.of(context).colorScheme.primary
+                    : isPastLine
+                      ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: isCurrentLine ? FontWeight.w600 : FontWeight.normal,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
   
   Widget _buildQueueTab() {
     return Consumer<AppState>(
