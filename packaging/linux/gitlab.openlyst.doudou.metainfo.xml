@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Doudou - Jellyfin Music Player
+    https://gitlab.com/Openlyst/doudou
+-->
+<component type="desktop-application">
+  <id>gitlab.openlyst.doudou</id>
+  <name>Doudou</name>
+  <summary>Beautiful music player for your personal Jellyfin media server</summary>
+  <developer_name>Openlyst</developer_name>
+  <url type="homepage">https://gitlab.com/Openlyst/doudou</url>
+  <metadata_license>GPL-3.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+  <description>
+    <p>Fast and beautiful counting app. For all your counting needs!</p>
+    <p>Features</p>
+    <ul>
+      <li>Counts!</li>
+      <li>Cooks!</li>
+      <li>Cleans!</li>
+      <li>Comets!</li>
+      <li>Dinosaurs!</li>
+      <li>.. Burritos?</li>
+      <li>Burritos!!</li>
+      <li></li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">com.example.FlutterApp.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Merrit/flutter_flatpak_example/main/screenshots/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="1.0.0" date="2022-02-25" />
+  </releases>
+</component>
