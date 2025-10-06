@@ -113,11 +113,9 @@ publish_release:
     - android
   needs:
     - job: "build_debug_apk"
-    - job: "build_release_apk"
     - job: "build_debug_linux"
     - job: "build_release_linux"
     - job: "build_debug_web"
-    - job: "build_release_web"
   allow_failure: true
   script:
     - echo "Publishing release with APKs, Linux builds, and Web builds for pipeline $CI_PIPELINE_ID"
@@ -129,13 +127,9 @@ publish_release:
       links:
         - name: "Debug APK"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
-        - name: "Release APK (Signed)"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-release.apk?job=build_release_apk"
         - name: "Debug Linux Build"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_linux"
         - name: "Release Linux Build"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_release_linux"
         - name: "Debug Web Build"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_web"
-        - name: "Release Web Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_release_web"
