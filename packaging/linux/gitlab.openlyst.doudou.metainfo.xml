@@ -17,27 +17,23 @@
     <control>touch</control>
   </supports>
   <description>
-    <p>Fast and beautiful counting app. For all your counting needs!</p>
-    <p>Features</p>
+    <p>A beautiful, privacy-focused music player for your personal Jellyfin media server. Enjoy your self-hosted music collection with a modern, intuitive interface.</p>
+    <p>Features:</p>
     <ul>
-      <li>Counts!</li>
-      <li>Cooks!</li>
-      <li>Cleans!</li>
-      <li>Comets!</li>
-      <li>Dinosaurs!</li>
-      <li>.. Burritos?</li>
-      <li>Burritos!!</li>
-      <li></li>
+      <li>Beautiful, clean interface inspired by modern music apps</li>
+      <li>Advanced audio features: crossfade, volume normalization, gapless playback</li>
+      <li>Queue management with drag-and-drop support</li>
+      <li>Smart preloading for seamless playback</li>
+      <li>Radio mode for endless music discovery</li>
+      <li>Offline downloads for listening without internet</li>
+      <li>Background playback with media controls</li>
+      <li>Zero data collection - complete privacy</li>
+      <li>Cross-platform support</li>
     </ul>
   </description>
-  <launchable type="desktop-id">com.example.FlutterApp.desktop</launchable>
-  <screenshots>
-    <screenshot type="default">
-      <image>https://raw.githubusercontent.com/Merrit/flutter_flatpak_example/main/screenshots/screenshot.png</image>
-    </screenshot>
-  </screenshots>
+  <launchable type="desktop-id">gitlab.openlyst.doudou.desktop</launchable>
   <content_rating type="oars-1.1" />
   <releases>
-    <release version="1.0.0" date="2022-02-25" />
+    <release version="7.0.0" date="2025-10-06" />
   </releases>
 </component>

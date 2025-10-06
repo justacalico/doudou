@@ -3,10 +3,12 @@ Version=1.0
 Type=Application
 
 Name=Doudou
-Comment=Stream Jellyfin music to everything.
-Categories=Utility;Amusement;
+Comment=Beautiful music player for your personal Jellyfin media server
+GenericName=Music Player
+Categories=AudioVideo;Audio;Player;Music;
 
-Icon=com.example.FlutterApp
+Icon=gitlab.openlyst.doudou
 Exec=gitlab.openlyst.doudou
 Terminal=false
 StartupWMClass=gitlab.openlyst.doudou
+MimeType=audio/mpeg;audio/mp4;audio/x-flac;audio/ogg;
