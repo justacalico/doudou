@@ -98,6 +98,13 @@ make ios        # iOS app
 make macos      # macOS app
 make linux      # Linux executable
 make windows    # Windows executable
+
+# Or use Flutter commands directly
+flutter build apk              # Android APK
+flutter build ios              # iOS app
+flutter build macos            # macOS app
+flutter build linux            # Linux executable
+flutter build windows          # Windows executable
 ```
 
 ### Quick Setup
