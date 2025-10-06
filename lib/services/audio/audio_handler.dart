@@ -256,11 +256,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // ONLY handle actual completion state - no forced completion
       // Add extra protection to prevent race conditions
-      if (state == ProcessingState.completed && !_transitionManager.isTransitionInProgress) {
+      if (state == ProcessingState.completed && 
+          !_transitionManager.isTransitionInProgress && 
+          !_stateManager.isHandlingCompletion) {
         if (kDebugMode) {
           print('Track actually completed, handling transition...');
         }
-        Future.microtask(() => _handleTrackCompletion());
+        // Use a small delay to ensure any racing operations complete first
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!_transitionManager.isTransitionInProgress && !_stateManager.isHandlingCompletion) {
+            _handleTrackCompletion();
+          }
+        });
       }
     });
 
