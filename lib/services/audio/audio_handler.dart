@@ -259,8 +259,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Monitor playback for state persistence only
-    _player.playerStateStream.listen((playerState) {
+    // Monitor playback for state persistence only - separate listener to avoid conflicts
+    StreamSubscription? persistenceSubscription;
+    persistenceSubscription = _player.playerStateStream.listen((playerState) {
+      // Only handle persistence, don't interfere with playback state
       if (playerState.playing) {
         // Only start periodic saving if not already started
         if (!_statePersistence.isPeriodicSavingActive) {
