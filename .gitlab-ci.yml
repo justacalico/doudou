@@ -162,24 +162,16 @@ publish_release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - android # Changed to a generic tag if possible, but kept as 'android' if required
+    - android
   needs:
-    # Changed to only need the final release artifacts
     - job: "build_release_apk"
     - job: "build_release_linux_desktop"
     - job: "build_release_web"
   script:
-    # Extract version from pubspec.yaml
-    - |
-      export APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
-      echo "App version from pubspec.yaml: $APP_VERSION"
-
-    # --- Use the 'release-cli' tool instead of manual cURL for cleaner releases ---
-
-    # 1. Create Git Tag
-    - git config user.email "ci@openlyst.gitlab.io"
-    - git config user.name "GitLab CI"
-    # Check for existing tag and only create if it doesn't exist
+    - "export APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')"
+    - "echo \"App version from pubspec.yaml - $APP_VERSION\""
+    - "git config user.email \"ci@openlyst.gitlab.io\""
+    - "git config user.name \"GitLab CI\""
     - |
       if ! git rev-parse "v$APP_VERSION" >/dev/null 2>&1; then
         echo "Creating tag v$APP_VERSION"
@@ -188,13 +180,7 @@ publish_release:
       else
         echo "Tag v$APP_VERSION already exists, skipping tag creation."
       fi
-
-    # 2. Create GitLab Release using the official release-cli
-    # Use the $CI_PROJECT_URL variable for a correct artifact download link.
-    # Note: The artifact URL must point to a specific job. 'build_release_apk' is used here.
-    - release-cli create --name "Release $APP_VERSION" --tag-name "v$APP_VERSION" --description "Automated release for version $APP_VERSION" --assets-link "name=APK Release,url=$CI_PROJECT_URL/-/jobs/artifacts/v$APP_VERSION/download?job=build_release_apk"
-
-  # Removed the unnecessary 'dependencies' keyword, 'needs' covers artifact dependency
+    - "release-cli create --name \"Release $APP_VERSION\" --tag-name \"v$APP_VERSION\" --description \"Automated release for version $APP_VERSION\" --assets-link \"name=APK Release,url=$CI_PROJECT_URL/-/jobs/artifacts/v$APP_VERSION/download?job=build_release_apk\""
   only:
     - main
   when: manual
