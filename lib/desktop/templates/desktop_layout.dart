@@ -373,13 +373,15 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   ),
                                                   Row(
                                                     children: [
-                                                      Text(
-                                                        currentTrack?.artist ?? 'Select a song to play',
-                                                        style: theme.textTheme.bodySmall?.copyWith(
-                                                          color: theme.colorScheme.onSurfaceVariant,
+                                                      Expanded(
+                                                        child: Text(
+                                                          currentTrack?.artist ?? 'Select a song to play',
+                                                          style: theme.textTheme.bodySmall?.copyWith(
+                                                            color: theme.colorScheme.onSurfaceVariant,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
                                                         ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
                                                       ),
                                                       if (currentTrack != null) ...[
                                                         Text(
