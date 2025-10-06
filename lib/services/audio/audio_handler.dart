@@ -1411,6 +1411,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Use user intent instead of previous playing state for automatic transitions
     final shouldPlay = _userIntendedPlaying;
     
+    if (kDebugMode) {
+      print('Individual track playback - wasPlaying: $wasPlaying, userIntended: $_userIntendedPlaying, shouldPlay: $shouldPlay');
+    }
+    
     // Update to loading state preserving user intent
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.loading,
