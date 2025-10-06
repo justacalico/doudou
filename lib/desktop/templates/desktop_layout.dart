@@ -1109,50 +1109,9 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
           
           // Synced lyrics content
           Expanded(
-            child: StreamBuilder<Duration>(
-              stream: widget.audioHandler?.positionStream,
-              builder: (context, positionSnapshot) {
-                final position = positionSnapshot.data ?? Duration.zero;
-                final currentLineIndex = _getCurrentLyricLineIndex(lyricsLines, position);
-                
-                return ListView.builder(
-                  itemCount: lyricsLines.length,
-                  itemBuilder: (context, index) {
-                    final line = lyricsLines[index];
-                    final isCurrentLine = index == currentLineIndex;
-                    final isPastLine = index < currentLineIndex;
-                    
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isCurrentLine 
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                          : null,
-                        borderRadius: BorderRadius.circular(8),
-                        border: isCurrentLine 
-                          ? Border.all(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                            )
-                          : null,
-                      ),
-                      child: Text(
-                        line.text,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isCurrentLine
-                            ? Theme.of(context).colorScheme.primary
-                            : isPastLine
-                              ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: isCurrentLine ? FontWeight.w600 : FontWeight.normal,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  },
-                );
-              },
+            child: _SyncedLyricsContent(
+              audioHandler: widget.audioHandler,
+              lyricsLines: lyricsLines,
             ),
           ),
         ],
