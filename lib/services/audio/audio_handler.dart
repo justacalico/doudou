@@ -1243,15 +1243,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> skipToQueueItem(int index) async {
     if (index >= 0 && index < _stateManager.playlist.length) {
-      // Preserve playing state when skipping to queue item
-      final wasPlaying = playbackState.value.playing;
-      if (wasPlaying) {
-        _userIntendedPlaying = true;
+      // Use atomic transition manager to prevent race conditions
+      if (!await _transitionManager.acquireTransitionLock('skipToQueueItem')) {
+        if (kDebugMode) {
+          print('Skip to queue item rejected - another transition in progress');
+        }
+        return;
       }
       
-      await _stateManager.setCurrentIndexAtomic(index);
-      await _playCurrentTrack();
-      await _statePersistence.savePlaybackState(_player.position, _player.playing);
+      try {
+        // Preserve playing state when skipping to queue item
+        final wasPlaying = playbackState.value.playing;
+        if (wasPlaying) {
+          _userIntendedPlaying = true;
+        }
+        
+        // Reset completion handling flags
+        _stateManager.setHandlingCompletion(false);
+        _stateManager.setTransitioning(false);
+        
+        await _stateManager.setCurrentIndexAtomic(index);
+        await _playCurrentTrack();
+        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+      } finally {
+        _transitionManager.releaseTransitionLock();
+      }
     }
   }
 
