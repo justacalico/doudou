@@ -603,11 +603,12 @@ class _TracksPageState extends State<TracksPage> {
       return;
     }
     
-    // Play favorite tracks
+    // Shuffle favorite tracks before playing
+    favoriteTracks.shuffle();
     appState.playPlaylist(favoriteTracks, 0);
     
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Playing ${favoriteTracks.length} favorite tracks')),
+      SnackBar(content: Text('Shuffling ${favoriteTracks.length} favorite tracks')),
     );
   }
 }
