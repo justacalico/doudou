@@ -374,6 +374,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   Row(
                                                     children: [
                                                       Expanded(
+                                                        flex: 3,
                                                         child: Text(
                                                           currentTrack?.artist ?? 'Select a song to play',
                                                           style: theme.textTheme.bodySmall?.copyWith(
@@ -390,11 +391,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                             color: theme.colorScheme.onSurfaceVariant,
                                                           ),
                                                         ),
-                                                        Text(
-                                                          '${_formatDuration(position)} / ${_formatDuration(duration)}',
-                                                          style: theme.textTheme.bodySmall?.copyWith(
-                                                            color: theme.colorScheme.onSurfaceVariant,
-                                                            fontFamily: 'monospace',
+                                                        Flexible(
+                                                          flex: 2,
+                                                          child: Text(
+                                                            '${_formatDuration(position)} / ${_formatDuration(duration)}',
+                                                            style: theme.textTheme.bodySmall?.copyWith(
+                                                              color: theme.colorScheme.onSurfaceVariant,
+                                                              fontFamily: 'monospace',
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
                                                           ),
                                                         ),
                                                       ],
@@ -495,11 +501,20 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         builder: (context, appState, child) {
           final audioHandler = appState.audioHandler;
           
-          return Dialog(
+          return StreamBuilder<MediaItem?>(
+            stream: audioHandler?.mediaItem,
+            builder: (context, mediaItemSnapshot) {
+              return Dialog(
             insetPadding: const EdgeInsets.all(16),
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: MediaQuery.of(context).size.height * 0.8,
+              width: MediaQuery.of(context).size.width * 0.85,
+              height: MediaQuery.of(context).size.height * 0.85,
+              constraints: const BoxConstraints(
+                minWidth: 600,
+                minHeight: 400,
+                maxWidth: 1200,
+                maxHeight: 800,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
@@ -535,10 +550,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   
                   // Main content area
                   Expanded(
-                    child: StreamBuilder<MediaItem?>(
-                      stream: audioHandler?.mediaItem,
-                      builder: (context, mediaSnapshot) {
-                        final currentTrack = mediaSnapshot.data;
+                    child: Builder(
+                      builder: (context) {
+                        final currentTrack = mediaItemSnapshot.data;
                         
                         return Row(
                           children: [
@@ -546,86 +560,103 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             Expanded(
                               flex: 1,
                               child: Container(
-                                padding: const EdgeInsets.all(24),
+                                padding: const EdgeInsets.all(16),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     // Album art
-                                    Container(
-                                      width: 280,
-                                      height: 280,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surfaceVariant,
-                                        borderRadius: BorderRadius.circular(16),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 20,
-                                            spreadRadius: 2,
-                                          ),
-                                        ],
-                                      ),
-                                      child: currentTrack?.artUri != null
-                                          ? ClipRRect(
-                                              borderRadius: BorderRadius.circular(16),
-                                              child: Image.network(
-                                                currentTrack!.artUri.toString(),
-                                                width: 280,
-                                                height: 280,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (context, error, stackTrace) {
-                                                  return Icon(
-                                                    Icons.music_note,
-                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                                    size: 80,
-                                                  );
-                                                },
+                                    Flexible(
+                                      flex: 3,
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final maxSize = constraints.maxHeight * 0.8;
+                                          final size = (constraints.maxWidth * 0.7).clamp(150.0, maxSize.clamp(200.0, 280.0));
+                                          return Container(
+                                            width: size,
+                                            height: size,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.surfaceVariant,
+                                            borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 20,
+                                                spreadRadius: 2,
                                               ),
-                                            )
-                                          : Icon(
-                                              Icons.music_note,
-                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                              size: 80,
-                                            ),
+                                            ],
+                                          ),
+                                          child: currentTrack?.artUri != null
+                                              ? ClipRRect(
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  child: Image.network(
+                                                    currentTrack!.artUri.toString(),
+                                                    width: size,
+                                                    height: size,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return Icon(
+                                                        Icons.music_note,
+                                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                        size: size * 0.3,
+                                                      );
+                                                    },
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  Icons.music_note,
+                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                  size: size * 0.3,
+                                                ),
+                                          );
+                                        },
+                                      ),
                                     ),
                                     
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: 16),
                                     
                                     // Track info
-                                    Text(
-                                      currentTrack?.title ?? 'No track playing',
-                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
+                                    Flexible(
+                                      flex: 1,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            currentTrack?.title ?? 'No track playing',
+                                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          
+                                          const SizedBox(height: 6),
+                                          
+                                          Text(
+                                            currentTrack?.artist ?? 'Unknown Artist',
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          
+                                          if (currentTrack?.album != null) ...[
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              currentTrack!.album!,
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    
-                                    const SizedBox(height: 8),
-                                    
-                                    Text(
-                                      currentTrack?.artist ?? 'Unknown Artist',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    
-                                    if (currentTrack?.album != null) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        currentTrack!.album!,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
                                   ],
                                 ),
                               ),
@@ -647,7 +678,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 ],
               ),
             ),
-          );
+            );
+          },
+        );
         },
       ),
     );
