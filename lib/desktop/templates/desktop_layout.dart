@@ -628,7 +628,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           
-                                          const SizedBox(height: 8),
+                                          const SizedBox(height: 6),
                                           
                                           Text(
                                             currentTrack?.artist ?? 'Unknown Artist',
@@ -636,12 +636,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                                             ),
                                             textAlign: TextAlign.center,
-                                            maxLines: 2,
+                                            maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           
                                           if (currentTrack?.album != null) ...[
-                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 2),
                                             Text(
                                               currentTrack!.album!,
                                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
