@@ -1179,47 +1179,63 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Fallback to traditional skip logic with restart behavior
-    final now = DateTime.now();
-    final currentPosition = _player.position;
-    final duration = _player.duration;
+    // Use atomic transition manager for traditional skip
+    if (!await _transitionManager.acquireTransitionLock('skipToPrevious')) {
+      if (kDebugMode) {
+        print('Skip to previous rejected - another transition in progress');
+      }
+      return;
+    }
     
-    bool shouldRestartCurrentSong = false;
-    
-    if (duration != null && duration.inMilliseconds > 0) {
-      final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
-      final minThresholdMs = Duration(seconds: 5).inMilliseconds;
-      final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
+    try {
+      // Reset completion handling flags
+      _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
       
-      if (currentPosition.inMilliseconds > thresholdMs) {
-        if (_stateManager.lastSkipToPreviousTime != null && 
-            now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
-          shouldRestartCurrentSong = false;
+      // Fallback to traditional skip logic with restart behavior
+      final now = DateTime.now();
+      final currentPosition = _player.position;
+      final duration = _player.duration;
+      
+      bool shouldRestartCurrentSong = false;
+      
+      if (duration != null && duration.inMilliseconds > 0) {
+        final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
+        final minThresholdMs = Duration(seconds: 5).inMilliseconds;
+        final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
+        
+        if (currentPosition.inMilliseconds > thresholdMs) {
+          if (_stateManager.lastSkipToPreviousTime != null && 
+              now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
+            shouldRestartCurrentSong = false;
+          } else {
+            shouldRestartCurrentSong = true;
+          }
         } else {
-          shouldRestartCurrentSong = true;
+          shouldRestartCurrentSong = false;
         }
       } else {
         shouldRestartCurrentSong = false;
       }
-    } else {
-      shouldRestartCurrentSong = false;
-    }
-    
-    _stateManager.setLastSkipToPreviousTime(now);
-    
-    if (shouldRestartCurrentSong) {
-      await _player.seek(Duration.zero);
-      if (kDebugMode) {
-        print('Restarting current song: ${_stateManager.currentTrack?.name}');
-      }
-    } else {
-      if (await _stateManager.decrementCurrentIndexAtomic()) {
-        await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+      
+      _stateManager.setLastSkipToPreviousTime(now);
+      
+      if (shouldRestartCurrentSong) {
+        await _player.seek(Duration.zero);
         if (kDebugMode) {
-          print('Skipping to previous song');
+          print('Restarting current song: ${_stateManager.currentTrack?.name}');
+        }
+      } else {
+        if (await _stateManager.decrementCurrentIndexAtomic()) {
+          await _playCurrentTrack();
+          await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          if (kDebugMode) {
+            print('Skipping to previous song');
+          }
         }
       }
+    } finally {
+      _transitionManager.releaseTransitionLock();
     }
   }
 
