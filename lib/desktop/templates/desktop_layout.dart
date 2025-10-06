@@ -609,40 +609,47 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     const SizedBox(height: 24),
                                     
                                     // Track info
-                                    Text(
-                                      currentTrack?.title ?? 'No track playing',
-                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
+                                    Flexible(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            currentTrack?.title ?? 'No track playing',
+                                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          
+                                          const SizedBox(height: 8),
+                                          
+                                          Text(
+                                            currentTrack?.artist ?? 'Unknown Artist',
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          
+                                          if (currentTrack?.album != null) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              currentTrack!.album!,
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    
-                                    const SizedBox(height: 8),
-                                    
-                                    Text(
-                                      currentTrack?.artist ?? 'Unknown Artist',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    
-                                    if (currentTrack?.album != null) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        currentTrack!.album!,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
                                   ],
                                 ),
                               ),
