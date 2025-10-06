@@ -1,16 +1,27 @@
 stages:
+- test
 - build
 - release
 
 variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
+  FLUTTER_VERSION: "3.16.0"
 
-cache:
-  key: "$CI_COMMIT_REF_SLUG-v2"
-  paths:
-    - .pub-cache/
-  policy: pull-push
+before_script:
+  - apt-get update -qq && apt-get install -y -qq git curl unzip
+  - git clone https://github.com/flutter/flutter.git -b stable --depth 1
+  - export PATH="$PATH:`pwd`/flutter/bin"
+  - flutter doctor -v
+  - flutter pub get
+
+test:
+  stage: test
+  script:
+    - flutter test
+    - flutter analyze
+    - chmod +x test-fdroid-build.sh
+    - ./test-fdroid-build.sh
 
 build_debug_apk:
   stage: build
@@ -173,22 +184,45 @@ publish_release:
     - job: "build_release_web"
   allow_failure: true
   script:
-    - echo "Publishing release with APKs, Linux builds, and Web builds for pipeline $CI_PIPELINE_ID"
-  release:
-    name: "Release Pipeline $CI_PIPELINE_ID"
-    description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
-    tag_name: "pipeline-$CI_PIPELINE_ID"
-    assets:
-      links:
-        - name: "Debug APK"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
-        - name: "Release APK (Signed)"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-release.apk?job=build_release_apk"
-        - name: "Debug Linux Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_linux"
-        - name: "Release Linux Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_release_linux"
-        - name: "Debug Web Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_web"
-        - name: "Release Web Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_release_web"
+    # Extract version from pubspec.yaml
+    - export APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+    - echo "App version from pubspec.yaml: $APP_VERSION"
+    
+    # Check if this version tag already exists
+    - |
+      if git tag -l | grep -q "^v$APP_VERSION$"; then
+        echo "Tag v$APP_VERSION already exists, skipping release"
+        exit 0
+      fi
+    
+    # Create tag with the version from pubspec
+    - git config user.email "ci@openlyst.gitlab.io"
+    - git config user.name "GitLab CI"
+    - git tag -a "v$APP_VERSION" -m "Release version $APP_VERSION"
+    - git push origin "v$APP_VERSION"
+    
+    # Create GitLab release
+    - |
+      curl --request POST \
+        --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        --header "Content-Type: application/json" \
+        --data '{
+          "name": "Release '"$APP_VERSION"'",
+          "tag_name": "v'"$APP_VERSION"'",
+          "description": "Automated release for version '"$APP_VERSION"'",
+          "assets": {
+            "links": [
+              {
+                "name": "APK Release",
+                "url": "'"$CI_PROJECT_URL"'/-/jobs/artifacts/'"$CI_COMMIT_REF_NAME"'/download?job=build_apk"
+              }
+            ]
+          }
+        }' \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+  
+  dependencies:
+    - build_apk
+  only:
+    - main
+  when: manual

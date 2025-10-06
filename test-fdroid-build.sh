@@ -13,6 +13,20 @@ if [[ ! -f "pubspec.yaml" ]]; then
     exit 1
 fi
 
+# Check version format in pubspec.yaml
+echo "🔍 Checking version format in pubspec.yaml..."
+APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+if [[ -z "$APP_VERSION" ]]; then
+    echo "❌ Error: No version found in pubspec.yaml"
+    exit 1
+elif [[ ! "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\+[0-9]+)?$ ]]; then
+    echo "❌ Error: Version format should be X.Y.Z or X.Y.Z+BUILD (e.g., 8.0.0+2)"
+    echo "   Found: $APP_VERSION"
+    exit 1
+else
+    echo "✅ Valid version format found: $APP_VERSION"
+fi
+
 echo "📋 Checking F-Droid compatibility requirements..."
 
 # Check 1: Verify all dependencies are FOSS
@@ -89,6 +103,7 @@ echo ""
 echo "🎉 F-Droid compatibility check completed!"
 echo ""
 echo "📋 Summary:"
+echo "✅ Version format is valid: $APP_VERSION"
 echo "✅ Dependencies are FOSS-compatible"
 echo "✅ F-Droid metadata files are present"
 echo "✅ Build configuration supports F-Droid"
