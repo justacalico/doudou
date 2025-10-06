@@ -1000,6 +1000,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
+    // Double-check if we're already handling completion to prevent duplicate calls
+    if (_stateManager.isHandlingCompletion) {
+      if (kDebugMode) {
+        print('Track completion already being handled, ignoring duplicate call');
+      }
+      return;
+    }
+    
     // If using concatenation, the transition is automatic - just handle state updates
     if (_isUsingConcatenation && _concatenatingSource != null) {
       if (kDebugMode) {
@@ -1032,6 +1040,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       return;
     }
+    
+    // Set completion handling flag at the very start
+    _stateManager.setHandlingCompletion(true);
     
     try {
       if (kDebugMode) {
