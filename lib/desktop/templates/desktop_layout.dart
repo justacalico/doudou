@@ -550,10 +550,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   
                   // Main content area
                   Expanded(
-                    child: StreamBuilder<MediaItem?>(
-                      stream: audioHandler?.mediaItem,
-                      builder: (context, mediaSnapshot) {
-                        final currentTrack = mediaSnapshot.data;
+                    child: Builder(
+                      builder: (context) {
+                        final currentTrack = mediaItemSnapshot.data;
                         
                         return Row(
                           children: [
