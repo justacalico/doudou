@@ -37,38 +37,6 @@ build_debug_apk:
       - build/app/outputs/flutter-apk/app-debug.apk
     expire_in: 1 week
 
-build_release_apk:
-  stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
-  before_script:
-    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
-    - rm -rf .pub-cache
-    - flutter clean
-  script:
-    - flutter --version
-    - flutter clean
-    - pkill -f gradle || true
-    - flutter pub get
-    # Decode keystore from base64 CI variable to expected location
-    - echo "$KEYSTORE_BASE64" | base64 -d > android/app/key.jks
-    # Create key.properties for signing
-    - |
-      cat > android/key.properties << EOF
-      storePassword=$KEYSTORE_PASSWORD
-      keyPassword=$KEY_PASSWORD
-      keyAlias=$KEY_ALIAS
-      storeFile=key.jks
-      EOF
-    - flutter build apk --release
-  after_script:
-    - pkill -f gradle || true
-  artifacts:
-    paths:
-      - build/app/outputs/flutter-apk/app-release.apk
-    expire_in: 1 week
-
 build_debug_linux:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
