@@ -374,6 +374,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   Row(
                                                     children: [
                                                       Expanded(
+                                                        flex: 3,
                                                         child: Text(
                                                           currentTrack?.artist ?? 'Select a song to play',
                                                           style: theme.textTheme.bodySmall?.copyWith(
@@ -390,11 +391,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                             color: theme.colorScheme.onSurfaceVariant,
                                                           ),
                                                         ),
-                                                        Text(
-                                                          '${_formatDuration(position)} / ${_formatDuration(duration)}',
-                                                          style: theme.textTheme.bodySmall?.copyWith(
-                                                            color: theme.colorScheme.onSurfaceVariant,
-                                                            fontFamily: 'monospace',
+                                                        Flexible(
+                                                          flex: 2,
+                                                          child: Text(
+                                                            '${_formatDuration(position)} / ${_formatDuration(duration)}',
+                                                            style: theme.textTheme.bodySmall?.copyWith(
+                                                              color: theme.colorScheme.onSurfaceVariant,
+                                                              fontFamily: 'monospace',
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
                                                           ),
                                                         ),
                                                       ],
@@ -498,8 +504,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           return Dialog(
             insetPadding: const EdgeInsets.all(16),
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: MediaQuery.of(context).size.height * 0.8,
+              width: MediaQuery.of(context).size.width * 0.85,
+              height: MediaQuery.of(context).size.height * 0.85,
+              constraints: const BoxConstraints(
+                minWidth: 600,
+                minHeight: 400,
+                maxWidth: 1200,
+                maxHeight: 800,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
@@ -551,42 +563,47 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     // Album art
-                                    Container(
-                                      width: 280,
-                                      height: 280,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surfaceVariant,
-                                        borderRadius: BorderRadius.circular(16),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 20,
-                                            spreadRadius: 2,
-                                          ),
-                                        ],
-                                      ),
-                                      child: currentTrack?.artUri != null
-                                          ? ClipRRect(
-                                              borderRadius: BorderRadius.circular(16),
-                                              child: Image.network(
-                                                currentTrack!.artUri.toString(),
-                                                width: 280,
-                                                height: 280,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (context, error, stackTrace) {
-                                                  return Icon(
-                                                    Icons.music_note,
-                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                                    size: 80,
-                                                  );
-                                                },
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final size = (constraints.maxWidth * 0.7).clamp(200.0, 320.0);
+                                        return Container(
+                                          width: size,
+                                          height: size,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.surfaceVariant,
+                                            borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 20,
+                                                spreadRadius: 2,
                                               ),
-                                            )
-                                          : Icon(
-                                              Icons.music_note,
-                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                              size: 80,
-                                            ),
+                                            ],
+                                          ),
+                                          child: currentTrack?.artUri != null
+                                              ? ClipRRect(
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  child: Image.network(
+                                                    currentTrack!.artUri.toString(),
+                                                    width: size,
+                                                    height: size,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return Icon(
+                                                        Icons.music_note,
+                                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                        size: size * 0.3,
+                                                      );
+                                                    },
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  Icons.music_note,
+                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                  size: size * 0.3,
+                                                ),
+                                        );
+                                      },
                                     ),
                                     
                                     const SizedBox(height: 24),
