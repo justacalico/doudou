@@ -106,27 +106,6 @@ build_debug_web:
       - build/web/
     expire_in: 1 week
 
-build_release_web:
-  stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
-  before_script:
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
-    - flutter clean
-  script:
-    - flutter --version
-    - flutter config --enable-web
-    - flutter clean
-    - flutter pub get
-    - flutter build web --release
-  artifacts:
-    paths:
-      - build/web/
-    expire_in: 1 week
-
 publish_release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
