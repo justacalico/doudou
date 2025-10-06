@@ -56,31 +56,16 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 
 ### Installation
 
-#### Option 1: Official Releases *(Recommended)*
-� **[Download Latest Version →](releases.md)**
+#### Download from GitLab
+**[Download Latest Version →](https://gitlab.com/Openlyst/doudou/-/releases)**
 
-For the latest downloads and platform-specific builds, please visit our **[Releases page](releases.md)** which includes:
-- Android APK files
-- Linux executables  
-- Web application
-- Source code for Windows, macOS, and iOS
+Get the latest release directly from our GitLab releases page:
+- **Android APK** - Install on Android devices
+- **Linux builds** - Desktop application for Linux
+- **Web application** - Run in your browser
+- **Source code** - Build for Windows, macOS, and iOS
 
-- ~~📱 **Google Play Store**~~ - **NO LONGER AVAILABLE** *(See notice below)*
-
-> **📢 IMPORTANT NOTICE**  
-> **Transition to F-Droid Distribution**  
-> We have decided to discontinue Google Play Store distribution due to Google's unfriendly policies towards developers with communist beliefs. Some of our core team members have faced discrimination and barriers within Google's ecosystem.  
-> 
-> **Going forward, Doudou will be distributed through:**
-> - **🤖 F-Droid** - Free and open-source app repository *(Coming Soon)*
-> - **📱 Direct APK downloads** - Always available from our releases page
-> - **🔧 Self-hosted builds** - Build from source for complete control
-> 
-> We believe in free and open software that respects all developers regardless of their political beliefs. F-Droid aligns with our values of privacy, freedom, and inclusivity.
-
-#### Option 2: Build from Source
-Perfect for developers and early adopters who want the latest features.
-
+#### Build from Source
 ```bash
 # Clone the repository
 git clone https://gitlab.com/Openlyst/doudou.git
