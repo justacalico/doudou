@@ -1060,7 +1060,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       if (kDebugMode) {
         print('Track completed: ${_stateManager.currentTrack?.name}');
+        print('User intended playing before completion: $_userIntendedPlaying');
       }
+      
+      // Preserve user intent during track completion - if music was playing, it should continue
+      // _userIntendedPlaying should already be true if music was playing before completion
       
       // Simple, clean stop without aggressive delays
       try {
@@ -1078,6 +1082,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (await _stateManager.incrementCurrentIndexAtomic()) {
         if (kDebugMode) {
           print('Moving to next track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
+          print('User intended playing during transition: $_userIntendedPlaying');
         }
         
         await _playCurrentTrack();
