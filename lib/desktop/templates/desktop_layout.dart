@@ -648,7 +648,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                                               ),
                                               textAlign: TextAlign.center,
-                                              maxLines: 2,
+                                              maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
