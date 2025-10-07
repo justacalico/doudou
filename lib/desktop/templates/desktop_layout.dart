@@ -837,8 +837,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         final playbackState = playbackSnapshot.data;
         // More robust playing state detection
         final isPlaying = playbackState?.playing == true && 
-                          playbackState?.processingState != AudioProcessingState.idle &&
-                          playbackState?.processingState != AudioProcessingState.completed;
+                          (playbackState?.processingState == AudioProcessingState.ready ||
+                           playbackState?.processingState == AudioProcessingState.buffering);
         
         return StreamBuilder<MediaItem?>(
           stream: audioHandler?.mediaItem,
