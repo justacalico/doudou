@@ -546,11 +546,7 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'addToPlaylist':
                 // TODO: Implement add to playlist
-                NotificationService.showNotification(
-                  context,
-                  message: 'Add to playlist - Coming soon',
-                  type: NotificationType.info,
-                );
+                NotificationService.showInfo(context, 'Add to playlist - Coming soon');
                 break;
               case 'showAlbum':
                 // TODO: Navigate to album
