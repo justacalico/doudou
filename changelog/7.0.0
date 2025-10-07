@@ -8,6 +8,7 @@
 - Queue operation logging for debugging playlist management
 - User-configurable logging toggle (disabled by default for performance)
 - New desktop UI
+- Show the amount of plays songs have.
 
 ## Changed
 
