@@ -311,30 +311,30 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             : 0.0;
                         
                         return Container(
-                          height: 96,
+                          height: 88,
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surface,
-                            border: Border(
-                              top: BorderSide(
-                                color: theme.colorScheme.outline.withOpacity(0.2),
-                                width: 1,
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.shadow.withOpacity(0.1),
+                                offset: const Offset(0, -2),
+                                blurRadius: 8,
+                                spreadRadius: 0,
                               ),
-                            ),
+                            ],
                           ),
                           child: Column(
                             children: [
-                              // Progress bar with seeking
-                              SizedBox(
-                                height: 20,
+                              // Slim progress bar
+                              Container(
+                                height: 4,
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
                                     trackHeight: 4,
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0),
+                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 0),
                                     activeTrackColor: theme.colorScheme.primary,
-                                    inactiveTrackColor: theme.colorScheme.outline.withOpacity(0.2),
-                                    thumbColor: theme.colorScheme.primary,
-                                    overlayColor: theme.colorScheme.primary.withOpacity(0.2),
+                                    inactiveTrackColor: theme.colorScheme.outline.withOpacity(0.1),
                                   ),
                                   child: Slider(
                                     value: progress.clamp(0.0, 1.0),
@@ -353,194 +353,231 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               // Main player content
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                                   child: Row(
                                     children: [
-                                      // Album art
-                                      Container(
-                                        width: 56,
-                                        height: 56,
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surfaceVariant,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: currentTrack?.artUri != null
-                                            ? ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
-                                                child: Image.network(
-                                                  currentTrack!.artUri.toString(),
-                                                  width: 56,
-                                                  height: 56,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error, stackTrace) {
-                                                    return Icon(
-                                                      Icons.music_note,
-                                                      color: theme.colorScheme.onSurfaceVariant,
-                                                      size: 28,
-                                                    );
-                                                  },
-                                                ),
-                                              )
-                                            : Icon(
-                                                Icons.music_note,
-                                                color: theme.colorScheme.onSurfaceVariant,
-                                                size: 28,
+                                      // Album art with hover effect
+                                      GestureDetector(
+                                        onTap: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
+                                        child: Container(
+                                          width: 64,
+                                          height: 64,
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.surfaceVariant,
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: theme.colorScheme.shadow.withOpacity(0.1),
+                                                offset: const Offset(0, 2),
+                                                blurRadius: 8,
+                                                spreadRadius: 0,
                                               ),
+                                            ],
+                                          ),
+                                          child: currentTrack?.artUri != null
+                                              ? ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Image.network(
+                                                    currentTrack!.artUri.toString(),
+                                                    width: 64,
+                                                    height: 64,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return Icon(
+                                                        Icons.music_note_rounded,
+                                                        color: theme.colorScheme.onSurfaceVariant,
+                                                        size: 32,
+                                                      );
+                                                    },
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  Icons.music_note_rounded,
+                                                  color: theme.colorScheme.onSurfaceVariant,
+                                                  size: 32,
+                                                ),
+                                        ),
                                       ),
                                       
-                                      const SizedBox(width: 16),
+                                      const SizedBox(width: 20),
                                       
-                                      // Track info with time
+                                      // Track info - improved layout
                                       Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            GestureDetector(
-                                              onTap: currentTrack != null ? () {
-                                                // Navigate to now playing screen
-                                                _showNowPlayingDialog(context);
-                                              } : null,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                        child: GestureDetector(
+                                          onTap: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                currentTrack?.title ?? 'No track playing',
+                                                style: theme.textTheme.bodyLarge?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: theme.colorScheme.onSurface,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
                                                 children: [
-                                                  Text(
-                                                    currentTrack?.title ?? 'No track playing',
-                                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        flex: 3,
-                                                        child: Text(
-                                                          currentTrack?.artist ?? 'Select a song to play',
-                                                          style: theme.textTheme.bodySmall?.copyWith(
-                                                            color: theme.colorScheme.onSurfaceVariant,
-                                                          ),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
-                                                        ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      currentTrack?.artist ?? 'Select a song to play',
+                                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                                        color: theme.colorScheme.onSurfaceVariant,
+                                                        fontWeight: FontWeight.w500,
                                                       ),
-                                                      if (currentTrack != null) ...[
-                                                        Text(
-                                                          ' • ',
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  if (currentTrack != null) ...[
+                                                    Container(
+                                                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                                                      width: 4,
+                                                      height: 4,
+                                                      decoration: BoxDecoration(
+                                                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    ),
+                                                    Consumer<AppState>(
+                                                      builder: (context, appState, child) {
+                                                        final timeText = '${_formatDuration(position)} / ${_formatDuration(duration)}';
+                                                        
+                                                        return Text(
+                                                          timeText,
                                                           style: theme.textTheme.bodySmall?.copyWith(
                                                             color: theme.colorScheme.onSurfaceVariant,
+                                                            fontFamily: 'monospace',
+                                                            fontSize: 12,
                                                           ),
-                                                        ),
-                                                        Flexible(
-                                                          flex: 2,
-                                                          child: Consumer<AppState>(
-                                                            builder: (context, appState, child) {
-                                                              final track = appState.findTrackById(currentTrack.id);
-                                                              final playCount = track?.playCount;
-                                                              final timeText = '${_formatDuration(position)} / ${_formatDuration(duration)}';
-                                                              final playCountText = playCount != null && playCount > 0 ? ' • $playCount plays' : '';
-                                                              
-                                                              return Text(
-                                                                '$timeText$playCountText',
-                                                                style: theme.textTheme.bodySmall?.copyWith(
-                                                                  color: theme.colorScheme.onSurfaceVariant,
-                                                                  fontFamily: 'monospace',
-                                                                ),
-                                                                maxLines: 1,
-                                                                overflow: TextOverflow.ellipsis,
-                                                              );
-                                                            },
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ],
+                                                        );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      
+                                      const SizedBox(width: 24),
+                                      
+                                      // Player controls - enhanced design
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              onPressed: audioHandler != null && audioHandler.hasPrevious
+                                                  ? () => appState.skipToPrevious()
+                                                  : null,
+                                              icon: const Icon(Icons.skip_previous_rounded),
+                                              iconSize: 24,
+                                              style: IconButton.styleFrom(
+                                                foregroundColor: theme.colorScheme.onSurfaceVariant,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              width: 48,
+                                              height: 48,
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.primary,
+                                                borderRadius: BorderRadius.circular(24),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: theme.colorScheme.primary.withOpacity(0.3),
+                                                    offset: const Offset(0, 4),
+                                                    blurRadius: 12,
+                                                    spreadRadius: 0,
                                                   ),
                                                 ],
+                                              ),
+                                              child: IconButton(
+                                                onPressed: audioHandler != null && currentTrack != null
+                                                    ? () => appState.playPause()
+                                                    : null,
+                                                icon: Icon(
+                                                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                  size: 28,
+                                                ),
+                                                style: IconButton.styleFrom(
+                                                  foregroundColor: theme.colorScheme.onPrimary,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(24),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              onPressed: audioHandler != null && audioHandler.hasNext
+                                                  ? () => appState.skipToNext()
+                                                  : null,
+                                              icon: const Icon(Icons.skip_next_rounded),
+                                              iconSize: 24,
+                                              style: IconButton.styleFrom(
+                                                foregroundColor: theme.colorScheme.onSurfaceVariant,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
                                       
-                                      // Player controls
+                                      const SizedBox(width: 24),
+                                      
+                                      // Right side controls - cleaner layout
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          IconButton(
-                                            onPressed: audioHandler != null && audioHandler.hasPrevious
-                                                ? () => appState.skipToPrevious()
-                                                : null,
-                                            icon: const Icon(Icons.skip_previous),
-                                            iconSize: 28,
-                                          ),
-                                          IconButton(
-                                            onPressed: audioHandler != null && currentTrack != null
-                                                ? () => appState.playPause()
-                                                : null,
-                                            icon: Icon(
-                                              isPlaying ? Icons.pause : Icons.play_arrow,
-                                            ),
-                                            iconSize: 32,
-                                            style: IconButton.styleFrom(
-                                              backgroundColor: theme.colorScheme.primary,
-                                              foregroundColor: theme.colorScheme.onPrimary,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            onPressed: audioHandler != null && audioHandler.hasNext
-                                                ? () => appState.skipToNext()
-                                                : null,
-                                            icon: const Icon(Icons.skip_next),
-                                            iconSize: 28,
-                                          ),
-                                        ],
-                                      ),
-                                      
-                                      const SizedBox(width: 16),
-                                      
-                                      // Volume and additional controls
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            onPressed: currentTrack != null ? () {
-                                              // Toggle favorite
-                                            } : null,
-                                            icon: const Icon(Icons.favorite_border),
-                                          ),
                                           StreamBuilder<double>(
                                             stream: audioHandler?.volumeStream,
                                             builder: (context, volumeSnapshot) {
                                               final currentVolume = volumeSnapshot.data ?? 1.0;
                                               
                                               return IconButton(
-                                                onPressed: () {
-                                                  // Show volume slider
-                                                  _showVolumeDialog(context);
-                                                },
-                                                onLongPress: audioHandler != null ? () {
-                                                  // Quick mute/unmute on long press
-                                                  audioHandler.toggleMute();
-                                                } : null,
+                                                onPressed: () => _showVolumeDialog(context),
+                                                onLongPress: audioHandler != null ? () => audioHandler.toggleMute() : null,
                                                 icon: Icon(
                                                   currentVolume == 0.0
-                                                    ? Icons.volume_off
+                                                    ? Icons.volume_off_rounded
                                                     : currentVolume < 0.5
-                                                      ? Icons.volume_down
-                                                      : Icons.volume_up,
+                                                      ? Icons.volume_down_rounded
+                                                      : Icons.volume_up_rounded,
+                                                  size: 20,
                                                 ),
-                                                tooltip: currentVolume == 0.0 
-                                                  ? 'Unmute (Long press: Quick mute/unmute)'
-                                                  : 'Volume ${(currentVolume * 100).round()}% (Long press: Quick mute/unmute)',
+                                                style: IconButton.styleFrom(
+                                                  foregroundColor: theme.colorScheme.onSurfaceVariant,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                ),
+                                                tooltip: 'Volume ${(currentVolume * 100).round()}%',
                                               );
                                             },
                                           ),
+                                          const SizedBox(width: 8),
                                           IconButton(
-                                            onPressed: currentTrack != null ? () {
-                                              _showNowPlayingDialog(context);
-                                            } : null,
-                                            icon: const Icon(Icons.fullscreen),
+                                            onPressed: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
+                                            icon: const Icon(Icons.open_in_full_rounded, size: 20),
+                                            style: IconButton.styleFrom(
+                                              foregroundColor: theme.colorScheme.onSurfaceVariant,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            tooltip: 'Show Now Playing',
                                           ),
                                         ],
                                       ),
