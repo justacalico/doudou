@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
@@ -1117,6 +1118,7 @@ class _NowPlayingTabs extends StatefulWidget {
 
 class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  StreamSubscription<MediaItem?>? _mediaItemSubscription;
   
   // Cache for lyrics to prevent constant reloading
   String? _cachedTrackId;
@@ -1125,11 +1127,21 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    // Always start with lyrics tab (index 0) as the default
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    
+    // Listen to track changes and automatically switch to lyrics tab
+    _mediaItemSubscription = widget.audioHandler?.mediaItem?.listen((mediaItem) {
+      if (mediaItem != null && mounted && _tabController.index != 0) {
+        // Switch to lyrics tab when a new track starts
+        _tabController.animateTo(0);
+      }
+    });
   }
   
   @override
   void dispose() {
+    _mediaItemSubscription?.cancel();
     _tabController.dispose();
     super.dispose();
   }
@@ -1158,14 +1170,35 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
               dividerColor: Colors.transparent,
               labelColor: theme.colorScheme.onPrimary,
               unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-              tabs: const [
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+              tabs: [
                 Tab(
                   text: 'Lyrics',
-                  icon: Icon(Icons.lyrics),
+                  icon: Stack(
+                    children: [
+                      const Icon(Icons.lyrics),
+                      // Add a small indicator dot to show this is the primary tab
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  iconMargin: const EdgeInsets.only(bottom: 4),
                 ),
                 Tab(
                   text: 'Queue',
-                  icon: Icon(Icons.queue_music),
+                  icon: const Icon(Icons.queue_music),
+                  iconMargin: const EdgeInsets.only(bottom: 4),
                 ),
               ],
             ),
