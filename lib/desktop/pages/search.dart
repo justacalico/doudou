@@ -60,6 +60,16 @@ class _SearchPageState extends State<SearchPage> {
       };
     }
 
+    // Browse all mode - show all items
+    if (_searchQuery == '*') {
+      return {
+        'tracks': appState.tracks,
+        'albums': appState.albums,
+        'artists': appState.artists,
+        'playlists': appState.playlists,
+      };
+    }
+
     final query = _searchQuery.toLowerCase();
 
     final tracks = appState.tracks.where((track) {
