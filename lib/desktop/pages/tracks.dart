@@ -558,8 +558,10 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'showAlbum':
                 // TODO: Navigate to album
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Show album - Coming soon')),
+                NotificationService.showNotification(
+                  context,
+                  message: 'Show album - Coming soon',
+                  type: NotificationType.info,
                 );
                 break;
               case 'showArtist':
