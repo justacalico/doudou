@@ -764,25 +764,21 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _handleBrowseCardTap(String title) {
-    // Set a generic search query to show all items of that type
+    // Set filter and show browse mode
     setState(() {
       switch (title) {
         case 'Albums':
           _selectedFilter = 'albums';
-          _searchQuery = ' '; // Use a space to trigger results
-          _searchController.text = ' ';
           break;
         case 'Artists':
           _selectedFilter = 'artists';
-          _searchQuery = ' '; // Use a space to trigger results
-          _searchController.text = ' ';
           break;
         case 'Playlists':
           _selectedFilter = 'playlists';
-          _searchQuery = ' '; // Use a space to trigger results
-          _searchController.text = ' ';
           break;
       }
+      _searchQuery = '*'; // Use asterisk to indicate browse all mode
+      _searchController.text = '';
     });
   }
 
