@@ -61,6 +61,16 @@ class AppState extends ChangeNotifier {
   DownloadService get downloadService => _downloadService;
   DoudouAudioHandler? get audioHandler => _audioHandler;
 
+  // Helper method to find a track by ID
+  Track? findTrackById(String? trackId) {
+    if (trackId == null) return null;
+    try {
+      return _tracks.firstWhere((track) => track.id == trackId);
+    } catch (e) {
+      return null;
+    }
+  }
+
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
