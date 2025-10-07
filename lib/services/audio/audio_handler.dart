@@ -639,9 +639,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> play() async {
     final now = DateTime.now();
+    _logger.info('Play command received', 'AudioHandler');
+    
     // Throttle rapid play commands
     if (_lastPlayCommand != null && 
         now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
+      _logger.warning('Play command throttled - too recent (${now.difference(_lastPlayCommand!).inMilliseconds}ms ago)', 'AudioHandler');
       if (kDebugMode) {
         print('Play command throttled - too recent');
       }
@@ -651,6 +654,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Prevent play immediately after pause
     if (_lastPauseCommand != null && 
         now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+      _logger.warning('Play command blocked - recent pause command detected', 'AudioHandler');
       if (kDebugMode) {
         print('Play command blocked - recent pause command detected');
       }
@@ -665,15 +669,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Set user intent to playing
     _userIntendedPlaying = true;
+    _logger.info('User intent set to playing', 'AudioHandler');
     
     try {
       // Ensure we have a track to play
       if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
+        _logger.info('No current track, loading from playlist', 'AudioHandler');
         if (kDebugMode) {
           print('No current track, loading from playlist');
         }
         await _playCurrentTrack();
       } else {
+        _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
         if (kDebugMode) {
           print('Playing existing track');
         }
@@ -691,16 +698,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             : AudioProcessingState.loading,
       ));
       
+      _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
       if (kDebugMode) {
         print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
       }
     } catch (e) {
+      _logger.error('Error in play command: $e', 'AudioHandler');
       if (kDebugMode) {
         print('Error in play command: $e');
       }
       
       // Try to recover by reloading current track
       if (_stateManager.currentTrack != null) {
+        _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
         await _resumeCurrentTrack();
       }
     }
@@ -709,10 +719,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> pause() async {
     final now = DateTime.now();
+    _logger.info('Pause command received', 'AudioHandler');
     
     // Throttle rapid pause commands
     if (_lastPauseCommand != null && 
         now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+      _logger.warning('Pause command throttled - too recent', 'AudioHandler');
       if (kDebugMode) {
         print('Pause command throttled - too recent');
       }
@@ -727,6 +739,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Set user intent to not playing
     _userIntendedPlaying = false;
+    _logger.info('User intent set to paused', 'AudioHandler');
     
     try {
       await _player.pause();
@@ -735,10 +748,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         playing: false,
       ));
       
+      _logger.info('Pause command completed successfully', 'AudioHandler');
       if (kDebugMode) {
         print('Pause command completed. User intended playing: $_userIntendedPlaying');
       }
     } catch (e) {
+      _logger.error('Error in pause command: $e', 'AudioHandler');
       if (kDebugMode) {
         print('Error in pause command: $e');
       }
@@ -949,7 +964,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> skipToNext() async {
-    _logger.info('Skip to next track requested (current: ${_stateManager.currentIndex})', 'AudioHandler');
+    _logger.info('Skip to next track requested (current: ${_stateManager.currentIndex}/${_stateManager.playlist.length - 1})', 'AudioHandler');
     
     if (kDebugMode) {
       print('Skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
@@ -959,12 +974,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final wasPlaying = playbackState.value.playing;
     if (wasPlaying) {
       _userIntendedPlaying = true;
+      _logger.info('Preserving playing state during skip (user was listening)', 'AudioHandler');
     }
     
     // Use gapless transition if concatenation is active
     if (_isUsingConcatenation && _concatenatingSource != null) {
       final nextIndex = _stateManager.currentIndex + 1;
       if (nextIndex < _stateManager.playlist.length) {
+        _logger.info('Using gapless skip to next track: $nextIndex', 'AudioHandler');
         if (kDebugMode) {
           print('Using gapless skip to next track: $nextIndex');
         }
@@ -973,8 +990,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await _player.seekToNext();
           // State will be updated automatically via currentIndexStream
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          _logger.info('Gapless skip successful', 'AudioHandler');
           return;
         } catch (e) {
+          _logger.error('Gapless skip failed, falling back to traditional method: $e', 'AudioHandler');
           if (kDebugMode) {
             print('Gapless skip failed, falling back to traditional method: $e');
           }
@@ -985,6 +1004,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Fallback to traditional skip method
     // Use atomic transition manager to prevent race conditions
     if (!await _transitionManager.acquireTransitionLock('skipToNext')) {
+      _logger.warning('Skip to next rejected - another transition in progress', 'AudioHandler');
       if (kDebugMode) {
         print('Skip to next rejected - another transition in progress');
       }
@@ -997,13 +1017,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _stateManager.setTransitioning(false);
       
       if (await _stateManager.incrementCurrentIndexAtomic()) {
+        final nextTrack = _stateManager.currentTrack!;
+        _logger.info('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}', 'AudioHandler');
         if (kDebugMode) {
-          print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
+          print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}');
         }
         
         await _playCurrentTrack();
         await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        _logger.info('Skip to next completed successfully', 'AudioHandler');
       } else {
+        _logger.info('Already at last track, cannot skip to next', 'AudioHandler');
         if (kDebugMode) {
           print('Already at last track, cannot skip to next');
         }
@@ -1176,16 +1200,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> skipToPrevious() async {
+    _logger.info('Skip to previous track requested (current: ${_stateManager.currentIndex})', 'AudioHandler');
+    
     // Preserve playing state when skipping - if music was playing, it should continue playing
     final wasPlaying = playbackState.value.playing;
     if (wasPlaying) {
       _userIntendedPlaying = true;
+      _logger.info('Preserving playing state during skip to previous', 'AudioHandler');
     }
     
     // Use gapless transition if concatenation is active
     if (_isUsingConcatenation && _concatenatingSource != null) {
       final prevIndex = _stateManager.currentIndex - 1;
       if (prevIndex >= 0) {
+        _logger.info('Using gapless skip to previous track: $prevIndex', 'AudioHandler');
         if (kDebugMode) {
           print('Using gapless skip to previous track: $prevIndex');
         }
@@ -1194,8 +1222,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await _player.seekToPrevious();
           // State will be updated automatically via currentIndexStream
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          _logger.info('Gapless skip to previous successful', 'AudioHandler');
           return;
         } catch (e) {
+          _logger.error('Gapless skip to previous failed, falling back: $e', 'AudioHandler');
           if (kDebugMode) {
             print('Gapless skip to previous failed, falling back: $e');
           }
@@ -1205,6 +1235,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Use atomic transition manager for traditional skip
     if (!await _transitionManager.acquireTransitionLock('skipToPrevious')) {
+      _logger.warning('Skip to previous rejected - another transition in progress', 'AudioHandler');
       if (kDebugMode) {
         print('Skip to previous rejected - another transition in progress');
       }
@@ -1245,12 +1276,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _stateManager.setLastSkipToPreviousTime(now);
       
       if (shouldRestartCurrentSong) {
+        _logger.info('Restarting current song: ${_stateManager.currentTrack?.name}', 'AudioHandler');
         await _player.seek(Duration.zero);
         if (kDebugMode) {
           print('Restarting current song: ${_stateManager.currentTrack?.name}');
         }
       } else {
         if (await _stateManager.decrementCurrentIndexAtomic()) {
+          _logger.info('Skipping to previous track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
           await _playCurrentTrack();
           await _statePersistence.savePlaybackState(_player.position, _player.playing);
           if (kDebugMode) {
@@ -1260,6 +1293,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     } finally {
       _transitionManager.releaseTransitionLock();
+      _logger.info('Skip to previous completed', 'AudioHandler');
     }
   }
 
@@ -1296,6 +1330,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Enhanced track loading with gapless support and better error handling
   Future<void> _playCurrentTrack() async {
+    _logger.info('_playCurrentTrack called - Playlist: ${_stateManager.playlist.length} tracks, Index: ${_stateManager.currentIndex}, User intent: $_userIntendedPlaying', 'AudioHandler');
+    
     if (kDebugMode) {
       print('=== _playCurrentTrack DEBUG START ===');
       print('Playlist size: ${_stateManager.playlist.length}');
@@ -1304,6 +1340,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     if (_stateManager.playlist.isEmpty || _stateManager.currentIndex >= _stateManager.playlist.length) {
+      _logger.error('Cannot play current track: playlist empty or index out of bounds', 'AudioHandler');
       if (kDebugMode) {
         print('Cannot play current track: playlist empty or index out of bounds');
         print('=== _playCurrentTrack DEBUG END (ERROR) ===');
@@ -1312,6 +1349,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
 
     final track = _stateManager.currentTrack!;
+    final artistInfo = track.artistName != null ? ' by ${track.artistName}' : '';
+    _logger.info('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}$artistInfo', 'AudioHandler');
     
     if (kDebugMode) {
       print('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}');
@@ -1337,28 +1376,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Try gapless playback first if enabled and conditions are met
     if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1) {
+      _logger.info('Attempting gapless playback for playlist', 'AudioHandler');
       if (kDebugMode) {
         print('Attempting gapless playback...');
       }
       final gaplessResult = await _tryGaplessPlayback();
       if (gaplessResult) {
+        _logger.info('Successfully initiated gapless playback', 'AudioHandler');
         if (kDebugMode) {
           print('Successfully initiated gapless playback for playlist');
           print('=== _playCurrentTrack DEBUG END (GAPLESS) ===');
         }
         return;
       }
+      _logger.warning('Gapless playback failed, falling back to individual track', 'AudioHandler');
       if (kDebugMode) {
         print('Gapless playback failed, falling back to individual track');
       }
     }
     
     // Fall back to individual track playback
+    _logger.info('Using individual track playback', 'AudioHandler');
     if (kDebugMode) {
       print('Playing individual track...');
     }
     await _playIndividualTrack(track, wasPlaying);
     
+    _logger.info('_playCurrentTrack completed', 'AudioHandler');
     if (kDebugMode) {
       print('=== _playCurrentTrack DEBUG END ===');
     }
@@ -1456,6 +1500,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track, bool shouldPlay) async {
+    _logger.info('Loading track: ${track.name}, shouldPlay: $shouldPlay', 'AudioHandler');
     if (kDebugMode) {
       print('Loading track: ${track.name}, should play: $shouldPlay');
     }
@@ -1464,10 +1509,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       final audioSession = await AudioSession.instance;
       await audioSession.setActive(true);
+      _logger.debug('Audio session activated', 'AudioHandler');
       if (kDebugMode) {
         print('Audio session activated for track loading');
       }
     } catch (e) {
+      _logger.warning('Failed to activate audio session: $e', 'AudioHandler');
       if (kDebugMode) {
         print('Failed to activate audio session: $e');
       }
@@ -1479,6 +1526,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (localFilePath != null) {
       final localFile = File(localFilePath);
       if (await localFile.exists()) {
+        _logger.info('Found local file for track: ${track.name}', 'AudioHandler');
         try {
           await _player.setFilePath(localFilePath);
           
@@ -1491,10 +1539,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           if (shouldPlay) {
             await _player.play();
+            _logger.info('Auto-playing local file: ${track.name}', 'AudioHandler');
             if (kDebugMode) {
               print('Auto-playing local file: ${track.name} - should play: true');
             }
           } else {
+            _logger.info('Loaded local file (not auto-playing): ${track.name}', 'AudioHandler');
             if (kDebugMode) {
               print('Not auto-playing local file: ${track.name} - should play: false');
             }
@@ -1509,11 +1559,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             queueIndex: _stateManager.currentIndex,
           ));
           
+          _logger.info('Successfully loaded local file, playing: ${_player.playing}', 'AudioHandler');
           if (kDebugMode) {
             print('Successfully loaded local file: ${track.name}, playing: ${_player.playing}');
           }
           return;
         } catch (e) {
+          _logger.error('Failed to play local file: $e', 'AudioHandler');
           if (kDebugMode) {
             print('Failed to play local file: $e');
           }
