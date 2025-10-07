@@ -579,9 +579,9 @@ class _SearchPageState extends State<SearchPage> {
             : theme.textTheme.bodyLarge,
       ),
       subtitle: Text(_getItemSubtitle(item, type)),
-      trailing: _buildResultTrailing(item, type),
+      trailing: _buildResultTrailing(appState, item, type),
       onTap: () {
-        // Handle item tap
+        _handleItemTap(appState, item, type);
       },
       contentPadding: isTopResult 
           ? const EdgeInsets.all(8)
@@ -690,7 +690,7 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  Widget _buildResultTrailing(dynamic item, String type) {
+  Widget _buildResultTrailing(AppState appState, dynamic item, String type) {
     switch (type) {
       case 'track':
         return Row(
@@ -705,7 +705,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             IconButton(
               onPressed: () {
-                // Play track
+                _handlePlayTrack(appState, item);
               },
               icon: const Icon(Icons.play_arrow),
               iconSize: 20,
@@ -715,12 +715,34 @@ class _SearchPageState extends State<SearchPage> {
       default:
         return IconButton(
           onPressed: () {
-            // Default action
+            _handleItemTap(appState, item, type);
           },
           icon: const Icon(Icons.play_arrow),
           iconSize: 20,
         );
     }
+  }
+
+  void _handleItemTap(AppState appState, dynamic item, String type) {
+    switch (type) {
+      case 'track':
+        _handlePlayTrack(appState, item);
+        break;
+      case 'album':
+        // TODO: Navigate to album details
+        break;
+      case 'artist':
+        // TODO: Navigate to artist details
+        break;
+      case 'playlist':
+        // TODO: Navigate to playlist details
+        break;
+    }
+  }
+
+  void _handlePlayTrack(AppState appState, dynamic track) {
+    // Play the selected track
+    appState.playTrack(track);
   }
 
   String _getItemTitle(dynamic item, String type) {
