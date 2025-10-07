@@ -1560,6 +1560,7 @@ class AppState extends ChangeNotifier {
     _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
+    _loggingEnabled = prefs.getBool('logging_enabled') ?? false; // Disabled by default
     
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';
