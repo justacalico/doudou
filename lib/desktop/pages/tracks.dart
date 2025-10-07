@@ -542,11 +542,7 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'addToQueue':
                 // TODO: Implement add to queue
-                NotificationService.showNotification(
-                  context,
-                  message: 'Add to queue - Coming soon',
-                  type: NotificationType.info,
-                );
+                NotificationService.showInfo(context, 'Add to queue - Coming soon');
                 break;
               case 'addToPlaylist':
                 // TODO: Implement add to playlist
