@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../templates/desktop_layout.dart';
+import '../pages/details/album_details.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../services/notification_service.dart';
@@ -549,8 +550,7 @@ class _TracksPageState extends State<TracksPage> {
                 DesktopLayout.showAddToPlaylistDialog(context, track);
                 break;
               case 'showAlbum':
-                // TODO: Navigate to album
-                NotificationService.showInfo(context, 'Show album - Coming soon');
+                _navigateToAlbum(appState, track);
                 break;
               case 'showArtist':
                 // TODO: Navigate to artist
@@ -587,5 +587,30 @@ class _TracksPageState extends State<TracksPage> {
     // Shuffle favorite tracks before playing
     favoriteTracks.shuffle();
     appState.playPlaylist(favoriteTracks, 0);
+  }
+
+  void _navigateToAlbum(AppState appState, Track track) {
+    if (track.albumId == null) {
+      NotificationService.showError(context, 'Album information not available');
+      return;
+    }
+
+    // Find the album in the app state
+    final album = appState.albums.cast<Album?>().firstWhere(
+      (album) => album?.id == track.albumId,
+      orElse: () => null,
+    );
+
+    if (album == null) {
+      NotificationService.showError(context, 'Album not found');
+      return;
+    }
+
+    // Navigate to album details page
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AlbumDetailsPage(album: album),
+      ),
+    );
   }
 }
