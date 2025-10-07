@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for managing application logs that can be shared with developers
 class LoggingService {
@@ -13,6 +14,7 @@ class LoggingService {
   static const int _maxMemoryLogs = 1000;
   static const int _maxLogFileSize = 5 * 1024 * 1024; // 5MB
   bool _initialized = false;
+  bool _loggingEnabled = false;
 
   /// Format DateTime to string
   String _formatDate(DateTime dt) {
@@ -37,6 +39,10 @@ class LoggingService {
     if (_initialized) return;
     
     try {
+      // Load logging enabled setting
+      final prefs = await SharedPreferences.getInstance();
+      _loggingEnabled = prefs.getBool('logging_enabled') ?? false;
+      
       final directory = await getApplicationDocumentsDirectory();
       final logDir = Directory('${directory.path}/logs');
       if (!await logDir.exists()) {
@@ -56,13 +62,26 @@ class LoggingService {
       }
       
       _initialized = true;
-      log('INFO', 'Logging service initialized');
+      if (_loggingEnabled) {
+        log('INFO', 'Logging service initialized (logging enabled)');
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Failed to initialize logging service: $e');
       }
     }
   }
+
+  /// Update logging enabled state
+  Future<void> setLoggingEnabled(bool enabled) async {
+    _loggingEnabled = enabled;
+    if (enabled && _initialized) {
+      log('INFO', 'Logging enabled');
+    }
+  }
+
+  /// Check if logging is enabled
+  bool get isLoggingEnabled => _loggingEnabled;
 
   /// Rotate the log file when it gets too large
   Future<void> _rotateLog() async {
@@ -114,6 +133,9 @@ class LoggingService {
 
   /// Log a message with a specific level
   void log(String level, String message, [String? component]) {
+    // Skip logging if not enabled
+    if (!_loggingEnabled) return;
+    
     final now = DateTime.now();
     final timestamp = _formatFullTimestamp(now);
     final componentStr = component != null ? '[$component] ' : '';
