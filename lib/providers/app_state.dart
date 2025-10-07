@@ -39,6 +39,7 @@ class AppState extends ChangeNotifier {
   bool _gaplessPlaybackEnabled = true;
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
+  bool _loggingEnabled = false; // Disabled by default
   
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
@@ -63,6 +64,7 @@ class AppState extends ChangeNotifier {
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
+  bool get loggingEnabled => _loggingEnabled;
   
   // Theme getters
   ThemeMode get themeMode => _themeMode;
