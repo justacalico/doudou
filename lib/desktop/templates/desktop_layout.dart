@@ -468,12 +468,32 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                             } : null,
                                             icon: const Icon(Icons.favorite_border),
                                           ),
-                                          IconButton(
-                                            onPressed: () {
-                                              // Show volume slider
-                                              _showVolumeDialog(context);
+                                          StreamBuilder<double>(
+                                            stream: audioHandler?.volumeStream,
+                                            builder: (context, volumeSnapshot) {
+                                              final currentVolume = volumeSnapshot.data ?? 1.0;
+                                              
+                                              return IconButton(
+                                                onPressed: () {
+                                                  // Show volume slider
+                                                  _showVolumeDialog(context);
+                                                },
+                                                onLongPress: audioHandler != null ? () {
+                                                  // Quick mute/unmute on long press
+                                                  audioHandler.toggleMute();
+                                                } : null,
+                                                icon: Icon(
+                                                  currentVolume == 0.0
+                                                    ? Icons.volume_off
+                                                    : currentVolume < 0.5
+                                                      ? Icons.volume_down
+                                                      : Icons.volume_up,
+                                                ),
+                                                tooltip: currentVolume == 0.0 
+                                                  ? 'Unmute (Long press: Quick mute/unmute)'
+                                                  : 'Volume ${(currentVolume * 100).round()}% (Long press: Quick mute/unmute)',
+                                              );
                                             },
-                                            icon: const Icon(Icons.volume_up),
                                           ),
                                           IconButton(
                                             onPressed: currentTrack != null ? () {
@@ -856,16 +876,210 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   void _showVolumeDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Volume'),
-        content: const Text('Volume control coming soon...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+      barrierDismissible: true,
+      builder: (context) => Consumer<AppState>(
+        builder: (context, appState, child) {
+          final audioHandler = appState.audioHandler;
+          
+          return Dialog(
+            child: Container(
+              width: 300,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.volume_up,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Volume Control',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                        iconSize: 20,
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Volume slider
+                  if (audioHandler != null)
+                    StreamBuilder<double>(
+                      stream: audioHandler.volumeStream,
+                      builder: (context, volumeSnapshot) {
+                        final currentVolume = volumeSnapshot.data ?? 1.0;
+                        
+                        return Column(
+                          children: [
+                            // Volume percentage display
+                            Text(
+                              '${(currentVolume * 100).round()}%',
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 16),
+                            
+                            // Volume slider
+                            Row(
+                              children: [
+                                Icon(
+                                  currentVolume == 0 
+                                    ? Icons.volume_off
+                                    : currentVolume < 0.5
+                                      ? Icons.volume_down
+                                      : Icons.volume_up,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  size: 20,
+                                ),
+                                Expanded(
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 6,
+                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+                                      activeTrackColor: Theme.of(context).colorScheme.primary,
+                                      inactiveTrackColor: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                                      thumbColor: Theme.of(context).colorScheme.primary,
+                                      overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                    ),
+                                    child: Slider(
+                                      value: currentVolume.clamp(0.0, 1.0),
+                                      onChanged: (value) {
+                                        audioHandler.setVolume(value);
+                                      },
+                                      min: 0.0,
+                                      max: 1.0,
+                                      divisions: 20,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '100%',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: 20),
+                            
+                            // Quick volume buttons
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildQuickVolumeButton(
+                                  context,
+                                  audioHandler,
+                                  Icons.volume_off,
+                                  'Mute',
+                                  0.0,
+                                ),
+                                _buildQuickVolumeButton(
+                                  context,
+                                  audioHandler,
+                                  Icons.volume_down,
+                                  '25%',
+                                  0.25,
+                                ),
+                                _buildQuickVolumeButton(
+                                  context,
+                                  audioHandler,
+                                  Icons.volume_up,
+                                  '50%',
+                                  0.5,
+                                ),
+                                _buildQuickVolumeButton(
+                                  context,
+                                  audioHandler,
+                                  Icons.volume_up,
+                                  '75%',
+                                  0.75,
+                                ),
+                                _buildQuickVolumeButton(
+                                  context,
+                                  audioHandler,
+                                  Icons.volume_up,
+                                  '100%',
+                                  1.0,
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.volume_off,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No audio handler available',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildQuickVolumeButton(
+    BuildContext context,
+    dynamic audioHandler,
+    IconData icon,
+    String label,
+    double volume,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          onPressed: () => audioHandler?.setVolume(volume),
+          icon: Icon(icon),
+          style: IconButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+            foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 
