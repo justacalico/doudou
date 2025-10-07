@@ -763,6 +763,25 @@ class _SearchPageState extends State<SearchPage> {
     appState.playTrack(track);
   }
 
+  void _handleBrowseCardTap(String title) {
+    // Set the filter and trigger a search for all items in that category
+    setState(() {
+      switch (title) {
+        case 'Albums':
+          _selectedFilter = 'albums';
+          break;
+        case 'Artists':
+          _selectedFilter = 'artists';
+          break;
+        case 'Playlists':
+          _selectedFilter = 'playlists';
+          break;
+      }
+      _searchQuery = ''; // Clear search to show all items
+      _searchController.clear();
+    });
+  }
+
   String _getItemTitle(dynamic item, String type) {
     return item.name;
   }
