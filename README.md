@@ -56,10 +56,14 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 
 ### Installation
 
-#### Download from GitLab
-**[Download Latest Version →](https://gitlab.com/Openlyst/doudou/-/releases)**
+#### 📦 **Stable Releases (Recommended)**
+**For stable, tested builds, please see [releases](releases.md) for download links and installation instructions.**
 
-Get the latest release directly from our GitLab releases page:
+#### 🚧 **Pre-Release Builds**
+If you want the latest features and don't mind potential bugs, you can get pre-release builds from GitLab:
+**[Download Pre-Release →](https://gitlab.com/Openlyst/doudou/-/releases)**
+
+Available pre-release formats:
 - **Android APK** - Install on Android devices
 - **Linux builds** - Desktop application for Linux
 - **Web application** - Run in your browser
