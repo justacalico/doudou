@@ -444,25 +444,74 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     ),
                   ),
                   
-                  // Favorite button
+                  // Top right controls
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          album.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: album.isFavorite ? Colors.red : Colors.white,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // More options button
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: PopupMenuButton<String>(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            color: theme.colorScheme.surface,
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'addToPlaylist',
+                                child: ListTile(
+                                  leading: Icon(Icons.playlist_add),
+                                  title: Text('Add to playlist'),
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'play',
+                                child: ListTile(
+                                  leading: Icon(Icons.play_arrow),
+                                  title: Text('Play album'),
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'addToQueue',
+                                child: ListTile(
+                                  leading: Icon(Icons.queue_music),
+                                  title: Text('Add to queue'),
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                            onSelected: (value) => _handleAlbumAction(value, appState, album),
+                          ),
                         ),
-                        onPressed: () {
-                          // Toggle favorite
-                        },
-                        iconSize: 20,
-                      ),
+                        const SizedBox(width: 8),
+                        // Favorite button
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              album.isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: album.isFavorite ? Colors.red : Colors.white,
+                            ),
+                            onPressed: () {
+                              // Toggle favorite
+                            },
+                            iconSize: 20,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -517,6 +566,192 @@ class _AlbumsPageState extends State<AlbumsPage> {
         ),
       ),
     );
+  }
+
+  void _handleAlbumAction(String action, AppState appState, dynamic album) async {
+    switch (action) {
+      case 'addToPlaylist':
+        // Get all tracks from the album
+        final tracks = await appState.getAlbumTracks(album.id);
+        if (tracks.isNotEmpty) {
+          _showAddAlbumToPlaylistDialog(appState, album, tracks);
+        }
+        break;
+      case 'play':
+        final tracks = await appState.getAlbumTracks(album.id);
+        if (tracks.isNotEmpty) {
+          await appState.playPlaylist(tracks, 0);
+        }
+        break;
+      case 'addToQueue':
+        final tracks = await appState.getAlbumTracks(album.id);
+        for (final track in tracks) {
+          appState.addToQueue(track);
+        }
+        break;
+    }
+  }
+
+  void _showAddAlbumToPlaylistDialog(AppState appState, dynamic album, List<Track> tracks) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.playlist_add),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Add Album to Playlist'),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Album info
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.album,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              album.name,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${album.artistName} • ${tracks.length} tracks',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Playlist selection
+                Text(
+                  'Select Playlist:',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                
+                if (appState.playlists.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.playlist_remove,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'No playlists available',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: appState.playlists.length,
+                      itemBuilder: (context, index) {
+                        final playlist = appState.playlists[index];
+                        
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.playlist_play),
+                          title: Text(playlist.name),
+                          subtitle: Text('${playlist.trackCount} tracks'),
+                          onTap: () async {
+                            Navigator.of(context).pop();
+                            await _addAlbumToPlaylist(appState, playlist.id, tracks, album.name);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addAlbumToPlaylist(AppState appState, String playlistId, List<Track> tracks, String albumName) async {
+    try {
+      int successCount = 0;
+      for (final track in tracks) {
+        final success = await appState.jellyfinService.addToPlaylist(playlistId, track.id);
+        if (success) successCount++;
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              successCount == tracks.length 
+                ? 'Added "$albumName" ($successCount tracks) to playlist'
+                : 'Added $successCount of ${tracks.length} tracks from "$albumName" to playlist',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error adding album to playlist: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildAlbumPlaceholder(ThemeData theme) {
