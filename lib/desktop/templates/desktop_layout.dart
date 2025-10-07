@@ -326,7 +326,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           child: Column(
                             children: [
                               // Slim progress bar
-                              Container(
+                              SizedBox(
                                 height: 4,
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
