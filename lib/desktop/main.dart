@@ -6,12 +6,23 @@ import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import '../providers/app_state.dart';
+import '../services/logging_service.dart';
 import '../screens/login/login.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize logging service
+  try {
+    await LoggingService().initialize();
+    LoggingService().info('Doudou desktop application starting');
+  } catch (e) {
+    if (kDebugMode) {
+      print('Failed to initialize logging service: $e');
+    }
+  }
   
   // Initialize sqflite for Linux/Windows/macOS
   if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
