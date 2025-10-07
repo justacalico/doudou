@@ -1,15 +1,18 @@
 import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
+import '../logging_service.dart';
 import 'audio_state_manager.dart';
 
 /// Manages queue operations including shuffle, add/remove tracks, and queue manipulation
 class AudioQueueManager {
   final AudioStateManager _stateManager;
+  final LoggingService _logger = LoggingService();
   
   AudioQueueManager(this._stateManager);
   
   Future<void> addToQueue(Track track) async {
     await _stateManager.addToPlaylistAtomic(track);
+    _logger.info('Added track to queue: ${track.name} (Total: ${_stateManager.queueLength} tracks)', 'QueueManager');
     
     if (kDebugMode) {
       print('Added track to queue: ${track.name}');
@@ -21,6 +24,7 @@ class AudioQueueManager {
     final insertIndex = _stateManager.currentIndex + 1;
     
     await _stateManager.insertIntoPlaylistAtomic(insertIndex, track);
+    _logger.info('Added track to play next: ${track.name} at position $insertIndex', 'QueueManager');
     
     if (kDebugMode) {
       print('Added track to play next: ${track.name} at position $insertIndex');
@@ -29,12 +33,14 @@ class AudioQueueManager {
   
   Future<bool> removeFromQueue(int index) async {
     if (index < 0 || index >= _stateManager.queueLength || index == _stateManager.currentIndex) {
+      _logger.warning('Cannot remove track at index $index (invalid or current track)', 'QueueManager');
       return false;
     }
     
     final success = await _stateManager.removeFromPlaylistAtomic(index);
     
-    if (success && kDebugMode) {
+    if (success) {
+      _logger.info('Removed track from queue at index: $index', 'QueueManager');
       if (kDebugMode) {
         print('Removed track from queue at index: $index');
       }
@@ -45,6 +51,7 @@ class AudioQueueManager {
   
   Future<void> clearQueue() async {
     await _stateManager.clearPlaylistAtomic();
+    _logger.info('Cleared entire queue', 'QueueManager');
     
     if (kDebugMode) {
       print('Cleared entire queue');
@@ -55,7 +62,10 @@ class AudioQueueManager {
     final playlist = _stateManager.playlist;
     final currentIndex = _stateManager.currentIndex;
     
-    if (playlist.length <= 1) return;
+    if (playlist.length <= 1) {
+      _logger.info('Cannot shuffle - playlist has 1 or fewer tracks', 'QueueManager');
+      return;
+    }
     
     _stateManager.setShuffled(true);
     final currentTrack = playlist[currentIndex];
@@ -72,6 +82,7 @@ class AudioQueueManager {
     _stateManager.setPlaylist(newPlaylist);
     _stateManager.setCurrentIndex(0);
     
+    _logger.info('Shuffled playlist: ${newPlaylist.length} tracks', 'QueueManager');
     if (kDebugMode) {
       print('Shuffled playlist: ${newPlaylist.length} tracks');
     }
@@ -80,6 +91,7 @@ class AudioQueueManager {
   void unshuffle() {
     // Since we don't store the original playlist, we'll just disable shuffle mode
     _stateManager.setShuffled(false);
+    _logger.info('Unshuffle called - shuffle mode disabled', 'QueueManager');
     
     if (kDebugMode) {
       print('Unshuffle called - shuffle mode disabled');
@@ -92,6 +104,7 @@ class AudioQueueManager {
     _stateManager.setCurrentIndex(startIndex.clamp(0, tracks.length - 1));
     _stateManager.setShuffled(false);
     
+    _logger.info('Set new playlist: ${tracks.length} tracks, starting at index $startIndex', 'QueueManager');
     if (kDebugMode) {
       print('Set new playlist: ${tracks.length} tracks, starting at index $startIndex');
     }
@@ -102,6 +115,7 @@ class AudioQueueManager {
     _stateManager.setPlaylist([track]);
     _stateManager.setCurrentIndex(0);
     
+    _logger.info('Set single track playlist: ${track.name}', 'QueueManager');
     if (kDebugMode) {
       print('Set single track playlist: ${track.name}');
     }
@@ -113,6 +127,7 @@ class AudioQueueManager {
       await _stateManager.addToPlaylistAtomic(track);
     }
     
+    _logger.info('Added ${tracks.length} tracks to playlist (now ${_stateManager.playlist.length} total)', 'QueueManager');
     if (kDebugMode) {
       print('Added ${tracks.length} tracks to playlist (now ${_stateManager.playlist.length} total)');
     }

@@ -2,7 +2,10 @@
 
 ## Added
 
-- Logging
+- Comprehensive logging system with file rotation and export capabilities
+- Mobile and desktop logs viewer in settings
+- Detailed playback logging for troubleshooting music playback issues
+- Queue operation logging for debugging playlist management
 - New desktop UI
 
 ## Changed
@@ -16,3 +19,5 @@
 ## Fixed
 
 - Fixed skipping on linux
+- Improved playback diagnostics with comprehensive logging throughout audio system
+
