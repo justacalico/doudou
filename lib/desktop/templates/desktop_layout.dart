@@ -398,7 +398,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                               final track = appState.findTrackById(currentTrack.id);
                                                               final playCount = track?.playCount;
                                                               final timeText = '${_formatDuration(position)} / ${_formatDuration(duration)}';
-                                                              final playCountText = playCount != null && playCount > 0 ? ' • ${playCount} plays' : '';
+                                                              final playCountText = playCount != null && playCount > 0 ? ' • $playCount plays' : '';
                                                               
                                                               return Text(
                                                                 '$timeText$playCountText',
