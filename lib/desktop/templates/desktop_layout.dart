@@ -506,13 +506,22 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                 ],
                                               ),
                                               child: IconButton(
-                                                onPressed: audioHandler != null && currentTrack != null
+                                                onPressed: audioHandler != null && currentTrack != null && !isBuffering
                                                     ? () => appState.playPause()
                                                     : null,
-                                                icon: Icon(
-                                                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                                  size: 28,
-                                                ),
+                                                icon: isBuffering 
+                                                  ? SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: theme.colorScheme.onPrimary,
+                                                      ),
+                                                    )
+                                                  : Icon(
+                                                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                      size: 28,
+                                                    ),
                                                 style: IconButton.styleFrom(
                                                   foregroundColor: theme.colorScheme.onPrimary,
                                                   shape: RoundedRectangleBorder(
