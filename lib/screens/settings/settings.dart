@@ -6,6 +6,7 @@ import '../../providers/app_state.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
+import 'logs_viewer.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -138,6 +139,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Clean Expired Cache',
                           subtitle: 'Remove old cached data',
                           onTap: () => _cleanExpiredCache(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                // Logs & Diagnostics Section
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF2C2C2E),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSectionHeader('Logs & Diagnostics'),
+                        _buildSettingTile(
+                          icon: CupertinoIcons.doc_text_viewfinder,
+                          title: 'View Application Logs',
+                          subtitle: 'View and export debug logs',
+                          onTap: () => Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => const LogsViewerScreen(),
+                            ),
+                          ),
                         ),
                       ],
                     ),
