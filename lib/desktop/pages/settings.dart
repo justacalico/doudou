@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import '../../services/logging_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -46,6 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
       {'id': 'audio', 'title': 'Audio', 'icon': Icons.volume_up},
       {'id': 'appearance', 'title': 'Appearance', 'icon': Icons.palette},
       {'id': 'server', 'title': 'Server', 'icon': Icons.dns},
+      {'id': 'logs', 'title': 'Logs', 'icon': Icons.description},
       {'id': 'about', 'title': 'About', 'icon': Icons.info},
     ];
 
@@ -107,6 +109,8 @@ class _SettingsPageState extends State<SettingsPage> {
         return _buildAppearanceSettings(appState);
       case 'server':
         return _buildServerSettings(appState);
+      case 'logs':
+        return _buildLogsSettings();
       case 'about':
         return _buildAboutSettings(appState);
       default:
@@ -642,6 +646,12 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget _buildLogsSettings() {
+    final theme = Theme.of(context);
+    
+    return _DesktopLogsViewer(theme: theme);
+  }
+
   Widget _buildAboutSettings(AppState appState) {
     final theme = Theme.of(context);
     
@@ -1124,6 +1134,316 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     return Platform.operatingSystem;
   }
+}
 
+// Desktop Logs Viewer Widget
+class _DesktopLogsViewer extends StatefulWidget {
+  final ThemeData theme;
+  
+  const _DesktopLogsViewer({required this.theme});
 
+  @override
+  State<_DesktopLogsViewer> createState() => _DesktopLogsViewerState();
+}
+
+class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
+  final LoggingService _loggingService = LoggingService();
+  List<String> _logs = [];
+  Map<String, dynamic> _logStats = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLogs();
+  }
+
+  Future<void> _loadLogs() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final logs = _loggingService.getMemoryLogs();
+      final stats = await _loggingService.getLogStats();
+      
+      setState(() {
+        _logs = logs;
+        _logStats = stats;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _logs = ['Error loading logs: $e'];
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _formatSize(int bytes) {
+    if (bytes > 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    } else if (bytes > 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '$bytes bytes';
+    }
+  }
+
+  Future<void> _exportLogs() async {
+    try {
+      final logs = await _loggingService.exportLogs();
+      final file = File('${Platform.environment['HOME']}/doudou_logs_export.txt');
+      await file.writeAsString(logs);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logs exported to: ${file.path}'),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to export logs: $e'),
+            backgroundColor: widget.theme.colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearLogs() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Logs'),
+        content: const Text('Are you sure you want to clear all logs? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: widget.theme.colorScheme.error,
+            ),
+            child: const Text('Clear'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirm == true) {
+      await _loggingService.clearLogs();
+      await _loadLogs();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Application Logs',
+            style: widget.theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Stats Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Log Statistics',
+                    style: widget.theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatItem(
+                          'Log Files',
+                          '${_logStats['file_count'] ?? 0}',
+                          Icons.insert_drive_file,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatItem(
+                          'Total Size',
+                          _formatSize(_logStats['total_size'] ?? 0),
+                          Icons.storage,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatItem(
+                          'Memory Logs',
+                          '${_logStats['memory_logs'] ?? 0}',
+                          Icons.memory,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Action Buttons
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                    onPressed: _loadLogs,
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.download),
+                    label: const Text('Export Logs'),
+                    onPressed: _exportLogs,
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.delete),
+                    label: const Text('Clear Logs'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.theme.colorScheme.error,
+                      foregroundColor: widget.theme.colorScheme.onError,
+                    ),
+                    onPressed: _clearLogs,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Logs Viewer
+          Card(
+            child: Container(
+              height: 500,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent Logs',
+                    style: widget.theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _logs.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'No logs available',
+                                  style: TextStyle(
+                                    color: widget.theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  color: widget.theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: widget.theme.colorScheme.outline.withOpacity(0.2),
+                                  ),
+                                ),
+                                child: ListView.builder(
+                                  itemCount: _logs.length,
+                                  itemBuilder: (context, index) {
+                                    final log = _logs[_logs.length - 1 - index]; // Reverse order
+                                    Color logColor = widget.theme.colorScheme.onSurface;
+                                    
+                                    if (log.contains('[ERROR]')) {
+                                      logColor = widget.theme.colorScheme.error;
+                                    } else if (log.contains('[WARN]')) {
+                                      logColor = Colors.orange;
+                                    } else if (log.contains('[INFO]')) {
+                                      logColor = widget.theme.colorScheme.primary;
+                                    } else if (log.contains('[DEBUG]')) {
+                                      logColor = widget.theme.colorScheme.onSurfaceVariant;
+                                    }
+                                    
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 2,
+                                      ),
+                                      child: SelectableText(
+                                        log,
+                                        style: TextStyle(
+                                          fontFamily: 'monospace',
+                                          fontSize: 12,
+                                          color: logColor,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: widget.theme.colorScheme.primaryContainer.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 24, color: widget.theme.colorScheme.primary),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: widget.theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: widget.theme.colorScheme.primary,
+            ),
+          ),
+          Text(
+            label,
+            style: widget.theme.textTheme.bodySmall?.copyWith(
+              color: widget.theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
