@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../templates/desktop_layout.dart';
 import '../pages/details/album_details.dart';
+import '../pages/details/artist_details.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../services/notification_service.dart';
@@ -553,7 +554,7 @@ class _TracksPageState extends State<TracksPage> {
                 _navigateToAlbum(appState, track);
                 break;
               case 'showArtist':
-                // TODO: Navigate to artist
+                _navigateToArtist(appState, track);
                 break;
             }
           },
@@ -610,6 +611,31 @@ class _TracksPageState extends State<TracksPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AlbumDetailsPage(album: album),
+      ),
+    );
+  }
+
+  void _navigateToArtist(AppState appState, Track track) {
+    if (track.artistName == null) {
+      NotificationService.showError(context, 'Artist information not available');
+      return;
+    }
+
+    // Find the artist in the app state by name
+    final artist = appState.artists.cast<Artist?>().firstWhere(
+      (artist) => artist?.name == track.artistName,
+      orElse: () => null,
+    );
+
+    if (artist == null) {
+      NotificationService.showError(context, 'Artist not found');
+      return;
+    }
+
+    // Navigate to artist details page
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ArtistDetailsPage(artist: artist),
       ),
     );
   }
