@@ -10,7 +10,7 @@
 | **Linux** | [Download](https://gitlab.com/Openlyst/doudou/-/jobs/artifacts/9801d626eb5dd23eb6cdc146adc5a2f78631817f/download?job=build_release_linux) |
 | **Web** | [Download Web App](https://gitlab.com/Openlyst/doudou/-/jobs/artifacts/9801d626eb5dd23eb6cdc146adc5a2f78631817f/download?job=build_debug_web) |
 | **Windows** | [Source Code](https://gitlab.com/Openlyst/doudou/-/archive/pipeline-2070928152/doudou-pipeline-2070928152.tar.gz) |
-| **macOS** | [Source Code](https://gitlab.com/Openlyst/doudou/-/archive/pipeline-2070928152/doudou-pipeline-2070928152.tar.gz) |
+| **macOS** | [Download Universal](https://github.com/HttpAnimation/awdawd/releases/download/6.0.0/doudou-flutter-6.0.0-macos.zip) |
 | **iOS** | [Source Code](https://gitlab.com/Openlyst/doudou/-/archive/pipeline-2070928152/doudou-pipeline-2070928152.tar.gz) |
 
 ### Release Notes
