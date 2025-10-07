@@ -592,18 +592,11 @@ class _TracksPageState extends State<TracksPage> {
     final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
     
     if (favoriteTracks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No favorite tracks found')),
-      );
       return;
     }
     
     // Shuffle favorite tracks before playing
     favoriteTracks.shuffle();
     appState.playPlaylist(favoriteTracks, 0);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Shuffling ${favoriteTracks.length} favorite tracks')),
-    );
   }
 }
