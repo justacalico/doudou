@@ -942,13 +942,22 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               ),
                               const SizedBox(width: 16),
                               IconButton(
-                                onPressed: audioHandler != null && currentTrack != null
+                                onPressed: audioHandler != null && currentTrack != null && !isBuffering
                                     ? () => Provider.of<AppState>(context, listen: false).playPause()
                                     : null,
-                                icon: Icon(
-                                  isPlaying ? Icons.pause : Icons.play_arrow,
-                                ),
-                                iconSize: 48,
+                                icon: isBuffering 
+                                  ? SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        color: theme.colorScheme.onPrimary,
+                                      ),
+                                    )
+                                  : Icon(
+                                      isPlaying ? Icons.pause : Icons.play_arrow,
+                                      size: 48,
+                                    ),
                                 style: IconButton.styleFrom(
                                   backgroundColor: theme.colorScheme.primary,
                                   foregroundColor: theme.colorScheme.onPrimary,
