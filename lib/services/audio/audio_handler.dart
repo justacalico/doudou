@@ -105,6 +105,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService) {
+    _logger.info('Initializing DoudouAudioHandler', 'AudioHandler');
+    _logger.info('AudioPlayer created - Platform: ${Platform.operatingSystem}', 'AudioHandler');
+    
     _stateManager = AudioStateManager();
     _preloader = AudioPreloader(_jellyfinService, _downloadService);
     _queueManager = AudioQueueManager(_stateManager);
@@ -112,10 +115,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _statePersistence = AudioStatePersistence(_stateManager);
     _transitionManager = AudioTransitionManager();
     
+    _logger.info('Audio components initialized', 'AudioHandler');
+    
     // Initialize Touch Bar service on macOS
     if (Platform.isMacOS) {
       _touchBarEnabled = true;
       _initializeTouchBar();
+      _logger.info('TouchBar initialized', 'AudioHandler');
     }
     
     // Initialize iOS audio session FIRST before any other audio setup (iOS only)
@@ -230,6 +236,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Simplified completion detection - only handle actual completion
     _player.processingStateStream.listen((state) {
+      _logger.info('Processing state changed: $state (userIntended: $_userIntendedPlaying)', 'AudioHandler');
       if (kDebugMode) {
         print('Processing state changed: $state');
       }
@@ -242,6 +249,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _bufferingLoopCount++;
           // Dramatically increased threshold to prevent false positives - was 15, now 25
           if (_bufferingLoopCount >= 25) {
+            _logger.warning('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery', 'AudioHandler');
             if (kDebugMode) {
               print('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery');
             }
@@ -258,11 +266,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _lastBufferingTime = null;
       }
       
+      // Log critical state changes
+      if (state == ProcessingState.ready && _userIntendedPlaying) {
+        _logger.info('Track is ready and user intended playing - playback should start', 'AudioHandler');
+      } else if (state == ProcessingState.ready && !_userIntendedPlaying) {
+        _logger.info('Track is ready but user did not intend playing - paused state', 'AudioHandler');
+      } else if (state == ProcessingState.idle) {
+        _logger.warning('Processing state is IDLE - may indicate playback failure', 'AudioHandler');
+      }
+      
       // ONLY handle actual completion state - no forced completion
       // Add extra protection to prevent race conditions
       if (state == ProcessingState.completed && 
           !_transitionManager.isTransitionInProgress && 
           !_stateManager.isHandlingCompletion) {
+        _logger.info('Track actually completed, handling transition...', 'AudioHandler');
         if (kDebugMode) {
           print('Track actually completed, handling transition...');
         }
@@ -275,8 +293,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Monitor playback for state persistence only - separate listener to avoid conflicts
+    // Monitor playback for state persistence and detailed logging
     _player.playerStateStream.listen((playerState) {
+      _logger.info('Player state changed: playing=${playerState.playing}, processingState=${playerState.processingState} (userIntended: $_userIntendedPlaying)', 'AudioHandler');
+      
+      // Log critical state mismatches that might indicate Flatpak issues
+      if (_userIntendedPlaying && !playerState.playing && playerState.processingState == ProcessingState.ready) {
+        _logger.warning('CRITICAL: User intended playing but player is not playing despite being ready!', 'AudioHandler');
+      }
+      if (!_userIntendedPlaying && playerState.playing) {
+        _logger.warning('CRITICAL: Player is playing but user did not intend to play!', 'AudioHandler');
+      }
+      
       // Only handle persistence, don't interfere with playback state
       if (playerState.playing) {
         // Only start periodic saving if not already started
@@ -1628,21 +1656,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (_shouldTranscodeTrack(track)) {
             final hlsUrl = _getHlsStreamUrl(track);
             if (hlsUrl.isNotEmpty) {
+              _logger.info('Creating HLS audio source - URL: $hlsUrl', 'AudioHandler');
               await _player.setAudioSource(HlsAudioSource(Uri.parse(hlsUrl)));
-              _logger.info('Using HLS stream for: ${track.name}', 'AudioHandler');
+              _logger.info('HLS audio source set successfully for: ${track.name}', 'AudioHandler');
               if (kDebugMode) {
                 print('Using HLS stream for: ${track.name}');
               }
             } else {
+              _logger.info('Setting regular stream URL: $streamUrl', 'AudioHandler');
               await _player.setUrl(streamUrl);
-              _logger.info('Using regular stream URL for: ${track.name}', 'AudioHandler');
+              _logger.info('Regular stream URL set successfully for: ${track.name}', 'AudioHandler');
               if (kDebugMode) {
                 print('Using regular stream URL for: ${track.name}');
               }
             }
           } else {
+            _logger.info('Setting direct stream URL: $streamUrl', 'AudioHandler');
             await _player.setUrl(streamUrl);
-            _logger.info('Using direct stream URL for: ${track.name}', 'AudioHandler');
+            _logger.info('Direct stream URL set successfully for: ${track.name}', 'AudioHandler');
             if (kDebugMode) {
               print('Using direct stream URL for: ${track.name}');
             }
@@ -1658,8 +1689,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           
           if (shouldPlay) {
+            _logger.info('Attempting to play stream - calling _player.play()', 'AudioHandler');
             await _player.play();
-            _logger.info('Auto-playing stream: ${track.name}', 'AudioHandler');
+            _logger.info('_player.play() completed - Player state: playing=${_player.playing}, processingState=${_player.processingState}', 'AudioHandler');
             if (kDebugMode) {
               print('Auto-playing stream: ${track.name} - should play: true');
             }
@@ -1725,33 +1757,47 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Custom methods for the app
   Future<void> playTrack(Track track) async {
+    _logger.info('=== PLAY TRACK REQUEST START ===', 'AudioHandler');
+    _logger.info('Track: ${track.name} (ID: ${track.id})', 'AudioHandler');
+    _logger.info('Artist: ${track.artistName ?? "Unknown"}', 'AudioHandler');
+    _logger.info('Album: ${track.albumName ?? "Unknown"}', 'AudioHandler');
+    _logger.info('Duration: ${track.duration != null ? "${track.duration! ~/ 1000}s" : "Unknown"}', 'AudioHandler');
+    
     // Set user intent to playing since this is an explicit play action
     _userIntendedPlaying = true;
+    _logger.info('User intent set to playing', 'AudioHandler');
     
     // Clear existing state - single track doesn't use concatenation
+    _logger.info('Stopping existing player', 'AudioHandler');
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
     _concatenatingSource = null;
+    _logger.info('Cleared existing player state and cache', 'AudioHandler');
     
     // Reset all transition states atomically
     await _transitionManager.waitForTransitionComplete();
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
+    _logger.info('Reset transition states', 'AudioHandler');
     
     _queueManager.setSingleTrack(track);
+    _logger.info('Set single track in queue manager', 'AudioHandler');
     
     playbackState.add(playbackState.value.copyWith(
       playing: true,
       processingState: AudioProcessingState.loading,
       queueIndex: 0,
     ));
+    _logger.info('Updated playback state to loading', 'AudioHandler');
     
+    _logger.info('Calling _playCurrentTrack()', 'AudioHandler');
     await _playCurrentTrack();
+    _logger.info('=== PLAY TRACK REQUEST END ===', 'AudioHandler');
     
     if (kDebugMode) {
-      print('Single track playback initiated: ${track.name}');
+      print('Single track playbook initiated: ${track.name}');
     }
   }
 
