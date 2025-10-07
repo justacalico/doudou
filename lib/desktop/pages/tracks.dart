@@ -554,9 +554,6 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'showArtist':
                 // TODO: Navigate to artist
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Show artist - Coming soon')),
-                );
                 break;
             }
           },
@@ -570,10 +567,6 @@ class _TracksPageState extends State<TracksPage> {
     
     // Play all tracks starting from the first one
     appState.playPlaylist(_tracks, 0);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Playing all ${_tracks.length} tracks')),
-    );
   }
 
   void _shuffleAllTracks(AppState appState) {
@@ -582,10 +575,6 @@ class _TracksPageState extends State<TracksPage> {
     // Create a shuffled copy of the tracks
     final shuffledTracks = List<Track>.from(_tracks)..shuffle();
     appState.playPlaylist(shuffledTracks, 0);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Shuffling all ${_tracks.length} tracks')),
-    );
   }
 
   void _playFavoriteTracks(AppState appState) {
