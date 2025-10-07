@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
+import '../templates/desktop_layout.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../services/notification_service.dart';
@@ -545,8 +546,7 @@ class _TracksPageState extends State<TracksPage> {
                 NotificationService.showInfo(context, 'Add to queue - Coming soon');
                 break;
               case 'addToPlaylist':
-                // TODO: Implement add to playlist
-                NotificationService.showInfo(context, 'Add to playlist - Coming soon');
+                DesktopLayout.showAddToPlaylistDialog(context, track);
                 break;
               case 'showAlbum':
                 // TODO: Navigate to album
