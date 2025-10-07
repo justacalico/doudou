@@ -11,6 +11,7 @@ import '../services/audio/audio_handler.dart';
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
+import '../services/logging_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -1549,6 +1550,19 @@ class AppState extends ChangeNotifier {
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('show_album_art_enabled', enabled);
+    
+    notifyListeners();
+  }
+
+  Future<void> toggleLogging(bool enabled) async {
+    _loggingEnabled = enabled;
+    
+    // Update the logging service
+    await LoggingService().setLoggingEnabled(enabled);
+    
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('logging_enabled', enabled);
     
     notifyListeners();
   }
