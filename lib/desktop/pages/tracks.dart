@@ -90,11 +90,21 @@ class _TracksPageState extends State<TracksPage> {
     });
   }
 
-  String _formatDuration(int? seconds) {
-    if (seconds == null) return '--:--';
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  String _formatDuration(int? milliseconds) {
+    if (milliseconds == null) return '--:--';
+    
+    // Convert milliseconds to seconds
+    final totalSeconds = milliseconds ~/ 1000;
+    
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+    
+    if (hours > 0) {
+      return '${hours}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    } else {
+      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
   }
 
   @override
