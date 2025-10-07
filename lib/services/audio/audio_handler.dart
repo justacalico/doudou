@@ -2054,6 +2054,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Duration? get duration => _player.duration;
   PlayerState get playerState => _player.playerState;
 
+  // Volume control
+  Stream<double> get volumeStream => _player.volumeStream;
+  double get volume => _player.volume;
+  
+  Future<void> setVolume(double volume) async {
+    await _player.setVolume(volume.clamp(0.0, 1.0));
+  }
+
+  // Volume convenience methods
+  double? _previousVolume;
+  
+  Future<void> toggleMute() async {
+    if (_player.volume > 0.0) {
+      _previousVolume = _player.volume;
+      await setVolume(0.0);
+    } else {
+      await setVolume(_previousVolume ?? 1.0);
+    }
+  }
+  
+  Future<void> volumeUp([double step = 0.1]) async {
+    await setVolume((_player.volume + step).clamp(0.0, 1.0));
+  }
+  
+  Future<void> volumeDown([double step = 0.1]) async {
+    await setVolume((_player.volume - step).clamp(0.0, 1.0));
+  }
+
   @override
   Future<void> onTaskRemoved() async {
     if (kDebugMode) {
