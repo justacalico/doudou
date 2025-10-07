@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import 'details/album_details.dart';
+import 'details/artist_details.dart';
+import 'details/playlist_details.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -384,7 +387,7 @@ class _SearchPageState extends State<SearchPage> {
     return Card(
       child: InkWell(
         onTap: () {
-          // Navigate to respective section
+          _handleBrowseCardTap(title);
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -729,13 +732,28 @@ class _SearchPageState extends State<SearchPage> {
         _handlePlayTrack(appState, item);
         break;
       case 'album':
-        // TODO: Navigate to album details
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AlbumDetailsPage(album: item),
+          ),
+        );
         break;
       case 'artist':
-        // TODO: Navigate to artist details
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ArtistDetailsPage(artist: item),
+          ),
+        );
         break;
       case 'playlist':
-        // TODO: Navigate to playlist details
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlaylistDetailsPage(playlist: item),
+          ),
+        );
         break;
     }
   }
