@@ -393,14 +393,23 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                         ),
                                                         Flexible(
                                                           flex: 2,
-                                                          child: Text(
-                                                            '${_formatDuration(position)} / ${_formatDuration(duration)}',
-                                                            style: theme.textTheme.bodySmall?.copyWith(
-                                                              color: theme.colorScheme.onSurfaceVariant,
-                                                              fontFamily: 'monospace',
-                                                            ),
-                                                            maxLines: 1,
-                                                            overflow: TextOverflow.ellipsis,
+                                                          child: Consumer<AppState>(
+                                                            builder: (context, appState, child) {
+                                                              final track = appState.findTrackById(currentTrack.id);
+                                                              final playCount = track?.playCount;
+                                                              final timeText = '${_formatDuration(position)} / ${_formatDuration(duration)}';
+                                                              final playCountText = playCount != null && playCount > 0 ? ' • ${playCount} plays' : '';
+                                                              
+                                                              return Text(
+                                                                '$timeText$playCountText',
+                                                                style: theme.textTheme.bodySmall?.copyWith(
+                                                                  color: theme.colorScheme.onSurfaceVariant,
+                                                                  fontFamily: 'monospace',
+                                                                ),
+                                                                maxLines: 1,
+                                                                overflow: TextOverflow.ellipsis,
+                                                              );
+                                                            },
                                                           ),
                                                         ),
                                                       ],
@@ -654,6 +663,28 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
+                                          
+                                          // Show play count if available
+                                          Consumer<AppState>(
+                                            builder: (context, appState, child) {
+                                              final track = appState.findTrackById(currentTrack?.id);
+                                              final playCount = track?.playCount;
+                                              
+                                              if (playCount != null && playCount > 0) {
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(top: 4),
+                                                  child: Text(
+                                                    '$playCount plays',
+                                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                      color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                );
+                                              }
+                                              return const SizedBox.shrink();
+                                            },
+                                          ),
                                         ],
                                       ),
                                     ),
