@@ -6,11 +6,13 @@
 - Mobile and desktop logs viewer in settings
 - Detailed playback logging for troubleshooting music playback issues
 - Queue operation logging for debugging playlist management
+- User-configurable logging toggle (disabled by default for performance)
 - New desktop UI
 
 ## Changed
 
 - New description
+- Logging is disabled by default and can be enabled in settings
 
 ## Removed
 
