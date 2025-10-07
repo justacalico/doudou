@@ -539,10 +539,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               width: MediaQuery.of(context).size.width * 0.85,
               height: MediaQuery.of(context).size.height * 0.85,
               constraints: const BoxConstraints(
-                minWidth: 600,
-                minHeight: 400,
+                minWidth: 700,
+                minHeight: 500,
                 maxWidth: 1200,
-                maxHeight: 800,
+                maxHeight: 900,
               ),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
@@ -590,16 +590,20 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               flex: 1,
                               child: Container(
                                 padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Album art
-                                    Flexible(
-                                      flex: 3,
-                                      child: LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          final maxSize = constraints.maxHeight * 0.8;
-                                          final size = (constraints.maxWidth * 0.7).clamp(150.0, maxSize.clamp(200.0, 280.0));
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        // Album art
+                                        Flexible(
+                                          flex: 3,
+                                          child: LayoutBuilder(
+                                            builder: (context, artConstraints) {
+                                              final availableHeight = artConstraints.maxHeight;
+                                              final availableWidth = artConstraints.maxWidth;
+                                              final maxSize = availableHeight * 0.9;
+                                              final size = (availableWidth * 0.8).clamp(120.0, maxSize.clamp(150.0, 250.0));
                                           return Container(
                                             width: size,
                                             height: size,
@@ -636,30 +640,31 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                                                   size: size * 0.3,
                                                 ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    
-                                    const SizedBox(height: 16),
-                                    
-                                    // Track info
-                                    Flexible(
-                                      flex: 1,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        
+                                        const SizedBox(height: 12),
+                                        
+                                        // Track info
+                                        Flexible(
+                                          flex: 1,
+                                          child: SingleChildScrollView(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
                                           Text(
                                             currentTrack?.title ?? 'No track playing',
                                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                               fontWeight: FontWeight.bold,
                                             ),
                                             textAlign: TextAlign.center,
-                                            maxLines: 3,
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           
-                                          const SizedBox(height: 6),
+                                          const SizedBox(height: 4),
                                           
                                           Text(
                                             currentTrack?.artist ?? 'Unknown Artist',
@@ -672,7 +677,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           ),
                                           
                                           if (currentTrack?.album != null) ...[
-                                            const SizedBox(height: 2),
+                                            const SizedBox(height: 1),
                                             Text(
                                               currentTrack!.album!,
                                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -692,23 +697,28 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               
                                               if (playCount != null && playCount > 0) {
                                                 return Padding(
-                                                  padding: const EdgeInsets.only(top: 4),
+                                                  padding: const EdgeInsets.only(top: 2),
                                                   child: Text(
                                                     '$playCount plays',
                                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                                       color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
                                                     ),
                                                     textAlign: TextAlign.center,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 );
                                               }
                                               return const SizedBox.shrink();
                                             },
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ),
                             ),
