@@ -648,8 +648,42 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildLogsSettings() {
     final theme = Theme.of(context);
+    final appState = context.watch<AppState>();
     
-    return _DesktopLogsViewer(theme: theme);
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Logs & Diagnostics',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Logging toggle
+          Card(
+            child: SwitchListTile(
+              title: const Text('Enable Logging'),
+              subtitle: const Text('Record app activity for troubleshooting. Disabled by default to improve performance.'),
+              value: appState.loggingEnabled,
+              onChanged: (value) => appState.toggleLogging(value),
+              secondary: Icon(
+                Icons.bug_report,
+                color: appState.loggingEnabled 
+                    ? theme.colorScheme.primary 
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Logs viewer
+          _DesktopLogsViewer(theme: theme),
+        ],
+      ),
+    );
   }
 
   Widget _buildAboutSettings(AppState appState) {
