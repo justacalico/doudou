@@ -1574,6 +1574,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     // Stream the track with enhanced error handling and platform-specific optimizations
+    _logger.info('Streaming track: ${track.name} (Platform: ${Platform.operatingSystem})', 'AudioHandler');
     List<String> streamUrls;
     
     // Platform-specific URL prioritization for better compatibility
@@ -1583,6 +1584,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
         _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort on iOS)
       ];
+      _logger.debug('Using iOS-optimized stream URL order', 'AudioHandler');
     } else if (Platform.isMacOS) {
       // macOS: Try universal first, then transcoded, then direct
       streamUrls = [
@@ -1590,12 +1592,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
         _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort)
       ];
+      _logger.debug('Using macOS-optimized stream URL order', 'AudioHandler');
     } else {
       streamUrls = [
         _jellyfinService.getDirectStreamUrl(track.id),    // Direct (Android preferred)
         _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
         _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
       ];
+      _logger.debug('Using Android-optimized stream URL order', 'AudioHandler');
     }
     
     bool loaded = false;
@@ -1615,6 +1619,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             platformOptimization = "Android optimized";
           }
           
+          _logger.info('Attempting stream ${i + 1}/${streamUrls.length} ($platformOptimization)', 'AudioHandler');
           if (kDebugMode) {
             print('Attempting to load stream ${i + 1}/${streamUrls.length}: $platformOptimization order');
             print('Stream URL: $streamUrl');
@@ -1624,17 +1629,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             final hlsUrl = _getHlsStreamUrl(track);
             if (hlsUrl.isNotEmpty) {
               await _player.setAudioSource(HlsAudioSource(Uri.parse(hlsUrl)));
+              _logger.info('Using HLS stream for: ${track.name}', 'AudioHandler');
               if (kDebugMode) {
                 print('Using HLS stream for: ${track.name}');
               }
             } else {
               await _player.setUrl(streamUrl);
+              _logger.info('Using regular stream URL for: ${track.name}', 'AudioHandler');
               if (kDebugMode) {
                 print('Using regular stream URL for: ${track.name}');
               }
             }
           } else {
             await _player.setUrl(streamUrl);
+            _logger.info('Using direct stream URL for: ${track.name}', 'AudioHandler');
             if (kDebugMode) {
               print('Using direct stream URL for: ${track.name}');
             }
@@ -1651,10 +1659,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           if (shouldPlay) {
             await _player.play();
+            _logger.info('Auto-playing stream: ${track.name}', 'AudioHandler');
             if (kDebugMode) {
               print('Auto-playing stream: ${track.name} - should play: true');
             }
           } else {
+            _logger.info('Stream loaded (not auto-playing): ${track.name}', 'AudioHandler');
             if (kDebugMode) {
               print('Not auto-playing stream: ${track.name} - should play: false');
             }
@@ -1670,6 +1680,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           ));
           
           loaded = true;
+          _logger.info('Successfully loaded stream, playing: ${_player.playing}', 'AudioHandler');
           if (kDebugMode) {
             print('Successfully loaded stream: ${track.name}, playing: ${_player.playing}');
           }
@@ -1677,12 +1688,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       } catch (e) {
         lastError = e as Exception?;
+        _logger.warning('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e', 'AudioHandler');
         if (kDebugMode) {
           print('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e');
         }
         
         // Platform-specific URL retry logic
         if ((Platform.isIOS || Platform.isMacOS) && i < streamUrls.length - 1) {
+          _logger.info('Trying next stream URL...', 'AudioHandler');
           if (kDebugMode) {
             print('${Platform.isIOS ? "iOS" : "macOS"}: Trying next stream URL immediately...');
           }
