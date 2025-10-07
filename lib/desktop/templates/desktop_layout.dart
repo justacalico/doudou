@@ -13,6 +13,7 @@ import '../pages/library.dart';
 import '../pages/tracks.dart';
 import '../pages/settings.dart';
 import '../../services/desktop_lyrics_service.dart';
+import '../../models/jellyfin_models.dart';
 
 class DesktopLayout extends StatefulWidget {
   final Widget? child;
@@ -34,6 +35,45 @@ class DesktopLayout extends StatefulWidget {
 
   @override
   State<DesktopLayout> createState() => _DesktopLayoutState();
+
+  /// Shows a dialog to add a track to a playlist
+  static Future<void> showAddToPlaylistDialog(BuildContext context, Track track) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Consumer<AppState>(
+          builder: (context, appState, child) {
+            return _AddToPlaylistDialog(
+              track: track,
+              playlists: appState.playlists,
+              onAddToPlaylist: (playlistId) async {
+                try {
+                  final success = await appState.jellyfinService.addToPlaylist(playlistId, track.id);
+                  if (context.mounted) {
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Added "${track.name}" to playlist')),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Failed to add track to playlist')),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 class _DesktopLayoutState extends State<DesktopLayout> {
@@ -1695,6 +1735,190 @@ class _SyncedLyricsContentState extends State<_SyncedLyricsContent> {
           },
         );
       },
+    );
+  }
+}
+
+class _AddToPlaylistDialog extends StatefulWidget {
+  final Track track;
+  final List<Playlist> playlists;
+  final Function(String playlistId) onAddToPlaylist;
+
+  const _AddToPlaylistDialog({
+    required this.track,
+    required this.playlists,
+    required this.onAddToPlaylist,
+  });
+
+  @override
+  State<_AddToPlaylistDialog> createState() => _AddToPlaylistDialogState();
+}
+
+class _AddToPlaylistDialogState extends State<_AddToPlaylistDialog> {
+  String? _selectedPlaylistId;
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.playlist_add),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Add to Playlist',
+              style: theme.textTheme.titleLarge,
+            ),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Track info
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.music_note,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.track.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '${widget.track.artistName} • ${widget.track.albumName}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Playlist selection
+            Text(
+              'Select Playlist:',
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            
+            if (widget.playlists.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.playlist_remove,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'No playlists available',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: widget.playlists.length,
+                  itemBuilder: (context, index) {
+                    final playlist = widget.playlists[index];
+                    final isSelected = _selectedPlaylistId == playlist.id;
+                    
+                    return ListTile(
+                      dense: true,
+                      leading: Icon(
+                        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      title: Text(playlist.name),
+                      subtitle: Text('${playlist.trackCount} tracks'),
+                      selected: isSelected,
+                      selectedTileColor: theme.colorScheme.primary.withOpacity(0.1),
+                      onTap: () {
+                        setState(() {
+                          _selectedPlaylistId = playlist.id;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading || _selectedPlaylistId == null || widget.playlists.isEmpty
+              ? null 
+              : () async {
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  
+                  await widget.onAddToPlaylist(_selectedPlaylistId!);
+                  
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+          child: _isLoading 
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Add to Playlist'),
+        ),
+      ],
     );
   }
 }
