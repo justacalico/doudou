@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../services/notification_service.dart';
 
 class TracksPage extends StatefulWidget {
   const TracksPage({super.key});
@@ -541,14 +542,18 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'addToQueue':
                 // TODO: Implement add to queue
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Add to queue - Coming soon')),
+                NotificationService.showNotification(
+                  context,
+                  message: 'Add to queue - Coming soon',
+                  type: NotificationType.info,
                 );
                 break;
               case 'addToPlaylist':
                 // TODO: Implement add to playlist
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Add to playlist - Coming soon')),
+                NotificationService.showNotification(
+                  context,
+                  message: 'Add to playlist - Coming soon',
+                  type: NotificationType.info,
                 );
                 break;
               case 'showAlbum':
