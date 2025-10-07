@@ -544,8 +544,7 @@ class _TracksPageState extends State<TracksPage> {
                 appState.playTrack(track);
                 break;
               case 'addToQueue':
-                // TODO: Implement add to queue
-                NotificationService.showInfo(context, 'Add to queue - Coming soon');
+                appState.addToQueue(track);
                 break;
               case 'addToPlaylist':
                 DesktopLayout.showAddToPlaylistDialog(context, track);
