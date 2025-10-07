@@ -9,6 +9,7 @@ import '../jellyfin_service.dart';
 import '../download_service.dart';
 import '../touchbar_service.dart';
 import '../lyrics_service.dart';
+import '../logging_service.dart';
 import 'audio_state_manager.dart';
 import 'audio_preloader.dart';
 import 'audio_queue_manager.dart';
@@ -47,6 +48,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   ConcatenatingAudioSource? _concatenatingSource;
   bool _isUsingConcatenation = false;
   final Map<String, AudioSource> _audioSourceCache = {};
+
+  // Logging service
+  final LoggingService _logger = LoggingService();
 
   // User intent tracking to prevent buffering pauses
   bool _userIntendedPlaying = false;
@@ -945,6 +949,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> skipToNext() async {
+    _logger.info('Skip to next track requested (current: ${_stateManager.currentIndex})', 'AudioHandler');
+    
     if (kDebugMode) {
       print('Skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
@@ -1634,6 +1640,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     if (!loaded) {
+      _logger.error('Failed to load any stream for track: ${track.name}, last error: $lastError', 'AudioHandler');
+      
       if (kDebugMode) {
         print('Failed to load any stream for: ${track.name}, last error: $lastError');
         if (Platform.isIOS) {
@@ -1684,6 +1692,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
+    
+    _logger.info('Playing playlist: ${tracks.length} tracks, starting at index $startIndex', 'AudioHandler');
     
     if (kDebugMode) {
       print('=== PLAYPLAYLIST DEBUG START ===');
