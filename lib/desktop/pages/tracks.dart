@@ -550,11 +550,7 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'showAlbum':
                 // TODO: Navigate to album
-                NotificationService.showNotification(
-                  context,
-                  message: 'Show album - Coming soon',
-                  type: NotificationType.info,
-                );
+                NotificationService.showInfo(context, 'Show album - Coming soon');
                 break;
               case 'showArtist':
                 // TODO: Navigate to artist
