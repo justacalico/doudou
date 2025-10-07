@@ -120,6 +120,7 @@ class _SearchPageState extends State<SearchPage> {
                   _searchController.clear();
                   setState(() {
                     _searchQuery = '';
+                    _selectedFilter = 'all';
                   });
                   _searchFocusNode.requestFocus();
                 },
