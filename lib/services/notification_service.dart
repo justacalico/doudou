@@ -54,6 +54,43 @@ class NotificationService {
     _currentNotification = null;
   }
 
+  // Convenience methods for common notification types
+  static void showSuccess(BuildContext context, String message, {String? title}) {
+    showNotification(
+      context,
+      message: message,
+      title: title,
+      type: NotificationType.success,
+    );
+  }
+
+  static void showError(BuildContext context, String message, {String? title}) {
+    showNotification(
+      context,
+      message: message,
+      title: title,
+      type: NotificationType.error,
+    );
+  }
+
+  static void showWarning(BuildContext context, String message, {String? title}) {
+    showNotification(
+      context,
+      message: message,
+      title: title,
+      type: NotificationType.warning,
+    );
+  }
+
+  static void showInfo(BuildContext context, String message, {String? title}) {
+    showNotification(
+      context,
+      message: message,
+      title: title,
+      type: NotificationType.info,
+    );
+  }
+
   static IconData _getIconForType(NotificationType type) {
     switch (type) {
       case NotificationType.success:
