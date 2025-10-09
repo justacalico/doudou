@@ -120,15 +120,8 @@ class WebAudioPlayer {
   }
   
   Future<void> play() async {
-    if (_audioElementId == null) {
-      if (kDebugMode) {
-        print('WebAudioPlayer: Cannot play - no audio element');
-      }
-      return;
-    }
-    
     try {
-      js.context.callMethod('eval', ['document.getElementById("$_audioElementId").play()']);
+      await js.context['doudouAudio'].callMethod('play');
     } catch (e) {
       if (kDebugMode) {
         print('WebAudioPlayer: Error playing audio: $e');
@@ -137,78 +130,47 @@ class WebAudioPlayer {
   }
   
   void pause() {
-    if (_audioElementId != null) {
-      try {
-        js.context.callMethod('eval', ['document.getElementById("$_audioElementId").pause()']);
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioPlayer: Error pausing audio: $e');
-        }
+    try {
+      js.context['doudouAudio'].callMethod('pause');
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioPlayer: Error pausing audio: $e');
       }
     }
   }
   
   void stop() {
-    if (_audioElementId != null) {
-      try {
-        js.context.callMethod('eval', ['''
-          var audio = document.getElementById("$_audioElementId");
-          audio.pause();
-          audio.currentTime = 0;
-        ''']);
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioPlayer: Error stopping audio: $e');
-        }
+    try {
+      js.context['doudouAudio'].callMethod('stop');
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioPlayer: Error stopping audio: $e');
       }
     }
   }
   
   void seek(Duration position) {
-    if (_audioElementId != null) {
-      try {
-        js.context.callMethod('eval', ['document.getElementById("$_audioElementId").currentTime = ${position.inSeconds}']);
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioPlayer: Error seeking audio: $e');
-        }
+    try {
+      js.context['doudouAudio'].callMethod('seek', [position.inSeconds]);
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioPlayer: Error seeking audio: $e');
       }
     }
   }
   
   void setVolume(double volume) {
-    if (_audioElementId != null) {
-      final clampedVolume = volume.clamp(0.0, 1.0);
-      try {
-        js.context.callMethod('eval', ['document.getElementById("$_audioElementId").volume = $clampedVolume']);
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioPlayer: Error setting volume: $e');
-        }
+    try {
+      js.context['doudouAudio'].callMethod('setVolume', [volume.clamp(0.0, 1.0)]);
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioPlayer: Error setting volume: $e');
       }
     }
   }
   
   void dispose() {
     _stopPositionTimer();
-    
-    if (_audioElementId != null) {
-      try {
-        js.context.callMethod('eval', ['''
-          var audio = document.getElementById("$_audioElementId");
-          if (audio) {
-            audio.pause();
-            audio.remove();
-          }
-        ''']);
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioPlayer: Error disposing audio element: $e');
-        }
-      }
-    }
-    
-    _audioElementId = null;
     _currentUrl = null;
     _positionController.close();
     _durationController.close();
