@@ -33,13 +33,15 @@ bool _isDesktopOrWebPlatform() {
 void _runMobileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize logging service
-  try {
-    await LoggingService().initialize();
-    await _logSystemInfo('Mobile');
-  } catch (e) {
-    if (kDebugMode) {
-      print('Failed to initialize logging service: $e');
+  // Initialize logging service (skip on web)
+  if (!kIsWeb) {
+    try {
+      await LoggingService().initialize();
+      await _logSystemInfo('Mobile');
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize logging service: $e');
+      }
     }
   }
   

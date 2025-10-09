@@ -15,13 +15,15 @@ import 'services/navigation_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize logging service
-  try {
-    await LoggingService().initialize();
-    await _logSystemInfo('Desktop');
-  } catch (e) {
-    if (kDebugMode) {
-      print('Failed to initialize logging service: $e');
+  // Initialize logging service (skip on web)
+  if (!kIsWeb) {
+    try {
+      await LoggingService().initialize();
+      await _logSystemInfo('Desktop');
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize logging service: $e');
+      }
     }
   }
   
