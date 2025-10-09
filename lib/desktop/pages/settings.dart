@@ -1139,6 +1139,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _getOSVersion() {
+    if (kIsWeb) return 'Web Browser';
+    
     try {
       if (Platform.isLinux) {
         // Try to get Linux distribution info
