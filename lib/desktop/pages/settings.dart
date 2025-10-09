@@ -1171,7 +1171,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       // Fallback if commands fail
     }
-    return Platform.operatingSystem;
+    return kIsWeb ? 'Web' : Platform.operatingSystem;
   }
 }
 
@@ -1230,7 +1230,7 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
   Future<void> _exportLogs() async {
     try {
       final logs = await _loggingService.exportLogs();
-      final file = File('${Platform.environment['HOME']}/doudou_logs_export.txt');
+      final file = File('${kIsWeb ? '/tmp' : Platform.environment['HOME']}/doudou_logs_export.txt');
       await file.writeAsString(logs);
       
       if (mounted) {
