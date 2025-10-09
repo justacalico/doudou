@@ -752,7 +752,7 @@ class JellyfinService {
           headers: {
             'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : Platform.operatingSystem})',
           },
           // Don't include the old token in the refresh request
           extra: {'skipAuth': true},
