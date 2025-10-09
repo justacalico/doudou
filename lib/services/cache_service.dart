@@ -22,7 +22,9 @@ class CacheService {
   
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    await _initDatabase();
+    if (!kIsWeb) {
+      await _initDatabase();
+    }
   }
   
   Future<void> _initDatabase() async {
@@ -195,10 +197,33 @@ class CacheService {
   
   // Generic cache methods
   Future<void> _setCache(String table, String key, Map<String, dynamic> data, {Duration? duration}) async {
-    if (_database == null) return;
-    
     final now = DateTime.now().millisecondsSinceEpoch;
     final dataJson = jsonEncode(data);
+    
+    if (kIsWeb) {
+      // Use SharedPreferences for web
+      try {
+        final cacheKey = '${table}_$key';
+        final cacheData = jsonEncode({
+          'data': dataJson,
+          'timestamp': now,
+        });
+        await _prefs?.setString(cacheKey, cacheData);
+        
+        if (kDebugMode) {
+          print('Cached $key in $table (web)');
+        }
+        return;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error setting web cache for $table.$key: $e');
+        }
+        return;
+      }
+    }
+    
+    // Use database for non-web platforms
+    if (_database == null) return;
     
     try {
       await _database!.insert(
@@ -246,6 +271,35 @@ class CacheService {
   }
   
   Future<Map<String, dynamic>?> _getCache(String table, String key, Duration maxAge) async {
+    if (kIsWeb) {
+      // Use SharedPreferences for web
+      try {
+        final cacheKey = '${table}_$key';
+        final cacheDataString = _prefs?.getString(cacheKey);
+        if (cacheDataString == null) return null;
+        
+        final cacheData = jsonDecode(cacheDataString) as Map<String, dynamic>;
+        final timestamp = cacheData['timestamp'] as int;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        
+        // Check if cache is still valid
+        if (now - timestamp > maxAge.inMilliseconds) {
+          // Cache expired, remove it
+          await _prefs?.remove(cacheKey);
+          return null;
+        }
+        
+        final dataJson = cacheData['data'] as String;
+        return jsonDecode(dataJson) as Map<String, dynamic>;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error reading web cache for $table.$key: $e');
+        }
+        return null;
+      }
+    }
+    
+    // Use database for non-web platforms
     if (_database == null) return null;
     
     try {
