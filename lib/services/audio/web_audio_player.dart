@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:js' as js;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 
 class WebAudioPlayer {
   static WebAudioPlayer? _instance;
@@ -23,6 +22,7 @@ class WebAudioPlayer {
   Stream<bool> get playingStream => _playingController.stream;
   
   bool get isPlaying => _isPlaying;
+  
   Duration get position {
     if (_audioElementId == null) return Duration.zero;
     try {
@@ -44,7 +44,7 @@ class WebAudioPlayer {
   }
   
   Future<void> setUrl(String url) async {
-    if (_currentUrl == url && _audioElement != null) {
+    if (_currentUrl == url && _audioElementId != null) {
       return; // Already loaded
     }
     
@@ -52,68 +52,110 @@ class WebAudioPlayer {
       print('WebAudioPlayer: Setting URL: $url');
     }
     
-    // Create new audio element
-    _audioElement?.pause();
-    _audioElement = html.AudioElement();
+    // Create unique ID for audio element
+    _audioElementId = 'doudou_audio_${DateTime.now().millisecondsSinceEpoch}';
     _currentUrl = url;
     
-    // Set up event listeners
-    _audioElement!.onLoadedMetadata.listen((_) {
-      _durationController.add(duration);
-      if (kDebugMode) {
-        print('WebAudioPlayer: Loaded metadata, duration: ${duration.inSeconds}s');
-      }
-    });
-    
-    _audioElement!.onTimeUpdate.listen((_) {
-      _positionController.add(position);
-    });
-    
-    _audioElement!.onPlay.listen((_) {
-      _isPlaying = true;
-      _playingController.add(true);
-      if (kDebugMode) {
-        print('WebAudioPlayer: Playback started');
-      }
-    });
-    
-    _audioElement!.onPause.listen((_) {
-      _isPlaying = false;
-      _playingController.add(false);
-      if (kDebugMode) {
-        print('WebAudioPlayer: Playback paused');
-      }
-    });
-    
-    _audioElement!.onEnded.listen((_) {
-      _isPlaying = false;
-      _playingController.add(false);
-      if (kDebugMode) {
-        print('WebAudioPlayer: Playback ended');
-      }
-    });
-    
-    _audioElement!.onError.listen((event) {
-      if (kDebugMode) {
-        print('WebAudioPlayer: Error loading audio: $event');
-      }
-    });
-    
-    // Set the source
-    _audioElement!.src = url;
-    _audioElement!.preload = 'metadata';
+    // Create audio element using JavaScript
+    final audioElement = '''
+      var audio = document.createElement('audio');
+      audio.id = '$_audioElementId';
+      audio.src = '$url';
+      audio.preload = 'metadata';
+      audio.style.display = 'none';
+      document.body.appendChild(audio);
+      
+      // Event listeners
+      audio.addEventListener('loadedmetadata', function() {
+        window.doudouAudioEvents = window.doudouAudioEvents || {};
+        window.doudouAudioEvents.onLoadedMetadata && window.doudouAudioEvents.onLoadedMetadata();
+      });
+      
+      audio.addEventListener('play', function() {
+        window.doudouAudioEvents = window.doudouAudioEvents || {};
+        window.doudouAudioEvents.onPlay && window.doudouAudioEvents.onPlay();
+      });
+      
+      audio.addEventListener('pause', function() {
+        window.doudouAudioEvents = window.doudouAudioEvents || {};
+        window.doudouAudioEvents.onPause && window.doudouAudioEvents.onPause();
+      });
+      
+      audio.addEventListener('ended', function() {
+        window.doudouAudioEvents = window.doudouAudioEvents || {};
+        window.doudouAudioEvents.onEnded && window.doudouAudioEvents.onEnded();
+      });
+      
+      audio.addEventListener('error', function(e) {
+        window.doudouAudioEvents = window.doudouAudioEvents || {};
+        window.doudouAudioEvents.onError && window.doudouAudioEvents.onError(e);
+      });
+      
+      audio.load();
+    ''';
     
     try {
-      _audioElement!.load();
+      js.context.callMethod('eval', [audioElement]);
+      
+      // Set up Dart event handlers
+      js.context['doudouAudioEvents'] = js.JsObject.jsify({
+        'onLoadedMetadata': () {
+          _durationController.add(duration);
+          if (kDebugMode) {
+            print('WebAudioPlayer: Loaded metadata, duration: ${duration.inSeconds}s');
+          }
+        },
+        'onPlay': () {
+          _isPlaying = true;
+          _playingController.add(true);
+          _startPositionTimer();
+          if (kDebugMode) {
+            print('WebAudioPlayer: Playback started');
+          }
+        },
+        'onPause': () {
+          _isPlaying = false;
+          _playingController.add(false);
+          _stopPositionTimer();
+          if (kDebugMode) {
+            print('WebAudioPlayer: Playback paused');
+          }
+        },
+        'onEnded': () {
+          _isPlaying = false;
+          _playingController.add(false);
+          _stopPositionTimer();
+          if (kDebugMode) {
+            print('WebAudioPlayer: Playback ended');
+          }
+        },
+        'onError': (error) {
+          if (kDebugMode) {
+            print('WebAudioPlayer: Error loading audio: $error');
+          }
+        },
+      });
     } catch (e) {
       if (kDebugMode) {
-        print('WebAudioPlayer: Error loading audio: $e');
+        print('WebAudioPlayer: Error creating audio element: $e');
       }
     }
   }
   
+  void _startPositionTimer() {
+    _stopPositionTimer();
+    _positionTimer = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      _positionController.add(position);
+    });
+  }
+  
+  void _stopPositionTimer() {
+    _positionTimer?.cancel();
+    _positionTimer = null;
+  }
+  
   Future<void> play() async {
-    if (_audioElement == null) {
+    if (_audioElementId == null) {
       if (kDebugMode) {
         print('WebAudioPlayer: Cannot play - no audio element');
       }
@@ -121,7 +163,7 @@ class WebAudioPlayer {
     }
     
     try {
-      await _audioElement!.play();
+      js.context.callMethod('eval', ['document.getElementById("$_audioElementId").play()']);
     } catch (e) {
       if (kDebugMode) {
         print('WebAudioPlayer: Error playing audio: $e');
@@ -130,31 +172,79 @@ class WebAudioPlayer {
   }
   
   void pause() {
-    _audioElement?.pause();
+    if (_audioElementId != null) {
+      try {
+        js.context.callMethod('eval', ['document.getElementById("$_audioElementId").pause()']);
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioPlayer: Error pausing audio: $e');
+        }
+      }
+    }
   }
   
   void stop() {
-    if (_audioElement != null) {
-      _audioElement!.pause();
-      _audioElement!.currentTime = 0;
+    if (_audioElementId != null) {
+      try {
+        js.context.callMethod('eval', ['''
+          var audio = document.getElementById("$_audioElementId");
+          audio.pause();
+          audio.currentTime = 0;
+        ''']);
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioPlayer: Error stopping audio: $e');
+        }
+      }
     }
   }
   
   void seek(Duration position) {
-    if (_audioElement != null) {
-      _audioElement!.currentTime = position.inSeconds.toDouble();
+    if (_audioElementId != null) {
+      try {
+        js.context.callMethod('eval', ['document.getElementById("$_audioElementId").currentTime = ${position.inSeconds}']);
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioPlayer: Error seeking audio: $e');
+        }
+      }
     }
   }
   
   void setVolume(double volume) {
-    if (_audioElement != null) {
-      _audioElement!.volume = volume.clamp(0.0, 1.0);
+    if (_audioElementId != null) {
+      final clampedVolume = volume.clamp(0.0, 1.0);
+      try {
+        js.context.callMethod('eval', ['document.getElementById("$_audioElementId").volume = $clampedVolume']);
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioPlayer: Error setting volume: $e');
+        }
+      }
     }
   }
   
   void dispose() {
-    _audioElement?.pause();
-    _audioElement = null;
+    _stopPositionTimer();
+    
+    if (_audioElementId != null) {
+      try {
+        js.context.callMethod('eval', ['''
+          var audio = document.getElementById("$_audioElementId");
+          if (audio) {
+            audio.pause();
+            audio.remove();
+          }
+        ''']);
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioPlayer: Error disposing audio element: $e');
+        }
+      }
+    }
+    
+    _audioElementId = null;
+    _currentUrl = null;
     _positionController.close();
     _durationController.close();
     _playingController.close();
