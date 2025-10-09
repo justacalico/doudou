@@ -215,7 +215,9 @@ class JellyfinService {
       
       if (kDebugMode) {
         print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
-        print('Platform: ${Platform.operatingSystem}');
+        if (!kIsWeb) {
+          print('Platform: ${Platform.operatingSystem}');
+        }
       }
       
       final response = await _dio.post(
