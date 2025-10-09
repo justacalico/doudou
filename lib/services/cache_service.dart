@@ -568,17 +568,29 @@ class CacheService {
   
   // Clear all cache
   Future<void> clearAllCache() async {
-    if (_database == null) return;
-    
-    await Future.wait([
-      _database!.delete('albums_cache'),
-      _database!.delete('artists_cache'),
-      _database!.delete('tracks_cache'),
-      _database!.delete('playlists_cache'),
-      _database!.delete('album_tracks_cache'),
-      _database!.delete('playlist_tracks_cache'),
-      _database!.delete('favorites_cache'),
-    ]);
+    if (kIsWeb) {
+      await Future.wait([
+        _clearWebCache('albums_cache'),
+        _clearWebCache('artists_cache'),
+        _clearWebCache('tracks_cache'),
+        _clearWebCache('playlists_cache'),
+        _clearWebCache('album_tracks_cache'),
+        _clearWebCache('playlist_tracks_cache'),
+        _clearWebCache('favorites_cache'),
+      ]);
+    } else {
+      if (_database == null) return;
+      
+      await Future.wait([
+        _database!.delete('albums_cache'),
+        _database!.delete('artists_cache'),
+        _database!.delete('tracks_cache'),
+        _database!.delete('playlists_cache'),
+        _database!.delete('album_tracks_cache'),
+        _database!.delete('playlist_tracks_cache'),
+        _database!.delete('favorites_cache'),
+      ]);
+    }
     
     if (kDebugMode) {
       print('All cache cleared');
