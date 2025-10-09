@@ -176,6 +176,9 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
 
 /// Log comprehensive system information for debugging, especially Flatpak issues
 Future<void> _logSystemInfo(String context) async {
+  // Skip on web platform
+  if (kIsWeb) return;
+  
   final logger = LoggingService();
   
   try {
