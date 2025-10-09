@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -1093,7 +1094,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _getPlatformInfo() {
-    final platform = Platform.operatingSystem;
+    final platform = kIsWeb ? 'web' : Platform.operatingSystem;
     final architecture = _getArchitecture();
     
     switch (platform) {
@@ -1109,6 +1110,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _getArchitecture() {
+    if (kIsWeb) return 'web';
+    
     try {
       if (Platform.isLinux || Platform.isMacOS) {
         final result = Process.runSync('uname', ['-m']);
