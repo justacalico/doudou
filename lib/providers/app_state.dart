@@ -1280,7 +1280,28 @@ class AppState extends ChangeNotifier {
 
   // Audio playback methods
   Future<void> playTrack(Track track) async {
-    if (_audioHandler != null) {
+    if (kIsWeb) {
+      // Web-specific playback using WebAudioPlayer
+      try {
+        final streamUrl = await _jellyfinService.getStreamUrl(track);
+        if (streamUrl != null) {
+          await WebAudioPlayer.instance.setUrl(streamUrl);
+          await WebAudioPlayer.instance.play();
+          if (kDebugMode) {
+            print('Web: Playing track ${track.name} from $streamUrl');
+          }
+        } else {
+          if (kDebugMode) {
+            print('Web: Failed to get stream URL for track ${track.name}');
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Web: Error playing track ${track.name}: $e');
+        }
+      }
+      notifyListeners();
+    } else if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
       notifyListeners();
     }
