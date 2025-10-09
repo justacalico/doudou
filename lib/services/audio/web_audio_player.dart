@@ -88,7 +88,7 @@ class WebAudioPlayer {
   }
   
   Future<void> setUrl(String url) async {
-    if (_currentUrl == url && _audioElementId != null) {
+    if (_currentUrl == url) {
       return; // Already loaded
     }
     
@@ -96,92 +96,13 @@ class WebAudioPlayer {
       print('WebAudioPlayer: Setting URL: $url');
     }
     
-    // Create unique ID for audio element
-    _audioElementId = 'doudou_audio_${DateTime.now().millisecondsSinceEpoch}';
     _currentUrl = url;
     
-    // Create audio element using JavaScript
-    final audioElement = '''
-      var audio = document.createElement('audio');
-      audio.id = '$_audioElementId';
-      audio.src = '$url';
-      audio.preload = 'metadata';
-      audio.style.display = 'none';
-      document.body.appendChild(audio);
-      
-      // Event listeners
-      audio.addEventListener('loadedmetadata', function() {
-        window.doudouAudioEvents = window.doudouAudioEvents || {};
-        window.doudouAudioEvents.onLoadedMetadata && window.doudouAudioEvents.onLoadedMetadata();
-      });
-      
-      audio.addEventListener('play', function() {
-        window.doudouAudioEvents = window.doudouAudioEvents || {};
-        window.doudouAudioEvents.onPlay && window.doudouAudioEvents.onPlay();
-      });
-      
-      audio.addEventListener('pause', function() {
-        window.doudouAudioEvents = window.doudouAudioEvents || {};
-        window.doudouAudioEvents.onPause && window.doudouAudioEvents.onPause();
-      });
-      
-      audio.addEventListener('ended', function() {
-        window.doudouAudioEvents = window.doudouAudioEvents || {};
-        window.doudouAudioEvents.onEnded && window.doudouAudioEvents.onEnded();
-      });
-      
-      audio.addEventListener('error', function(e) {
-        window.doudouAudioEvents = window.doudouAudioEvents || {};
-        window.doudouAudioEvents.onError && window.doudouAudioEvents.onError(e);
-      });
-      
-      audio.load();
-    ''';
-    
     try {
-      js.context.callMethod('eval', [audioElement]);
-      
-      // Set up Dart event handlers
-      js.context['doudouAudioEvents'] = js.JsObject.jsify({
-        'onLoadedMetadata': () {
-          _durationController.add(duration);
-          if (kDebugMode) {
-            print('WebAudioPlayer: Loaded metadata, duration: ${duration.inSeconds}s');
-          }
-        },
-        'onPlay': () {
-          _isPlaying = true;
-          _playingController.add(true);
-          _startPositionTimer();
-          if (kDebugMode) {
-            print('WebAudioPlayer: Playback started');
-          }
-        },
-        'onPause': () {
-          _isPlaying = false;
-          _playingController.add(false);
-          _stopPositionTimer();
-          if (kDebugMode) {
-            print('WebAudioPlayer: Playback paused');
-          }
-        },
-        'onEnded': () {
-          _isPlaying = false;
-          _playingController.add(false);
-          _stopPositionTimer();
-          if (kDebugMode) {
-            print('WebAudioPlayer: Playback ended');
-          }
-        },
-        'onError': (error) {
-          if (kDebugMode) {
-            print('WebAudioPlayer: Error loading audio: $error');
-          }
-        },
-      });
+      js.context['doudouAudio'].callMethod('setUrl', [url]);
     } catch (e) {
       if (kDebugMode) {
-        print('WebAudioPlayer: Error creating audio element: $e');
+        print('WebAudioPlayer: Error setting URL: $e');
       }
     }
   }
