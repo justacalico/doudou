@@ -207,7 +207,9 @@ class CacheService {
     }
     
     if (kDebugMode && keysToRemove.isNotEmpty) {
-      print('Cleared ${keysToRemove.length} web cache entries for $table');
+      if (kDebugMode) {
+        print('Cleared ${keysToRemove.length} web cache entries for $table');
+      }
     }
   }
   
