@@ -36,8 +36,8 @@ class JellyfinService {
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     _dio.options.sendTimeout = const Duration(seconds: 30);
     
-    // Platform-specific configurations
-    if (Platform.isLinux) {
+    // Platform-specific configurations (skip on web)
+    if (!kIsWeb && Platform.isLinux) {
       // On Linux, we might need more lenient SSL handling for self-signed certificates
       (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
         client.badCertificateCallback = (cert, host, port) {
