@@ -85,7 +85,7 @@ class WebAudioPlayer {
     _audioElement!.preload = 'metadata';
     
     try {
-      await _audioElement!.load();
+      _audioElement!.load();
     } catch (e) {
       if (kDebugMode) {
         print('WebAudioPlayer: Error loading audio: $e');
