@@ -7,9 +7,10 @@ class WebAudioPlayer {
   static WebAudioPlayer? _instance;
   static WebAudioPlayer get instance => _instance ??= WebAudioPlayer._();
   
-  WebAudioPlayer._();
+  WebAudioPlayer._() {
+    _setupCallbacks();
+  }
   
-  String? _audioElementId;
   StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
   StreamController<Duration> _durationController = StreamController<Duration>.broadcast();
   StreamController<bool> _playingController = StreamController<bool>.broadcast();
@@ -25,9 +26,8 @@ class WebAudioPlayer {
   bool get isPlaying => _isPlaying;
   
   Duration get position {
-    if (_audioElementId == null) return Duration.zero;
     try {
-      final currentTime = js.context.callMethod('eval', ['document.getElementById("$_audioElementId").currentTime']) as num;
+      final currentTime = js.context['doudouAudio'].callMethod('getCurrentTime') as num;
       return Duration(seconds: currentTime.round());
     } catch (e) {
       return Duration.zero;
@@ -35,13 +35,56 @@ class WebAudioPlayer {
   }
   
   Duration get duration {
-    if (_audioElementId == null) return Duration.zero;
     try {
-      final duration = js.context.callMethod('eval', ['document.getElementById("$_audioElementId").duration']) as num;
+      final duration = js.context['doudouAudio'].callMethod('getDuration') as num;
       return Duration(seconds: duration.round());
     } catch (e) {
       return Duration.zero;
     }
+  }
+  
+  void _setupCallbacks() {
+    // Set up callbacks for HTML audio events
+    js.context['doudouAudioCallbacks'] = js.JsObject.jsify({
+      'onLoadedMetadata': () {
+        _durationController.add(duration);
+        if (kDebugMode) {
+          print('WebAudioPlayer: Loaded metadata, duration: ${duration.inSeconds}s');
+        }
+      },
+      'onPlay': () {
+        _isPlaying = true;
+        _playingController.add(true);
+        _startPositionTimer();
+        if (kDebugMode) {
+          print('WebAudioPlayer: Playback started');
+        }
+      },
+      'onPause': () {
+        _isPlaying = false;
+        _playingController.add(false);
+        _stopPositionTimer();
+        if (kDebugMode) {
+          print('WebAudioPlayer: Playback paused');
+        }
+      },
+      'onEnded': () {
+        _isPlaying = false;
+        _playingController.add(false);
+        _stopPositionTimer();
+        if (kDebugMode) {
+          print('WebAudioPlayer: Playback ended');
+        }
+      },
+      'onError': (error) {
+        if (kDebugMode) {
+          print('WebAudioPlayer: Error: $error');
+        }
+      },
+      'onTimeUpdate': () {
+        _positionController.add(position);
+      },
+    });
   }
   
   Future<void> setUrl(String url) async {
