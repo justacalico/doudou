@@ -233,7 +233,7 @@ class LoggingService {
     buffer.writeln('=== Doudou Application Logs ===');
     buffer.writeln('Exported: ${DateTime.now()}');
     buffer.writeln('App Version: [Will be filled by settings screen]');
-    buffer.writeln('Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}');
+    buffer.writeln('Platform: ${kIsWeb ? 'Web' : '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'}');
     buffer.writeln('');
     
     final files = await getAllLogFiles();
