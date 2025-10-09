@@ -402,6 +402,34 @@ class CacheService {
   }
   
   Future<void> _clearExpiredCache(String table, Duration maxAge) async {
+    if (kIsWeb) {
+      // For web, check each SharedPreference key and remove expired ones
+      if (_prefs == null) return;
+      
+      final keys = _prefs!.getKeys();
+      final tableKeys = keys.where((key) => key.startsWith('${table}_')).toList();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      
+      for (final key in tableKeys) {
+        try {
+          final cacheDataString = _prefs!.getString(key);
+          if (cacheDataString != null) {
+            final cacheData = jsonDecode(cacheDataString) as Map<String, dynamic>;
+            final timestamp = cacheData['timestamp'] as int;
+            
+            if (now - timestamp > maxAge.inMilliseconds) {
+              await _prefs!.remove(key);
+            }
+          }
+        } catch (e) {
+          // If we can't parse the cache data, remove it
+          await _prefs!.remove(key);
+        }
+      }
+      return;
+    }
+    
+    // Database implementation for non-web platforms
     if (_database == null) return;
     
     final now = DateTime.now().millisecondsSinceEpoch;
