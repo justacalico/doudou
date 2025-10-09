@@ -254,6 +254,22 @@ class AppState extends ChangeNotifier {
                 // Continue without audio handler
                 _audioHandler = null;
               }
+            } else if (kIsWeb) {
+              // Web: Use simplified web audio player
+              try {
+                // For web, we don't use DoudouAudioHandler, instead use WebAudioPlayer
+                // The UI will need to handle web-specific audio through WebAudioPlayer.instance
+                _audioHandler = null; // Web doesn't use the standard audio handler
+                
+                if (kDebugMode) {
+                  print('Web audio player available - using WebAudioPlayer for playback');
+                }
+              } catch (audioError) {
+                if (kDebugMode) {
+                  print('Failed to initialize web audio: $audioError');
+                }
+                _audioHandler = null;
+              }
             } else {
               if (kDebugMode) {
                 print('Audio service initialization skipped on unsupported platform');
