@@ -95,7 +95,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     playbackState.add(finalState);
     
     // Update Touch Bar with new playback state
-    if (Platform.isMacOS) {
+    if (!kIsWeb && Platform.isMacOS) {
       _updateTouchBarPlaybackState();
     }
     
