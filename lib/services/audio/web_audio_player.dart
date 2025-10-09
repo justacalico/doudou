@@ -1,6 +1,7 @@
-import 'dart:html' as html;
 import 'dart:async';
+import 'dart:js' as js;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class WebAudioPlayer {
   static WebAudioPlayer? _instance;
@@ -8,21 +9,39 @@ class WebAudioPlayer {
   
   WebAudioPlayer._();
   
-  html.AudioElement? _audioElement;
+  String? _audioElementId;
   StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
   StreamController<Duration> _durationController = StreamController<Duration>.broadcast();
   StreamController<bool> _playingController = StreamController<bool>.broadcast();
   
   String? _currentUrl;
   bool _isPlaying = false;
+  Timer? _positionTimer;
   
   Stream<Duration> get positionStream => _positionController.stream;
   Stream<Duration> get durationStream => _durationController.stream;
   Stream<bool> get playingStream => _playingController.stream;
   
   bool get isPlaying => _isPlaying;
-  Duration get position => Duration(seconds: (_audioElement?.currentTime ?? 0).round());
-  Duration get duration => Duration(seconds: (_audioElement?.duration ?? 0).round());
+  Duration get position {
+    if (_audioElementId == null) return Duration.zero;
+    try {
+      final currentTime = js.context.callMethod('eval', ['document.getElementById("$_audioElementId").currentTime']) as num;
+      return Duration(seconds: currentTime.round());
+    } catch (e) {
+      return Duration.zero;
+    }
+  }
+  
+  Duration get duration {
+    if (_audioElementId == null) return Duration.zero;
+    try {
+      final duration = js.context.callMethod('eval', ['document.getElementById("$_audioElementId").duration']) as num;
+      return Duration(seconds: duration.round());
+    } catch (e) {
+      return Duration.zero;
+    }
+  }
   
   Future<void> setUrl(String url) async {
     if (_currentUrl == url && _audioElement != null) {
