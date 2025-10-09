@@ -1309,7 +1309,15 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> playPause() async {
-    if (_audioHandler != null) {
+    if (kIsWeb) {
+      // Web-specific play/pause
+      if (WebAudioPlayer.instance.isPlaying) {
+        WebAudioPlayer.instance.pause();
+      } else {
+        await WebAudioPlayer.instance.play();
+      }
+      notifyListeners();
+    } else if (_audioHandler != null) {
       // Get the current player state
       final playerState = await _audioHandler!.playerStateStream.first;
       if (playerState.playing) {
