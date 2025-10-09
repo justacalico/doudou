@@ -11,9 +11,9 @@ class WebAudioPlayer {
     _setupCallbacks();
   }
   
-  StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
-  StreamController<Duration> _durationController = StreamController<Duration>.broadcast();
-  StreamController<bool> _playingController = StreamController<bool>.broadcast();
+  final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
+  final StreamController<Duration> _durationController = StreamController<Duration>.broadcast();
+  final StreamController<bool> _playingController = StreamController<bool>.broadcast();
   
   String? _currentUrl;
   bool _isPlaying = false;
