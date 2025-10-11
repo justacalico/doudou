@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import '../providers/app_state.dart';
@@ -14,42 +13,149 @@ import 'services/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize logging service
+  await runDesktopApp();
+}
+
+/// Separated function to run desktop app without reinitializing bindings
+Future<void> runDesktopApp() async {
   try {
-    await LoggingService().initialize();
-    await _logSystemInfo('Desktop');
+    if (kDebugMode) {
+      print('DEBUG: Starting runDesktopApp()');
+    }
+    
+    // Initialize logging service
+    try {
+      if (kDebugMode) {
+        print('DEBUG: About to initialize logging service');
+      }
+      await LoggingService().initialize();
+      if (kDebugMode) {
+        print('DEBUG: Logging service initialized, about to log system info');
+      }
+      await _logSystemInfo('Desktop');
+      if (kDebugMode) {
+        print('DEBUG: System info logged successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize logging service: $e');
+      }
+    }
+    
+    // Initialize sqflite for Linux/Windows/macOS
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
+                    defaultTargetPlatform == TargetPlatform.windows ||
+                    defaultTargetPlatform == TargetPlatform.macOS)) {
+      try {
+        if (kDebugMode) {
+          print('DEBUG: About to initialize sqflite database');
+        }
+        // Initialize the ffi database factory for desktop platforms
+        sqfliteFfiInit();
+        databaseFactory = databaseFactoryFfi;
+        if (kDebugMode) {
+          print('DEBUG: Database initialized successfully');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to initialize database: $e');
+        }
+      }
+    }
+    
+    // Initialize MediaKit for Linux audio support
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+      try {
+        JustAudioMediaKit.ensureInitialized();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to initialize MediaKit: $e');
+        }
+      }
+    }
+    
+    // Desktop-specific orientation settings (allow all orientations)
+    if (!kIsWeb) {
+      try {
+        if (kDebugMode) {
+          print('DEBUG: About to set orientation preferences');
+        }
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+        if (kDebugMode) {
+          print('DEBUG: Orientation preferences set successfully');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to set orientation preferences: $e');
+        }
+      }
+    }
+    
+    if (kDebugMode) {
+      print('About to start DesktopDoudouApp...');
+    }
+    
+    // Start the app with error boundary
+    runApp(const DesktopDoudouApp());
+    
+    if (kDebugMode) {
+      print('DesktopDoudouApp started successfully');
+    }
+    
   } catch (e) {
     if (kDebugMode) {
-      print('Failed to initialize logging service: $e');
+      print('Failed to start desktop app: $e');
+      print('Stack trace: ${StackTrace.current}');
     }
+    // Create a simple test app to verify Flutter works
+    runApp(MaterialApp(
+      title: 'Doudou Test',
+      home: Scaffold(
+        backgroundColor: Colors.blue.shade100,
+        appBar: AppBar(
+          title: const Text('Doudou Test App'),
+          backgroundColor: Colors.blue,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.warning, size: 64, color: Colors.orange),
+              const SizedBox(height: 16),
+              const Text('Test Window - Flutter is Working!', 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text('Original error: ${e.toString()}', 
+                  style: const TextStyle(fontSize: 12)),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Try again
+                  if (kDebugMode) {
+                    print('Retry button pressed');
+                  }
+                },
+                child: const Text('This is a test - app is working'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ));
   }
-  
-  // Initialize sqflite for Linux/Windows/macOS
-  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
-                  defaultTargetPlatform == TargetPlatform.windows ||
-                  defaultTargetPlatform == TargetPlatform.macOS)) {
-    // Initialize the ffi database factory for desktop platforms
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-  
-  // Initialize MediaKit for Linux audio support
-  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-    JustAudioMediaKit.ensureInitialized();
-  }
-  
-  // Desktop-specific orientation settings (allow all orientations)
-  if (!kIsWeb) {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
-  
-  runApp(const DesktopDoudouApp());
 }
 
 class DesktopDoudouApp extends StatelessWidget {
@@ -57,9 +163,24 @@ class DesktopDoudouApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AppState(),
-      child: _buildAppWithPlatformServices(
+    if (kDebugMode) {
+      print('DesktopDoudouApp.build() called');
+    }
+    
+    try {
+      if (kDebugMode) {
+        print('Creating ChangeNotifierProvider...');
+      }
+      
+      // Add error boundary and proper provider initialization
+      return ChangeNotifierProvider(
+        create: (context) {
+          if (kDebugMode) {
+            print('Creating AppState...');
+          }
+          return AppState();
+        },
+        child: _buildAppWithPlatformServices(
         Consumer<AppState>(
           builder: (context, appState, child) {
             return MaterialApp(
@@ -111,18 +232,30 @@ class DesktopDoudouApp extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
+        ),
+      );
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in DesktopDoudouApp.build(): $e');
+      }
+      
+      // Return a simple fallback widget
+      return MaterialApp(
+        title: 'Doudou Error',
+        home: Scaffold(
+          body: Center(
+            child: Text('Error: ${e.toString()}'),
+          ),
+        ),
+      );
+    }
   }
 
   /// Wraps the app with platform-specific services for desktop
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On macOS, use AudioServiceWidget for background audio support
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
-      return AudioServiceWidget(child: app);
-    }
-    
-    // On other desktop platforms and web, return the app directly
+    // For now, avoid AudioServiceWidget on macOS to prevent engine crashes
+    // TODO: Re-enable once AudioService integration is stabilized
     return app;
   }
 }
@@ -240,12 +373,21 @@ Future<void> _logSystemInfo(String context) async {
       }
     }
     
-    // Check for media-related executables and libraries
-    final mediaCommands = ['gst-launch-1.0', 'ffmpeg', 'mpv', 'pulseaudio', 'pipewire'];
+    // Check for media-related executables and libraries (platform-specific)
+    List<String> mediaCommands = [];
+    if (Platform.isLinux) {
+      mediaCommands = ['gst-launch-1.0', 'ffmpeg', 'mpv', 'pulseaudio', 'pipewire'];
+    } else if (Platform.isMacOS) {
+      mediaCommands = ['ffmpeg', 'mpv']; // Only check commonly installed tools on macOS
+    } else if (Platform.isWindows) {
+      mediaCommands = ['ffmpeg']; // Only check ffmpeg on Windows
+    }
+    
     logger.info('=== MEDIA COMMAND AVAILABILITY ===', 'SystemInfo');
     for (final cmd in mediaCommands) {
       try {
-        final result = await Process.run('which', [cmd]);
+        final whichCmd = Platform.isWindows ? 'where' : 'which';
+        final result = await Process.run(whichCmd, [cmd]).timeout(const Duration(seconds: 2));
         if (result.exitCode == 0) {
           logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
         } else {
@@ -256,39 +398,49 @@ Future<void> _logSystemInfo(String context) async {
       }
     }
     
-    // Check GStreamer plugins
-    try {
-      final result = await Process.run('gst-inspect-1.0', ['--print-all']).timeout(const Duration(seconds: 5));
-      if (result.exitCode == 0) {
-        final plugins = result.stdout.toString().split('\n').where((line) => line.contains(':')).take(10);
-        logger.info('GStreamer plugins (first 10): ${plugins.join(', ')}', 'SystemInfo');
-      } else {
-        logger.info('GStreamer plugins: failed to list (exit code: ${result.exitCode})', 'SystemInfo');
+    // Only check GStreamer on Linux
+    if (Platform.isLinux) {
+      try {
+        final result = await Process.run('gst-inspect-1.0', ['--print-all']).timeout(const Duration(seconds: 5));
+        if (result.exitCode == 0) {
+          final plugins = result.stdout.toString().split('\n').where((line) => line.contains(':')).take(10);
+          logger.info('GStreamer plugins (first 10): ${plugins.join(', ')}', 'SystemInfo');
+        } else {
+          logger.info('GStreamer plugins: failed to list (exit code: ${result.exitCode})', 'SystemInfo');
+        }
+      } catch (e) {
+        logger.info('GStreamer plugins: error checking ($e)', 'SystemInfo');
       }
-    } catch (e) {
-      logger.info('GStreamer plugins: error checking ($e)', 'SystemInfo');
     }
     
-    // Audio system detection
-    logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
-    try {
-      // Check PulseAudio
-      final pulseResult = await Process.run('pulseaudio', ['--check', '-v']).timeout(const Duration(seconds: 3));
-      logger.info('PulseAudio status: exit code ${pulseResult.exitCode}', 'SystemInfo');
-    } catch (e) {
-      logger.info('PulseAudio status: error ($e)', 'SystemInfo');
-    }
-    
-    try {
-      // Check PipeWire
-      final pipewireResult = await Process.run('pipewire', ['--version']).timeout(const Duration(seconds: 3));
-      if (pipewireResult.exitCode == 0) {
-        logger.info('PipeWire: ${pipewireResult.stdout.toString().trim()}', 'SystemInfo');
-      } else {
-        logger.info('PipeWire: not available', 'SystemInfo');
+    // Audio system detection (Linux-specific)
+    if (Platform.isLinux) {
+      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+      try {
+        // Check PulseAudio
+        final pulseResult = await Process.run('pulseaudio', ['--check', '-v']).timeout(const Duration(seconds: 3));
+        logger.info('PulseAudio status: exit code ${pulseResult.exitCode}', 'SystemInfo');
+      } catch (e) {
+        logger.info('PulseAudio status: error ($e)', 'SystemInfo');
       }
-    } catch (e) {
-      logger.info('PipeWire: error checking ($e)', 'SystemInfo');
+      
+      try {
+        // Check PipeWire
+        final pipewireResult = await Process.run('pipewire', ['--version']).timeout(const Duration(seconds: 3));
+        if (pipewireResult.exitCode == 0) {
+          logger.info('PipeWire: ${pipewireResult.stdout.toString().trim()}', 'SystemInfo');
+        } else {
+          logger.info('PipeWire: not available', 'SystemInfo');
+        }
+      } catch (e) {
+        logger.info('PipeWire: error checking ($e)', 'SystemInfo');
+      }
+    } else if (Platform.isMacOS) {
+      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+      logger.info('macOS: Using Core Audio (native)', 'SystemInfo');
+    } else if (Platform.isWindows) {
+      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+      logger.info('Windows: Using DirectSound/WASAPI (native)', 'SystemInfo');
     }
     
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');

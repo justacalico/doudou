@@ -13,10 +13,13 @@ import 'screens/partials/navbar/navbar.dart';
 import 'desktop/main.dart' as desktop_main;
 
 void main() async {
+  // Ensure Flutter bindings are initialized first
+  WidgetsFlutterBinding.ensureInitialized();
+  
   // Check if we're on a desktop or web platform
   if (_isDesktopOrWebPlatform()) {
-    // Delegate to desktop main
-    return desktop_main.main();
+    // Delegate to desktop main, but don't reinitialize bindings
+    return desktop_main.runDesktopApp();
   }
   
   // Original mobile main logic

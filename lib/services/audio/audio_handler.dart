@@ -117,11 +117,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     _logger.info('Audio components initialized', 'AudioHandler');
     
-    // Initialize Touch Bar service on macOS
+    // Initialize Touch Bar service on macOS - temporarily disabled to fix crashes
     if (Platform.isMacOS) {
-      _touchBarEnabled = true;
-      _initializeTouchBar();
-      _logger.info('TouchBar initialized', 'AudioHandler');
+      // TODO: Re-enable TouchBar once stability issues are resolved
+      _touchBarEnabled = false;
+      // _initializeTouchBar();
+      _logger.info('TouchBar disabled for stability', 'AudioHandler');
     }
     
     // Initialize iOS audio session FIRST before any other audio setup (iOS only)
