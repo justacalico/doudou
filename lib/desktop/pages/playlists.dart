@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import '../../models/jellyfin_models.dart';
 import 'details/playlist_details.dart';
 
 class PlaylistsPage extends StatefulWidget {
