@@ -1,9 +1,7 @@
 import 'dart:async';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:js' as js;
 import 'package:flutter/foundation.dart';
-
-// Conditional import: use stub on non-web platforms, dart:js on web
-// ignore: avoid_web_libraries_in_flutter, uri_does_not_exist
-import 'web_audio_player_stub.dart' as js if (dart.library.js) 'dart:js';
 
 class WebAudioPlayer {
   static WebAudioPlayer? _instance;
@@ -28,7 +26,6 @@ class WebAudioPlayer {
   bool get isPlaying => _isPlaying;
   
   Duration get position {
-    if (!kIsWeb) return Duration.zero;
     try {
       final currentTime = js.context['doudouAudio'].callMethod('getCurrentTime') as num;
       return Duration(seconds: currentTime.round());
@@ -38,7 +35,6 @@ class WebAudioPlayer {
   }
   
   Duration get duration {
-    if (!kIsWeb) return Duration.zero;
     try {
       final duration = js.context['doudouAudio'].callMethod('getDuration') as num;
       return Duration(seconds: duration.round());
@@ -48,7 +44,6 @@ class WebAudioPlayer {
   }
   
   void _setupCallbacks() {
-    if (!kIsWeb) return;
     // Set up callbacks for HTML audio events
     js.context['doudouAudioCallbacks'] = js.JsObject.jsify({
       'onLoadedMetadata': () {
@@ -93,7 +88,6 @@ class WebAudioPlayer {
   }
   
   Future<void> setUrl(String url) async {
-    if (!kIsWeb) return;
     if (_currentUrl == url) {
       return; // Already loaded
     }
@@ -126,7 +120,6 @@ class WebAudioPlayer {
   }
   
   Future<void> play() async {
-    if (!kIsWeb) return;
     try {
       await js.context['doudouAudio'].callMethod('play');
     } catch (e) {
@@ -137,7 +130,6 @@ class WebAudioPlayer {
   }
   
   void pause() {
-    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('pause');
     } catch (e) {
@@ -148,7 +140,6 @@ class WebAudioPlayer {
   }
   
   void stop() {
-    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('stop');
     } catch (e) {
@@ -159,7 +150,6 @@ class WebAudioPlayer {
   }
   
   void seek(Duration position) {
-    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('seek', [position.inSeconds]);
     } catch (e) {
@@ -170,7 +160,6 @@ class WebAudioPlayer {
   }
   
   void setVolume(double volume) {
-    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('setVolume', [volume.clamp(0.0, 1.0)]);
     } catch (e) {

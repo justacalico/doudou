@@ -36,10 +36,8 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   
-  // Initialize MediaKit for desktop audio support (Linux, macOS, and Windows)
-  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
-                  defaultTargetPlatform == TargetPlatform.macOS ||
-                  defaultTargetPlatform == TargetPlatform.windows)) {
+  // Initialize MediaKit for Linux audio support
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
     JustAudioMediaKit.ensureInitialized();
   }
   
@@ -121,9 +119,8 @@ class DesktopDoudouApp extends StatelessWidget {
 
   /// Wraps the app with platform-specific services for desktop
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On macOS and Windows, use AudioServiceWidget for background audio support
-    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS || 
-                    defaultTargetPlatform == TargetPlatform.windows)) {
+    // On macOS, use AudioServiceWidget for background audio support
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
       return AudioServiceWidget(child: app);
     }
     

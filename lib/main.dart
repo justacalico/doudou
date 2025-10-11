@@ -54,10 +54,8 @@ void _runMobileApp() async {
     databaseFactory = databaseFactoryFfi;
   }
   
-  // Initialize MediaKit for desktop audio support (Linux, macOS, and Windows)
-  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
-                  defaultTargetPlatform == TargetPlatform.macOS ||
-                  defaultTargetPlatform == TargetPlatform.windows)) {
+  // Initialize MediaKit for Linux audio support
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
     JustAudioMediaKit.ensureInitialized();
   }
   
@@ -128,11 +126,8 @@ class DoudouApp extends StatelessWidget {
 
   /// Wraps the app with platform-specific services
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On Android, iOS, macOS, and Windows, use AudioServiceWidget for background audio support
-    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || 
-                    defaultTargetPlatform == TargetPlatform.iOS ||
-                    defaultTargetPlatform == TargetPlatform.macOS ||
-                    defaultTargetPlatform == TargetPlatform.windows)) {
+    // On Android and macOS, use AudioServiceWidget for background audio support
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.macOS)) {
       return AudioServiceWidget(child: app);
     }
     

@@ -124,8 +124,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.info('TouchBar initialized', 'AudioHandler');
     }
     
-    // Initialize audio session for iOS, macOS, Android, and Windows
-    if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid || Platform.isWindows) {
+    // Initialize iOS audio session FIRST before any other audio setup (iOS only)
+    if (Platform.isIOS) {
       _initializeAudioSession();
     }
     
@@ -343,17 +343,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     ));
   }
 
-  /// Initialize audio session for proper background audio and interruption handling (iOS/macOS/Android/Windows)
+  /// Initialize iOS audio session for proper background audio and interruption handling
   Future<void> _initializeAudioSession() async {
     try {
       // Get the audio session instance
       final audioSession = await AudioSession.instance;
       
-      // Configure for music playback with proper settings
+      // Configure for music playback with proper iOS settings
       await audioSession.configure(const AudioSessionConfiguration.music());
       
       if (kDebugMode) {
-        print('Audio session configured for music playback on ${Platform.operatingSystem}');
+        print('iOS Audio session configured for music playback');
       }
       
       // Listen for audio interruptions (phone calls, notifications, etc.)
@@ -428,14 +428,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await audioSession.setActive(true);
       
       if (kDebugMode) {
-        print('Audio session activated successfully on ${Platform.operatingSystem}');
+        print('iOS Audio session activated successfully');
       }
       
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to initialize audio session on ${Platform.operatingSystem}: $e');
+        print('Failed to initialize iOS audio session: $e');
       }
-      // Continue without audio session - fallback for other platforms
+      // Continue without iOS audio session - fallback for Android
     }
   }
 
