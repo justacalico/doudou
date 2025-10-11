@@ -343,7 +343,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     ));
   }
 
-  /// Initialize audio session for proper background audio and interruption handling (iOS/macOS)
+  /// Initialize audio session for proper background audio and interruption handling (iOS/macOS/Android/Windows)
   Future<void> _initializeAudioSession() async {
     try {
       // Get the audio session instance
