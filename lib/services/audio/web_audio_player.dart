@@ -38,6 +38,7 @@ class WebAudioPlayer {
   }
   
   Duration get duration {
+    if (!kIsWeb) return Duration.zero;
     try {
       final duration = js.context['doudouAudio'].callMethod('getDuration') as num;
       return Duration(seconds: duration.round());
@@ -47,6 +48,7 @@ class WebAudioPlayer {
   }
   
   void _setupCallbacks() {
+    if (!kIsWeb) return;
     // Set up callbacks for HTML audio events
     js.context['doudouAudioCallbacks'] = js.JsObject.jsify({
       'onLoadedMetadata': () {
