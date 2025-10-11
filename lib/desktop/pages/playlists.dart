@@ -553,6 +553,109 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     }
   }
 
+  Future<void> _playPlaylist(AppState appState, dynamic playlist) async {
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Loading playlist "${playlist.name}"...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      
+      // Get all tracks from the playlist
+      final tracks = await appState.getPlaylistTracks(playlist.id);
+      
+      if (tracks.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Playlist "${playlist.name}" is empty'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+      
+      // Play the playlist starting from the first track
+      await appState.playPlaylist(tracks, 0);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Playing "${playlist.name}" (${tracks.length} tracks)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error playing playlist: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _shufflePlaylist(AppState appState, dynamic playlist) async {
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Loading and shuffling "${playlist.name}"...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      
+      // Get all tracks from the playlist
+      final tracks = await appState.getPlaylistTracks(playlist.id);
+      
+      if (tracks.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Playlist "${playlist.name}" is empty'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+      
+      // Shuffle the tracks
+      final shuffledTracks = List.from(tracks)..shuffle();
+      
+      // Play the shuffled playlist starting from the first track
+      await appState.playPlaylist(shuffledTracks, 0);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Shuffling "${playlist.name}" (${tracks.length} tracks)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error shuffling playlist: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showCreatePlaylistDialog(BuildContext context) {
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
