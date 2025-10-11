@@ -2629,62 +2629,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   // Touch Bar Integration Methods
-  Future<void> _initializeTouchBar() async {
-    if (!_touchBarEnabled) return;
-    
-    try {
-      await TouchBarService.initialize();
-      
-      // Set up Touch Bar callbacks
-      TouchBarService.setCallbacks(
-        onPlayPause: () async {
-          if (playbackState.value.playing) {
-            await pause();
-          } else {
-            await play();
-          }
-        },
-        onPrevious: () async {
-          await skipToPrevious();
-        },
-        onNext: () async {
-          await skipToNext();
-        },
-        onSeek: (position) async {
-          await seek(position);
-        },
-        onFavorite: () async {
-          final currentTrack = _stateManager.currentTrack;
-          if (currentTrack != null) {
-            try {
-              final newFavoriteStatus = !currentTrack.isFavorite;
-              
-              // Call the Jellyfin API to toggle favorite (you'll need to implement this)
-              // For now, just log it
-              if (kDebugMode) {
-                print('Would toggle favorite for ${currentTrack.name}: $newFavoriteStatus');
-              }
-              
-              // Update Touch Bar immediately with new status
-              _updateTouchBarPlaybackState();
-            } catch (e) {
-              if (kDebugMode) {
-                print('Failed to toggle favorite: $e');
-              }
-            }
-          }
-        },
-      );
-      
-      if (kDebugMode) {
-        print('Touch Bar initialized successfully');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize Touch Bar: $e');
-      }
-    }
-  }
 
   void _updateTouchBarWithCurrentTrack() {
     if (!_touchBarEnabled) return;
