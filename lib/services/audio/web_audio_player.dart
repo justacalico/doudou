@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Conditional import: use stub on non-web platforms, dart:js on web
 // ignore: avoid_web_libraries_in_flutter, uri_does_not_exist
-import 'web_audio_player_stub.dart' as js if (dart.library.js) 'dart:js' as js;
+import 'web_audio_player_stub.dart' as js if (dart.library.js) 'dart:js';
 
 class WebAudioPlayer {
   static WebAudioPlayer? _instance;
