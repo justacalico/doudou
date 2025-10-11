@@ -159,6 +159,7 @@ class WebAudioPlayer {
   }
   
   void seek(Duration position) {
+    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('seek', [position.inSeconds]);
     } catch (e) {
