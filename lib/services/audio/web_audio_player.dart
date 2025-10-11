@@ -93,6 +93,7 @@ class WebAudioPlayer {
   }
   
   Future<void> setUrl(String url) async {
+    if (!kIsWeb) return;
     if (_currentUrl == url) {
       return; // Already loaded
     }
