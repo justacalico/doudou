@@ -631,7 +631,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       }
       
       // Shuffle the tracks
-      final shuffledTracks = List.from(tracks)..shuffle();
+      final shuffledTracks = List<Track>.from(tracks)..shuffle();
       
       // Play the shuffled playlist starting from the first track
       await appState.playPlaylist(shuffledTracks, 0);
