@@ -28,6 +28,7 @@ class WebAudioPlayer {
   bool get isPlaying => _isPlaying;
   
   Duration get position {
+    if (!kIsWeb) return Duration.zero;
     try {
       final currentTime = js.context['doudouAudio'].callMethod('getCurrentTime') as num;
       return Duration(seconds: currentTime.round());
