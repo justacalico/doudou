@@ -403,8 +403,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-                          // Play playlist
+                        onTap: () async {
+                          await _playPlaylist(appState, playlist);
                         },
                         child: Container(
                           decoration: BoxDecoration(
