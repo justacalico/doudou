@@ -107,6 +107,20 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             
             const SizedBox(width: 16),
             
+            // Play random playlist button
+            IconButton(
+              onPressed: filteredPlaylists.isNotEmpty 
+                ? () async {
+                    final randomPlaylist = (filteredPlaylists..shuffle()).first;
+                    await _shufflePlaylist(appState, randomPlaylist);
+                  }
+                : null,
+              icon: const Icon(Icons.shuffle),
+              tooltip: 'Shuffle Random Playlist',
+            ),
+            
+            const SizedBox(width: 8),
+            
             // Search field
             SizedBox(
               width: 300,
