@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-// Conditional import for web-only features
-// ignore: uri_does_not_exist
-import 'dart:js' as js if (dart.library.io) 'dart:js' as js;
+// Import appropriate implementation based on platform
+import 'web_audio_player_web.dart' if (dart.library.io) 'web_audio_player_io.dart';
 
 class WebAudioPlayer {
   static WebAudioPlayer? _instance;
