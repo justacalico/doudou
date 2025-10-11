@@ -124,8 +124,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.info('TouchBar initialized', 'AudioHandler');
     }
     
-    // Initialize audio session for iOS and macOS
-    if (Platform.isIOS || Platform.isMacOS) {
+    // Initialize audio session for iOS, macOS, Android, and Windows
+    if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid || Platform.isWindows) {
       _initializeAudioSession();
     }
     
