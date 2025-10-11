@@ -36,9 +36,10 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   
-  // Initialize MediaKit for desktop audio support (Linux and macOS)
+  // Initialize MediaKit for desktop audio support (Linux, macOS, and Windows)
   if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
-                  defaultTargetPlatform == TargetPlatform.macOS)) {
+                  defaultTargetPlatform == TargetPlatform.macOS ||
+                  defaultTargetPlatform == TargetPlatform.windows)) {
     JustAudioMediaKit.ensureInitialized();
   }
   
