@@ -148,6 +148,7 @@ class WebAudioPlayer {
   }
   
   void stop() {
+    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('stop');
     } catch (e) {
