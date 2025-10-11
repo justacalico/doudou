@@ -121,8 +121,9 @@ class DesktopDoudouApp extends StatelessWidget {
 
   /// Wraps the app with platform-specific services for desktop
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On macOS, use AudioServiceWidget for background audio support
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
+    // On macOS and Windows, use AudioServiceWidget for background audio support
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS || 
+                    defaultTargetPlatform == TargetPlatform.windows)) {
       return AudioServiceWidget(child: app);
     }
     
