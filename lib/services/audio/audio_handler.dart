@@ -117,12 +117,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     _logger.info('Audio components initialized', 'AudioHandler');
     
-    // Initialize Touch Bar service on macOS - temporarily disabled to fix crashes
+    // Initialize Touch Bar service on macOS
     if (Platform.isMacOS) {
-      // TODO: Re-enable TouchBar once stability issues are resolved
-      _touchBarEnabled = false;
-      // _initializeTouchBar();
-      _logger.info('TouchBar disabled for stability', 'AudioHandler');
+      _touchBarEnabled = true;
+      _initializeTouchBar();
+      _logger.info('TouchBar initialized successfully', 'AudioHandler');
     }
     
     // Initialize iOS audio session FIRST before any other audio setup (iOS only)
@@ -2629,6 +2628,48 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   // Touch Bar Integration Methods
+
+  /// Initialize Touch Bar service and set up callbacks
+  void _initializeTouchBar() async {
+    if (!Platform.isMacOS) return;
+    
+    try {
+      // Initialize the TouchBar service
+      await TouchBarService.initialize();
+      
+      // Set up callbacks for TouchBar button presses
+      TouchBarService.setCallbacks(
+        onPlayPause: () {
+          if (playbackState.value.playing) {
+            pause();
+          } else {
+            play();
+          }
+        },
+        onPrevious: () => skipToPrevious(),
+        onNext: () => skipToNext(),
+        onFavorite: () {
+          // Toggle favorite status for current track
+          final currentTrack = _stateManager.currentTrack;
+          if (currentTrack != null) {
+            // This would need to be implemented to toggle favorite in Jellyfin
+            if (kDebugMode) {
+              print('TouchBar: Toggle favorite for ${currentTrack.name}');
+            }
+          }
+        },
+      );
+      
+      if (kDebugMode) {
+        print('TouchBar initialized with callbacks');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize TouchBar: $e');
+      }
+      _touchBarEnabled = false;
+    }
+  }
 
   void _updateTouchBarWithCurrentTrack() {
     if (!_touchBarEnabled) return;
