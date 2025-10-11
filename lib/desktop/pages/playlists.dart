@@ -534,13 +534,15 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
-  void _handlePlaylistAction(String action, dynamic playlist) {
+  void _handlePlaylistAction(String action, dynamic playlist) async {
+    final appState = context.read<AppState>();
+    
     switch (action) {
       case 'play':
-        // Play playlist
+        await _playPlaylist(appState, playlist);
         break;
       case 'shuffle':
-        // Shuffle playlist
+        await _shufflePlaylist(appState, playlist);
         break;
       case 'edit':
         _showEditPlaylistDialog(context, playlist);
