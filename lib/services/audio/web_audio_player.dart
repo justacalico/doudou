@@ -126,6 +126,7 @@ class WebAudioPlayer {
   }
   
   Future<void> play() async {
+    if (!kIsWeb) return;
     try {
       await js.context['doudouAudio'].callMethod('play');
     } catch (e) {
@@ -136,6 +137,7 @@ class WebAudioPlayer {
   }
   
   void pause() {
+    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('pause');
     } catch (e) {
