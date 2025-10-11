@@ -124,8 +124,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.info('TouchBar initialized', 'AudioHandler');
     }
     
-    // Initialize iOS audio session FIRST before any other audio setup (iOS only)
-    if (Platform.isIOS) {
+    // Initialize audio session for iOS and macOS
+    if (Platform.isIOS || Platform.isMacOS) {
       _initializeAudioSession();
     }
     
@@ -343,17 +343,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     ));
   }
 
-  /// Initialize iOS audio session for proper background audio and interruption handling
+  /// Initialize audio session for proper background audio and interruption handling (iOS/macOS)
   Future<void> _initializeAudioSession() async {
     try {
       // Get the audio session instance
       final audioSession = await AudioSession.instance;
       
-      // Configure for music playback with proper iOS settings
+      // Configure for music playback with proper settings
       await audioSession.configure(const AudioSessionConfiguration.music());
       
       if (kDebugMode) {
-        print('iOS Audio session configured for music playback');
+        print('Audio session configured for music playback on ${Platform.operatingSystem}');
       }
       
       // Listen for audio interruptions (phone calls, notifications, etc.)
@@ -428,14 +428,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await audioSession.setActive(true);
       
       if (kDebugMode) {
-        print('iOS Audio session activated successfully');
+        print('Audio session activated successfully on ${Platform.operatingSystem}');
       }
       
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to initialize iOS audio session: $e');
+        print('Failed to initialize audio session on ${Platform.operatingSystem}: $e');
       }
-      // Continue without iOS audio session - fallback for Android
+      // Continue without audio session - fallback for other platforms
     }
   }
 
