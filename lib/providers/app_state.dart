@@ -8,7 +8,6 @@ import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../services/jellyfin_service.dart';
 import '../services/audio/audio_handler.dart';
-import '../services/audio/web_audio_player.dart';
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
@@ -253,22 +252,6 @@ class AppState extends ChangeNotifier {
                   print('Failed to initialize Linux audio handler: $audioError');
                 }
                 // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else if (kIsWeb) {
-              // Web: Use simplified web audio player
-              try {
-                // For web, we don't use DoudouAudioHandler, instead use WebAudioPlayer
-                // The UI will need to handle web-specific audio through WebAudioPlayer.instance
-                _audioHandler = null; // Web doesn't use the standard audio handler
-                
-                if (kDebugMode) {
-                  print('Web audio player available - using WebAudioPlayer for playback');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize web audio: $audioError');
-                }
                 _audioHandler = null;
               }
             } else {
@@ -1280,22 +1263,7 @@ class AppState extends ChangeNotifier {
 
   // Audio playback methods
   Future<void> playTrack(Track track) async {
-    if (kIsWeb) {
-      // Web-specific playback using WebAudioPlayer
-      try {
-        final streamUrl = _jellyfinService.getStreamUrl(track.id);
-        await WebAudioPlayer.instance.setUrl(streamUrl);
-        await WebAudioPlayer.instance.play();
-        if (kDebugMode) {
-          print('Web: Playing track ${track.name} from $streamUrl');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Web: Error playing track ${track.name}: $e');
-        }
-      }
-      notifyListeners();
-    } else if (_audioHandler != null) {
+    if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
       notifyListeners();
     }
@@ -1309,15 +1277,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> playPause() async {
-    if (kIsWeb) {
-      // Web-specific play/pause
-      if (WebAudioPlayer.instance.isPlaying) {
-        WebAudioPlayer.instance.pause();
-      } else {
-        await WebAudioPlayer.instance.play();
-      }
-      notifyListeners();
-    } else if (_audioHandler != null) {
+    if (_audioHandler != null) {
       // Get the current player state
       final playerState = await _audioHandler!.playerStateStream.first;
       if (playerState.playing) {

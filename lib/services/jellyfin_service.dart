@@ -36,8 +36,8 @@ class JellyfinService {
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     _dio.options.sendTimeout = const Duration(seconds: 30);
     
-    // Platform-specific configurations (skip on web)
-    if (!kIsWeb && Platform.isLinux) {
+    // Platform-specific configurations
+    if (Platform.isLinux) {
       // On Linux, we might need more lenient SSL handling for self-signed certificates
       (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
         client.badCertificateCallback = (cert, host, port) {
@@ -215,9 +215,7 @@ class JellyfinService {
       
       if (kDebugMode) {
         print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
-        if (!kIsWeb) {
-          print('Platform: ${Platform.operatingSystem}');
-        }
+        print('Platform: ${Platform.operatingSystem}');
       }
       
       final response = await _dio.post(
@@ -230,7 +228,7 @@ class JellyfinService {
           headers: {
             'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : Platform.operatingSystem})',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
           },
         ),
       );
@@ -695,7 +693,7 @@ class JellyfinService {
           headers: {
             'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : Platform.operatingSystem})',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
           },
         ),
       );
@@ -752,7 +750,7 @@ class JellyfinService {
           headers: {
             'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : Platform.operatingSystem})',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
           },
           // Don't include the old token in the refresh request
           extra: {'skipAuth': true},

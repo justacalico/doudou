@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -1094,7 +1093,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _getPlatformInfo() {
-    final platform = kIsWeb ? 'web' : Platform.operatingSystem;
+    final platform = Platform.operatingSystem;
     final architecture = _getArchitecture();
     
     switch (platform) {
@@ -1110,8 +1109,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _getArchitecture() {
-    if (kIsWeb) return 'web';
-    
     try {
       if (Platform.isLinux || Platform.isMacOS) {
         final result = Process.runSync('uname', ['-m']);
@@ -1139,8 +1136,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _getOSVersion() {
-    if (kIsWeb) return 'Web Browser';
-    
     try {
       if (Platform.isLinux) {
         // Try to get Linux distribution info
@@ -1171,7 +1166,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       // Fallback if commands fail
     }
-    return kIsWeb ? 'Web' : Platform.operatingSystem;
+    return Platform.operatingSystem;
   }
 }
 
@@ -1230,7 +1225,7 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
   Future<void> _exportLogs() async {
     try {
       final logs = await _loggingService.exportLogs();
-      final file = File('${kIsWeb ? '/tmp' : Platform.environment['HOME']}/doudou_logs_export.txt');
+      final file = File('${Platform.environment['HOME']}/doudou_logs_export.txt');
       await file.writeAsString(logs);
       
       if (mounted) {

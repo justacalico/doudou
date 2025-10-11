@@ -33,15 +33,13 @@ bool _isDesktopOrWebPlatform() {
 void _runMobileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize logging service (skip on web)
-  if (!kIsWeb) {
-    try {
-      await LoggingService().initialize();
-      await _logSystemInfo('Mobile');
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize logging service: $e');
-      }
+  // Initialize logging service
+  try {
+    await LoggingService().initialize();
+    await _logSystemInfo('Mobile');
+  } catch (e) {
+    if (kDebugMode) {
+      print('Failed to initialize logging service: $e');
     }
   }
   
@@ -138,9 +136,6 @@ class DoudouApp extends StatelessWidget {
 
 /// Log comprehensive system information for debugging, especially Flatpak issues
 Future<void> _logSystemInfo(String context) async {
-  // Skip on web platform
-  if (kIsWeb) return;
-  
   final logger = LoggingService();
   
   try {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import '../../models/jellyfin_models.dart';
 import 'details/playlist_details.dart';
 
 class PlaylistsPage extends StatefulWidget {
@@ -106,20 +105,6 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             ),
             
             const SizedBox(width: 16),
-            
-            // Play random playlist button
-            IconButton(
-              onPressed: filteredPlaylists.isNotEmpty 
-                ? () async {
-                    final randomPlaylist = (filteredPlaylists..shuffle()).first;
-                    await _shufflePlaylist(appState, randomPlaylist);
-                  }
-                : null,
-              icon: const Icon(Icons.shuffle),
-              tooltip: 'Shuffle Random Playlist',
-            ),
-            
-            const SizedBox(width: 8),
             
             // Search field
             SizedBox(
@@ -403,8 +388,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () async {
-                          await _playPlaylist(appState, playlist);
+                        onTap: () {
+                          // Play playlist
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -549,15 +534,13 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
-  void _handlePlaylistAction(String action, dynamic playlist) async {
-    final appState = context.read<AppState>();
-    
+  void _handlePlaylistAction(String action, dynamic playlist) {
     switch (action) {
       case 'play':
-        await _playPlaylist(appState, playlist);
+        // Play playlist
         break;
       case 'shuffle':
-        await _shufflePlaylist(appState, playlist);
+        // Shuffle playlist
         break;
       case 'edit':
         _showEditPlaylistDialog(context, playlist);
@@ -565,109 +548,6 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       case 'delete':
         _showDeletePlaylistDialog(context, playlist);
         break;
-    }
-  }
-
-  Future<void> _playPlaylist(AppState appState, dynamic playlist) async {
-    try {
-      // Show loading indicator
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Loading playlist "${playlist.name}"...'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-      
-      // Get all tracks from the playlist
-      final tracks = await appState.getPlaylistTracks(playlist.id);
-      
-      if (tracks.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Playlist "${playlist.name}" is empty'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-      
-      // Play the playlist starting from the first track
-      await appState.playPlaylist(tracks, 0);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Playing "${playlist.name}" (${tracks.length} tracks)'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error playing playlist: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _shufflePlaylist(AppState appState, dynamic playlist) async {
-    try {
-      // Show loading indicator
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Loading and shuffling "${playlist.name}"...'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-      
-      // Get all tracks from the playlist
-      final tracks = await appState.getPlaylistTracks(playlist.id);
-      
-      if (tracks.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Playlist "${playlist.name}" is empty'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-      
-      // Shuffle the tracks
-      final shuffledTracks = List<Track>.from(tracks)..shuffle();
-      
-      // Play the shuffled playlist starting from the first track
-      await appState.playPlaylist(shuffledTracks, 0);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Shuffling "${playlist.name}" (${tracks.length} tracks)'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error shuffling playlist: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 

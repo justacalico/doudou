@@ -22,9 +22,7 @@ class CacheService {
   
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    if (!kIsWeb) {
-      await _initDatabase();
-    }
+    await _initDatabase();
   }
   
   Future<void> _initDatabase() async {
@@ -195,53 +193,12 @@ class CacheService {
     );
   }
   
-  // Helper method to clear web cache by table prefix
-  Future<void> _clearWebCache(String table) async {
-    if (_prefs == null) return;
-    
-    final keys = _prefs!.getKeys();
-    final keysToRemove = keys.where((key) => key.startsWith('${table}_')).toList();
-    
-    for (final key in keysToRemove) {
-      await _prefs!.remove(key);
-    }
-    
-    if (kDebugMode && keysToRemove.isNotEmpty) {
-      if (kDebugMode) {
-        print('Cleared ${keysToRemove.length} web cache entries for $table');
-      }
-    }
-  }
-  
   // Generic cache methods
   Future<void> _setCache(String table, String key, Map<String, dynamic> data, {Duration? duration}) async {
+    if (_database == null) return;
+    
     final now = DateTime.now().millisecondsSinceEpoch;
     final dataJson = jsonEncode(data);
-    
-    if (kIsWeb) {
-      // Use SharedPreferences for web
-      try {
-        final cacheKey = '${table}_$key';
-        final cacheData = jsonEncode({
-          'data': dataJson,
-          'timestamp': now,
-        });
-        await _prefs?.setString(cacheKey, cacheData);
-        
-        if (kDebugMode) {
-          print('Cached $key in $table (web)');
-        }
-        return;
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error setting web cache for $table.$key: $e');
-        }
-        return;
-      }
-    }
-    
-    // Use database for non-web platforms
-    if (_database == null) return;
     
     try {
       await _database!.insert(
@@ -289,35 +246,6 @@ class CacheService {
   }
   
   Future<Map<String, dynamic>?> _getCache(String table, String key, Duration maxAge) async {
-    if (kIsWeb) {
-      // Use SharedPreferences for web
-      try {
-        final cacheKey = '${table}_$key';
-        final cacheDataString = _prefs?.getString(cacheKey);
-        if (cacheDataString == null) return null;
-        
-        final cacheData = jsonDecode(cacheDataString) as Map<String, dynamic>;
-        final timestamp = cacheData['timestamp'] as int;
-        final now = DateTime.now().millisecondsSinceEpoch;
-        
-        // Check if cache is still valid
-        if (now - timestamp > maxAge.inMilliseconds) {
-          // Cache expired, remove it
-          await _prefs?.remove(cacheKey);
-          return null;
-        }
-        
-        final dataJson = cacheData['data'] as String;
-        return jsonDecode(dataJson) as Map<String, dynamic>;
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error reading web cache for $table.$key: $e');
-        }
-        return null;
-      }
-    }
-    
-    // Use database for non-web platforms
     if (_database == null) return null;
     
     try {
@@ -404,34 +332,6 @@ class CacheService {
   }
   
   Future<void> _clearExpiredCache(String table, Duration maxAge) async {
-    if (kIsWeb) {
-      // For web, check each SharedPreference key and remove expired ones
-      if (_prefs == null) return;
-      
-      final keys = _prefs!.getKeys();
-      final tableKeys = keys.where((key) => key.startsWith('${table}_')).toList();
-      final now = DateTime.now().millisecondsSinceEpoch;
-      
-      for (final key in tableKeys) {
-        try {
-          final cacheDataString = _prefs!.getString(key);
-          if (cacheDataString != null) {
-            final cacheData = jsonDecode(cacheDataString) as Map<String, dynamic>;
-            final timestamp = cacheData['timestamp'] as int;
-            
-            if (now - timestamp > maxAge.inMilliseconds) {
-              await _prefs!.remove(key);
-            }
-          }
-        } catch (e) {
-          // If we can't parse the cache data, remove it
-          await _prefs!.remove(key);
-        }
-      }
-      return;
-    }
-    
-    // Database implementation for non-web platforms
     if (_database == null) return;
     
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -557,70 +457,38 @@ class CacheService {
   
   // Clear specific cache
   Future<void> clearAlbumsCache() async {
-    if (kIsWeb) {
-      await _clearWebCache('albums_cache');
-    } else {
-      await _database?.delete('albums_cache');
-    }
+    await _database?.delete('albums_cache');
   }
   
   Future<void> clearArtistsCache() async {
-    if (kIsWeb) {
-      await _clearWebCache('artists_cache');
-    } else {
-      await _database?.delete('artists_cache');
-    }
+    await _database?.delete('artists_cache');
   }
   
   Future<void> clearTracksCache() async {
-    if (kIsWeb) {
-      await _clearWebCache('tracks_cache');
-    } else {
-      await _database?.delete('tracks_cache');
-    }
+    await _database?.delete('tracks_cache');
   }
   
   Future<void> clearPlaylistsCache() async {
-    if (kIsWeb) {
-      await _clearWebCache('playlists_cache');
-    } else {
-      await _database?.delete('playlists_cache');
-    }
+    await _database?.delete('playlists_cache');
   }
   
   Future<void> clearFavoritesCache() async {
-    if (kIsWeb) {
-      await _clearWebCache('favorites_cache');
-    } else {
-      await _database?.delete('favorites_cache');
-    }
+    await _database?.delete('favorites_cache');
   }
   
   // Clear all cache
   Future<void> clearAllCache() async {
-    if (kIsWeb) {
-      await Future.wait([
-        _clearWebCache('albums_cache'),
-        _clearWebCache('artists_cache'),
-        _clearWebCache('tracks_cache'),
-        _clearWebCache('playlists_cache'),
-        _clearWebCache('album_tracks_cache'),
-        _clearWebCache('playlist_tracks_cache'),
-        _clearWebCache('favorites_cache'),
-      ]);
-    } else {
-      if (_database == null) return;
-      
-      await Future.wait([
-        _database!.delete('albums_cache'),
-        _database!.delete('artists_cache'),
-        _database!.delete('tracks_cache'),
-        _database!.delete('playlists_cache'),
-        _database!.delete('album_tracks_cache'),
-        _database!.delete('playlist_tracks_cache'),
-        _database!.delete('favorites_cache'),
-      ]);
-    }
+    if (_database == null) return;
+    
+    await Future.wait([
+      _database!.delete('albums_cache'),
+      _database!.delete('artists_cache'),
+      _database!.delete('tracks_cache'),
+      _database!.delete('playlists_cache'),
+      _database!.delete('album_tracks_cache'),
+      _database!.delete('playlist_tracks_cache'),
+      _database!.delete('favorites_cache'),
+    ]);
     
     if (kDebugMode) {
       print('All cache cleared');
