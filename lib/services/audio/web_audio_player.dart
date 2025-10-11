@@ -170,6 +170,7 @@ class WebAudioPlayer {
   }
   
   void setVolume(double volume) {
+    if (!kIsWeb) return;
     try {
       js.context['doudouAudio'].callMethod('setVolume', [volume.clamp(0.0, 1.0)]);
     } catch (e) {
