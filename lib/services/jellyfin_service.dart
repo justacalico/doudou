@@ -370,7 +370,8 @@ class JellyfinService implements BaseMediaService {
     return [];
   }
 
-  Future<List<Artist>> getArtists() async {
+  @override
+  Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
     if (_server == null) throw Exception('Server not configured');
 
     try {
