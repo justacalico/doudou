@@ -36,6 +36,17 @@ class PlexService implements BaseMediaService {
     }
   }
 
+  /// Helper method to safely parse duration from Plex API response
+  int _parseDuration(dynamic duration) {
+    if (duration == null) return 0;
+    if (duration is int) return duration ~/ 1000; // Convert from ms to seconds
+    if (duration is String) {
+      final parsed = int.tryParse(duration);
+      return parsed != null ? parsed ~/ 1000 : 0;
+    }
+    return 0;
+  }
+
   @override
   Future<bool> authenticate(String serverUrl, String identifier, String credential) async {
     try {
