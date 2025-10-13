@@ -15,6 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _serverController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  String _selectedServerType = 'jellyfin'; // Default to Jellyfin
 
   @override
   void dispose() {
