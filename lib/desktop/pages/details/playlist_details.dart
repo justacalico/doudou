@@ -51,7 +51,7 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
 
   String? _getImageUrl(AppState appState, String? imageId) {
     if (imageId == null) return null;
-    return appState.jellyfinService.getImageUrl(imageId);
+    return appState.getImageUrl(imageId);
   }
 
   @override
