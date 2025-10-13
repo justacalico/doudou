@@ -391,7 +391,7 @@ class _QueueOverlayState extends State<QueueOverlay>
               borderRadius: BorderRadius.circular(8),
               child: track.imageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: appState.jellyfinService.getImageUrl(
+                      imageUrl: appState.getImageUrl(
                         track.imageUrl!,
                         width: 96,
                         height: 96,
