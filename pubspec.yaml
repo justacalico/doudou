@@ -46,6 +46,9 @@ dependencies:
   logging: ^1.3.0
   flutter_svg: ^2.2.1
   
+  # Cryptography
+  crypto: ^3.0.3
+  
   # Touch Bar support (macOS only)
   touch_bar: ^0.3.0-alpha.1
 
