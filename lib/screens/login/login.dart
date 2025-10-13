@@ -15,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _serverController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _plexTokenController = TextEditingController();
   
   String _selectedServerType = 'jellyfin'; // Default to Jellyfin
 
