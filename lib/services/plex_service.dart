@@ -22,6 +22,12 @@ class PlexService implements BaseMediaService {
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     _dio.options.sendTimeout = const Duration(seconds: 30);
     
+    // Set default headers for JSON responses
+    _dio.options.headers['Accept'] = 'application/json';
+    _dio.options.headers['X-Plex-Client-Identifier'] = 'doudou-flutter';
+    _dio.options.headers['X-Plex-Product'] = 'Doudou';
+    _dio.options.headers['X-Plex-Version'] = '1.0.0';
+    
     // Platform-specific configurations
     if (Platform.isLinux) {
       (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
