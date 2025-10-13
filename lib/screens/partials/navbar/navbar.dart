@@ -1022,7 +1022,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              appState.jellyfinService.getImageUrl(
+                              appState.getImageUrl(
                                 album.imageUrl!,
                                 width: 200,
                                 height: 200,
@@ -1223,7 +1223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              appState.jellyfinService.getImageUrl(
+                              appState.getImageUrl(
                                 playlist.imageUrl!,
                                 width: 150,
                                 height: 150,
@@ -1549,7 +1549,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                  appState.jellyfinService.getImageUrl(
+                                  appState.getImageUrl(
                                     track.imageUrl!,
                                     width: 100,
                                     height: 100,
@@ -1716,7 +1716,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: Image.network(
-                                appState.jellyfinService.getImageUrl(
+                                appState.getImageUrl(
                                   currentTrack.imageUrl!,
                                   width: 300,
                                   height: 300,
