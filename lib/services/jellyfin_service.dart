@@ -317,6 +317,10 @@ class JellyfinService implements BaseMediaService {
   Future<List<Track>> getAlbumTracks(String albumId) async {
     if (_server == null) throw Exception('Server not configured');
 
+    if (kDebugMode) {
+      print('JellyfinService.getAlbumTracks(): Fetching tracks for album: $albumId');
+    }
+
     try {
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
@@ -324,7 +328,7 @@ class JellyfinService implements BaseMediaService {
           'ParentId': albumId,
           'IncludeItemTypes': 'Audio',
           'Recursive': true,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags',
+          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
           'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
@@ -332,11 +336,18 @@ class JellyfinService implements BaseMediaService {
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
+        if (kDebugMode) {
+          print('JellyfinService.getAlbumTracks(): Successfully loaded ${items.length} tracks for album: $albumId');
+        }
         return items.map((item) => Track.fromJson(item)).toList();
+      } else {
+        if (kDebugMode) {
+          print('JellyfinService.getAlbumTracks(): Bad response ${response.statusCode} for album: $albumId');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching album tracks: $e');
+        print('JellyfinService.getAlbumTracks(): Error fetching album tracks for $albumId: $e');
       }
     }
     return [];
