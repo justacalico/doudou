@@ -257,7 +257,7 @@ class LibraryContent extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 child: album.imageUrl != null
                                     ? Image.network(
-                                        appState.jellyfinService.getImageUrl(
+                                        appState.getImageUrl(
                                           album.imageUrl!,
                                           width: 300,
                                           height: 300,
