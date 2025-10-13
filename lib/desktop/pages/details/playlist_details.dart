@@ -34,8 +34,8 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
     });
 
     try {
-      // Fetch tracks specifically for this playlist from Jellyfin
-      _playlistTracks = await appState.jellyfinService.getPlaylistTracks(widget.playlist.id);
+      // Fetch tracks for this playlist using the appropriate service
+      _playlistTracks = await appState.getPlaylistTracks(widget.playlist.id);
     } catch (e) {
       // Handle error
       if (kDebugMode) {
