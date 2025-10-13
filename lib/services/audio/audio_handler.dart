@@ -21,6 +21,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final AudioPlayer _player = AudioPlayer();
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
+  final MediaServiceManager? _mediaServiceManager;
   
   // Touch Bar service for macOS
   bool _touchBarEnabled = false;
