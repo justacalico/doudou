@@ -83,8 +83,25 @@ class MediaServiceManager {
 
   /// Get stream URL from the current service
   String getStreamUrl(String trackId, {int? bitrate}) {
-    if (_currentService == null) return '';
-    return _currentService!.getStreamUrl(trackId, bitrate: bitrate);
+    if (kDebugMode) {
+      print('MediaServiceManager.getStreamUrl called for trackId: $trackId');
+      print('Current service: $_currentService');
+      print('Current server type: $_currentServerType');
+    }
+    
+    if (_currentService == null) {
+      if (kDebugMode) {
+        print('ERROR: Current service is null!');
+      }
+      return '';
+    }
+    
+    final streamUrl = _currentService!.getStreamUrl(trackId, bitrate: bitrate);
+    if (kDebugMode) {
+      print('Stream URL generated: $streamUrl');
+    }
+    
+    return streamUrl;
   }
 
   /// Get image URL from the current service
