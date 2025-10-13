@@ -624,6 +624,124 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<bool> loginWithServerType(String serverType, String serverUrl, String identifier, String credential) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Convert string server type to enum
+      ServerType type;
+      switch (serverType) {
+        case 'plex':
+          type = ServerType.plex;
+          break;
+        case 'navidrome':
+          type = ServerType.navidrome;
+          break;
+        case 'jellyfin':
+        default:
+          type = ServerType.jellyfin;
+          break;
+      }
+
+      // Initialize the appropriate service
+      _mediaServiceManager.initializeService(type);
+
+      // Ensure serverUrl has protocol for non-Plex services
+      if (type != ServerType.plex && !serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
+        serverUrl = 'http://$serverUrl';
+      }
+
+      final success = await _mediaServiceManager.authenticate(serverUrl, identifier, credential);
+      
+      if (success) {
+        if (kDebugMode) {
+          print('AppState: Multi-service authentication success for $serverType');
+        }
+        
+        _isLoggedIn = true;
+        
+        // Initialize cache service
+        await _cacheService.initialize();
+        
+        // For now, we'll continue using the existing audio handler with Jellyfin service
+        // In future iterations, this can be made generic for all services
+        if (type == ServerType.jellyfin) {
+          // Continue with existing Jellyfin logic for audio handler
+          if (_isAndroid || _isIOS) {
+            try {
+              _audioHandler = await AudioService.init(
+                builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                config: const AudioServiceConfig(
+                  androidNotificationChannelId: 'com.doudou.app.channel.audio',
+                  androidNotificationChannelName: 'Doudou Audio Service',
+                  androidNotificationOngoing: true,
+                  androidStopForegroundOnPause: true,
+                ),
+              );
+              
+              _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+              _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+              _setupAudioHandlerListeners();
+            } catch (e) {
+              if (kDebugMode) {
+                print('Failed to initialize audio handler: $e');
+              }
+              _audioHandler = null;
+            }
+          } else {
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+            _setupAudioHandlerListeners();
+          }
+        }
+        
+        await _saveServerType(serverType);
+        await _saveServer();
+        
+        // Load library data
+        try {
+          await loadLibraryData();
+        } catch (e) {
+          if (kDebugMode) {
+            print('Exception during library loading: $e');
+          }
+        }
+        
+        _setLoading(false);
+        notifyListeners();
+        return true;
+      } else {
+        _setError('Authentication failed. Please check your credentials.');
+        _setLoading(false);
+        return false;
+      }
+    } catch (e) {
+      String errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      if (e.toString().toLowerCase().contains('timeout')) {
+        errorMessage = 'Connection timeout. Please check your network and server availability.';
+      } else if (e.toString().toLowerCase().contains('certificate')) {
+        errorMessage = 'SSL certificate error. Please check your server configuration.';
+      }
+      
+      _setError(errorMessage);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<void> _saveServerType(String serverType) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('server_type', serverType);
+  }
+
+  Future<String> _getSavedServerType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('server_type') ?? 'jellyfin';
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jellyfin_server');
