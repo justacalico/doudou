@@ -106,7 +106,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  DoudouAudioHandler(this._jellyfinService, this._downloadService) {
+  DoudouAudioHandler(this._jellyfinService, this._downloadService, [this._mediaServiceManager]) {
     _logger.info('Initializing DoudouAudioHandler', 'AudioHandler');
     _logger.info('AudioPlayer created - Platform: ${Platform.operatingSystem}', 'AudioHandler');
     
