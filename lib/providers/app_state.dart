@@ -1306,7 +1306,7 @@ class AppState extends ChangeNotifier {
   
   Future<void> _loadAlbumTracksInBackground(String albumId) async {
     try {
-      final tracks = await _jellyfinService.getAlbumTracks(albumId);
+      final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
       await _cacheService.cacheAlbumTracks(albumId, tracks);
     } catch (e) {
       if (kDebugMode) {
