@@ -163,7 +163,6 @@ class PlexService implements BaseMediaService {
         id: artist['ratingKey'].toString(),
         name: artist['title'],
         imageUrl: artist['thumb'] != null ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token' : null,
-        albumCount: artist['childCount'] ?? 0,
       )).toList();
     } catch (e) {
       if (kDebugMode) {
