@@ -1364,7 +1364,7 @@ class AppState extends ChangeNotifier {
         print('Loading fresh playlist tracks in background for playlist: $playlistId');
       }
       
-      final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+      final tracks = await _mediaServiceManager.getPlaylistTracks(playlistId);
       await _cacheService.cachePlaylistTracks(playlistId, tracks);
       
       if (kDebugMode) {
@@ -1831,7 +1831,7 @@ class AppState extends ChangeNotifier {
   Future<bool> _checkConnectivity() async {
     try {
       // Simple connectivity check - try to get albums with short timeout
-      await _jellyfinService.getAlbums().timeout(const Duration(seconds: 5));
+      await _mediaServiceManager.getAlbums().timeout(const Duration(seconds: 5));
       return true;
     } catch (e) {
       if (kDebugMode) {
