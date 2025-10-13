@@ -42,14 +42,21 @@ class PlexService implements BaseMediaService {
       _serverUrl = serverUrl.endsWith('/') ? serverUrl.substring(0, serverUrl.length - 1) : serverUrl;
       _token = credential; // For Plex, credential is the X-Plex-Token
       
-      // Validate token by getting server identity
+      if (kDebugMode) {
+        print('Plex: Attempting authentication to $_serverUrl with token');
+      }
+      
+      // Try to get server info using a more standard endpoint
       final response = await _dio.get(
-        '$_serverUrl/identity',
+        '$_serverUrl/',
         queryParameters: {'X-Plex-Token': _token},
       );
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['MediaContainer'] != null) {
         _machineIdentifier = response.data['MediaContainer']['machineIdentifier'];
+        if (kDebugMode) {
+          print('Plex: Authentication successful. Machine ID: $_machineIdentifier');
+        }
         return true;
       }
       
