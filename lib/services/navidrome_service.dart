@@ -81,9 +81,9 @@ class NavidromeService implements BaseMediaService {
   }
 
   String _md5Hash(String input) {
-    // Simple MD5 implementation would go here
-    // For now, return a placeholder - in production, use crypto package
-    return input.hashCode.toString();
+    var bytes = utf8.encode(input);
+    var digest = md5.convert(bytes);
+    return digest.toString();
   }
 
   @override
