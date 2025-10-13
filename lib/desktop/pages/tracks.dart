@@ -38,7 +38,7 @@ class _TracksPageState extends State<TracksPage> {
 
     try {
       final appState = context.read<AppState>();
-      final tracks = await appState.jellyfinService.getAllTracks();
+      final tracks = await appState.mediaServiceManager.getTracks(limit: 1000);
       
       setState(() {
         _tracks = tracks;
