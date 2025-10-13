@@ -75,6 +75,11 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  // Helper method to get image URLs from the current media service
+  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+    return _mediaServiceManager.getImageUrl(itemId, type: type, width: width, height: height);
+  }
+
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
