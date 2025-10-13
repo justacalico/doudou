@@ -503,7 +503,7 @@ class _HomeContentState extends State<HomeContent> {
                 color: const Color(0xFF2D2D2D),
                 child: album.imageUrl != null
                     ? CachedNetworkImage(
-                        imageUrl: appState.jellyfinService.getImageUrl(
+                        imageUrl: appState.getImageUrl(
                           album.imageUrl!,
                           width: 400,
                           height: 400,
@@ -594,7 +594,7 @@ class _HomeContentState extends State<HomeContent> {
               color: const Color(0xFF2D2D2D),
               child: currentTrack.imageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: appState.jellyfinService.getImageUrl(
+                      imageUrl: appState.getImageUrl(
                         currentTrack.imageUrl!,
                         width: 300,
                         height: 300,
@@ -691,7 +691,7 @@ class _HomeContentState extends State<HomeContent> {
                 color: const Color(0xFF2D2D2D),
                 child: album.imageUrl != null
                     ? CachedNetworkImage(
-                        imageUrl: appState.jellyfinService.getImageUrl(
+                        imageUrl: appState.getImageUrl(
                           album.imageUrl!,
                           width: 300,
                           height: 300,
@@ -756,7 +756,7 @@ class _HomeContentState extends State<HomeContent> {
                 color: const Color(0xFF2D2D2D),
                 child: album.imageUrl != null
                     ? CachedNetworkImage(
-                        imageUrl: appState.jellyfinService.getImageUrl(
+                        imageUrl: appState.getImageUrl(
                           album.imageUrl!,
                           width: 400,
                           height: 400,
@@ -833,7 +833,7 @@ class _HomeContentState extends State<HomeContent> {
                 color: const Color(0xFF2D2D2D),
                 child: album.imageUrl != null
                     ? CachedNetworkImage(
-                        imageUrl: appState.jellyfinService.getImageUrl(
+                        imageUrl: appState.getImageUrl(
                           album.imageUrl!,
                           width: 300,
                           height: 300,
