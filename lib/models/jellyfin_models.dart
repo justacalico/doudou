@@ -231,3 +231,37 @@ class Playlist {
     };
   }
 }
+
+class Library {
+  final String id;
+  final String name;
+  final String collectionType;
+  final String? imageUrl;
+
+  Library({
+    required this.id,
+    required this.name,
+    required this.collectionType,
+    this.imageUrl,
+  });
+
+  factory Library.fromJson(Map<String, dynamic> json) {
+    return Library(
+      id: json['Id'],
+      name: json['Name'],
+      collectionType: json['CollectionType'] ?? 'unknown',
+      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+          ? json['Id'] // We'll construct the full URL in the service
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Id': id,
+      'Name': name,
+      'CollectionType': collectionType,
+      'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
+    };
+  }
+}
