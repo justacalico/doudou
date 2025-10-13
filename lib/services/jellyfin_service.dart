@@ -270,7 +270,8 @@ class JellyfinService implements BaseMediaService {
     return false;
   }
 
-  Future<List<Album>> getAlbums() async {
+  @override
+  Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
     if (_server == null) {
       if (kDebugMode) {
         print('JellyfinService.getAlbums(): Server not configured');
