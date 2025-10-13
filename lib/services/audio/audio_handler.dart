@@ -2254,7 +2254,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   String _getHlsStreamUrl(Track track) {
-    final streamUrl = _jellyfinService.getStreamUrl(track.id);
+    // Use MediaServiceManager if available, otherwise fallback to JellyfinService
+    final mediaServiceManager = _mediaServiceManager;
+    final streamUrl = mediaServiceManager != null 
+      ? mediaServiceManager.getStreamUrl(track.id)
+      : _jellyfinService.getStreamUrl(track.id);
     if (streamUrl.isEmpty) return '';
     
     final baseUrl = streamUrl.split('/Audio/')[0];
