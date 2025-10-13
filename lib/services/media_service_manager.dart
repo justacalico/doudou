@@ -192,14 +192,12 @@ class JellyfinServiceAdapter implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    if (_currentService == null) return '';
-    return _currentService!.getStreamUrl(trackId, bitrate: bitrate);
+    return _jellyfinService.getStreamUrl(trackId);
   }
 
   @override
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
-    if (_currentService == null) return '';
-    return _currentService!.getImageUrl(itemId, type: type, width: width, height: height);
+    return _jellyfinService.getImageUrl(itemId, width: width, height: height);
   }
 
   @override
