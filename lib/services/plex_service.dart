@@ -302,10 +302,9 @@ class PlexService implements BaseMediaService {
             albums.add(Album(
               id: item['ratingKey'].toString(),
               name: item['title'],
-              artist: item['parentTitle'] ?? 'Unknown Artist',
+              artistName: item['parentTitle'] ?? 'Unknown Artist',
               year: item['year'],
               imageUrl: item['thumb'] != null ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token' : null,
-              trackCount: item['leafCount'] ?? 0,
             ));
             break;
           case 'artist':
