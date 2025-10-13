@@ -224,8 +224,7 @@ class JellyfinServiceAdapter implements BaseMediaService {
 
   @override
   Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
-    // This should be implemented in JellyfinService
-    return SearchResults();
+    return await _jellyfinService.search(query, includeItemTypes: includeItemTypes, limit: limit);
   }
 
   @override
