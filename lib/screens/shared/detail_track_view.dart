@@ -185,7 +185,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                     borderRadius: BorderRadius.circular(12),
                     child: widget.imageUrl != null
                         ? CachedNetworkImage(
-                            imageUrl: appState.jellyfinService.getImageUrl(
+                            imageUrl: appState.getImageUrl(
                               widget.imageUrl!,
                               width: 320,
                               height: 320,
