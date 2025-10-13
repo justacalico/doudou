@@ -452,7 +452,8 @@ class JellyfinService implements BaseMediaService {
     return [];
   }
 
-  String getImageUrl(String itemId, {int? width, int? height}) {
+  @override
+  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     if (_server == null) return '';
     
     final params = <String, String>{};
