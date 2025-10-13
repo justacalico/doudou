@@ -1092,25 +1092,25 @@ class AppState extends ChangeNotifier {
       
       // Load all library data concurrently with individual error handling
       final List<Future> futures = [
-        _jellyfinService.getAlbums().catchError((e) {
+        _mediaServiceManager.getAlbums().catchError((e) {
           if (kDebugMode) {
             print('Warning: Failed to load albums: $e');
           }
           return <Album>[];
         }),
-        _jellyfinService.getArtists().catchError((e) {
+        _mediaServiceManager.getArtists().catchError((e) {
           if (kDebugMode) {
             print('Warning: Failed to load artists: $e');
           }
           return <Artist>[];
         }),
-        _jellyfinService.getAllTracks().catchError((e) {
+        _mediaServiceManager.getTracks(limit: 1000).catchError((e) {
           if (kDebugMode) {
             print('Warning: Failed to load tracks: $e');
           }
           return <Track>[];
         }),
-        _jellyfinService.getPlaylists().catchError((e) {
+        _mediaServiceManager.getPlaylists().catchError((e) {
           if (kDebugMode) {
             print('Warning: Failed to load playlists: $e');
           }
