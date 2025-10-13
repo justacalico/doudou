@@ -288,35 +288,81 @@ class PlexService implements BaseMediaService {
   @override
   Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
     try {
-      String endpoint;
+      List<Track> allTracks = [];
+      
       if (parentId != null) {
-        endpoint = '$_serverUrl/library/metadata/$parentId/children';
+        // Get tracks from specific album
+        final response = await _dio.get(
+          '$_serverUrl/library/metadata/$parentId/children',
+          queryParameters: {
+            'X-Plex-Token': _token,
+            if (limit != null) 'X-Plex-Container-Size': limit.toString(),
+            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+          },
+        );
+        
+        final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allTracks.addAll(tracks.map((track) => Track(
+          id: track['ratingKey'].toString(),
+          name: track['title'],
+          artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+          albumName: track['parentTitle'] ?? 'Unknown Album',
+          duration: _parseDuration(track['duration']),
+          trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+          imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
+        )).toList());
       } else if (libraryId != null) {
-        endpoint = '$_serverUrl/library/sections/$libraryId/all';
+        // Get tracks from specific library
+        final response = await _dio.get(
+          '$_serverUrl/library/sections/$libraryId/all',
+          queryParameters: {
+            'X-Plex-Token': _token,
+            'type': '10', // Track type in Plex
+            if (limit != null) 'X-Plex-Container-Size': limit.toString(),
+            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+          },
+        );
+        
+        final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allTracks.addAll(tracks.map((track) => Track(
+          id: track['ratingKey'].toString(),
+          name: track['title'],
+          artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+          albumName: track['parentTitle'] ?? 'Unknown Album',
+          duration: _parseDuration(track['duration']),
+          trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+          imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
+        )).toList());
       } else {
-        endpoint = '$_serverUrl/library/sections/all';
+        // Get all music libraries first, then get tracks from each (with limit to avoid too many results)
+        final libraries = await getLibraries();
+        for (final library in libraries) {
+          if (library.collectionType == 'music') {
+            final response = await _dio.get(
+              '$_serverUrl/library/sections/${library.id}/all',
+              queryParameters: {
+                'X-Plex-Token': _token,
+                'type': '10', // Track type in Plex
+                'X-Plex-Container-Size': (limit ?? 100).toString(), // Default limit to prevent huge responses
+                if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+              },
+            );
+            
+            final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
+            allTracks.addAll(tracks.map((track) => Track(
+              id: track['ratingKey'].toString(),
+              name: track['title'],
+              artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+              albumName: track['parentTitle'] ?? 'Unknown Album',
+              duration: _parseDuration(track['duration']),
+              trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+              imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
+            )).toList());
+          }
+        }
       }
       
-      final response = await _dio.get(
-        endpoint,
-        queryParameters: {
-          'X-Plex-Token': _token,
-          if (parentId == null) 'type': '10', // Track type in Plex
-          if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-          if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
-        },
-      );
-      
-      final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
-      return tracks.map((track) => Track(
-        id: track['ratingKey'].toString(),
-        name: track['title'],
-        artistName: track['grandparentTitle'] ?? 'Unknown Artist',
-        albumName: track['parentTitle'] ?? 'Unknown Album',
-        duration: _parseDuration(track['duration']),
-        trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-        imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
-      )).toList();
+      return allTracks;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting Plex tracks: $e');
