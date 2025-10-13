@@ -229,12 +229,7 @@ class JellyfinServiceAdapter implements BaseMediaService {
 
   @override
   Future<ServerInfo> getServerInfo() async {
-    return ServerInfo(
-      name: 'Jellyfin Server',
-      version: 'Unknown',
-      id: _jellyfinService.currentServer?.serverUrl ?? 'unknown',
-      type: ServerType.jellyfin,
-    );
+    return await _jellyfinService.getServerInfo();
   }
 
   @override
