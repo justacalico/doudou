@@ -198,7 +198,13 @@ class JellyfinService implements BaseMediaService {
     }
   }
 
-  void setServer(JellyfinServer server) {
+  @override
+  void setServer(String serverUrl) {
+    _server = JellyfinServer(serverUrl: serverUrl);
+    _dio.options.baseUrl = serverUrl;
+  }
+
+  void setJellyfinServer(JellyfinServer server) {
     _server = server;
     _dio.options.baseUrl = server.serverUrl;
     
