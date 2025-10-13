@@ -170,27 +170,56 @@ class PlexService implements BaseMediaService {
   @override
   Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
     try {
-      final String endpoint = libraryId != null 
-          ? '$_serverUrl/library/sections/$libraryId/albums'
-          : '$_serverUrl/library/sections/albums';
-          
-      final response = await _dio.get(
-        endpoint,
-        queryParameters: {
-          'X-Plex-Token': _token,
-          if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-          if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
-        },
-      );
+      List<Album> allAlbums = [];
       
-      final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
-      return albums.map((album) => Album(
-        id: album['ratingKey'].toString(),
-        name: album['title'],
-        artistName: album['parentTitle'] ?? 'Unknown Artist',
-        year: album['year'] is int ? album['year'] : (int.tryParse(album['year']?.toString() ?? '0') ?? 0),
-        imageUrl: album['thumb'] != null ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token' : null,
-      )).toList();
+      if (libraryId != null) {
+        // Get albums from specific library
+        final response = await _dio.get(
+          '$_serverUrl/library/sections/$libraryId/all',
+          queryParameters: {
+            'X-Plex-Token': _token,
+            'type': '9', // Album type in Plex
+            if (limit != null) 'X-Plex-Container-Size': limit.toString(),
+            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+          },
+        );
+        
+        final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allAlbums.addAll(albums.map((album) => Album(
+          id: album['ratingKey'].toString(),
+          name: album['title'],
+          artistName: album['parentTitle'] ?? 'Unknown Artist',
+          year: album['year'] is int ? album['year'] : (int.tryParse(album['year']?.toString() ?? '0') ?? 0),
+          imageUrl: album['thumb'] != null ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token' : null,
+        )).toList());
+      } else {
+        // Get all music libraries first, then get albums from each
+        final libraries = await getLibraries();
+        for (final library in libraries) {
+          if (library.collectionType == 'music') {
+            final response = await _dio.get(
+              '$_serverUrl/library/sections/${library.id}/all',
+              queryParameters: {
+                'X-Plex-Token': _token,
+                'type': '9', // Album type in Plex
+                if (limit != null) 'X-Plex-Container-Size': limit.toString(),
+                if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+              },
+            );
+            
+            final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
+            allAlbums.addAll(albums.map((album) => Album(
+              id: album['ratingKey'].toString(),
+              name: album['title'],
+              artistName: album['parentTitle'] ?? 'Unknown Artist',
+              year: album['year'] is int ? album['year'] : (int.tryParse(album['year']?.toString() ?? '0') ?? 0),
+              imageUrl: album['thumb'] != null ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token' : null,
+            )).toList());
+          }
+        }
+      }
+      
+      return allAlbums;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting Plex albums: $e');
