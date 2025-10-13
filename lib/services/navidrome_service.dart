@@ -371,8 +371,35 @@ class NavidromeService implements BaseMediaService {
     try {
       final response = await _dio.get('$_serverUrl/rest/getPlaylists', queryParameters: _baseParams);
       
-      final playlists = response.data['subsonic-response']['playlists']['playlist'] as List? ?? [];
-      return playlists.map((playlist) => Playlist(
+      // Safely navigate the response structure
+      final subsonicResponse = response.data['subsonic-response'];
+      if (subsonicResponse == null) {
+        if (kDebugMode) {
+          print('No subsonic-response in playlists response');
+        }
+        return [];
+      }
+      
+      final playlistsContainer = subsonicResponse['playlists'];
+      if (playlistsContainer == null) {
+        if (kDebugMode) {
+          print('No playlists in subsonic response');
+        }
+        return [];
+      }
+      
+      final playlists = playlistsContainer['playlist'];
+      if (playlists == null) {
+        if (kDebugMode) {
+          print('No playlist array in playlists - this might be normal for empty results');
+        }
+        return [];
+      }
+      
+      // Handle case where playlists might be a single object instead of array
+      final playlistsList = playlists is List ? playlists : [playlists];
+      
+      return playlistsList.map((playlist) => Playlist(
         id: playlist['id'],
         name: playlist['name'],
         imageUrl: playlist['coverArt'] != null ? '$_serverUrl/rest/getCoverArt?id=${playlist['coverArt']}&${Uri(queryParameters: _baseParams).query}' : null,
