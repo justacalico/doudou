@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Sign in to your Jellyfin server',
+                            _getServerSubtitle(),
                             style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
                               fontSize: 17,
                               color: CupertinoColors.secondaryLabel.resolveFrom(context),
