@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
 import '../services/jellyfin_service.dart';
+import '../services/media_service_manager.dart';
+import '../services/base_service.dart';
 import '../services/audio/audio_handler.dart';
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
@@ -15,6 +17,7 @@ import '../services/logging_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
+  final MediaServiceManager _mediaServiceManager = MediaServiceManager();
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
   DoudouAudioHandler? _audioHandler;
