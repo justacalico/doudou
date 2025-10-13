@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
+import '../media_service_manager.dart';
 import '../download_service.dart';
 import '../touchbar_service.dart';
 import '../lyrics_service.dart';
