@@ -145,10 +145,7 @@ class JellyfinServiceAdapter implements BaseMediaService {
   void setServer(String serverUrl) {
     // Convert string URL to JellyfinServer object
     final server = JellyfinServer(
-      url: serverUrl,
-      name: 'Jellyfin Server',
-      id: '',
-      version: '',
+      serverUrl: serverUrl,
     );
     _jellyfinService.setServer(server);
   }
