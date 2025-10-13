@@ -57,18 +57,37 @@ class PlexService implements BaseMediaService {
         print('Plex: Attempting authentication to $_serverUrl with token');
       }
       
-      // Try to get server info using a more standard endpoint
+      // Try to get server info using the root endpoint
       final response = await _dio.get(
         '$_serverUrl/',
         queryParameters: {'X-Plex-Token': _token},
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+          },
+        ),
       );
       
-      if (response.statusCode == 200 && response.data['MediaContainer'] != null) {
-        _machineIdentifier = response.data['MediaContainer']['machineIdentifier'];
-        if (kDebugMode) {
-          print('Plex: Authentication successful. Machine ID: $_machineIdentifier');
+      if (kDebugMode) {
+        print('Plex auth response status: ${response.statusCode}');
+        print('Plex auth response data: ${response.data}');
+      }
+      
+      if (response.statusCode == 200) {
+        // Try to parse the response data
+        if (response.data is Map && response.data['MediaContainer'] != null) {
+          _machineIdentifier = response.data['MediaContainer']['machineIdentifier'];
+          if (kDebugMode) {
+            print('Plex: Authentication successful. Machine ID: $_machineIdentifier');
+          }
+          return true;
+        } else if (response.data is String && response.data.contains('MediaContainer')) {
+          // If we get XML response, consider it successful for now
+          if (kDebugMode) {
+            print('Plex: Authentication successful (XML response)');
+          }
+          return true;
         }
-        return true;
       }
       
       return false;
