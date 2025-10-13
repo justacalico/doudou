@@ -823,8 +823,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             return;
           }
           
-          // Get album tracks from Jellyfin service with error handling
-          final tracks = await _jellyfinService.getAlbumTracks(albumId);
+          // Get album tracks using appropriate service with error handling
+          final mediaServiceManager = _mediaServiceManager;
+          final tracks = mediaServiceManager != null 
+            ? await mediaServiceManager.getTracks(parentId: albumId)
+            : await _jellyfinService.getAlbumTracks(albumId);
           if (tracks.isNotEmpty) {
             await playPlaylist(tracks, 0);
             if (kDebugMode) {
