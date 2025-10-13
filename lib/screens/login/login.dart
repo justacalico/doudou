@@ -328,10 +328,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final success = await context.read<AppState>().login(
+      String identifier;
+      String credential;
+      
+      if (_selectedServerType == 'plex') {
+        identifier = ''; // Plex doesn't use username for token auth
+        credential = _plexTokenController.text;
+      } else {
+        identifier = _usernameController.text.trim();
+        credential = _passwordController.text;
+      }
+      
+      final success = await context.read<AppState>().loginWithServerType(
+        _selectedServerType,
         _serverController.text.trim(),
-        _usernameController.text.trim(),
-        _passwordController.text,
+        identifier,
+        credential,
       );
 
       if (success && mounted) {

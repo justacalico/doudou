@@ -211,7 +211,7 @@ class JellyfinServiceAdapter implements BaseMediaService {
     return ServerInfo(
       name: 'Jellyfin Server',
       version: 'Unknown',
-      id: _jellyfinService.currentServer?.id ?? 'unknown',
+      id: _jellyfinService.currentServer?.serverUrl ?? 'unknown',
       type: ServerType.jellyfin,
     );
   }
