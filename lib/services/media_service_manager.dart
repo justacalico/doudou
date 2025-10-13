@@ -194,8 +194,12 @@ class JellyfinServiceAdapter implements BaseMediaService {
 
   @override
   Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
-    // This should be implemented in JellyfinService
-    return [];
+    if (parentId != null) {
+      // If parentId is provided, get album tracks
+      return await _jellyfinService.getAlbumTracks(parentId);
+    }
+    // Otherwise get all tracks or library tracks
+    return await _jellyfinService.getTracks(libraryId: libraryId, limit: limit, startIndex: startIndex);
   }
 
   @override
