@@ -317,9 +317,9 @@ class PlexService implements BaseMediaService {
           case 'track':
             tracks.add(Track(
               id: item['ratingKey'].toString(),
-              title: item['title'],
-              artist: item['grandparentTitle'] ?? 'Unknown Artist',
-              album: item['parentTitle'] ?? 'Unknown Album',
+              name: item['title'],
+              artistName: item['grandparentTitle'] ?? 'Unknown Artist',
+              albumName: item['parentTitle'] ?? 'Unknown Album',
               duration: (item['duration'] ?? 0) ~/ 1000,
               trackNumber: item['index'],
               imageUrl: item['thumb'] != null ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token' : null,
