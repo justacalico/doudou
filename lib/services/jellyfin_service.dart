@@ -219,6 +219,7 @@ class JellyfinService implements BaseMediaService {
   String? get userId => _server?.userId;
   bool get isConnected => _server != null;
 
+  @override
   Future<bool> authenticate(String serverUrl, String username, String password) async {
     try {
       _dio.options.baseUrl = serverUrl;
