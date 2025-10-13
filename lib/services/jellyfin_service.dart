@@ -29,6 +29,9 @@ class JellyfinService implements BaseMediaService {
   late Dio _dio;
   JellyfinServer? _server;
 
+  @override
+  ServerType get serverType => ServerType.jellyfin;
+
   JellyfinService() {
     _dio = Dio();
     
