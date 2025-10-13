@@ -112,9 +112,21 @@ class PlexService implements BaseMediaService {
       final response = await _dio.get(
         '$_serverUrl/',
         queryParameters: {'X-Plex-Token': _token},
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+          },
+        ),
       );
       
-      return response.statusCode == 200 && response.data['MediaContainer'] != null;
+      if (response.statusCode == 200) {
+        if (response.data is Map && response.data['MediaContainer'] != null) {
+          return true;
+        } else if (response.data is String && response.data.contains('MediaContainer')) {
+          return true;
+        }
+      }
+      return false;
     } catch (e) {
       if (kDebugMode) {
         print('Plex credential validation error: $e');
