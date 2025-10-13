@@ -188,52 +188,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 16),
                       child: CupertinoFormSection.insetGrouped(
                         header: Text(
-                          'Account',
+                          _getAccountSectionTitle(),
                           style: TextStyle(
                             color: CupertinoColors.secondaryLabel.resolveFrom(context),
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-                        children: [
-                          CupertinoTextFormFieldRow(
-                            controller: _usernameController,
-                            prefix: Icon(
-                              CupertinoIcons.person,
-                              color: CupertinoColors.systemGrey.resolveFrom(context),
-                            ),
-                            placeholder: 'Username',
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter username';
-                              }
-                              return null;
-                            },
-                            autocorrect: false,
-                            style: TextStyle(
-                              color: CupertinoColors.label.resolveFrom(context),
-                            ),
-                          ),
-                          CupertinoTextFormFieldRow(
-                            controller: _passwordController,
-                            prefix: Icon(
-                              CupertinoIcons.lock,
-                              color: CupertinoColors.systemGrey.resolveFrom(context),
-                            ),
-                            placeholder: 'Password',
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter password';
-                              }
-                              return null;
-                            },
-                            obscureText: true,
-                            autocorrect: false,
-                            style: TextStyle(
-                              color: CupertinoColors.label.resolveFrom(context),
-                            ),
-                          ),
-                        ],
+                        children: _buildAccountFields(),
                       ),
                     ),
 
