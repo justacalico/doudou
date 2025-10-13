@@ -1292,7 +1292,7 @@ class AppState extends ChangeNotifier {
       }
       
       // Load fresh data
-      final tracks = await _jellyfinService.getAlbumTracks(albumId);
+      final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
       
       // Cache the tracks
       await _cacheService.cacheAlbumTracks(albumId, tracks);
