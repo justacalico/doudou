@@ -397,6 +397,7 @@ class JellyfinService implements BaseMediaService {
     return [];
   }
 
+  @override
   Future<List<Playlist>> getPlaylists() async {
     if (_server == null) throw Exception('Server not configured');
 
