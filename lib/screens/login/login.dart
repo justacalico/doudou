@@ -400,6 +400,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String label,
     String svgAssetPath,
     Color color,
+    bool isSelected,
     VoidCallback onPressed,
   ) {
     return Expanded(
