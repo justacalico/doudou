@@ -379,4 +379,54 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     // If successful, navigation will be handled by the main app based on login state
   }
+
+  Widget _buildServerButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        child: CupertinoButton(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          onPressed: onPressed,
+          borderRadius: BorderRadius.circular(16),
+          color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+          child: Column(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: color.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 30,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: CupertinoColors.label.resolveFrom(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
