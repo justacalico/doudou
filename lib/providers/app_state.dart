@@ -1339,7 +1339,7 @@ class AppState extends ChangeNotifier {
       }
       
       // Load fresh data
-      final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+      final tracks = await _mediaServiceManager.getPlaylistTracks(playlistId);
       
       if (kDebugMode) {
         print('Loaded ${tracks.length} fresh playlist tracks for playlist: $playlistId');
