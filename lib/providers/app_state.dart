@@ -1385,9 +1385,20 @@ class AppState extends ChangeNotifier {
 
   // Audio playback methods
   Future<void> playTrack(Track track) async {
+    if (kDebugMode) {
+      print('AppState.playTrack called for: ${track.name} (ID: ${track.id})');
+      print('AudioHandler available: ${_audioHandler != null}');
+      print('MediaServiceManager current service: ${_mediaServiceManager.currentService}');
+      print('MediaServiceManager server type: ${_mediaServiceManager.currentServerType}');
+    }
+    
     if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
       notifyListeners();
+    } else {
+      if (kDebugMode) {
+        print('ERROR: AudioHandler is null, cannot play track');
+      }
     }
   }
 
