@@ -397,7 +397,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(
+                          imageUrl: appState.getImageUrl(
                             album.imageUrl!,
                             width: 100,
                             height: 100,
@@ -494,7 +494,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedImageWidget(
-                      imageUrl: appState.jellyfinService.getImageUrl(
+                      imageUrl: appState.getImageUrl(
                         track.imageUrl!,
                         width: 100,
                         height: 100,
@@ -661,7 +661,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(
+                          imageUrl: appState.getImageUrl(
                             track.imageUrl!,
                             width: 100,
                             height: 100,
