@@ -61,6 +61,7 @@ class AppState extends ChangeNotifier {
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
   JellyfinService get jellyfinService => _jellyfinService;
+  MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
   DoudouAudioHandler? get audioHandler => _audioHandler;
 
