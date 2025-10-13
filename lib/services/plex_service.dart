@@ -249,9 +249,9 @@ class PlexService implements BaseMediaService {
       final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
       return tracks.map((track) => Track(
         id: track['ratingKey'].toString(),
-        title: track['title'],
-        artist: track['grandparentTitle'] ?? 'Unknown Artist',
-        album: track['parentTitle'] ?? 'Unknown Album',
+        name: track['title'],
+        artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+        albumName: track['parentTitle'] ?? 'Unknown Album',
         duration: (track['duration'] ?? 0) ~/ 1000,
         trackNumber: track['index'],
         imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
