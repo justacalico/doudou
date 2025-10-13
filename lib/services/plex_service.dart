@@ -129,10 +129,9 @@ class PlexService implements BaseMediaService {
       return albums.map((album) => Album(
         id: album['ratingKey'].toString(),
         name: album['title'],
-        artist: album['parentTitle'] ?? 'Unknown Artist',
+        artistName: album['parentTitle'] ?? 'Unknown Artist',
         year: album['year'],
         imageUrl: album['thumb'] != null ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token' : null,
-        trackCount: album['leafCount'] ?? 0,
       )).toList();
     } catch (e) {
       if (kDebugMode) {
