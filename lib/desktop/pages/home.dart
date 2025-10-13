@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   String? _getImageUrl(AppState appState, String? imageId) {
     if (imageId == null) return null;
     // Use the jellyfinService's image URL construction logic
-    return appState.jellyfinService.getImageUrl(imageId);
+    return appState.getImageUrl(imageId);
   }
 
   @override
