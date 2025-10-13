@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/jellyfin_models.dart';
 import 'base_service.dart';
 import 'jellyfin_service.dart';
