@@ -350,7 +350,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(25),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(artist.imageUrl!, width: 100, height: 100),
+                          imageUrl: appState.getImageUrl(artist.imageUrl!, width: 100, height: 100),
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
@@ -444,7 +444,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(album.imageUrl!, width: 100, height: 100),
+                          imageUrl: appState.getImageUrl(album.imageUrl!, width: 100, height: 100),
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
@@ -533,7 +533,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedImageWidget(
-                          imageUrl: appState.jellyfinService.getImageUrl(track.imageUrl!, width: 100, height: 100),
+                          imageUrl: appState.getImageUrl(track.imageUrl!, width: 100, height: 100),
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
