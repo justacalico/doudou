@@ -140,6 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() {
                                     _selectedServerType = 'navidrome';
                                     _serverController.text = 'http://your-navidrome-server:4533';
+                                    _plexTokenController.clear();
                                   });
                                 },
                               ),
