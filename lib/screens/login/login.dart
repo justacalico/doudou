@@ -104,8 +104,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'Jellyfin',
                                 'assets/icons/jellyfin.svg',
                                 CupertinoColors.systemPurple,
+                                _selectedServerType == 'jellyfin',
                                 () {
-                                  // TODO: Handle Jellyfin selection
+                                  setState(() {
+                                    _selectedServerType = 'jellyfin';
+                                    _serverController.text = 'http://your-jellyfin-server:8096';
+                                  });
                                 },
                               ),
                               _buildServerButton(
@@ -113,8 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'Plex',
                                 'assets/icons/plex.svg',
                                 CupertinoColors.systemOrange,
+                                _selectedServerType == 'plex',
                                 () {
-                                  // TODO: Handle Plex selection
+                                  setState(() {
+                                    _selectedServerType = 'plex';
+                                    _serverController.text = 'http://your-plex-server:32400';
+                                  });
                                 },
                               ),
                               _buildServerButton(
@@ -122,8 +130,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'Navidrome',
                                 'assets/icons/navidrome.svg',
                                 CupertinoColors.systemBlue,
+                                _selectedServerType == 'navidrome',
                                 () {
-                                  // TODO: Handle Navidrome selection
+                                  setState(() {
+                                    _selectedServerType = 'navidrome';
+                                    _serverController.text = 'http://your-navidrome-server:4533';
+                                  });
                                 },
                               ),
                             ],
