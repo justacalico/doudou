@@ -94,7 +94,7 @@ class MiniPlayer extends StatelessWidget {
                   // Album Art
                   AlbumArtWidget(
                     imageUrl: currentTrack.imageUrl != null
-                        ? appState.jellyfinService.getImageUrl(
+                        ? appState.getImageUrl(
                             currentTrack.imageUrl!,
                             width: 100,
                             height: 100,
