@@ -400,7 +400,7 @@ class _LoginScreenState extends State<LoginScreen> {
         CupertinoTextFormFieldRow(
           controller: _plexTokenController,
           prefix: Icon(
-            CupertinoIcons.key,
+            CupertinoIcons.creditcard,
             color: CupertinoColors.systemGrey.resolveFrom(context),
           ),
           placeholder: 'X-Plex-Token',
