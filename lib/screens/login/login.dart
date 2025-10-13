@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               _buildServerButton(
                                 context,
                                 'Jellyfin',
-                                CupertinoIcons.tv,
+                                'assets/icons/jellyfin.svg',
                                 CupertinoColors.systemPurple,
                                 () {
                                   // TODO: Handle Jellyfin selection
@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               _buildServerButton(
                                 context,
                                 'Plex',
-                                CupertinoIcons.play_rectangle,
+                                'assets/icons/plex.svg',
                                 CupertinoColors.systemOrange,
                                 () {
                                   // TODO: Handle Plex selection
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               _buildServerButton(
                                 context,
                                 'Navidrome',
-                                CupertinoIcons.music_note_2,
+                                'assets/icons/navidrome.svg',
                                 CupertinoColors.systemBlue,
                                 () {
                                   // TODO: Handle Navidrome selection
