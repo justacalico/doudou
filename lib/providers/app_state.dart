@@ -160,7 +160,7 @@ class AppState extends ChangeNotifier {
               // Android: Use AudioService for background audio and Android Auto
               try {
                 _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
                   config: const AudioServiceConfig(
                     androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                     androidNotificationChannelName: 'Doudou Music',
