@@ -147,7 +147,7 @@ class JellyfinServiceAdapter implements BaseMediaService {
     final server = JellyfinServer(
       serverUrl: serverUrl,
     );
-    _jellyfinService.setServer(server);
+    _jellyfinService.setJellyfinServer(server);
   }
 
   @override
