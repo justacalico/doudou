@@ -133,7 +133,7 @@ class AppState extends ChangeNotifier {
       if (serverJson != null) {
         final serverData = jsonDecode(serverJson);
         final server = JellyfinServer.fromJson(serverData);
-        _jellyfinService.setServer(server);
+        _jellyfinService.setJellyfinServer(server);
         
         // Test the connection with saved credentials
         try {
