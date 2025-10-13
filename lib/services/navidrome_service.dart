@@ -150,6 +150,7 @@ class NavidromeService implements BaseMediaService {
   Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
     try {
       final params = Map<String, dynamic>.from(_baseParams);
+      params['type'] = 'alphabeticalByName'; // Required parameter for getAlbumList2
       if (libraryId != null) params['musicFolderId'] = libraryId;
       if (limit != null) params['size'] = limit.toString();
       if (startIndex != null) params['offset'] = startIndex.toString();
