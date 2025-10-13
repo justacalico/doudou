@@ -470,7 +470,8 @@ class JellyfinService implements BaseMediaService {
     return '$baseUrl/Items/$itemId/Images/Primary$queryString';
   }
 
-  String getStreamUrl(String itemId) {
+  @override
+  String getStreamUrl(String itemId, {int? bitrate}) {
     if (_server == null) return '';
     
     // Use the stream endpoint with specific parameters for better compatibility
