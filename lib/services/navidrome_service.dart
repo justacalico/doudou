@@ -211,31 +211,52 @@ class NavidromeService implements BaseMediaService {
       
       final response = await _dio.get('$_serverUrl/rest/getArtists', queryParameters: params);
       
-      final indexes = response.data['subsonic-response']['artists']['index'] as List? ?? [];
-      final List<Artist> artists = [];
+      // Safely navigate the response structure
+      final subsonicResponse = response.data['subsonic-response'];
+      if (subsonicResponse == null) {
+        if (kDebugMode) {
+          print('No subsonic-response in artists response');
+        }
+        return [];
+      }
+      
+      final artists = subsonicResponse['artists'];
+      if (artists == null) {
+        if (kDebugMode) {
+          print('No artists in subsonic response');
+        }
+        return [];
+      }
+      
+      final indexes = artists['index'] as List? ?? [];
+      final List<Artist> artistList = [];
       
       for (final index in indexes) {
-        final artistList = index['artist'] as List? ?? [];
-        for (final artist in artistList) {
-          artists.add(Artist(
-            id: artist['id'],
-            name: artist['name'],
-            imageUrl: artist['coverArt'] != null ? '$_serverUrl/rest/getCoverArt?id=${artist['coverArt']}&${Uri(queryParameters: _baseParams).query}' : null,
-          ));
+        final artistArray = index['artist'];
+        if (artistArray != null) {
+          // Handle case where artist might be a single object instead of array
+          final artistsList = artistArray is List ? artistArray : [artistArray];
+          for (final artist in artistsList) {
+            artistList.add(Artist(
+              id: artist['id'],
+              name: artist['name'],
+              imageUrl: artist['coverArt'] != null ? '$_serverUrl/rest/getCoverArt?id=${artist['coverArt']}&${Uri(queryParameters: _baseParams).query}' : null,
+            ));
+          }
         }
       }
       
       // Apply limit and offset manually
       if (startIndex != null && limit != null) {
-        final end = (startIndex + limit).clamp(0, artists.length);
-        return artists.sublist(startIndex.clamp(0, artists.length), end);
+        final end = (startIndex + limit).clamp(0, artistList.length);
+        return artistList.sublist(startIndex.clamp(0, artistList.length), end);
       } else if (startIndex != null) {
-        return artists.sublist(startIndex.clamp(0, artists.length));
+        return artistList.sublist(startIndex.clamp(0, artistList.length));
       } else if (limit != null) {
-        return artists.take(limit).toList();
+        return artistList.take(limit).toList();
       }
       
-      return artists;
+      return artistList;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting Navidrome artists: $e');
@@ -257,10 +278,34 @@ class NavidromeService implements BaseMediaService {
         params['id'] = parentId;
         response = await _dio.get('$_serverUrl/rest/getAlbum', queryParameters: params);
         
-        final album = response.data['subsonic-response']['album'];
-        final songs = album['song'] as List? ?? [];
+        final subsonicResponse = response.data['subsonic-response'];
+        if (subsonicResponse == null) {
+          if (kDebugMode) {
+            print('No subsonic-response in album tracks response');
+          }
+          return [];
+        }
         
-        return songs.map((song) => Track(
+        final album = subsonicResponse['album'];
+        if (album == null) {
+          if (kDebugMode) {
+            print('No album in subsonic response');
+          }
+          return [];
+        }
+        
+        final songs = album['song'];
+        if (songs == null) {
+          if (kDebugMode) {
+            print('No songs in album - this might be normal for empty albums');
+          }
+          return [];
+        }
+        
+        // Handle case where songs might be a single object instead of array
+        final songsList = songs is List ? songs : [songs];
+        
+        return songsList.map((song) => Track(
           id: song['id'],
           name: song['title'],
           artistName: song['artist'] ?? 'Unknown Artist',
@@ -276,8 +321,34 @@ class NavidromeService implements BaseMediaService {
         
         response = await _dio.get('$_serverUrl/rest/getRandomSongs', queryParameters: params);
         
-        final songs = response.data['subsonic-response']['randomSongs']['song'] as List? ?? [];
-        return songs.map((song) => Track(
+        final subsonicResponse = response.data['subsonic-response'];
+        if (subsonicResponse == null) {
+          if (kDebugMode) {
+            print('No subsonic-response in random songs response');
+          }
+          return [];
+        }
+        
+        final randomSongs = subsonicResponse['randomSongs'];
+        if (randomSongs == null) {
+          if (kDebugMode) {
+            print('No randomSongs in subsonic response');
+          }
+          return [];
+        }
+        
+        final songs = randomSongs['song'];
+        if (songs == null) {
+          if (kDebugMode) {
+            print('No songs in randomSongs - this might be normal for empty results');
+          }
+          return [];
+        }
+        
+        // Handle case where songs might be a single object instead of array
+        final songsList = songs is List ? songs : [songs];
+        
+        return songsList.map((song) => Track(
           id: song['id'],
           name: song['title'],
           artistName: song['artist'] ?? 'Unknown Artist',
