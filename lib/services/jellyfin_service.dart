@@ -25,7 +25,7 @@ class NetworkException implements Exception {
   String toString() => message;
 }
 
-class JellyfinService {
+class JellyfinService implements BaseMediaService {
   late Dio _dio;
   JellyfinServer? _server;
 
