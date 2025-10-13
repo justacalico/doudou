@@ -660,6 +660,7 @@ class JellyfinService implements BaseMediaService {
     }
   }
 
+  @override
   Future<bool> validateCredentials() async {
     if (_server == null) return false;
 
