@@ -145,7 +145,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             ),
                             child: ArtistImageWidget(
                               imageUrl: widget.artist.imageUrl != null
-                                  ? appState.jellyfinService.getImageUrl(
+                                  ? appState.getImageUrl(
                                       widget.artist.imageUrl!,
                                       width: 360,
                                       height: 360,
@@ -514,7 +514,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ),
                   child: AlbumArtWidget(
                     imageUrl: album.imageUrl != null
-                        ? appState.jellyfinService.getImageUrl(
+                        ? appState.getImageUrl(
                             album.imageUrl!,
                             width: 320,
                             height: 320,
