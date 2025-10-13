@@ -186,7 +186,7 @@ class ArtistCard extends StatelessWidget {
           ),
           child: ArtistImageWidget(
             imageUrl: artist.imageUrl != null
-                ? appState.jellyfinService.getImageUrl(
+                ? appState.getImageUrl(
                     artist.imageUrl!,
                     width: 112,
                     height: 112,
