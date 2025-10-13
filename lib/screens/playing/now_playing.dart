@@ -119,7 +119,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(
-                          appState.jellyfinService.getImageUrl(
+                          appState.getImageUrl(
                             currentTrack.imageUrl!,
                             width: 800,
                             height: 800,
@@ -236,7 +236,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                             ),
                                             child: AlbumArtWidget(
                                               imageUrl: currentTrack.imageUrl != null
-                                                  ? appState.jellyfinService.getImageUrl(
+                                                  ? appState.getImageUrl(
                                                       currentTrack.imageUrl!,
                                                       width: 800,
                                                       height: 800,
