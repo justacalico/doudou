@@ -803,6 +803,7 @@ class JellyfinService implements BaseMediaService {
     return false;
   }
 
+  @override
   JellyfinServer? get currentServer => _server;
 
   // Get download URL for a track
