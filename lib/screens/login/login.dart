@@ -385,6 +385,80 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  String _getAccountSectionTitle() {
+    switch (_selectedServerType) {
+      case 'plex':
+        return 'Authentication';
+      default:
+        return 'Account';
+    }
+  }
+
+  List<Widget> _buildAccountFields() {
+    if (_selectedServerType == 'plex') {
+      return [
+        CupertinoTextFormFieldRow(
+          controller: _plexTokenController,
+          prefix: Icon(
+            CupertinoIcons.key,
+            color: CupertinoColors.systemGrey.resolveFrom(context),
+          ),
+          placeholder: 'X-Plex-Token',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your Plex token';
+            }
+            return null;
+          },
+          autocorrect: false,
+          style: TextStyle(
+            color: CupertinoColors.label.resolveFrom(context),
+          ),
+        ),
+      ];
+    } else {
+      return [
+        CupertinoTextFormFieldRow(
+          controller: _usernameController,
+          prefix: Icon(
+            CupertinoIcons.person,
+            color: CupertinoColors.systemGrey.resolveFrom(context),
+          ),
+          placeholder: 'Username',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter username';
+            }
+            return null;
+          },
+          autocorrect: false,
+          style: TextStyle(
+            color: CupertinoColors.label.resolveFrom(context),
+          ),
+        ),
+        CupertinoTextFormFieldRow(
+          controller: _passwordController,
+          prefix: Icon(
+            CupertinoIcons.lock,
+            color: CupertinoColors.systemGrey.resolveFrom(context),
+          ),
+          placeholder: 'Password',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter password';
+            }
+            return null;
+          },
+          obscureText: true,
+          autocorrect: false,
+          style: TextStyle(
+            color: CupertinoColors.label.resolveFrom(context),
+          ),
+        ),
+      ];
+    }
+  }
+
   Widget _buildServerButton(
     BuildContext context,
     String label,
