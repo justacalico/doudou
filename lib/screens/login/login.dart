@@ -125,6 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() {
                                     _selectedServerType = 'plex';
                                     _serverController.text = 'http://your-plex-server:32400';
+                                    _usernameController.clear();
+                                    _passwordController.clear();
                                   });
                                 },
                               ),
