@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               CupertinoIcons.globe,
                               color: CupertinoColors.systemGrey.resolveFrom(context),
                             ),
-                            placeholder: 'http://your-jellyfin-server:8096',
+                            placeholder: _getServerPlaceholder(),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter server URL';
