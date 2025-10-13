@@ -231,26 +231,52 @@ class PlexService implements BaseMediaService {
   @override
   Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
     try {
-      final String endpoint = libraryId != null 
-          ? '$_serverUrl/library/sections/$libraryId/all'
-          : '$_serverUrl/library/sections/all';
-          
-      final response = await _dio.get(
-        endpoint,
-        queryParameters: {
-          'X-Plex-Token': _token,
-          'type': '8', // Artist type in Plex
-          if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-          if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
-        },
-      );
+      List<Artist> allArtists = [];
       
-      final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
-      return artists.map((artist) => Artist(
-        id: artist['ratingKey'].toString(),
-        name: artist['title'],
-        imageUrl: artist['thumb'] != null ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token' : null,
-      )).toList();
+      if (libraryId != null) {
+        // Get artists from specific library
+        final response = await _dio.get(
+          '$_serverUrl/library/sections/$libraryId/all',
+          queryParameters: {
+            'X-Plex-Token': _token,
+            'type': '8', // Artist type in Plex
+            if (limit != null) 'X-Plex-Container-Size': limit.toString(),
+            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+          },
+        );
+        
+        final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allArtists.addAll(artists.map((artist) => Artist(
+          id: artist['ratingKey'].toString(),
+          name: artist['title'],
+          imageUrl: artist['thumb'] != null ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token' : null,
+        )).toList());
+      } else {
+        // Get all music libraries first, then get artists from each
+        final libraries = await getLibraries();
+        for (final library in libraries) {
+          if (library.collectionType == 'music') {
+            final response = await _dio.get(
+              '$_serverUrl/library/sections/${library.id}/all',
+              queryParameters: {
+                'X-Plex-Token': _token,
+                'type': '8', // Artist type in Plex
+                if (limit != null) 'X-Plex-Container-Size': limit.toString(),
+                if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+              },
+            );
+            
+            final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
+            allArtists.addAll(artists.map((artist) => Artist(
+              id: artist['ratingKey'].toString(),
+              name: artist['title'],
+              imageUrl: artist['thumb'] != null ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token' : null,
+            )).toList());
+          }
+        }
+      }
+      
+      return allArtists;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting Plex artists: $e');
