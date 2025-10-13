@@ -395,6 +395,32 @@ class _LoginScreenState extends State<LoginScreen> {
     // If successful, navigation will be handled by the main app based on login state
   }
 
+  String _getServerSubtitle() {
+    switch (_selectedServerType) {
+      case 'jellyfin':
+        return 'Sign in to your Jellyfin server';
+      case 'plex':
+        return 'Sign in to your Plex server';
+      case 'navidrome':
+        return 'Sign in to your Navidrome server';
+      default:
+        return 'Sign in to your server';
+    }
+  }
+
+  String _getServerPlaceholder() {
+    switch (_selectedServerType) {
+      case 'jellyfin':
+        return 'http://your-jellyfin-server:8096';
+      case 'plex':
+        return 'http://your-plex-server:32400';
+      case 'navidrome':
+        return 'http://your-navidrome-server:4533';
+      default:
+        return 'http://your-server:port';
+    }
+  }
+
   Widget _buildServerButton(
     BuildContext context,
     String label,
