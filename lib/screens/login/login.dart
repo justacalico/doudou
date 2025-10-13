@@ -78,6 +78,59 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
+                    // Server Type Selection
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Choose Your Server',
+                            style: TextStyle(
+                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildServerButton(
+                                context,
+                                'Jellyfin',
+                                CupertinoIcons.tv,
+                                CupertinoColors.systemPurple,
+                                () {
+                                  // TODO: Handle Jellyfin selection
+                                },
+                              ),
+                              _buildServerButton(
+                                context,
+                                'Plex',
+                                CupertinoIcons.play_rectangle,
+                                CupertinoColors.systemOrange,
+                                () {
+                                  // TODO: Handle Plex selection
+                                },
+                              ),
+                              _buildServerButton(
+                                context,
+                                'Navidrome',
+                                CupertinoIcons.music_note_2,
+                                CupertinoColors.systemBlue,
+                                () {
+                                  // TODO: Handle Navidrome selection
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 32),
+
                     // Form fields section
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
