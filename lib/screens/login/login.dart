@@ -384,7 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildServerButton(
     BuildContext context,
     String label,
-    IconData icon,
+    String svgAssetPath,
     Color color,
     VoidCallback onPressed,
   ) {
@@ -409,10 +409,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 2,
                   ),
                 ),
-                child: Icon(
-                  icon,
-                  size: 30,
-                  color: color,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SvgPicture.asset(
+                    svgAssetPath,
+                    width: 36,
+                    height: 36,
+                    colorFilter: ColorFilter.mode(
+                      color,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
