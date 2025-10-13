@@ -288,7 +288,7 @@ class PlaylistTile extends StatelessWidget {
                     height: 60,
                     child: playlist.imageUrl != null
                         ? CachedNetworkImage(
-                            imageUrl: appState.jellyfinService.getImageUrl(
+                            imageUrl: appState.getImageUrl(
                               playlist.imageUrl!,
                               width: 150,
                               height: 150,
@@ -961,7 +961,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                 ? Consumer<AppState>(
                                     builder: (context, appState, child) {
                                       return CachedNetworkImage(
-                                        imageUrl: appState.jellyfinService.getImageUrl(
+                                        imageUrl: appState.getImageUrl(
                                           widget.playlist.imageUrl!,
                                           width: 400,
                                           height: 400,
@@ -1356,7 +1356,7 @@ class PlaylistTrackItem extends StatelessWidget {
                       ? Consumer<AppState>(
                           builder: (context, appState, child) {
                             return CachedNetworkImage(
-                              imageUrl: appState.jellyfinService.getImageUrl(
+                              imageUrl: appState.getImageUrl(
                                 track.imageUrl!,
                                 width: 100,
                                 height: 100,
