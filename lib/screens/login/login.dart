@@ -111,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() {
                                     _selectedServerType = 'jellyfin';
                                     _serverController.text = 'http://your-jellyfin-server:8096';
+                                    _plexTokenController.clear();
                                   });
                                 },
                               ),
