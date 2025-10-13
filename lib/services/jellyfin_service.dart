@@ -827,4 +827,160 @@ class JellyfinService implements BaseMediaService {
       'X-Emby-Authorization': 'MediaBrowser UserId="${_server!.userId}", Client="doudou-flutter", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
     };
   }
+
+  @override
+  Future<List<Library>> getLibraries() async {
+    if (_server == null) throw Exception('Server not configured');
+    
+    try {
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Views',
+        queryParameters: {
+          'IncludeExternalContent': false,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items
+            .where((item) => item['CollectionType'] == 'music')
+            .map((item) => Library.fromJson(item))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching libraries: $e');
+      }
+    }
+    return [];
+  }
+
+  @override
+  Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final params = <String, dynamic>{
+        'IncludeItemTypes': 'Audio',
+        'Recursive': true,
+        'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+        'SortBy': 'Album,IndexNumber',
+        'SortOrder': 'Ascending',
+      };
+
+      if (libraryId != null) params['ParentId'] = libraryId;
+      if (parentId != null) params['ParentId'] = parentId;
+      if (limit != null) params['Limit'] = limit;
+      if (startIndex != null) params['StartIndex'] = startIndex;
+
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: params,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Track.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching tracks: $e');
+      }
+    }
+    return [];
+  }
+
+  @override
+  Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final params = <String, dynamic>{
+        'SearchTerm': query,
+        'IncludeItemTypes': includeItemTypes?.join(',') ?? 'MusicAlbum,MusicArtist,Audio',
+        'Recursive': true,
+        'Fields': 'PrimaryImageAspectRatio,ImageTags',
+      };
+
+      if (limit != null) params['Limit'] = limit;
+
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: params,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        
+        final albums = <Album>[];
+        final artists = <Artist>[];
+        final tracks = <Track>[];
+
+        for (final item in items) {
+          switch (item['Type']) {
+            case 'MusicAlbum':
+              albums.add(Album.fromJson(item));
+              break;
+            case 'MusicArtist':
+              artists.add(Artist.fromJson(item));
+              break;
+            case 'Audio':
+              tracks.add(Track.fromJson(item));
+              break;
+          }
+        }
+
+        return SearchResults(albums: albums, artists: artists, tracks: tracks);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error searching: $e');
+      }
+    }
+    return SearchResults();
+  }
+
+  @override
+  Future<ServerInfo> getServerInfo() async {
+    if (_server == null) {
+      return ServerInfo(
+        name: 'Jellyfin Server',
+        version: 'Unknown',
+        id: 'unknown',
+        type: ServerType.jellyfin,
+      );
+    }
+
+    try {
+      final response = await _dio.get('/System/Info');
+      
+      if (response.statusCode == 200) {
+        final data = response.data;
+        return ServerInfo(
+          name: data['ServerName'] ?? 'Jellyfin Server',
+          version: data['Version'] ?? 'Unknown',
+          id: data['Id'] ?? _server!.serverUrl,
+          type: ServerType.jellyfin,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting server info: $e');
+      }
+    }
+    
+    return ServerInfo(
+      name: 'Jellyfin Server',
+      version: 'Unknown',
+      id: _server!.serverUrl,
+      type: ServerType.jellyfin,
+    );
+  }
+
+  @override
+  void clearAuth() {
+    _server = null;
+    _dio.options.headers.remove('X-Emby-Token');
+    _dio.options.baseUrl = '';
+  }
 }
