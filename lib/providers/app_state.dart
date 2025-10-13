@@ -77,6 +77,13 @@ class AppState extends ChangeNotifier {
 
   // Helper method to get image URLs from the current media service
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+    // If itemId is already a full URL (starts with http), return it as-is
+    // This handles cases where Plex/Navidrome provide full URLs in imageUrl field
+    if (itemId.startsWith('http://') || itemId.startsWith('https://')) {
+      return itemId;
+    }
+    
+    // Otherwise, construct the URL using the media service
     return _mediaServiceManager.getImageUrl(itemId, type: type, width: width, height: height);
   }
 
