@@ -208,7 +208,7 @@ class PlexService implements BaseMediaService {
         artistName: track['grandparentTitle'] ?? 'Unknown Artist',
         albumName: track['parentTitle'] ?? 'Unknown Album',
         duration: (track['duration'] ?? 0) ~/ 1000, // Convert from ms to seconds
-        trackNumber: track['index'],
+        trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
         imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
       )).toList();
     } catch (e) {
