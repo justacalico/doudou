@@ -35,8 +35,8 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
     });
 
     try {
-      // Fetch tracks specifically for this album from Jellyfin
-      _albumTracks = await appState.jellyfinService.getAlbumTracks(widget.album.id);
+      // Fetch tracks for this album using the appropriate service
+      _albumTracks = await appState.getAlbumTracks(widget.album.id);
       
       // Sort by track number if available (already sorted by API, but just in case)
       _albumTracks.sort((a, b) {
