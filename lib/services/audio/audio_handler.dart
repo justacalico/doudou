@@ -1613,29 +1613,41 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _logger.info('Streaming track: ${track.name} (Platform: ${Platform.operatingSystem})', 'AudioHandler');
     List<String> streamUrls;
     
-    // Platform-specific URL prioritization for better compatibility
-    if (Platform.isIOS) {
+    // Use MediaServiceManager if available, otherwise fallback to JellyfinService
+    final mediaServiceManager = _mediaServiceManager;
+    
+    if (mediaServiceManager != null) {
+      // Use MediaServiceManager for current service (Jellyfin, Plex, or Navidrome)
       streamUrls = [
-        _jellyfinService.getStreamUrl(track.id),          // Transcoded (iOS preferred)
-        _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
-        _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort on iOS)
+        mediaServiceManager.getStreamUrl(track.id),
       ];
-      _logger.debug('Using iOS-optimized stream URL order', 'AudioHandler');
-    } else if (Platform.isMacOS) {
-      // macOS: Try universal first, then transcoded, then direct
-      streamUrls = [
-        _jellyfinService.getUniversalStreamUrl(track.id), // Universal (macOS preferred)
-        _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
-        _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort)
-      ];
-      _logger.debug('Using macOS-optimized stream URL order', 'AudioHandler');
+      _logger.debug('Using MediaServiceManager for stream URL', 'AudioHandler');
     } else {
-      streamUrls = [
-        _jellyfinService.getDirectStreamUrl(track.id),    // Direct (Android preferred)
-        _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
-        _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
-      ];
-      _logger.debug('Using Android-optimized stream URL order', 'AudioHandler');
+      // Fallback to JellyfinService for backward compatibility
+      // Platform-specific URL prioritization for better compatibility
+      if (Platform.isIOS) {
+        streamUrls = [
+          _jellyfinService.getStreamUrl(track.id),          // Transcoded (iOS preferred)
+          _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
+          _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort on iOS)
+        ];
+        _logger.debug('Using iOS-optimized Jellyfin stream URL order', 'AudioHandler');
+      } else if (Platform.isMacOS) {
+        // macOS: Try universal first, then transcoded, then direct
+        streamUrls = [
+          _jellyfinService.getUniversalStreamUrl(track.id), // Universal (macOS preferred)
+          _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
+          _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort)
+        ];
+        _logger.debug('Using macOS-optimized Jellyfin stream URL order', 'AudioHandler');
+      } else {
+        streamUrls = [
+          _jellyfinService.getDirectStreamUrl(track.id),    // Direct (Android preferred)
+          _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
+          _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
+        ];
+        _logger.debug('Using Android-optimized Jellyfin stream URL order', 'AudioHandler');
+      }
     }
     
     bool loaded = false;
