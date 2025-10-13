@@ -42,7 +42,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
 
   String? _getImageUrl(AppState appState, String? imageId) {
     if (imageId == null) return null;
-    return appState.jellyfinService.getImageUrl(imageId);
+    return appState.getImageUrl(imageId);
   }
 
   List<dynamic> _getFilteredAndSortedPlaylists(AppState appState) {
