@@ -186,7 +186,7 @@ class TrackListItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: track.imageUrl != null
                       ? CachedNetworkImage(
-                          imageUrl: appState.jellyfinService.getImageUrl(
+                          imageUrl: appState.getImageUrl(
                             track.imageUrl!,
                             width: 180,
                             height: 180,
@@ -394,7 +394,7 @@ class TrackListItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   child: track.imageUrl != null
                       ? CachedNetworkImage(
-                          imageUrl: appState.jellyfinService.getImageUrl(
+                          imageUrl: appState.getImageUrl(
                             track.imageUrl!,
                             width: 162,
                             height: 162,
