@@ -737,11 +737,6 @@ class AppState extends ChangeNotifier {
     await prefs.setString('server_type', serverType);
   }
 
-  Future<String> _getSavedServerType() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('server_type') ?? 'jellyfin';
-  }
-
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jellyfin_server');
