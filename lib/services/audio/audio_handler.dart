@@ -2630,7 +2630,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       } else if (mediaItem.id.startsWith('playlist:')) {
         final playlistId = mediaItem.id.substring(9);
-        final tracks = await _jellyfinService.getPlaylistTracks(playlistId);
+        final mediaServiceManager = _mediaServiceManager;
+        final tracks = mediaServiceManager != null 
+          ? await mediaServiceManager.getPlaylistTracks(playlistId)
+          : await _jellyfinService.getPlaylistTracks(playlistId);
         if (tracks.isNotEmpty) {
           await playPlaylist(tracks, 0);
         }
