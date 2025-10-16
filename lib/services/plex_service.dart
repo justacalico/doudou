@@ -458,10 +458,10 @@ class PlexService implements BaseMediaService {
   List<String> getAlternativeStreamUrls(String trackId) {
     // Return multiple Plex stream URL formats for fallback
     return [
-      getStreamUrl(trackId),                    // Primary transcoded URL
-      getDirectStreamUrl(trackId),             // Direct stream attempt
-      getTranscodedStreamUrl(trackId, bitrate: 128), // Lower bitrate fallback
-      getUniversalStreamUrl(trackId),          // Universal decision endpoint
+      getStreamUrl(trackId),                    // Primary direct file URL
+      getTranscodedStreamUrl(trackId, format: 'mp3', bitrate: 320), // High quality MP3
+      getTranscodedStreamUrl(trackId, format: 'mp3', bitrate: 128), // Lower bitrate fallback
+      getUniversalStreamUrl(trackId),          // Universal endpoint
     ];
   }
 
