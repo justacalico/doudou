@@ -438,22 +438,15 @@ class PlexService implements BaseMediaService {
   String getTranscodedStreamUrl(String trackId, {String format = 'mp3', int? bitrate}) {
     final params = <String, String>{
       'X-Plex-Token': _token!,
-      'path': '/library/metadata/$trackId',
-      'mediaIndex': '0',
-      'partIndex': '0',
-      'protocol': 'http',
-      'fastSeek': '1',
-      'directPlay': '0',
-      'directStream': '0',
-      'subtitleSize': '100',
-      'audioBoost': '100',
-      'location': 'lan',
-      'session': DateTime.now().millisecondsSinceEpoch.toString(),
-      'maxAudioBitrate': (bitrate ?? 128).toString(),
+      'format': format,
     };
     
+    if (bitrate != null) {
+      params['audioBitrate'] = bitrate.toString();
+    }
+    
     final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
-    return '$_serverUrl/audio/:/transcode/universal/start.$format?$queryString';
+    return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
   /// Get universal stream URL using Plex's decision endpoint
