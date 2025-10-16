@@ -425,30 +425,8 @@ class PlexService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    // Use Plex's transcode endpoint for reliable streaming
-    final params = <String, String>{
-      'X-Plex-Token': _token!,
-      'path': '/library/metadata/$trackId',
-      'mediaIndex': '0',
-      'partIndex': '0',
-      'protocol': 'http',
-      'fastSeek': '1',
-      'directPlay': '0',
-      'directStream': '1',
-      'subtitleSize': '100',
-      'audioBoost': '100',
-      'location': 'lan',
-      'session': DateTime.now().millisecondsSinceEpoch.toString(),
-    };
-    
-    if (bitrate != null) {
-      params['maxAudioBitrate'] = bitrate.toString();
-    } else {
-      params['maxAudioBitrate'] = '320';
-    }
-    
-    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
-    return '$_serverUrl/audio/:/transcode/universal/start.mp3?$queryString';
+    // Use direct media URL for Plex streaming
+    return '$_serverUrl/library/metadata/$trackId/file?X-Plex-Token=$_token';
   }
 
   /// Get direct stream URL (no transcoding) - attempts direct file access
