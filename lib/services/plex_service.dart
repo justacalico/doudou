@@ -449,18 +449,9 @@ class PlexService implements BaseMediaService {
     return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
-  /// Get universal stream URL using Plex's decision endpoint
+  /// Get universal stream URL using Plex's universal endpoint  
   String getUniversalStreamUrl(String trackId) {
-    // Use the decision endpoint to let Plex decide the best streaming method
-    final params = <String, String>{
-      'X-Plex-Token': _token!,
-      'path': '/library/metadata/$trackId',
-      'location': 'lan',
-      'protocol': 'http',
-    };
-    
-    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
-    return '$_serverUrl/video/:/transcode/universal/decision?$queryString';
+    return '$_serverUrl/library/metadata/$trackId/file?X-Plex-Token=$_token';
   }
 
   @override
