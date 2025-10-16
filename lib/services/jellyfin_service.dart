@@ -989,6 +989,16 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
+  List<String> getAlternativeStreamUrls(String trackId) {
+    // Return Jellyfin alternative stream URLs for fallback
+    return [
+      getStreamUrl(trackId),          // Primary transcoded URL
+      getDirectStreamUrl(trackId),    // Direct stream
+      getUniversalStreamUrl(trackId), // Universal fallback
+    ];
+  }
+
+  @override
   void clearAuth() {
     _server = null;
     _dio.options.headers.remove('X-Emby-Token');

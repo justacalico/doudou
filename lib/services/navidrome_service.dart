@@ -476,6 +476,32 @@ class NavidromeService implements BaseMediaService {
     return '$_serverUrl/rest/stream?${Uri(queryParameters: params).query}';
   }
 
+  /// Get direct download URL (no transcoding)
+  String getDirectStreamUrl(String trackId) {
+    final params = Map<String, dynamic>.from(_baseParams);
+    params['id'] = trackId;
+    
+    return '$_serverUrl/rest/download?${Uri(queryParameters: params).query}';
+  }
+
+  /// Get transcoded stream URL with specific format
+  String getTranscodedStreamUrl(String trackId, {String format = 'mp3', int? bitrate}) {
+    final params = Map<String, dynamic>.from(_baseParams);
+    params['id'] = trackId;
+    params['format'] = format;
+    if (bitrate != null) params['maxBitRate'] = bitrate.toString();
+    
+    return '$_serverUrl/rest/stream?${Uri(queryParameters: params).query}';
+  }
+
+  /// Get alternative stream URL (using different endpoint)
+  String getAlternativeStreamUrl(String trackId) {
+    final params = Map<String, dynamic>.from(_baseParams);
+    params['id'] = trackId;
+    
+    return '$_serverUrl/rest/stream?${Uri(queryParameters: params).query}';
+  }
+
   @override
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     final params = Map<String, dynamic>.from(_baseParams);
@@ -565,5 +591,19 @@ class NavidromeService implements BaseMediaService {
     _token = null;
     _salt = null;
     _serverUrl = null;
+  }
+
+  @override
+  List<String> getAlternativeStreamUrls(String trackId) {
+    // Return Navidrome alternative stream URLs with different formats/bitrates
+    final params = Map<String, dynamic>.from(_baseParams);
+    params['id'] = trackId;
+    
+    return [
+      getStreamUrl(trackId),                    // Primary stream URL
+      getStreamUrl(trackId, bitrate: 192),     // Medium bitrate fallback
+      getStreamUrl(trackId, bitrate: 128),     // Lower bitrate fallback
+      '$_serverUrl/rest/download?${Uri(queryParameters: params).query}', // Direct download fallback
+    ];
   }
 }

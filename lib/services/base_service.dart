@@ -36,6 +36,9 @@ abstract class BaseMediaService {
   /// Get stream URL for a track
   String getStreamUrl(String trackId, {int? bitrate});
   
+  /// Get alternative stream URLs for fallback (optional implementation)
+  List<String> getAlternativeStreamUrls(String trackId) => [];
+  
   /// Get image URL for an item
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height});
   

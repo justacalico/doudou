@@ -596,10 +596,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final mediaServiceManager = _mediaServiceManager;
       
       if (mediaServiceManager != null) {
-        // Use MediaServiceManager for current service
-        streamUrls = [
-          mediaServiceManager.getStreamUrl(track.id),
-        ];
+        // Use MediaServiceManager for current service - prefer alternative URLs
+        final alt = mediaServiceManager.getAlternativeStreamUrls(track.id);
+        if (alt.isNotEmpty) {
+          streamUrls = alt;
+        } else {
+          final primary = mediaServiceManager.getStreamUrl(track.id);
+          streamUrls = primary.isNotEmpty ? [primary] : [];
+        }
       } else {
         // Fallback to JellyfinService with platform-optimized prioritization
         if (Platform.isMacOS) {
@@ -620,9 +624,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
 
       for (final streamUrl in streamUrls) {
-        if (streamUrl.isNotEmpty) {
+        if (streamUrl.isEmpty) continue;
+        try {
+          final ok = await _probeUrl(streamUrl);
+          if (!ok) {
+            if (kDebugMode) print('Skipping unreachable stream URL: $streamUrl');
+            continue;
+          }
+
           AudioSource source;
-          
           if (_shouldTranscodeTrack(track)) {
             final hlsUrl = _getHlsStreamUrl(track);
             source = hlsUrl.isNotEmpty 
@@ -631,12 +641,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           } else {
             source = AudioSource.uri(Uri.parse(streamUrl));
           }
-          
+
           _audioSourceCache[track.id] = source;
           if (kDebugMode) {
             print('Created stream audio source for: ${track.name}');
           }
           return source;
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error while probing/creating source for $streamUrl: $e');
+          }
+          continue;
         }
       }
     } catch (e) {
@@ -1627,11 +1642,66 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final mediaServiceManager = _mediaServiceManager;
     
     if (mediaServiceManager != null) {
-      // Use MediaServiceManager for current service (Jellyfin, Plex, or Navidrome)
-      streamUrls = [
-        mediaServiceManager.getStreamUrl(track.id),
-      ];
-      _logger.debug('Using MediaServiceManager for stream URL', 'AudioHandler');
+      // Get multiple stream URLs for better fallback support
+      streamUrls = [];
+      
+      // Try different stream URL approaches based on server type
+      final serverType = mediaServiceManager.currentServerType;
+      _logger.debug('Using MediaServiceManager for ${serverType.toString()} service', 'AudioHandler');
+      
+      // Add primary stream URL
+      final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
+      if (primaryUrl.isNotEmpty) {
+        streamUrls.add(primaryUrl);
+      }
+      
+      // Add alternative URLs based on service type
+      try {
+        if (serverType.toString().contains('plex')) {
+          // For Plex, try different file formats and endpoints
+          final baseUrl = primaryUrl.split('?')[0]; // Remove query params
+          final token = primaryUrl.contains('X-Plex-Token=') 
+              ? primaryUrl.split('X-Plex-Token=')[1].split('&')[0] 
+              : '';
+          
+          if (token.isNotEmpty) {
+            final trackPath = baseUrl.replaceAll('/file.mp3', '');
+            streamUrls.addAll([
+              '$trackPath/file?X-Plex-Token=$token',                    // Direct file
+              '$trackPath/file.mp3?audioBitrate=128&X-Plex-Token=$token', // Lower bitrate
+              '$trackPath?X-Plex-Token=$token',                         // Universal endpoint
+            ]);
+          }
+        } else if (serverType.toString().contains('navidrome')) {
+          // For Navidrome, try different endpoints
+          final baseUrl = primaryUrl.split('?')[0];
+          final queryParams = primaryUrl.contains('?') ? primaryUrl.split('?')[1] : '';
+          
+          if (queryParams.isNotEmpty) {
+            streamUrls.addAll([
+              '${baseUrl.replaceAll('/stream', '/download')}?$queryParams', // Download endpoint
+              '$baseUrl?$queryParams&format=mp3',                        // Force MP3 format
+              '$baseUrl?$queryParams&maxBitRate=128',                    // Lower bitrate
+            ]);
+          }
+        }
+      } catch (e) {
+        _logger.warning('Failed to generate alternative stream URLs: $e', 'AudioHandler');
+      }
+      
+      // Remove duplicates and empty URLs
+      streamUrls = streamUrls.where((url) => url.isNotEmpty).toSet().toList();
+      _logger.debug('Generated ${streamUrls.length} stream URLs for ${serverType.toString()}', 'AudioHandler');
+      
+      if (kDebugMode) {
+        print('=== STREAM URLs GENERATED ===');
+        print('Service: ${serverType.toString()}');
+        print('Total URLs: ${streamUrls.length}');
+        for (int i = 0; i < streamUrls.length; i++) {
+          print('URL ${i + 1}: ${streamUrls[i]}');
+        }
+        print('=== END STREAM URLs ===');
+      }
     } else {
       // Fallback to JellyfinService for backward compatibility
       // Platform-specific URL prioritization for better compatibility
@@ -1641,7 +1711,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
           _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort on iOS)
         ];
-        _logger.debug('Using iOS-optimized Jellyfin stream URL order', 'AudioHandler');
+        _logger.debug('Using iOS-optimized Jellyfin stream URL order (fallback)', 'AudioHandler');
       } else if (Platform.isMacOS) {
         // macOS: Try universal first, then transcoded, then direct
         streamUrls = [
@@ -1649,14 +1719,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
           _jellyfinService.getDirectStreamUrl(track.id),    // Direct (last resort)
         ];
-        _logger.debug('Using macOS-optimized Jellyfin stream URL order', 'AudioHandler');
+        _logger.debug('Using macOS-optimized Jellyfin stream URL order (fallback)', 'AudioHandler');
       } else {
         streamUrls = [
           _jellyfinService.getDirectStreamUrl(track.id),    // Direct (Android preferred)
           _jellyfinService.getStreamUrl(track.id),          // Transcoded fallback
           _jellyfinService.getUniversalStreamUrl(track.id), // Universal fallback
         ];
-        _logger.debug('Using Android-optimized Jellyfin stream URL order', 'AudioHandler');
+        _logger.debug('Using Android-optimized Jellyfin stream URL order (fallback)', 'AudioHandler');
       }
     }
     
@@ -1679,8 +1749,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           _logger.info('Attempting stream ${i + 1}/${streamUrls.length} ($platformOptimization)', 'AudioHandler');
           if (kDebugMode) {
-            print('Attempting to load stream ${i + 1}/${streamUrls.length}: $platformOptimization order');
-            print('Stream URL: $streamUrl');
+            print('=== TRYING STREAM URL ${i + 1}/${streamUrls.length} ===');
+            print('Platform optimization: $platformOptimization');
+            print('Full URL: $streamUrl');
+            print('Track: ${track.name} (ID: ${track.id})');
           }
           
           if (_shouldTranscodeTrack(track)) {
@@ -1744,7 +1816,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           loaded = true;
           _logger.info('Successfully loaded stream, playing: ${_player.playing}', 'AudioHandler');
           if (kDebugMode) {
-            print('Successfully loaded stream: ${track.name}, playing: ${_player.playing}');
+            print('=== STREAM LOAD SUCCESS ===');
+            print('Successfully loaded stream: ${track.name}');
+            print('Playing: ${_player.playing}');
+            print('URL used: $streamUrl');
+            print('=== STREAM LOAD SUCCESS END ===');
           }
           break;
         }
@@ -1752,7 +1828,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         lastError = e as Exception?;
         _logger.warning('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e', 'AudioHandler');
         if (kDebugMode) {
-          print('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e');
+          print('=== STREAM LOAD FAILED ===');
+          print('Failed URL ${i + 1}/${streamUrls.length}: $streamUrl');
+          print('Error: $e');
+          print('=== STREAM LOAD FAILED END ===');
         }
         
         // Platform-specific URL retry logic
@@ -2175,24 +2254,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       try {
         final currentTrack = stateData.playlist[stateData.currentIndex];
         
-        // Use MediaServiceManager if available, otherwise fallback to JellyfinService
+        // Use MediaServiceManager if available to get multiple fallback URLs
         final mediaServiceManager = _mediaServiceManager;
-        final streamUrls = mediaServiceManager != null 
-          ? [mediaServiceManager.getStreamUrl(currentTrack.id)]
-          : [
-              _jellyfinService.getDirectStreamUrl(currentTrack.id),
-              _jellyfinService.getStreamUrl(currentTrack.id),
-              _jellyfinService.getUniversalStreamUrl(currentTrack.id),
-            ];
+        final streamUrls = <String>[];
+        if (mediaServiceManager != null) {
+          // Prefer explicit alternative URLs if the service provides them
+          final alt = mediaServiceManager.getAlternativeStreamUrls(currentTrack.id);
+          if (alt.isNotEmpty) {
+            streamUrls.addAll(alt);
+          } else {
+            // Fallback to single canonical URL
+            final primary = mediaServiceManager.getStreamUrl(currentTrack.id);
+            if (primary.isNotEmpty) streamUrls.add(primary);
+          }
+        } else {
+          // Legacy Jellyfin-only fallback order
+          streamUrls.addAll([
+            _jellyfinService.getDirectStreamUrl(currentTrack.id),
+            _jellyfinService.getStreamUrl(currentTrack.id),
+            _jellyfinService.getUniversalStreamUrl(currentTrack.id),
+          ]);
+        }
         
         bool loaded = false;
         for (final streamUrl in streamUrls) {
+          if (streamUrl.isEmpty) continue;
           try {
-            if (streamUrl.isNotEmpty) {
-              await _player.setUrl(streamUrl);
-              loaded = true;
-              break;
+            final ok = await _probeUrl(streamUrl);
+            if (!ok) {
+              if (kDebugMode) print('Skipping unreachable URL: $streamUrl');
+              continue;
             }
+            await _player.setUrl(streamUrl);
+            loaded = true;
+            break;
           } catch (e) {
             if (kDebugMode) {
               print('Failed to load stream URL for restored track: $e');
@@ -2267,6 +2362,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     final apiKey = urlParts[1].split('&')[0];
     return '$baseUrl/Audio/${track.id}/main.m3u8?ApiKey=$apiKey&audioCodec=aac&audioSampleRate=44100&maxAudioBitDepth=16&audioBitRate=320000';
+  }
+
+  /// Probe a URL with a lightweight HEAD request to ensure it's reachable.
+  /// Returns true if the URL responds with a 2xx status within a short timeout.
+  Future<bool> _probeUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 4);
+      final request = await client.openUrl('HEAD', uri);
+      final response = await request.close().timeout(const Duration(seconds: 5));
+      final ok = response.statusCode >= 200 && response.statusCode < 300;
+      client.close(force: true);
+      if (kDebugMode) {
+        print('Probe ${ok ? 'OK' : 'FAIL'} for $url (status: ${response.statusCode})');
+      }
+      return ok;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Probe error for $url: $e');
+      }
+      return false;
+    }
   }
 
   Future<void> dispose() async {

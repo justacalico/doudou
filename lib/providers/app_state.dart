@@ -677,37 +677,100 @@ class AppState extends ChangeNotifier {
         // Initialize cache service
         await _cacheService.initialize();
         
-        // For now, we'll continue using the existing audio handler with Jellyfin service
-        // In future iterations, this can be made generic for all services
-        if (type == ServerType.jellyfin) {
-          // Continue with existing Jellyfin logic for audio handler
-          if (_isAndroid || _isIOS) {
-            try {
-              _audioHandler = await AudioService.init(
-                builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-                config: const AudioServiceConfig(
-                  androidNotificationChannelId: 'com.doudou.app.channel.audio',
-                  androidNotificationChannelName: 'Doudou Audio Service',
-                  androidNotificationOngoing: true,
-                  androidStopForegroundOnPause: true,
-                ),
-              );
-              
-              _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
-              _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-              _setupAudioHandlerListeners();
-            } catch (e) {
-              if (kDebugMode) {
-                print('Failed to initialize audio handler: $e');
-              }
-              _audioHandler = null;
-            }
-          } else {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+        // Initialize audio handler for all service types using MediaServiceManager
+        // Platform-specific audio handler initialization
+        if (_isAndroid) {
+          // Android: Use AudioService for background audio and Android Auto
+          try {
+            _audioHandler = await AudioService.init(
+              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
+              config: const AudioServiceConfig(
+                androidNotificationChannelId: 'com.doudou.app.channel.audio',
+                androidNotificationChannelName: 'Doudou Audio Service',
+                androidNotificationOngoing: true,
+                androidStopForegroundOnPause: true,
+              ),
+            );
+            
             _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
+            
+            if (kDebugMode) {
+              print('Android audio handler initialized for $serverType');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to initialize Android audio handler: $e');
+            }
+            _audioHandler = null;
           }
+        } else if (_isMacOS) {
+          // macOS: Use AudioService for background audio like Android
+          try {
+            _audioHandler = await AudioService.init(
+              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
+              config: const AudioServiceConfig(
+                androidNotificationChannelId: 'com.doudou.app.channel.audio',
+                androidNotificationChannelName: 'Doudou Audio Service',
+                androidNotificationOngoing: true,
+              ),
+            );
+            
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+            _setupAudioHandlerListeners();
+            
+            if (kDebugMode) {
+              print('macOS audio handler initialized for $serverType');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to initialize macOS audio handler: $e');
+            }
+            _audioHandler = null;
+          }
+        } else if (_isLinux) {
+          // Linux: Initialize audio handler without AudioService wrapper (like iOS)
+          try {
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+            
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+            _setupAudioHandlerListeners();
+            
+            if (kDebugMode) {
+              print('Linux audio handler initialized for $serverType');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to initialize Linux audio handler: $e');
+            }
+            _audioHandler = null;
+          }
+        } else if (_isIOS) {
+          // iOS: Initialize audio handler without AudioService wrapper
+          try {
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+            
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+            _setupAudioHandlerListeners();
+            
+            if (kDebugMode) {
+              print('iOS audio handler initialized for $serverType');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to initialize iOS audio handler: $e');
+            }
+            _audioHandler = null;
+          }
+        } else {
+          if (kDebugMode) {
+            print('Audio handler initialization skipped on unsupported platform');
+          }
+          _audioHandler = null;
         }
         
         await _saveServerType(serverType);
@@ -1410,9 +1473,28 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
+    if (kDebugMode) {
+      print('=== APP_STATE.playPlaylist() CALLED ===');
+      print('Tracks: ${tracks.length}');
+      print('Start index: $startIndex');
+      print('Current service: ${_mediaServiceManager.currentServerType}');
+      if (tracks.isNotEmpty) {
+        print('First track: ${tracks[0].name} (ID: ${tracks[0].id})');
+      }
+      print('AudioHandler exists: ${_audioHandler != null}');
+    }
+    
     if (_audioHandler != null) {
       await _audioHandler!.playPlaylist(tracks, startIndex);
       notifyListeners();
+      
+      if (kDebugMode) {
+        print('=== APP_STATE.playPlaylist() COMPLETED ===');
+      }
+    } else {
+      if (kDebugMode) {
+        print('ERROR: AudioHandler is null in AppState.playPlaylist()');
+      }
     }
   }
 

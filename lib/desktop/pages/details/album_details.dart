@@ -115,7 +115,20 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
             // Play album button
             ElevatedButton.icon(
               onPressed: _albumTracks.isNotEmpty ? () async {
+                if (kDebugMode) {
+                  print('=== ALBUM PLAY BUTTON CLICKED ===');
+                  print('Album: ${widget.album.name}');
+                  print('Track count: ${_albumTracks.length}');
+                  print('First track: ${_albumTracks.isNotEmpty ? _albumTracks[0].name : "None"}');
+                  if (_albumTracks.isNotEmpty) {
+                    print('First track ID: ${_albumTracks[0].id}');
+                    print('First track duration: ${_albumTracks[0].duration}');
+                  }
+                }
                 await appState.playPlaylist(_albumTracks, 0);
+                if (kDebugMode) {
+                  print('=== ALBUM PLAY BUTTON COMPLETED ===');
+                }
               } : null,
               icon: const Icon(Icons.play_arrow),
               label: const Text('Play Album'),
@@ -527,8 +540,18 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
         ],
       ),
       onTap: () async {
+        if (kDebugMode) {
+          print('=== TRACK CLICKED ===');
+          print('Track: ${track.name}');
+          print('Track ID: ${track.id}');
+          print('Track number: $trackNumber');
+          print('Album: ${widget.album.name}');
+        }
         final appState = context.read<AppState>();
         await appState.playPlaylist(_albumTracks, trackNumber - 1);
+        if (kDebugMode) {
+          print('=== TRACK CLICK COMPLETED ===');
+        }
       },
     );
   }

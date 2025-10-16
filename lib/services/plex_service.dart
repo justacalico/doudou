@@ -425,7 +425,94 @@ class PlexService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    return '$_serverUrl/library/metadata/$trackId/file.mp3?X-Plex-Token=$_token';
+    // Use Plex's transcode endpoint for reliable streaming
+    final params = <String, String>{
+      'X-Plex-Token': _token!,
+      'path': '/library/metadata/$trackId',
+      'mediaIndex': '0',
+      'partIndex': '0',
+      'protocol': 'http',
+      'fastSeek': '1',
+      'directPlay': '0',
+      'directStream': '1',
+      'subtitleSize': '100',
+      'audioBoost': '100',
+      'location': 'lan',
+      'session': DateTime.now().millisecondsSinceEpoch.toString(),
+    };
+    
+    if (bitrate != null) {
+      params['maxAudioBitrate'] = bitrate.toString();
+    } else {
+      params['maxAudioBitrate'] = '320';
+    }
+    
+    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+    return '$_serverUrl/audio/:/transcode/universal/start.mp3?$queryString';
+  }
+
+  /// Get direct stream URL (no transcoding) - attempts direct file access
+  String getDirectStreamUrl(String trackId) {
+    final params = <String, String>{
+      'X-Plex-Token': _token!,
+      'path': '/library/metadata/$trackId',
+      'mediaIndex': '0',
+      'partIndex': '0',
+      'protocol': 'http',
+      'directPlay': '1',
+      'directStream': '1',
+      'location': 'lan',
+    };
+    
+    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+    return '$_serverUrl/audio/:/transcode/universal/start.mp3?$queryString';
+  }
+
+  /// Get transcoded stream URL with specific format and bitrate
+  String getTranscodedStreamUrl(String trackId, {String format = 'mp3', int? bitrate}) {
+    final params = <String, String>{
+      'X-Plex-Token': _token!,
+      'path': '/library/metadata/$trackId',
+      'mediaIndex': '0',
+      'partIndex': '0',
+      'protocol': 'http',
+      'fastSeek': '1',
+      'directPlay': '0',
+      'directStream': '0',
+      'subtitleSize': '100',
+      'audioBoost': '100',
+      'location': 'lan',
+      'session': DateTime.now().millisecondsSinceEpoch.toString(),
+      'maxAudioBitrate': (bitrate ?? 128).toString(),
+    };
+    
+    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+    return '$_serverUrl/audio/:/transcode/universal/start.$format?$queryString';
+  }
+
+  /// Get universal stream URL using Plex's decision endpoint
+  String getUniversalStreamUrl(String trackId) {
+    // Use the decision endpoint to let Plex decide the best streaming method
+    final params = <String, String>{
+      'X-Plex-Token': _token!,
+      'path': '/library/metadata/$trackId',
+      'location': 'lan',
+      'protocol': 'http',
+    };
+    
+    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+    return '$_serverUrl/video/:/transcode/universal/decision?$queryString';
+  }
+
+  @override
+  List<String> getAlternativeStreamUrls(String trackId) {
+    // Return multiple Plex stream URL formats for fallback
+    return [
+      getStreamUrl(trackId),                    // Primary transcoded URL
+      getDirectStreamUrl(trackId),             // Direct stream attempt
+      getTranscodedStreamUrl(trackId, bitrate: 128), // Lower bitrate fallback
+      getUniversalStreamUrl(trackId),          // Universal decision endpoint
+    ];
   }
 
   @override

@@ -105,6 +105,12 @@ class MediaServiceManager {
     return streamUrl;
   }
 
+  /// Get alternative stream URLs for fallback from the current service
+  List<String> getAlternativeStreamUrls(String trackId) {
+    if (_currentService == null) return [];
+    return _currentService!.getAlternativeStreamUrls(trackId);
+  }
+
   /// Get image URL from the current service
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     if (_currentService == null) return '';
@@ -234,6 +240,16 @@ class JellyfinServiceAdapter implements BaseMediaService {
 
   @override
   get currentServer => _jellyfinService.currentServer;
+
+  @override
+  List<String> getAlternativeStreamUrls(String trackId) {
+    // Return Jellyfin alternative stream URLs
+    return [
+      _jellyfinService.getStreamUrl(trackId),          // Primary transcoded URL
+      _jellyfinService.getDirectStreamUrl(trackId),    // Direct stream
+      _jellyfinService.getUniversalStreamUrl(trackId), // Universal fallback
+    ];
+  }
 
   @override
   void clearAuth() {
