@@ -15,18 +15,31 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 
 ---
 
-# 7.0.0 READ
-While 7.0.0 is in devlopment we are adding support for Plex and Navidome. These are the current known issues Doudou is having.
+---
 
-- Jellyfin
-  - No change to surrport everything will work.
-- Plex
-  - Not able to play audio (Not full tested)
-  - Can not get duration of audio
-- Navidome
-  - Cant play audio
-  - No album art
-  - No artist art
+## 🚧 Version 7.0.0 Development Status
+
+**Multi-Server Support Expansion**
+
+Version 7.0.0 introduces experimental support for Plex and Navidrome alongside our robust Jellyfin integration. Please note the current implementation status:
+
+### ✅ **Jellyfin (Stable)**
+- Full feature support maintained
+- All existing functionality preserved
+- Recommended for production use
+
+### ⚠️ **Plex (Beta)**
+- ❌ Audio streaming issues (under investigation)
+- ❌ Duration metadata not available
+- 🔍 *Status: Active development, limited testing*
+
+### ⚠️ **Navidrome (Alpha)**
+- ❌ Audio playback not functional
+- ❌ Album artwork missing
+- ❌ Artist images unavailable
+- 🔍 *Status: Early implementation phase*
+
+> **For stable music playback, we recommend using Jellyfin until Plex and Navidrome support reaches production quality.**
 
 ---
 
