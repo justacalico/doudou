@@ -701,7 +701,6 @@ class NavidromeService implements BaseMediaService {
     }
   }
 
-  @override
   Future<bool> addToPlaylist(String playlistId, String trackId) async {
     try {
       final params = Map<String, dynamic>.from(_baseParams);
