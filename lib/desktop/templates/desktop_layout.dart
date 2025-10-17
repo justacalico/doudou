@@ -566,7 +566,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                     (t) => t.id == currentTrack.id,
                                                     orElse: () => Track(
                                                       id: currentTrack.id,
-                                                      name: currentTrack.title ?? 'Unknown',
+                                                      name: currentTrack.title,
                                                       albumName: currentTrack.album,
                                                       artistName: currentTrack.artist,
                                                       albumId: currentTrack.extras?['albumId'] as String? ?? '',
