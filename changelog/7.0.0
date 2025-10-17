@@ -8,30 +8,30 @@
 - Queue operation logging for debugging playlist management
 - User-configurable logging toggle (disabled by default for performance)
 - New desktop UI
-- Show the amount of plays songs have.
+- Show the number of plays songs have
 - Plex service
-- Navidome service
-- Added the abilty to favorite songs.
-- Added debugging info for favorites.
+- Navidrome service
+- Added the ability to favorite songs
+- Added debugging info for favorites
 
 ## Changed
 
 - New description
 - Logging is disabled by default and can be enabled in settings
-- Centeral logic for api requests.
-- Rewrote the jellyfin service.
-- Refactored most of the backend for desktop/mobile network connections.
-- Refactored the jellyfin favorite song.
+- Central logic for API requests
+- Rewrote the Jellyfin service
+- Refactored most of the backend for desktop/mobile network connections
+- Refactored the Jellyfin favorite song functionality
 
 ## Removed
 
-- Removed cross fade's
-- Removed debugging for images.
-- Removed debugging for audio states.
+- Removed crossfades
+- Removed debugging for images
+- Removed debugging for audio states
 
 ## Fixed
 
-- Fixed skipping on linux
+- Fixed skipping on Linux
 - Improved playback diagnostics with comprehensive logging throughout audio system
-- Fixed bug witch often caused when audio player to not work when using local address.
-- Fixed local addres's often failing
+- Fixed bug which often caused the audio player to not work when using local addresses
+- Fixed local addresses often failing
