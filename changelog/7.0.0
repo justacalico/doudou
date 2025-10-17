@@ -11,6 +11,7 @@
 - Show the amount of plays songs have.
 - Plex service
 - Navidome service
+- Added the abilty to favorite songs.
 
 ## Changed
 
@@ -19,6 +20,7 @@
 - Centeral logic for api requests.
 - Rewrote the jellyfin service.
 - Refactored most of the backend for desktop/mobile network connections.
+- Refactored the jellyfin favorite song.
 
 ## Removed
 
