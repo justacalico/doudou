@@ -557,29 +557,34 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           // Favorite button
                                           Consumer<AppState>(
                                             builder: (context, appState, child) {
-                                              final isFavorite = currentTrack != null ? 
-                                                appState.tracks.any((track) => track.id == currentTrack.id && track.isFavorite) : false;
+                                              if (currentTrack == null) {
+                                                return const SizedBox.shrink();
+                                              }
+                                              
+                                              // Find the track in the app state
+                                              final trackInState = appState.tracks.firstWhere(
+                                                (t) => t.id == currentTrack.id,
+                                                orElse: () => Track(
+                                                  id: currentTrack.id,
+                                                  name: currentTrack.title,
+                                                  albumName: currentTrack.album,
+                                                  artistName: currentTrack.artist,
+                                                  albumId: currentTrack.extras?['albumId'] as String? ?? '',
+                                                  duration: currentTrack.duration?.inSeconds ?? 0,
+                                                  trackNumber: null,
+                                                  imageUrl: null,
+                                                  isFavorite: false,
+                                                ),
+                                              );
+                                              
+                                              final isFavorite = trackInState.isFavorite;
                                               
                                               return IconButton(
-                                                onPressed: currentTrack != null ? () {
-                                                  final track = appState.tracks.firstWhere(
-                                                    (t) => t.id == currentTrack.id,
-                                                    orElse: () => Track(
-                                                      id: currentTrack.id,
-                                                      name: currentTrack.title,
-                                                      albumName: currentTrack.album,
-                                                      artistName: currentTrack.artist,
-                                                      albumId: currentTrack.extras?['albumId'] as String? ?? '',
-                                                      duration: currentTrack.duration?.inSeconds ?? 0,
-                                                      trackNumber: null,
-                                                      imageUrl: null,
-                                                      isFavorite: false,
-                                                    ),
-                                                  );
-                                                  appState.toggleFavorite(track);
-                                                } : null,
+                                                onPressed: () {
+                                                  appState.toggleFavorite(trackInState);
+                                                },
                                                 icon: Icon(
-                                                  isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                                  isFavorite ? Icons.favorite : Icons.favorite_border,
                                                   size: 20,
                                                 ),
                                                 style: IconButton.styleFrom(
