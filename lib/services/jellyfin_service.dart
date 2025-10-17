@@ -532,6 +532,7 @@ class JellyfinService implements BaseMediaService {
     return '$baseUrl/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
   }
 
+  @override
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
     if (_server == null) throw Exception('Server not configured');
 
