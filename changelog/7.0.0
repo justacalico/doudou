@@ -37,3 +37,4 @@
 - Fixed bug which often caused the audio player to not work when using local addresses
 - Fixed local addresses often failing
 - Fixed clutter in debugging terminal
+- Fixed main album art using old Jellyfin code
