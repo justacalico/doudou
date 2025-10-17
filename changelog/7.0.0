@@ -36,3 +36,4 @@
 - Improved playback diagnostics with comprehensive logging throughout audio system
 - Fixed bug which often caused the audio player to not work when using local addresses
 - Fixed local addresses often failing
+- Fixed clutter in debugging terminal
