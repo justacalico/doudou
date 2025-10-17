@@ -1660,6 +1660,33 @@ class AppState extends ChangeNotifier {
         } else {
           if (kDebugMode) {
             print('WARNING: Track not found in _tracks list!');
+            print('Adding track to _tracks list with updated favorite status');
+          }
+          
+          // Track not found in main list, add it with updated favorite status
+          final updatedTrack = Track(
+            id: track.id,
+            name: track.name,
+            albumName: track.albumName,
+            artistName: track.artistName,
+            albumId: track.albumId,
+            duration: track.duration,
+            trackNumber: track.trackNumber,
+            imageUrl: track.imageUrl,
+            isFavorite: !track.isFavorite,
+          );
+          
+          _tracks.add(updatedTrack);
+          
+          if (kDebugMode) {
+            print('Track added to _tracks list with isFavorite: ${updatedTrack.isFavorite}');
+            print('Calling notifyListeners()');
+          }
+          
+          notifyListeners();
+          
+          if (kDebugMode) {
+            print('notifyListeners() called successfully');
           }
         }
       } else {
