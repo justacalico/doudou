@@ -1689,6 +1689,12 @@ class AppState extends ChangeNotifier {
             print('notifyListeners() called successfully');
           }
         }
+        
+        // Also refresh tracks in background to ensure all tracks have correct favorite status
+        if (kDebugMode) {
+          print('Refreshing tracks to sync favorite status...');
+        }
+        _refreshTracksInBackground();
       } else {
         if (kDebugMode) {
           print('ERROR: Server returned failure for toggle favorite');
