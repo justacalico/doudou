@@ -1670,21 +1670,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           initialIndex: _stateManager.currentIndex,
         );
         
-        // Store references for gapless operations
-        _concatenatingSource = concatenatingSource;
-        _isUsingConcatenation = true;
+        // Store references for gapless operations atomically
+        await _setConcatenationState(true, concatenatingSource);
         
         // Resume playing if user intended it
-        if (_userIntendedPlaying) {
+        final userIntent = await _getUserIntentAtomic();
+        if (userIntent) {
           await _player.play();
         }
         
         // Update playback state
-        // Use _userIntendedPlaying directly instead of checking _player.playing
+        // Use user intent directly instead of checking _player.playing
         // because the player state might not be updated immediately after play() call
         _updatePlaybackState(playbackState.value.copyWith(
           processingState: AudioProcessingState.ready,
-          playing: _userIntendedPlaying,
+          playing: userIntent,
           queueIndex: _stateManager.currentIndex,
         ));
         
@@ -1706,15 +1706,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   /// Play individual track
   Future<void> _playIndividualTrack(Track track, bool wasPlaying) async {
-    // Disable concatenation mode
-    _isUsingConcatenation = false;
-    _concatenatingSource = null;
+    // Disable concatenation mode atomically
+    await _setConcatenationState(false, null);
     
     // Use user intent instead of previous playing state for automatic transitions
-    final shouldPlay = _userIntendedPlaying;
+    final shouldPlay = await _getUserIntentAtomic();
     
     if (kDebugMode) {
-      print('Individual track playback - wasPlaying: $wasPlaying, userIntended: $_userIntendedPlaying, shouldPlay: $shouldPlay');
+      print('Individual track playback - wasPlaying: $wasPlaying, userIntended: $shouldPlay, shouldPlay: $shouldPlay');
     }
     
     // Update to loading state preserving user intent
