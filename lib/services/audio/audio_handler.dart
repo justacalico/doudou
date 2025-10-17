@@ -18,90 +18,6 @@ import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
 import 'audio_transition_manager.dart';
 
-/// Simple Mutex implementation for synchronizing async operations
-class _Mutex {
-  Completer<void>? _completer;
-  
-  Future<void> acquire() async {
-    while (_completer != null && !_completer!.isCompleted) {
-      await _completer!.future;
-    }
-    _completer = Completer<void>();
-  }
-  
-  void release() {
-    final completer = _completer;
-    _completer = null;
-    completer?.complete();
-  }
-  
-  Future<T> synchronized<T>(Future<T> Function() operation) async {
-    await acquire();
-    try {
-      return await operation();
-    } finally {
-      release();
-    }
-  }
-}
-
-/// Atomic boolean wrapper for thread-safe flag operations
-class _AtomicBool {
-  bool _value;
-  final _Mutex _mutex = _Mutex();
-  
-  _AtomicBool(this._value);
-  
-  Future<bool> get value async {
-    return await _mutex.synchronized(() async => _value);
-  }
-  
-  Future<void> set(bool newValue) async {
-    await _mutex.synchronized(() async {
-      _value = newValue;
-    });
-  }
-  
-  Future<bool> compareAndSet(bool expectedValue, bool newValue) async {
-    return await _mutex.synchronized(() async {
-      if (_value == expectedValue) {
-        _value = newValue;
-        return true;
-      }
-      return false;
-    });
-  }
-}
-
-/// Thread-safe wrapper for nullable DateTime operations
-class _AtomicDateTime {
-  DateTime? _value;
-  final _Mutex _mutex = _Mutex();
-  
-  _AtomicDateTime([this._value]);
-  
-  Future<DateTime?> get value async {
-    return await _mutex.synchronized(() async => _value);
-  }
-  
-  Future<void> set(DateTime? newValue) async {
-    await _mutex.synchronized(() async {
-      _value = newValue;
-    });
-  }
-  
-  Future<bool> setIfBefore(DateTime newValue, Duration threshold) async {
-    return await _mutex.synchronized(() async {
-      final now = DateTime.now();
-      if (_value == null || now.difference(_value!) >= threshold) {
-        _value = newValue;
-        return true;
-      }
-      return false;
-    });
-  }
-}
-
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
   final JellyfinService _jellyfinService;
@@ -138,66 +54,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Logging service
   final LoggingService _logger = LoggingService();
 
-  // Thread safety - Synchronization primitives
-  final _Mutex _stateMutex = _Mutex();
-  final _Mutex _commandMutex = _Mutex();
-  final _Mutex _cacheMutex = _Mutex();
-  final _Mutex _concatenationMutex = _Mutex();
-  final _Mutex _playlistMutex = _Mutex();
-  final _Mutex _bufferingMutex = _Mutex();
-  final _Mutex _lyricsMutex = _Mutex();
-  final _Mutex _volumeMutex = _Mutex();
-  final _Mutex _transitionMutex = _Mutex();
-  
-  // Atomic variables for thread-safe operations
-  final _AtomicBool _userIntendedPlaying = _AtomicBool(false);
-  final _AtomicBool _isHandlingCompletion = _AtomicBool(false);
-  final _AtomicDateTime _lastPlayCommand = _AtomicDateTime();
-  final _AtomicDateTime _lastPauseCommand = _AtomicDateTime();
-  final _AtomicDateTime _lastBufferingTime = _AtomicDateTime();
-  int _bufferingLoopCount = 0;
-  double? _previousVolume;
-  
-  // Thread-safe helper methods
-  Future<bool> get _userWantsToPlay async => await _userIntendedPlaying.value;
-  Future<void> _setUserIntentToPlay() async => await _userIntendedPlaying.set(true);
-  Future<void> _setUserIntentToPause() async => await _userIntendedPlaying.set(false);
-  
-  Future<bool> _canExecuteCommand(String commandType, DateTime now) async {
-    if (commandType == 'play') {
-      final lastPlay = await _lastPlayCommand.value;
-      final lastPause = await _lastPauseCommand.value;
-      
-      if (lastPlay != null && now.difference(lastPlay) < _commandThrottleDelay) {
-        return false;
-      }
-      if (lastPause != null && now.difference(lastPause) < _commandThrottleDelay) {
-        return false;
-      }
-      await _lastPlayCommand.set(now);
-      return true;
-    } else if (commandType == 'pause') {
-      final lastPause = await _lastPauseCommand.value;
-      if (lastPause != null && now.difference(lastPause) < _commandThrottleDelay) {
-        return false;
-      }
-      await _lastPauseCommand.set(now);
-      return true;
-    }
-    return true;
-  }
+  // User intent tracking to prevent buffering pauses
+  bool _userIntendedPlaying = false;
 
+  // Command throttling to prevent conflicts
+  DateTime? _lastPlayCommand;
+  DateTime? _lastPauseCommand;
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
+
+  // Codec loop detection
+  DateTime? _lastBufferingTime;
+  int _bufferingLoopCount = 0;
   
   // Helper method to update playback state while preventing automatic buffering pauses
-  Future<void> _updatePlaybackState(PlaybackState newState) async {
+  void _updatePlaybackState(PlaybackState newState) {
     PlaybackState finalState = newState;
     
-    // Safely get user intended playing state
-    final userIntendedPlaying = await _userIntendedPlaying.value;
-    
     // If we're buffering but user intended to play, override the playing state
-    if (newState.processingState == AudioProcessingState.buffering && userIntendedPlaying) {
+    if (newState.processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
       // Force playing state to true during buffering if user intended to play
       finalState = newState.copyWith(playing: true);
       
@@ -212,7 +86,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Keep current state but show buffering processing state
       finalState = newState.copyWith(
-        playing: userIntendedPlaying, // Use user intent instead of current state
+        playing: _userIntendedPlaying, // Use user intent instead of current state
       );
       
       if (kDebugMode) {
@@ -259,7 +133,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void _init() {
     // Enhanced player state listener for background compatibility with buffering fix
-    _player.playerStateStream.listen((playerState) async {
+    _player.playerStateStream.listen((playerState) {
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
@@ -267,11 +141,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // IMPORTANT: Respect user intent over raw player state
       bool finalPlayingState;
       
-      // Safely get user intended playing state
-      final userIntendedPlaying = await _userIntendedPlaying.value;
-      
       // If user explicitly paused, respect that regardless of player state
-      if (!userIntendedPlaying) {
+      if (!_userIntendedPlaying) {
         finalPlayingState = false;
         if (kDebugMode && isPlaying) {
           if (kDebugMode) {
@@ -280,7 +151,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       // During buffering, use user intent to maintain playback
-      else if (processingState == AudioProcessingState.buffering && userIntendedPlaying) {
+      else if (processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
         finalPlayingState = true;
         if (kDebugMode) {
           print('Player buffering but user intended playing - maintaining playback state');
@@ -362,48 +233,41 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
 
     // Simplified completion detection - only handle actual completion
-    _player.processingStateStream.listen((state) async {
-      final userIntendedPlaying = await _userIntendedPlaying.value;
-      _logger.info('Processing state changed: $state (userIntended: $userIntendedPlaying)', 'AudioHandler');
+    _player.processingStateStream.listen((state) {
+      _logger.info('Processing state changed: $state (userIntended: $_userIntendedPlaying)', 'AudioHandler');
       if (kDebugMode) {
         print('Processing state changed: $state');
       }
       
       // Handle codec loops only in extreme cases - MUCH less aggressive
       if (state == ProcessingState.buffering) {
-        await _bufferingMutex.synchronized(() async {
-          final now = DateTime.now();
-          final lastBufferingTime = await _lastBufferingTime.value;
-          
-          if (lastBufferingTime != null && 
-              now.difference(lastBufferingTime) < const Duration(seconds: 10)) {
-            _bufferingLoopCount++;
-            // Dramatically increased threshold to prevent false positives - was 15, now 25
-            if (_bufferingLoopCount >= 25) {
-              _logger.warning('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery', 'AudioHandler');
-              if (kDebugMode) {
-                print('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery');
-              }
-              _handleCodecLoop();
-              return;
+        final now = DateTime.now();
+        if (_lastBufferingTime != null && 
+            now.difference(_lastBufferingTime!) < const Duration(seconds: 10)) {
+          _bufferingLoopCount++;
+          // Dramatically increased threshold to prevent false positives - was 15, now 25
+          if (_bufferingLoopCount >= 25) {
+            _logger.warning('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery', 'AudioHandler');
+            if (kDebugMode) {
+              print('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery');
             }
-          } else {
-            _bufferingLoopCount = 0;
+            _handleCodecLoop();
+            return;
           }
-          await _lastBufferingTime.set(now);
-        });
+        } else {
+          _bufferingLoopCount = 0;
+        }
+        _lastBufferingTime = now;
       } else {
         // Reset loop detection on state changes
-        await _bufferingMutex.synchronized(() async {
-          _bufferingLoopCount = 0;
-          await _lastBufferingTime.set(null);
-        });
+        _bufferingLoopCount = 0;
+        _lastBufferingTime = null;
       }
       
       // Log critical state changes
-      if (state == ProcessingState.ready && userIntendedPlaying) {
+      if (state == ProcessingState.ready && _userIntendedPlaying) {
         _logger.info('Track is ready and user intended playing - playback should start', 'AudioHandler');
-      } else if (state == ProcessingState.ready && !userIntendedPlaying) {
+      } else if (state == ProcessingState.ready && !_userIntendedPlaying) {
         _logger.info('Track is ready but user did not intend playing - paused state', 'AudioHandler');
       } else if (state == ProcessingState.idle) {
         _logger.warning('Processing state is IDLE - may indicate playback failure', 'AudioHandler');
@@ -594,8 +458,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await Future.delayed(const Duration(milliseconds: 200));
       
       // Reload the track
-      final shouldPlay = await _userWantsToPlay;
-      await _loadAndPlayTrack(currentTrack, shouldPlay);
+      await _loadAndPlayTrack(currentTrack, _userIntendedPlaying);
       
       // Restore position if significant
       if (currentPosition.inMilliseconds > 3000) {
@@ -603,7 +466,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Resume playing only if user intended to play
-      if (shouldPlay) {
+      if (_userIntendedPlaying) {
         await _player.play();
         if (kDebugMode) {
           print('Resumed playing after codec loop recovery - user intended playing');
@@ -616,7 +479,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Reset loop detection
       _bufferingLoopCount = 0;
-      await _lastBufferingTime.set(null);
+      _lastBufferingTime = null;
       
       if (kDebugMode) {
         print('Codec loop recovery completed for: ${currentTrack.name}');
@@ -635,8 +498,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final currentPosition = _player.position;
     
     try {
-      final shouldPlay = await _userWantsToPlay;
-      await _loadAndPlayTrack(_stateManager.currentTrack!, shouldPlay);
+      await _loadAndPlayTrack(_stateManager.currentTrack!, _userIntendedPlaying);
       
       // Restore position if we had one
       if (currentPosition.inMilliseconds > 0) {
@@ -644,7 +506,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Resume playing only if user intended to play  
-      if (shouldPlay) {
+      if (_userIntendedPlaying) {
         await _player.play();
         if (kDebugMode) {
           print('Resumed playing after background issue recovery - user intended playing');
@@ -825,96 +687,128 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Audio Service Methods - Enhanced for background compatibility
   @override
+  @override
   Future<void> play() async {
-    await _commandMutex.synchronized(() async {
-      final now = DateTime.now();
-      _logger.info('Play command received', 'AudioHandler');
-      
-      // Throttle rapid play commands using atomic operations
-      final lastPlayTime = await _lastPlayCommand.value;
-      if (lastPlayTime != null && now.difference(lastPlayTime) < _commandThrottleDelay) {
-        _logger.warning('Play command throttled - too recent (${now.difference(lastPlayTime).inMilliseconds}ms ago)', 'AudioHandler');
-        return;
+    final now = DateTime.now();
+    _logger.info('Play command received', 'AudioHandler');
+    
+    // Throttle rapid play commands
+    if (_lastPlayCommand != null && 
+        now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
+      _logger.warning('Play command throttled - too recent (${now.difference(_lastPlayCommand!).inMilliseconds}ms ago)', 'AudioHandler');
+      if (kDebugMode) {
+        print('Play command throttled - too recent');
       }
-      
-      // Prevent play immediately after pause
-      final lastPauseTime = await _lastPauseCommand.value;
-      if (lastPauseTime != null && now.difference(lastPauseTime) < _commandThrottleDelay) {
-        _logger.warning('Play command blocked - recent pause command detected', 'AudioHandler');
-        return;
+      return;
+    }
+    
+    // Prevent play immediately after pause
+    if (_lastPauseCommand != null && 
+        now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+      _logger.warning('Play command blocked - recent pause command detected', 'AudioHandler');
+      if (kDebugMode) {
+        print('Play command blocked - recent pause command detected');
       }
-      
-      await _lastPlayCommand.set(now);
-      
-      // Set user intent to playing atomically
-      await _userIntendedPlaying.set(true);
-      _logger.info('User intent set to playing', 'AudioHandler');
-      
-      try {
-        // Ensure we have a track to play
-        if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
-          _logger.info('No current track, loading from playlist', 'AudioHandler');
-          await _playCurrentTrack();
-        } else {
-          _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
-          await _player.play();
+      return;
+    }
+    
+    _lastPlayCommand = now;
+    
+    if (kDebugMode) {
+      print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
+    }
+    
+    // Set user intent to playing
+    _userIntendedPlaying = true;
+    _logger.info('User intent set to playing', 'AudioHandler');
+    
+    try {
+      // Ensure we have a track to play
+      if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
+        _logger.info('No current track, loading from playlist', 'AudioHandler');
+        if (kDebugMode) {
+          print('No current track, loading from playlist');
         }
-        
-        // Always verify the play command worked
-        await Future.delayed(const Duration(milliseconds: 100));
-        
-        // Update state to reflect actual player state, but force playing if user intended
-        await _updatePlaybackState(playbackState.value.copyWith(
-          playing: true, // Force true since user explicitly requested play
-          processingState: _player.processingState == ProcessingState.ready 
-              ? AudioProcessingState.ready 
-              : AudioProcessingState.loading,
-        ));
-        
-        _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
-      } catch (e) {
-        _logger.error('Error in play command: $e', 'AudioHandler');
-        
-        // Try to recover by reloading current track
-        if (_stateManager.currentTrack != null) {
-          _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
-          await _resumeCurrentTrack();
+        await _playCurrentTrack();
+      } else {
+        _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
+        if (kDebugMode) {
+          print('Playing existing track');
         }
+        await _player.play();
       }
-    });
+      
+      // Always verify the play command worked
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Update state to reflect actual player state, but force playing if user intended
+      _updatePlaybackState(playbackState.value.copyWith(
+        playing: true, // Force true since user explicitly requested play
+        processingState: _player.processingState == ProcessingState.ready 
+            ? AudioProcessingState.ready 
+            : AudioProcessingState.loading,
+      ));
+      
+      _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
+      if (kDebugMode) {
+        print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
+      }
+    } catch (e) {
+      _logger.error('Error in play command: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('Error in play command: $e');
+      }
+      
+      // Try to recover by reloading current track
+      if (_stateManager.currentTrack != null) {
+        _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
+        await _resumeCurrentTrack();
+      }
+    }
   }
 
   @override
   Future<void> pause() async {
-    await _commandMutex.synchronized(() async {
-      final now = DateTime.now();
-      _logger.info('Pause command received', 'AudioHandler');
-      
-      // Throttle rapid pause commands using atomic operations
-      final lastPauseTime = await _lastPauseCommand.value;
-      if (lastPauseTime != null && now.difference(lastPauseTime) < _commandThrottleDelay) {
-        _logger.warning('Pause command throttled - too recent', 'AudioHandler');
-        return;
+    final now = DateTime.now();
+    _logger.info('Pause command received', 'AudioHandler');
+    
+    // Throttle rapid pause commands
+    if (_lastPauseCommand != null && 
+        now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+      _logger.warning('Pause command throttled - too recent', 'AudioHandler');
+      if (kDebugMode) {
+        print('Pause command throttled - too recent');
       }
+      return;
+    }
+    
+    _lastPauseCommand = now;
+    
+    if (kDebugMode) {
+      print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
+    }
+    
+    // Set user intent to not playing
+    _userIntendedPlaying = false;
+    _logger.info('User intent set to paused', 'AudioHandler');
+    
+    try {
+      await _player.pause();
       
-      await _lastPauseCommand.set(now);
+      _updatePlaybackState(playbackState.value.copyWith(
+        playing: false,
+      ));
       
-      // Set user intent to not playing atomically
-      await _userIntendedPlaying.set(false);
-      _logger.info('User intent set to paused', 'AudioHandler');
-      
-      try {
-        await _player.pause();
-        
-        await _updatePlaybackState(playbackState.value.copyWith(
-          playing: false,
-        ));
-        
-        _logger.info('Pause command completed successfully', 'AudioHandler');
-      } catch (e) {
-        _logger.error('Error in pause command: $e', 'AudioHandler');
+      _logger.info('Pause command completed successfully', 'AudioHandler');
+      if (kDebugMode) {
+        print('Pause command completed. User intended playing: $_userIntendedPlaying');
       }
-    });
+    } catch (e) {
+      _logger.error('Error in pause command: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('Error in pause command: $e');
+      }
+    }
   }
 
   @override
