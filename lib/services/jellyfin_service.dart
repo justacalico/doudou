@@ -536,14 +536,35 @@ class JellyfinService implements BaseMediaService {
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
     if (_server == null) throw Exception('Server not configured');
 
+    if (kDebugMode) {
+      print('JellyfinService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite');
+      print('Server URL: ${_server!.serverUrl}');
+      print('User ID: ${_server!.userId}');
+    }
+
     try {
       final method = isFavorite ? 'DELETE' : 'POST';
+      final url = '/Users/${_server!.userId}/FavoriteItems/$itemId';
+      
+      if (kDebugMode) {
+        print('Making $method request to: $url');
+      }
+      
       final response = await _dio.request(
-        '/Users/${_server!.userId}/FavoriteItems/$itemId',
+        url,
         options: Options(method: method),
       );
 
-      return response.statusCode == 200 || response.statusCode == 204;
+      final success = response.statusCode == 200 || response.statusCode == 204;
+      
+      if (kDebugMode) {
+        print('Jellyfin response: ${response.statusCode}, success: $success');
+        if (response.data != null) {
+          print('Response data: ${response.data}');
+        }
+      }
+
+      return success;
     } catch (e) {
       if (kDebugMode) {
         print('Error toggling favorite: $e');
