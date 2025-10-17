@@ -558,19 +558,19 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           Consumer<AppState>(
                                             builder: (context, appState, child) {
                                               final isFavorite = currentTrack != null ? 
-                                                appState.tracks.any((track) => track.id == currentTrack!.id && track.isFavorite) : false;
+                                                appState.tracks.any((track) => track.id == currentTrack.id && track.isFavorite) : false;
                                               
                                               return IconButton(
                                                 onPressed: currentTrack != null ? () {
                                                   final track = appState.tracks.firstWhere(
-                                                    (t) => t.id == currentTrack!.id,
+                                                    (t) => t.id == currentTrack.id,
                                                     orElse: () => Track(
-                                                      id: currentTrack!.id,
-                                                      name: currentTrack!.title ?? 'Unknown',
-                                                      albumName: currentTrack!.album,
-                                                      artistName: currentTrack!.artist,
-                                                      albumId: currentTrack!.extras?['albumId'] as String? ?? '',
-                                                      duration: currentTrack!.duration?.inSeconds ?? 0,
+                                                      id: currentTrack.id,
+                                                      name: currentTrack.title ?? 'Unknown',
+                                                      albumName: currentTrack.album,
+                                                      artistName: currentTrack.artist,
+                                                      albumId: currentTrack.extras?['albumId'] as String? ?? '',
+                                                      duration: currentTrack.duration?.inSeconds ?? 0,
                                                       trackNumber: null,
                                                       imageUrl: null,
                                                       isFavorite: false,
