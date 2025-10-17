@@ -1943,7 +1943,7 @@ class AppState extends ChangeNotifier {
 
   Future<bool> addToPlaylist(String playlistId, String trackId) async {
     try {
-      return await _jellyfinService.addToPlaylist(playlistId, trackId);
+      return await _mediaServiceManager.addToPlaylist(playlistId, trackId);
     } catch (e) {
       _setError('Failed to add to playlist: ${e.toString()}');
       return false;
