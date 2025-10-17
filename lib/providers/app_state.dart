@@ -1352,6 +1352,38 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Refresh tracks in background to sync favorite status
+  Future<void> _refreshTracksInBackground() async {
+    try {
+      if (kDebugMode) {
+        print('AppState: Refreshing tracks in background to sync favorite status...');
+      }
+      
+      // Get fresh tracks from the media service
+      final freshTracks = await _mediaServiceManager.getTracks();
+      
+      if (freshTracks.isNotEmpty) {
+        // Update tracks with fresh data (including favorite status)
+        _tracks = freshTracks;
+        
+        // Update cache
+        await _cacheService.cacheTracks(freshTracks);
+        
+        // Notify listeners to update UI
+        notifyListeners();
+        
+        if (kDebugMode) {
+          print('AppState: Tracks refreshed successfully with ${freshTracks.length} tracks');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Failed to refresh tracks in background: $e');
+      }
+      // Don't show error to user - this is a background operation
+    }
+  }
+
   Future<List<Track>> getAlbumTracks(String albumId) async {
     try {
       // Try cache first
