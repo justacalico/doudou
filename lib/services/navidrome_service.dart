@@ -594,6 +594,41 @@ class NavidromeService implements BaseMediaService {
   }
 
   @override
+  Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
+    if (_serverUrl == null || _username == null || _token == null || _salt == null) {
+      throw Exception('Server not configured');
+    }
+
+    try {
+      // Navidrome uses star/unstar endpoints for favorites
+      final action = isFavorite ? 'unstar' : 'star';
+      final params = Map<String, dynamic>.from(_baseParams);
+      params['id'] = itemId;
+
+      final response = await _dio.get(
+        '$_serverUrl/rest/$action',
+        queryParameters: params,
+      );
+
+      // Check for success response in Navidrome format
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['subsonic-response'] != null) {
+          final subsonicResponse = data['subsonic-response'];
+          return subsonicResponse['status'] == 'ok';
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error toggling favorite in Navidrome: $e');
+      }
+      return false;
+    }
+  }
+
+  @override
   List<String> getAlternativeStreamUrls(String trackId) {
     // Return Navidrome alternative stream URLs with different formats/bitrates
     final params = Map<String, dynamic>.from(_baseParams);
