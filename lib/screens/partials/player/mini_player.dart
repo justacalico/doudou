@@ -92,16 +92,25 @@ class MiniPlayer extends StatelessWidget {
               child: Row(
                 children: [
                   // Album Art
-                  AlbumArtWidget(
-                    imageUrl: currentTrack.imageUrl != null
-                        ? appState.getImageUrl(
-                            currentTrack.imageUrl!,
-                            width: 100,
-                            height: 100,
-                          )
-                        : null,
-                    size: 50,
-                    borderRadius: BorderRadius.circular(8),
+                  Builder(
+                    builder: (context) {
+                      if (kDebugMode) {
+                        print('MiniPlayer: Track = ${currentTrack.name}');
+                        print('MiniPlayer: Track imageUrl = ${currentTrack.imageUrl}');
+                        print('MiniPlayer: Current server type = ${appState.mediaServiceManager.currentServerType}');
+                      }
+                      return AlbumArtWidget(
+                        imageUrl: currentTrack.imageUrl != null
+                            ? appState.getImageUrl(
+                                currentTrack.imageUrl!,
+                                width: 100,
+                                height: 100,
+                              )
+                            : null,
+                        size: 50,
+                        borderRadius: BorderRadius.circular(8),
+                      );
+                    },
                   ),
                   const SizedBox(width: 12),
                   
