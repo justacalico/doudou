@@ -250,8 +250,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _updatePlaybackState(PlaybackState newState) {
     PlaybackState finalState = newState;
     
+    // Get current user intent safely (no async needed for simple read)
+    final userIntent = _userIntendedPlaying;
+    
     // If we're buffering but user intended to play, override the playing state
-    if (newState.processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
+    if (newState.processingState == AudioProcessingState.buffering && userIntent) {
       // Force playing state to true during buffering if user intended to play
       finalState = newState.copyWith(playing: true);
       
@@ -266,7 +269,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Keep current state but show buffering processing state
       finalState = newState.copyWith(
-        playing: _userIntendedPlaying, // Use user intent instead of current state
+        playing: userIntent, // Use user intent instead of current state
       );
       
       if (kDebugMode) {
@@ -1781,21 +1784,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await Future.delayed(const Duration(milliseconds: 200));
           }
           
-          if (shouldPlay) {
+          // Get current user intent atomically
+          final userIntent = await _getUserIntentAtomic();
+          if (userIntent && shouldPlay) {
             await _player.play();
             _logger.info('Auto-playing local file: ${track.name}', 'AudioHandler');
             if (kDebugMode) {
-              print('Auto-playing local file: ${track.name} - should play: true');
+              print('Auto-playing local file: ${track.name} - user intended: $userIntent');
             }
           } else {
             _logger.info('Loaded local file (not auto-playing): ${track.name}', 'AudioHandler');
             if (kDebugMode) {
-              print('Not auto-playing local file: ${track.name} - should play: false');
+              print('Not auto-playing local file: ${track.name} - user intended: $userIntent, shouldPlay: $shouldPlay');
             }
           }
           
           // Update playback state after successful load
-          // Use shouldPlay directly instead of checking _player.playing
+          // Use user intent directly instead of checking _player.playing
           // because the player state might not be updated immediately after play() call
           _updatePlaybackState(playbackState.value.copyWith(
             processingState: AudioProcessingState.ready,
