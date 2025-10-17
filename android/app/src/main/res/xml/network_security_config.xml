@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Allow cleartext traffic for local/private networks -->
     <domain-config cleartextTrafficPermitted="true">
-        <!-- Allow cleartext traffic for local development -->
+        <!-- Local loopback -->
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
-        <domain includeSubdomains="true">10.0.0.0</domain>
-        <domain includeSubdomains="true">192.168.0.0</domain>
-        <domain includeSubdomains="true">172.16.0.0</domain>
-        <!-- Add your specific server IP if needed -->
+        
+        <!-- Private IP ranges -->
+        <domain includeSubdomains="true">10.0.0.1</domain>
+        <domain includeSubdomains="true">192.168.0.1</domain>
+        <domain includeSubdomains="true">192.168.1.1</domain>
+        <domain includeSubdomains="true">172.16.0.1</domain>
+        
+        <!-- Specific server IP ranges -->
+        <domain includeSubdomains="true">192.168.0.176</domain>
         <domain includeSubdomains="true">98.177.82.22</domain>
     </domain-config>
     
-    <!-- For all other domains, require HTTPS -->
-    <base-config cleartextTrafficPermitted="false">
+    <!-- Alternative: Allow cleartext for all private networks -->
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system"/>
         </trust-anchors>
