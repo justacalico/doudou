@@ -2142,20 +2142,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Set _userIntendedPlaying to: $userIntent');
     }
     
-    // Clear existing state atomically
-    await _player.stop();
-    _preloader.clearAllPreloadedPlayers();
-    await _clearAudioSourceCache();
-    await _setConcatenationState(false, null);
+    // CRITICAL FIX: Completely reset player state to prevent old queue from continuing
+    await _resetPlayerStateCompletely();
     
     if (kDebugMode) {
-      print('Cleared existing player state');
+      print('Completely reset player state');
     }
-    
-    // Reset all transition states atomically
-    await _transitionManager.waitForTransitionComplete();
-    _stateManager.setHandlingCompletion(false);
-    _stateManager.setTransitioning(false);
     
     _queueManager.setPlaylist(tracks, startIndex);
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
@@ -2177,6 +2169,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Final player state - playing: ${_player.playing}, userIntent: $finalUserIntent');
       print('=== PLAYPLAYLIST DEBUG END ===');
     }
+  }
     
     Future.microtask(() => _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex));
     await _statePersistence.savePlaybackState(_player.position, _player.playing);
