@@ -1216,12 +1216,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Preserve playing state when skipping - if music was playing, it should continue playing
     final wasPlaying = playbackState.value.playing;
     if (wasPlaying) {
-      _userIntendedPlaying = true;
+      await _setUserIntentAtomic(true);
       _logger.info('Preserving playing state during skip (user was listening)', 'AudioHandler');
     }
     
     // Use gapless transition if concatenation is active
-    if (_isUsingConcatenation && _concatenatingSource != null) {
+    final isActive = await _isConcatenationActive();
+    if (isActive) {
       final nextIndex = _stateManager.currentIndex + 1;
       if (nextIndex < _stateManager.playlist.length) {
         _logger.info('Using gapless skip to next track: $nextIndex', 'AudioHandler');
