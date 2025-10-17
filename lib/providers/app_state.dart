@@ -140,26 +140,45 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadSavedServer() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final serverJson = prefs.getString('jellyfin_server');
+      // Try to load saved credentials for any server type
+      final credentials = await _loadServerCredentials();
       
-      if (serverJson != null) {
-        final serverData = jsonDecode(serverJson);
-        final server = JellyfinServer.fromJson(serverData);
-        _jellyfinService.setJellyfinServer(server);
+      if (credentials != null) {
+        final serverType = credentials['serverType']!;
+        final serverUrl = credentials['serverUrl']!;
+        final identifier = credentials['identifier']!;
+        final credential = credentials['credential']!;
+        
+        if (kDebugMode) {
+          print('AppState: Found saved credentials for $serverType server at $serverUrl');
+        }
+        
+        // Initialize the appropriate service
+        ServerType type;
+        switch (serverType) {
+          case 'plex':
+            type = ServerType.plex;
+            break;
+          case 'navidrome':
+            type = ServerType.navidrome;
+            break;
+          default:
+            type = ServerType.jellyfin;
+        }
+        
+        _mediaServiceManager.initializeService(type);
+        _mediaServiceManager.setServer(serverUrl);
         
         // Test the connection with saved credentials
         try {
-          // Try to validate credentials with timeout
-          final isValid = await _jellyfinService.validateCredentials()
+          final isValid = await _mediaServiceManager.authenticate(serverUrl, identifier, credential)
               .timeout(const Duration(seconds: 10));
           
           if (isValid) {
             if (kDebugMode) {
-              print('AppState: Saved credentials validated successfully during initialization');
+              print('AppState: Saved credentials validated successfully for $serverType');
             }
             
-            // If successful, we're logged in and online
             _isLoggedIn = true;
             _isConnected = true;
             _isOfflineMode = false;
@@ -304,18 +323,31 @@ class AppState extends ChangeNotifier {
               await loadLibraryData();
             }
           } else {
-            // Credentials are invalid, clear them
-            await prefs.remove('jellyfin_server');
+            if (kDebugMode) {
+              print('AppState: Saved credentials invalid for $serverType - user needs to re-login');
+            }
+            // Clear invalid credentials
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove('${serverType}_credentials');
+            if (serverType == 'jellyfin') {
+              await prefs.remove('jellyfin_server'); // Legacy cleanup
+            }
             _isLoggedIn = false;
             notifyListeners();
           }
         } catch (authError) {
           if (kDebugMode) {
-            print('Cannot connect to server, checking for offline mode: $authError');
+            print('AppState: Cannot connect to $serverType server, checking for offline mode: $authError');
           }
           
           // Server is unreachable, but we have credentials - check for offline capability
-          if (await _hasDownloadedContent()) {
+          if (await _hasDownloadedContent() && serverType == 'jellyfin') {
+            // Offline mode only supported for Jellyfin currently
+            // Convert credentials back to JellyfinServer for offline mode
+            final serverData = jsonDecode(credential);
+            final server = JellyfinServer.fromJson(serverData);
+            _jellyfinService.setJellyfinServer(server);
+            
             // Enter offline mode with saved credentials
             _isLoggedIn = true;
             _isConnected = false;
@@ -414,21 +446,100 @@ class AppState extends ChangeNotifier {
             }
             
             if (kDebugMode) {
-              print('Entered offline mode with saved credentials');
+              print('Entered offline mode with saved $serverType credentials');
             }
             notifyListeners();
           } else {
-            // No downloads available, clear invalid credentials
-            await prefs.remove('jellyfin_server');
+            // No downloads available or server type doesn't support offline, clear invalid credentials
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove('${serverType}_credentials');
+            if (serverType == 'jellyfin') {
+              await prefs.remove('jellyfin_server'); // Legacy cleanup
+            }
             _isLoggedIn = false;
             notifyListeners();
           }
         }
+      } else {
+        // Fallback: Try legacy Jellyfin server loading for backward compatibility
+        final prefs = await SharedPreferences.getInstance();
+        final serverJson = prefs.getString('jellyfin_server');
+        
+        if (serverJson != null) {
+          if (kDebugMode) {
+            print('AppState: Found legacy Jellyfin server data, attempting to restore...');
+          }
+          
+          final serverData = jsonDecode(serverJson);
+          final server = JellyfinServer.fromJson(serverData);
+          _jellyfinService.setJellyfinServer(server);
+          
+          // Test the connection with saved credentials
+          try {
+            final isValid = await _jellyfinService.validateCredentials()
+                .timeout(const Duration(seconds: 10));
+            
+            if (isValid) {
+              if (kDebugMode) {
+                print('AppState: Legacy Jellyfin credentials validated successfully');
+              }
+              
+              _isLoggedIn = true;
+              _isConnected = true;
+              _isOfflineMode = false;
+              
+              // Initialize cache service first
+              await _cacheService.initialize();
+              
+              // Initialize audio handler
+              if (_isAndroid) {
+                try {
+                  _audioHandler = await AudioService.init(
+                    builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
+                    config: const AudioServiceConfig(
+                      androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
+                      androidNotificationChannelName: 'Doudou Music',
+                      androidNotificationOngoing: true,
+                    ),
+                  );
+                } catch (e) {
+                  _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+                }
+              } else {
+                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+              }
+              
+              // Load library data
+              await loadLibraryData();
+              
+              if (kDebugMode) {
+                print('AppState: Successfully restored legacy Jellyfin session');
+              }
+            } else {
+              if (kDebugMode) {
+                print('AppState: Legacy Jellyfin credentials invalid');
+              }
+              await prefs.remove('jellyfin_server');
+              _isLoggedIn = false;
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('AppState: Failed to validate legacy Jellyfin credentials: $e');
+            }
+            _isLoggedIn = false;
+          }
+        } else {
+          if (kDebugMode) {
+            print('AppState: No saved server credentials found');
+          }
+          _isLoggedIn = false;
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading saved server: $e');
+        print('AppState: Error loading saved server: $e');
       }
+      _isLoggedIn = false;
     }
   }
 
@@ -860,7 +971,16 @@ class AppState extends ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('jellyfin_server');
+    
+    // Clear all server credentials
+    await prefs.remove('jellyfin_server'); // Legacy Jellyfin
+    await prefs.remove('jellyfin_credentials');
+    await prefs.remove('navidrome_credentials');
+    await prefs.remove('plex_credentials');
+    
+    if (kDebugMode) {
+      print('AppState: Cleared all server credentials during logout');
+    }
     
     // Dispose audio handler
     try {
