@@ -34,9 +34,7 @@ Version 7.0.0 introduces experimental support for Plex and Navidrome alongside o
 - ❌ Duration metadata not available
 - 🔍 *Status: Active development, limited testing*
 
-### ⚠️ **Navidrome (Beta)**
-- ❌ Audio playback not functional
-- ❌ Artist images unavailable
+### ⚠️ **Navidrome (Semi-Stable)**
 - 🔍 *Status: Active development, limited testing*
 
 > **For stable music playback, we recommend using Jellyfin until Plex and Navidrome support reaches production quality.**
