@@ -599,24 +599,52 @@ class NavidromeService implements BaseMediaService {
       throw Exception('Server not configured');
     }
 
+    if (kDebugMode) {
+      print('NavidromeService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite');
+      print('Server URL: $_serverUrl');
+      print('Username: $_username');
+    }
+
     try {
       // Navidrome uses star/unstar endpoints for favorites
       final action = isFavorite ? 'unstar' : 'star';
       final params = Map<String, dynamic>.from(_baseParams);
       params['id'] = itemId;
+      final url = '$_serverUrl/rest/$action';
+
+      if (kDebugMode) {
+        print('Making GET request to: $url');
+        print('Action: $action');
+        print('Params: $params');
+      }
 
       final response = await _dio.get(
-        '$_serverUrl/rest/$action',
+        url,
         queryParameters: params,
       );
+
+      if (kDebugMode) {
+        print('Navidrome response: ${response.statusCode}');
+        print('Response data: ${response.data}');
+      }
 
       // Check for success response in Navidrome format
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is Map && data['subsonic-response'] != null) {
           final subsonicResponse = data['subsonic-response'];
-          return subsonicResponse['status'] == 'ok';
+          final success = subsonicResponse['status'] == 'ok';
+          
+          if (kDebugMode) {
+            print('Navidrome subsonic status: ${subsonicResponse['status']}, success: $success');
+          }
+          
+          return success;
         }
+      }
+      
+      if (kDebugMode) {
+        print('Navidrome: No valid subsonic response found');
       }
       
       return false;
