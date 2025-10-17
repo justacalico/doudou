@@ -1672,7 +1672,7 @@ class _NowPlayingTabsState extends State<_NowPlayingTabs> with SingleTickerProvi
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(6),
                                 child: Image.network(
-                                  track.imageUrl!,
+                                  appState.getImageUrl(track.imageUrl!),
                                   width: 40,
                                   height: 40,
                                   fit: BoxFit.cover,
