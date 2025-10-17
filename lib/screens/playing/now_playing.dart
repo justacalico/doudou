@@ -526,13 +526,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                   child: AnimatedBuilder(
                                     animation: _favoriteScaleAnimation,
                                     builder: (context, child) {
+                                      final isFavorite = appState.isFavorite(currentTrack.id);
                                       return Transform.scale(
                                         scale: _favoriteScaleAnimation.value,
                                         child: Icon(
-                                          currentTrack.isFavorite 
+                                          isFavorite 
                                               ? CupertinoIcons.heart_fill
                                               : CupertinoIcons.heart,
-                                          color: currentTrack.isFavorite 
+                                          color: isFavorite 
                                               ? const Color(0xFFFF453A)
                                               : const Color(0xFFFFFFFF),
                                           size: 24,
