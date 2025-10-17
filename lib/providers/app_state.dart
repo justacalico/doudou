@@ -1952,7 +1952,7 @@ class AppState extends ChangeNotifier {
 
   Future<bool> renamePlaylist(String playlistId, String newName) async {
     try {
-      final success = await _jellyfinService.renamePlaylist(playlistId, newName);
+      final success = await _mediaServiceManager.renamePlaylist(playlistId, newName);
       if (success) {
         // Update the local playlist list
         final index = _playlists.indexWhere((p) => p.id == playlistId);
