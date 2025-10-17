@@ -85,16 +85,7 @@ class AlbumArtWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode && imageUrl != null) {
-      if (kDebugMode) {
-        print('AlbumArtWidget: imageUrl = $imageUrl');
-      }
-    }
-    
     if (imageUrl == null) {
-      if (kDebugMode) {
-        print('AlbumArtWidget: imageUrl is null, showing placeholder');
-      }
       return Container(
         width: size,
         height: size,
