@@ -88,8 +88,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Generic operation lock method
   Future<T> _withLock<T>(String lockName, Future<T> Function() operation) async {
-    final lockField = '_${lockName}Locked';
-    
     // Busy wait for lock (simple spinlock with yield)
     while (true) {
       switch (lockName) {
