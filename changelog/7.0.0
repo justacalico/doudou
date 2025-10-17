@@ -34,4 +34,4 @@
 - Fixed skipping on linux
 - Improved playback diagnostics with comprehensive logging throughout audio system
 - Fixed bug witch often caused when audio player to not work when using local address.
-
+- Fixed local addres's often failing
