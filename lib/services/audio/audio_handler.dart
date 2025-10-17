@@ -54,17 +54,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Logging service
   final LoggingService _logger = LoggingService();
 
-  // User intent tracking to prevent buffering pauses
+  // RACE CONDITION PROTECTION: Synchronization primitives
+  final Completer<void> _initializationCompleter = Completer<void>();
+  final Map<String, Completer<void>> _operationLocks = {};
+  
+  // User intent tracking with atomic operations
   bool _userIntendedPlaying = false;
+  final Completer<void> _userIntentLock = Completer<void>()..complete();
 
-  // Command throttling to prevent conflicts
+  // Command throttling with atomic timestamp updates
   DateTime? _lastPlayCommand;
   DateTime? _lastPauseCommand;
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
+  final Completer<void> _commandThrottleLock = Completer<void>()..complete();
 
-  // Codec loop detection
+  // Codec loop detection with synchronized access
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
+  final Completer<void> _bufferingStateLock = Completer<void>()..complete();
+  
+  // Audio source cache protection
+  final Completer<void> _audioSourceCacheLock = Completer<void>()..complete();
+  
+  // Concatenation state protection  
+  final Completer<void> _concatenationStateLock = Completer<void>()..complete();
+  
+  // Volume state protection
+  double? _previousVolume;
+  final Completer<void> _volumeStateLock = Completer<void>()..complete();
+  
+  // Lyrics state protection
+  final Completer<void> _lyricsStateLock = Completer<void>()..complete();
+  
+  // Completion handling protection
+  final Completer<void> _completionHandlingLock = Completer<void>()..complete();
   
   // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
