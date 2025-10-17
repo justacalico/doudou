@@ -94,11 +94,6 @@ class MiniPlayer extends StatelessWidget {
                   // Album Art
                   Builder(
                     builder: (context) {
-                      if (kDebugMode) {
-                        print('MiniPlayer: Track = ${currentTrack.name}');
-                        print('MiniPlayer: Track imageUrl = ${currentTrack.imageUrl}');
-                        print('MiniPlayer: Current server type = ${appState.mediaServiceManager.currentServerType}');
-                      }
                       return AlbumArtWidget(
                         imageUrl: currentTrack.imageUrl != null
                             ? appState.getImageUrl(
