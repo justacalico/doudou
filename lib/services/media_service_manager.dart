@@ -141,8 +141,24 @@ class MediaServiceManager {
 
   /// Toggle favorite status for a track
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
-    if (_currentService == null) return false;
-    return await _currentService!.toggleFavorite(itemId, isFavorite);
+    if (kDebugMode) {
+      print('MediaServiceManager.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite, serverType=$_currentServerType');
+    }
+    
+    if (_currentService == null) {
+      if (kDebugMode) {
+        print('MediaServiceManager.toggleFavorite: ERROR - No current service!');
+      }
+      return false;
+    }
+    
+    final result = await _currentService!.toggleFavorite(itemId, isFavorite);
+    
+    if (kDebugMode) {
+      print('MediaServiceManager.toggleFavorite: Service returned $result');
+    }
+    
+    return result;
   }
 
   /// Clear authentication for the current service
