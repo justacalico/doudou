@@ -616,7 +616,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Reset loop detection
       _bufferingLoopCount = 0;
-      _lastBufferingTime = null;
+      await _lastBufferingTime.set(null);
       
       if (kDebugMode) {
         print('Codec loop recovery completed for: ${currentTrack.name}');
@@ -635,7 +635,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final currentPosition = _player.position;
     
     try {
-      await _loadAndPlayTrack(_stateManager.currentTrack!, _userIntendedPlaying);
+      final shouldPlay = await _userWantsToPlay;
+      await _loadAndPlayTrack(_stateManager.currentTrack!, shouldPlay);
       
       // Restore position if we had one
       if (currentPosition.inMilliseconds > 0) {
@@ -643,7 +644,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Resume playing only if user intended to play  
-      if (_userIntendedPlaying) {
+      if (shouldPlay) {
         await _player.play();
         if (kDebugMode) {
           print('Resumed playing after background issue recovery - user intended playing');
