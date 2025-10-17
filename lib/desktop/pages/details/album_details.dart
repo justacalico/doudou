@@ -488,16 +488,30 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
                   // Add to playlist
                   break;
                 case 'download':
-                  // Download track
+                  // Download track by opening raw URL in browser
                   try {
-                    await appState.downloadService.downloadTrack(track);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Started downloading "${track.name}"'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                    final streamUrl = appState.getStreamUrl(track.id);
+                    final uri = Uri.parse(streamUrl);
+                    
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Opening download for "${track.name}" in browser'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Cannot open download URL for "${track.name}"'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   } catch (e) {
                     if (mounted) {
