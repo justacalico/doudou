@@ -86,7 +86,9 @@ class AlbumArtWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (kDebugMode && imageUrl != null) {
-      print('AlbumArtWidget: imageUrl = $imageUrl');
+      if (kDebugMode) {
+        print('AlbumArtWidget: imageUrl = $imageUrl');
+      }
     }
     
     if (imageUrl == null) {
