@@ -1701,16 +1701,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   /// Attempt to set up gapless playback using ConcatenatingAudioSource
   Future<bool> _tryGaplessPlayback() async {
     try {
-      // CRITICAL: Stop player completely and ensure old audio source is cleared
+      // CRITICAL: Completely disconnect from old audio source and clear concatenation state
       // This prevents old queue from continuing to play while new one is being set up
       try {
+        // First, clear concatenation state to stop processing old events
+        await _setConcatenationState(false, null);
+        if (kDebugMode) {
+          print('Cleared concatenation state before player stop');
+        }
+        
+        // Stop player completely
         await _player.stop();
         if (kDebugMode) {
           print('Stopped player before setting new concatenating source');
         }
         
         // Give the player a moment to fully stop and release resources
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 150));
         
         if (kDebugMode) {
           print('Player stopped and cleared, proceeding with new concatenating source');
@@ -1739,7 +1746,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Successfully set new concatenating source');
         }
         
-        // Store references for gapless operations atomically
+        // Store references for gapless operations atomically AFTER successful setAudioSource
         await _setConcatenationState(true, concatenatingSource);
         
         // Resume playing if user intended it
