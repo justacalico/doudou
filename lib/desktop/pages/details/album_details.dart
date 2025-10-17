@@ -780,7 +780,7 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Download Album'),
-        content: Text('Download all ${_albumTracks.length} tracks from "${widget.album.name}"?'),
+        content: Text('Open all ${_albumTracks.length} tracks from "${widget.album.name}" in browser for download?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -788,7 +788,7 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Download'),
+            child: const Text('Download All'),
           ),
         ],
       ),
@@ -796,14 +796,26 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
 
     if (confirmed != true || !mounted) return;
 
-    // Start downloading all tracks
+    // Open all tracks in browser for download
     int successCount = 0;
     int failCount = 0;
 
     for (final track in _albumTracks) {
       try {
-        await appState.downloadService.downloadTrack(track);
-        successCount++;
+        final streamUrl = appState.mediaServiceManager.getStreamUrl(track.id);
+        final uri = Uri.parse(streamUrl);
+        
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          successCount++;
+          // Add a small delay between opening URLs to prevent overwhelming the browser
+          await Future.delayed(const Duration(milliseconds: 500));
+        } else {
+          failCount++;
+          if (kDebugMode) {
+            print('Cannot launch URL for track "${track.name}": $streamUrl');
+          }
+        }
       } catch (e) {
         failCount++;
         if (kDebugMode) {
@@ -816,14 +828,14 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       if (failCount == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Started downloading all $successCount tracks from "${widget.album.name}"'),
+            content: Text('Opened all $successCount tracks from "${widget.album.name}" in browser'),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Downloaded $successCount tracks, $failCount failed from "${widget.album.name}"'),
+            content: Text('Opened $successCount tracks, $failCount failed from "${widget.album.name}"'),
             backgroundColor: Colors.orange,
           ),
         );
