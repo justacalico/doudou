@@ -243,6 +243,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _lastBufferingTime = null;
     });
   }
+  
+  // Helper method to completely clear and reset player state
+  Future<void> _resetPlayerStateCompletely() async {
+    _logger.info('Completely resetting player state', 'AudioHandler');
+    
+    // Stop player first
+    try {
+      await _player.stop();
+      _logger.info('Player stopped successfully', 'AudioHandler');
+    } catch (e) {
+      _logger.warning('Error stopping player: $e', 'AudioHandler');
+    }
+    
+    // Clear all caches and state atomically
+    await _clearAudioSourceCache();
+    await _setConcatenationState(false, null);
+    _preloader.clearAllPreloadedPlayers();
+    
+    // Reset transition states
+    await _transitionManager.waitForTransitionComplete();
+    _stateManager.setHandlingCompletion(false);
+    _stateManager.setTransitioning(false);
+    
+    // Small delay to ensure everything is cleared
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    _logger.info('Player state reset completed', 'AudioHandler');
+  }
 
   // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
