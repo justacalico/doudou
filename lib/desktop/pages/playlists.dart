@@ -589,13 +589,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           ElevatedButton(
             onPressed: () {
               if (nameController.text.isNotEmpty) {
-                // Create playlist
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Playlist "${nameController.text}" created'),
-                  ),
-                );
+                _createPlaylist(nameController.text.trim());
               }
             },
             child: const Text('Create'),
