@@ -400,8 +400,7 @@ class TrackListTemplate extends StatelessWidget {
         break;
         
       case 'add_playlist':
-        // TODO: Implement add to playlist functionality
-        _showSnackBar(context, 'Add to Playlist not yet implemented', isError: true);
+        await _showAddToPlaylistDialog(context, track);
         break;
         
       case 'download':
