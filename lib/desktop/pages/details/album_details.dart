@@ -523,6 +523,30 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
                   break;
                 case 'favorite':
                   // Toggle favorite
+                  try {
+                    await appState.toggleFavorite(track.id, !track.isFavorite);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            track.isFavorite 
+                              ? 'Removed "${track.name}" from favorites'
+                              : 'Added "${track.name}" to favorites'
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to toggle favorite: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                   break;
               }
             },
