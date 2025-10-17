@@ -735,4 +735,41 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       ),
     );
   }
+
+  Future<void> _deletePlaylist(String playlistId, String playlistName) async {
+    final appState = context.read<AppState>();
+    
+    try {
+      final success = await appState.deletePlaylist(playlistId);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Playlist "$playlistName" deleted'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          // Refresh the playlists list
+          appState.loadLibraryData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete playlist'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting playlist: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 }
