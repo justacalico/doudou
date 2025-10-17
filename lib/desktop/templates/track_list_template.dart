@@ -445,12 +445,16 @@ class TrackListTemplate extends StatelessWidget {
   Future<void> _toggleFavorite(BuildContext context, AppState appState, Track track) async {
     try {
       await appState.toggleFavorite(track);
-      final message = track.isFavorite 
-          ? 'Added "${track.name}" to favorites'
-          : 'Removed "${track.name}" from favorites';
-      _showSnackBar(context, message);
+      if (context.mounted) {
+        final message = track.isFavorite 
+            ? 'Added "${track.name}" to favorites'
+            : 'Removed "${track.name}" from favorites';
+        _showSnackBar(context, message);
+      }
     } catch (e) {
-      _showSnackBar(context, 'Failed to toggle favorite: $e', isError: true);
+      if (context.mounted) {
+        _showSnackBar(context, 'Failed to toggle favorite: $e', isError: true);
+      }
     }
   }
 
