@@ -594,7 +594,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await Future.delayed(const Duration(milliseconds: 200));
       
       // Reload the track
-      await _loadAndPlayTrack(currentTrack, _userIntendedPlaying);
+      final shouldPlay = await _userWantsToPlay;
+      await _loadAndPlayTrack(currentTrack, shouldPlay);
       
       // Restore position if significant
       if (currentPosition.inMilliseconds > 3000) {
@@ -602,7 +603,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Resume playing only if user intended to play
-      if (_userIntendedPlaying) {
+      if (shouldPlay) {
         await _player.play();
         if (kDebugMode) {
           print('Resumed playing after codec loop recovery - user intended playing');
