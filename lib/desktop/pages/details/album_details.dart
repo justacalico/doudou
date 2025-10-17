@@ -164,6 +164,7 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
                     break;
                   case 'download':
                     // Download album
+                    _downloadAlbum();
                     break;
                   case 'share':
                     // Share album
