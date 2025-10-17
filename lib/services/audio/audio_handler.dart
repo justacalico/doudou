@@ -54,40 +54,139 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Logging service
   final LoggingService _logger = LoggingService();
 
-  // RACE CONDITION PROTECTION: Synchronization primitives
-  final Completer<void> _initializationCompleter = Completer<void>();
-  final Map<String, Completer<void>> _operationLocks = {};
-  
+  // RACE CONDITION PROTECTION: Synchronization using Mutex pattern
   // User intent tracking with atomic operations
   bool _userIntendedPlaying = false;
-  final Completer<void> _userIntentLock = Completer<void>()..complete();
+  bool _userIntentLocked = false;
 
   // Command throttling with atomic timestamp updates
   DateTime? _lastPlayCommand;
   DateTime? _lastPauseCommand;
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
-  final Completer<void> _commandThrottleLock = Completer<void>()..complete();
+  bool _commandThrottleLocked = false;
 
   // Codec loop detection with synchronized access
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
-  final Completer<void> _bufferingStateLock = Completer<void>()..complete();
+  bool _bufferingStateLocked = false;
   
   // Audio source cache protection
-  final Completer<void> _audioSourceCacheLock = Completer<void>()..complete();
+  bool _audioSourceCacheLocked = false;
   
   // Concatenation state protection  
-  final Completer<void> _concatenationStateLock = Completer<void>()..complete();
+  bool _concatenationStateLocked = false;
   
   // Volume state protection
   double? _previousVolume;
-  final Completer<void> _volumeStateLock = Completer<void>()..complete();
+  bool _volumeStateLocked = false;
   
   // Lyrics state protection
-  final Completer<void> _lyricsStateLock = Completer<void>()..complete();
+  bool _lyricsStateLocked = false;
   
   // Completion handling protection
-  final Completer<void> _completionHandlingLock = Completer<void>()..complete();
+  bool _completionHandlingLocked = false;
+  
+  // Generic operation lock method
+  Future<T> _withLock<T>(String lockName, Future<T> Function() operation) async {
+    final lockField = '_${lockName}Locked';
+    
+    // Busy wait for lock (simple spinlock with yield)
+    while (true) {
+      switch (lockName) {
+        case 'userIntent':
+          if (!_userIntentLocked) {
+            _userIntentLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'commandThrottle':
+          if (!_commandThrottleLocked) {
+            _commandThrottleLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'bufferingState':
+          if (!_bufferingStateLocked) {
+            _bufferingStateLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'audioSourceCache':
+          if (!_audioSourceCacheLocked) {
+            _audioSourceCacheLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'concatenationState':
+          if (!_concatenationStateLocked) {
+            _concatenationStateLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'volumeState':
+          if (!_volumeStateLocked) {
+            _volumeStateLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'lyricsState':
+          if (!_lyricsStateLocked) {
+            _lyricsStateLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        case 'completionHandling':
+          if (!_completionHandlingLocked) {
+            _completionHandlingLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
+        default:
+          throw ArgumentError('Unknown lock: $lockName');
+      }
+      break;
+    }
+    
+    try {
+      return await operation();
+    } finally {
+      // Release lock
+      switch (lockName) {
+        case 'userIntent':
+          _userIntentLocked = false;
+          break;
+        case 'commandThrottle':
+          _commandThrottleLocked = false;
+          break;
+        case 'bufferingState':
+          _bufferingStateLocked = false;
+          break;
+        case 'audioSourceCache':
+          _audioSourceCacheLocked = false;
+          break;
+        case 'concatenationState':
+          _concatenationStateLocked = false;
+          break;
+        case 'volumeState':
+          _volumeStateLocked = false;
+          break;
+        case 'lyricsState':
+          _lyricsStateLocked = false;
+          break;
+        case 'completionHandling':
+          _completionHandlingLocked = false;
+          break;
+      }
+    }
+  }
   
   // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
