@@ -164,8 +164,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _updatePlaybackState(PlaybackState newState) async {
     PlaybackState finalState = newState;
     
+    // Safely get user intended playing state
+    final userIntendedPlaying = await _userIntendedPlaying.value;
+    
     // If we're buffering but user intended to play, override the playing state
-    if (newState.processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
+    if (newState.processingState == AudioProcessingState.buffering && userIntendedPlaying) {
       // Force playing state to true during buffering if user intended to play
       finalState = newState.copyWith(playing: true);
       
@@ -180,7 +183,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Keep current state but show buffering processing state
       finalState = newState.copyWith(
-        playing: _userIntendedPlaying, // Use user intent instead of current state
+        playing: userIntendedPlaying, // Use user intent instead of current state
       );
       
       if (kDebugMode) {
@@ -227,7 +230,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void _init() {
     // Enhanced player state listener for background compatibility with buffering fix
-    _player.playerStateStream.listen((playerState) {
+    _player.playerStateStream.listen((playerState) async {
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
@@ -235,8 +238,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // IMPORTANT: Respect user intent over raw player state
       bool finalPlayingState;
       
+      // Safely get user intended playing state
+      final userIntendedPlaying = await _userIntendedPlaying.value;
+      
       // If user explicitly paused, respect that regardless of player state
-      if (!_userIntendedPlaying) {
+      if (!userIntendedPlaying) {
         finalPlayingState = false;
         if (kDebugMode && isPlaying) {
           if (kDebugMode) {
@@ -245,7 +251,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       // During buffering, use user intent to maintain playback
-      else if (processingState == AudioProcessingState.buffering && _userIntendedPlaying) {
+      else if (processingState == AudioProcessingState.buffering && userIntendedPlaying) {
         finalPlayingState = true;
         if (kDebugMode) {
           print('Player buffering but user intended playing - maintaining playback state');
@@ -327,41 +333,48 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
 
     // Simplified completion detection - only handle actual completion
-    _player.processingStateStream.listen((state) {
-      _logger.info('Processing state changed: $state (userIntended: $_userIntendedPlaying)', 'AudioHandler');
+    _player.processingStateStream.listen((state) async {
+      final userIntendedPlaying = await _userIntendedPlaying.value;
+      _logger.info('Processing state changed: $state (userIntended: $userIntendedPlaying)', 'AudioHandler');
       if (kDebugMode) {
         print('Processing state changed: $state');
       }
       
       // Handle codec loops only in extreme cases - MUCH less aggressive
       if (state == ProcessingState.buffering) {
-        final now = DateTime.now();
-        if (_lastBufferingTime != null && 
-            now.difference(_lastBufferingTime!) < const Duration(seconds: 10)) {
-          _bufferingLoopCount++;
-          // Dramatically increased threshold to prevent false positives - was 15, now 25
-          if (_bufferingLoopCount >= 25) {
-            _logger.warning('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery', 'AudioHandler');
-            if (kDebugMode) {
-              print('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery');
+        await _bufferingMutex.synchronized(() async {
+          final now = DateTime.now();
+          final lastBufferingTime = await _lastBufferingTime.value;
+          
+          if (lastBufferingTime != null && 
+              now.difference(lastBufferingTime) < const Duration(seconds: 10)) {
+            _bufferingLoopCount++;
+            // Dramatically increased threshold to prevent false positives - was 15, now 25
+            if (_bufferingLoopCount >= 25) {
+              _logger.warning('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery', 'AudioHandler');
+              if (kDebugMode) {
+                print('Detected extreme codec loop in buffering state after 25 attempts, forcing recovery');
+              }
+              _handleCodecLoop();
+              return;
             }
-            _handleCodecLoop();
-            return;
+          } else {
+            _bufferingLoopCount = 0;
           }
-        } else {
-          _bufferingLoopCount = 0;
-        }
-        _lastBufferingTime = now;
+          await _lastBufferingTime.set(now);
+        });
       } else {
         // Reset loop detection on state changes
-        _bufferingLoopCount = 0;
-        _lastBufferingTime = null;
+        await _bufferingMutex.synchronized(() async {
+          _bufferingLoopCount = 0;
+          await _lastBufferingTime.set(null);
+        });
       }
       
       // Log critical state changes
-      if (state == ProcessingState.ready && _userIntendedPlaying) {
+      if (state == ProcessingState.ready && userIntendedPlaying) {
         _logger.info('Track is ready and user intended playing - playback should start', 'AudioHandler');
-      } else if (state == ProcessingState.ready && !_userIntendedPlaying) {
+      } else if (state == ProcessingState.ready && !userIntendedPlaying) {
         _logger.info('Track is ready but user did not intend playing - paused state', 'AudioHandler');
       } else if (state == ProcessingState.idle) {
         _logger.warning('Processing state is IDLE - may indicate playback failure', 'AudioHandler');
