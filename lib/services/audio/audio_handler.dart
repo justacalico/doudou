@@ -188,6 +188,64 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
   
+  // Helper methods for safe state management
+  Future<void> _setConcatenationState(bool usingConcatenation, [ConcatenatingAudioSource? source]) async {
+    await _withLock('concatenationState', () async {
+      _isUsingConcatenation = usingConcatenation;
+      _concatenatingSource = source;
+    });
+  }
+  
+  Future<bool> _isConcatenationActive() async {
+    return await _withLock('concatenationState', () async {
+      return _isUsingConcatenation && _concatenatingSource != null;
+    });
+  }
+  
+  Future<void> _clearAudioSourceCache() async {
+    await _withLock('audioSourceCache', () async {
+      _audioSourceCache.clear();
+    });
+  }
+  
+  Future<void> _setUserIntentAtomic(bool intendedPlaying) async {
+    await _withLock('userIntent', () async {
+      _userIntendedPlaying = intendedPlaying;
+    });
+  }
+  
+  Future<bool> _getUserIntentAtomic() async {
+    return await _withLock('userIntent', () async {
+      return _userIntendedPlaying;
+    });
+  }
+  
+  Future<void> _updateBufferingLoop() async {
+    await _withLock('bufferingState', () async {
+      final now = DateTime.now();
+      if (_lastBufferingTime != null && 
+          now.difference(_lastBufferingTime!) < const Duration(seconds: 10)) {
+        _bufferingLoopCount++;
+      } else {
+        _bufferingLoopCount = 0;
+      }
+      _lastBufferingTime = now;
+    });
+  }
+  
+  Future<bool> _shouldHandleCodecLoop() async {
+    return await _withLock('bufferingState', () async {
+      return _bufferingLoopCount >= 25;
+    });
+  }
+  
+  Future<void> _resetBufferingLoop() async {
+    await _withLock('bufferingState', () async {
+      _bufferingLoopCount = 0;
+      _lastBufferingTime = null;
+    });
+  }
+
   // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
     PlaybackState finalState = newState;
