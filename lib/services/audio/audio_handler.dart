@@ -2550,17 +2550,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             }
             return [];
           }
-          return _artists.map((artist) => MediaItem(
-            id: 'artist:${artist.id}',
-            title: artist.name,
-            album: '',
-            artist: artist.name,
-            artUri: artist.imageUrl != null
-              ? Uri.parse(_jellyfinService.getImageUrl(artist.imageUrl!, width: 300, height: 300))
-              : null,
-            playable: false,
-            extras: {'browsable': true},
-          )).toList();
+          return _artists.map((artist) {
+            // Use MediaServiceManager if available, otherwise fall back to JellyfinService
+            final mediaServiceManager = _mediaServiceManager;
+            final imageUrl = artist.imageUrl != null 
+              ? (mediaServiceManager != null 
+                  ? mediaServiceManager.getImageUrl(artist.imageUrl!, width: 300, height: 300)
+                  : _jellyfinService.getImageUrl(artist.imageUrl!, width: 300, height: 300))
+              : null;
+            
+            return MediaItem(
+              id: 'artist:${artist.id}',
+              title: artist.name,
+              album: '',
+              artist: artist.name,
+              artUri: imageUrl != null ? Uri.parse(imageUrl) : null,
+              playable: false,
+              extras: {'browsable': true},
+            );
+          }).toList();
 
         case 'playlists':
           if (_playlists.isEmpty) {
