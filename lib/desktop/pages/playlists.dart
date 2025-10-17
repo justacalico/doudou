@@ -740,7 +740,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     final appState = context.read<AppState>();
     
     try {
-      final success = await appState.deletePlaylist(playlistId);
+      final success = await appState.removePlaylist(playlistId);
       
       if (mounted) {
         if (success) {
