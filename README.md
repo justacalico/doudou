@@ -8,7 +8,8 @@ A beautiful, privacy-focused music player for your personal Jellyfin media serve
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
 ![Flutter](https://img.shields.io/badge/Built%20with-Flutter-02569B?logo=flutter)
 ![Jellyfin](https://img.shields.io/badge/Works%20with-Jellyfin-00A4DC?logo=jellyfin)
-
+![Plex](https://img.shields.io/badge/Works%20with-Plex-E5A00D?logo=plex)
+![Novidome](https://img.shields.io/badge/Works%20with-Novidome-purple)
 </div>
 
 > **Note:** Icon is planned to be updated once a new design is created. Current icon serves as a placeholder and reference.
