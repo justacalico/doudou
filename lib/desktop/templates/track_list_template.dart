@@ -396,8 +396,8 @@ class TrackListTemplate extends StatelessWidget {
         break;
         
       case 'add_queue':
-        // TODO: Implement add to queue functionality
-        _showSnackBar(context, 'Add to Queue not yet implemented', isError: true);
+        appState.addToQueue(track);
+        _showSnackBar(context, 'Added "${track.name}" to queue');
         break;
         
       case 'add_playlist':
