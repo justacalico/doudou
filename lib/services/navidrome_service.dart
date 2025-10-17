@@ -720,7 +720,6 @@ class NavidromeService implements BaseMediaService {
     }
   }
 
-  @override
   Future<bool> renamePlaylist(String playlistId, String newName) async {
     try {
       final params = Map<String, dynamic>.from(_baseParams);
