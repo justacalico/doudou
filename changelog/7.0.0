@@ -27,6 +27,7 @@
 
 - Removed cross fade's
 - Removed debugging for images.
+- Removed debugging for audio states.
 
 ## Fixed
 
