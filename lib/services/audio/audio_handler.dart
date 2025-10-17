@@ -396,10 +396,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
 
     // Listen to current index changes for gapless transitions
-    _player.currentIndexStream.listen((index) {
-      if (index != null && _isUsingConcatenation && !_stateManager.isHandlingCompletion) {
+    _player.currentIndexStream.listen((index) async {
+      final isConcatenationActive = await _isConcatenationActive();
+      
+      if (index != null && isConcatenationActive && !_stateManager.isHandlingCompletion) {
         if (kDebugMode) {
-          print('Gapless transition to index: $index');
+          print('Gapless transition to index: $index (concatenation active)');
+        }
+        
+        // Validate that the index is within current playlist bounds
+        if (index >= _stateManager.playlist.length) {
+          if (kDebugMode) {
+            print('Index $index is out of bounds for current playlist (${_stateManager.playlist.length} tracks), ignoring');
+          }
+          return;
         }
         
         // Only update if this is a legitimate gapless transition
@@ -408,20 +418,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _stateManager.setCurrentIndex(index);
           
           // Update media item
-          if (index < _stateManager.playlist.length) {
-            final track = _stateManager.playlist[index];
-            mediaItem.add(_trackToMediaItem(track));
-            
-            // Trigger preloading of upcoming tracks
-            Future.microtask(() {
-              _preloader.preloadNextTracks(_stateManager.playlist, index);
-            });
-          }
+          final track = _stateManager.playlist[index];
+          mediaItem.add(_trackToMediaItem(track));
+          
+          // Trigger preloading of upcoming tracks
+          Future.microtask(() {
+            _preloader.preloadNextTracks(_stateManager.playlist, index);
+          });
           
           // Update playback state with new index
           _updatePlaybackState(playbackState.value.copyWith(
             queueIndex: index,
           ));
+          
+          if (kDebugMode) {
+            print('Updated to track: ${track.name} (index: $index)');
+          }
+        }
+      } else if (index != null && !isConcatenationActive) {
+        if (kDebugMode) {
+          print('Received index change ($index) but concatenation is not active, ignoring');
         }
       }
     });
