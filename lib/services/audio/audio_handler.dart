@@ -2334,9 +2334,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _player.setVolume(volume.clamp(0.0, 1.0));
   }
 
-  // Volume convenience methods
-  double? _previousVolume;
-  
   Future<void> toggleMute() async {
     if (_player.volume > 0.0) {
       _previousVolume = _player.volume;
