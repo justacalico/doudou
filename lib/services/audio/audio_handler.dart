@@ -2056,17 +2056,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _logger.info('Album: ${track.albumName ?? "Unknown"}', 'AudioHandler');
     _logger.info('Duration: ${track.duration != null ? "${track.duration! ~/ 1000}s" : "Unknown"}', 'AudioHandler');
     
-    // Set user intent to playing since this is an explicit play action
-    _userIntendedPlaying = true;
+    // Set user intent to playing since this is an explicit play action - use atomic operation
+    await _setUserIntentAtomic(true);
     _logger.info('User intent set to playing', 'AudioHandler');
     
     // Clear existing state - single track doesn't use concatenation
     _logger.info('Stopping existing player', 'AudioHandler');
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
-    _audioSourceCache.clear();
-    _isUsingConcatenation = false;
-    _concatenatingSource = null;
+    await _clearAudioSourceCache();
+    await _setConcatenationState(false, null);
     _logger.info('Cleared existing player state and cache', 'AudioHandler');
     
     // Reset all transition states atomically
@@ -2105,19 +2104,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Track to play: ${tracks[startIndex].name}');
     }
     
-    // Set user intent to playing since this is an explicit play action
-    _userIntendedPlaying = true;
+    // Set user intent to playing since this is an explicit play action - use atomic operation
+    await _setUserIntentAtomic(true);
+    final userIntent = await _getUserIntentAtomic();
     
     if (kDebugMode) {
-      print('Set _userIntendedPlaying to: $_userIntendedPlaying');
+      print('Set _userIntendedPlaying to: $userIntent');
     }
     
-    // Clear existing state
+    // Clear existing state atomically
     await _player.stop();
     _preloader.clearAllPreloadedPlayers();
-    _audioSourceCache.clear();
-    _isUsingConcatenation = false;
-    _concatenatingSource = null;
+    await _clearAudioSourceCache();
+    await _setConcatenationState(false, null);
     
     if (kDebugMode) {
       print('Cleared existing player state');
@@ -2144,7 +2143,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     if (kDebugMode) {
       print('_playCurrentTrack() completed');
-      print('Final player state - playing: ${_player.playing}, userIntent: $_userIntendedPlaying');
+      final finalUserIntent = await _getUserIntentAtomic();
+      print('Final player state - playing: ${_player.playing}, userIntent: $finalUserIntent');
       print('=== PLAYPLAYLIST DEBUG END ===');
     }
     
