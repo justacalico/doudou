@@ -138,6 +138,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Logging service
   final LoggingService _logger = LoggingService();
 
+  // Thread safety - Synchronization primitives
+  final _Mutex _stateMutex = _Mutex();
+  final _Mutex _commandMutex = _Mutex();
+  final _Mutex _cacheMutex = _Mutex();
+  final _Mutex _concatenationMutex = _Mutex();
+  final _Mutex _playlistMutex = _Mutex();
+  final _Mutex _bufferingMutex = _Mutex();
+  final _Mutex _lyricsMutex = _Mutex();
+  final _Mutex _volumeMutex = _Mutex();
+  final _Mutex _transitionMutex = _Mutex();
+  
+  // Atomic variables for thread-safe operations
+  final _AtomicBool _userIntendedPlaying = _AtomicBool(false);
+  final _AtomicBool _isHandlingCompletion = _AtomicBool(false);
+  final _AtomicDateTime _lastPlayCommand = _AtomicDateTime();
+  final _AtomicDateTime _lastPauseCommand = _AtomicDateTime();
+  final _AtomicDateTime _lastBufferingTime = _AtomicDateTime();
+  int _bufferingLoopCount = 0;
+  double? _previousVolume;
+
   // User intent tracking to prevent buffering pauses
   bool _userIntendedPlaying = false;
 
