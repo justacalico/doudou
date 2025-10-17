@@ -401,7 +401,7 @@ class TrackListTemplate extends StatelessWidget {
         break;
         
       case 'add_playlist':
-        await _showAddToPlaylistDialog(context, track);
+        await DesktopLayout.showAddToPlaylistDialog(context, track);
         break;
         
       case 'download':
