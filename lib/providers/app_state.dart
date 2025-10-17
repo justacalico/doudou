@@ -1807,6 +1807,25 @@ class AppState extends ChangeNotifier {
 
   List<Album> get favoriteAlbums => _albums.where((album) => album.isFavorite).toList();
 
+  /// Check if a track is favorited by its ID
+  bool isFavorite(String trackId) {
+    final track = _tracks.firstWhere(
+      (t) => t.id == trackId,
+      orElse: () => Track(
+        id: '',
+        name: '',
+        albumName: '',
+        artistName: '',
+        albumId: '',
+        duration: 0,
+        trackNumber: 0,
+        imageUrl: '',
+        isFavorite: false,
+      ),
+    );
+    return track.isFavorite;
+  }
+
   Future<void> toggleFavorite(Track track) async {
     if (kDebugMode) {
       print('=== TOGGLE FAVORITE START ===');
