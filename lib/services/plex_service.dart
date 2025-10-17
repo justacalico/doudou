@@ -571,4 +571,33 @@ class PlexService implements BaseMediaService {
     _machineIdentifier = null;
     _serverUrl = null;
   }
+
+  @override
+  Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
+    if (_serverUrl == null || _token == null) {
+      throw Exception('Server not configured');
+    }
+
+    try {
+      // Plex uses PUT method for toggling favorites
+      // The endpoint is /library/metadata/{itemId}/favorite
+      final method = isFavorite ? 'DELETE' : 'PUT';
+      final response = await _dio.request(
+        '$_serverUrl/library/metadata/$itemId/favorite',
+        options: Options(
+          method: method,
+          headers: {
+            'X-Plex-Token': _token,
+          },
+        ),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error toggling favorite in Plex: $e');
+      }
+      return false;
+    }
+  }
 }
