@@ -185,7 +185,7 @@ class DesktopDoudouApp extends StatelessWidget {
         Consumer<AppState>(
           builder: (context, appState, child) {
             return MaterialApp(
-              title: 'Doudou - Jellyfin Music Player',
+              title: 'Doudou - Music Player',
               theme: ThemeData(
                 useMaterial3: true,
                 colorScheme: ColorScheme.fromSeed(
