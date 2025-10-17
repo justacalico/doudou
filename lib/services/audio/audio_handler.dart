@@ -1409,7 +1409,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
       
       // If using concatenation, add tracks to the concatenating source
-      if (_isUsingConcatenation && _concatenatingSource != null) {
+      final isActive = await _isConcatenationActive();
+      if (isActive) {
         for (final track in similarTracks) {
           final audioSource = await _createAudioSource(track);
           if (audioSource != null) {
@@ -1432,8 +1433,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     } else {
       // End of radio mode
-      _isUsingConcatenation = false;
-      _concatenatingSource = null;
+      await _setConcatenationState(false, null);
       playbackState.add(playbackState.value.copyWith(
         processingState: AudioProcessingState.completed,
         playing: false,
@@ -1448,12 +1448,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Preserve playing state when skipping - if music was playing, it should continue playing
     final wasPlaying = playbackState.value.playing;
     if (wasPlaying) {
-      _userIntendedPlaying = true;
+      await _setUserIntentAtomic(true);
       _logger.info('Preserving playing state during skip to previous', 'AudioHandler');
     }
     
     // Use gapless transition if concatenation is active
-    if (_isUsingConcatenation && _concatenatingSource != null) {
+    final isActive = await _isConcatenationActive();
+    if (isActive) {
       final prevIndex = _stateManager.currentIndex - 1;
       if (prevIndex >= 0) {
         _logger.info('Using gapless skip to previous track: $prevIndex', 'AudioHandler');
