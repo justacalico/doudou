@@ -157,6 +157,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final _AtomicDateTime _lastBufferingTime = _AtomicDateTime();
   int _bufferingLoopCount = 0;
   double? _previousVolume;
+  
+  // Thread-safe helper methods
+  Future<bool> get _userWantsToPlay async => await _userIntendedPlaying.value;
+  Future<void> _setUserIntentToPlay() async => await _userIntendedPlaying.set(true);
+  Future<void> _setUserIntentToPause() async => await _userIntendedPlaying.set(false);
+  
+  Future<bool> _canExecuteCommand(String commandType, DateTime now) async {
+    if (commandType == 'play') {
+      final lastPlay = await _lastPlayCommand.value;
+      final lastPause = await _lastPauseCommand.value;
+      
+      if (lastPlay != null && now.difference(lastPlay) < _commandThrottleDelay) {
+        return false;
+      }
+      if (lastPause != null && now.difference(lastPause) < _commandThrottleDelay) {
+        return false;
+      }
+      await _lastPlayCommand.set(now);
+      return true;
+    } else if (commandType == 'pause') {
+      final lastPause = await _lastPauseCommand.value;
+      if (lastPause != null && now.difference(lastPause) < _commandThrottleDelay) {
+        return false;
+      }
+      await _lastPauseCommand.set(now);
+      return true;
+    }
+    return true;
+  }
 
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
   
