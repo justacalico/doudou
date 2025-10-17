@@ -1649,7 +1649,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> toggleAlbumFavorite(Album album) async {
     try {
-      final success = await _jellyfinService.toggleFavorite(album.id, album.isFavorite);
+      final success = await _mediaServiceManager.toggleFavorite(album.id, album.isFavorite);
       if (success) {
         // Update the album in the local list
         final index = _albums.indexWhere((a) => a.id == album.id);
