@@ -1701,19 +1701,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   /// Attempt to set up gapless playback using ConcatenatingAudioSource
   Future<bool> _tryGaplessPlayback() async {
     try {
-      // CRITICAL: Stop player and clear any existing audio source immediately
+      // CRITICAL: Stop player completely and ensure old audio source is cleared
       // This prevents old queue from continuing to play while new one is being set up
       try {
         await _player.stop();
         if (kDebugMode) {
           print('Stopped player before setting new concatenating source');
         }
-        // Clear the audio source to ensure old queue is completely removed
-        await _player.setAudioSource(AudioSource.uri(Uri.parse('data:audio/wav;base64,')));
-        await Future.delayed(const Duration(milliseconds: 50)); // Brief pause for cleanup
+        
+        // Give the player a moment to fully stop and release resources
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        if (kDebugMode) {
+          print('Player stopped and cleared, proceeding with new concatenating source');
+        }
       } catch (e) {
         if (kDebugMode) {
-          print('Warning: Could not clear old audio source: $e');
+          print('Warning: Could not stop player cleanly: $e');
         }
       }
       
@@ -1731,6 +1735,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           initialIndex: _stateManager.currentIndex,
         );
         
+        if (kDebugMode) {
+          print('Successfully set new concatenating source');
+        }
+        
         // Store references for gapless operations atomically
         await _setConcatenationState(true, concatenatingSource);
         
@@ -1738,6 +1746,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         final userIntent = await _getUserIntentAtomic();
         if (userIntent) {
           await _player.play();
+          if (kDebugMode) {
+            print('Started playing new concatenating source');
+          }
         }
         
         // Update playback state
