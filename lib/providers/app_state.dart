@@ -1611,11 +1611,29 @@ class AppState extends ChangeNotifier {
   List<Album> get favoriteAlbums => _albums.where((album) => album.isFavorite).toList();
 
   Future<void> toggleFavorite(Track track) async {
+    if (kDebugMode) {
+      print('=== TOGGLE FAVORITE START ===');
+      print('Track ID: ${track.id}');
+      print('Track Name: ${track.name}');
+      print('Current isFavorite: ${track.isFavorite}');
+      print('Will set to: ${!track.isFavorite}');
+    }
+    
     try {
       final success = await _mediaServiceManager.toggleFavorite(track.id, track.isFavorite);
+      
+      if (kDebugMode) {
+        print('Server response success: $success');
+      }
+      
       if (success) {
         // Update the track in the local list
         final index = _tracks.indexWhere((t) => t.id == track.id);
+        
+        if (kDebugMode) {
+          print('Track found at index: $index');
+        }
+        
         if (index != -1) {
           _tracks[index] = Track(
             id: track.id,
@@ -1628,11 +1646,36 @@ class AppState extends ChangeNotifier {
             imageUrl: track.imageUrl,
             isFavorite: !track.isFavorite,
           );
+          
+          if (kDebugMode) {
+            print('Updated track isFavorite to: ${_tracks[index].isFavorite}');
+            print('Calling notifyListeners()');
+          }
+          
           notifyListeners();
+          
+          if (kDebugMode) {
+            print('notifyListeners() called successfully');
+          }
+        } else {
+          if (kDebugMode) {
+            print('WARNING: Track not found in _tracks list!');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('ERROR: Server returned failure for toggle favorite');
         }
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('EXCEPTION in toggleFavorite: $e');
+      }
       _setError('Failed to toggle favorite: ${e.toString()}');
+    }
+    
+    if (kDebugMode) {
+      print('=== TOGGLE FAVORITE END ===');
     }
   }
 
