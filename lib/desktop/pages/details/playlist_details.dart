@@ -255,123 +255,27 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
   }
 
   Widget _buildTrackList(ThemeData theme, AppState appState) {
-    if (_playlistTracks.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.music_note_outlined,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No tracks in this playlist',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Add some songs to get started',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Add tracks to playlist
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Add Songs'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Column(
-        children: [
-          // Track list header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 40,
-                  child: Text(
-                    '#',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Title',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Artist',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Album',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 80,
-                  child: Text(
-                    'Duration',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-                const SizedBox(width: 48), // Space for actions
-              ],
-            ),
-          ),
-          
-          const Divider(height: 1),
-          
-          // Track list
-          Expanded(
-            child: ListView.builder(
-              itemCount: _playlistTracks.length,
-              itemBuilder: (context, index) {
-                final track = _playlistTracks[index];
-                return _buildTrackItem(theme, appState, track, index + 1);
-              },
-            ),
-          ),
-        ],
+    return TrackListTemplate(
+      tracks: _playlistTracks,
+      emptyStateTitle: 'No tracks in this playlist',
+      emptyStateMessage: 'Add some songs to get started',
+      emptyStateAction: ElevatedButton.icon(
+        onPressed: () {
+          // Add tracks to playlist
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Songs'),
       ),
+      showTrackNumber: true,
+      showArtist: true,
+      showAlbum: true,
+      showArtwork: true,
+      onTrackTap: (track, index) async {
+        await appState.playPlaylist(_playlistTracks, index);
+      },
+      onRemoveTrack: (track) {
+        _removeTrackFromPlaylist(track);
+      },
     );
   }
 
