@@ -18,6 +18,90 @@ import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
 import 'audio_transition_manager.dart';
 
+/// Simple Mutex implementation for synchronizing async operations
+class _Mutex {
+  Completer<void>? _completer;
+  
+  Future<void> acquire() async {
+    while (_completer != null && !_completer!.isCompleted) {
+      await _completer!.future;
+    }
+    _completer = Completer<void>();
+  }
+  
+  void release() {
+    final completer = _completer;
+    _completer = null;
+    completer?.complete();
+  }
+  
+  Future<T> synchronized<T>(Future<T> Function() operation) async {
+    await acquire();
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
+  }
+}
+
+/// Atomic boolean wrapper for thread-safe flag operations
+class _AtomicBool {
+  bool _value;
+  final _Mutex _mutex = _Mutex();
+  
+  _AtomicBool(this._value);
+  
+  Future<bool> get value async {
+    return await _mutex.synchronized(() async => _value);
+  }
+  
+  Future<void> set(bool newValue) async {
+    await _mutex.synchronized(() async {
+      _value = newValue;
+    });
+  }
+  
+  Future<bool> compareAndSet(bool expectedValue, bool newValue) async {
+    return await _mutex.synchronized(() async {
+      if (_value == expectedValue) {
+        _value = newValue;
+        return true;
+      }
+      return false;
+    });
+  }
+}
+
+/// Thread-safe wrapper for nullable DateTime operations
+class _AtomicDateTime {
+  DateTime? _value;
+  final _Mutex _mutex = _Mutex();
+  
+  _AtomicDateTime([this._value]);
+  
+  Future<DateTime?> get value async {
+    return await _mutex.synchronized(() async => _value);
+  }
+  
+  Future<void> set(DateTime? newValue) async {
+    await _mutex.synchronized(() async {
+      _value = newValue;
+    });
+  }
+  
+  Future<bool> setIfBefore(DateTime newValue, Duration threshold) async {
+    return await _mutex.synchronized(() async {
+      final now = DateTime.now();
+      if (_value == null || now.difference(_value!) >= threshold) {
+        _value = newValue;
+        return true;
+      }
+      return false;
+    });
+  }
+}
+
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
   final JellyfinService _jellyfinService;
