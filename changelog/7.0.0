@@ -22,7 +22,8 @@
 - Central logic for API requests
 - Rewrote the Jellyfin service
 - Refactored most of the backend for desktop/mobile network connections
-- Refactored the Jellyfin favorite song functionality
+- Refactored the Jellyfin favorite song functionality\
+- Refactored now_playing to use app_state for favorites
 
 ## Removed
 
