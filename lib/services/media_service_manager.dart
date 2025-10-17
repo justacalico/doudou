@@ -255,4 +255,9 @@ class JellyfinServiceAdapter implements BaseMediaService {
   void clearAuth() {
     _jellyfinService.clearAuth();
   }
+
+  @override
+  Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
+    return await _jellyfinService.toggleFavorite(itemId, isFavorite);
+  }
 }
