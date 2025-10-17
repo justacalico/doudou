@@ -896,46 +896,51 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> pause() async {
-    final now = DateTime.now();
-    _logger.info('Pause command received', 'AudioHandler');
-    
-    // Throttle rapid pause commands
-    if (_lastPauseCommand != null && 
-        now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
-      _logger.warning('Pause command throttled - too recent', 'AudioHandler');
-      if (kDebugMode) {
-        print('Pause command throttled - too recent');
-      }
-      return;
-    }
-    
-    _lastPauseCommand = now;
-    
-    if (kDebugMode) {
-      print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
-    }
-    
-    // Set user intent to not playing
-    _userIntendedPlaying = false;
-    _logger.info('User intent set to paused', 'AudioHandler');
-    
-    try {
-      await _player.pause();
+    return await _withLock('commandThrottle', () async {
+      final now = DateTime.now();
+      _logger.info('Pause command received', 'AudioHandler');
       
-      _updatePlaybackState(playbackState.value.copyWith(
-        playing: false,
-      ));
+      // Throttle rapid pause commands
+      if (_lastPauseCommand != null && 
+          now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+        _logger.warning('Pause command throttled - too recent', 'AudioHandler');
+        if (kDebugMode) {
+          print('Pause command throttled - too recent');
+        }
+        return;
+      }
       
-      _logger.info('Pause command completed successfully', 'AudioHandler');
+      _lastPauseCommand = now;
+      
       if (kDebugMode) {
-        print('Pause command completed. User intended playing: $_userIntendedPlaying');
+        print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
-    } catch (e) {
-      _logger.error('Error in pause command: $e', 'AudioHandler');
-      if (kDebugMode) {
-        print('Error in pause command: $e');
+      
+      // Set user intent to not playing atomically
+      await _withLock('userIntent', () async {
+        _userIntendedPlaying = false;
+      });
+      
+      _logger.info('User intent set to paused', 'AudioHandler');
+      
+      try {
+        await _player.pause();
+        
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        _logger.info('Pause command completed successfully', 'AudioHandler');
+        if (kDebugMode) {
+          print('Pause command completed. User intended playing: $_userIntendedPlaying');
+        }
+      } catch (e) {
+        _logger.error('Error in pause command: $e', 'AudioHandler');
+        if (kDebugMode) {
+          print('Error in pause command: $e');
+        }
       }
-    }
+    });
   }
 
   @override
