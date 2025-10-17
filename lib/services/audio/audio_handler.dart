@@ -1195,8 +1195,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> stop() async {
-    // Reset user intent on stop
-    _userIntendedPlaying = false;
+    // Reset user intent on stop atomically
+    await _setUserIntentAtomic(false);
     
     await _player.stop();
     _updatePlaybackState(playbackState.value.copyWith(
