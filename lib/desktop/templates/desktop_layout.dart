@@ -48,23 +48,15 @@ class DesktopLayout extends StatefulWidget {
               track: track,
               playlists: appState.playlists,
               onAddToPlaylist: (playlistId) async {
-                try {
-                  final success = await appState.jellyfinService.addToPlaylist(playlistId, track.id);
-                  if (context.mounted) {
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Added "${track.name}" to playlist')),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to add track to playlist')),
-                      );
-                    }
-                  }
-                } catch (e) {
-                  if (context.mounted) {
+                final success = await appState.addToPlaylist(playlistId, track.id);
+                if (context.mounted) {
+                  if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
+                      SnackBar(content: Text('Added "${track.name}" to playlist')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to add track to playlist')),
                     );
                   }
                 }
