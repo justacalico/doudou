@@ -666,119 +666,121 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   /// Create audio source for a track with caching
   Future<AudioSource?> _createAudioSource(Track track) async {
-    // Check cache first
-    if (_audioSourceCache.containsKey(track.id)) {
-      if (kDebugMode) {
-        print('Using cached audio source for: ${track.name}');
+    return await _withLock('audioSourceCache', () async {
+      // Check cache first
+      if (_audioSourceCache.containsKey(track.id)) {
+        if (kDebugMode) {
+          print('Using cached audio source for: ${track.name}');
+        }
+        return _audioSourceCache[track.id]!;
       }
-      return _audioSourceCache[track.id]!;
-    }
 
-    try {
-      // Try local file first
-      final localFilePath = _downloadService.getLocalFilePath(track.id);
-      if (localFilePath != null) {
-        final localFile = File(localFilePath);
-        if (await localFile.exists()) {
-          final source = AudioSource.file(localFilePath);
-          _audioSourceCache[track.id] = source;
-          if (kDebugMode) {
-            print('Created local file audio source for: ${track.name}');
+      try {
+        // Try local file first
+        final localFilePath = _downloadService.getLocalFilePath(track.id);
+        if (localFilePath != null) {
+          final localFile = File(localFilePath);
+          if (await localFile.exists()) {
+            final source = AudioSource.file(localFilePath);
+            _audioSourceCache[track.id] = source;
+            if (kDebugMode) {
+              print('Created local file audio source for: ${track.name}');
+            }
+            return source;
           }
-          return source;
         }
-      }
 
-      // Check preloaded audio source first (for gapless)
-      final preloadedSource = _preloader.getPreloadedAudioSource(track.id);
-      if (preloadedSource != null) {
-        _audioSourceCache[track.id] = preloadedSource;
-        if (kDebugMode) {
-          print('Using preloaded audio source for: ${track.name}');
+        // Check preloaded audio source first (for gapless)
+        final preloadedSource = _preloader.getPreloadedAudioSource(track.id);
+        if (preloadedSource != null) {
+          _audioSourceCache[track.id] = preloadedSource;
+          if (kDebugMode) {
+            print('Using preloaded audio source for: ${track.name}');
+          }
+          return preloadedSource;
         }
-        return preloadedSource;
-      }
 
-      // Check preloaded player (legacy)
-      final preloadedPlayer = _preloader.getPreloadedPlayer(track.id);
-      if (preloadedPlayer?.audioSource != null) {
-        _audioSourceCache[track.id] = preloadedPlayer!.audioSource!;
-        if (kDebugMode) {
-          print('Using preloaded audio source for: ${track.name}');
+        // Check preloaded player (legacy)
+        final preloadedPlayer = _preloader.getPreloadedPlayer(track.id);
+        if (preloadedPlayer?.audioSource != null) {
+          _audioSourceCache[track.id] = preloadedPlayer!.audioSource!;
+          if (kDebugMode) {
+            print('Using preloaded audio source for: ${track.name}');
+          }
+          return preloadedPlayer.audioSource!;
         }
-        return preloadedPlayer.audioSource!;
-      }
 
-      // Stream URLs fallback with service-agnostic approach
-      List<String> streamUrls;
-      final mediaServiceManager = _mediaServiceManager;
-      
-      if (mediaServiceManager != null) {
-        // Use MediaServiceManager for current service - prefer alternative URLs
-        final alt = mediaServiceManager.getAlternativeStreamUrls(track.id);
-        if (alt.isNotEmpty) {
-          streamUrls = alt;
+        // Stream URLs fallback with service-agnostic approach
+        List<String> streamUrls;
+        final mediaServiceManager = _mediaServiceManager;
+        
+        if (mediaServiceManager != null) {
+          // Use MediaServiceManager for current service - prefer alternative URLs
+          final alt = mediaServiceManager.getAlternativeStreamUrls(track.id);
+          if (alt.isNotEmpty) {
+            streamUrls = alt;
+          } else {
+            final primary = mediaServiceManager.getStreamUrl(track.id);
+            streamUrls = primary.isNotEmpty ? [primary] : [];
+          }
         } else {
-          final primary = mediaServiceManager.getStreamUrl(track.id);
-          streamUrls = primary.isNotEmpty ? [primary] : [];
+          // Fallback to JellyfinService with platform-optimized prioritization
+          if (Platform.isMacOS) {
+            // macOS: Universal first, then transcoded, then direct
+            streamUrls = [
+              _jellyfinService.getUniversalStreamUrl(track.id),
+              _jellyfinService.getStreamUrl(track.id),
+              _jellyfinService.getDirectStreamUrl(track.id),
+            ];
+          } else {
+            // Android/other: Direct first, then transcoded, then universal
+            streamUrls = [
+              _jellyfinService.getDirectStreamUrl(track.id),
+              _jellyfinService.getStreamUrl(track.id),
+              _jellyfinService.getUniversalStreamUrl(track.id),
+            ];
+          }
         }
-      } else {
-        // Fallback to JellyfinService with platform-optimized prioritization
-        if (Platform.isMacOS) {
-          // macOS: Universal first, then transcoded, then direct
-          streamUrls = [
-            _jellyfinService.getUniversalStreamUrl(track.id),
-            _jellyfinService.getStreamUrl(track.id),
-            _jellyfinService.getDirectStreamUrl(track.id),
-          ];
-        } else {
-          // Android/other: Direct first, then transcoded, then universal
-          streamUrls = [
-            _jellyfinService.getDirectStreamUrl(track.id),
-            _jellyfinService.getStreamUrl(track.id),
-            _jellyfinService.getUniversalStreamUrl(track.id),
-          ];
-        }
-      }
 
-      for (final streamUrl in streamUrls) {
-        if (streamUrl.isEmpty) continue;
-        try {
-          final ok = await _probeUrl(streamUrl);
-          if (!ok) {
-            if (kDebugMode) print('Skipping unreachable stream URL: $streamUrl');
+        for (final streamUrl in streamUrls) {
+          if (streamUrl.isEmpty) continue;
+          try {
+            final ok = await _probeUrl(streamUrl);
+            if (!ok) {
+              if (kDebugMode) print('Skipping unreachable stream URL: $streamUrl');
+              continue;
+            }
+
+            AudioSource source;
+            if (_shouldTranscodeTrack(track)) {
+              final hlsUrl = _getHlsStreamUrl(track);
+              source = hlsUrl.isNotEmpty 
+                  ? HlsAudioSource(Uri.parse(hlsUrl))
+                  : AudioSource.uri(Uri.parse(streamUrl));
+            } else {
+              source = AudioSource.uri(Uri.parse(streamUrl));
+            }
+
+            _audioSourceCache[track.id] = source;
+            if (kDebugMode) {
+              print('Created stream audio source for: ${track.name}');
+            }
+            return source;
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error while probing/creating source for $streamUrl: $e');
+            }
             continue;
           }
-
-          AudioSource source;
-          if (_shouldTranscodeTrack(track)) {
-            final hlsUrl = _getHlsStreamUrl(track);
-            source = hlsUrl.isNotEmpty 
-                ? HlsAudioSource(Uri.parse(hlsUrl))
-                : AudioSource.uri(Uri.parse(streamUrl));
-          } else {
-            source = AudioSource.uri(Uri.parse(streamUrl));
-          }
-
-          _audioSourceCache[track.id] = source;
-          if (kDebugMode) {
-            print('Created stream audio source for: ${track.name}');
-          }
-          return source;
-        } catch (e) {
-          if (kDebugMode) {
-            print('Error while probing/creating source for $streamUrl: $e');
-          }
-          continue;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to create audio source for ${track.name}: $e');
         }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to create audio source for ${track.name}: $e');
-      }
-    }
 
-    return null;
+      return null;
+    });
   }
 
   /// Build concatenating audio source from playlist
