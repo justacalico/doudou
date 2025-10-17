@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import 'desktop_layout.dart';
 
 class TrackListTemplate extends StatelessWidget {
   final List<Track> tracks;
