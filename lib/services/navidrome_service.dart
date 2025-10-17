@@ -661,6 +661,107 @@ class NavidromeService implements BaseMediaService {
   }
 
   @override
+  Future<Playlist?> createPlaylist(String name) async {
+    try {
+      final params = Map<String, dynamic>.from(_baseParams);
+      params['name'] = name;
+      
+      final response = await _dio.get('$_serverUrl/rest/createPlaylist', queryParameters: params);
+      
+      // Check for successful response
+      final subsonicResponse = response.data['subsonic-response'];
+      if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
+        if (kDebugMode) {
+          print('Failed to create playlist in Navidrome: ${subsonicResponse?['error']}');
+        }
+        return null;
+      }
+      
+      final playlist = subsonicResponse['playlist'];
+      if (playlist != null) {
+        return Playlist(
+          id: playlist['id'],
+          name: playlist['name'],
+          imageUrl: playlist['coverArt'] != null ? '$_serverUrl/rest/getCoverArt?id=${playlist['coverArt']}&${Uri(queryParameters: _baseParams).query}' : null,
+          trackCount: playlist['songCount'] ?? 0,
+        );
+      }
+      
+      // If no playlist in response, return a basic one (some servers don't return the created playlist)
+      return Playlist(
+        id: '', // Will be filled when we reload playlists
+        name: name,
+        imageUrl: null,
+        trackCount: 0,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error creating playlist in Navidrome: $e');
+      }
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    try {
+      final params = Map<String, dynamic>.from(_baseParams);
+      params['playlistId'] = playlistId;
+      params['songIdToAdd'] = trackId;
+      
+      final response = await _dio.get('$_serverUrl/rest/updatePlaylist', queryParameters: params);
+      
+      // Check for successful response
+      final subsonicResponse = response.data['subsonic-response'];
+      return subsonicResponse != null && subsonicResponse['status'] == 'ok';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error adding track to playlist in Navidrome: $e');
+      }
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    try {
+      final params = Map<String, dynamic>.from(_baseParams);
+      params['playlistId'] = playlistId;
+      params['name'] = newName;
+      
+      final response = await _dio.get('$_serverUrl/rest/updatePlaylist', queryParameters: params);
+      
+      // Check for successful response
+      final subsonicResponse = response.data['subsonic-response'];
+      return subsonicResponse != null && subsonicResponse['status'] == 'ok';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error renaming playlist in Navidrome: $e');
+      }
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> removePlaylist(String playlistId) async {
+    try {
+      final params = Map<String, dynamic>.from(_baseParams);
+      params['id'] = playlistId;
+      
+      final response = await _dio.get('$_serverUrl/rest/deletePlaylist', queryParameters: params);
+      
+      // Check for successful response
+      final subsonicResponse = response.data['subsonic-response'];
+      return subsonicResponse != null && subsonicResponse['status'] == 'ok';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error deleting playlist in Navidrome: $e');
+      }
+      return false;
+    }
+  }
+
+  @override
   List<String> getAlternativeStreamUrls(String trackId) {
     // Return Navidrome alternative stream URLs with different formats/bitrates
     final params = Map<String, dynamic>.from(_baseParams);
