@@ -600,6 +600,43 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
+  Future<void> _createPlaylist(String name) async {
+    final appState = context.read<AppState>();
+    
+    try {
+      final success = await appState.createPlaylist(name);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Playlist "$name" created successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Refresh the playlists list
+          appState.loadLibraryData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to create playlist "$name"'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating playlist: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showEditPlaylistDialog(BuildContext context, dynamic playlist) {
     final nameController = TextEditingController(text: playlist.name);
     
