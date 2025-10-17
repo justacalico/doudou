@@ -480,6 +480,26 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
                   break;
                 case 'download':
                   // Download track
+                  try {
+                    await appState.downloadService.downloadTrack(track);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Started downloading "${track.name}"'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to download "${track.name}": $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                   break;
                 case 'favorite':
                   // Toggle favorite
