@@ -811,82 +811,87 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   @override
   Future<void> play() async {
-    final now = DateTime.now();
-    _logger.info('Play command received', 'AudioHandler');
-    
-    // Throttle rapid play commands
-    if (_lastPlayCommand != null && 
-        now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
-      _logger.warning('Play command throttled - too recent (${now.difference(_lastPlayCommand!).inMilliseconds}ms ago)', 'AudioHandler');
-      if (kDebugMode) {
-        print('Play command throttled - too recent');
-      }
-      return;
-    }
-    
-    // Prevent play immediately after pause
-    if (_lastPauseCommand != null && 
-        now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
-      _logger.warning('Play command blocked - recent pause command detected', 'AudioHandler');
-      if (kDebugMode) {
-        print('Play command blocked - recent pause command detected');
-      }
-      return;
-    }
-    
-    _lastPlayCommand = now;
-    
-    if (kDebugMode) {
-      print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
-    }
-    
-    // Set user intent to playing
-    _userIntendedPlaying = true;
-    _logger.info('User intent set to playing', 'AudioHandler');
-    
-    try {
-      // Ensure we have a track to play
-      if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
-        _logger.info('No current track, loading from playlist', 'AudioHandler');
+    return await _withLock('commandThrottle', () async {
+      final now = DateTime.now();
+      _logger.info('Play command received', 'AudioHandler');
+      
+      // Throttle rapid play commands
+      if (_lastPlayCommand != null && 
+          now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
+        _logger.warning('Play command throttled - too recent (${now.difference(_lastPlayCommand!).inMilliseconds}ms ago)', 'AudioHandler');
         if (kDebugMode) {
-          print('No current track, loading from playlist');
+          print('Play command throttled - too recent');
         }
-        await _playCurrentTrack();
-      } else {
-        _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
+        return;
+      }
+      
+      // Prevent play immediately after pause
+      if (_lastPauseCommand != null && 
+          now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
+        _logger.warning('Play command blocked - recent pause command detected', 'AudioHandler');
         if (kDebugMode) {
-          print('Playing existing track');
+          print('Play command blocked - recent pause command detected');
         }
-        await _player.play();
+        return;
       }
       
-      // Always verify the play command worked
-      await Future.delayed(const Duration(milliseconds: 100));
+      _lastPlayCommand = now;
       
-      // Update state to reflect actual player state, but force playing if user intended
-      _updatePlaybackState(playbackState.value.copyWith(
-        playing: true, // Force true since user explicitly requested play
-        processingState: _player.processingState == ProcessingState.ready 
-            ? AudioProcessingState.ready 
-            : AudioProcessingState.loading,
-      ));
-      
-      _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
       if (kDebugMode) {
-        print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
-      }
-    } catch (e) {
-      _logger.error('Error in play command: $e', 'AudioHandler');
-      if (kDebugMode) {
-        print('Error in play command: $e');
+        print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
       
-      // Try to recover by reloading current track
-      if (_stateManager.currentTrack != null) {
-        _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
-        await _resumeCurrentTrack();
+      // Set user intent to playing atomically
+      await _withLock('userIntent', () async {
+        _userIntendedPlaying = true;
+      });
+      
+      _logger.info('User intent set to playing', 'AudioHandler');
+      
+      try {
+        // Ensure we have a track to play
+        if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
+          _logger.info('No current track, loading from playlist', 'AudioHandler');
+          if (kDebugMode) {
+            print('No current track, loading from playlist');
+          }
+          await _playCurrentTrack();
+        } else {
+          _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
+          if (kDebugMode) {
+            print('Playing existing track');
+          }
+          await _player.play();
+        }
+        
+        // Always verify the play command worked
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Update state to reflect actual player state, but force playing if user intended
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: true, // Force true since user explicitly requested play
+          processingState: _player.processingState == ProcessingState.ready 
+              ? AudioProcessingState.ready 
+              : AudioProcessingState.loading,
+        ));
+        
+        _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
+        if (kDebugMode) {
+          print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
+        }
+      } catch (e) {
+        _logger.error('Error in play command: $e', 'AudioHandler');
+        if (kDebugMode) {
+          print('Error in play command: $e');
+        }
+        
+        // Try to recover by reloading current track
+        if (_stateManager.currentTrack != null) {
+          _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
+          await _resumeCurrentTrack();
+        }
       }
-    }
+    });
   }
 
   @override
