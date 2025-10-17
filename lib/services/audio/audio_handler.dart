@@ -158,20 +158,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   int _bufferingLoopCount = 0;
   double? _previousVolume;
 
-  // User intent tracking to prevent buffering pauses
-  bool _userIntendedPlaying = false;
-
-  // Command throttling to prevent conflicts
-  DateTime? _lastPlayCommand;
-  DateTime? _lastPauseCommand;
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
-
-  // Codec loop detection
-  DateTime? _lastBufferingTime;
-  int _bufferingLoopCount = 0;
   
   // Helper method to update playback state while preventing automatic buffering pauses
-  void _updatePlaybackState(PlaybackState newState) {
+  Future<void> _updatePlaybackState(PlaybackState newState) async {
     PlaybackState finalState = newState;
     
     // If we're buffering but user intended to play, override the playing state
