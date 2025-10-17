@@ -1927,7 +1927,7 @@ class AppState extends ChangeNotifier {
 
   Future<bool> createPlaylist(String name) async {
     try {
-      final newPlaylist = await _jellyfinService.createPlaylist(name);
+      final newPlaylist = await _mediaServiceManager.createPlaylist(name);
       if (newPlaylist != null) {
         // Add the new playlist to the local list
         _playlists.add(newPlaylist);
