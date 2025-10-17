@@ -672,6 +672,43 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
+  Future<void> _updatePlaylist(String playlistId, String newName) async {
+    final appState = context.read<AppState>();
+    
+    try {
+      final success = await appState.renamePlaylist(playlistId, newName);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Playlist renamed to "$newName"'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Refresh the playlists list
+          appState.loadLibraryData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to rename playlist'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error renaming playlist: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showDeletePlaylistDialog(BuildContext context, dynamic playlist) {
     showDialog(
       context: context,
