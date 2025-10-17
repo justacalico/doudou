@@ -77,14 +77,25 @@ class AppState extends ChangeNotifier {
 
   // Helper method to get image URLs from the current media service
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+    if (kDebugMode) {
+      print('AppState.getImageUrl: itemId = $itemId, type = $type, width = $width, height = $height');
+    }
+    
     // If itemId is already a full URL (starts with http), return it as-is
     // This handles cases where Plex/Navidrome provide full URLs in imageUrl field
     if (itemId.startsWith('http://') || itemId.startsWith('https://')) {
+      if (kDebugMode) {
+        print('AppState.getImageUrl: Returning full URL as-is: $itemId');
+      }
       return itemId;
     }
     
     // Otherwise, construct the URL using the media service
-    return _mediaServiceManager.getImageUrl(itemId, type: type, width: width, height: height);
+    final result = _mediaServiceManager.getImageUrl(itemId, type: type, width: width, height: height);
+    if (kDebugMode) {
+      print('AppState.getImageUrl: Constructed URL: $result');
+    }
+    return result;
   }
 
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
