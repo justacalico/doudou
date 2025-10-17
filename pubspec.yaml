@@ -27,6 +27,9 @@ dependencies:
   # RxDart for streams
   rxdart: ^0.28.0
   
+  # URL launcher for opening downloads
+  url_launcher: ^6.3.1
+  
   # UI components
   cached_network_image: ^3.4.1
   
