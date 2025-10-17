@@ -139,6 +139,12 @@ class MediaServiceManager {
   /// Get current server configuration
   dynamic get currentServer => _currentService?.currentServer;
 
+  /// Toggle favorite status for a track
+  Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
+    if (_currentService == null) return false;
+    return await _currentService!.toggleFavorite(itemId, isFavorite);
+  }
+
   /// Clear authentication for the current service
   void clearAuth() {
     _currentService?.clearAuth();
