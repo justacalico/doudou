@@ -243,7 +243,7 @@ class TrackListTemplate extends StatelessWidget {
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: Image.network(
-                      appState.getImageUrl(track.imageUrl!)!
+                      appState.getImageUrl(track.imageUrl!),
                       width: 40,
                       height: 40,
                       fit: BoxFit.cover,
