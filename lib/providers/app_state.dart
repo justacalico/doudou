@@ -774,6 +774,7 @@ class AppState extends ChangeNotifier {
         }
         
         await _saveServerType(serverType);
+        await _saveServerCredentials(serverType, serverUrl, identifier, credential);
         await _saveServer();
         
         // Load library data
@@ -811,6 +812,50 @@ class AppState extends ChangeNotifier {
   Future<void> _saveServerType(String serverType) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('server_type', serverType);
+  }
+
+  Future<void> _saveServerCredentials(String serverType, String serverUrl, String identifier, String credential) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Save common server info
+    await prefs.setString('server_type', serverType);
+    await prefs.setString('server_url', serverUrl);
+    await prefs.setString('server_identifier', identifier);
+    await prefs.setString('server_credential', credential);
+    
+    if (kDebugMode) {
+      print('AppState: Saved server credentials for $serverType at $serverUrl');
+    }
+  }
+
+  Future<Map<String, String>?> _loadServerCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      final serverType = prefs.getString('server_type');
+      final serverUrl = prefs.getString('server_url');
+      final identifier = prefs.getString('server_identifier');
+      final credential = prefs.getString('server_credential');
+      
+      if (serverType != null && serverUrl != null && identifier != null && credential != null) {
+        return {
+          'serverType': serverType,
+          'serverUrl': serverUrl,
+          'identifier': identifier,
+          'credential': credential,
+        };
+      }
+      
+      if (kDebugMode) {
+        print('AppState: No complete server credentials found in storage');
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error loading server credentials: $e');
+      }
+      return null;
+    }
   }
 
   Future<void> logout() async {
