@@ -739,7 +739,6 @@ class NavidromeService implements BaseMediaService {
     }
   }
 
-  @override
   Future<bool> removePlaylist(String playlistId) async {
     try {
       final params = Map<String, dynamic>.from(_baseParams);
