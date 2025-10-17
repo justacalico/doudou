@@ -579,8 +579,15 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               
                                               final isFavorite = trackInState.isFavorite;
                                               
+                                              if (kDebugMode) {
+                                                print('Desktop Heart UI: currentTrack=${currentTrack.title}, isFavorite=$isFavorite, trackFound=${appState.tracks.any((t) => t.id == currentTrack.id)}');
+                                              }
+                                              
                                               return IconButton(
                                                 onPressed: () {
+                                                  if (kDebugMode) {
+                                                    print('Desktop Heart Button Clicked: Track=${trackInState.name}, Current isFavorite=${trackInState.isFavorite}');
+                                                  }
                                                   appState.toggleFavorite(trackInState);
                                                 },
                                                 icon: Icon(
