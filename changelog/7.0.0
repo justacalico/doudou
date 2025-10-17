@@ -38,4 +38,4 @@
 - Fixed local addresses often failing
 - Fixed clutter in debugging terminal
 - Fixed main album art using old Jellyfin code
-- Fixed switching qeues breaking the audio stream
+- Fixed switching queue breaking the audio stream
