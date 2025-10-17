@@ -146,27 +146,15 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
             const SizedBox(width: 8),
             // Favorite button
             IconButton(
-              onPressed: () async {
-                final appState = context.read<AppState>();
-                try {
-                  // Note: Albums don't typically have favorites in most services
-                  // This would need to be implemented based on your service's capabilities
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Album favorites not yet implemented'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to toggle favorite: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
+              onPressed: () {
+                // Note: Albums don't typically have favorites in most services
+                // This would need to be implemented based on your service's capabilities
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Album favorites not yet implemented'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
               },
               icon: Icon(
                 widget.album.isFavorite ? Icons.favorite : Icons.favorite_border,
