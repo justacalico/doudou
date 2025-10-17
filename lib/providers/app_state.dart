@@ -1975,7 +1975,7 @@ class AppState extends ChangeNotifier {
 
   Future<bool> removePlaylist(String playlistId) async {
     try {
-      final success = await _jellyfinService.removePlaylist(playlistId);
+      final success = await _mediaServiceManager.removePlaylist(playlistId);
       if (success) {
         // Remove the playlist from the local list
         _playlists.removeWhere((p) => p.id == playlistId);
