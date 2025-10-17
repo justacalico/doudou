@@ -171,6 +171,107 @@ class MediaServiceManager {
     _currentService?.clearAuth();
     _currentService = null;
   }
+
+  /// Service-specific playlist management methods (not in base interface)
+  Future<Playlist?> createPlaylist(String name) async {
+    // Dynamic dispatch based on service type
+    switch (_currentServerType) {
+      case ServerType.jellyfin:
+        if (_currentService is JellyfinServiceAdapter) {
+          final adapter = _currentService as JellyfinServiceAdapter;
+          return await adapter._jellyfinService.createPlaylist(name);
+        }
+        break;
+      case ServerType.navidrome:
+        if (_currentService is NavidromeService) {
+          final navidromeService = _currentService as NavidromeService;
+          return await navidromeService.createPlaylist(name);
+        }
+        break;
+      case ServerType.plex:
+        // Plex playlist creation could be implemented here
+        if (kDebugMode) {
+          print('Plex playlist creation not yet implemented');
+        }
+        break;
+    }
+    return null;
+  }
+
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    // Dynamic dispatch based on service type
+    switch (_currentServerType) {
+      case ServerType.jellyfin:
+        if (_currentService is JellyfinServiceAdapter) {
+          final adapter = _currentService as JellyfinServiceAdapter;
+          return await adapter._jellyfinService.addToPlaylist(playlistId, trackId);
+        }
+        break;
+      case ServerType.navidrome:
+        if (_currentService is NavidromeService) {
+          final navidromeService = _currentService as NavidromeService;
+          return await navidromeService.addToPlaylist(playlistId, trackId);
+        }
+        break;
+      case ServerType.plex:
+        // Plex add to playlist could be implemented here
+        if (kDebugMode) {
+          print('Plex add to playlist not yet implemented');
+        }
+        break;
+    }
+    return false;
+  }
+
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    // Dynamic dispatch based on service type
+    switch (_currentServerType) {
+      case ServerType.jellyfin:
+        if (_currentService is JellyfinServiceAdapter) {
+          final adapter = _currentService as JellyfinServiceAdapter;
+          return await adapter._jellyfinService.renamePlaylist(playlistId, newName);
+        }
+        break;
+      case ServerType.navidrome:
+        if (_currentService is NavidromeService) {
+          final navidromeService = _currentService as NavidromeService;
+          return await navidromeService.renamePlaylist(playlistId, newName);
+        }
+        break;
+      case ServerType.plex:
+        // Plex rename playlist could be implemented here
+        if (kDebugMode) {
+          print('Plex rename playlist not yet implemented');
+        }
+        break;
+    }
+    return false;
+  }
+
+  Future<bool> removePlaylist(String playlistId) async {
+    // Dynamic dispatch based on service type
+    switch (_currentServerType) {
+      case ServerType.jellyfin:
+        if (_currentService is JellyfinServiceAdapter) {
+          final adapter = _currentService as JellyfinServiceAdapter;
+          return await adapter._jellyfinService.removePlaylist(playlistId);
+        }
+        break;
+      case ServerType.navidrome:
+        if (_currentService is NavidromeService) {
+          final navidromeService = _currentService as NavidromeService;
+          return await navidromeService.removePlaylist(playlistId);
+        }
+        break;
+      case ServerType.plex:
+        // Plex remove playlist could be implemented here
+        if (kDebugMode) {
+          print('Plex remove playlist not yet implemented');
+        }
+        break;
+    }
+    return false;
+  }
 }
 
 /// Adapter to make JellyfinService compatible with BaseMediaService interface
