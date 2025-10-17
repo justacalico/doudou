@@ -722,13 +722,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Delete playlist
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Playlist "${playlist.name}" deleted'),
-                ),
-              );
+              _deletePlaylist(playlist.id, playlist.name);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
