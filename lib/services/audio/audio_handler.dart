@@ -2170,14 +2170,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('=== PLAYPLAYLIST DEBUG END ===');
     }
   }
-    
-    Future.microtask(() => _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex));
-    await _statePersistence.savePlaybackState(_player.position, _player.playing);
-    
-    if (kDebugMode) {
-      print('Playlist playback initiated: ${tracks.length} tracks, gapless: $_isUsingConcatenation');
-    }
-  }
 
   MediaItem _trackToMediaItem(Track track) {
     try {
