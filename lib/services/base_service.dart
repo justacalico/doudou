@@ -51,6 +51,9 @@ abstract class BaseMediaService {
   /// Get current server configuration
   dynamic get currentServer;
   
+  /// Toggle favorite status for a track
+  Future<bool> toggleFavorite(String itemId, bool isFavorite);
+  
   /// Clear authentication
   void clearAuth();
 }
