@@ -2090,19 +2090,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _setUserIntentAtomic(true);
     _logger.info('User intent set to playing', 'AudioHandler');
     
-    // Clear existing state - single track doesn't use concatenation
-    _logger.info('Stopping existing player', 'AudioHandler');
-    await _player.stop();
-    _preloader.clearAllPreloadedPlayers();
-    await _clearAudioSourceCache();
-    await _setConcatenationState(false, null);
-    _logger.info('Cleared existing player state and cache', 'AudioHandler');
-    
-    // Reset all transition states atomically
-    await _transitionManager.waitForTransitionComplete();
-    _stateManager.setHandlingCompletion(false);
-    _stateManager.setTransitioning(false);
-    _logger.info('Reset transition states', 'AudioHandler');
+    // CRITICAL FIX: Completely reset player state to prevent old queue from continuing
+    await _resetPlayerStateCompletely();
+    _logger.info('Completed player state reset', 'AudioHandler');
     
     _queueManager.setSingleTrack(track);
     _logger.info('Set single track in queue manager', 'AudioHandler');
