@@ -658,14 +658,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.isNotEmpty) {
-                // Update playlist
+              if (nameController.text.isNotEmpty && nameController.text.trim() != playlist.name) {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Playlist updated'),
-                  ),
-                );
+                _updatePlaylist(playlist.id, nameController.text.trim());
+              } else {
+                Navigator.of(context).pop();
               }
             },
             child: const Text('Save'),
