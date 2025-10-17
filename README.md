@@ -35,7 +35,6 @@ Version 7.0.0 introduces experimental support for Plex and Navidrome alongside o
 
 ### ⚠️ **Navidrome (Alpha)**
 - ❌ Audio playback not functional
-- ❌ Album artwork missing
 - ❌ Artist images unavailable
 - 🔍 *Status: Early implementation phase*
 
