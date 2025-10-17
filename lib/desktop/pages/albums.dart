@@ -730,7 +730,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     try {
       int successCount = 0;
       for (final track in tracks) {
-        final success = await appState.jellyfinService.addToPlaylist(playlistId, track.id);
+        final success = await appState.addToPlaylist(playlistId, track.id);
         if (success) successCount++;
       }
       
