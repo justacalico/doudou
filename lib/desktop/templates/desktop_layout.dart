@@ -554,6 +554,45 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
+                                          // Favorite button
+                                          Consumer<AppState>(
+                                            builder: (context, appState, child) {
+                                              final isFavorite = currentTrack != null ? 
+                                                appState.tracks.any((track) => track.id == currentTrack!.id && track.isFavorite) : false;
+                                              
+                                              return IconButton(
+                                                onPressed: currentTrack != null ? () {
+                                                  final track = appState.tracks.firstWhere(
+                                                    (t) => t.id == currentTrack!.id,
+                                                    orElse: () => Track(
+                                                      id: currentTrack!.id,
+                                                      name: currentTrack!.title ?? 'Unknown',
+                                                      albumName: currentTrack!.album,
+                                                      artistName: currentTrack!.artist,
+                                                      albumId: currentTrack!.extras?['albumId'] as String? ?? '',
+                                                      duration: currentTrack!.duration?.inSeconds ?? 0,
+                                                      trackNumber: null,
+                                                      imageUrl: null,
+                                                      isFavorite: false,
+                                                    ),
+                                                  );
+                                                  appState.toggleFavorite(track);
+                                                } : null,
+                                                icon: Icon(
+                                                  isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                                  size: 20,
+                                                ),
+                                                style: IconButton.styleFrom(
+                                                  foregroundColor: isFavorite ? Colors.red : theme.colorScheme.onSurfaceVariant,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                ),
+                                                tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(width: 8),
                                           StreamBuilder<double>(
                                             stream: audioHandler?.volumeStream,
                                             builder: (context, volumeSnapshot) {
