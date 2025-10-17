@@ -490,7 +490,7 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
                 case 'download':
                   // Download track by opening raw URL in browser
                   try {
-                    final streamUrl = appState.getStreamUrl(track.id);
+                    final streamUrl = appState.mediaServiceManager.getStreamUrl(track.id);
                     final uri = Uri.parse(streamUrl);
                     
                     if (await canLaunchUrl(uri)) {
