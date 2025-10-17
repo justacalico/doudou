@@ -349,95 +349,27 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
   }
 
   Widget _buildTrackList(ThemeData theme, AppState appState) {
-    if (_albumTracks.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.music_note_outlined,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No tracks found',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'This album appears to be empty or the tracks couldn\'t be loaded',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Column(
-        children: [
-          // Track list header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 40,
-                  child: Text(
-                    '#',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    'Title',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 80,
-                  child: Text(
-                    'Duration',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-                const SizedBox(width: 48), // Space for actions
-              ],
-            ),
-          ),
-          
-          const Divider(height: 1),
-          
-          // Track list
-          Expanded(
-            child: ListView.builder(
-              itemCount: _albumTracks.length,
-              itemBuilder: (context, index) {
-                final track = _albumTracks[index];
-                return _buildTrackItem(theme, appState, track, index + 1);
-              },
-            ),
-          ),
-        ],
-      ),
+    return TrackListTemplate(
+      tracks: _albumTracks,
+      emptyStateTitle: 'No tracks found',
+      emptyStateMessage: 'This album appears to be empty or the tracks couldn\'t be loaded',
+      showTrackNumber: true,
+      showArtist: false,
+      showAlbum: false,
+      showArtwork: false,
+      onTrackTap: (track, index) async {
+        if (kDebugMode) {
+          print('=== TRACK CLICKED ===');
+          print('Track: ${track.name}');
+          print('Track ID: ${track.id}');
+          print('Track number: ${index + 1}');
+          print('Album: ${widget.album.name}');
+        }
+        await appState.playPlaylist(_albumTracks, index);
+        if (kDebugMode) {
+          print('=== TRACK CLICK COMPLETED ===');
+        }
+      },
     );
   }
 
