@@ -715,4 +715,73 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       ),
     );
   }
+
+  void _downloadAlbum() async {
+    final appState = context.read<AppState>();
+    
+    if (_albumTracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No tracks to download'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Download Album'),
+        content: Text('Download all ${_albumTracks.length} tracks from "${widget.album.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    // Start downloading all tracks
+    int successCount = 0;
+    int failCount = 0;
+
+    for (final track in _albumTracks) {
+      try {
+        await appState.downloadService.downloadTrack(track);
+        successCount++;
+      } catch (e) {
+        failCount++;
+        if (kDebugMode) {
+          print('Failed to download track "${track.name}": $e');
+        }
+      }
+    }
+
+    if (mounted) {
+      if (failCount == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Started downloading all $successCount tracks from "${widget.album.name}"'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Downloaded $successCount tracks, $failCount failed from "${widget.album.name}"'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
 }
