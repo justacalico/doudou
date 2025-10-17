@@ -574,14 +574,15 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   duration: currentTrack.duration?.inSeconds ?? 0,
                                                   trackNumber: null,
                                                   imageUrl: null,
-                                                  isFavorite: false,
+                                                  isFavorite: false, // Default to false, will be updated after server response
                                                 ),
                                               );
                                               
                                               final isFavorite = trackInState.isFavorite;
+                                              final trackFound = appState.tracks.any((t) => t.id == currentTrack.id);
                                               
                                               if (kDebugMode) {
-                                                print('Desktop Heart UI: currentTrack=${currentTrack.title}, isFavorite=$isFavorite, trackFound=${appState.tracks.any((t) => t.id == currentTrack.id)}');
+                                                print('Desktop Heart UI: currentTrack=${currentTrack.title}, isFavorite=$isFavorite, trackFound=$trackFound, trackId=${currentTrack.id}');
                                               }
                                               
                                               return IconButton(
