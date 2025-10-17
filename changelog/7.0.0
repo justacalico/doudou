@@ -18,6 +18,7 @@
 - Logging is disabled by default and can be enabled in settings
 - Centeral logic for api requests.
 - Rewrote the jellyfin service.
+- Refactored most of the backend for desktop/mobile network connections.
 
 ## Removed
 
