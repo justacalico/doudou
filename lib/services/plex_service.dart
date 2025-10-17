@@ -578,12 +578,23 @@ class PlexService implements BaseMediaService {
       throw Exception('Server not configured');
     }
 
+    if (kDebugMode) {
+      print('PlexService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite');
+      print('Server URL: $_serverUrl');
+    }
+
     try {
       // Plex uses PUT method for toggling favorites
       // The endpoint is /library/metadata/{itemId}/favorite
       final method = isFavorite ? 'DELETE' : 'PUT';
+      final url = '$_serverUrl/library/metadata/$itemId/favorite';
+      
+      if (kDebugMode) {
+        print('Making $method request to: $url');
+      }
+      
       final response = await _dio.request(
-        '$_serverUrl/library/metadata/$itemId/favorite',
+        url,
         options: Options(
           method: method,
           headers: {
@@ -592,7 +603,13 @@ class PlexService implements BaseMediaService {
         ),
       );
 
-      return response.statusCode == 200;
+      final success = response.statusCode == 200;
+      
+      if (kDebugMode) {
+        print('Plex response: ${response.statusCode}, success: $success');
+      }
+
+      return success;
     } catch (e) {
       if (kDebugMode) {
         print('Error toggling favorite in Plex: $e');
