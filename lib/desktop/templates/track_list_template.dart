@@ -391,8 +391,8 @@ class TrackListTemplate extends StatelessWidget {
         break;
         
       case 'play_next':
-        // TODO: Implement play next functionality
-        _showSnackBar(context, 'Play Next not yet implemented', isError: true);
+        appState.addNextInQueue(track);
+        _showSnackBar(context, 'Added "${track.name}" to play next');
         break;
         
       case 'add_queue':
