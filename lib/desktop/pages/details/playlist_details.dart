@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../templates/desktop_layout.dart';
+import '../../templates/track_list_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 
