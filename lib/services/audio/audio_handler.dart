@@ -1993,7 +1993,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       Uri? artUri;
       if (track.imageUrl != null && track.imageUrl!.isNotEmpty) {
         try {
-          final imageUrl = _jellyfinService.getImageUrl(track.imageUrl!, width: 300, height: 300);
+          // Use MediaServiceManager if available, otherwise fall back to JellyfinService
+          final mediaServiceManager = _mediaServiceManager;
+          final imageUrl = mediaServiceManager != null 
+            ? mediaServiceManager.getImageUrl(track.imageUrl!, width: 300, height: 300)
+            : _jellyfinService.getImageUrl(track.imageUrl!, width: 300, height: 300);
           artUri = Uri.parse(imageUrl);
         } catch (e) {
           if (kDebugMode) {
