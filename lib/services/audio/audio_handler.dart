@@ -2681,14 +2681,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               
               return artistAlbums.map((album) {
                 try {
+                  // Use MediaServiceManager if available, otherwise fall back to JellyfinService
+                  final mediaServiceManager = _mediaServiceManager;
+                  final imageUrl = album.imageUrl != null 
+                    ? (mediaServiceManager != null 
+                        ? mediaServiceManager.getImageUrl(album.imageUrl!, width: 300, height: 300)
+                        : _jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
+                    : null;
+                  
                   return MediaItem(
                     id: 'album:${album.id}',
                     title: album.name,
                     album: album.name,
                     artist: album.artistName ?? 'Unknown Artist',
-                    artUri: album.imageUrl != null 
-                      ? Uri.parse(_jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
-                      : null,
+                    artUri: imageUrl != null ? Uri.parse(imageUrl) : null,
                     playable: true,
                     extras: {'browsable': true},
                   );
