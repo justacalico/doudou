@@ -1623,7 +1623,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> toggleFavorite(Track track) async {
     try {
-      final success = await _jellyfinService.toggleFavorite(track.id, track.isFavorite);
+      final success = await _mediaServiceManager.toggleFavorite(track.id, track.isFavorite);
       if (success) {
         // Update the track in the local list
         final index = _tracks.indexWhere((t) => t.id == track.id);
