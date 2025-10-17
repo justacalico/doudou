@@ -1952,11 +1952,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       processingState: AudioProcessingState.loading,
       queueIndex: _stateManager.currentIndex,
     ));
-    
-    if (kDebugMode) {
-      print('Updated playback state to loading with playing: true');
-    }
-    
     await _playCurrentTrack();
     
     if (kDebugMode) {
