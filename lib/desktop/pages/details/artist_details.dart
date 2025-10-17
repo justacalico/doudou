@@ -464,41 +464,11 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
   }
 
   Widget _buildSongsTab(ThemeData theme, AppState appState) {
-    if (_popularTracks.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.music_note_outlined,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No songs found',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'This artist doesn\'t have any songs yet',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Column(
-        children: [
-          // Header
-          Padding(
+    return Column(
+      children: [
+        // Header
+        Card(
+          child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
@@ -518,125 +488,30 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
               ],
             ),
           ),
-          
-          const Divider(height: 1),
-          
-          // Song list
-          Expanded(
-            child: ListView.builder(
-              itemCount: _popularTracks.length,
-              itemBuilder: (context, index) {
-                final track = _popularTracks[index];
-                return _buildTrackItem(theme, appState, track, index + 1);
-              },
-            ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Track list
+        Expanded(
+          child: TrackListTemplate(
+            tracks: _popularTracks,
+            emptyStateTitle: 'No songs found',
+            emptyStateMessage: 'This artist doesn\'t have any songs yet',
+            showTrackNumber: true,
+            showArtist: false,
+            showAlbum: true,
+            showArtwork: true,
+            onTrackTap: (track, index) async {
+              await appState.playPlaylist(_popularTracks, index);
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildTrackItem(ThemeData theme, AppState appState, Track track, int index) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: SizedBox(
-        width: 40,
-        child: Text(
-          index.toString(),
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ),
-      title: Row(
-        children: [
-          // Track artwork
-          Container(
-            width: 40,
-            height: 40,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: track.imageUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.network(
-                      _getImageUrl(appState, track.imageUrl)!,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.music_note,
-                          size: 20,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        );
-                      },
-                    ),
-                  )
-                : Icon(
-                    Icons.music_note,
-                    size: 20,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-          ),
-          
-          // Track info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  track.name,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (track.albumName != null)
-                  Text(
-                    track.albumName!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (track.duration != null)
-            Text(
-              _formatDuration(track.duration!),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: () {
-              // Play track
-            },
-            icon: const Icon(Icons.play_arrow),
-            iconSize: 20,
-          ),
-        ],
-      ),
-      onTap: () {
-        // Play track
-      },
-    );
-  }
+
 
   int _getTotalTracks() {
     return _popularTracks.length;
