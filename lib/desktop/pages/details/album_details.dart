@@ -524,14 +524,14 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
                 case 'favorite':
                   // Toggle favorite
                   try {
-                    await appState.toggleFavorite(track.id, !track.isFavorite);
+                    await appState.toggleFavorite(track);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             track.isFavorite 
-                              ? 'Removed "${track.name}" from favorites'
-                              : 'Added "${track.name}" to favorites'
+                              ? 'Added "${track.name}" to favorites'
+                              : 'Removed "${track.name}" from favorites'
                           ),
                           backgroundColor: Colors.green,
                         ),
