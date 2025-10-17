@@ -427,12 +427,18 @@ class TrackListTemplate extends StatelessWidget {
       
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-        _showSnackBar(context, 'Opening download for "${track.name}" in browser');
+        if (context.mounted) {
+          _showSnackBar(context, 'Opening download for "${track.name}" in browser');
+        }
       } else {
-        _showSnackBar(context, 'Cannot open download URL for "${track.name}"', isError: true);
+        if (context.mounted) {
+          _showSnackBar(context, 'Cannot open download URL for "${track.name}"', isError: true);
+        }
       }
     } catch (e) {
-      _showSnackBar(context, 'Failed to download "${track.name}": $e', isError: true);
+      if (context.mounted) {
+        _showSnackBar(context, 'Failed to download "${track.name}": $e', isError: true);
+      }
     }
   }
 
