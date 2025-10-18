@@ -355,18 +355,23 @@ Before submitting a merge request:
 ### Frequently Asked Questions
 
 <details>
-<summary><strong>Q: Can I use this with Plex or other media servers?</strong></summary>
-A: No, Doudou is specifically designed for Jellyfin servers. Each media server has different APIs and authentication methods.
+<summary><strong>Q: Which media servers are supported?</strong></summary>
+A: Doudou supports Jellyfin, Plex, and Navidrome servers. Each server type is auto-detected during setup, providing a seamless experience regardless of your choice.
 </details>
 
 <details>
 <summary><strong>Q: Does this work over the internet (remote access)?</strong></summary>
-A: Yes, as long as your Jellyfin server is accessible from your device's network. Consider using a VPN or properly configured reverse proxy for security.
+A: Yes, as long as your media server is accessible from your device's network. Consider using a VPN or properly configured reverse proxy for security.
 </details>
 
 <details>
 <summary><strong>Q: Why can't I see all my music?</strong></summary>
-A: Check your Jellyfin server's library scanning and user permissions. The user account must have access to music libraries.
+A: Check your server's library scanning and user permissions. The user account must have access to music libraries. For Plex users, ensure your Plex Pass includes music features.
+</details>
+
+<details>
+<summary><strong>Q: Does the desktop version look different?</strong></summary>
+A: Yes! Desktop platforms (macOS, Linux, Windows) automatically get an enhanced interface optimized for larger screens with improved navigation and layout.
 </details>
 
 <details>
