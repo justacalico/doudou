@@ -219,7 +219,6 @@ make generate-keystore  # One-time setup
 make setup-signing      # Configure environment
 source setup-signing.sh # Load signing credentials  
 make android-signed     # Signed APK
-make android-bundle     # Play Store bundle
 ```
 
 #### iOS & macOS
@@ -239,7 +238,7 @@ make windows   # Windows installer
 
 ### Android Release Signing
 
-For Google Play Store and production releases:
+For production releases:
 
 ```bash
 # 1. Generate signing keystore (one-time setup)
