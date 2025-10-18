@@ -292,7 +292,7 @@ make android-bundle    # App Bundle for Play Store
 #### Android
 | Permission | Purpose | Required |
 |------------|---------|----------|
-| `INTERNET` | Connect to Jellyfin server | Yes |
+| `INTERNET` | Connect to media server | Yes |
 | `ACCESS_NETWORK_STATE` | Check connectivity status | Yes |
 | `WAKE_LOCK` | Background audio playback | Yes |
 | `FOREGROUND_SERVICE` | Media notification controls | Yes |
