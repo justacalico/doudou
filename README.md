@@ -63,9 +63,11 @@ Doudou now supports multiple media server platforms, making it your go-to music 
 
 ### 📱 **Platform Features**
 - **Cross-Platform** - Android, iOS, macOS, Linux, Windows support
+- **Adaptive Desktop UI** - Optimized interface for larger screens on desktop platforms
 - **Background Playback** - Music continues while using other apps
 - **Media Controls** - Lock screen, notification, and system media controls
 - **Android Auto & CarPlay** - Safe driving integration *(Android Auto ready, CarPlay coming soon hopefully)*
+- **Native Desktop Experience** - Full-featured desktop interface with enhanced navigation and layout
 
 ### 🎧 **Audio Features**
 - **Multiple Audio Formats** - MP3, FLAC, AAC, OGG, M4A, and more
