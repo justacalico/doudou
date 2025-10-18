@@ -1,6 +1,6 @@
-# 🎵 Doudou - Jellyfin Music Player
+# 🎵 Doudou - Universal Media Server Music Player
 
-A beautiful, privacy-focused music player for your personal Jellyfin media server. Enjoy your self-hosted music collection with a modern, intuitive interface across all your devices.
+A beautiful, privacy-focused music player for your personal media server. Supports Jellyfin, Plex, and Navidrome with a modern, intuitive interface across all your devices. Features adaptive desktop UI for an enhanced experience on larger screens.
 
 <div align="center">
 
