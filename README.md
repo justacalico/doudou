@@ -384,7 +384,9 @@ A: Long-press any track, album, or playlist and select "Download for offline lis
 This project wouldn't be possible without these amazing open-source projects:
 
 ### Core Technologies
-- **[Jellyfin](https://jellyfin.org/)** - The free software media system that powers our backend
+- **[Jellyfin](https://jellyfin.org/)** - Free software media system
+- **[Plex](https://plex.tv/)** - Popular media server platform  
+- **[Navidrome](https://navidrome.org/)** - Modern music server and streamer
 - **[Flutter](https://flutter.dev/)** - Google's UI toolkit for building natively compiled applications
 - **[Dart](https://dart.dev/)** - The programming language optimized for apps on multiple platforms
 
