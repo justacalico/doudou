@@ -255,7 +255,6 @@ source setup-signing.sh
 
 # 5. Build signed release
 make android-signed    # Signed APK
-make android-bundle    # App Bundle for Play Store
 ```
 
 #### Required Environment Variables
