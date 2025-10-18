@@ -78,14 +78,17 @@ Doudou now supports multiple media server platforms, making it your go-to music 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Jellyfin Server** version 10.8 or newer
+- **Media Server** - One of the following:
+  - **Jellyfin Server** version 10.8 or newer *(recommended)*
+  - **Plex Media Server** with Plex Pass *(for music features)*
+  - **Navidrome Server** version 0.48 or newer
 - **Device Requirements:**
   - Android 5.0+ (API level 21)
   - iOS 12.0+
   - macOS 10.15+
   - Linux (various distributions)
   - Windows 10+ *(community tested)*
-- Network connection to your Jellyfin server
+- Network connection to your media server
 
 ### Installation
 
