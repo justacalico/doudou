@@ -135,11 +135,15 @@ flutter build windows          # Windows executable
 ### Quick Setup
 1. **Install** Doudou on your device
 2. **Launch** the app and tap "Add Server"
-3. **Enter** your Jellyfin server URL (e.g., `http://192.168.1.100:8096`)
-4. **Login** with your Jellyfin username and password
-5. **Enjoy** your music collection!
+3. **Choose** your server type (Jellyfin, Plex, or Navidrome)
+4. **Enter** your server URL (e.g., `http://192.168.1.100:8096`)
+5. **Login** with your username and password
+6. **Enjoy** your music collection with an interface optimized for your device!
 
-> **💡 Tip:** Make sure your Jellyfin server is accessible from your device's network. For remote access, consider setting up a VPN or reverse proxy.
+> **💡 Tips:** 
+> - Make sure your media server is accessible from your device's network
+> - Desktop users will automatically get the enhanced desktop interface
+> - For remote access, consider setting up a VPN or reverse proxy
 
 ## 🔒 Privacy & Security
 
