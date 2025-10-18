@@ -299,7 +299,7 @@ make android-bundle    # App Bundle for Play Store
 | `FOREGROUND_SERVICE_MEDIA_PLAYBOOK` | Audio service (Android 14+) | Yes |
 
 #### iOS & macOS
-- **Network Access** - Connect to Jellyfin server
+- **Network Access** - Connect to media server
 - **Background Audio** - Continue playback when app is backgrounded
 - **Media Controls** - Lock screen and control center integration
 
