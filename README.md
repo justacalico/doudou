@@ -267,13 +267,7 @@ make android-signed    # Signed APK
 
 > **🔐 Security:** Signing files and passwords are automatically excluded from version control via `.gitignore`.
 
-## 📱 Store Information
-
-### Google Play Store
-- **Status:** Preparing for launch
-- **Target:** Q4 2024
-- **Content Rating:** Everyone
-- **Category:** Music & Audio
+## 📱 Distribution
 
 > **📱 iOS Users:** While we don't distribute through the App Store, you can build the app from source using Xcode. See the development section for instructions.
 
