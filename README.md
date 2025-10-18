@@ -347,11 +347,10 @@ Before submitting a merge request:
 - 📧 **Direct Contact:** [Email Support](mailto:support@openlyst.com)
 - 📖 **Documentation:** [Project Wiki](https://gitlab.com/Openlyst/doudou/-/wikis/home)
 
-### Jellyfin Community
-- 🌐 **Jellyfin Website:** [jellyfin.org](https://jellyfin.org/)
-- 💬 **Community Forum:** [forum.jellyfin.org](https://forum.jellyfin.org/)
-- 💭 **Discord Chat:** [Official Jellyfin Discord](https://discord.gg/zHBxVSXdBV)
-- 📱 **Mobile Apps:** [Third-party clients](https://jellyfin.org/clients/)
+### Media Server Communities
+- 🌐 **Jellyfin:** [jellyfin.org](https://jellyfin.org/) | [Forum](https://forum.jellyfin.org/) | [Discord](https://discord.gg/zHBxVSXdBV)
+- 🌐 **Plex:** [plex.tv](https://plex.tv/) | [Community](https://forums.plex.tv/) | [Reddit](https://reddit.com/r/PleX)
+- 🌐 **Navidrome:** [navidrome.org](https://navidrome.org/) | [GitHub](https://github.com/navidrome/navidrome) | [Discord](https://discord.gg/xh7j7yF)
 
 ### Frequently Asked Questions
 
