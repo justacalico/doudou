@@ -401,7 +401,7 @@ This project wouldn't be possible without these amazing open-source projects:
 - **[shared_preferences](https://pub.dev/packages/shared_preferences)** - Persistent key-value storage
 
 ### Community & Inspiration
-- **Jellyfin Community** - For creating an amazing self-hosted media ecosystem
+- **Media Server Communities** - Jellyfin, Plex, and Navidrome for creating amazing self-hosted media ecosystems
 - **Flutter Community** - For continuous improvements and plugins
 - **Open Source Contributors** - Everyone who makes privacy-respecting software possible
 
