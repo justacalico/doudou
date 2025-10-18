@@ -194,7 +194,7 @@ flutter run --release  # Performance testing
 ```
 doudou/
 ├── lib/
-│   ├── models/          # Data models (Jellyfin API)
+│   ├── models/          # Data models (Server APIs)
 │   ├── providers/       # State management
 │   ├── screens/         # UI screens
 │   ├── services/        # Business logic
