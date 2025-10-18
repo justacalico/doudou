@@ -166,7 +166,7 @@ All application data remains on your device:
 
 ### **Network Communications**
 Doudou only communicates with:
-- Your Jellyfin server (music streaming and metadata)
+- Your media server (music streaming and metadata)
 - No other external services or APIs
 
 > **🛡️ Your Music, Your Rules:** Complete control over your music library and listening data.
