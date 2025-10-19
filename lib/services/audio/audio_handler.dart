@@ -880,16 +880,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
   }
 
-  /// Build concatenating audio source from playlist
-  Future<ConcatenatingAudioSource?> _buildConcatenatingSource(List<Track> tracks) async {
+  /// Build concatenating audio source from playlist with intelligent track limiting
+  Future<ConcatenatingAudioSource?> _buildConcatenatingSource(List<Track> tracks, [int? startIndex]) async {
     if (tracks.isEmpty) return null;
+
+    final currentIndex = startIndex ?? _stateManager.currentIndex;
+    final maxTracksToPreload = Platform.isAndroid || Platform.isIOS ? 5 : 10; // Limit on mobile
+    
+    // Calculate range of tracks to preload (current + next few tracks for gapless)
+    final startTrackIndex = currentIndex;
+    final endTrackIndex = (currentIndex + maxTracksToPreload).clamp(0, tracks.length - 1);
+    
+    if (kDebugMode) {
+      print('Building concatenating source: tracks ${startTrackIndex} to ${endTrackIndex} (${endTrackIndex - startTrackIndex + 1} tracks)');
+    }
 
     final audioSources = <AudioSource>[];
     
-    for (final track in tracks) {
+    // Only create sources for the limited range of tracks
+    for (int i = startTrackIndex; i <= endTrackIndex; i++) {
+      final track = tracks[i];
       final audioSource = await _createAudioSource(track);
       if (audioSource != null) {
         audioSources.add(audioSource);
+        if (kDebugMode) {
+          print('Added track ${i - startTrackIndex} to concatenating source: ${track.name}');
+        }
       } else {
         // If we can't create a source for a track, fall back to individual playback
         if (kDebugMode) {
