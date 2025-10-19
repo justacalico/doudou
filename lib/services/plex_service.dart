@@ -16,29 +16,30 @@ class PlexService implements BaseMediaService {
 
   PlexService() {
     _dio = Dio();
-    
+
     // Configure timeouts
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     _dio.options.sendTimeout = const Duration(seconds: 30);
-    
+
     // Set default headers for JSON responses
     _dio.options.headers['Accept'] = 'application/json';
     _dio.options.headers['X-Plex-Client-Identifier'] = 'doudou-flutter';
     _dio.options.headers['X-Plex-Product'] = 'Doudou';
     _dio.options.headers['X-Plex-Version'] = '1.0.0';
-    
+
     // Platform-specific configurations
     if (Platform.isLinux) {
-      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
-        client.badCertificateCallback = (cert, host, port) {
-          if (kDebugMode) {
-            print('Warning: Accepting bad certificate for $host:$port');
-          }
-          return true;
-        };
-        return client;
-      };
+      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
+          (client) {
+            client.badCertificateCallback = (cert, host, port) {
+              if (kDebugMode) {
+                print('Warning: Accepting bad certificate for $host:$port');
+              }
+              return true;
+            };
+            return client;
+          };
     }
   }
 
@@ -54,40 +55,46 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  Future<bool> authenticate(String serverUrl, String identifier, String credential) async {
+  Future<bool> authenticate(
+    String serverUrl,
+    String identifier,
+    String credential,
+  ) async {
     try {
-      _serverUrl = serverUrl.endsWith('/') ? serverUrl.substring(0, serverUrl.length - 1) : serverUrl;
+      _serverUrl = serverUrl.endsWith('/')
+          ? serverUrl.substring(0, serverUrl.length - 1)
+          : serverUrl;
       _token = credential; // For Plex, credential is the X-Plex-Token
-      
+
       if (kDebugMode) {
         print('Plex: Attempting authentication to $_serverUrl with token');
       }
-      
+
       // Try to get server info using the root endpoint
       final response = await _dio.get(
         '$_serverUrl/',
         queryParameters: {'X-Plex-Token': _token},
-        options: Options(
-          headers: {
-            'Accept': 'application/json',
-          },
-        ),
+        options: Options(headers: {'Accept': 'application/json'}),
       );
-      
+
       if (kDebugMode) {
         print('Plex auth response status: ${response.statusCode}');
         print('Plex auth response data: ${response.data}');
       }
-      
+
       if (response.statusCode == 200) {
         // Try to parse the response data
         if (response.data is Map && response.data['MediaContainer'] != null) {
-          _machineIdentifier = response.data['MediaContainer']['machineIdentifier'];
+          _machineIdentifier =
+              response.data['MediaContainer']['machineIdentifier'];
           if (kDebugMode) {
-            print('Plex: Authentication successful. Machine ID: $_machineIdentifier');
+            print(
+              'Plex: Authentication successful. Machine ID: $_machineIdentifier',
+            );
           }
           return true;
-        } else if (response.data is String && response.data.contains('MediaContainer')) {
+        } else if (response.data is String &&
+            response.data.contains('MediaContainer')) {
           // If we get XML response, consider it successful for now
           if (kDebugMode) {
             print('Plex: Authentication successful (XML response)');
@@ -95,7 +102,7 @@ class PlexService implements BaseMediaService {
           return true;
         }
       }
-      
+
       return false;
     } catch (e) {
       if (kDebugMode) {
@@ -107,28 +114,27 @@ class PlexService implements BaseMediaService {
 
   @override
   void setServer(String serverUrl) {
-    _serverUrl = serverUrl.endsWith('/') ? serverUrl.substring(0, serverUrl.length - 1) : serverUrl;
+    _serverUrl = serverUrl.endsWith('/')
+        ? serverUrl.substring(0, serverUrl.length - 1)
+        : serverUrl;
   }
 
   @override
   Future<bool> validateCredentials() async {
     if (_serverUrl == null || _token == null) return false;
-    
+
     try {
       final response = await _dio.get(
         '$_serverUrl/',
         queryParameters: {'X-Plex-Token': _token},
-        options: Options(
-          headers: {
-            'Accept': 'application/json',
-          },
-        ),
+        options: Options(headers: {'Accept': 'application/json'}),
       );
-      
+
       if (response.statusCode == 200) {
         if (response.data is Map && response.data['MediaContainer'] != null) {
           return true;
-        } else if (response.data is String && response.data.contains('MediaContainer')) {
+        } else if (response.data is String &&
+            response.data.contains('MediaContainer')) {
           return true;
         }
       }
@@ -148,16 +154,20 @@ class PlexService implements BaseMediaService {
         '$_serverUrl/library/sections',
         queryParameters: {'X-Plex-Token': _token},
       );
-      
+
       final sections = response.data['MediaContainer']['Directory'] as List;
       return sections
-          .where((section) => section['type'] == 'artist') // Only music libraries
-          .map((section) => Library(
-                id: section['key'].toString(),
-                name: section['title'],
-                collectionType: 'music',
-                imageUrl: null,
-              ))
+          .where(
+            (section) => section['type'] == 'artist',
+          ) // Only music libraries
+          .map(
+            (section) => Library(
+              id: section['key'].toString(),
+              name: section['title'],
+              collectionType: 'music',
+              imageUrl: null,
+            ),
+          )
           .toList();
     } catch (e) {
       if (kDebugMode) {
@@ -168,10 +178,14 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Album>> getAlbums({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     try {
       List<Album> allAlbums = [];
-      
+
       if (libraryId != null) {
         // Get albums from specific library
         final response = await _dio.get(
@@ -180,18 +194,30 @@ class PlexService implements BaseMediaService {
             'X-Plex-Token': _token,
             'type': '9', // Album type in Plex
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
-        
-        final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
-        allAlbums.addAll(albums.map((album) => Album(
-          id: album['ratingKey'].toString(),
-          name: album['title'],
-          artistName: album['parentTitle'] ?? 'Unknown Artist',
-          year: album['year'] is int ? album['year'] : (int.tryParse(album['year']?.toString() ?? '0') ?? 0),
-          imageUrl: album['thumb'] != null ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token' : null,
-        )).toList());
+
+        final albums =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allAlbums.addAll(
+          albums
+              .map(
+                (album) => Album(
+                  id: album['ratingKey'].toString(),
+                  name: album['title'],
+                  artistName: album['parentTitle'] ?? 'Unknown Artist',
+                  year: album['year'] is int
+                      ? album['year']
+                      : (int.tryParse(album['year']?.toString() ?? '0') ?? 0),
+                  imageUrl: album['thumb'] != null
+                      ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token'
+                      : null,
+                ),
+              )
+              .toList(),
+        );
       } else {
         // Get all music libraries first, then get albums from each
         final libraries = await getLibraries();
@@ -203,22 +229,35 @@ class PlexService implements BaseMediaService {
                 'X-Plex-Token': _token,
                 'type': '9', // Album type in Plex
                 if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-                if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+                if (startIndex != null)
+                  'X-Plex-Container-Start': startIndex.toString(),
               },
             );
-            
-            final albums = response.data['MediaContainer']['Metadata'] as List? ?? [];
-            allAlbums.addAll(albums.map((album) => Album(
-              id: album['ratingKey'].toString(),
-              name: album['title'],
-              artistName: album['parentTitle'] ?? 'Unknown Artist',
-              year: album['year'] is int ? album['year'] : (int.tryParse(album['year']?.toString() ?? '0') ?? 0),
-              imageUrl: album['thumb'] != null ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token' : null,
-            )).toList());
+
+            final albums =
+                response.data['MediaContainer']['Metadata'] as List? ?? [];
+            allAlbums.addAll(
+              albums
+                  .map(
+                    (album) => Album(
+                      id: album['ratingKey'].toString(),
+                      name: album['title'],
+                      artistName: album['parentTitle'] ?? 'Unknown Artist',
+                      year: album['year'] is int
+                          ? album['year']
+                          : (int.tryParse(album['year']?.toString() ?? '0') ??
+                                0),
+                      imageUrl: album['thumb'] != null
+                          ? '$_serverUrl${album['thumb']}?X-Plex-Token=$_token'
+                          : null,
+                    ),
+                  )
+                  .toList(),
+            );
           }
         }
       }
-      
+
       return allAlbums;
     } catch (e) {
       if (kDebugMode) {
@@ -229,10 +268,14 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Artist>> getArtists({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     try {
       List<Artist> allArtists = [];
-      
+
       if (libraryId != null) {
         // Get artists from specific library
         final response = await _dio.get(
@@ -241,16 +284,26 @@ class PlexService implements BaseMediaService {
             'X-Plex-Token': _token,
             'type': '8', // Artist type in Plex
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
-        
-        final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
-        allArtists.addAll(artists.map((artist) => Artist(
-          id: artist['ratingKey'].toString(),
-          name: artist['title'],
-          imageUrl: artist['thumb'] != null ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token' : null,
-        )).toList());
+
+        final artists =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allArtists.addAll(
+          artists
+              .map(
+                (artist) => Artist(
+                  id: artist['ratingKey'].toString(),
+                  name: artist['title'],
+                  imageUrl: artist['thumb'] != null
+                      ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token'
+                      : null,
+                ),
+              )
+              .toList(),
+        );
       } else {
         // Get all music libraries first, then get artists from each
         final libraries = await getLibraries();
@@ -262,20 +315,30 @@ class PlexService implements BaseMediaService {
                 'X-Plex-Token': _token,
                 'type': '8', // Artist type in Plex
                 if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-                if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+                if (startIndex != null)
+                  'X-Plex-Container-Start': startIndex.toString(),
               },
             );
-            
-            final artists = response.data['MediaContainer']['Metadata'] as List? ?? [];
-            allArtists.addAll(artists.map((artist) => Artist(
-              id: artist['ratingKey'].toString(),
-              name: artist['title'],
-              imageUrl: artist['thumb'] != null ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token' : null,
-            )).toList());
+
+            final artists =
+                response.data['MediaContainer']['Metadata'] as List? ?? [];
+            allArtists.addAll(
+              artists
+                  .map(
+                    (artist) => Artist(
+                      id: artist['ratingKey'].toString(),
+                      name: artist['title'],
+                      imageUrl: artist['thumb'] != null
+                          ? '$_serverUrl${artist['thumb']}?X-Plex-Token=$_token'
+                          : null,
+                    ),
+                  )
+                  .toList(),
+            );
           }
         }
       }
-      
+
       return allArtists;
     } catch (e) {
       if (kDebugMode) {
@@ -286,10 +349,15 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
+  Future<List<Track>> getTracks({
+    String? libraryId,
+    String? parentId,
+    int? limit,
+    int? startIndex,
+  }) async {
     try {
       List<Track> allTracks = [];
-      
+
       if (parentId != null) {
         // Get tracks from specific album
         final response = await _dio.get(
@@ -297,20 +365,32 @@ class PlexService implements BaseMediaService {
           queryParameters: {
             'X-Plex-Token': _token,
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
-        
-        final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
-        allTracks.addAll(tracks.map((track) => Track(
-          id: track['ratingKey'].toString(),
-          name: track['title'],
-          artistName: track['grandparentTitle'] ?? 'Unknown Artist',
-          albumName: track['parentTitle'] ?? 'Unknown Album',
-          duration: _parseDuration(track['duration']),
-          trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-          imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
-        )).toList());
+
+        final tracks =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allTracks.addAll(
+          tracks
+              .map(
+                (track) => Track(
+                  id: track['ratingKey'].toString(),
+                  name: track['title'],
+                  artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+                  albumName: track['parentTitle'] ?? 'Unknown Album',
+                  duration: _parseDuration(track['duration']),
+                  trackNumber: track['index'] is int
+                      ? track['index']
+                      : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+                  imageUrl: track['thumb'] != null
+                      ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
+                      : null,
+                ),
+              )
+              .toList(),
+        );
       } else if (libraryId != null) {
         // Get tracks from specific library
         final response = await _dio.get(
@@ -319,20 +399,32 @@ class PlexService implements BaseMediaService {
             'X-Plex-Token': _token,
             'type': '10', // Track type in Plex
             if (limit != null) 'X-Plex-Container-Size': limit.toString(),
-            if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+            if (startIndex != null)
+              'X-Plex-Container-Start': startIndex.toString(),
           },
         );
-        
-        final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
-        allTracks.addAll(tracks.map((track) => Track(
-          id: track['ratingKey'].toString(),
-          name: track['title'],
-          artistName: track['grandparentTitle'] ?? 'Unknown Artist',
-          albumName: track['parentTitle'] ?? 'Unknown Album',
-          duration: _parseDuration(track['duration']),
-          trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-          imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
-        )).toList());
+
+        final tracks =
+            response.data['MediaContainer']['Metadata'] as List? ?? [];
+        allTracks.addAll(
+          tracks
+              .map(
+                (track) => Track(
+                  id: track['ratingKey'].toString(),
+                  name: track['title'],
+                  artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+                  albumName: track['parentTitle'] ?? 'Unknown Album',
+                  duration: _parseDuration(track['duration']),
+                  trackNumber: track['index'] is int
+                      ? track['index']
+                      : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+                  imageUrl: track['thumb'] != null
+                      ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
+                      : null,
+                ),
+              )
+              .toList(),
+        );
       } else {
         // Get all music libraries first, then get tracks from each (with limit to avoid too many results)
         final libraries = await getLibraries();
@@ -343,25 +435,39 @@ class PlexService implements BaseMediaService {
               queryParameters: {
                 'X-Plex-Token': _token,
                 'type': '10', // Track type in Plex
-                'X-Plex-Container-Size': (limit ?? 100).toString(), // Default limit to prevent huge responses
-                if (startIndex != null) 'X-Plex-Container-Start': startIndex.toString(),
+                'X-Plex-Container-Size': (limit ?? 100)
+                    .toString(), // Default limit to prevent huge responses
+                if (startIndex != null)
+                  'X-Plex-Container-Start': startIndex.toString(),
               },
             );
-            
-            final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
-            allTracks.addAll(tracks.map((track) => Track(
-              id: track['ratingKey'].toString(),
-              name: track['title'],
-              artistName: track['grandparentTitle'] ?? 'Unknown Artist',
-              albumName: track['parentTitle'] ?? 'Unknown Album',
-              duration: _parseDuration(track['duration']),
-              trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-              imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
-            )).toList());
+
+            final tracks =
+                response.data['MediaContainer']['Metadata'] as List? ?? [];
+            allTracks.addAll(
+              tracks
+                  .map(
+                    (track) => Track(
+                      id: track['ratingKey'].toString(),
+                      name: track['title'],
+                      artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+                      albumName: track['parentTitle'] ?? 'Unknown Album',
+                      duration: _parseDuration(track['duration']),
+                      trackNumber: track['index'] is int
+                          ? track['index']
+                          : (int.tryParse(track['index']?.toString() ?? '0') ??
+                                0),
+                      imageUrl: track['thumb'] != null
+                          ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
+                          : null,
+                    ),
+                  )
+                  .toList(),
+            );
           }
         }
       }
-      
+
       return allTracks;
     } catch (e) {
       if (kDebugMode) {
@@ -376,19 +482,23 @@ class PlexService implements BaseMediaService {
     try {
       final response = await _dio.get(
         '$_serverUrl/playlists',
-        queryParameters: {
-          'X-Plex-Token': _token,
-          'playlistType': 'audio',
-        },
+        queryParameters: {'X-Plex-Token': _token, 'playlistType': 'audio'},
       );
-      
-      final playlists = response.data['MediaContainer']['Metadata'] as List? ?? [];
-      return playlists.map((playlist) => Playlist(
-        id: playlist['ratingKey'].toString(),
-        name: playlist['title'],
-        imageUrl: playlist['composite'] != null ? '$_serverUrl${playlist['composite']}?X-Plex-Token=$_token' : null,
-        trackCount: playlist['leafCount'] ?? 0,
-      )).toList();
+
+      final playlists =
+          response.data['MediaContainer']['Metadata'] as List? ?? [];
+      return playlists
+          .map(
+            (playlist) => Playlist(
+              id: playlist['ratingKey'].toString(),
+              name: playlist['title'],
+              imageUrl: playlist['composite'] != null
+                  ? '$_serverUrl${playlist['composite']}?X-Plex-Token=$_token'
+                  : null,
+              trackCount: playlist['leafCount'] ?? 0,
+            ),
+          )
+          .toList();
     } catch (e) {
       if (kDebugMode) {
         print('Error getting Plex playlists: $e');
@@ -404,17 +514,25 @@ class PlexService implements BaseMediaService {
         '$_serverUrl/playlists/$playlistId/items',
         queryParameters: {'X-Plex-Token': _token},
       );
-      
+
       final tracks = response.data['MediaContainer']['Metadata'] as List? ?? [];
-      return tracks.map((track) => Track(
-        id: track['ratingKey'].toString(),
-        name: track['title'],
-        artistName: track['grandparentTitle'] ?? 'Unknown Artist',
-        albumName: track['parentTitle'] ?? 'Unknown Album',
-        duration: _parseDuration(track['duration']),
-        trackNumber: track['index'] is int ? track['index'] : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
-        imageUrl: track['thumb'] != null ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token' : null,
-      )).toList();
+      return tracks
+          .map(
+            (track) => Track(
+              id: track['ratingKey'].toString(),
+              name: track['title'],
+              artistName: track['grandparentTitle'] ?? 'Unknown Artist',
+              albumName: track['parentTitle'] ?? 'Unknown Album',
+              duration: _parseDuration(track['duration']),
+              trackNumber: track['index'] is int
+                  ? track['index']
+                  : (int.tryParse(track['index']?.toString() ?? '0') ?? 0),
+              imageUrl: track['thumb'] != null
+                  ? '$_serverUrl${track['thumb']}?X-Plex-Token=$_token'
+                  : null,
+            ),
+          )
+          .toList();
     } catch (e) {
       if (kDebugMode) {
         print('Error getting Plex playlist tracks: $e');
@@ -422,7 +540,6 @@ class PlexService implements BaseMediaService {
       return [];
     }
   }
-
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
@@ -438,17 +555,20 @@ class PlexService implements BaseMediaService {
   }
 
   /// Get transcoded stream URL with specific format and bitrate (deprecated approach)
-  String getTranscodedStreamUrl(String trackId, {String format = 'mp3', int? bitrate}) {
-    final params = <String, String>{
-      'X-Plex-Token': _token!,
-      'format': format,
-    };
-    
+  String getTranscodedStreamUrl(
+    String trackId, {
+    String format = 'mp3',
+    int? bitrate,
+  }) {
+    final params = <String, String>{'X-Plex-Token': _token!, 'format': format};
+
     if (bitrate != null) {
       params['audioBitrate'] = bitrate.toString();
     }
-    
-    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+
+    final queryString = params.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
     return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
@@ -460,6 +580,7 @@ class PlexService implements BaseMediaService {
 
   /// Get direct part file URL (requires part ID from track metadata)
   String getDirectPartUrl(String partId) {
+    // Matches working Bash script
     return '$_serverUrl/library/parts/$partId/file.mp3?X-Plex-Token=$_token';
   }
 
@@ -472,16 +593,25 @@ class PlexService implements BaseMediaService {
   List<String> getAlternativeStreamUrls(String trackId) {
     // Return multiple Plex stream URL formats for fallback (in order of reliability)
     return [
-      getUniversalStreamUrl(trackId, bitrate: 192), // Universal transcode (most reliable)
-      getDownloadUrl(trackId),                      // Download endpoint
+      getUniversalStreamUrl(
+        trackId,
+        bitrate: 192,
+      ), // Universal transcode (most reliable)
+      getDownloadUrl(trackId), // Download endpoint
       getUniversalStreamUrl(trackId, bitrate: 128), // Lower bitrate universal
       // Note: Direct part URLs would go here if we had part IDs
     ];
   }
 
   @override
-  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
-    String url = '$_serverUrl/library/metadata/$itemId/thumb?X-Plex-Token=$_token';
+  String getImageUrl(
+    String itemId, {
+    String type = 'Primary',
+    int? width,
+    int? height,
+  }) {
+    String url =
+        '$_serverUrl/library/metadata/$itemId/thumb?X-Plex-Token=$_token';
     if (width != null && height != null) {
       url += '&width=$width&height=$height';
     }
@@ -489,7 +619,11 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
+  Future<SearchResults> search(
+    String query, {
+    List<String>? includeItemTypes,
+    int? limit,
+  }) async {
     try {
       final response = await _dio.get(
         '$_serverUrl/search',
@@ -499,45 +633,58 @@ class PlexService implements BaseMediaService {
           if (limit != null) 'limit': limit.toString(),
         },
       );
-      
-      final results = response.data['MediaContainer']['Metadata'] as List? ?? [];
-      
+
+      final results =
+          response.data['MediaContainer']['Metadata'] as List? ?? [];
+
       final albums = <Album>[];
       final artists = <Artist>[];
       final tracks = <Track>[];
-      
+
       for (final item in results) {
         switch (item['type']) {
           case 'album':
-            albums.add(Album(
-              id: item['ratingKey'].toString(),
-              name: item['title'],
-              artistName: item['parentTitle'] ?? 'Unknown Artist',
-              year: item['year'],
-              imageUrl: item['thumb'] != null ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token' : null,
-            ));
+            albums.add(
+              Album(
+                id: item['ratingKey'].toString(),
+                name: item['title'],
+                artistName: item['parentTitle'] ?? 'Unknown Artist',
+                year: item['year'],
+                imageUrl: item['thumb'] != null
+                    ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token'
+                    : null,
+              ),
+            );
             break;
           case 'artist':
-            artists.add(Artist(
-              id: item['ratingKey'].toString(),
-              name: item['title'],
-              imageUrl: item['thumb'] != null ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token' : null,
-            ));
+            artists.add(
+              Artist(
+                id: item['ratingKey'].toString(),
+                name: item['title'],
+                imageUrl: item['thumb'] != null
+                    ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token'
+                    : null,
+              ),
+            );
             break;
           case 'track':
-            tracks.add(Track(
-              id: item['ratingKey'].toString(),
-              name: item['title'],
-              artistName: item['grandparentTitle'] ?? 'Unknown Artist',
-              albumName: item['parentTitle'] ?? 'Unknown Album',
-              duration: (item['duration'] ?? 0) ~/ 1000,
-              trackNumber: item['index'],
-              imageUrl: item['thumb'] != null ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token' : null,
-            ));
+            tracks.add(
+              Track(
+                id: item['ratingKey'].toString(),
+                name: item['title'],
+                artistName: item['grandparentTitle'] ?? 'Unknown Artist',
+                albumName: item['parentTitle'] ?? 'Unknown Album',
+                duration: (item['duration'] ?? 0) ~/ 1000,
+                trackNumber: item['index'],
+                imageUrl: item['thumb'] != null
+                    ? '$_serverUrl${item['thumb']}?X-Plex-Token=$_token'
+                    : null,
+              ),
+            );
             break;
         }
       }
-      
+
       return SearchResults(albums: albums, artists: artists, tracks: tracks);
     } catch (e) {
       if (kDebugMode) {
@@ -554,7 +701,7 @@ class PlexService implements BaseMediaService {
         '$_serverUrl/',
         queryParameters: {'X-Plex-Token': _token},
       );
-      
+
       final container = response.data['MediaContainer'];
       return ServerInfo(
         name: container['friendlyName'] ?? 'Plex Server',
@@ -593,7 +740,9 @@ class PlexService implements BaseMediaService {
     }
 
     if (kDebugMode) {
-      print('PlexService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite');
+      print(
+        'PlexService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite',
+      );
       print('Server URL: $_serverUrl');
     }
 
@@ -602,23 +751,18 @@ class PlexService implements BaseMediaService {
       // The endpoint is /library/metadata/{itemId}/favorite
       final method = isFavorite ? 'DELETE' : 'PUT';
       final url = '$_serverUrl/library/metadata/$itemId/favorite';
-      
+
       if (kDebugMode) {
         print('Making $method request to: $url');
       }
-      
+
       final response = await _dio.request(
         url,
-        options: Options(
-          method: method,
-          headers: {
-            'X-Plex-Token': _token,
-          },
-        ),
+        options: Options(method: method, headers: {'X-Plex-Token': _token}),
       );
 
       final success = response.statusCode == 200;
-      
+
       if (kDebugMode) {
         print('Plex response: ${response.statusCode}, success: $success');
       }
