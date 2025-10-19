@@ -1744,8 +1744,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       
-      // Build concatenating source for entire playlist
-      final concatenatingSource = await _buildConcatenatingSource(_stateManager.playlist);
+      // Build concatenating source for current track and next few tracks
+      final concatenatingSource = await _buildConcatenatingSource(_stateManager.playlist, _stateManager.currentIndex);
       
       if (concatenatingSource != null) {
         if (kDebugMode) {
