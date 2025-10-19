@@ -425,16 +425,18 @@ class PlexService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    // Use direct media URL for Plex streaming
-    return '$_serverUrl/library/metadata/$trackId/file?X-Plex-Token=$_token';
+    // Use universal transcode URL as primary method - this is the most reliable for Plex
+    return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
   }
 
-  /// Get direct stream URL (no transcoding) - attempts direct file access
+  /// Get direct stream URL using the part-based approach (requires part ID lookup)
   String getDirectStreamUrl(String trackId) {
+    // Note: This will need to be called with part ID, not track ID
+    // For now, return a placeholder - should be: /library/parts/{partId}/file.mp3
     return '$_serverUrl/library/metadata/$trackId/file?X-Plex-Token=$_token';
   }
 
-  /// Get transcoded stream URL with specific format and bitrate
+  /// Get transcoded stream URL with specific format and bitrate (deprecated approach)
   String getTranscodedStreamUrl(String trackId, {String format = 'mp3', int? bitrate}) {
     final params = <String, String>{
       'X-Plex-Token': _token!,
@@ -449,19 +451,30 @@ class PlexService implements BaseMediaService {
     return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
-  /// Get universal stream URL using Plex's universal endpoint  
-  String getUniversalStreamUrl(String trackId) {
-    return '$_serverUrl/library/metadata/$trackId/file?X-Plex-Token=$_token';
+  /// Get universal stream URL using Plex's universal transcode endpoint (WORKING METHOD)
+  String getUniversalStreamUrl(String trackId, {int? bitrate}) {
+    final audioBitrate = bitrate ?? 192;
+    return '$_serverUrl/audio/:/transcode/universal/start.mp3?path=/library/metadata/$trackId&mediaIndex=0&partIndex=0&protocol=http&directPlay=0&directStream=0&audioBitrate=$audioBitrate&X-Plex-Token=$_token';
+  }
+
+  /// Get direct part file URL (requires part ID from track metadata)
+  String getDirectPartUrl(String partId) {
+    return '$_serverUrl/library/parts/$partId/file.mp3?X-Plex-Token=$_token';
+  }
+
+  /// Get download URL
+  String getDownloadUrl(String trackId) {
+    return '$_serverUrl/library/metadata/$trackId/download?X-Plex-Token=$_token';
   }
 
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
-    // Return multiple Plex stream URL formats for fallback
+    // Return multiple Plex stream URL formats for fallback (in order of reliability)
     return [
-      getStreamUrl(trackId),                    // Primary direct file URL
-      getTranscodedStreamUrl(trackId, format: 'mp3', bitrate: 320), // High quality MP3
-      getTranscodedStreamUrl(trackId, format: 'mp3', bitrate: 128), // Lower bitrate fallback
-      getUniversalStreamUrl(trackId),          // Universal endpoint
+      getUniversalStreamUrl(trackId, bitrate: 192), // Universal transcode (most reliable)
+      getDownloadUrl(trackId),                      // Download endpoint
+      getUniversalStreamUrl(trackId, bitrate: 128), // Lower bitrate universal
+      // Note: Direct part URLs would go here if we had part IDs
     ];
   }
 
