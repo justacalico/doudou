@@ -596,16 +596,12 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  List<String> getAlternativeStreamUrls(String trackId) {
-    // Return multiple Plex stream URL formats for fallback (in order of reliability)
+  List<String> getAlternativeStreamUrls(String trackId, {String? partId}) {
     return [
-      getUniversalStreamUrl(
-        trackId,
-        bitrate: 192,
-      ), // Universal transcode (most reliable)
-      getDownloadUrl(trackId), // Download endpoint
-      getUniversalStreamUrl(trackId, bitrate: 128), // Lower bitrate universal
-      // Note: Direct part URLs would go here if we had part IDs
+      getUniversalStreamUrl(trackId, bitrate: 192),
+      if (partId != null) getDirectStreamUrl(partId),
+      getDownloadUrl(trackId),
+      getUniversalStreamUrl(trackId, bitrate: 128), // lower bitrate fallback
     ];
   }
 
