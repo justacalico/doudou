@@ -880,32 +880,48 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
   }
 
-  /// Build concatenating audio source from playlist with intelligent track limiting
+  /// Build concatenating audio source with smart preloading
   Future<ConcatenatingAudioSource?> _buildConcatenatingSource(List<Track> tracks, [int? startIndex]) async {
     if (tracks.isEmpty) return null;
 
     final currentIndex = startIndex ?? _stateManager.currentIndex;
-    final maxTracksToPreload = Platform.isAndroid || Platform.isIOS ? 5 : 10; // Limit on mobile
-    
-    // Calculate range of tracks to preload (current + next few tracks for gapless)
-    final startTrackIndex = currentIndex;
-    final endTrackIndex = (currentIndex + maxTracksToPreload).clamp(0, tracks.length - 1);
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+    final maxTracksToPreload = isMobile ? 3 : 10; // Much more conservative on mobile
     
     if (kDebugMode) {
-      print('Building concatenating source: tracks ${startTrackIndex} to ${endTrackIndex} (${endTrackIndex - startTrackIndex + 1} tracks)');
+      print('Building concatenating source for ${tracks.length} tracks, starting at index $currentIndex');
+      print('Mobile device: $isMobile, will preload max $maxTracksToPreload tracks');
     }
 
     final audioSources = <AudioSource>[];
     
-    // Only create sources for the limited range of tracks
-    for (int i = startTrackIndex; i <= endTrackIndex; i++) {
+    // For mobile: Create full structure but only preload nearby tracks
+    // For desktop: Create all tracks (existing behavior)
+    for (int i = 0; i < tracks.length; i++) {
       final track = tracks[i];
-      final audioSource = await _createAudioSource(track);
+      final shouldPreload = !isMobile || (i >= currentIndex && i < currentIndex + maxTracksToPreload);
+      
+      AudioSource? audioSource;
+      if (shouldPreload) {
+        // Actually create and probe the audio source
+        audioSource = await _createAudioSource(track);
+        if (kDebugMode) {
+          print('Preloaded track $i: ${track.name}');
+        }
+      } else {
+        // Create a placeholder that will be loaded on-demand
+        // Use a simple URI source that will be replaced when needed
+        final streamUrl = _mediaServiceManager?.getStreamUrl(track.id) ?? '';
+        if (streamUrl.isNotEmpty) {
+          audioSource = AudioSource.uri(Uri.parse(streamUrl));
+          if (kDebugMode) {
+            print('Created placeholder for track $i: ${track.name}');
+          }
+        }
+      }
+      
       if (audioSource != null) {
         audioSources.add(audioSource);
-        if (kDebugMode) {
-          print('Added track ${i - startTrackIndex} to concatenating source: ${track.name}');
-        }
       } else {
         // If we can't create a source for a track, fall back to individual playback
         if (kDebugMode) {
