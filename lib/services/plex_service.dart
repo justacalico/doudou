@@ -575,7 +575,15 @@ class PlexService implements BaseMediaService {
   /// Get universal stream URL using Plex's universal transcode endpoint (WORKING METHOD)
   String getUniversalStreamUrl(String trackId, {int? bitrate}) {
     final audioBitrate = bitrate ?? 192;
-    return '$_serverUrl/audio/:/transcode/universal/start.mp3?path=/library/metadata/$trackId&mediaIndex=0&partIndex=0&protocol=http&directPlay=0&directStream=0&audioBitrate=$audioBitrate&X-Plex-Token=$_token';
+    return '$_serverUrl/audio/:/transcode/universal/start.mp3'
+        '?path=/library/metadata/$trackId'
+        '&mediaIndex=0'
+        '&partIndex=0'
+        '&protocol=http'
+        '&directPlay=0'
+        '&directStream=0'
+        '&audioBitrate=$audioBitrate'
+        '&X-Plex-Token=$_token';
   }
 
   /// Get direct part file URL (requires part ID from track metadata)
