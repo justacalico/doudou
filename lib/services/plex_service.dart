@@ -547,11 +547,9 @@ class PlexService implements BaseMediaService {
     return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
   }
 
-  /// Get direct stream URL using the part-based approach (requires part ID lookup)
-  String getDirectStreamUrl(String trackId) {
-    // Note: This will need to be called with part ID, not track ID
-    // For now, return a placeholder - should be: /library/parts/{partId}/file.mp3
-    return '$_serverUrl/library/metadata/$trackId/file?X-Plex-Token=$_token';
+  /// Direct stream fallback (if you happen to have partId)
+  String getDirectStreamUrl(String partId) {
+    return getDirectPartUrl(partId);
   }
 
   /// Get transcoded stream URL with specific format and bitrate (deprecated approach)
