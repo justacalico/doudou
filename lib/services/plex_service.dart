@@ -423,6 +423,30 @@ class PlexService implements BaseMediaService {
     }
   }
 
+  /// Helper method to get part ID from track metadata (for future direct streaming improvement)
+  Future<String?> _getPartId(String trackId) async {
+    try {
+      final response = await _dio.get(
+        '$_serverUrl/library/metadata/$trackId',
+        queryParameters: {'X-Plex-Token': _token},
+      );
+      
+      final metadata = response.data['MediaContainer']['Metadata']?[0];
+      final parts = metadata?['Media']?[0]?['Part'];
+      
+      if (parts is List && parts.isNotEmpty) {
+        return parts[0]['id']?.toString();
+      } else if (parts is Map) {
+        return parts['id']?.toString();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting part ID for track $trackId: $e');
+      }
+    }
+    return null;
+  }
+
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
     // Use universal transcode URL as primary method - this is the most reliable for Plex
