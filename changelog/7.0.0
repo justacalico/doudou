@@ -24,6 +24,7 @@
 - Refactored most of the backend for desktop/mobile network connections
 - Refactored the Jellyfin favorite song functionality\
 - Refactored now_playing to use app_state for favorites
+- Refactored plex service for generated url's.
 
 ## Removed
 
