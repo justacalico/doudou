@@ -1021,6 +1021,12 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
+    // Jellyfin doesn't need async metadata fetching, return sync version
+    return getAlternativeStreamUrls(trackId);
+  }
+
+  @override
   void clearAuth() {
     _server = null;
     _dio.options.headers.remove('X-Emby-Token');
