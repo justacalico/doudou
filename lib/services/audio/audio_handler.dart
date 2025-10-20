@@ -86,6 +86,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Completion handling protection
   bool _completionHandlingLocked = false;
   
+  // Track loading protection to prevent concurrent loads causing "Loading interrupted"
+  bool _trackLoadingLocked = false;
+  
   // Generic operation lock method
   Future<T> _withLock<T>(String lockName, Future<T> Function() operation) async {
     // Busy wait for lock (simple spinlock with yield)
@@ -147,6 +150,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           await Future.delayed(const Duration(microseconds: 100));
           continue;
+        case 'trackLoading':
+          if (!_trackLoadingLocked) {
+            _trackLoadingLocked = true;
+            break;
+          }
+          await Future.delayed(const Duration(microseconds: 100));
+          continue;
         default:
           throw ArgumentError('Unknown lock: $lockName');
       }
@@ -181,6 +191,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           break;
         case 'completionHandling':
           _completionHandlingLocked = false;
+          break;
+        case 'trackLoading':
+          _trackLoadingLocked = false;
           break;
       }
     }
@@ -248,9 +261,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _resetPlayerStateCompletely() async {
     _logger.info('Completely resetting player state', 'AudioHandler');
     
-    // Stop player first
+    // Stop player first and wait for it to fully stop
     try {
       await _player.stop();
+      
+      // Wait for player to fully stop and release all resources
+      await Future.delayed(const Duration(milliseconds: 200));
+      
       _logger.info('Player stopped successfully', 'AudioHandler');
     } catch (e) {
       _logger.warning('Error stopping player: $e', 'AudioHandler');
@@ -266,8 +283,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
     
-    // Small delay to ensure everything is cleared
-    await Future.delayed(const Duration(milliseconds: 100));
+    // Additional delay to ensure all audio sources are properly released
+    await Future.delayed(const Duration(milliseconds: 300));
     
     _logger.info('Player state reset completed', 'AudioHandler');
   }
@@ -761,17 +778,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  /// Create audio source for a track with caching
+  /// Create audio source for a track with fresh source creation to avoid stale URLs
   Future<AudioSource?> _createAudioSource(Track track) async {
     return await _withLock('audioSourceCache', () async {
-      // Check cache first
-      if (_audioSourceCache.containsKey(track.id)) {
-        if (kDebugMode) {
-          print('Using cached audio source for: ${track.name}');
-        }
-        return _audioSourceCache[track.id]!;
-      }
-
       try {
         // Try local file first
         final localFilePath = _downloadService.getLocalFilePath(track.id);
@@ -779,7 +788,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           final localFile = File(localFilePath);
           if (await localFile.exists()) {
             final source = AudioSource.file(localFilePath);
-            _audioSourceCache[track.id] = source;
             if (kDebugMode) {
               print('Created local file audio source for: ${track.name}');
             }
@@ -790,7 +798,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Check preloaded audio source first (for gapless)
         final preloadedSource = _preloader.getPreloadedAudioSource(track.id);
         if (preloadedSource != null) {
-          _audioSourceCache[track.id] = preloadedSource;
           if (kDebugMode) {
             print('Using preloaded audio source for: ${track.name}');
           }
@@ -842,12 +849,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         for (final streamUrl in streamUrls) {
           if (streamUrl.isEmpty) continue;
           try {
-            final ok = await _probeUrl(streamUrl);
-            if (!ok) {
-              if (kDebugMode) print('Skipping unreachable stream URL: $streamUrl');
-              continue;
-            }
-
+            // Create fresh audio source without caching to avoid stale URLs
             AudioSource source;
             if (_shouldTranscodeTrack(track)) {
               final hlsUrl = _getHlsStreamUrl(track);
@@ -858,14 +860,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               source = AudioSource.uri(Uri.parse(streamUrl));
             }
 
-            _audioSourceCache[track.id] = source;
             if (kDebugMode) {
-              print('Created stream audio source for: ${track.name}');
+              print('Created fresh stream audio source for: ${track.name}');
             }
             return source;
           } catch (e) {
             if (kDebugMode) {
-              print('Error while probing/creating source for $streamUrl: $e');
+              print('Error creating source for $streamUrl: $e');
             }
             continue;
           }
@@ -1742,14 +1743,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Cleared concatenation state before player stop');
         }
         
-        // Stop player completely
+        // Stop player completely and wait for full stop
         await _player.stop();
-        if (kDebugMode) {
-          print('Stopped player before setting new concatenating source');
-        }
-        
-        // Give the player a moment to fully stop and release resources
-        await Future.delayed(const Duration(milliseconds: 150));
+        await Future.delayed(const Duration(milliseconds: 300));
         
         if (kDebugMode) {
           print('Player stopped and cleared, proceeding with new concatenating source');
@@ -1768,45 +1764,52 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Built concatenating source with ${concatenatingSource.children.length} tracks');
         }
         
-        // Set the concatenating source with current index
-        await _player.setAudioSource(
-          concatenatingSource, 
-          initialIndex: _stateManager.currentIndex,
-        );
-        
-        if (kDebugMode) {
-          print('Successfully set new concatenating source');
-        }
-        
-        // Store references for gapless operations atomically AFTER successful setAudioSource
-        await _setConcatenationState(true, concatenatingSource);
-        
-        // Resume playing if user intended it
-        final userIntent = await _getUserIntentAtomic();
-        if (userIntent) {
-          await _player.play();
+        try {
+          // Set the concatenating source with current index
+          await _player.setAudioSource(
+            concatenatingSource, 
+            initialIndex: _stateManager.currentIndex,
+          );
+          
           if (kDebugMode) {
-            print('Started playing new concatenating source');
+            print('Successfully set new concatenating source');
           }
+          
+          // Store references for gapless operations atomically AFTER successful setAudioSource
+          await _setConcatenationState(true, concatenatingSource);
+          
+          // Resume playing if user intended it
+          final userIntent = await _getUserIntentAtomic();
+          if (userIntent) {
+            await _player.play();
+            if (kDebugMode) {
+              print('Started playing new concatenating source');
+            }
+          }
+          
+          // Update playback state
+          _updatePlaybackState(playbackState.value.copyWith(
+            processingState: AudioProcessingState.ready,
+            playing: userIntent,
+            queueIndex: _stateManager.currentIndex,
+          ));
+          
+          // Start preloading for upcoming tracks
+          Future.microtask(() {
+            _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
+          });
+          
+          return true;
+        } catch (e) {
+          _logger.error('Failed to set concatenating source: $e', 'AudioHandler');
+          if (kDebugMode) {
+            print('Failed to set concatenating source: $e');
+          }
+          rethrow; // Re-throw to trigger fallback
         }
-        
-        // Update playback state
-        // Use user intent directly instead of checking _player.playing
-        // because the player state might not be updated immediately after play() call
-        _updatePlaybackState(playbackState.value.copyWith(
-          processingState: AudioProcessingState.ready,
-          playing: userIntent,
-          queueIndex: _stateManager.currentIndex,
-        ));
-        
-        // Start preloading for upcoming tracks
-        Future.microtask(() {
-          _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
-        });
-        
-        return true;
       }
     } catch (e) {
+      _logger.warning('Gapless playback setup failed, will fall back to individual: $e', 'AudioHandler');
       if (kDebugMode) {
         print('Failed to set up gapless playback, falling back to individual: $e');
       }
@@ -1855,10 +1858,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track, bool shouldPlay) async {
-    _logger.info('Loading track: ${track.name}, shouldPlay: $shouldPlay', 'AudioHandler');
-    if (kDebugMode) {
-      print('Loading track: ${track.name}, should play: $shouldPlay');
-    }
+    return await _withLock('trackLoading', () async {
+      _logger.info('Loading track: ${track.name}, shouldPlay: $shouldPlay', 'AudioHandler');
+      if (kDebugMode) {
+        print('Loading track: ${track.name}, should play: $shouldPlay');
+      }
     
     // Activate audio session before loading (iOS specific)
     try {
@@ -2051,6 +2055,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Track: ${track.name} (ID: ${track.id})');
           }
           
+          // Add small delay before setting URL to prevent interruption issues
+          await Future.delayed(const Duration(milliseconds: 100));
+          
           if (_shouldTranscodeTrack(track)) {
             final hlsUrl = _getHlsStreamUrl(track);
             if (hlsUrl.isNotEmpty) {
@@ -2077,13 +2084,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             }
           }
           
-          // Platform-specific delays for stream initialization and buffering
+          // Extended platform-specific delays for better stream loading stability
           if (Platform.isIOS) {
-            await Future.delayed(const Duration(milliseconds: 800)); // Longer delay for iOS
+            await Future.delayed(const Duration(milliseconds: 1000)); // Extended delay for iOS
           } else if (Platform.isMacOS) {
-            await Future.delayed(const Duration(milliseconds: 500)); // Medium delay for macOS
+            await Future.delayed(const Duration(milliseconds: 800)); // Extended delay for macOS  
           } else {
-            await Future.delayed(const Duration(milliseconds: 200)); // Shorter for Android
+            await Future.delayed(const Duration(milliseconds: 400)); // Extended for Android
           }
           
           if (shouldPlay) {
@@ -2130,6 +2137,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('=== STREAM LOAD FAILED END ===');
         }
         
+        // Special handling for "Loading interrupted" errors - give a longer recovery delay
+        final errorString = e.toString().toLowerCase();
+        if (errorString.contains('loading interrupted') || errorString.contains('interrupted')) {
+          _logger.info('Loading interrupted detected, adding recovery delay', 'AudioHandler');
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        
         // Platform-specific URL retry logic
         if ((Platform.isIOS || Platform.isMacOS) && i < streamUrls.length - 1) {
           _logger.info('Trying next stream URL...', 'AudioHandler');
@@ -2158,6 +2172,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         playing: false,
       ));
     }
+    });
   }
 
   // Custom methods for the app
