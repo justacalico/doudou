@@ -219,25 +219,19 @@ Thanks to the media server and Flutter communities for making self-hosted music 
 
 ## 📄 License
 
-This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for complete details.
+GPL-3.0 License - see [LICENSE](LICENSE) for details.
 
-### What this means:
-- ✅ **Free to use** for personal and commercial purposes
-- ✅ **Free to modify** and distribute
-- ✅ **Source code** must remain available
-- ✅ **Derivative works** must use the same license
-- ❌ **No warranty** or liability provided
+- ✅ Free to use, modify, and distribute
+- ✅ Source code must remain available
+- ❌ No warranty provided
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for the Jellyfin community**
-
-*Self-hosted music, beautifully presented*
+**Made with ❤️ for self-hosted music**
 
 [![GitLab](https://img.shields.io/badge/GitLab-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/Openlyst/doudou)
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
-[![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?style=for-the-badge&logo=jellyfin&logoColor=white)](https://jellyfin.org)
 
 </div>
