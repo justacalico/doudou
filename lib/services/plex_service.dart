@@ -663,16 +663,26 @@ class PlexService implements BaseMediaService {
     // Fetch part ID for best quality streaming
     final partId = await _getTrackPartId(trackId);
     
-    return [
-      // Method 3 from bash - most reliable if we have part ID (DIRECT FILE ACCESS)
-      if (partId != null) getDirectPartUrl(partId),
-      // Method 2 - Universal transcode (high quality)
+    final urls = <String>[];
+    
+    // Method 3 from bash - most reliable if we have part ID (DIRECT FILE ACCESS)
+    if (partId != null) {
+      urls.add(getDirectPartUrl(partId));
+      if (kDebugMode) {
+        print('Plex: Using direct file URL with part ID: $partId');
+      }
+    }
+    
+    // Method 2 - Universal transcode fallbacks
+    urls.addAll([
       getUniversalStreamUrl(trackId, bitrate: 192),
-      // Method 2 - Universal transcode (standard quality)
       getUniversalStreamUrl(trackId, bitrate: 128),
-      // Method 4 - Download URL as final fallback
-      getDownloadUrl(trackId),
-    ];
+    ]);
+    
+    // Method 4 - Download URL as final fallback
+    urls.add(getDownloadUrl(trackId));
+    
+    return urls;
   }
 
   @override
