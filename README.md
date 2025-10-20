@@ -94,6 +94,11 @@ Doudou now supports multiple media server platforms, making it your go-to music 
 
 #### 🎯 **Package Managers (Recommended)**
 
+**Android - RepStore**
+1. Install [RepStore](https://gitlab.com/HttpAnimations/repstore) on your Android device
+2. Search for "Doudou" in RepStore
+3. Install directly - no additional repositories needed (Openlyst apps supported by default)
+
 **macOS - Homebrew**
 ```bash
 # Add the tap
@@ -108,7 +113,7 @@ brew install --cask doudou
 2. Add the Openlyst repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json?ref_type=heads`
 3. Install Doudou directly from the repository
 
-> **📦 More Platforms Coming Soon:** Android, Linux, and Windows package manager distributions coming Soon!
+> **📦 More Platforms Coming Soon:** Linux and Windows package manager distributions are in development!
 
 #### 📦 **Stable Releases**
 **For stable, tested builds, please see [releases](releases.md) for download links and installation instructions.**
