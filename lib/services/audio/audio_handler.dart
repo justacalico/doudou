@@ -1957,8 +1957,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Add alternative URLs from service
       try {
-        final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
-        streamUrls.addAll(altUrls);
+        // For Plex, use async version to get part IDs for better URLs
+        if (serverType.toString().contains('plex')) {
+          final altUrls = await mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
+          streamUrls.addAll(altUrls);
+        } else {
+          final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
+          streamUrls.addAll(altUrls);
+        }
         
         if (serverType.toString().contains('navidrome')) {
           // For Navidrome, try different endpoints
