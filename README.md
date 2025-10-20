@@ -169,39 +169,21 @@ make android-signed    # Signed APK
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Whether it's bug fixes, new features, translations, or documentation improvements.
+Contributions welcome! Help improve Doudou with:
+- 🐛 Bug reports and feature requests
+- 💻 Code improvements and new features
+- 🌍 Translations to your language
+- 📚 Documentation improvements
+- 🧪 Testing on different platforms
 
-### Ways to Contribute
-- 🐛 **Report bugs** and suggest features via Issues
-- 💻 **Submit code** improvements and new features  
-- 🌍 **Translate** the app to your language
-- 📚 **Improve documentation** and help guides
-- 🎨 **Design** UI/UX improvements and icons
-- 🧪 **Test** on different devices and platforms
+### Workflow
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Make changes with clear commits
+4. Test thoroughly
+5. Submit merge request
 
-### Development Workflow
-1. **Fork** the repository on GitLab
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Make** your changes with clear commit messages
-4. **Test** your changes thoroughly
-5. **Submit** a merge request with a detailed description
-
-### Code Guidelines
-- Follow [Dart style guide](https://dart.dev/guides/language/effective-dart/style)
-- Add comments for complex logic
-- Write tests for new features
-- Ensure cross-platform compatibility
-- Update documentation as needed
-
-### Testing Checklist
-Before submitting a merge request:
-- ✅ App builds successfully on target platforms
-- ✅ No new lint warnings or errors
-- ✅ Core functionality works (login, playback, navigation)
-- ✅ No performance regressions
-- ✅ Responsive design on different screen sizes
-
-> **💡 First time contributor?** Look for issues labeled `good first issue` to get started!
+Follow [Dart style guide](https://dart.dev/guides/language/effective-dart/style) and ensure cross-platform compatibility.
 
 ## � Support & Community
 
