@@ -55,41 +55,26 @@ A beautiful, privacy-focused music player for your personal media server. Stream
 
 ### Installation
 
-#### 🎯 **Package Managers (Recommended)**
+#### Package Managers
 
 **Android - RepStore**
-1. Install [RepStore](https://gitlab.com/HttpAnimations/repstore) on your Android device
-2. Search for "Doudou" in RepStore
-3. Install directly - no additional repositories needed (Openlyst apps supported by default)
+1. Install [RepStore](https://gitlab.com/HttpAnimations/repstore)
+2. Search for "Doudou" and install
 
 **macOS - Homebrew**
 ```bash
-# Add the tap
 brew tap Openlyst/macos https://gitlab.com/Openlyst/repos/homebrew/macos.git
-
-# Install Doudou
 brew install --cask doudou
 ```
 
 **iOS - AltStore**
-1. Install [AltStore](https://altstore.io/) on your iOS device
-2. Add the Openlyst repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json?ref_type=heads`
-3. Install Doudou directly from the repository
+1. Install [AltStore](https://altstore.io/)
+2. Add repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json`
+3. Install Doudou
 
-> **📦 More Platforms Coming Soon:** Linux and Windows package manager distributions are in development!
-
-#### 📦 **Stable Releases**
-**For stable, tested builds, please see [releases](releases.md) for download links and installation instructions.**
-
-#### 🚧 **Pre-Release Builds**
-If you want the latest features and don't mind potential bugs, you can get pre-release builds from GitLab:
-**[Download Pre-Release →](https://gitlab.com/Openlyst/doudou/-/releases)**
-
-Available pre-release formats:
-- **Android APK** - Install on Android devices
-- **Linux builds** - Desktop application for Linux
-- **Web application** - Run in your browser
-- **Source code** - Build for Windows, macOS, and iOS
+#### Direct Downloads
+- **Stable releases**: See [releases](releases.md)
+- **Latest builds**: [GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)
 
 #### Build from Source
 ```bash
