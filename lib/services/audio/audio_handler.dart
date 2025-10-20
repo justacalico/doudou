@@ -1949,22 +1949,39 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final serverType = mediaServiceManager.currentServerType;
       _logger.debug('Using MediaServiceManager for ${serverType.toString()} service', 'AudioHandler');
       
-      // Add primary stream URL
-      final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
-      if (primaryUrl.isNotEmpty) {
-        streamUrls.add(primaryUrl);
-      }
-      
-      // Add alternative URLs from service
-      try {
-        // For Plex, use async version to get part IDs for better URLs
-        if (serverType.toString().contains('plex')) {
+      // For Plex, use async alternative URLs with part IDs (skip broken primary URL)
+      // For other services, add primary URL first then alternatives
+      if (serverType.toString().contains('plex')) {
+        // Skip primary URL for Plex - use async alternatives with part IDs
+        try {
           final altUrls = await mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
           streamUrls.addAll(altUrls);
-        } else {
+        } catch (e) {
+          _logger.warning('Failed to get Plex async URLs: $e', 'AudioHandler');
+          // Fallback to primary if async fails
+          final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
+          if (primaryUrl.isNotEmpty) {
+            streamUrls.add(primaryUrl);
+          }
+        }
+      } else {
+        // For non-Plex services, add primary URL first
+        final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
+        if (primaryUrl.isNotEmpty) {
+          streamUrls.add(primaryUrl);
+        }
+        
+        // Add alternative URLs from service
+        try {
           final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
           streamUrls.addAll(altUrls);
+        } catch (e) {
+          _logger.warning('Failed to get alternative URLs: $e', 'AudioHandler');
         }
+      }
+      
+      // Add service-specific URL variations
+      try {
         
         if (serverType.toString().contains('navidrome')) {
           // For Navidrome, try different endpoints
