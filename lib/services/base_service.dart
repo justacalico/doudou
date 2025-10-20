@@ -39,6 +39,9 @@ abstract class BaseMediaService {
   /// Get alternative stream URLs for fallback (optional implementation)
   List<String> getAlternativeStreamUrls(String trackId) => [];
   
+  /// Get alternative stream URLs with async metadata fetching for better URLs (optional implementation)
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async => getAlternativeStreamUrls(trackId);
+  
   /// Get image URL for an item
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height});
   
