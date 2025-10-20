@@ -1980,11 +1980,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       
-      // Add service-specific URL variations
-      try {
-        
-        if (serverType.toString().contains('navidrome')) {
-          // For Navidrome, try different endpoints
+      // Add service-specific URL variations for Navidrome
+      if (serverType.toString().contains('navidrome') && streamUrls.isNotEmpty) {
+        try {
+          final primaryUrl = streamUrls.first; // Use first URL as base for variations
           final baseUrl = primaryUrl.split('?')[0];
           final queryParams = primaryUrl.contains('?') ? primaryUrl.split('?')[1] : '';
           
@@ -1995,9 +1994,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               '$baseUrl?$queryParams&maxBitRate=128',                    // Lower bitrate
             ]);
           }
+        } catch (e) {
+          _logger.warning('Failed to generate Navidrome URL variations: $e', 'AudioHandler');
         }
-      } catch (e) {
-        _logger.warning('Failed to generate alternative stream URLs: $e', 'AudioHandler');
       }
       
       // Remove duplicates and empty URLs
