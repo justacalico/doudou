@@ -372,6 +372,12 @@ class JellyfinServiceAdapter implements BaseMediaService {
   }
 
   @override
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
+    // Jellyfin doesn't need async metadata fetching
+    return getAlternativeStreamUrls(trackId);
+  }
+
+  @override
   void clearAuth() {
     _jellyfinService.clearAuth();
   }
