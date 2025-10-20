@@ -185,45 +185,25 @@ Contributions welcome! Help improve Doudou with:
 
 Follow [Dart style guide](https://dart.dev/guides/language/effective-dart/style) and ensure cross-platform compatibility.
 
-## � Support & Community
+## 📞 Support
 
-### Getting Help
-- 🐛 **Bug Reports:** [GitLab Issues](https://gitlab.com/Openlyst/doudou/issues)
-- 💬 **Discussions:** [GitLab Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
-- 📧 **Direct Contact:** [Email Support](mailto:support@openlyst.com)
-- 📖 **Documentation:** [Project Wiki](https://gitlab.com/Openlyst/doudou/-/wikis/home)
+- 🐛 [Bug Reports](https://gitlab.com/Openlyst/doudou/issues)
+- 💬 [Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
+- 📧 [Email Support](mailto:support@openlyst.com)
 
-### Media Server Communities
-- 🌐 **Jellyfin:** [jellyfin.org](https://jellyfin.org/) | [Forum](https://forum.jellyfin.org/) | [Discord](https://discord.gg/zHBxVSXdBV)
-- 🌐 **Plex:** [plex.tv](https://plex.tv/) | [Community](https://forums.plex.tv/) | [Reddit](https://reddit.com/r/PleX)
-- 🌐 **Navidrome:** [navidrome.org](https://navidrome.org/) | [GitHub](https://github.com/navidrome/navidrome) | [Discord](https://discord.gg/xh7j7yF)
+### FAQ
 
-### Frequently Asked Questions
+**Q: Which servers are supported?**  
+A: Jellyfin, Plex (with Plex Pass), and Navidrome are fully supported.
 
-<details>
-<summary><strong>Q: Which media servers are supported?</strong></summary>
-A: Doudou supports Jellyfin, Plex, and Navidrome servers. Each server type is auto-detected during setup, providing a seamless experience regardless of your choice.
-</details>
+**Q: Can I use this remotely?**  
+A: Yes, if your server is accessible over the internet. Use a VPN or reverse proxy for security.
 
-<details>
-<summary><strong>Q: Does this work over the internet (remote access)?</strong></summary>
-A: Yes, as long as your media server is accessible from your device's network. Consider using a VPN or properly configured reverse proxy for security.
-</details>
+**Q: Desktop interface different?**  
+A: Yes, desktop platforms get an enhanced UI optimized for larger screens.
 
-<details>
-<summary><strong>Q: Why can't I see all my music?</strong></summary>
-A: Check your server's library scanning and user permissions. The user account must have access to music libraries. For Plex users, ensure your Plex Pass includes music features.
-</details>
-
-<details>
-<summary><strong>Q: Does the desktop version look different?</strong></summary>
-A: Yes! Desktop platforms (macOS, Linux, Windows) automatically get an enhanced interface optimized for larger screens with improved navigation and layout.
-</details>
-
-<details>
-<summary><strong>Q: How do I enable offline downloads?</strong></summary>
-A: Long-press any track, album, or playlist and select "Download for offline listening." Downloads are stored locally on your device.
-</details>
+**Q: Offline downloads?**  
+A: Long-press any item and select "Download for offline listening."
 
 ## 🙏 Acknowledgments
 
