@@ -1955,24 +1955,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         streamUrls.add(primaryUrl);
       }
       
-      // Add alternative URLs based on service type
+      // Add alternative URLs from service
       try {
-        if (serverType.toString().contains('plex')) {
-          // For Plex, try different file formats and endpoints
-          final baseUrl = primaryUrl.split('?')[0]; // Remove query params
-          final token = primaryUrl.contains('X-Plex-Token=') 
-              ? primaryUrl.split('X-Plex-Token=')[1].split('&')[0] 
-              : '';
-          
-          if (token.isNotEmpty) {
-            final trackPath = baseUrl.replaceAll('/file.mp3', '');
-            streamUrls.addAll([
-              '$trackPath/file?X-Plex-Token=$token',                    // Direct file
-              '$trackPath/file.mp3?audioBitrate=128&X-Plex-Token=$token', // Lower bitrate
-              '$trackPath?X-Plex-Token=$token',                         // Universal endpoint
-            ]);
-          }
-        } else if (serverType.toString().contains('navidrome')) {
+        final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
+        streamUrls.addAll(altUrls);
+        
+        if (serverType.toString().contains('navidrome')) {
           // For Navidrome, try different endpoints
           final baseUrl = primaryUrl.split('?')[0];
           final queryParams = primaryUrl.contains('?') ? primaryUrl.split('?')[1] : '';
