@@ -92,7 +92,25 @@ Doudou now supports multiple media server platforms, making it your go-to music 
 
 ### Installation
 
-#### 📦 **Stable Releases (Recommended)**
+#### 🎯 **Package Managers (Recommended)**
+
+**macOS - Homebrew**
+```bash
+# Add the tap
+brew tap Openlyst/macos https://gitlab.com/Openlyst/repos/homebrew/macos.git
+
+# Install Doudou
+brew install --cask doudou
+```
+
+**iOS - AltStore**
+1. Install [AltStore](https://altstore.io/) on your iOS device
+2. Add the Openlyst repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json?ref_type=heads`
+3. Install Doudou directly from the repository
+
+> **📦 More Platforms Coming Soon:** Android, Linux, and Windows package manager distributions are in development!
+
+#### 📦 **Stable Releases**
 **For stable, tested builds, please see [releases](releases.md) for download links and installation instructions.**
 
 #### 🚧 **Pre-Release Builds**
