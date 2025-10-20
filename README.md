@@ -108,7 +108,7 @@ brew install --cask doudou
 2. Add the Openlyst repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json?ref_type=heads`
 3. Install Doudou directly from the repository
 
-> **📦 More Platforms Coming Soon:** Android, Linux, and Windows package manager distributions are in development!
+> **📦 More Platforms Coming Soon:** Android, Linux, and Windows package manager distributions coming Soon!
 
 #### 📦 **Stable Releases**
 **For stable, tested builds, please see [releases](releases.md) for download links and installation instructions.**
