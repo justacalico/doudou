@@ -207,29 +207,15 @@ A: Long-press any item and select "Download for offline listening."
 
 ## 🙏 Acknowledgments
 
-This project wouldn't be possible without these amazing open-source projects:
+Built with these amazing open-source projects:
 
-### Core Technologies
-- **[Jellyfin](https://jellyfin.org/)** - Free software media system
-- **[Plex](https://plex.tv/)** - Popular media server platform  
-- **[Navidrome](https://navidrome.org/)** - Modern music server and streamer
-- **[Flutter](https://flutter.dev/)** - Google's UI toolkit for building natively compiled applications
-- **[Dart](https://dart.dev/)** - The programming language optimized for apps on multiple platforms
+- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Navidrome](https://navidrome.org/) - Media server platforms
+- [Flutter](https://flutter.dev/) & [Dart](https://dart.dev/) - Cross-platform framework
+- [just_audio](https://pub.dev/packages/just_audio) - Audio playback
+- [audio_service](https://pub.dev/packages/audio_service) - Background audio
+- [provider](https://pub.dev/packages/provider) - State management
 
-### Audio Libraries
-- **[just_audio](https://pub.dev/packages/just_audio)** - Feature-rich audio player for Flutter
-- **[audio_service](https://pub.dev/packages/audio_service)** - Background audio and system media controls  
-- **[audio_session](https://pub.dev/packages/audio_session)** - Audio session management and interruption handling
-
-### UI & Utilities
-- **[provider](https://pub.dev/packages/provider)** - State management solution
-- **[cached_network_image](https://pub.dev/packages/cached_network_image)** - Image caching and loading
-- **[shared_preferences](https://pub.dev/packages/shared_preferences)** - Persistent key-value storage
-
-### Community & Inspiration
-- **Media Server Communities** - Jellyfin, Plex, and Navidrome for creating amazing self-hosted media ecosystems
-- **Flutter Community** - For continuous improvements and plugins
-- **Open Source Contributors** - Everyone who makes privacy-respecting software possible
+Thanks to the media server and Flutter communities for making self-hosted music possible!
 
 ## 📄 License
 
