@@ -21,32 +21,30 @@ A beautiful, privacy-focused music player for your personal media server. Stream
 
 ## ✨ Features
 
-### 🎵 **Music Experience**
-- **Beautiful Interface** - Clean, intuitive design inspired by modern music apps
-- **Advanced Audio** - Smart crossfade, volume normalization, and gapless playback
-- **Queue Management** - Add, remove, and reorder tracks with drag-and-drop support
-- **Smart Preloading** - Intelligent buffering of next tracks for seamless playback
-- **Radio Mode** - Endless music discovery based on your listening preferences
+### 🎵 Music Experience
+- Beautiful, intuitive interface
+- Gapless playback and crossfade
+- Queue management with drag-and-drop
+- Radio mode for music discovery
+- Smart preloading for seamless playback
 
-### 🔒 **Privacy & Control**
-- **Zero Data Collection** - No analytics, no tracking, no telemetry
-- **Self-Hosted** - Your music stays on your server, under your control
-- **Offline Capable** - Download tracks for offline listening
-- **Local Caching** - Smart caching reduces server load and improves performance
+### 🔒 Privacy First
+- Zero data collection or tracking
+- Self-hosted - your music stays private
+- Offline downloads available
+- No external dependencies
 
-### 📱 **Platform Features**
-- **Cross-Platform** - Android, iOS, macOS, Linux, Windows support
-- **Adaptive Desktop UI** - Optimized interface for larger screens on desktop platforms
-- **Background Playback** - Music continues while using other apps
-- **Media Controls** - Lock screen, notification, and system media controls
-- **Android Auto & CarPlay** - Safe driving integration *(Android Auto ready, CarPlay coming soon hopefully)*
-- **Native Desktop Experience** - Full-featured desktop interface with enhanced navigation and layout
+### 📱 Cross-Platform
+- **Desktop**: Adaptive UI for macOS, Linux, Windows
+- **Mobile**: Android and iOS support
+- **Car Integration**: Android Auto ready
+- **Background Playback**: Continue music while multitasking
 
-### 🎧 **Audio Features**
-- **Multiple Audio Formats** - MP3, FLAC, AAC, OGG, M4A, and more
-- **Transcoding Support** - Automatic format conversion when needed
-- **Custom Audio Session** - Optimized audio handling per platform
-- **Crossfade & Gapless** - Professional-grade audio transitions
+### 🎧 Audio Quality
+- Multiple formats: MP3, FLAC, AAC, OGG, M4A
+- Automatic transcoding when needed
+- Volume normalization
+- Professional audio transitions
 
 ## 🚀 Getting Started
 
