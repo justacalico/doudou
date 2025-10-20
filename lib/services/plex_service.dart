@@ -648,12 +648,12 @@ class PlexService implements BaseMediaService {
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
     return [
-      // Method 2 - Universal transcode
+      // Method 2 - Universal transcode (high quality)
       getUniversalStreamUrl(trackId, bitrate: 192),
-      // Method 4 - Download URL
-      getDownloadUrl(trackId),
-      // Lower bitrate fallback
+      // Method 2 - Universal transcode (standard quality)  
       getUniversalStreamUrl(trackId, bitrate: 128),
+      // Method 4 - Download URL as final fallback
+      getDownloadUrl(trackId),
     ];
   }
 
