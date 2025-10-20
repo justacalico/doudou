@@ -78,43 +78,26 @@ brew install --cask doudou
 
 #### Build from Source
 ```bash
-# Clone the repository
 git clone https://gitlab.com/Openlyst/doudou.git
 cd doudou
-
-# Install dependencies
 flutter pub get
-
-# Run in development mode
 flutter run
 
-# Build for your platform
+# Build for specific platforms
 make android    # Android APK
-make ios        # iOS app
+make ios        # iOS app  
 make macos      # macOS app
-make linux      # Linux executable
-make windows    # Windows executable
-
-# Or use Flutter commands directly
-flutter build apk              # Android APK
-flutter build ios              # iOS app
-flutter build macos            # macOS app
-flutter build linux            # Linux executable
-flutter build windows          # Windows executable
+make linux      # Linux app
+make windows    # Windows app
 ```
 
-### Quick Setup
-1. **Install** Doudou on your device
-2. **Launch** the app and tap "Add Server"
-3. **Choose** your server type (Jellyfin, Plex, or Navidrome)
-4. **Enter** your server URL (e.g., `http://192.168.1.100:8096`)
-5. **Login** with your username and password
-6. **Enjoy** your music collection with an interface optimized for your device!
-
-> **💡 Tips:** 
-> - Make sure your media server is accessible from your device's network
-> - Desktop users will automatically get the enhanced desktop interface
-> - For remote access, consider setting up a VPN or reverse proxy
+### Setup
+1. Install Doudou on your device
+2. Launch and tap "Add Server"
+3. Choose your server type (Jellyfin/Plex/Navidrome)
+4. Enter server URL (e.g., `http://192.168.1.100:8096`)
+5. Login with your credentials
+6. Start streaming your music!
 
 ## 🔒 Privacy & Security
 
