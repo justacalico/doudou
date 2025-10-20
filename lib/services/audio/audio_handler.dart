@@ -2537,7 +2537,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         final streamUrls = <String>[];
         if (mediaServiceManager != null) {
           // Prefer explicit alternative URLs if the service provides them
-          final alt = mediaServiceManager.getAlternativeStreamUrls(currentTrack.id);
+          List<String> alt;
+          if (mediaServiceManager.currentServerType.toString().contains('plex')) {
+            alt = await mediaServiceManager.getAlternativeStreamUrlsAsync(currentTrack.id);
+          } else {
+            alt = mediaServiceManager.getAlternativeStreamUrls(currentTrack.id);
+          }
           if (alt.isNotEmpty) {
             streamUrls.addAll(alt);
           } else {
