@@ -637,7 +637,7 @@ class PlexService implements BaseMediaService {
   /// Get direct part file URL (requires part ID from track metadata)
   /// THIS IS METHOD 3 FROM YOUR BASH SCRIPT - THE ONE THAT WORKS!
   String getDirectPartUrl(String partId) {
-    return '$_serverUrl/library/parts/$partId/file.mp3?X-Plex-Token=$_token';
+    return '$_serverUrl/library/parts/$partId/file?X-Plex-Token=$_token';
   }
 
   /// Get download URL
