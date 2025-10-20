@@ -54,6 +54,37 @@ class PlexService implements BaseMediaService {
     return 0;
   }
 
+  /// Get track's part ID for direct streaming (most reliable method)
+  Future<String?> _getTrackPartId(String trackId) async {
+    try {
+      final response = await _dio.get(
+        '$_serverUrl/library/metadata/$trackId',
+        queryParameters: {'X-Plex-Token': _token},
+      );
+
+      final metadata = response.data['MediaContainer']['Metadata'];
+      if (metadata != null && metadata.isNotEmpty) {
+        final media = metadata[0]['Media'];
+        if (media != null && media.isNotEmpty) {
+          final part = media[0]['Part'];
+          if (part != null && part.isNotEmpty) {
+            final partId = part[0]['id'];
+            if (kDebugMode) {
+              print('Found part ID: $partId for track: $trackId');
+            }
+            return partId?.toString();
+          }
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting track part ID: $e');
+      }
+      return null;
+    }
+  }
+
   @override
   Future<bool> authenticate(
     String serverUrl,
@@ -543,7 +574,26 @@ class PlexService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    // Use universal transcode URL as primary method - this is the most reliable for Plex
+    // Synchronous fallback - use universal transcode
+    // For best results, use getPreferredStreamUrl instead
+    return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
+  }
+
+  /// Get the best stream URL (async version that fetches part ID)
+  /// This is what your bash script uses - Method 3 (Direct File)
+  Future<String> getPreferredStreamUrl(String trackId, {int? bitrate}) async {
+    final partId = await _getTrackPartId(trackId);
+    
+    if (partId != null) {
+      if (kDebugMode) {
+        print('Using direct file stream with part ID: $partId');
+      }
+      return getDirectPartUrl(partId);
+    }
+    
+    if (kDebugMode) {
+      print('Part ID not found, using universal transcode');
+    }
     return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
   }
 
@@ -570,7 +620,7 @@ class PlexService implements BaseMediaService {
     return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
-  /// Get universal stream URL using Plex's universal transcode endpoint (WORKING METHOD)
+  /// Get universal stream URL using Plex's universal transcode endpoint
   String getUniversalStreamUrl(String trackId, {int? bitrate}) {
     final audioBitrate = bitrate ?? 192;
     return '$_serverUrl/audio/:/transcode/universal/start.mp3'
@@ -585,8 +635,8 @@ class PlexService implements BaseMediaService {
   }
 
   /// Get direct part file URL (requires part ID from track metadata)
+  /// THIS IS METHOD 3 FROM YOUR BASH SCRIPT - THE ONE THAT WORKS!
   String getDirectPartUrl(String partId) {
-    // Matches working Bash script
     return '$_serverUrl/library/parts/$partId/file.mp3?X-Plex-Token=$_token';
   }
 
@@ -596,12 +646,31 @@ class PlexService implements BaseMediaService {
   }
 
   @override
-  List<String> getAlternativeStreamUrls(String trackId, {String? partId}) {
+  List<String> getAlternativeStreamUrls(String trackId) {
     return [
+      // Method 2 - Universal transcode
       getUniversalStreamUrl(trackId, bitrate: 192),
-      if (partId != null) getDirectStreamUrl(partId),
+      // Method 4 - Download URL
       getDownloadUrl(trackId),
-      getUniversalStreamUrl(trackId, bitrate: 128), // lower bitrate fallback
+      // Lower bitrate fallback
+      getUniversalStreamUrl(trackId, bitrate: 128),
+    ];
+  }
+
+  /// Get alternative stream URLs with async part ID fetching
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId, {String? partId}) async {
+    // Fetch part ID if not provided
+    final actualPartId = partId ?? await _getTrackPartId(trackId);
+    
+    return [
+      // Method 3 from bash - most reliable if we have part ID
+      if (actualPartId != null) getDirectPartUrl(actualPartId),
+      // Method 2 - Universal transcode
+      getUniversalStreamUrl(trackId, bitrate: 192),
+      // Method 4 - Download URL
+      getDownloadUrl(trackId),
+      // Lower bitrate fallback
+      getUniversalStreamUrl(trackId, bitrate: 128),
     ];
   }
 
