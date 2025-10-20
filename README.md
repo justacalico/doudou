@@ -1,22 +1,17 @@
-# 🎵 Doudou - Universal Media Server Music Player
+# 🎵 Doudou
 
-A beautiful, privacy-focused music player for your personal media server. Supports Jellyfin, Plex, and Navidrome with a modern, intuitive interface across all your devices. Features adaptive desktop UI for an enhanced experience on larger screens.
+A beautiful, privacy-focused music player for your personal media server. Stream your music collection from Jellyfin, Plex, or Navidrome with a modern interface designed for all your devices.
 
 <div align="center">
 
 ![Platform Support](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Linux%20%7C%20Windows-blue)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
 ![Flutter](https://img.shields.io/badge/Built%20with-Flutter-02569B?logo=flutter)
-![Jellyfin](https://img.shields.io/badge/Works%20with-Jellyfin-00A4DC?logo=jellyfin)
-![Plex](https://img.shields.io/badge/Works%20with-Plex-E5A00D?logo=plex)
-![Navidrome](https://img.shields.io/badge/Works%20with-Navidrome-663399)
+![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?logo=jellyfin)
+![Plex](https://img.shields.io/badge/Plex-E5A00D?logo=plex)
+![Navidrome](https://img.shields.io/badge/Navidrome-663399)
+
 </div>
-
-> **Note:** Icon is planned to be updated once a new design is created. Current icon serves as a placeholder and reference.
-
----
-
----
 
 ## 🎵 Multi-Server Support
 
