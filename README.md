@@ -119,99 +119,40 @@ Doudou only communicates with your media server - no external services.
 
 ## 🛠️ Development
 
-### Development Environment Setup
-
+### Setup
 ```bash
-# Prerequisites
-flutter --version  # Ensure Flutter 3.8.0+
-dart --version     # Ensure Dart 3.0.0+
-
-# Clone and setup
+# Prerequisites: Flutter 3.8.0+, Dart 3.0.0+
 git clone https://gitlab.com/Openlyst/doudou.git
 cd doudou
 flutter pub get
-
-# Run on device/emulator
-flutter run --debug    # Development build
-flutter run --release  # Performance testing
+flutter run
 ```
 
 ### Project Structure
 ```
-doudou/
-├── lib/
-│   ├── models/          # Data models (Server APIs)
-│   ├── providers/       # State management
-│   ├── screens/         # UI screens
-│   ├── services/        # Business logic
-│   └── widgets/         # Reusable components
-├── android/             # Android-specific code
-├── ios/                 # iOS-specific code
-├── macos/              # macOS-specific code
-├── linux/              # Linux-specific code
-├── windows/            # Windows-specific code
-└── docs/               # Documentation
+lib/
+├── models/      # Data models
+├── providers/   # State management  
+├── screens/     # UI screens
+├── services/    # Business logic
+└── widgets/     # Reusable components
 ```
 
-### Building Releases
-
-#### Android
+### Building
 ```bash
-# Development APK
-make android
+# Development
+make android        # Android APK
+make ios           # iOS app
+make macos         # macOS app
+make linux         # Linux app
+make windows       # Windows app
 
-# Signed release (requires keystore setup)
+# Production (Android)
 make generate-keystore  # One-time setup
-make setup-signing      # Configure environment
-source setup-signing.sh # Load signing credentials  
-make android-signed     # Signed APK
-```
-
-#### iOS & macOS
-```bash
-# iOS (requires Xcode and Apple Developer account)
-make ios
-
-# macOS
-make macos
-```
-
-#### Desktop Platforms
-```bash
-make linux    # Linux AppImage/deb
-make windows   # Windows installer
-```
-
-### Android Release Signing
-
-For production releases:
-
-```bash
-# 1. Generate signing keystore (one-time setup)
-make generate-keystore
-
-# 2. Create environment configuration
-make setup-signing
-
-# 3. Edit the generated script with your passwords
-nano setup-signing.sh
-
-# 4. Load signing environment
+make setup-signing     # Configure signing
 source setup-signing.sh
-
-# 5. Build signed release
 make android-signed    # Signed APK
 ```
-
-#### Required Environment Variables
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `KEYSTORE_PASSWORD` | Keystore file password | `your_keystore_password` |
-| `KEY_PASSWORD` | Signing key password | `your_key_password` |  
-| `KEY_ALIAS` | Key alias name | `doudou` |
-| `KEYSTORE_PATH` | Keystore file path | `android/app/key.jks` |
-
-> **🔐 Security:** Signing files and passwords are automatically excluded from version control via `.gitignore`.
 
 ## 📱 Distribution
 
