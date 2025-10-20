@@ -770,4 +770,10 @@ class NavidromeService implements BaseMediaService {
       '$_serverUrl/rest/download?${Uri(queryParameters: params).query}', // Direct download fallback
     ];
   }
+
+  @override
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
+    // Navidrome doesn't need async metadata fetching, return sync version
+    return getAlternativeStreamUrls(trackId);
+  }
 }
