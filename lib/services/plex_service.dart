@@ -658,19 +658,20 @@ class PlexService implements BaseMediaService {
   }
 
   /// Get alternative stream URLs with async part ID fetching
-  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId, {String? partId}) async {
-    // Fetch part ID if not provided
-    final actualPartId = partId ?? await _getTrackPartId(trackId);
+  @override
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
+    // Fetch part ID for best quality streaming
+    final partId = await _getTrackPartId(trackId);
     
     return [
-      // Method 3 from bash - most reliable if we have part ID
-      if (actualPartId != null) getDirectPartUrl(actualPartId),
-      // Method 2 - Universal transcode
+      // Method 3 from bash - most reliable if we have part ID (DIRECT FILE ACCESS)
+      if (partId != null) getDirectPartUrl(partId),
+      // Method 2 - Universal transcode (high quality)
       getUniversalStreamUrl(trackId, bitrate: 192),
-      // Method 4 - Download URL
-      getDownloadUrl(trackId),
-      // Lower bitrate fallback
+      // Method 2 - Universal transcode (standard quality)
       getUniversalStreamUrl(trackId, bitrate: 128),
+      // Method 4 - Download URL as final fallback
+      getDownloadUrl(trackId),
     ];
   }
 
