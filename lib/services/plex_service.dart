@@ -647,6 +647,8 @@ class PlexService implements BaseMediaService {
 
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
+    // Note: This synchronous version can't fetch part IDs
+    // Use getAlternativeStreamUrlsAsync() for better Plex support
     return [
       // Method 2 - Universal transcode (high quality)
       getUniversalStreamUrl(trackId, bitrate: 192),
