@@ -13,33 +13,11 @@ A beautiful, privacy-focused music player for your personal media server. Stream
 
 </div>
 
-## 🎵 Multi-Server Support
+## 🎵 Supported Media Servers
 
-**Universal Media Server Compatibility**
-
-Doudou now supports multiple media server platforms, making it your go-to music player regardless of your server setup:
-
-### ✅ **Jellyfin (Fully Supported)**
-- Complete feature compatibility
-- Optimized performance and reliability
-- All advanced features available
-- Recommended for the best experience
-
-### ✅ **Plex (Supported)**
-- Full music streaming support
-- Playlist and library management
-- User authentication and preferences
-- Advanced audio features enabled
-
-### ✅ **Navidrome (Supported)**
-- Complete SubSonic API integration
-- Fast library browsing and search
-- Playlist synchronization
-- Optimized for large music collections
-
-> **Server Compatibility**: All three platforms provide excellent music streaming experiences. Choose the server that best fits your media management preferences!
-
----
+- **🟢 Jellyfin** - Complete feature support, recommended
+- **🟡 Plex** - Full streaming support with Plex Pass
+- **🟢 Navidrome** - Full SubSonic API compatibility
 
 ## ✨ Features
 
