@@ -99,31 +99,23 @@ make windows    # Windows app
 5. Login with your credentials
 6. Start streaming your music!
 
-## 🔒 Privacy & Security
+## 🔒 Privacy
 
-### **Zero Data Collection Promise**
-Doudou is built with privacy as a core principle:
+**Zero Data Collection**
+- No personal information collected
+- No usage analytics or tracking
+- No crash reports or telemetry
+- No advertising or third-party trackers
+- No cloud dependencies
 
-- ✅ **No Personal Information** collected or transmitted
-- ✅ **No Usage Analytics** or behavioral tracking
-- ✅ **No Crash Reports** sent to external services
-- ✅ **No Advertising** or third-party trackers
-- ✅ **No Cloud Dependencies** - works entirely with your server
-
-### **What Data Stays Local**
-All application data remains on your device:
+**What Stays Local**
 - Server connection details
-- User preferences and settings
+- User preferences
 - Downloaded music files
 - Playback history and favorites
-- Cache and temporary files
+- All cache and temporary files
 
-### **Network Communications**
-Doudou only communicates with:
-- Your media server (music streaming and metadata)
-- No other external services or APIs
-
-> **🛡️ Your Music, Your Rules:** Complete control over your music library and listening data.
+Doudou only communicates with your media server - no external services.
 
 ## 🛠️ Development
 
