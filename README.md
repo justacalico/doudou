@@ -154,33 +154,18 @@ source setup-signing.sh
 make android-signed    # Signed APK
 ```
 
-## 📱 Distribution
+## 📱 Permissions
 
-> **📱 iOS Users:** While we don't distribute through the App Store, you can build the app from source using Xcode. See the development section for instructions.
+### Android
+- **Internet** - Connect to media server
+- **Network State** - Check connectivity 
+- **Wake Lock** - Background playback
+- **Foreground Service** - Media controls
 
-### Data Safety Declaration
-✅ **No data collection or sharing**
-- No personal information collected
-- No financial or payment data
-- No location data accessed
-- No device identifiers tracked
-- No app activity or performance data
-
-### App Permissions
-
-#### Android
-| Permission | Purpose | Required |
-|------------|---------|----------|
-| `INTERNET` | Connect to media server | Yes |
-| `ACCESS_NETWORK_STATE` | Check connectivity status | Yes |
-| `WAKE_LOCK` | Background audio playback | Yes |
-| `FOREGROUND_SERVICE` | Media notification controls | Yes |
-| `FOREGROUND_SERVICE_MEDIA_PLAYBOOK` | Audio service (Android 14+) | Yes |
-
-#### iOS & macOS
-- **Network Access** - Connect to media server
-- **Background Audio** - Continue playback when app is backgrounded
-- **Media Controls** - Lock screen and control center integration
+### iOS/macOS
+- **Network Access** - Server connection
+- **Background Audio** - Continue playback
+- **Media Controls** - Lock screen/control center
 
 ## 🤝 Contributing
 
