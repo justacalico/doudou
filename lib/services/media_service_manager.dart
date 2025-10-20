@@ -102,6 +102,12 @@ class MediaServiceManager {
     return _currentService!.getAlternativeStreamUrls(trackId);
   }
 
+  /// Get alternative stream URLs with async metadata fetching for better URLs
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
+    if (_currentService == null) return [];
+    return await _currentService!.getAlternativeStreamUrlsAsync(trackId);
+  }
+
   /// Get image URL from the current service
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     if (_currentService == null) return '';
