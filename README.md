@@ -48,18 +48,10 @@ A beautiful, privacy-focused music player for your personal media server. Stream
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- **Media Server** - One of the following:
-  - **Jellyfin Server** version 10.8 or newer *(recommended)*
-  - **Plex Media Server** with Plex Pass *(for music features)*
-  - **Navidrome Server** version 0.48 or newer
-- **Device Requirements:**
-  - Android 5.0+ (API level 21)
-  - iOS 12.0+
-  - macOS 10.15+
-  - Linux (various distributions)
-  - Windows 10+ *(community tested)*
-- Network connection to your media server
+### Requirements
+- **Media Server**: Jellyfin 10.8+, Plex (with Plex Pass), or Navidrome 0.48+
+- **Platform**: Android 5.0+, iOS 12.0+, macOS 10.15+, Linux, or Windows 10+
+- Network access to your media server
 
 ### Installation
 
