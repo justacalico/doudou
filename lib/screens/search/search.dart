@@ -32,7 +32,10 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRecentSearches();
+    // Load recent searches after the widget is built to access context
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRecentSearches();
+    });
   }
 
   @override
