@@ -356,9 +356,7 @@ class AudioPreloader {
       if (kDebugMode) {
         print('Currently buffered: ${_preloadedPlayers.length} tracks, Buffering: ${_preloadingTracks.length} tracks');
       }
-    } finally {
-      _releaseCleanupLock();
-    }
+    });
   }
   
   void cleanupOldPreloadedPlayers(List<Track> playlist, int currentIndex) {
