@@ -1025,39 +1025,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _loadAndPlayTrackBypass(Track track, bool shouldPlay) async {
     if (!Platform.isAndroid) return;
     
-    await _errorStateManager.executeWithRecovery(
-      component: 'AndroidBypassMode',
-      operation: 'loadAndPlayTrackBypass',
-      category: ErrorCategory.playback,
-      maxRetries: 2,
-      action: () async {
-        if (kDebugMode) {
-          print('=== ANDROID BYPASS MODE TRACK LOADING ===');
-          print('Track: ${track.name}');
-          print('Should play: $shouldPlay');
+    try {
+      if (kDebugMode) {
+        print('=== ANDROID BYPASS MODE TRACK LOADING ===');
+        print('Track: ${track.name}');
+        print('Should play: $shouldPlay');
+      }
+      
+      // Get stream URLs
+      List<String> streamUrls = [];
+      final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
+      
+      if (mediaServiceCoordinator != null) {
+        final primaryUrl = mediaServiceCoordinator.getStreamUrl(track.id);
+        if (primaryUrl != null && primaryUrl.isNotEmpty) {
+          streamUrls.add(primaryUrl);
         }
         
-        // Get stream URLs
-        List<String> streamUrls = [];
-        final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
-        
-        if (mediaServiceCoordinator != null) {
-          final primaryUrl = mediaServiceCoordinator.getStreamUrl(track.id);
-          if (primaryUrl != null && primaryUrl.isNotEmpty) {
-            streamUrls.add(primaryUrl);
-          }
-          
-          await _errorStateManager.executeWithErrorHandling(
-            component: 'AndroidBypassMode',
-            operation: 'getAlternativeUrls',
-            category: ErrorCategory.network,
-            severity: ErrorSeverity.low,
-            action: () async {
-              final altUrls = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
-              streamUrls.addAll(altUrls);
-            },
-            context: {'trackId': track.id},
-          );
+        // Use error state manager for alternative URL fetching
+        await _errorStateManager.executeWithErrorHandling(
+          component: 'AndroidBypassMode',
+          operation: 'getAlternativeUrls',
+          category: ErrorCategory.network,
+          severity: ErrorSeverity.low,
+          action: () async {
+            final altUrls = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
+            streamUrls.addAll(altUrls);
+          },
+          context: {'trackId': track.id},
+        );
           }
         }
       } else {
