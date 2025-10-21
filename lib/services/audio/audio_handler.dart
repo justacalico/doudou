@@ -876,6 +876,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('=== ANDROID SERVICE RECOVERY STARTED ===');
         print('Current track: ${_stateManager.currentTrack?.name}');
         print('User intended playing: $_userIntendedPlaying');
+        print('Service blocked: $_androidServiceBlocked');
+      }
+      
+      // Enable bypass mode immediately
+      _androidBypassMode = true;
+      _androidServiceBlocked = true;
+      
+      if (kDebugMode) {
+        print('Android bypass mode ENABLED - using pure just_audio without AudioService');
       }
       
       // Stop current player to reset state
@@ -899,37 +908,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // If we have a current track, try to reload it
       if (_stateManager.currentTrack != null) {
         if (kDebugMode) {
-          print('Reloading current track after Android service failure...');
+          print('Reloading current track in bypass mode...');
         }
         
-        // Force individual track playback to avoid concatenating source issues
-        await _loadAndPlayTrack(_stateManager.currentTrack!, false);
-        
-        // Only start playing if user intended to play
-        if (_userIntendedPlaying) {
-          await Future.delayed(const Duration(milliseconds: 200));
-          try {
-            await _player.play();
-            if (kDebugMode) {
-              print('Successfully restarted playback after Android service recovery');
-            }
-          } catch (playError) {
-            if (kDebugMode) {
-              print('Failed to restart playback after recovery: $playError');
-            }
-          }
-        }
-        
-        // Update state with minimal controls to avoid triggering foreground service
-        _updatePlaybackState(playbackState.value.copyWith(
-          playing: _userIntendedPlaying && _player.playing,
-          processingState: _player.processingState == ProcessingState.ready 
-              ? AudioProcessingState.ready 
-              : AudioProcessingState.loading,
-        ));
+        // Force individual track playback without AudioService
+        await _loadAndPlayTrackBypass(_stateManager.currentTrack!, _userIntendedPlaying);
         
         if (kDebugMode) {
-          print('=== ANDROID SERVICE RECOVERY COMPLETED ===');
+          print('=== ANDROID BYPASS MODE RECOVERY COMPLETED ===');
         }
       }
     } catch (e) {
