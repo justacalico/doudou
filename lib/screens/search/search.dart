@@ -55,8 +55,10 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     } catch (e) {
       // If SharedPreferences fails, populate with popular artists/albums from library
-      final appState = Provider.of<AppState>(context, listen: false);
-      _generateSuggestedSearches(appState);
+      if (mounted) {
+        final appState = Provider.of<AppState>(context, listen: false);
+        _generateSuggestedSearches(appState);
+      }
     }
   }
 
