@@ -326,27 +326,51 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Try to update playback state with Android foreground service error handling
     try {
-      playbackState.add(finalState);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error updating playback state (likely Android foreground service): $e');
-        print('Attempting fallback playback state update...');
+      // Skip AudioService updates if in bypass mode
+      if (_androidBypassMode) {
+        if (kDebugMode) {
+          print('Android bypass mode: Skipping AudioService playback state update');
+        }
+        return;
       }
       
-      // Fallback: Try without media controls for Android service issues
-      try {
-        final fallbackState = finalState.copyWith(
-          controls: [], // Remove controls that might trigger foreground service
-          systemActions: const <MediaAction>{}, // Remove system actions
-        );
-        playbackState.add(fallbackState);
+      playbackState.add(finalState);
+    } catch (e) {
+      if (Platform.isAndroid) {
+        _androidServiceBlocked = true;
+        if (kDebugMode) {
+          print('=== ANDROID AUDIOSERVICE COMPLETELY BLOCKED ===');
+          print('Error updating playback state: $e');
+          print('Enabling Android bypass mode for pure just_audio operation...');
+        }
+        
+        // Enable bypass mode to prevent future AudioService calls
+        _androidBypassMode = true;
         
         if (kDebugMode) {
-          print('Fallback playback state update successful');
+          print('Android bypass mode enabled - AudioService will be bypassed');
         }
-      } catch (fallbackError) {
+      } else {
         if (kDebugMode) {
-          print('Fallback playback state update also failed: $fallbackError');
+          print('Error updating playback state (likely Android foreground service): $e');
+          print('Attempting fallback playback state update...');
+        }
+        
+        // Fallback: Try without media controls for Android service issues
+        try {
+          final fallbackState = finalState.copyWith(
+            controls: [], // Remove controls that might trigger foreground service
+            systemActions: const <MediaAction>{}, // Remove system actions
+          );
+          playbackState.add(fallbackState);
+          
+          if (kDebugMode) {
+            print('Fallback playback state update successful');
+          }
+        } catch (fallbackError) {
+          if (kDebugMode) {
+            print('Fallback playback state update also failed: $fallbackError');
+          }
         }
       }
     }
