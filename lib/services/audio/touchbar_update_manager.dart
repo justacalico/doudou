@@ -44,7 +44,9 @@ class TouchBarUpdateManager {
       _enabled = true;
       return true;
     } catch (e) {
-      print('TouchBarUpdateManager: Failed to initialize: $e');
+      if (kDebugMode) {
+        print('TouchBarUpdateManager: Failed to initialize: $e');
+      }
       _enabled = false;
       return false;
     }
