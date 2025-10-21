@@ -399,6 +399,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Initialize download service coordinator to prevent streaming interference
     _downloadServiceCoordinator = DownloadServiceCoordinator(_downloadService);
     
+    // Initialize Jellyfin service coordinator to prevent API timeout race conditions
+    _jellyfinServiceCoordinator = JellyfinServiceCoordinator(_jellyfinService);
+    
     // Initialize media service manager coordinator if available
     _mediaServiceManagerCoordinator = _mediaServiceManager != null 
         ? MediaServiceManagerCoordinator(_mediaServiceManager)
@@ -3359,6 +3362,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _radioModeOperationManager.dispose();
     await _touchBarUpdateManager.dispose();
     await _downloadServiceCoordinator.dispose();
+    await _jellyfinServiceCoordinator.dispose();
     await _mediaServiceManagerCoordinator?.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
