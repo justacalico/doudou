@@ -185,7 +185,9 @@ class TouchBarUpdateManager {
       TouchBarService.updateLyrics(lyricsText);
       _lastLyricsText = lyricsText;
     } catch (e) {
-      print('TouchBarUpdateManager: Lyrics update failed: $e');
+      if (kDebugMode) {
+        print('TouchBarUpdateManager: Lyrics update failed: $e');
+      }
     }
   }
 
