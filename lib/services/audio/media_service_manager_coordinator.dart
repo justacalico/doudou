@@ -187,11 +187,11 @@ class MediaServiceManagerCoordinator {
 
   /// Get current service safely
   BaseMediaService? get currentService {
-    if (_disposed || _disposing || _mediaServiceManager == null) {
+    if (_disposed || _disposing) {
       return null;
     }
     try {
-      return _mediaServiceManager!.currentService;
+      return _mediaServiceManager.currentService;
     } catch (e) {
       return null;
     }
