@@ -1607,6 +1607,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> skipToNext() async {
     _logger.info('Skip to next track requested (current: ${_stateManager.currentIndex}/${_stateManager.playlist.length - 1})', 'AudioHandler');
     
+    // Cancel any ongoing gapless operations when skipping
+    _cancellationManager.createToken('skipCommand', 'Skip to next track cancelling previous operations');
+    
     if (kDebugMode) {
       print('Skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
