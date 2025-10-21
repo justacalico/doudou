@@ -19,6 +19,7 @@ import 'audio_state_persistence.dart';
 import 'audio_transition_manager.dart';
 import 'async_mutex.dart';
 import 'audio_operation_queue.dart';
+import 'audio_state_machine.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -66,8 +67,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Operation queue to prevent concurrent AudioPlayer operations
   final AudioOperationQueue _playerOperationQueue = AudioOperationQueue();
+  
+  // State machine for synchronized player state and user intent
+  final AudioStateMachine _stateMachine = AudioStateMachine();
 
-  // User intent tracking with atomic operations
+  // Legacy user intent tracking - will be replaced by state machine
   bool _userIntendedPlaying = false;
   bool _userExplicitlyPaused = false; // Track intentional user pause
 
@@ -113,11 +117,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _setUserIntentAtomic(bool intendedPlaying) async {
     return await _mutexManager.withLock('userIntent', () async {
       _userIntendedPlaying = intendedPlaying;
+      
+      // Update state machine intent
+      if (intendedPlaying) {
+        _stateMachine.setIntent(UserIntent.play);
+      } else {
+        _stateMachine.setIntent(UserIntent.pause);
+      }
     });
   }
   
   Future<bool> _getUserIntentAtomic() async {
     return await _mutexManager.withLock('userIntent', () async {
+      // Use state machine as primary source of truth
+      if (_stateMachine.userWantsToPlay) {
+        _userIntendedPlaying = true;
+      } else if (_stateMachine.userWantsToPause) {
+        _userIntendedPlaying = false;
+      }
       return _userIntendedPlaying;
     });
   }
