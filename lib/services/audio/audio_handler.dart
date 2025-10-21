@@ -1042,18 +1042,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           streamUrls.add(primaryUrl);
         }
         
-        // Use error state manager for alternative URL fetching
-        await _errorStateManager.executeWithErrorHandling(
-          component: 'AndroidBypassMode',
-          operation: 'getAlternativeUrls',
-          category: ErrorCategory.network,
-          severity: ErrorSeverity.low,
-          action: () async {
-            final altUrls = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
-            streamUrls.addAll(altUrls);
-          },
-          context: {'trackId': track.id},
-        );
+        try {
+          final altUrls = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
+          streamUrls.addAll(altUrls);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to get alternative URLs in bypass mode: $e');
           }
         }
       } else {
