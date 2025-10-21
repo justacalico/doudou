@@ -37,7 +37,9 @@ class AsyncMutex {
       _completer?.complete();
       _completer = null;
     }
-  }  /// Check if the mutex is currently locked
+  }
+
+  /// Check if the mutex is currently locked
   bool get isLocked => _completer != null && !_completer!.isCompleted;
   
   /// Execute a function with the mutex locked with timeout protection
