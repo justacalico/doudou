@@ -17,6 +17,7 @@ import 'audio_queue_manager.dart';
 import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
 import 'audio_transition_manager.dart';
+import 'async_mutex.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
