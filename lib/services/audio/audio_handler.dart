@@ -441,6 +441,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Initialize iOS audio session FIRST before any other audio setup (iOS only)
     if (Platform.isIOS) {
       _audioSessionCoordinator.initialize();
+      
+      // Listen for audio session events for coordinated handling
+      _audioSessionCoordinator.events.listen((event) {
+        _handleAudioSessionEvent(event);
+      });
     }
     
     _init();
