@@ -18,6 +18,7 @@ import 'audio_radio_mode.dart';
 import 'audio_state_persistence.dart';
 import 'audio_transition_manager.dart';
 import 'async_mutex.dart';
+import 'jellyfin_service_coordinator.dart';
 import 'audio_operation_queue.dart';
 import 'audio_state_machine.dart';
 import 'operation_cancellation.dart';
