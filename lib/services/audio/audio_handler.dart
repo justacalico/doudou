@@ -2956,7 +2956,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
-  void unshuffle() {
+  Future<void> unshuffle() async {
     await _queueManager.unshuffle();
   }
 
