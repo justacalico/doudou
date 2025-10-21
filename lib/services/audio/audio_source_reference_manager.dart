@@ -3,7 +3,6 @@
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
 /// Reference-counted audio source container
