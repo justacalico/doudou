@@ -1,5 +1,6 @@
 /// Atomic position updates for AudioHandler to prevent position jumps and race conditions
 /// Ensures position changes are properly debounced and synchronized
+library;
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
