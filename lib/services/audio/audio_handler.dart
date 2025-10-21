@@ -263,28 +263,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Try to update playback state with Android foreground service error handling
     try {
       // Skip AudioService updates if in bypass mode
-      if (_androidBypassMode) {
+      if (_androidServiceManager.shouldSkipAudioService()) {
         if (kDebugMode) {
-          print('Android bypass mode: Skipping AudioService playback state update');
+          print('Android service manager: Skipping AudioService playback state update - ${_androidServiceManager.currentConfig.description}');
         }
         return;
       }
       
       playbackState.add(finalState);
     } catch (e) {
-      if (Platform.isAndroid) {
-        _androidServiceBlocked = true;
+      // Handle the error through the service manager
+      final newConfig = _androidServiceManager.handlePlaybackStateError(e);
+      
+      if (kDebugMode) {
+        print('=== ANDROID AUDIOSERVICE ERROR HANDLED ===');
+        print('Error updating playback state: $e');
+        print('New service state: ${newConfig.description}');
+      }
+      
+      // If we transitioned to bypass mode, skip further AudioService operations
+      if (newConfig.shouldBypass) {
         if (kDebugMode) {
-          print('=== ANDROID AUDIOSERVICE COMPLETELY BLOCKED ===');
-          print('Error updating playback state: $e');
-          print('Enabling Android bypass mode for pure just_audio operation...');
-        }
-        
-        // Enable bypass mode to prevent future AudioService calls
-        _androidBypassMode = true;
-        
-        if (kDebugMode) {
-          print('Android bypass mode enabled - AudioService will be bypassed');
+          print('Android service manager: Bypassing AudioService for future operations');
         }
       } else {
         if (kDebugMode) {
