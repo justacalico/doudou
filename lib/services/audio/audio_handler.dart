@@ -20,6 +20,7 @@ import 'async_mutex.dart';
 import 'jellyfin_service_coordinator.dart';
 import 'error_state_manager.dart';
 import 'audio_session_coordinator.dart';
+import 'player_state_transition_coordinator.dart';
 import 'audio_operation_queue.dart';
 import 'audio_state_machine.dart';
 import 'operation_cancellation.dart';
