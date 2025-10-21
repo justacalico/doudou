@@ -2742,6 +2742,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _setUserIntentAtomic(true);
     final userIntent = await _getUserIntentAtomic();
     
+    // Clear explicit pause flag since we're starting new content
+    _userExplicitlyPaused = false;
+    
     if (kDebugMode) {
       print('Set _userIntendedPlaying to: $userIntent');
     }
