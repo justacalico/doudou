@@ -150,37 +150,39 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Helper method to completely clear and reset player state
   Future<void> _resetPlayerStateCompletely() async {
-    _logger.info('Completely resetting player state', 'AudioHandler');
-    
-    // Stop player first and wait for it to fully stop
-    try {
-      await _player.stop();
+    return await _playerOperationQueue.enqueue('resetPlayerState', () async {
+      _logger.info('Completely resetting player state', 'AudioHandler');
       
-      // Wait for player to fully stop and release all resources
-      await Future.delayed(const Duration(milliseconds: 200));
+      // Stop player first and wait for it to fully stop
+      try {
+        await _player.stop();
+        
+        // Wait for player to fully stop and release all resources
+        await Future.delayed(const Duration(milliseconds: 200));
+        
+        _logger.info('Player stopped successfully', 'AudioHandler');
+      } catch (e) {
+        _logger.warning('Error stopping player: $e', 'AudioHandler');
+      }
       
-      _logger.info('Player stopped successfully', 'AudioHandler');
-    } catch (e) {
-      _logger.warning('Error stopping player: $e', 'AudioHandler');
-    }
-    
-    // Clear all caches and state atomically
-    await _clearAudioSourceCache();
-    await _setConcatenationState(false, null);
-    _preloader.clearAllPreloadedPlayers();
-    
-    // Reset transition states
-    await _transitionManager.waitForTransitionComplete();
-    _stateManager.setHandlingCompletion(false);
-    _stateManager.setTransitioning(false);
-    
-    // CRITICAL FIX: Clear the current track reference to prevent old track confusion
-    _stateManager.setCurrentTrack(null);
-    
-    // Additional delay to ensure all audio sources are properly released
-    await Future.delayed(const Duration(milliseconds: 300));
-    
-    _logger.info('Player state reset completed', 'AudioHandler');
+      // Clear all caches and state atomically
+      await _clearAudioSourceCache();
+      await _setConcatenationState(false, null);
+      _preloader.clearAllPreloadedPlayers();
+      
+      // Reset transition states
+      await _transitionManager.waitForTransitionComplete();
+      _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
+      
+      // CRITICAL FIX: Clear the current track reference to prevent old track confusion
+      _stateManager.setCurrentTrack(null);
+      
+      // Additional delay to ensure all audio sources are properly released
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      _logger.info('Player state reset completed', 'AudioHandler');
+    });
   }
 
   // Helper method to update playback state while preventing automatic buffering pauses
