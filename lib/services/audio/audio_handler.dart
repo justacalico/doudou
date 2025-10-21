@@ -20,6 +20,7 @@ import 'audio_transition_manager.dart';
 import 'async_mutex.dart';
 import 'audio_operation_queue.dart';
 import 'audio_state_machine.dart';
+import 'operation_cancellation.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -70,6 +71,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // State machine for synchronized player state and user intent
   final AudioStateMachine _stateMachine = AudioStateMachine();
+  
+  // Cancellation manager for preventing operation race conditions
+  final OperationCancellationManager _cancellationManager = OperationCancellationManager();
 
   // Legacy user intent tracking - will be replaced by state machine
   bool _userIntendedPlaying = false;
