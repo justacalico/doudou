@@ -29,9 +29,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   final DownloadService _downloadService;
   final MediaServiceManager? _mediaServiceManager;
   
-  // Android foreground service bypass mode
-  bool _androidBypassMode = false;
-  bool _androidServiceBlocked = false;
+  // Android foreground service management with immutable state
+  final AndroidServiceManager _androidServiceManager = AndroidServiceManager();
   
   // Touch Bar service for macOS
   bool _touchBarEnabled = false;
