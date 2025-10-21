@@ -437,7 +437,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Initialize iOS audio session FIRST before any other audio setup (iOS only)
     if (Platform.isIOS) {
-      _initializeAudioSession();
+      _audioSessionCoordinator.initialize();
     }
     
     _init();
@@ -2422,19 +2422,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _preloader.protectAudioSource(track.id);
     
     // Activate audio session before loading (iOS specific)
-    try {
-      final audioSession = await AudioSession.instance;
-      await audioSession.setActive(true);
-      _logger.debug('Audio session activated', 'AudioHandler');
-      if (kDebugMode) {
-        print('Audio session activated for track loading');
-      }
-    } catch (e) {
-      _logger.warning('Failed to activate audio session: $e', 'AudioHandler');
-      if (kDebugMode) {
-        print('Failed to activate audio session: $e');
-      }
-    }
+    await _audioSessionCoordinator.ensureActive();
     
     // Try local file first using coordinated download service
     final localFilePath = await _downloadServiceCoordinator.getLocalFilePath(track.id);
