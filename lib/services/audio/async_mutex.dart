@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 /// Provides proper async synchronization without busy-waiting
 class AsyncMutex {
   Completer<void>? _completer;
+  final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
   
   /// Acquire the mutex lock
   /// Returns immediately if available, otherwise waits asynchronously
