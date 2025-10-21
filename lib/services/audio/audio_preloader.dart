@@ -93,9 +93,12 @@ class AudioPreloader {
           Future(() => _preloadTrackAggressive(prevTrack, 0));
         }
       }
-    } finally {
-      _releasePreloadLock();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in preload operation: $e');
+      }
     }
+    });
   }
   
   void _preloadTrackAggressive(Track track, int priority) async {
