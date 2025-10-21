@@ -73,7 +73,7 @@ class PlayerStateTransitionCoordinator {
   void initialize() {
     _currentState = PlayerTransitionState.idle;
     if (kDebugMode) {
-      print('PlayerStateTransitionCoordinator: Initialized in state ${_currentState}');
+      print('PlayerStateTransitionCoordinator: Initialized in state $_currentState');
     }
   }
   
@@ -86,7 +86,7 @@ class PlayerStateTransitionCoordinator {
       // Queue the transition for later processing
       _transitionQueue.add(_QueuedTransition(event, context));
       if (kDebugMode) {
-        print('PlayerStateTransitionCoordinator: Queued transition ${event} (current: ${_currentState})');
+        print('PlayerStateTransitionCoordinator: Queued transition $event (current: $_currentState)');
       }
       return false;
     }
@@ -106,7 +106,7 @@ class PlayerStateTransitionCoordinator {
       
       if (!validationResult.isValid) {
         _logger.warning(
-          'Invalid state transition: ${_currentState} -> ${event} (${validationResult.reason})', 
+          'Invalid state transition: $_currentState -> $event (${validationResult.reason})', 
           'PlayerStateTransitionCoordinator'
         );
         return false;
@@ -116,7 +116,7 @@ class PlayerStateTransitionCoordinator {
       _currentState = validationResult.newState!;
       
       if (kDebugMode) {
-        print('PlayerStateTransitionCoordinator: Transition ${previousState} -> ${_currentState} via ${event}');
+        print('PlayerStateTransitionCoordinator: Transition $previousState -> $_currentState via $event');
       }
       
       // Emit state change
