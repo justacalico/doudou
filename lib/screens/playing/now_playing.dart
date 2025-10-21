@@ -201,7 +201,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                               child: StreamBuilder(
                                 stream: audioHandler?.playerStateStream,
                                 builder: (context, snapshot) {
-                                  final isPlaying = audioHandler?.userIntendedPlaying ?? false;
+                                  final isPlaying = snapshot.data?.playing == true;
                                   
                                   return LayoutBuilder(
                                     builder: (context, constraints) {
