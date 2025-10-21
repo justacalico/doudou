@@ -2940,7 +2940,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _concatenatingSource = null;
     }
     
-    _queueManager.shuffle();
+    await _queueManager.shuffle();
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
     // Try to rebuild gapless playback if it was enabled
