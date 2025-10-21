@@ -158,14 +158,6 @@ class MediaServiceManagerCoordinator {
     return result ?? <Track>[];
   }
 
-  /// Get album tracks with coordination
-  Future<List<Track>> getAlbumTracks(String albumId) async {
-    final result = await executeOperation('getAlbumTracks', (manager) async {
-      return await manager.getAlbumTracks(albumId);
-    });
-    return result ?? <Track>[];
-  }
-
   /// Get playlist tracks with coordination
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
     final result = await executeOperation('getPlaylistTracks', (manager) async {
