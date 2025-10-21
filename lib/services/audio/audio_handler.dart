@@ -2142,7 +2142,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _loadAndPlayTrack(Track track, bool shouldPlay) async {
-    return await _withLock('trackLoading', () async {
+    return await _mutexManager.withLock('trackLoading', () async {
       _logger.info('Loading track: ${track.name}, shouldPlay: $shouldPlay', 'AudioHandler');
       if (kDebugMode) {
         print('Loading track: ${track.name}, should play: $shouldPlay');
