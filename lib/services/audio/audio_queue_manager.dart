@@ -117,30 +117,32 @@ class AudioQueueManager {
     });
   }
   
-  /// Set up a new playlist and queue
-  void setPlaylist(List<Track> tracks, int startIndex) {
-    // Ensure startIndex is valid
-    final validIndex = startIndex.clamp(0, tracks.length - 1);
-    
-    // Clear old state and set new playlist
-    _stateManager.setPlaylist(tracks);
-    _stateManager.setCurrentIndex(validIndex);
-    _stateManager.setShuffled(false);
-    
-    // CRITICAL FIX: Immediately set the current track to ensure UI consistency
-    if (tracks.isNotEmpty && validIndex < tracks.length) {
-      _stateManager.setCurrentTrack(tracks[validIndex]);
-    } else {
-      _stateManager.setCurrentTrack(null);
-    }
-    
-    _logger.info('Set new playlist: ${tracks.length} tracks, starting at index $validIndex', 'QueueManager');
-    if (kDebugMode) {
-      print('Set new playlist: ${tracks.length} tracks, starting at index $validIndex');
+  /// Set up a new playlist and queue with proper synchronization
+  Future<void> setPlaylist(List<Track> tracks, int startIndex) async {
+    return await _mutexManager.withLock('queueModification', () async {
+      // Ensure startIndex is valid
+      final validIndex = startIndex.clamp(0, tracks.length - 1);
+      
+      // Clear old state and set new playlist
+      _stateManager.setPlaylist(tracks);
+      _stateManager.setCurrentIndex(validIndex);
+      _stateManager.setShuffled(false);
+      
+      // CRITICAL FIX: Immediately set the current track to ensure UI consistency
       if (tracks.isNotEmpty && validIndex < tracks.length) {
-        print('Current track set to: ${tracks[validIndex].name}');
+        _stateManager.setCurrentTrack(tracks[validIndex]);
+      } else {
+        _stateManager.setCurrentTrack(null);
       }
-    }
+      
+      _logger.info('Set new playlist: ${tracks.length} tracks, starting at index $validIndex', 'QueueManager');
+      if (kDebugMode) {
+        print('Set new playlist: ${tracks.length} tracks, starting at index $validIndex');
+        if (tracks.isNotEmpty && validIndex < tracks.length) {
+          print('Current track set to: ${tracks[validIndex].name}');
+        }
+      }
+    });
   }
   
   /// Set up a single track as the playlist
