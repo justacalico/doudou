@@ -1,5 +1,6 @@
 /// Reference counting system for AudioPreloader to prevent cleanup race conditions
 /// Ensures audio sources are not disposed while they're being used or prepared
+library;
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
