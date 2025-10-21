@@ -66,6 +66,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Command throttling with atomic timestamp updates
   DateTime? _lastPlayCommand;
   DateTime? _lastPauseCommand;
+  bool _userExplicitlyPaused = false; // Track intentional user pause
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
   bool _commandThrottleLocked = false;
 
