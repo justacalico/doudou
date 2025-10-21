@@ -860,7 +860,7 @@ class _HomeContentState extends State<HomeContent> {
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: Container(
-                height: 160,
+                height: 140, // Reduced from 160 to fit in 200px container
                 width: 160,
                 color: const Color(0xFF2D2D2D),
                 child: album.imageUrl != null
@@ -872,7 +872,7 @@ class _HomeContentState extends State<HomeContent> {
                         ),
                         fit: BoxFit.cover,
                         width: 160,
-                        height: 160,
+                        height: 140,
                         placeholder: (context, url) => const Center(
                           child: CupertinoActivityIndicator(),
                         ),
