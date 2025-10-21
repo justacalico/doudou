@@ -11,21 +11,20 @@ class AsyncMutex {
   /// Acquire the mutex lock
   /// Returns immediately if available, otherwise waits asynchronously
   Future<void> acquire() async {
+    // Always check and potentially wait to avoid race conditions
+    final completer = Completer<void>();
+    
     if (!_locked) {
       // Mutex is free, claim it immediately
       _locked = true;
-      return;
+      completer.complete();
+    } else {
+      // Mutex is busy, add ourselves to the wait queue
+      _waitQueue.add(completer);
     }
     
-    // Mutex is busy, add ourselves to the wait queue
-    final completer = Completer<void>();
-    _waitQueue.add(completer);
-    
-    // Wait for our turn
+    // Wait for our turn (will return immediately if we claimed it above)
     await completer.future;
-    
-    // When we're woken up, we own the lock
-    _locked = true;
   }
 
   /// Release the mutex lock
