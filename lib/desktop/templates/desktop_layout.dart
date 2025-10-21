@@ -982,42 +982,53 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                 iconSize: 36,
                               ),
                               const SizedBox(width: 16),
-                              IconButton(
-                                onPressed: audioHandler != null && currentTrack != null
-                                    ? () {
-                                        if (kDebugMode) {
-                                          print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
-                                          print('DateTime: ${DateTime.now()}');
-                                          print('isPlaying: $isPlaying');
-                                          print('isBuffering: $isBuffering');
-                                          print('currentTrack: ${currentTrack?.displayTitle ?? "null"}');
-                                          print('audioHandler: ${audioHandler != null}');
-                                          print('userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
-                                          print('audioHandler.playerState: ${audioHandler?.playerState}');
-                                          print('Button conditions met - about to call playPause');
-                                          print('About to call playPause()...');
-                                        }
-                                        try {
-                                          Provider.of<AppState>(context, listen: false).playPause();
-                                          if (kDebugMode) {
-                                            print('playPause() call completed successfully');
+                              Builder(
+                                builder: (context) {
+                                  // Debug the button conditions every time the widget rebuilds
+                                  if (kDebugMode) {
+                                    print('=== DESKTOP BUTTON REBUILD ===');
+                                    print('DateTime: ${DateTime.now()}');
+                                    print('audioHandler != null: ${audioHandler != null}');
+                                    print('currentTrack != null: ${currentTrack != null}');
+                                    print('Button should be enabled: ${audioHandler != null && currentTrack != null}');
+                                  }
+                                  
+                                  return IconButton(
+                                    onPressed: audioHandler != null && currentTrack != null
+                                        ? () {
+                                            if (kDebugMode) {
+                                              print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
+                                              print('DateTime: ${DateTime.now()}');
+                                              print('isPlaying: $isPlaying');
+                                              print('isBuffering: $isBuffering');
+                                              print('currentTrack: ${currentTrack?.displayTitle ?? "null"}');
+                                              print('audioHandler: ${audioHandler != null}');
+                                              print('userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
+                                              print('audioHandler.playerState: ${audioHandler?.playerState}');
+                                              print('Button conditions met - about to call playPause');
+                                              print('About to call playPause()...');
+                                            }
+                                            try {
+                                              Provider.of<AppState>(context, listen: false).playPause();
+                                              if (kDebugMode) {
+                                                print('playPause() call completed successfully');
+                                              }
+                                            } catch (e) {
+                                              if (kDebugMode) {
+                                                print('ERROR calling playPause(): $e');
+                                              }
+                                            }
                                           }
-                                        } catch (e) {
-                                          if (kDebugMode) {
-                                            print('ERROR calling playPause(): $e');
-                                          }
-                                        }
-                                      }
-                                    : () {
-                                        if (kDebugMode) {
-                                          print('=== DESKTOP PLAY/PAUSE BUTTON DISABLED ===');
-                                          print('DateTime: ${DateTime.now()}');
-                                          print('audioHandler: ${audioHandler != null}');
-                                          print('currentTrack: ${currentTrack != null}');
-                                          print('isBuffering: $isBuffering');
-                                          print('Button is disabled because conditions not met');
-                                        }
-                                      },
+                                        : () {
+                                            if (kDebugMode) {
+                                              print('=== DESKTOP PLAY/PAUSE BUTTON DISABLED ===');
+                                              print('DateTime: ${DateTime.now()}');
+                                              print('audioHandler: ${audioHandler != null}');
+                                              print('currentTrack: ${currentTrack != null}');
+                                              print('isBuffering: $isBuffering');
+                                              print('Button is disabled because conditions not met');
+                                            }
+                                          },
                                 icon: isBuffering 
                                   ? SizedBox(
                                       width: 32,
@@ -1036,6 +1047,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   foregroundColor: theme.colorScheme.onPrimary,
                                   padding: const EdgeInsets.all(16),
                                 ),
+                              );
+                                }
                               ),
                               const SizedBox(width: 16),
                               IconButton(
