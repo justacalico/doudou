@@ -988,7 +988,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   /// Create audio source for a track with fresh source creation to avoid stale URLs
   Future<AudioSource?> _createAudioSource(Track track) async {
-    return await _withLock('audioSourceCache', () async {
+    return await _mutexManager.withLock('audioSourceCache', () async {
       try {
         // Try local file first
         final localFilePath = _downloadService.getLocalFilePath(track.id);
