@@ -174,6 +174,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return await _mutexManager.withLock('userIntent', () async {
       _userIntendedPlaying = intendedPlaying;
       
+      // Update audio session coordinator for interruption handling
+      _audioSessionCoordinator.setUserIntendedPlaying(intendedPlaying);
+      
       // Update state machine intent
       if (intendedPlaying) {
         _stateMachine.setIntent(UserIntent.play);
