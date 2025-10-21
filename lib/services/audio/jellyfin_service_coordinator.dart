@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../jellyfin_service.dart';
-import '../models/jellyfin_models.dart';
+import '../../models/jellyfin_models.dart';
 import 'jellyfin_request_queue.dart';
 
 /// Event types for Jellyfin service coordination
