@@ -9,10 +9,7 @@ import '../../shared/detail_track_view.dart';
 class ArtistDetailScreen extends StatefulWidget {
   final Artist artist;
 
-  const ArtistDetailScreen({
-    super.key,
-    required this.artist,
-  });
+  const ArtistDetailScreen({super.key, required this.artist});
 
   @override
   State<ArtistDetailScreen> createState() => _ArtistDetailScreenState();
@@ -31,7 +28,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
   void _loadArtistContent() async {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -39,15 +36,23 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     try {
       // Get all tracks by this artist
       final allTracks = appState.tracks;
-      _artistTracks = allTracks.where((track) => 
-        track.artistName?.toLowerCase() == widget.artist.name.toLowerCase()
-      ).toList();
+      _artistTracks = allTracks
+          .where(
+            (track) =>
+                track.artistName?.toLowerCase() ==
+                widget.artist.name.toLowerCase(),
+          )
+          .toList();
 
       // Get all albums by this artist
       final allAlbums = appState.albums;
-      _artistAlbums = allAlbums.where((album) => 
-        album.artistName?.toLowerCase() == widget.artist.name.toLowerCase()
-      ).toList();
+      _artistAlbums = allAlbums
+          .where(
+            (album) =>
+                album.artistName?.toLowerCase() ==
+                widget.artist.name.toLowerCase(),
+          )
+          .toList();
 
       setState(() {
         _isLoading = false;
@@ -94,7 +99,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ),
                 ),
               ),
-              
+
               CustomScrollView(
                 slivers: [
                   // Enhanced Header
@@ -163,7 +168,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Enhanced Hero Section
                   SliverToBoxAdapter(
                     child: SizedBox(
@@ -185,7 +190,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                               ),
                             ),
                           ),
-                          
+
                           // Main content
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -204,7 +209,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF8E4EC6).withOpacity(0.4),
+                                      color: const Color(
+                                        0xFF8E4EC6,
+                                      ).withOpacity(0.4),
                                       blurRadius: 30,
                                       spreadRadius: 10,
                                     ),
@@ -215,7 +222,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFF8E4EC6).withOpacity(0.3),
+                                      color: const Color(
+                                        0xFF8E4EC6,
+                                      ).withOpacity(0.3),
                                       width: 2,
                                     ),
                                   ),
@@ -232,12 +241,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   ),
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 24),
-                              
+
                               // Enhanced Artist Name
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
                                 child: Text(
                                   widget.artist.name,
                                   style: const TextStyle(
@@ -256,28 +267,39 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 16),
-                              
+
                               // Enhanced Stats
                               if (!_isLoading)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        const Color(0xFF1C1C1E).withOpacity(0.8),
-                                        const Color(0xFF2C2C2E).withOpacity(0.6),
+                                        const Color(
+                                          0xFF1C1C1E,
+                                        ).withOpacity(0.8),
+                                        const Color(
+                                          0xFF2C2C2E,
+                                        ).withOpacity(0.6),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: const Color(0xFF3C3C3E).withOpacity(0.3),
+                                      color: const Color(
+                                        0xFF3C3C3E,
+                                      ).withOpacity(0.3),
                                       width: 1,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF000000).withOpacity(0.2),
+                                        color: const Color(
+                                          0xFF000000,
+                                        ).withOpacity(0.2),
                                         offset: const Offset(0, 4),
                                         blurRadius: 12,
                                       ),
@@ -288,19 +310,27 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     children: [
                                       _buildStatItem(
                                         '${_artistAlbums.length}',
-                                        _artistAlbums.length == 1 ? 'Album' : 'Albums',
+                                        _artistAlbums.length == 1
+                                            ? 'Album'
+                                            : 'Albums',
                                         CupertinoIcons.music_albums,
                                         const Color(0xFF30D158),
                                       ),
                                       Container(
                                         width: 1,
                                         height: 32,
-                                        color: const Color(0xFF3C3C3E).withOpacity(0.5),
-                                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                                        color: const Color(
+                                          0xFF3C3C3E,
+                                        ).withOpacity(0.5),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
                                       ),
                                       _buildStatItem(
                                         '${_artistTracks.length}',
-                                        _artistTracks.length == 1 ? 'Song' : 'Songs',
+                                        _artistTracks.length == 1
+                                            ? 'Song'
+                                            : 'Songs',
                                         CupertinoIcons.music_note,
                                         const Color(0xFF007AFF),
                                       ),
@@ -313,7 +343,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Enhanced Action Buttons Section
                   SliverToBoxAdapter(
                     child: Container(
@@ -328,14 +358,19 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF30D158), Color(0xFF32ADE6)],
+                                        colors: [
+                                          Color(0xFF30D158),
+                                          Color(0xFF32ADE6),
+                                        ],
                                         begin: Alignment.centerLeft,
                                         end: Alignment.centerRight,
                                       ),
                                       borderRadius: BorderRadius.circular(16),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF30D158).withOpacity(0.4),
+                                          color: const Color(
+                                            0xFF30D158,
+                                          ).withOpacity(0.4),
                                           blurRadius: 16,
                                           offset: const Offset(0, 6),
                                         ),
@@ -343,9 +378,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     ),
                                     child: CupertinoButton(
                                       onPressed: () => _playAllTracks(appState),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             CupertinoIcons.play_fill,
@@ -373,18 +411,26 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          const Color(0xFF1C1C1E).withOpacity(0.8),
-                                          const Color(0xFF2C2C2E).withOpacity(0.6),
+                                          const Color(
+                                            0xFF1C1C1E,
+                                          ).withOpacity(0.8),
+                                          const Color(
+                                            0xFF2C2C2E,
+                                          ).withOpacity(0.6),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
-                                        color: const Color(0xFF3C3C3E).withOpacity(0.3),
+                                        color: const Color(
+                                          0xFF3C3C3E,
+                                        ).withOpacity(0.3),
                                         width: 1,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF000000).withOpacity(0.3),
+                                          color: const Color(
+                                            0xFF000000,
+                                          ).withOpacity(0.3),
                                           blurRadius: 12,
                                           offset: const Offset(0, 4),
                                         ),
@@ -392,9 +438,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     ),
                                     child: CupertinoButton(
                                       onPressed: () => _shuffleTracks(appState),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             CupertinoIcons.shuffle,
@@ -422,7 +471,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Loading or Content
                   if (_isLoading)
                     const SliverFillRemaining(
@@ -443,10 +492,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF007AFF).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF007AFF,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFF007AFF).withOpacity(0.2),
+                                    color: const Color(
+                                      0xFF007AFF,
+                                    ).withOpacity(0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -484,7 +537,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         ),
                       ),
                     ],
-                    
+
                     // Popular Tracks Section
                     if (_artistTracks.isNotEmpty) ...[
                       SliverToBoxAdapter(
@@ -495,10 +548,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFF453A).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFFFF453A,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFFFF453A).withOpacity(0.2),
+                                    color: const Color(
+                                      0xFFFF453A,
+                                    ).withOpacity(0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -522,23 +579,26 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         ),
                       ),
                       SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final track = _artistTracks[index];
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                left: 20,
-                                right: 20,
-                                bottom: index < _artistTracks.length - 1 ? 12 : 20,
-                              ),
-                              child: _buildEnhancedTrackItem(track, appState, index),
-                            );
-                          },
-                          childCount: _artistTracks.length,
-                        ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final track = _artistTracks[index];
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              bottom: index < _artistTracks.length - 1
+                                  ? 12
+                                  : 20,
+                            ),
+                            child: _buildEnhancedTrackItem(
+                              track,
+                              appState,
+                              index,
+                            ),
+                          );
+                        }, childCount: _artistTracks.length),
                       ),
                     ],
-                    
+
                     // Empty State
                     if (_artistTracks.isEmpty && _artistAlbums.isEmpty)
                       SliverFillRemaining(
@@ -575,11 +635,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         ),
                       ),
                   ],
-                  
+
                   // Bottom padding for mini player
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
               // Mini Player
@@ -597,7 +655,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   // Helper method for building stat items
-  Widget _buildStatItem(String value, String label, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Container(
@@ -606,11 +669,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
             color: color.withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 16,
-          ),
+          child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(height: 8),
         Text(
@@ -673,7 +732,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
             children: [
               // Album artwork
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
                 child: Container(
                   height: 180,
                   width: 180,
@@ -728,7 +789,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         ),
                 ),
               ),
-              
+
               // Album info
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -749,7 +810,10 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                     if (album.year != null) ...[
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF30D158).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(8),
@@ -821,9 +885,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(width: 16),
-            
+
             // Track artwork
             Container(
               width: 48,
@@ -841,7 +905,11 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: CachedImageWidget(
-                        imageUrl: appState.getImageUrl(track.imageUrl!, width: 96, height: 96),
+                        imageUrl: appState.getImageUrl(
+                          track.imageUrl!,
+                          width: 96,
+                          height: 96,
+                        ),
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
@@ -880,9 +948,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       ),
                     ),
             ),
-            
+
             const SizedBox(width: 16),
-            
+
             // Track info
             Expanded(
               child: Column(
@@ -914,7 +982,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 ],
               ),
             ),
-            
+
             // Track actions
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -948,5 +1016,4 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       ),
     );
   }
-
 }
