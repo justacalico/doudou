@@ -1368,6 +1368,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         } else {
           await _player.play();
         }
+        
+        // Update playback state to reflect the play
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: true,
+          processingState: _player.processingState == ProcessingState.ready 
+              ? AudioProcessingState.ready 
+              : AudioProcessingState.loading,
+        ));
+        
+        _logger.info('Play command completed successfully (bypass mode)', 'AudioHandler');
+        if (kDebugMode) {
+          print('Play command completed (bypass mode). User intended playing: $_userIntendedPlaying');
+        }
         return;
       }
       
