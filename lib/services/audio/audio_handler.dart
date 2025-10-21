@@ -474,6 +474,36 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _updateTouchBarLyrics(position);
     });
 
+    // Add playback event listener to handle errors gracefully
+    _player.playbackEventStream.listen((event) {
+      // Handle playback errors
+      if (event.processingState == ProcessingState.idle) {
+        // Check if this was due to an error
+        if (_stateManager.currentTrack != null && _userIntendedPlaying) {
+          _logger.warning('Playback went idle unexpectedly, attempting recovery', 'AudioHandler');
+          if (kDebugMode) {
+            print('Player went idle unexpectedly - attempting to recover');
+          }
+          
+          // Try to recover by disabling gapless and reloading current track
+          Future.delayed(const Duration(milliseconds: 500), () async {
+            try {
+              // Disable gapless to avoid concatenation issues
+              if (_isUsingConcatenation) {
+                _logger.info('Disabling gapless playback due to error recovery', 'AudioHandler');
+                await _setConcatenationState(false, null);
+              }
+              
+              // Reload current track individually
+              await _playIndividualTrack(_stateManager.currentTrack!, true);
+            } catch (e) {
+              _logger.error('Error recovery failed: $e', 'AudioHandler');
+            }
+          });
+        }
+      }
+    });
+
     // Simplified completion detection - only handle actual completion
     _player.processingStateStream.listen((state) async {
       final userIntent = await _getUserIntentAtomic();
