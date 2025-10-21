@@ -910,15 +910,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Preloaded track $i: ${track.name}');
         }
       } else {
-        // Create a placeholder that will be loaded on-demand
-        // Use a simple URI source that will be replaced when needed
-        final streamUrl = _mediaServiceManager?.getStreamUrl(track.id) ?? '';
-        if (streamUrl.isNotEmpty) {
-          audioSource = AudioSource.uri(Uri.parse(streamUrl));
-          if (kDebugMode) {
-            print('Created placeholder for track $i: ${track.name}');
-          }
+        // For mobile: Skip creating placeholders that might be invalid
+        // Only add tracks that we can actually create valid sources for
+        if (kDebugMode) {
+          print('Skipping placeholder for track $i: ${track.name} (mobile optimization)');
         }
+        continue; // Skip this track instead of creating invalid placeholder
       }
       
       if (audioSource != null) {
