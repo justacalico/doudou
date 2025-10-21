@@ -27,6 +27,7 @@ import 'state_persistence_manager.dart';
 import 'radio_mode_state_manager.dart';
 import 'touchbar_update_manager.dart';
 import 'download_service_coordinator.dart';
+import 'media_service_manager_coordinator.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
