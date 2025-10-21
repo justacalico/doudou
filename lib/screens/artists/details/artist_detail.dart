@@ -315,13 +315,13 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                     ),
                   ),
                   
-                  // Action Buttons Section
+                  // Enhanced Action Buttons Section
                   SliverToBoxAdapter(
                     child: Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                       child: Column(
                         children: [
-                          // Play and Shuffle buttons
+                          // Enhanced Play and Shuffle buttons
                           if (_artistTracks.isNotEmpty)
                             Row(
                               children: [
@@ -329,16 +329,16 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF32D74B), Color(0xFF30D158)],
+                                        colors: [Color(0xFF30D158), Color(0xFF32ADE6)],
                                         begin: Alignment.centerLeft,
                                         end: Alignment.centerRight,
                                       ),
-                                      borderRadius: BorderRadius.circular(25),
+                                      borderRadius: BorderRadius.circular(16),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF32D74B).withOpacity(0.4),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
+                                          color: const Color(0xFF30D158).withOpacity(0.4),
+                                          blurRadius: 16,
+                                          offset: const Offset(0, 6),
                                         ),
                                       ],
                                     ),
@@ -353,13 +353,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                             color: Color(0xFFFFFFFF),
                                             size: 20,
                                           ),
-                                          SizedBox(width: 8),
+                                          SizedBox(width: 12),
                                           Text(
                                             'Play All',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: FontWeight.w700,
                                               color: Color(0xFFFFFFFF),
+                                              letterSpacing: -0.2,
                                             ),
                                           ),
                                         ],
@@ -367,16 +368,28 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 16),
                                 Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1C1C1E),
-                                      borderRadius: BorderRadius.circular(25),
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          const Color(0xFF1C1C1E).withOpacity(0.8),
+                                          const Color(0xFF2C2C2E).withOpacity(0.6),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
-                                        color: const Color(0xFF2C2C2E),
+                                        color: const Color(0xFF3C3C3E).withOpacity(0.3),
                                         width: 1,
                                       ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF000000).withOpacity(0.3),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
                                     child: CupertinoButton(
                                       onPressed: () => _shuffleTracks(appState),
@@ -389,13 +402,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                             color: Color(0xFFFFFFFF),
                                             size: 20,
                                           ),
-                                          SizedBox(width: 8),
+                                          SizedBox(width: 12),
                                           Text(
                                             'Shuffle',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: FontWeight.w700,
                                               color: Color(0xFFFFFFFF),
+                                              letterSpacing: -0.2,
                                             ),
                                           ),
                                         ],
