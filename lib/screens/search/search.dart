@@ -382,67 +382,142 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildRecentSearches(AppState appState) {
     if (_recentSearches.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              CupertinoIcons.search,
-              size: 64,
-              color: CupertinoColors.systemGrey2,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Start searching',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.white,
+            const SizedBox(height: 60),
+            
+            // Enhanced empty state
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF007AFF).withOpacity(0.15),
+                    const Color(0xFF5856D6).withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(60),
+                border: Border.all(
+                  color: const Color(0xFF007AFF).withOpacity(0.2),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                CupertinoIcons.search,
+                size: 56,
+                color: Color(0xFF007AFF),
               ),
             ),
-            const SizedBox(height: 8),
+            
+            const SizedBox(height: 24),
+            
             const Text(
-              'Search for your favorite artists, albums, and songs',
+              'Discover Your Music',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: CupertinoColors.white,
+                letterSpacing: -0.5,
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            const Text(
+              'Search through your entire music library\nto find exactly what you\'re looking for',
               style: TextStyle(
                 fontSize: 16,
-                color: CupertinoColors.systemGrey2,
+                color: CupertinoColors.systemGrey,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            // Show popular suggestions from library
+            
+            const SizedBox(height: 32),
+            
+            // Popular suggestions with enhanced design
             if (appState.artists.isNotEmpty) ...[
-              const Text(
-                'Popular in your library:',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.systemGrey,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...appState.artists.take(3).map((artist) => 
-                CupertinoButton(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  onPressed: () {
-                    _searchController.text = artist.name;
-                    _performSearch(artist.name, appState);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      artist.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.white,
-                      ),
-                    ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF1C1C1E).withOpacity(0.8),
+                      const Color(0xFF2C2C2E).withOpacity(0.6),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF3C3C3E).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.sparkles,
+                          color: Color(0xFFFF9F0A),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Popular in your library',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: appState.artists.take(6).map((artist) => 
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.text = artist.name;
+                            _performSearch(artist.name, appState);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF007AFF).withOpacity(0.15),
+                                  const Color(0xFF5856D6).withOpacity(0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFF007AFF).withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              artist.name,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoColors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ).toList(),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -454,85 +529,138 @@ class _SearchScreenState extends State<SearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header with clear button
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // Enhanced section header
+        Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Recent searches',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.white,
-                ),
+              Row(
+                children: [
+                  const Icon(
+                    CupertinoIcons.clock,
+                    color: Color(0xFF007AFF),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Recent searches',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: CupertinoColors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
               ),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _clearRecentSearches,
-                child: const Text(
-                  'Clear',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: CupertinoColors.systemBlue,
+              GestureDetector(
+                onTap: _clearRecentSearches,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1E).withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF3C3C3E).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Text(
+                    'Clear',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF007AFF),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
         ),
-        // Recent searches list
+        
+        // Enhanced recent searches list
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: _recentSearches.length,
             itemBuilder: (context, index) {
               final search = _recentSearches[index];
-              return CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () {
-                  _searchController.text = search;
-                  _performSearch(search, appState);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        CupertinoIcons.clock,
-                        color: CupertinoColors.systemGrey2,
-                        size: 20,
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    _searchController.text = search;
+                    _performSearch(search, appState);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF1C1C1E).withOpacity(0.6),
+                          const Color(0xFF2C2C2E).withOpacity(0.4),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          search,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF3C3C3E).withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF007AFF).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.search,
+                            color: Color(0xFF007AFF),
+                            size: 16,
                           ),
                         ),
-                      ),
-                      // Individual delete button for each search
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          setState(() {
-                            _recentSearches.removeAt(index);
-                          });
-                          // Save updated list
-                          SharedPreferences.getInstance().then((prefs) {
-                            prefs.setStringList('recent_searches', _recentSearches);
-                          });
-                        },
-                        child: const Icon(
-                          CupertinoIcons.xmark,
-                          color: CupertinoColors.systemGrey2,
-                          size: 16,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            search,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFFFFFFF),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        // Individual delete button
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _recentSearches.removeAt(index);
+                            });
+                            SharedPreferences.getInstance().then((prefs) {
+                              prefs.setStringList('recent_searches', _recentSearches);
+                            });
+                          },
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1C1C1E).withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.xmark,
+                              color: CupertinoColors.systemGrey2,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
