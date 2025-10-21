@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
@@ -51,7 +52,7 @@ class _HomeContentState extends State<HomeContent> {
 
   List<Album> _getContinueListeningAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
     if (favoriteTracks.isEmpty) {
-      return List<Album>.from(allAlbums)..shuffle();
+      return allAlbums.take(4).toList();
     }
 
     // Get albums that contain favorite tracks
@@ -60,37 +61,19 @@ class _HomeContentState extends State<HomeContent> {
         .map((track) => track.albumId!)
         .toSet();
 
-    final favoriteAlbums = allAlbums
+    final continueListeningAlbums = allAlbums
         .where((album) => favoriteAlbumIds.contains(album.id))
         .toList();
 
-    // If we have enough favorite albums, use them
-    if (favoriteAlbums.length >= 4) {
-      favoriteAlbums.shuffle();
-      return favoriteAlbums.take(4).toList();
-    }
-
-    // Otherwise, mix favorite albums with similar ones
-    final otherAlbums = allAlbums
-        .where((album) => !favoriteAlbumIds.contains(album.id))
-        .toList()
-      ..shuffle();
-
-    final continueListening = <Album>[];
-    continueListening.addAll(favoriteAlbums);
-    continueListening.addAll(otherAlbums.take(4 - favoriteAlbums.length));
-    
-    return continueListening;
+    return continueListeningAlbums.take(4).toList();
   }
 
   List<Album> _getMadeForYouAlbums(List<Album> allAlbums, List<Track> favoriteTracks) {
     if (favoriteTracks.isEmpty) {
-      return allAlbums.length > 10 
-          ? allAlbums.skip(6).take(4).toList() 
-          : List<Album>.from(allAlbums)..shuffle();
+      return allAlbums.take(4).toList();
     }
 
-    // Get albums from artists that appear in favorites
+    // Get albums from the same artists as favorite tracks
     final favoriteArtistNames = favoriteTracks
         .where((track) => track.artistName != null)
         .map((track) => track.artistName!)
@@ -157,6 +140,33 @@ class _HomeContentState extends State<HomeContent> {
     return similarAlbums.take(6).toList();
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning';
+    } else if (hour < 17) {
+      return 'Good afternoon';
+    } else {
+      return 'Good evening';
+    }
+  }
+
+  void _showNoFavoritesDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: const Text('No Favorites'),
+        content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -169,17 +179,125 @@ class _HomeContentState extends State<HomeContent> {
         final continueListeningAlbums = _continueListeningAlbums ?? allAlbums.take(4).toList();
         final madeForYouAlbums = _madeForYouAlbums ?? allAlbums.take(4).toList();
         final similarToFavoritesAlbums = _similarToFavoritesAlbums ?? [];
-        
-        return Container(
-          color: const Color(0xFF000000),
+
+        return CupertinoPageScaffold(
+          backgroundColor: const Color(0xFF0A0A0A), // Deeper black for premium feel
           child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              // Enhanced header with better typography and spacing
+              SliverPersistentHeader(
+                floating: true,
+                delegate: _SliverHeaderDelegate(
+                  minHeight: 90,
+                  maxHeight: 140,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF0A0A0A),
+                          Color(0xFF0A0A0A),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          offset: const Offset(0, 2),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                      child: Row(
+                        children: [
+                          // Enhanced profile picture with gradient border
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFE91E63), Color(0xFFAD1457)],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFE91E63).withOpacity(0.3),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.person_fill,
+                              color: CupertinoColors.white,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Enhanced greeting with better typography
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _getGreeting(),
+                                  style: TextStyle(
+                                    color: CupertinoColors.systemGrey.withOpacity(0.8),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  'What would you like to hear?',
+                                  style: TextStyle(
+                                    color: CupertinoColors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Enhanced settings button
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1C1C1E).withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                // TODO: Navigate to settings
+                              },
+                              child: const Icon(
+                                CupertinoIcons.gear_alt,
+                                color: CupertinoColors.systemGrey,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               
-              // Shuffle buttons
+              const SliverToBoxAdapter(child: SizedBox(height: 28)),
+              
+              // Enhanced shuffle buttons with better design
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final isDesktop = constraints.maxWidth > 600;
@@ -192,7 +310,7 @@ class _HomeContentState extends State<HomeContent> {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: _buildShuffleButton(
+                                  child: _buildEnhancedShuffleButton(
                                     icon: CupertinoIcons.shuffle,
                                     label: 'Shuffle all',
                                     onPressed: () async {
@@ -203,27 +321,15 @@ class _HomeContentState extends State<HomeContent> {
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildShuffleButton(
-                                    icon: CupertinoIcons.heart,
+                                  child: _buildEnhancedShuffleButton(
+                                    icon: CupertinoIcons.heart_fill,
                                     label: 'Shuffle favorites',
                                     onPressed: () async {
                                       final favoriteCount = appState.favoriteTracks.length;
                                       if (favoriteCount > 0) {
                                         await appState.shuffleFavoriteTracks();
                                       } else {
-                                        showCupertinoDialog(
-                                          context: context,
-                                          builder: (BuildContext context) => CupertinoAlertDialog(
-                                            title: const Text('No Favorites'),
-                                            content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
-                                            actions: <CupertinoDialogAction>[
-                                              CupertinoDialogAction(
-                                                child: const Text('OK'),
-                                                onPressed: () => Navigator.of(context).pop(),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                        _showNoFavoritesDialog(context);
                                       }
                                     },
                                     isPrimary: false,
@@ -234,53 +340,38 @@ class _HomeContentState extends State<HomeContent> {
                           ),
                         );
                       } else {
-                        // Mobile layout: scrollable horizontal buttons
-                        return SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 180,
-                                child: _buildShuffleButton(
-                                  icon: CupertinoIcons.shuffle,
-                                  label: 'Shuffle all',
-                                  onPressed: () async {
-                                    await appState.shuffleAllTracks();
-                                  },
-                                  isPrimary: true,
-                                ),
+                        // Mobile layout with two buttons
+                        return Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: _buildEnhancedShuffleButton(
+                                icon: CupertinoIcons.shuffle,
+                                label: 'Shuffle all',
+                                onPressed: () async {
+                                  await appState.shuffleAllTracks();
+                                },
+                                isPrimary: true,
                               ),
-                              const SizedBox(width: 12),
-                              SizedBox(
-                                width: 180,
-                                child: _buildShuffleButton(
-                                  icon: CupertinoIcons.heart,
-                                  label: 'Shuffle favorites',
-                                  onPressed: () async {
-                                    final favoriteCount = appState.favoriteTracks.length;
-                                    if (favoriteCount > 0) {
-                                      await appState.shuffleFavoriteTracks();
-                                    } else {
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder: (BuildContext context) => CupertinoAlertDialog(
-                                          title: const Text('No Favorites'),
-                                          content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
-                                          actions: <CupertinoDialogAction>[
-                                            CupertinoDialogAction(
-                                              child: const Text('OK'),
-                                              onPressed: () => Navigator.of(context).pop(),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  isPrimary: false,
-                                ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: _buildEnhancedShuffleButton(
+                                icon: CupertinoIcons.heart_fill,
+                                label: 'Favorites',
+                                onPressed: () async {
+                                  final favoriteCount = appState.favoriteTracks.length;
+                                  if (favoriteCount > 0) {
+                                    await appState.shuffleFavoriteTracks();
+                                  } else {
+                                    _showNoFavoritesDialog(context);
+                                  }
+                                },
+                                isPrimary: false,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                       }
                     },
@@ -288,187 +379,142 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
               
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              const SliverToBoxAdapter(child: SizedBox(height: 40)),
               
-              // Recently added albums
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Recently added albums',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Recently added albums horizontal scroll
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: recentAlbums.take(6).length,
-                    itemBuilder: (context, index) {
-                      final album = recentAlbums[index];
-                      return _buildAlbumCard(context, album, appState);
-                    },
-                  ),
-                ),
-              ),
-              
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
-              
-              // Continue listening section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Continue listening',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Continue listening horizontal scroll with larger cards
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 250,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: continueListeningAlbums.take(4).length,
-                    itemBuilder: (context, index) {
-                      final album = continueListeningAlbums[index];
-                      return _buildLargeContinueListeningCard(context, album, appState);
-                    },
-                  ),
-                ),
-              ),
-              
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
-              
-              // Listen now section
+              // Enhanced "Listen now" section at the top if playing
               if (appState.audioHandler?.currentTrack != null)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Listen now',
-                          style: TextStyle(
-                            color: CupertinoColors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildListenNowCard(context, appState),
-                        const SizedBox(height: 30),
+                        _buildSectionHeader('Listen now', CupertinoIcons.speaker_3),
+                        const SizedBox(height: 20),
+                        _buildEnhancedListenNowCard(context, appState),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
                 ),
               
-              // Recent playlists section (using Made for you albums as placeholder)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Recent playlists',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+              // Continue listening section with enhanced design
+              if (continueListeningAlbums.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: _buildSectionHeader('Continue listening', CupertinoIcons.clock),
                   ),
                 ),
-              ),
-              
-              // Recent playlists horizontal scroll
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 180,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: madeForYouAlbums.take(6).length,
-                    itemBuilder: (context, index) {
-                      final album = madeForYouAlbums[index];
-                      return _buildPlaylistCard(context, album, appState);
-                    },
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 280,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: continueListeningAlbums.take(8).length,
+                      itemBuilder: (context, index) {
+                        final album = continueListeningAlbums[index];
+                        return _buildEnhancedContinueListeningCard(context, album, appState);
+                      },
+                    ),
                   ),
                 ),
-              ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              ],
               
-              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              // Recently added albums with enhanced design
+              if (recentAlbums.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: _buildSectionHeader('Recently added', CupertinoIcons.plus_circle),
+                  ),
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 220,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: recentAlbums.take(10).length,
+                      itemBuilder: (context, index) {
+                        final album = recentAlbums[index];
+                        return _buildEnhancedAlbumCard(context, album, appState);
+                      },
+                    ),
+                  ),
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              ],
+              
+              // Made for you section
+              if (madeForYouAlbums.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: _buildSectionHeader('Made for you', CupertinoIcons.sparkles),
+                  ),
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: madeForYouAlbums.take(8).length,
+                      itemBuilder: (context, index) {
+                        final album = madeForYouAlbums[index];
+                        return _buildEnhancedPlaylistCard(context, album, appState);
+                      },
+                    ),
+                  ),
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              ],
               
               // Favorite albums section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Favorite albums',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+              if (similarToFavoritesAlbums.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: _buildSectionHeader('Your favorites', CupertinoIcons.heart_fill),
                   ),
                 ),
-              ),
-              
-              // Favorite albums horizontal scroll
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 220,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: similarToFavoritesAlbums.take(6).length,
-                    itemBuilder: (context, index) {
-                      final album = similarToFavoritesAlbums[index];
-                      return _buildFavoriteAlbumCard(context, album, appState);
-                    },
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 240,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: similarToFavoritesAlbums.take(8).length,
+                      itemBuilder: (context, index) {
+                        final album = similarToFavoritesAlbums[index];
+                        return _buildEnhancedFavoriteAlbumCard(context, album, appState);
+                      },
+                    ),
                   ),
                 ),
-              ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              ],
               
-              const SliverToBoxAdapter(child: SizedBox(height: 150)), // Space for mini player (70px) + nav bar (65px) + extra padding
+              const SliverToBoxAdapter(child: SizedBox(height: 120)), // Extra space for mini player and nav
             ],
           ),
         );
@@ -476,7 +522,198 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildLargeContinueListeningCard(BuildContext context, Album album, AppState appState) {
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE91E63).withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: const Color(0xFFE91E63),
+            size: 18,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            color: CupertinoColors.white,
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEnhancedListenNowCard(BuildContext context, AppState appState) {
+    final currentTrack = appState.audioHandler?.currentTrack;
+    if (currentTrack == null) return Container();
+
+    return Container(
+      height: 140,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF1C1C1E).withOpacity(0.8),
+            const Color(0xFF2C2C2E).withOpacity(0.6),
+          ],
+        ),
+        border: Border.all(
+          color: const Color(0xFFE91E63).withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE91E63).withOpacity(0.1),
+            offset: const Offset(0, 8),
+            blurRadius: 24,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Album art with overlay
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                ),
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  color: const Color(0xFF2D2D2D),
+                  child: currentTrack.imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: appState.getImageUrl(
+                            currentTrack.imageUrl!,
+                            width: 300,
+                            height: 300,
+                          ),
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => const Icon(
+                            CupertinoIcons.music_note,
+                            size: 40,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        )
+                      : const Icon(
+                          CupertinoIcons.music_note,
+                          size: 40,
+                          color: CupertinoColors.systemGrey,
+                        ),
+                ),
+              ),
+              // Audio wave overlay
+              Positioned(
+                bottom: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CupertinoIcons.waveform,
+                        color: Color(0xFFE91E63),
+                        size: 12,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Now playing',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Track info and play button
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    currentTrack.artistName ?? 'Unknown Artist',
+                    style: TextStyle(
+                      color: CupertinoColors.systemGrey.withOpacity(0.8),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    currentTrack.name,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Enhanced play button
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE91E63), Color(0xFFAD1457)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFE91E63).withOpacity(0.4),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                CupertinoIcons.play_fill,
+                color: CupertinoColors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnhancedContinueListeningCard(BuildContext context, Album album, AppState appState) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -487,19 +724,37 @@ class _HomeContentState extends State<HomeContent> {
         );
       },
       child: Container(
-        width: 180,
-        margin: const EdgeInsets.only(right: 16),
+        width: 200,
+        margin: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1C1C1E).withOpacity(0.8),
+              const Color(0xFF2C2C2E).withOpacity(0.4),
+            ],
+          ),
+          border: Border.all(
+            color: const Color(0xFF3C3C3E).withOpacity(0.5),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              offset: const Offset(0, 8),
+              blurRadius: 24,
+            ),
+          ],
         ),
         child: Column(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: Container(
-                height: 180,
-                width: 180,
+                height: 200,
+                width: 200,
                 color: const Color(0xFF2D2D2D),
                 child: album.imageUrl != null
                     ? CachedNetworkImage(
@@ -509,8 +764,8 @@ class _HomeContentState extends State<HomeContent> {
                           height: 400,
                         ),
                         fit: BoxFit.cover,
-                        width: 180,
-                        height: 180,
+                        width: 200,
+                        height: 200,
                         placeholder: (context, url) => const Center(
                           child: CupertinoActivityIndicator(),
                         ),
@@ -529,7 +784,7 @@ class _HomeContentState extends State<HomeContent> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -539,21 +794,23 @@ class _HomeContentState extends State<HomeContent> {
                         album.name,
                         style: const TextStyle(
                           color: CupertinoColors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (album.artistName != null) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Flexible(
                         child: Text(
                           album.artistName!,
-                          style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
+                          style: TextStyle(
+                            color: CupertinoColors.systemGrey.withOpacity(0.8),
                             fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -570,169 +827,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildListenNowCard(BuildContext context, AppState appState) {
-    final currentTrack = appState.audioHandler?.currentTrack;
-    if (currentTrack == null) return Container();
-
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: const Color(0xFF1C1C1E),
-      ),
-      child: Row(
-        children: [
-          // Album art
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              bottomLeft: Radius.circular(12),
-            ),
-            child: Container(
-              width: 120,
-              height: 120,
-              color: const Color(0xFF2D2D2D),
-              child: currentTrack.imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: appState.getImageUrl(
-                        currentTrack.imageUrl!,
-                        width: 300,
-                        height: 300,
-                      ),
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => const Icon(
-                        CupertinoIcons.music_note,
-                        size: 40,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    )
-                  : const Icon(
-                      CupertinoIcons.music_note,
-                      size: 40,
-                      color: CupertinoColors.systemGrey,
-                    ),
-            ),
-          ),
-          // Track info and play button
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    currentTrack.artistName ?? 'Unknown Artist',
-                    style: const TextStyle(
-                      color: CupertinoColors.systemGrey,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    currentTrack.name,
-                    style: const TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Play button
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE91E63),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                CupertinoIcons.play_fill,
-                color: CupertinoColors.white,
-                size: 24,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaylistCard(BuildContext context, Album album, AppState appState) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => DetailTrackView.album(album),
-          ),
-        );
-      },
-      child: Container(
-        width: 120,
-        margin: const EdgeInsets.only(right: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                height: 120,
-                width: 120,
-                color: const Color(0xFF2D2D2D),
-                child: album.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: appState.getImageUrl(
-                          album.imageUrl!,
-                          width: 300,
-                          height: 300,
-                        ),
-                        fit: BoxFit.cover,
-                        width: 120,
-                        height: 120,
-                        placeholder: (context, url) => const Center(
-                          child: CupertinoActivityIndicator(),
-                        ),
-                        errorWidget: (context, url, error) => const Icon(
-                          CupertinoIcons.music_albums,
-                          size: 40,
-                          color: CupertinoColors.systemGrey,
-                        ),
-                      )
-                    : const Icon(
-                        CupertinoIcons.music_albums,
-                        size: 40,
-                        color: CupertinoColors.systemGrey,
-                      ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              album.name,
-              style: const TextStyle(
-                color: CupertinoColors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFavoriteAlbumCard(BuildContext context, Album album, AppState appState) {
+  Widget _buildEnhancedAlbumCard(BuildContext context, Album album, AppState appState) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -745,11 +840,19 @@ class _HomeContentState extends State<HomeContent> {
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFF1C1C1E).withOpacity(0.6),
+          border: Border.all(
+            color: const Color(0xFF3C3C3E).withOpacity(0.3),
+            width: 1,
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: Container(
                 height: 160,
                 width: 160,
@@ -758,8 +861,8 @@ class _HomeContentState extends State<HomeContent> {
                     ? CachedNetworkImage(
                         imageUrl: appState.getImageUrl(
                           album.imageUrl!,
-                          width: 400,
-                          height: 400,
+                          width: 300,
+                          height: 300,
                         ),
                         fit: BoxFit.cover,
                         width: 160,
@@ -780,36 +883,44 @@ class _HomeContentState extends State<HomeContent> {
                       ),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              album.name,
-              style: const TextStyle(
-                color: CupertinoColors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    album.name,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (album.artistName != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      album.artistName!,
+                      style: TextStyle(
+                        color: CupertinoColors.systemGrey.withOpacity(0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-            if (album.artistName != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                album.artistName!,
-                style: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                  fontSize: 12,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAlbumCard(BuildContext context, Album album, AppState appState) {
+  Widget _buildEnhancedPlaylistCard(BuildContext context, Album album, AppState appState) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -821,12 +932,12 @@ class _HomeContentState extends State<HomeContent> {
       },
       child: Container(
         width: 140,
-        margin: const EdgeInsets.only(right: 12),
+        margin: const EdgeInsets.only(right: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
                 height: 140,
                 width: 140,
@@ -846,6 +957,79 @@ class _HomeContentState extends State<HomeContent> {
                         ),
                         errorWidget: (context, url, error) => const Icon(
                           CupertinoIcons.music_albums,
+                          size: 40,
+                          color: CupertinoColors.systemGrey,
+                        ),
+                      )
+                    : const Icon(
+                        CupertinoIcons.music_albums,
+                        size: 40,
+                        color: CupertinoColors.systemGrey,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              album.name,
+              style: const TextStyle(
+                color: CupertinoColors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedFavoriteAlbumCard(BuildContext context, Album album, AppState appState) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => DetailTrackView.album(album),
+          ),
+        );
+      },
+      child: Container(
+        width: 180,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFF1C1C1E).withOpacity(0.6),
+          border: Border.all(
+            color: const Color(0xFFE91E63).withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Container(
+                height: 180,
+                width: 180,
+                color: const Color(0xFF2D2D2D),
+                child: album.imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: appState.getImageUrl(
+                          album.imageUrl!,
+                          width: 400,
+                          height: 400,
+                        ),
+                        fit: BoxFit.cover,
+                        width: 180,
+                        height: 180,
+                        placeholder: (context, url) => const Center(
+                          child: CupertinoActivityIndicator(),
+                        ),
+                        errorWidget: (context, url, error) => const Icon(
+                          CupertinoIcons.music_albums,
                           size: 50,
                           color: CupertinoColors.systemGrey,
                         ),
@@ -857,34 +1041,44 @@ class _HomeContentState extends State<HomeContent> {
                       ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              album.name,
-              style: const TextStyle(
-                color: CupertinoColors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    album.name,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (album.artistName != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      album.artistName!,
+                      style: TextStyle(
+                        color: CupertinoColors.systemGrey.withOpacity(0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-            if (album.artistName != null)
-              Text(
-                album.artistName!,
-                style: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                  fontSize: 12,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildShuffleButton({
+  Widget _buildEnhancedShuffleButton({
     required IconData icon,
     required String label,
     required VoidCallback onPressed,
@@ -894,24 +1088,32 @@ class _HomeContentState extends State<HomeContent> {
       padding: EdgeInsets.zero,
       onPressed: onPressed,
       child: Container(
-        height: 56, // Slightly taller for desktop
+        height: 64,
         decoration: BoxDecoration(
-          color: isPrimary 
-              ? const Color(0xFFE91E63).withOpacity(0.12)
-              : const Color(0xFFE91E63).withOpacity(0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isPrimary
-                ? const Color(0xFFE91E63).withOpacity(0.3)
-                : const Color(0xFFE91E63).withOpacity(0.15),
-            width: 1,
-          ),
-          // Enhanced shadow for desktop
+          gradient: isPrimary 
+              ? const LinearGradient(
+                  colors: [Color(0xFFE91E63), Color(0xFFAD1457)],
+                )
+              : LinearGradient(
+                  colors: [
+                    const Color(0xFF1C1C1E).withOpacity(0.8),
+                    const Color(0xFF2C2C2E).withOpacity(0.6),
+                  ],
+                ),
+          borderRadius: BorderRadius.circular(18),
+          border: isPrimary 
+              ? null
+              : Border.all(
+                  color: const Color(0xFFE91E63).withOpacity(0.3),
+                  width: 1,
+                ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE91E63).withOpacity(0.1),
-              offset: const Offset(0, 4),
-              blurRadius: 12,
+              color: isPrimary 
+                  ? const Color(0xFFE91E63).withOpacity(0.4)
+                  : Colors.black.withOpacity(0.2),
+              offset: const Offset(0, 8),
+              blurRadius: 24,
             ),
           ],
         ),
@@ -920,25 +1122,56 @@ class _HomeContentState extends State<HomeContent> {
           children: [
             Icon(
               icon, 
-              color: isPrimary
-                  ? const Color(0xFFE91E63)
-                  : const Color(0xFFE91E63).withOpacity(0.8), 
-              size: 22,
+              color: isPrimary 
+                  ? CupertinoColors.white
+                  : const Color(0xFFE91E63), 
+              size: 24,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Text(
               label,
               style: TextStyle(
-                color: isPrimary
-                    ? const Color(0xFFE91E63)
-                    : const Color(0xFFE91E63).withOpacity(0.8),
-                fontWeight: FontWeight.w600,
+                color: isPrimary 
+                    ? CupertinoColors.white
+                    : const Color(0xFFE91E63),
+                fontWeight: FontWeight.w700,
                 fontSize: 16,
+                letterSpacing: -0.2,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  _SliverHeaderDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(child: child);
+  }
+
+  @override
+  bool shouldRebuild(_SliverHeaderDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
   }
 }
