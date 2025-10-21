@@ -100,13 +100,27 @@ class AudioQueueManager {
   
   /// Set up a new playlist and queue
   void setPlaylist(List<Track> tracks, int startIndex) {
+    // Ensure startIndex is valid
+    final validIndex = startIndex.clamp(0, tracks.length - 1);
+    
+    // Clear old state and set new playlist
     _stateManager.setPlaylist(tracks);
-    _stateManager.setCurrentIndex(startIndex.clamp(0, tracks.length - 1));
+    _stateManager.setCurrentIndex(validIndex);
     _stateManager.setShuffled(false);
     
-    _logger.info('Set new playlist: ${tracks.length} tracks, starting at index $startIndex', 'QueueManager');
+    // CRITICAL FIX: Immediately set the current track to ensure UI consistency
+    if (tracks.isNotEmpty && validIndex < tracks.length) {
+      _stateManager.setCurrentTrack(tracks[validIndex]);
+    } else {
+      _stateManager.setCurrentTrack(null);
+    }
+    
+    _logger.info('Set new playlist: ${tracks.length} tracks, starting at index $validIndex', 'QueueManager');
     if (kDebugMode) {
-      print('Set new playlist: ${tracks.length} tracks, starting at index $startIndex');
+      print('Set new playlist: ${tracks.length} tracks, starting at index $validIndex');
+      if (tracks.isNotEmpty && validIndex < tracks.length) {
+        print('Current track set to: ${tracks[validIndex].name}');
+      }
     }
   }
   
