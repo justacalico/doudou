@@ -2,11 +2,16 @@ import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../logging_service.dart';
 import 'audio_state_manager.dart';
+import 'async_mutex.dart';
 
 /// Manages queue operations including shuffle, add/remove tracks, and queue manipulation
+/// Enhanced with proper synchronization to prevent concurrent queue modifications
 class AudioQueueManager {
   final AudioStateManager _stateManager;
   final LoggingService _logger = LoggingService();
+  
+  // Mutex for queue operation synchronization
+  final NamedMutexManager _mutexManager = NamedMutexManager();
   
   AudioQueueManager(this._stateManager);
   
