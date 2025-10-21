@@ -231,7 +231,9 @@ class TouchBarUpdateManager {
         onFavorite: onFavorite,
       );
     } catch (e) {
-      print('TouchBarUpdateManager: Failed to set callbacks: $e');
+      if (kDebugMode) {
+        print('TouchBarUpdateManager: Failed to set callbacks: $e');
+      }
     }
   }
 
