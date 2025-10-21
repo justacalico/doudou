@@ -2006,6 +2006,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   /// Attempt to set up gapless playback using ConcatenatingAudioSource
   Future<bool> _tryGaplessPlayback() async {
+    return await _playerOperationQueue.enqueue('gaplessPlayback', () async {
     try {
       // CRITICAL: Completely disconnect from old audio source and clear concatenation state
       // This prevents old queue from continuing to play while new one is being set up
