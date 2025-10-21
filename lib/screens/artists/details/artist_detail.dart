@@ -166,7 +166,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   
                   // Enhanced Hero Section
                   SliverToBoxAdapter(
-                    child: Container(
+                    child: SizedBox(
                       height: 400,
                       child: Stack(
                         children: [
@@ -777,7 +777,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   // Enhanced track item
   Widget _buildEnhancedTrackItem(Track track, AppState appState, int index) {
     return GestureDetector(
-      onTap: () => appState.playTrack(track),
+      onTap: () async {
+        final trackIndex = _artistTracks.indexOf(track);
+        if (trackIndex != -1) {
+          await appState.audioHandler?.playPlaylist(_artistTracks, trackIndex);
+        } else {
+          await appState.playTrack(track);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
