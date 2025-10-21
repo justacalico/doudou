@@ -2077,6 +2077,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           _userIntendedPlaying = true;
         }
         
+        // Unprotect current track before transitioning to queue item
+        if (_stateManager.currentTrack != null) {
+          await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
+        }
+        
         // Reset completion handling flags
         _stateManager.setHandlingCompletion(false);
         _stateManager.setTransitioning(false);
