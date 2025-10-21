@@ -2187,7 +2187,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           rethrow; // Re-throw to trigger fallback
         }
       }
-    } catch (OperationCancelledException) {
+    } on OperationCancelledException {
       if (kDebugMode) {
         print('Gapless playback operation cancelled: ${cancellationToken.reason}');
       }
