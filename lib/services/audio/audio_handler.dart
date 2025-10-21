@@ -1315,7 +1315,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Set user intent to not playing atomically
-      await _withLock('userIntent', () async {
+      await _mutexManager.withLock('userIntent', () async {
         _userIntendedPlaying = false;
       });
       
