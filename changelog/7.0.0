@@ -26,6 +26,7 @@
 - Refactored now_playing to use app_state for favorites
 - Refactored plex service for generated url's.
 - Fixed race issues when pausing music.
+- Redesigned mobile home page.
 
 ## Removed
 
