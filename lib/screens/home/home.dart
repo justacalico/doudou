@@ -1048,7 +1048,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8), // Reduced from 12 to 8
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
