@@ -382,7 +382,28 @@ class AudioPreloader {
     }
   }
 
-  void dispose() {
-    clearAllPreloadedPlayers();
+  /// Dispose all preloaded resources with reference counting
+  Future<void> dispose() async {
+    // Dispose reference manager which will clean up all audio sources
+    await _referenceManager.disposeAll();
+    
+    // Clear all remaining state
+    await clearAllPreloadedPlayers();
+    
+    if (kDebugMode) {
+      print('AudioPreloader disposed with reference counting');
+    }
+  }
+  
+  /// Get statistics about preloader state
+  Map<String, dynamic> getStatistics() {
+    final referenceStats = _referenceManager.getStatistics();
+    
+    return {
+      'preloadedPlayers': _preloadedPlayers.length,
+      'preloadingTracks': _preloadingTracks.length,
+      'bufferedTracks': _bufferedTracks.length,
+      'referenceManager': referenceStats,
+    };
   }
 }
