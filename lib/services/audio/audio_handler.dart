@@ -59,41 +59,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Logging service
   final LoggingService _logger = LoggingService();
 
-  // RACE CONDITION PROTECTION: Synchronization using Mutex pattern
+  // RACE CONDITION PROTECTION: Modern async synchronization
+  // Replace custom spinlocks with proper async mutex
+  final NamedMutexManager _mutexManager = NamedMutexManager();
+
   // User intent tracking with atomic operations
   bool _userIntendedPlaying = false;
-  bool _userIntentLocked = false;
+  bool _userExplicitlyPaused = false; // Track intentional user pause
 
   // Command throttling with atomic timestamp updates
   DateTime? _lastPlayCommand;
   DateTime? _lastPauseCommand;
-  bool _userExplicitlyPaused = false; // Track intentional user pause
   static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
-  bool _commandThrottleLocked = false;
 
   // Codec loop detection with synchronized access
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
-  bool _bufferingStateLocked = false;
-  
-  // Audio source cache protection
-  bool _audioSourceCacheLocked = false;
-  
-  // Concatenation state protection  
-  bool _concatenationStateLocked = false;
   
   // Volume state protection
   double? _previousVolume;
-  bool _volumeStateLocked = false;
   
-  // Lyrics state protection
-  bool _lyricsStateLocked = false;
+  // Lyrics state protection - no longer needs locks with proper state management
   
-  // Completion handling protection
-  bool _completionHandlingLocked = false;
+  // Completion handling protection - managed by transition manager
   
   // Track loading protection to prevent concurrent loads causing "Loading interrupted"
-  bool _trackLoadingLocked = false;
+  // Now handled by operation queue
   
   // Generic operation lock method
   Future<T> _withLock<T>(String lockName, Future<T> Function() operation) async {
