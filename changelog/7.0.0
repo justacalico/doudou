@@ -53,3 +53,4 @@
 - **Fixed Concurrent Player Operations**: Implemented AudioOperationQueue to prevent "Loading interrupted" errors from concurrent _resetPlayerStateCompletely and _tryGaplessPlayback operations
 - **Fixed User Intent vs Player State Desynchronization**: Implemented AudioStateMachine to prevent UI showing play button while audio is paused, ensuring synchronized user intent tracking
 - **Fixed Concatenation Race Conditions**: Added operation cancellation tokens to gapless playback operations to prevent conflicts when new audio source changes interrupt ongoing concatenating transitions
+- **Fixed Android Bypass Mode Race**: Replaced mutable boolean flags with immutable AndroidServiceManager state machine to prevent inconsistent platform-specific behavior during AudioService errors
