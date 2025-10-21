@@ -954,22 +954,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         );
         
         // Wait a moment for system to reset
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Clear concatenating source to reset audio pipeline
-      _concatenatingSource = null;
-      
-      // If we have a current track, try to reload it
-      if (_stateManager.currentTrack != null) {
-        if (kDebugMode) {
-          print('Reloading current track in bypass mode...');
-        }
+        await Future.delayed(const Duration(milliseconds: 500));
         
-        // Force individual track playback without AudioService
-        await _loadAndPlayTrackBypass(_stateManager.currentTrack!, _userIntendedPlaying);
+        // Clear concatenating source to reset audio pipeline
+        _concatenatingSource = null;
         
-        if (kDebugMode) {
-          print('=== ANDROID BYPASS MODE RECOVERY COMPLETED ===');
+        // If we have a current track, try to reload it
+        if (_stateManager.currentTrack != null) {
+          if (kDebugMode) {
+            print('Reloading current track in bypass mode...');
+          }
+          
+          // Force individual track playback without AudioService
+          await _loadAndPlayTrackBypass(_stateManager.currentTrack!, _userIntendedPlaying);
+          
+          if (kDebugMode) {
+            print('=== ANDROID BYPASS MODE RECOVERY COMPLETED ===');
+          }
         }
       },
       maxRetries: 1,
