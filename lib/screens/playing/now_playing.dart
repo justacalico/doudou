@@ -365,7 +365,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           StreamBuilder(
                             stream: audioHandler?.playerStateStream,
                             builder: (context, snapshot) {
-                              final isPlaying = audioHandler?.isPlaying ?? false;
+                              final isPlaying = audioHandler?.userIntendedPlaying ?? false;
                               final processingState = audioHandler?.playerState.processingState;
                               
                               return Padding(
