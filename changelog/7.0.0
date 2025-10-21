@@ -46,3 +46,9 @@
 - Fixed clutter in debugging terminal
 - Fixed main album art using old Jellyfin code
 - Fixed switching queue breaking the audio stream
+
+### Critical Race Condition Fixes (Audio System Overhaul)
+
+- **Fixed Custom Spinlock System**: Replaced 9 custom spinlock implementations with proper async Mutex system to eliminate busy-wait loops causing CPU spikes and deadlocks
+- **Fixed Concurrent Player Operations**: Implemented AudioOperationQueue to prevent "Loading interrupted" errors from concurrent _resetPlayerStateCompletely and _tryGaplessPlayback operations
+- **Fixed User Intent vs Player State Desynchronization**: Implemented AudioStateMachine to prevent UI showing play button while audio is paused, ensuring synchronized user intent tracking
