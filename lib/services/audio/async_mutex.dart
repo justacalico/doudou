@@ -65,7 +65,9 @@ class AsyncMutex {
     
     try {
       final result = await operation();
-      print('AsyncMutex($name): Operation completed successfully');
+      if (kDebugMode) {
+        print('AsyncMutex($name): Operation completed successfully');
+      }
       return result;
     } catch (error) {
       print('AsyncMutex($name): Operation failed with error: $error');
