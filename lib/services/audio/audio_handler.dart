@@ -1528,6 +1528,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _userExplicitlyPaused = true; // Mark as intentional pause
       _logger.info('User intent set to paused', 'AudioHandler');
       
+      // Immediately update playback state to reflect user intent
+      _updatePlaybackState(playbackState.value.copyWith(
+        playing: false,
+      ));
+      
       try {
         await _player.pause();
         
