@@ -1949,6 +1949,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> skipToQueueItem(int index) async {
     if (index >= 0 && index < _stateManager.playlist.length) {
+      
+      // Cancel any ongoing gapless operations when jumping to specific track
+      _cancellationManager.createToken('skipToQueueItem', 'Skip to queue item $index cancelling previous operations');
+      
       // Use atomic transition manager to prevent race conditions
       if (!await _transitionManager.acquireTransitionLock('skipToQueueItem')) {
         if (kDebugMode) {
