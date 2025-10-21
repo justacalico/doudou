@@ -306,7 +306,7 @@ class LibraryContent extends StatelessWidget {
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
-                          icon: CupertinoIcons.tags_fill,
+                          icon: CupertinoIcons.tag_fill,
                           title: 'Genres',
                           subtitle: 'Coming soon',
                           color: const Color(0xFFFF9F0A),
