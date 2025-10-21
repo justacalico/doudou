@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 /// Async mutex implementation to replace custom spinlocks
 /// Provides proper async synchronization without busy-waiting
