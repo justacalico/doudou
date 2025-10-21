@@ -242,25 +242,31 @@ class _HomeContentState extends State<HomeContent> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   _getGreeting(),
                                   style: TextStyle(
                                     color: CupertinoColors.systemGrey.withOpacity(0.8),
-                                    fontSize: 15,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: 0.2,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 2),
-                                const Text(
+                                const SizedBox(height: 1),
+                                Text(
                                   'What would you like to hear?',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: CupertinoColors.white,
-                                    fontSize: 24,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.5,
+                                    letterSpacing: -0.3,
+                                    height: 1.1,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
