@@ -1781,6 +1781,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       return;
     }
     
+    // Unprotect the current track since it's finished streaming
+    if (_stateManager.currentTrack != null) {
+      await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
+    }
+    
     // If using concatenation, the transition is automatic - just handle state updates
     if (_isUsingConcatenation && _concatenatingSource != null) {
       if (kDebugMode) {
