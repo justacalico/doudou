@@ -200,7 +200,9 @@ class _SearchScreenState extends State<SearchScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('recent_searches');
     } catch (e) {
-      print('Failed to clear recent searches: $e');
+      if (kDebugMode) {
+        print('Failed to clear recent searches: $e');
+      }
     }
   }
 
