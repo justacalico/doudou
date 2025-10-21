@@ -188,7 +188,9 @@ class RadioModeOperationManager {
       await expansionOperation();
       return true;
     } catch (e) {
-      print('RadioModeOperationManager: Expansion failed: $e');
+      if (kDebugMode) {
+        print('RadioModeOperationManager: Expansion failed: $e');
+      }
       return false;
     } finally {
       _stateManager.completeExpansion();
