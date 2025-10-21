@@ -1738,6 +1738,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> stop() async {
+    // Validate state transition before executing
+    if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.stop)) {
+      _logger.warning('Stop command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
+      return;
+    }
+    
+    // Request coordinated state transition
+    final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
+      PlayerTransitionEvent.stop,
+      context: {'command': 'stop', 'timestamp': DateTime.now().millisecondsSinceEpoch},
+    );
+    
+    if (!transitionAccepted) {
+      _logger.warning('Stop command queued due to ongoing state transition', 'AudioHandler');
+      return;
+    }
+    
     // Reset user intent on stop atomically
     await _setUserIntentAtomic(false);
     
