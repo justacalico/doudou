@@ -1370,6 +1370,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final now = DateTime.now();
       _logger.info('Pause command received', 'AudioHandler');
       
+      // Android bypass mode: Use direct player control
+      if (_androidBypassMode) {
+        if (kDebugMode) {
+          print('Android bypass mode: Direct player pause');
+        }
+        
+        await _setUserIntentAtomic(false);
+        await _player.pause();
+        return;
+      }
+      
       // Throttle rapid pause commands
       if (_lastPauseCommand != null && 
           now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
