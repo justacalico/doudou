@@ -145,19 +145,21 @@ class AudioQueueManager {
     });
   }
   
-  /// Set up a single track as the playlist
-  void setSingleTrack(Track track) {
-    _stateManager.setPlaylist([track]);
-    _stateManager.setCurrentIndex(0);
-    
-    // CRITICAL FIX: Immediately set the current track for consistency
-    _stateManager.setCurrentTrack(track);
-    
-    _logger.info('Set single track playlist: ${track.name}', 'QueueManager');
-    if (kDebugMode) {
-      print('Set single track playlist: ${track.name}');
-      print('Current track set to: ${track.name}');
-    }
+  /// Set up a single track as the playlist with synchronization
+  Future<void> setSingleTrack(Track track) async {
+    return await _mutexManager.withLock('queueModification', () async {
+      _stateManager.setPlaylist([track]);
+      _stateManager.setCurrentIndex(0);
+      
+      // CRITICAL FIX: Immediately set the current track for consistency
+      _stateManager.setCurrentTrack(track);
+      
+      _logger.info('Set single track playlist: ${track.name}', 'QueueManager');
+      if (kDebugMode) {
+        print('Set single track playlist: ${track.name}');
+        print('Current track set to: ${track.name}');
+      }
+    });
   }
   
   /// Add tracks to the end of the playlist (for radio mode) - Thread-safe
