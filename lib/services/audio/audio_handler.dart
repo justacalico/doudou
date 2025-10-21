@@ -1212,10 +1212,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Cancel any ongoing gapless operations when new play command is issued
       _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
       
-      // Android bypass mode: Use direct player control
-      if (_androidBypassMode) {
+      // Android service manager: Use direct player control if in bypass mode
+      if (_androidServiceManager.shouldSkipAudioService()) {
         if (kDebugMode) {
-          print('Android bypass mode: Direct player play');
+          print('Android service manager: Direct player play - ${_androidServiceManager.currentConfig.description}');
         }
         
         await _setUserIntentAtomic(true);
