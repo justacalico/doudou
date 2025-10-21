@@ -62,6 +62,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Touch Bar update synchronization for macOS to prevent visual glitches
   late final TouchBarUpdateManager _touchBarUpdateManager;
+  
+  // Download service coordination to prevent interference with audio streaming
+  late final DownloadServiceCoordinator _downloadServiceCoordinator;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
