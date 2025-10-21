@@ -320,7 +320,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    playbackState.add(finalState);
+    // Try to update playback state with Android foreground service error handling
+    try {
+      playbackState.add(finalState);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating playback state (likely Android foreground service): $e');
+        print('Attempting fallback playback state update...');
+      }
+      
+      // Fallback: Try without media controls for Android service issues
+      try {
+        final fallbackState = finalState.copyWith(
+          controls: [], // Remove controls that might trigger foreground service
+          systemActions: const <MediaAction>{}, // Remove system actions
+        );
+        playbackState.add(fallbackState);
+        
+        if (kDebugMode) {
+          print('Fallback playback state update successful');
+        }
+      } catch (fallbackError) {
+        if (kDebugMode) {
+          print('Fallback playback state update also failed: $fallbackError');
+        }
+      }
+    }
     
     // Update Touch Bar with new playback state
     if (Platform.isMacOS) {
