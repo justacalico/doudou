@@ -2930,7 +2930,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     stop();
   }
 
-  void shuffle() {
+  Future<void> shuffle() async {
     _preloader.clearAllPreloadedPlayers();
     _audioSourceCache.clear();
     
