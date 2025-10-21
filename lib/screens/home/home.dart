@@ -504,7 +504,7 @@ class _HomeContentState extends State<HomeContent> {
                 
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: 240,
+                    height: 200, // Reduced from 240 to prevent overflow
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
