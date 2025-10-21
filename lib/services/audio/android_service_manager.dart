@@ -1,5 +1,6 @@
 /// Immutable state management for Android AudioService behavior
 /// Prevents race conditions in platform-specific service handling
+library;
 
 import 'dart:io';
 
