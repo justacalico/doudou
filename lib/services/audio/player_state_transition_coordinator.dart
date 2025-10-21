@@ -151,6 +151,8 @@ class PlayerStateTransitionCoordinator {
         switch (event) {
           case PlayerTransitionEvent.ready:
             return StateTransitionResult.valid(PlayerTransitionState.ready);
+          case PlayerTransitionEvent.buffer:
+            return StateTransitionResult.valid(PlayerTransitionState.buffering);
           case PlayerTransitionEvent.error:
             return StateTransitionResult.valid(PlayerTransitionState.error);
           case PlayerTransitionEvent.stop:
@@ -163,6 +165,10 @@ class PlayerStateTransitionCoordinator {
         switch (event) {
           case PlayerTransitionEvent.play:
             return StateTransitionResult.valid(PlayerTransitionState.playing);
+          case PlayerTransitionEvent.ready:
+            return StateTransitionResult.valid(PlayerTransitionState.ready); // Allow repeated ready events
+          case PlayerTransitionEvent.buffer:
+            return StateTransitionResult.valid(PlayerTransitionState.buffering);
           case PlayerTransitionEvent.seek:
             return StateTransitionResult.valid(PlayerTransitionState.seeking);
           case PlayerTransitionEvent.stop:
