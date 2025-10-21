@@ -983,7 +983,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               ),
                               const SizedBox(width: 16),
                               IconButton(
-                                onPressed: audioHandler != null && currentTrack != null && !isBuffering
+                                onPressed: audioHandler != null && currentTrack != null
                                     ? () {
                                         if (kDebugMode) {
                                           print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
