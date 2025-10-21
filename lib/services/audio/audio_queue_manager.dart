@@ -164,13 +164,15 @@ class AudioQueueManager {
   
   /// Add tracks to the end of the playlist (for radio mode) - Thread-safe
   Future<void> addTracksToPlaylist(List<Track> tracks) async {
-    for (final track in tracks) {
-      await _stateManager.addToPlaylistAtomic(track);
-    }
-    
-    _logger.info('Added ${tracks.length} tracks to playlist (now ${_stateManager.playlist.length} total)', 'QueueManager');
-    if (kDebugMode) {
-      print('Added ${tracks.length} tracks to playlist (now ${_stateManager.playlist.length} total)');
-    }
+    return await _mutexManager.withLock('queueModification', () async {
+      for (final track in tracks) {
+        await _stateManager.addToPlaylistAtomic(track);
+      }
+      
+      _logger.info('Added ${tracks.length} tracks to playlist (now ${_stateManager.playlist.length} total)', 'QueueManager');
+      if (kDebugMode) {
+        print('Added ${tracks.length} tracks to playlist (now ${_stateManager.playlist.length} total)');
+      }
+    });
   }
 }
