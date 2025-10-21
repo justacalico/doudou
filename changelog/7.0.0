@@ -3,33 +3,33 @@
 ## Added
 
 - Comprehensive logging system with file rotation and export capabilities
-- Mobile and desktop logs viewer in settings
+- Mobile and desktop log viewer in settings
 - Detailed playback logging for troubleshooting music playback issues
 - Queue operation logging for debugging playlist management
 - User-configurable logging toggle (disabled by default for performance)
 - New desktop UI
-- Show the number of plays songs have
+- Show the number of times songs have been played
 - Plex service
 - Navidrome service
 - Added the ability to favorite songs
 - Added debugging info for favorites
-- Abilty to download songs for desktop
-- Use real histroy for the mobile search page.
-- Redesigned the mobile search page.
+- Ability to download songs on desktop
+- Use real history for the mobile search page
+- Redesigned the mobile search page
 
 ## Changed
 
 - New description
 - Logging is disabled by default and can be enabled in settings
-- Central logic for API requests
+- Centralized logic for API requests
 - Rewrote the Jellyfin service
 - Refactored most of the backend for desktop/mobile network connections
-- Refactored the Jellyfin favorite song functionality\
-- Refactored now_playing to use app_state for favorites
-- Refactored plex service for generated url's.
-- Fixed race issues when pausing music.
-- Redesigned mobile home page.
-- Redesigned mobile libary page.
+- Refactored the Jellyfin favorite song functionality
+- Refactored `now_playing` to use `app_state` for favorites
+- Refactored Plex service for generated URLs
+- Fixed race issues when pausing music
+- Redesigned mobile home page
+- Redesigned mobile library page
 
 ## Removed
 
@@ -40,15 +40,15 @@
 ## Fixed
 
 - Fixed skipping on Linux
-- Improved playback diagnostics with comprehensive logging throughout audio system
-- Fixed bug which often caused the audio player to not work when using local addresses
+- Improved playback diagnostics with comprehensive logging throughout the audio system
+- Fixed a bug that often caused the audio player to not work when using local addresses
 - Fixed local addresses often failing
-- Fixed clutter in debugging terminal
+- Fixed clutter in the debugging terminal
 - Fixed main album art using old Jellyfin code
-- Fixed switching queue breaking the audio stream
+- Fixed switching queues breaking the audio stream
 
 ### Critical Race Condition Fixes (Audio System Overhaul)
 
-- **Fixed Custom Spinlock System**: Replaced 9 custom spinlock implementations with proper async Mutex system to eliminate busy-wait loops causing CPU spikes and deadlocks
-- **Fixed Concurrent Player Operations**: Implemented AudioOperationQueue to prevent "Loading interrupted" errors from concurrent _resetPlayerStateCompletely and _tryGaplessPlayback operations
-- **Fixed User Intent vs Player State Desynchronization**: Implemented AudioStateMachine to prevent UI showing play button while audio is paused, ensuring synchronized user intent tracking
+- **Fixed Custom Spinlock System**: Replaced 9 custom spinlock implementations with a proper async mutex system to eliminate busy-wait loops causing CPU spikes and deadlocks
+- **Fixed Concurrent Player Operations**: Implemented `AudioOperationQueue` to prevent "Loading interrupted" errors from concurrent `_resetPlayerStateCompletely` and `_tryGaplessPlayback` operations
+- **Fixed User Intent vs Player State Desynchronization**: Implemented `AudioStateMachine` to prevent the UI from showing the play button while audio is paused, ensuring synchronized user intent tracking
