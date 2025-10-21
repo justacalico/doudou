@@ -1284,6 +1284,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         await _setUserIntentAtomic(true);
+        _userExplicitlyPaused = false; // Clear explicit pause flag
         
         // If no track is loaded, try to load current track in bypass mode
         if (_stateManager.currentTrack != null && _player.audioSource == null) {
