@@ -283,10 +283,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           stream: audioHandler?.playbackState,
           builder: (context, playbackSnapshot) {
             final playbackState = playbackSnapshot.data;
-            // More robust playing state detection
-            final isPlaying = playbackState?.playing == true && 
-                              (playbackState?.processingState == AudioProcessingState.ready ||
-                               playbackState?.processingState == AudioProcessingState.buffering);
+            // Use user intent for more reliable UI state instead of complex logic
+            final isPlaying = audioHandler?.userIntendedPlaying == true;
             final isBuffering = playbackState?.processingState == AudioProcessingState.buffering;
             
             return StreamBuilder<MediaItem?>(
