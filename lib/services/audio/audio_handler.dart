@@ -3843,7 +3843,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Only update if we have valid lyrics text
       if (lyricsText.trim().isNotEmpty) {
-        TouchBarService.updateLyrics(lyricsText);
+        _touchBarUpdateManager.updateLyrics(lyricsText);
         
         if (kDebugMode) {
           print('TouchBar lyrics updated: $lyricsText');
