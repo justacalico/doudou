@@ -1209,6 +1209,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
       
+      // Cancel any ongoing gapless operations when new play command is issued
+      _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
+      
       // Android bypass mode: Use direct player control
       if (_androidBypassMode) {
         if (kDebugMode) {
