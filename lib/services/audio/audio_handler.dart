@@ -931,6 +931,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _upgradeAndroidControlsAfterSuccess() {
     if (!Platform.isAndroid) return;
     
+    // Skip if in bypass mode
+    if (_androidBypassMode) {
+      if (kDebugMode) {
+        print('Android bypass mode: Skipping control upgrade');
+      }
+      return;
+    }
+    
     try {
       final currentState = playbackState.value;
       final upgradedState = currentState.copyWith(
@@ -959,6 +967,108 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.warning('Failed to upgrade Android controls: $e', 'AudioHandler');
       if (kDebugMode) {
         print('Failed to upgrade Android controls: $e');
+      }
+    }
+  }
+
+  /// Load and play track in Android bypass mode (pure just_audio, no AudioService)
+  Future<void> _loadAndPlayTrackBypass(Track track, bool shouldPlay) async {
+    if (!Platform.isAndroid) return;
+    
+    try {
+      if (kDebugMode) {
+        print('=== ANDROID BYPASS MODE TRACK LOADING ===');
+        print('Track: ${track.name}');
+        print('Should play: $shouldPlay');
+      }
+      
+      // Get stream URLs
+      List<String> streamUrls = [];
+      final mediaServiceManager = _mediaServiceManager;
+      
+      if (mediaServiceManager != null) {
+        final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
+        if (primaryUrl.isNotEmpty) {
+          streamUrls.add(primaryUrl);
+        }
+        
+        try {
+          final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
+          streamUrls.addAll(altUrls);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to get alternative URLs in bypass mode: $e');
+          }
+        }
+      } else {
+        // Fallback to JellyfinService
+        streamUrls = [
+          _jellyfinService.getStreamUrl(track.id),
+          _jellyfinService.getDirectStreamUrl(track.id),
+          _jellyfinService.getUniversalStreamUrl(track.id),
+        ];
+      }
+      
+      // Remove empty URLs
+      streamUrls = streamUrls.where((url) => url.isNotEmpty).toList();
+      
+      if (kDebugMode) {
+        print('Bypass mode URLs: ${streamUrls.length} available');
+      }
+      
+      // Try each URL
+      bool loaded = false;
+      for (int i = 0; i < streamUrls.length && !loaded; i++) {
+        final streamUrl = streamUrls[i];
+        
+        try {
+          if (kDebugMode) {
+            print('Bypass mode: Trying URL ${i + 1}/${streamUrls.length}');
+          }
+          
+          // Set URL directly on player (no AudioService involved)
+          await _player.setUrl(streamUrl);
+          
+          // Longer delay for network stability
+          await Future.delayed(const Duration(milliseconds: 1000));
+          
+          if (shouldPlay && _userIntendedPlaying) {
+            await _player.play();
+            if (kDebugMode) {
+              print('Bypass mode: Started playback successfully');
+            }
+          }
+          
+          loaded = true;
+          
+          if (kDebugMode) {
+            print('=== BYPASS MODE SUCCESS ===');
+            print('Track loaded and playing: ${_player.playing}');
+            print('URL: $streamUrl');
+          }
+          
+        } catch (e) {
+          if (kDebugMode) {
+            print('Bypass mode URL ${i + 1} failed: $e');
+          }
+          
+          if (i < streamUrls.length - 1) {
+            // Wait before trying next URL
+            await Future.delayed(const Duration(milliseconds: 1000));
+          }
+        }
+      }
+      
+      if (!loaded) {
+        if (kDebugMode) {
+          print('=== BYPASS MODE FAILED ===');
+          print('All URLs failed in bypass mode');
+        }
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('Bypass mode loading error: $e');
       }
     }
   }
