@@ -1710,17 +1710,26 @@ class AppState extends ChangeNotifier {
         print('Action: ${currentlyPlaying ? "PAUSE" : "PLAY"}');
       }
       
-      if (currentlyPlaying) {
-        if (kDebugMode) {
-          print('Calling audioHandler.pause()');
+      try {
+        // Add timeout to prevent hanging
+        if (currentlyPlaying) {
+          if (kDebugMode) {
+            print('Calling audioHandler.pause()');
+          }
+          await _audioHandler!.pause().timeout(Duration(seconds: 5));
+        } else {
+          if (kDebugMode) {
+            print('Calling audioHandler.play()');
+          }
+          await _audioHandler!.play().timeout(Duration(seconds: 5));
         }
-        await _audioHandler!.pause();
-      } else {
+      } catch (e) {
         if (kDebugMode) {
-          print('Calling audioHandler.play()');
+          print('ERROR in playPause(): $e');
         }
-        await _audioHandler!.play();
+        // Try to recover by notifying listeners anyway
       }
+      
       notifyListeners();
       
       if (kDebugMode) {
