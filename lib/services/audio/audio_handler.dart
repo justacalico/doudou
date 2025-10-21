@@ -22,6 +22,7 @@ import 'audio_operation_queue.dart';
 import 'audio_state_machine.dart';
 import 'operation_cancellation.dart';
 import 'android_service_manager.dart';
+import 'audio_position_manager.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
