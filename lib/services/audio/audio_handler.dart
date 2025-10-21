@@ -3345,6 +3345,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _radioModeStateManager.dispose();
     _radioModeOperationManager.dispose();
     await _touchBarUpdateManager.dispose();
+    await _downloadServiceCoordinator.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
