@@ -1329,9 +1329,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
+    if (kDebugMode) {
+      print('Play: Attempting to acquire commandThrottle mutex...');
+    }
     return await _mutexManager.withLock('commandThrottle', () async {
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
+      if (kDebugMode) {
+        print('Play: Successfully acquired commandThrottle mutex');
+      }
       
       // Android service manager: Use direct player control if in bypass mode
       // Skip complex state coordination to avoid deadlocks in bypass mode
@@ -1370,6 +1376,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _logger.info('Play command completed successfully (bypass mode)', 'AudioHandler');
         if (kDebugMode) {
           print('Play command completed (bypass mode). User intended playing: $_userIntendedPlaying');
+          print('Play: About to release commandThrottle mutex');
         }
         return;
       }
@@ -1500,9 +1507,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> pause() async {
-    return await _mutexManager.withLock('commandThrottle', () async {
-      final now = DateTime.now();
-      _logger.info('Pause command received', 'AudioHandler');
+    if (kDebugMode) {
+      print('Pause: Attempting to acquire commandThrottle mutex...');
+    }
+    
+    try {
+      await _mutexManager.withLock('commandThrottle', () async {
+        final now = DateTime.now();
+        _logger.info('Pause command received', 'AudioHandler');
+        if (kDebugMode) {
+          print('Pause: Successfully acquired commandThrottle mutex');
+        }
       
       // Android service manager: Use direct player control if in bypass mode
       // Skip complex state coordination to avoid deadlocks in bypass mode
@@ -1533,6 +1548,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _logger.info('Pause command completed successfully (bypass mode)', 'AudioHandler');
         if (kDebugMode) {
           print('Pause command completed (bypass mode). User intended playing: $_userIntendedPlaying');
+          print('Pause: About to release commandThrottle mutex');
         }
         return;
       }
@@ -1596,7 +1612,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Error in pause command: $e');
         }
       }
-    });
+      });
+    } catch (e) {
+      // Handle any errors that might prevent mutex release
+      if (kDebugMode) {
+        print('Error in pause command (mutex level): $e');
+      }
+    }
   }
 
   @override
