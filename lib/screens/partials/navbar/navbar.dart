@@ -1659,7 +1659,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, mediaItemSnapshot) {
             final currentTrack = audioHandler.currentTrack;
             final playbackState = playbackStateSnapshot.data;
-            final isPlaying = playbackState?.playing ?? false;
+            final isPlaying = audioHandler?.userIntendedPlaying ?? false;
 
             if (currentTrack == null) {
               return Container(
