@@ -2102,11 +2102,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     } catch (e) {
       _logger.warning('Gapless playback setup failed, will fall back to individual: $e', 'AudioHandler');
       if (kDebugMode) {
-        print('Failed to set up gapless playback, falling back to individual: $e');
+        print('Failed to set up gapless playbook, falling back to individual: $e');
       }
     }
     
     return false;
+    });
   }
 
   /// Play individual track
