@@ -115,7 +115,9 @@ class AudioPositionManager {
       _lastPositionUpdate = now;
       
       if (kDebugMode && !fromStream) {
-        print('Position manager: Position updated to ${newPosition.inSeconds}s (${forceUpdate ? 'forced' : 'manual'})');
+        if (kDebugMode) {
+          print('Position manager: Position updated to ${newPosition.inSeconds}s (${forceUpdate ? 'forced' : 'manual'})');
+        }
       }
       
       return newPosition;
