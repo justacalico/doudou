@@ -71,34 +71,37 @@ class AudioQueueManager {
     });
   }
   
-  void shuffle() {
-    final playlist = _stateManager.playlist;
-    final currentIndex = _stateManager.currentIndex;
-    
-    if (playlist.length <= 1) {
-      _logger.info('Cannot shuffle - playlist has 1 or fewer tracks', 'QueueManager');
-      return;
-    }
-    
-    _stateManager.setShuffled(true);
-    final currentTrack = playlist[currentIndex];
-    
-    // Remove current track from shuffling
-    final remainingTracks = List<Track>.from(playlist);
-    remainingTracks.removeAt(currentIndex);
-    
-    // Shuffle remaining tracks
-    remainingTracks.shuffle();
-    
-    // Create new playlist with current track first, then shuffled tracks
-    final newPlaylist = [currentTrack, ...remainingTracks];
-    _stateManager.setPlaylist(newPlaylist);
-    _stateManager.setCurrentIndex(0);
-    
-    _logger.info('Shuffled playlist: ${newPlaylist.length} tracks', 'QueueManager');
-    if (kDebugMode) {
-      print('Shuffled playlist: ${newPlaylist.length} tracks');
-    }
+  /// Synchronized shuffle operation to prevent race conditions during shuffle/unshuffle
+  Future<void> shuffle() async {
+    return await _mutexManager.withLock('queueModification', () async {
+      final playlist = _stateManager.playlist;
+      final currentIndex = _stateManager.currentIndex;
+      
+      if (playlist.length <= 1) {
+        _logger.info('Cannot shuffle - playlist has 1 or fewer tracks', 'QueueManager');
+        return;
+      }
+      
+      _stateManager.setShuffled(true);
+      final currentTrack = playlist[currentIndex];
+      
+      // Remove current track from shuffling
+      final remainingTracks = List<Track>.from(playlist);
+      remainingTracks.removeAt(currentIndex);
+      
+      // Shuffle remaining tracks
+      remainingTracks.shuffle();
+      
+      // Create new playlist with current track first, then shuffled tracks
+      final newPlaylist = [currentTrack, ...remainingTracks];
+      _stateManager.setPlaylist(newPlaylist);
+      _stateManager.setCurrentIndex(0);
+      
+      _logger.info('Shuffled playlist: ${newPlaylist.length} tracks', 'QueueManager');
+      if (kDebugMode) {
+        print('Shuffled playlist: ${newPlaylist.length} tracks');
+      }
+    });
   }
   
   void unshuffle() {
