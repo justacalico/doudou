@@ -1767,6 +1767,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> seek(Duration position) async {
+    // Validate state transition before executing
+    if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.seek)) {
+      _logger.warning('Seek command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
+      return;
+    }
+    
+    // Request coordinated state transition
+    final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
+      PlayerTransitionEvent.seek,
+      context: {'command': 'seek', 'position': position.inMilliseconds, 'timestamp': DateTime.now().millisecondsSinceEpoch},
+    );
+    
+    if (!transitionAccepted) {
+      _logger.warning('Seek command queued due to ongoing state transition', 'AudioHandler');
+      return;
+    }
+    
     // Record seek operation in position manager to prevent race conditions
     await _positionManager.recordSeek(position);
     
