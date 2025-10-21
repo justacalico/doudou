@@ -2762,7 +2762,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     // Set the new playlist and immediately verify the current track
-    _queueManager.setPlaylist(tracks, startIndex);
+    await _queueManager.setPlaylist(tracks, startIndex);
     
     // CRITICAL FIX: Immediately update the MediaItem to prevent UI confusion
     if (_stateManager.currentTrack != null) {
