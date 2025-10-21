@@ -206,27 +206,55 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   void _updatePlaybackState(PlaybackState newState) {
     PlaybackState finalState = newState;
     
-    // Get current user intent safely (no async needed for simple read)
-    final userIntent = _userIntendedPlaying;
+    // Use state machine for synchronized state management
+    final userWantsToPlay = _stateMachine.userWantsToPlay;
+    final isStateSynced = _stateMachine.isStateSynchronized;
+    
+    // Update state machine based on processing state
+    switch (newState.processingState) {
+      case AudioProcessingState.loading:
+        _stateMachine.transitionTo(AudioPlayerState.loading);
+        break;
+      case AudioProcessingState.ready:
+        _stateMachine.transitionTo(AudioPlayerState.ready);
+        break;
+      case AudioProcessingState.buffering:
+        _stateMachine.transitionTo(AudioPlayerState.buffering);
+        break;
+      case AudioProcessingState.completed:
+        _stateMachine.transitionTo(AudioPlayerState.completed);
+        break;
+      case AudioProcessingState.error:
+        _stateMachine.transitionTo(AudioPlayerState.error);
+        break;
+      case AudioProcessingState.idle:
+        _stateMachine.transitionTo(AudioPlayerState.idle);
+        break;
+    }
     
     // If we're buffering but user intended to play, override the playing state
-    if (newState.processingState == AudioProcessingState.buffering && userIntent) {
+    if (newState.processingState == AudioProcessingState.buffering && userWantsToPlay) {
       // Force playing state to true during buffering if user intended to play
       finalState = newState.copyWith(playing: true);
       
       if (kDebugMode) {
-        print('Buffering detected but maintaining playback (user intended playing)');
+        print('Buffering detected but maintaining playbook (state machine synchronized: $isStateSynced)');
       }
     }
-    // If we're trying to set buffering state while currently playing, maintain playback
+    // If we're trying to set buffering state while currently playing, maintain playbook
     else if (newState.processingState == AudioProcessingState.buffering && 
         playbackState.value.playing && 
         playbackState.value.processingState == AudioProcessingState.ready) {
       
       // Keep current state but show buffering processing state
       finalState = newState.copyWith(
-        playing: userIntent, // Use user intent instead of current state
+        playing: userWantsToPlay, // Use state machine intent
       );
+      
+      if (kDebugMode) {
+        print('Network buffering - maintaining state machine synchronized playbook state');
+      }
+    }
       
       if (kDebugMode) {
         print('Network buffering - maintaining user intended playback state');
