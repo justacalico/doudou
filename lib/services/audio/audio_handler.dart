@@ -1457,10 +1457,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
       
-      // Set user intent to playing atomically
-      await _mutexManager.withLock('userIntent', () async {
-        _userIntendedPlaying = true;
-      });
+      // Set user intent to playing (already inside commandThrottle mutex)
+      _userIntendedPlaying = true;
       
       _userExplicitlyPaused = false; // Clear explicit pause flag when user plays
       _logger.info('User intent set to playing', 'AudioHandler');
@@ -1622,10 +1620,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
       
-      // Set user intent to not playing atomically
-      await _mutexManager.withLock('userIntent', () async {
-        _userIntendedPlaying = false;
-      });
+      // Set user intent to not playing (already inside commandThrottle mutex)
+      _userIntendedPlaying = false;
       
       _userExplicitlyPaused = true; // Mark as intentional pause
       _logger.info('User intent set to paused', 'AudioHandler');
