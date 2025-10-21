@@ -31,7 +31,7 @@ class LibraryContent extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -117,11 +117,7 @@ class LibraryContent extends StatelessWidget {
                 color: color,
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Icon(
-                icon,
-                color: CupertinoColors.white,
-                size: 18,
-              ),
+              child: Icon(icon, color: CupertinoColors.white, size: 18),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -142,7 +138,7 @@ class LibraryContent extends StatelessWidget {
 
   void _navigateToSection(BuildContext context, String sectionType) {
     Widget page;
-    
+
     switch (sectionType) {
       case 'Artists':
         page = const ArtistsTab();
@@ -192,7 +188,7 @@ class LibraryContent extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final albums = appState.albums;
-        
+
         if (albums.isEmpty) {
           return const Center(
             child: Column(
@@ -232,101 +228,102 @@ class LibraryContent extends StatelessWidget {
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final album = albums[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => DetailTrackView.album(album),
-                          ),
-                        );
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: const Color(0xFF2C2C2E),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: album.imageUrl != null
-                                    ? Image.network(
-                                        appState.getImageUrl(
-                                          album.imageUrl!,
-                                          width: 300,
-                                          height: 300,
-                                        ),
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return const Center(
-                                            child: Icon(
-                                              CupertinoIcons.music_note,
-                                              color: CupertinoColors.systemGrey,
-                                              size: 40,
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    : const Center(
-                                        child: Icon(
-                                          CupertinoIcons.music_note,
-                                          color: CupertinoColors.systemGrey,
-                                          size: 40,
-                                        ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final album = albums[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => DetailTrackView.album(album),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color: const Color(0xFF2C2C2E),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: album.imageUrl != null
+                                  ? Image.network(
+                                      appState.getImageUrl(
+                                        album.imageUrl!,
+                                        width: 300,
+                                        height: 300,
                                       ),
-                              ),
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Center(
+                                              child: Icon(
+                                                CupertinoIcons.music_note,
+                                                color:
+                                                    CupertinoColors.systemGrey,
+                                                size: 40,
+                                              ),
+                                            );
+                                          },
+                                    )
+                                  : const Center(
+                                      child: Icon(
+                                        CupertinoIcons.music_note,
+                                        color: CupertinoColors.systemGrey,
+                                        size: 40,
+                                      ),
+                                    ),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          album.name,
+                          style: const TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (album.artistName != null) ...[
+                          const SizedBox(height: 2),
                           Text(
-                            album.name,
+                            album.artistName!,
                             style: const TextStyle(
-                              color: CupertinoColors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              color: CupertinoColors.systemGrey,
+                              fontSize: 12,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (album.artistName != null) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              album.artistName!,
-                              style: const TextStyle(
-                                color: CupertinoColors.systemGrey,
-                                fontSize: 12,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                          if (album.year != null) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              album.year.toString(),
-                              style: const TextStyle(
-                                color: CupertinoColors.systemGrey2,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
-                    );
-                  },
-                  childCount: albums.length,
-                ),
+                        if (album.year != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            album.year.toString(),
+                            style: const TextStyle(
+                              color: CupertinoColors.systemGrey2,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }, childCount: albums.length),
               ),
             ),
             // Add bottom padding for mini player + nav bar
             const SliverToBoxAdapter(
-              child: SizedBox(height: 150), // Space for mini player (70px) + nav bar (65px) + extra padding
+              child: SizedBox(
+                height: 150,
+              ), // Space for mini player (70px) + nav bar (65px) + extra padding
             ),
           ],
         );
@@ -351,10 +348,7 @@ class LibraryContent extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             'Collections Coming Soon',
-            style: TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
+            style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
           ),
         ],
       ),
@@ -374,10 +368,7 @@ class LibraryContent extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             'Genres Coming Soon',
-            style: TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
+            style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
           ),
         ],
       ),
