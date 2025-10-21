@@ -66,6 +66,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Download service coordination to prevent interference with audio streaming
   late final DownloadServiceCoordinator _downloadServiceCoordinator;
+  
+  // Media service manager coordination to prevent disposal race conditions
+  late final MediaServiceManagerCoordinator? _mediaServiceManagerCoordinator;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
