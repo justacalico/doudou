@@ -63,6 +63,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // RACE CONDITION PROTECTION: Modern async synchronization
   // Replace custom spinlocks with proper async mutex
   final NamedMutexManager _mutexManager = NamedMutexManager();
+  
+  // Operation queue to prevent concurrent AudioPlayer operations
+  final AudioOperationQueue _playerOperationQueue = AudioOperationQueue();
 
   // User intent tracking with atomic operations
   bool _userIntendedPlaying = false;
