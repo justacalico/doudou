@@ -70,7 +70,9 @@ class AsyncMutex {
       }
       return result;
     } catch (error) {
-      print('AsyncMutex($name): Operation failed with error: $error');
+      if (kDebugMode) {
+        print('AsyncMutex($name): Operation failed with error: $error');
+      }
       rethrow;
     } finally {
       release();
