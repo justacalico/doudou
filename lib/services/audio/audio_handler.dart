@@ -491,7 +491,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (!_userIntendedPlaying) {
         finalPlayingState = false;
         if (kDebugMode && isPlaying) {
-          print('Player wants to play but user paused - respecting user intent');
+          if (kDebugMode) {
+            print('Player wants to play but user paused - respecting user intent');
+          }
         }
       }
       // If user wants to play, show playing unless there's an error or stopped state
@@ -506,7 +508,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // For all other states (ready, buffering, playing), show as playing if user intended
           finalPlayingState = true;
           if (kDebugMode && !isPlaying) {
-            print('User intended playing, showing as playing despite player state');
+            if (kDebugMode) {
+              print('User intended playing, showing as playing despite player state');
+            }
           }
         }
       }
