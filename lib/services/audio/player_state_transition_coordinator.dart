@@ -155,6 +155,8 @@ class PlayerStateTransitionCoordinator {
             return StateTransitionResult.valid(PlayerTransitionState.ready);
           case PlayerTransitionEvent.play:
             return StateTransitionResult.valid(PlayerTransitionState.playing); // Allow play during loading
+          case PlayerTransitionEvent.pause:
+            return StateTransitionResult.valid(PlayerTransitionState.paused); // Allow pause during loading
           case PlayerTransitionEvent.buffer:
             return StateTransitionResult.valid(PlayerTransitionState.buffering);
           case PlayerTransitionEvent.error:
@@ -265,6 +267,10 @@ class PlayerStateTransitionCoordinator {
         switch (event) {
           case PlayerTransitionEvent.load:
             return StateTransitionResult.valid(PlayerTransitionState.loading);
+          case PlayerTransitionEvent.play:
+            return StateTransitionResult.valid(PlayerTransitionState.playing); // Allow play from stopped
+          case PlayerTransitionEvent.stop:
+            return StateTransitionResult.valid(PlayerTransitionState.stopped); // Allow repeated stop
           case PlayerTransitionEvent.error:
             return StateTransitionResult.valid(PlayerTransitionState.error);
           default:
