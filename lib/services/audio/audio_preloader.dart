@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../download_service.dart';
 import '../jellyfin_service.dart';
+import 'audio_source_reference_manager.dart';
+import 'async_mutex.dart';
 
 /// Handles preloading and caching of audio tracks for instant playback
 /// Enhanced for gapless playback with AudioSource generation
