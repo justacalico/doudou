@@ -104,14 +104,17 @@ class AudioQueueManager {
     });
   }
   
-  void unshuffle() {
-    // Since we don't store the original playlist, we'll just disable shuffle mode
-    _stateManager.setShuffled(false);
-    _logger.info('Unshuffle called - shuffle mode disabled', 'QueueManager');
-    
-    if (kDebugMode) {
-      print('Unshuffle called - shuffle mode disabled');
-    }
+  /// Synchronized unshuffle operation
+  Future<void> unshuffle() async {
+    return await _mutexManager.withLock('queueModification', () async {
+      // Since we don't store the original playlist, we'll just disable shuffle mode
+      _stateManager.setShuffled(false);
+      _logger.info('Unshuffle called - shuffle mode disabled', 'QueueManager');
+      
+      if (kDebugMode) {
+        print('Unshuffle called - shuffle mode disabled');
+      }
+    });
   }
   
   /// Set up a new playlist and queue
