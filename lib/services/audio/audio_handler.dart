@@ -19,6 +19,7 @@ import 'audio_state_persistence.dart';
 import 'audio_transition_manager.dart';
 import 'async_mutex.dart';
 import 'jellyfin_service_coordinator.dart';
+import 'error_state_manager.dart';
 import 'audio_operation_queue.dart';
 import 'audio_state_machine.dart';
 import 'operation_cancellation.dart';
@@ -73,6 +74,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Jellyfin service coordination to prevent API timeout race conditions
   late final JellyfinServiceCoordinator _jellyfinServiceCoordinator;
+
+  // Centralized error state management to prevent conflicting error handling
+  late final ErrorStateManager _errorStateManager;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
@@ -401,6 +405,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Initialize Jellyfin service coordinator to prevent API timeout race conditions
     _jellyfinServiceCoordinator = JellyfinServiceCoordinator(_jellyfinService);
+    
+    // Initialize centralized error state manager
+    _errorStateManager = ErrorStateManager();
     
     // Initialize media service manager coordinator if available
     _mediaServiceManagerCoordinator = _mediaServiceManager != null 
@@ -3363,6 +3370,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _touchBarUpdateManager.dispose();
     await _downloadServiceCoordinator.dispose();
     await _jellyfinServiceCoordinator.dispose();
+    await _errorStateManager.dispose();
     await _mediaServiceManagerCoordinator?.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
