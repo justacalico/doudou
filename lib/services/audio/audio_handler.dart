@@ -2569,15 +2569,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (kDebugMode) {
             print('=== ANDROID CONNECTION ABORTED DETECTED ===');
             print('This is likely due to Android blocking the foreground service');
-            print('Switching to Android bypass mode...');
+            print('Switching to Android service bypass mode...');
           }
           
-          // Enable bypass mode immediately when connection issues are detected
-          _androidBypassMode = true;
-          _androidServiceBlocked = true;
+          // Transition to bypass mode when connection issues are detected
+          final newConfig = _androidServiceManager.transitionToBypass(
+            BypassReason.foregroundServiceError,
+            'Connection aborted during track loading'
+          );
           
           if (kDebugMode) {
-            print('Android bypass mode enabled due to connection failures');
+            print('Android service manager: ${newConfig.description}');
             print('Attempting to continue with pure just_audio...');
           }
           
