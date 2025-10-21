@@ -61,12 +61,14 @@ class AudioQueueManager {
   }
   
   Future<void> clearQueue() async {
-    await _stateManager.clearPlaylistAtomic();
-    _logger.info('Cleared entire queue', 'QueueManager');
-    
-    if (kDebugMode) {
-      print('Cleared entire queue');
-    }
+    return await _mutexManager.withLock('queueModification', () async {
+      await _stateManager.clearPlaylistAtomic();
+      _logger.info('Cleared entire queue', 'QueueManager');
+      
+      if (kDebugMode) {
+        print('Cleared entire queue');
+      }
+    });
   }
   
   void shuffle() {
