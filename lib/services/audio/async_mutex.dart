@@ -8,10 +8,22 @@ class AsyncMutex {
   /// Acquire the mutex lock
   /// Returns immediately if available, otherwise waits asynchronously
   Future<void> acquire() async {
-    while (_completer != null && !_completer!.isCompleted) {
-      await _completer!.future;
+    // Keep waiting until we can claim the lock
+    while (true) {
+      final currentCompleter = _completer;
+      if (currentCompleter == null) {
+        // Mutex is free, try to claim it
+        _completer = Completer<void>();
+        return; // Successfully acquired
+      }
+      
+      // Wait for current lock to be released
+      try {
+        await currentCompleter.future;
+      } catch (_) {
+        // Ignore errors, just retry
+      }
     }
-    _completer = Completer<void>();
   }
   
   /// Release the mutex lock
@@ -24,9 +36,20 @@ class AsyncMutex {
   /// Check if the mutex is currently locked
   bool get isLocked => _completer != null && !_completer!.isCompleted;
   
-  /// Execute a function with the mutex locked
+  /// Execute a function with the mutex locked with timeout protection
   Future<T> withLock<T>(Future<T> Function() operation) async {
-    await acquire();
+    // Add timeout protection to prevent infinite waiting
+    await acquire().timeout(
+      Duration(seconds: 10),
+      onTimeout: () {
+        // Force release and log error
+        print('AsyncMutex: TIMEOUT acquiring lock, forcing release');
+        _completer?.complete();
+        _completer = null;
+        throw TimeoutException('Mutex acquisition timeout', Duration(seconds: 10));
+      },
+    );
+    
     try {
       return await operation();
     } finally {
