@@ -3443,3 +3443,8 @@ embedder.cc (2977): 'FlutterEngineSendPlatformMessage' returned 'kInvalidArgumen
 2025-10-21 00:42:05.386 doudou[24483:1592250] Failed to send message to Flutter engine on channel 'flutter/lifecycle' (2).
 embedder.cc (2977): 'FlutterEngineSendPlatformMessage' returned 'kInvalidArguments'. Invalid engine handle.
 2025-10-21 00:42:05.586 doudou[24483:1592250] Failed to send message to Flutter engine on channel 'flutter/lifecycle' (2).
+embedder.cc (2977): 'FlutterEngineSendPlatformMessage' returned 'kInvalidArguments'. Invalid engine handle.
+2025-10-21 00:42:29.027 doudou[24483:1592250] Failed to send message to Flutter engine on channel 'flutter/lifecycle' (2).
+embedder.cc (2977): 'FlutterEngineSendPlatformMessage' returned 'kInvalidArguments'. Invalid engine handle.
+2025-10-21 00:42:29.062 doudou[24483:1592250] Failed to send message to Flutter engine on channel 'flutter/lifecycle' (2).
+Lost connection to device.
