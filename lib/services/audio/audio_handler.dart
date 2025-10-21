@@ -1088,7 +1088,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Bypass mode URLs: ${streamUrls.length} available');
       }
       
-      // Try each URL
+      // Try each URL with timeout protection
       bool loaded = false;
       for (int i = 0; i < streamUrls.length && !loaded; i++) {
         final streamUrl = streamUrls[i];
@@ -1098,14 +1098,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Bypass mode: Trying URL ${i + 1}/${streamUrls.length}');
           }
           
-          // Set URL directly on player (no AudioService involved)
-          await _player.setUrl(streamUrl);
+          // Set URL directly on player with timeout protection (no AudioService involved)
+          await Future.timeout(
+            _player.setUrl(streamUrl),
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw TimeoutException('URL loading timed out', const Duration(seconds: 30));
+            },
+          );
           
           // Longer delay for network stability
           await Future.delayed(const Duration(milliseconds: 1000));
           
           if (shouldPlay && _userIntendedPlaying) {
-            await _player.play();
+            // Play with timeout protection
+            await Future.timeout(
+              _player.play(),
+              const Duration(seconds: 10),
+              onTimeout: () {
+                throw TimeoutException('Play command timed out', const Duration(seconds: 10));
+              },
+            );
             if (kDebugMode) {
               print('Bypass mode: Started playback successfully');
             }
@@ -1136,12 +1149,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('=== BYPASS MODE FAILED ===');
           print('All URLs failed in bypass mode');
         }
+        throw Exception('Failed to load track in bypass mode: All URLs failed');
       }
       
     } catch (e) {
       if (kDebugMode) {
         print('Bypass mode loading error: $e');
       }
+      rethrow; // Re-throw so the calling code can handle it properly
     }
   }
 
