@@ -2112,8 +2112,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   /// Play individual track
   Future<void> _playIndividualTrack(Track track, bool wasPlaying) async {
-    // Disable concatenation mode atomically
-    await _setConcatenationState(false, null);
+    return await _playerOperationQueue.enqueue('playIndividualTrack', () async {
+      // Disable concatenation mode atomically
+      await _setConcatenationState(false, null);
     
     // Use user intent instead of previous playing state for automatic transitions
     final shouldPlay = await _getUserIntentAtomic();
