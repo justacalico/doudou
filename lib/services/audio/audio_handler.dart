@@ -1155,7 +1155,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
-    return await _withLock('commandThrottle', () async {
+    return await _mutexManager.withLock('commandThrottle', () async {
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
       
