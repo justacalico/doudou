@@ -131,7 +131,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                     child: StreamBuilder(
                       stream: audioHandler?.playerStateStream,
                       builder: (context, snapshot) {
-                        final isPlaying = audioHandler?.isPlaying ?? false;
+                        final isPlaying = audioHandler?.userIntendedPlaying ?? false;
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           child: BackdropFilter(
