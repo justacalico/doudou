@@ -24,6 +24,8 @@ import 'operation_cancellation.dart';
 import 'android_service_manager.dart';
 import 'audio_position_manager.dart';
 import 'state_persistence_manager.dart';
+import 'radio_mode_state_manager.dart';
+import 'touchbar_update_manager.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -52,6 +54,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // State persistence with debouncing to prevent file corruption
   late final StatePersistenceManager _statePersistenceManager;
+  
+  // Radio mode state synchronization to prevent UI/streaming inconsistencies 
+  late final RadioModeStateManager _radioModeStateManager;
+  late final RadioModeOperationManager _radioModeOperationManager;
+  
+  // Touch Bar update synchronization for macOS to prevent visual glitches
+  late final TouchBarUpdateManager _touchBarUpdateManager;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
@@ -368,13 +377,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       debounceDelay: const Duration(milliseconds: 300),
     );
     
+    // Initialize synchronized radio mode state management
+    _radioModeStateManager = RadioModeStateManager();
+    _radioModeOperationManager = RadioModeOperationManager(_radioModeStateManager);
+    
+    // Initialize synchronized Touch Bar update manager for macOS
+    _touchBarUpdateManager = TouchBarUpdateManager();
+    
     _logger.info('Audio components initialized', 'AudioHandler');
     
-    // Initialize Touch Bar service on macOS
+    // Initialize Touch Bar service on macOS with synchronized updates
     if (Platform.isMacOS) {
       _touchBarEnabled = true;
       _initializeTouchBar();
-      _logger.info('TouchBar initialized successfully', 'AudioHandler');
+      _logger.info('TouchBar initialization started', 'AudioHandler');
     }
     
     // Initialize iOS audio session FIRST before any other audio setup (iOS only)
@@ -1767,7 +1783,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // The currentIndexStream listener will handle state updates automatically
       // Just need to handle end-of-playlist scenarios
       if (_stateManager.currentIndex >= _stateManager.playlist.length - 1) {
-        if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
+        if (_radioModeStateManager.isEnabled && _stateManager.currentTrack != null) {
           await _handleRadioModeExpansion();
         } else {
           // End of playlist
@@ -1829,7 +1845,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
         }
         
-      } else if (_stateManager.radioModeEnabled && _stateManager.currentTrack != null) {
+      } else if (_radioModeStateManager.isEnabled && _stateManager.currentTrack != null) {
         await _handleRadioModeExpansion();
       } else {
         // End of playlist
@@ -1861,47 +1877,54 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   /// Handle radio mode expansion when reaching end of playlist
   Future<void> _handleRadioModeExpansion() async {
-    // Radio mode handling
-    final similarTracks = await _radioMode.getSimilarTracks(
-      _stateManager.currentTrack!, 
-      _stateManager.playlist,
-      limit: 15
-    );
-    
-    if (similarTracks.isNotEmpty) {
-      await _queueManager.addTracksToPlaylist(similarTracks);
-      queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+    // Use synchronized expansion to prevent race conditions
+    final expansionSuccessful = await _radioModeOperationManager.executeExpansion(() async {
+      // Radio mode handling
+      final similarTracks = await _radioMode.getSimilarTracks(
+        _stateManager.currentTrack!, 
+        _stateManager.playlist,
+        limit: 15
+      );
       
-      // If using concatenation, add tracks to the concatenating source
-      final isActive = await _isConcatenationActive();
-      if (isActive) {
-        for (final track in similarTracks) {
-          final audioSource = await _createAudioSource(track);
-          if (audioSource != null) {
-            await _concatenatingSource!.add(audioSource);
+      if (similarTracks.isNotEmpty) {
+        await _queueManager.addTracksToPlaylist(similarTracks);
+        queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
+        
+        // If using concatenation, add tracks to the concatenating source
+        final isActive = await _isConcatenationActive();
+        if (isActive) {
+          for (final track in similarTracks) {
+            final audioSource = await _createAudioSource(track);
+            if (audioSource != null) {
+              await _concatenatingSource!.add(audioSource);
+            }
+          }
+          
+          if (kDebugMode) {
+            print('Radio mode: Added ${similarTracks.length} tracks to concatenating source');
+          }
+        } else {
+          // Traditional radio mode handling
+          await _stateManager.incrementCurrentIndexAtomic();
+          await _playCurrentTrack();
+          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
+          
+          if (kDebugMode) {
+            print('Radio mode: Added ${similarTracks.length} tracks');
           }
         }
-        
-        if (kDebugMode) {
-          print('Radio mode: Added ${similarTracks.length} tracks to concatenating source');
-        }
       } else {
-        // Traditional radio mode handling
-        await _stateManager.incrementCurrentIndexAtomic();
-        await _playCurrentTrack();
-        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
-        
-        if (kDebugMode) {
-          print('Radio mode: Added ${similarTracks.length} tracks');
-        }
+        // End of radio mode
+        await _setConcatenationState(false, null);
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.completed,
+          playing: false,
+        ));
       }
-    } else {
-      // End of radio mode
-      await _setConcatenationState(false, null);
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.completed,
-        playing: false,
-      ));
+    });
+    
+    if (kDebugMode && expansionSuccessful) {
+      print('Radio mode expansion completed successfully');
     }
   }
 
@@ -3020,17 +3043,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _queueManager.unshuffle();
   }
 
-  // Radio Mode functionality
-  void toggleRadioMode() {
-    _stateManager.setRadioModeEnabled(!_stateManager.radioModeEnabled);
+  // Radio Mode functionality with synchronized state management
+  Future<void> toggleRadioMode() async {
+    await _radioModeOperationManager.executeOperation('toggleRadioMode', () async {
+      await _radioModeStateManager.toggle();
+      // Sync with state manager for backward compatibility
+      _stateManager.setRadioModeEnabled(_radioModeStateManager.isEnabled);
+    });
   }
 
-  void enableRadioMode() {
-    _stateManager.setRadioModeEnabled(true);
+  Future<void> enableRadioMode() async {
+    await _radioModeOperationManager.executeOperation('enableRadioMode', () async {
+      await _radioModeStateManager.enable();
+      _stateManager.setRadioModeEnabled(true);
+    });
   }
 
-  void disableRadioMode() {
-    _stateManager.setRadioModeEnabled(false);
+  Future<void> disableRadioMode() async {
+    await _radioModeOperationManager.executeOperation('disableRadioMode', () async {
+      await _radioModeStateManager.disable();
+      _stateManager.setRadioModeEnabled(false);
+    });
   }
 
 
@@ -3078,7 +3111,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   bool get hasNext => _stateManager.hasNext;
   bool get hasPrevious => _stateManager.hasPrevious;
   bool get isShuffled => _stateManager.isShuffled;
-  bool get radioModeEnabled => _stateManager.radioModeEnabled;
+  bool get radioModeEnabled => _radioModeStateManager.isEnabled;
   int get queueLength => _stateManager.queueLength;
 
   bool get normalizeVolumeEnabled => _stateManager.normalizeVolumeEnabled;
@@ -3277,6 +3310,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> dispose() async {
     _statePersistence.dispose();
     await _statePersistenceManager.dispose();
+    _radioModeStateManager.dispose();
+    _radioModeOperationManager.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
@@ -3714,41 +3749,48 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Touch Bar Integration Methods
 
-  /// Initialize Touch Bar service and set up callbacks
+  /// Initialize Touch Bar service and set up callbacks with synchronization
   void _initializeTouchBar() async {
     if (!Platform.isMacOS) return;
     
     try {
-      // Initialize the TouchBar service
-      await TouchBarService.initialize();
+      // Initialize the synchronized TouchBar manager
+      final initialized = await _touchBarUpdateManager.initialize();
       
-      // Set up callbacks for TouchBar button presses
-      TouchBarService.setCallbacks(
-        onPlayPause: () {
-          if (playbackState.value.playing) {
-            pause();
-          } else {
-            play();
-          }
-        },
-        onPrevious: () => skipToPrevious(),
-        onNext: () => skipToNext(),
-        onFavorite: () {
-          // Toggle favorite status for current track
-          final currentTrack = _stateManager.currentTrack;
-          if (currentTrack != null) {
-            // This would need to be implemented to toggle favorite in Jellyfin
-            if (kDebugMode) {
-              print('TouchBar: Toggle favorite for ${currentTrack.name}');
+      if (initialized) {
+        // Set up callbacks for TouchBar button presses
+        await _touchBarUpdateManager.setCallbacks(
+          onPlayPause: () {
+            if (playbackState.value.playing) {
+              pause();
+            } else {
+              play();
             }
-          }
-        },
-      );
-      
-      if (kDebugMode) {
-        print('TouchBar initialized with callbacks');
+          },
+          onPrevious: () => skipToPrevious(),
+          onNext: () => skipToNext(),
+          onFavorite: () {
+            // Toggle favorite status for current track
+            final currentTrack = _stateManager.currentTrack;
+            if (currentTrack != null) {
+              // This would need to be implemented to toggle favorite in Jellyfin
+              if (kDebugMode) {
+                print('TouchBar: Toggle favorite for ${currentTrack.name}');
+              }
+            }
+          },
+        );
+        
+        _logger.info('TouchBar initialized with synchronized callbacks', 'AudioHandler');
+        if (kDebugMode) {
+          print('TouchBar initialized with synchronized callbacks');
+        }
+      } else {
+        _touchBarEnabled = false;
+        _logger.warning('TouchBar initialization failed', 'AudioHandler');
       }
     } catch (e) {
+      _logger.error('Failed to initialize TouchBar: $e', 'AudioHandler');
       if (kDebugMode) {
         print('Failed to initialize TouchBar: $e');
       }
