@@ -70,6 +70,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Media service manager coordination to prevent disposal race conditions
   late final MediaServiceManagerCoordinator? _mediaServiceManagerCoordinator;
 
+  // Jellyfin service coordination to prevent API timeout race conditions
+  late final JellyfinServiceCoordinator _jellyfinServiceCoordinator;
+
   // Media browsing data for Android Auto
   List<Album> _albums = [];
   List<Artist> _artists = [];
