@@ -1,45 +1,44 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 
 /// Async mutex implementation to replace custom spinlocks
 /// Provides proper async synchronization without busy-waiting
 class AsyncMutex {
-  Completer<void>? _completer;
-  final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
-  
+  bool _locked = false;
+  final List<Completer<void>> _waitQueue = [];
+
   /// Acquire the mutex lock
   /// Returns immediately if available, otherwise waits asynchronously
   Future<void> acquire() async {
-    if (_completer == null) {
+    if (!_locked) {
       // Mutex is free, claim it immediately
-      _completer = Completer<void>();
+      _locked = true;
       return;
     }
     
     // Mutex is busy, add ourselves to the wait queue
-    final waiter = Completer<void>();
-    _waitQueue.add(waiter);
+    final completer = Completer<void>();
+    _waitQueue.add(completer);
     
     // Wait for our turn
-    await waiter.future;
+    await completer.future;
+    
+    // When we're woken up, we own the lock
+    _locked = true;
   }
 
   /// Release the mutex lock
   void release() {
     if (_waitQueue.isNotEmpty) {
-      // Wake up the next waiter and give them the lock
-      final nextWaiter = _waitQueue.removeFirst();
+      // Wake up the next waiter
+      final nextWaiter = _waitQueue.removeAt(0);
       nextWaiter.complete();
     } else {
       // No one waiting, release the lock completely
-      _completer?.complete();
-      _completer = null;
+      _locked = false;
     }
-  }
-
-  /// Check if the mutex is currently locked
+  }  /// Check if the mutex is currently locked
   bool get isLocked => _completer != null && !_completer!.isCompleted;
   
   /// Execute a function with the mutex locked with timeout protection
