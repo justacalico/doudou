@@ -75,6 +75,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   // Cancellation manager for preventing operation race conditions
   final OperationCancellationManager _cancellationManager = OperationCancellationManager();
+  
+  // Position manager for atomic position updates
+  final AudioPositionManager _positionManager = AudioPositionManager();
 
   // Legacy user intent tracking - will be replaced by state machine
   bool _userIntendedPlaying = false;
