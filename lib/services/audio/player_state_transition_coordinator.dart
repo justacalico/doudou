@@ -141,6 +141,8 @@ class PlayerStateTransitionCoordinator {
         switch (event) {
           case PlayerTransitionEvent.load:
             return StateTransitionResult.valid(PlayerTransitionState.loading);
+          case PlayerTransitionEvent.stop:
+            return StateTransitionResult.valid(PlayerTransitionState.idle); // Allow stop from idle (no-op)
           case PlayerTransitionEvent.error:
             return StateTransitionResult.valid(PlayerTransitionState.error);
           default:
