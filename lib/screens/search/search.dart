@@ -211,42 +211,119 @@ class _SearchScreenState extends State<SearchScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                // Search Header with just search bar
+                // Enhanced Search Header
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF000000),
+                        const Color(0xFF000000).withOpacity(0.95),
+                      ],
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Search',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFFFFF),
-                        ),
+                      // Title with stats
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Search',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFFFFFFF),
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${appState.tracks.length} songs • ${appState.albums.length} albums • ${appState.artists.length} artists',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: CupertinoColors.systemGrey.withOpacity(0.8),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Search filters button (optional)
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1C1C1E).withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF3C3C3E).withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.slider_horizontal_3,
+                              color: CupertinoColors.systemGrey,
+                              size: 18,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      // Search Bar
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Enhanced Search Bar
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1C1C1E),
-                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF1C1C1E).withOpacity(0.8),
+                              const Color(0xFF2C2C2E).withOpacity(0.6),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF3C3C3E).withOpacity(0.3),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              offset: const Offset(0, 4),
+                              blurRadius: 12,
+                            ),
+                          ],
                         ),
                         child: CupertinoSearchTextField(
                           controller: _searchController,
-                          placeholder: 'Artists, albums, songs, or playlists',
-                          style: const TextStyle(color: Color(0xFFFFFFFF)),
-                          placeholderStyle: const TextStyle(color: CupertinoColors.systemGrey2),
+                          placeholder: 'Search artists, albums, songs...',
+                          style: const TextStyle(
+                            color: Color(0xFFFFFFFF),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          placeholderStyle: TextStyle(
+                            color: CupertinoColors.systemGrey.withOpacity(0.6),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                           backgroundColor: const Color(0x00000000),
                           onChanged: (value) => _performSearch(value, appState),
                           onSubmitted: (value) => _performSearch(value, appState),
                           autofocus: false,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Content area
+                // Content area with enhanced design
                 Expanded(
                   child: _buildSearchContent(appState),
                 ),
