@@ -234,12 +234,19 @@ class AndroidServiceManager {
   
   /// Check if AudioService operations should be attempted
   bool shouldAttemptAudioService() {
-    return isAndroid && _currentConfig.isNormal;
+    if (!isAndroid) {
+      // Non-Android platforms always use AudioService (different implementation)
+      return true;
+    }
+    // Android platforms only use AudioService when not in bypass mode
+    return _currentConfig.isNormal;
   }
   
   /// Check if we should skip AudioService operations entirely
   bool shouldSkipAudioService() {
-    return !isAndroid || _currentConfig.shouldBypass;
+    // Only Android platforms can be in bypass mode
+    // Non-Android platforms should always use normal AudioService
+    return isAndroid && _currentConfig.shouldBypass;
   }
   
   /// Reset to normal state (for recovery attempts)
