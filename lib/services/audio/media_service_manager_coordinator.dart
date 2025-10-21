@@ -1,7 +1,7 @@
 import 'dart:async';
-import '../models/jellyfin_models.dart';
-import 'base_service.dart';
-import 'media_service_manager.dart';
+import '../../models/jellyfin_models.dart';
+import '../base_service.dart';
+import '../media_service_manager.dart';
 
 /// Synchronized wrapper for MediaServiceManager to prevent race conditions during disposal
 /// and ensure proper cleanup sequencing during app termination
