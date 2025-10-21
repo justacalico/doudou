@@ -56,3 +56,4 @@
 - **Fixed Android Bypass Mode Race**: Replaced mutable boolean flags with immutable AndroidServiceManager state machine to prevent inconsistent platform-specific behavior during AudioService errors
 - **Fixed Preloader Race Conditions**: Implemented reference counting system in AudioPreloader to prevent cleanup of audio sources while they're being prepared or used by the player
 - **Fixed Queue Modification Race**: Added proper mutex synchronization to all AudioQueueManager operations to prevent concurrent queue modifications during shuffle, add, remove operations
+- **Fixed Player Position Race**: Implemented atomic position updates with debouncing and seek protection to prevent position jumps during seek operations and buffering events
