@@ -984,8 +984,25 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               const SizedBox(width: 16),
                               IconButton(
                                 onPressed: audioHandler != null && currentTrack != null && !isBuffering
-                                    ? () => Provider.of<AppState>(context, listen: false).playPause()
-                                    : null,
+                                    ? () {
+                                        if (kDebugMode) {
+                                          print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
+                                          print('isPlaying: $isPlaying');
+                                          print('isBuffering: $isBuffering');
+                                          print('currentTrack: ${currentTrack?.title ?? "null"}');
+                                          print('audioHandler: ${audioHandler != null}');
+                                          print('userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
+                                        }
+                                        Provider.of<AppState>(context, listen: false).playPause();
+                                      }
+                                    : () {
+                                        if (kDebugMode) {
+                                          print('=== DESKTOP PLAY/PAUSE BUTTON DISABLED ===');
+                                          print('audioHandler: ${audioHandler != null}');
+                                          print('currentTrack: ${currentTrack != null}');
+                                          print('isBuffering: $isBuffering');
+                                        }
+                                      },
                                 icon: isBuffering 
                                   ? SizedBox(
                                       width: 32,
