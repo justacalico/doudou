@@ -2957,7 +2957,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   void unshuffle() {
-    _queueManager.unshuffle();
+    await _queueManager.unshuffle();
   }
 
   // Radio Mode functionality
