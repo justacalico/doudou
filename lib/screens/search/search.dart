@@ -674,23 +674,41 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildUnifiedResults(AppState appState) {
     List<Widget> allResults = [];
 
-    // Add artists first (highest priority)
-    for (final artist in _artistResults) {
-      allResults.add(_buildUnifiedArtistItem(artist, appState));
+    // Add section headers and results with enhanced design
+    if (_artistResults.isNotEmpty) {
+      allResults.add(_buildSectionHeader('Artists', _artistResults.length, CupertinoIcons.person_2));
+      for (final artist in _artistResults.take(5)) {
+        allResults.add(_buildUnifiedArtistItem(artist, appState));
+      }
+      if (_artistResults.length > 5) {
+        allResults.add(_buildShowMoreButton('Show ${_artistResults.length - 5} more artists'));
+      }
     }
 
-    // Add albums second
-    for (final album in _albumResults) {
-      allResults.add(_buildUnifiedAlbumItem(album, appState));
+    if (_albumResults.isNotEmpty) {
+      if (allResults.isNotEmpty) allResults.add(const SizedBox(height: 24));
+      allResults.add(_buildSectionHeader('Albums', _albumResults.length, CupertinoIcons.music_albums));
+      for (final album in _albumResults.take(5)) {
+        allResults.add(_buildUnifiedAlbumItem(album, appState));
+      }
+      if (_albumResults.length > 5) {
+        allResults.add(_buildShowMoreButton('Show ${_albumResults.length - 5} more albums'));
+      }
     }
 
-    // Add tracks last
-    for (final track in _trackResults) {
-      allResults.add(_buildUnifiedTrackItem(track, appState));
+    if (_trackResults.isNotEmpty) {
+      if (allResults.isNotEmpty) allResults.add(const SizedBox(height: 24));
+      allResults.add(_buildSectionHeader('Songs', _trackResults.length, CupertinoIcons.music_note));
+      for (final track in _trackResults.take(8)) {
+        allResults.add(_buildUnifiedTrackItem(track, appState));
+      }
+      if (_trackResults.length > 8) {
+        allResults.add(_buildShowMoreButton('Show ${_trackResults.length - 8} more songs'));
+      }
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: allResults.length + 1, // +1 for bottom padding
       itemBuilder: (context, index) {
         if (index == allResults.length) {
@@ -698,6 +716,106 @@ class _SearchScreenState extends State<SearchScreen> {
         }
         return allResults[index];
       },
+    );
+  }
+
+  Widget _buildSectionHeader(String title, int count, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF007AFF).withOpacity(0.15),
+                  const Color(0xFF5856D6).withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFF007AFF),
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: CupertinoColors.white,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF007AFF).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              count.toString(),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF007AFF),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShowMoreButton(String text) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 16),
+      child: GestureDetector(
+        onTap: () {
+          // TODO: Implement show more functionality
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF1C1C1E).withOpacity(0.6),
+                const Color(0xFF2C2C2E).withOpacity(0.4),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF007AFF).withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.chevron_down,
+                color: Color(0xFF007AFF),
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF007AFF),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
