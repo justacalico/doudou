@@ -2081,7 +2081,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('Player stopped and cleared, proceeding with new concatenating source');
         }
-      } catch (OperationCancelledException) {
+      } on OperationCancelledException {
         if (kDebugMode) {
           print('Gapless playback cancelled during player stop: ${cancellationToken.reason}');
         }
