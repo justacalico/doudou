@@ -295,11 +295,9 @@ class AudioPreloader {
     }
   }
   
-  /// Thread-safe cleanup of old preloaded players
+  /// Thread-safe cleanup of old preloaded players with reference counting
   Future<void> _cleanupOldPreloadedPlayersSynchronized(List<Track> playlist, int currentIndex) async {
-    await _acquireCleanupLock();
-    
-    try {
+    return await _mutexManager.withLock('cleanupOperation', () async {
       final currentTrackId = playlist.isNotEmpty && currentIndex < playlist.length 
           ? playlist[currentIndex].id 
           : null;
