@@ -119,7 +119,9 @@ class TouchBarUpdateManager {
       _lastDuration = duration;
       _lastIsFavorite = isFavorite;
     } catch (e) {
-      print('TouchBarUpdateManager: Playback state update failed: $e');
+      if (kDebugMode) {
+        print('TouchBarUpdateManager: Playback state update failed: $e');
+      }
     }
   }
 
