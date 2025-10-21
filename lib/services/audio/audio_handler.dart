@@ -1395,6 +1395,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _userExplicitlyPaused = false; // Clear explicit pause flag when user plays
       _logger.info('User intent set to playing', 'AudioHandler');
       
+      // Immediately update playback state to reflect user intent
+      _updatePlaybackState(playbackState.value.copyWith(
+        playing: true,
+      ));
+      
       try {
         // Ensure we have a track to play
         if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
