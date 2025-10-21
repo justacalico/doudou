@@ -1696,15 +1696,39 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> playPause() async {
+    if (kDebugMode) {
+      print('=== AppState.playPause() called ===');
+    }
+    
     if (_audioHandler != null) {
       // Use user intent instead of raw player state for more reliable UI behavior
       final userWantsToPlay = _audioHandler!.userIntendedPlaying;
+      
+      if (kDebugMode) {
+        print('Current userIntendedPlaying: $userWantsToPlay');
+        print('Action: ${userWantsToPlay ? "PAUSE" : "PLAY"}');
+      }
+      
       if (userWantsToPlay) {
+        if (kDebugMode) {
+          print('Calling audioHandler.pause()');
+        }
         await _audioHandler!.pause();
       } else {
+        if (kDebugMode) {
+          print('Calling audioHandler.play()');
+        }
         await _audioHandler!.play();
       }
       notifyListeners();
+      
+      if (kDebugMode) {
+        print('=== AppState.playPause() completed ===');
+      }
+    } else {
+      if (kDebugMode) {
+        print('AudioHandler is null, cannot play/pause');
+      }
     }
   }
 
