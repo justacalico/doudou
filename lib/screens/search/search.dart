@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../artists/details/artist_detail.dart';
