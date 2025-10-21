@@ -2328,12 +2328,50 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await Future.delayed(const Duration(milliseconds: 500));
         }
         
-        // Platform-specific URL retry logic
+        // Special handling for Android "Connection aborted" errors from foreground service issues
+        if (Platform.isAndroid && (errorString.contains('connection aborted') || 
+                                   errorString.contains('foregroundservicestart'))) {
+          _logger.warning('Android connection aborted - likely foreground service issue', 'AudioHandler');
+          if (kDebugMode) {
+            print('=== ANDROID CONNECTION ABORTED DETECTED ===');
+            print('This is likely due to Android blocking the foreground service');
+            print('Attempting Android-specific recovery...');
+          }
+          
+          try {
+            // Reset player to clear any corrupted state
+            await _player.stop();
+            await Future.delayed(const Duration(milliseconds: 1000)); // Longer delay for Android
+            
+            // Clear concatenating source to avoid ExoPlayer issues
+            _concatenatingSource = null;
+            
+            if (kDebugMode) {
+              print('Android recovery reset completed, continuing to next URL...');
+            }
+          } catch (resetError) {
+            if (kDebugMode) {
+              print('Android recovery reset failed: $resetError');
+            }
+          }
+        }
+        
+        // Platform-specific URL retry logic  
         if ((Platform.isIOS || Platform.isMacOS) && i < streamUrls.length - 1) {
           _logger.info('Trying next stream URL...', 'AudioHandler');
           if (kDebugMode) {
             print('${Platform.isIOS ? "iOS" : "macOS"}: Trying next stream URL immediately...');
           }
+          continue;
+        }
+        
+        // Android retry logic with longer delays for foreground service recovery
+        if (Platform.isAndroid && i < streamUrls.length - 1) {
+          _logger.info('Android: Trying next stream URL after delay...', 'AudioHandler');
+          if (kDebugMode) {
+            print('Android: Trying next stream URL after recovery delay...');
+          }
+          await Future.delayed(const Duration(milliseconds: 800)); // Extra delay for Android
           continue;
         }
       }
