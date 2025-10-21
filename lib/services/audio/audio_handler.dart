@@ -223,16 +223,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.info('Completely resetting player state', 'AudioHandler');
       
       // Stop player first and wait for it to fully stop
-      try {
-        await _player.stop();
-        
-        // Wait for player to fully stop and release all resources
-        await Future.delayed(const Duration(milliseconds: 200));
-        
-        _logger.info('Player stopped successfully', 'AudioHandler');
-      } catch (e) {
-        _logger.warning('Error stopping player: $e', 'AudioHandler');
-      }
+      await _errorStateManager.executeWithErrorHandling(
+        component: 'AudioHandler',
+        operation: 'stopPlayer',
+        category: ErrorCategory.playback,
+        severity: ErrorSeverity.medium,
+        action: () async {
+          await _player.stop();
+          
+          // Wait for player to fully stop and release all resources
+          await Future.delayed(const Duration(milliseconds: 200));
+          
+          _logger.info('Player stopped successfully', 'AudioHandler');
+        },
+        context: {'operation': 'resetPlayerState'},
+      );
       
       // Clear all caches and state atomically
       await _clearAudioSourceCache();
