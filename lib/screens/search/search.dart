@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/app_state.dart';
@@ -108,7 +109,9 @@ class _SearchScreenState extends State<SearchScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('recent_searches', _recentSearches);
     } catch (e) {
-      print('Failed to save recent searches: $e');
+      if (kDebugMode) {
+        print('Failed to save recent searches: $e');
+      }
     }
   }
 
