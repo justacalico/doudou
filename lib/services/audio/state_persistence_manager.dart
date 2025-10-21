@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 /// Manages debounced state persistence to prevent file corruption during rapid state transitions
 class StatePersistenceManager {
   Timer? _saveTimer;
@@ -50,7 +52,9 @@ class StatePersistenceManager {
       await _saveFunction();
     } catch (e) {
       // Log error but don't throw to prevent cascading failures
-      print('StatePersistenceManager: Save failed: $e');
+      if (kDebugMode) {
+        print('StatePersistenceManager: Save failed: $e');
+      }
     }
   }
 
