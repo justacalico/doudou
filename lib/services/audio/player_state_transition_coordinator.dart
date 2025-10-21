@@ -189,8 +189,12 @@ class PlayerStateTransitionCoordinator {
         
       case PlayerTransitionState.playing:
         switch (event) {
+          case PlayerTransitionEvent.play:
+            return StateTransitionResult.valid(PlayerTransitionState.playing); // Allow repeated play
           case PlayerTransitionEvent.pause:
             return StateTransitionResult.valid(PlayerTransitionState.paused);
+          case PlayerTransitionEvent.ready:
+            return StateTransitionResult.valid(PlayerTransitionState.playing); // Stay playing when ready
           case PlayerTransitionEvent.seek:
             return StateTransitionResult.valid(PlayerTransitionState.seeking);
           case PlayerTransitionEvent.complete:
