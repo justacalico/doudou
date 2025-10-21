@@ -222,21 +222,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     switch (newState.processingState) {
       case AudioProcessingState.loading:
         _stateMachine.transitionTo(AudioPlayerState.loading);
+        _positionManager.setBuffering(true);
         break;
       case AudioProcessingState.ready:
         _stateMachine.transitionTo(AudioPlayerState.ready);
+        _positionManager.setBuffering(false);
         break;
       case AudioProcessingState.buffering:
         _stateMachine.transitionTo(AudioPlayerState.buffering);
+        _positionManager.setBuffering(true);
         break;
       case AudioProcessingState.completed:
         _stateMachine.transitionTo(AudioPlayerState.completed);
+        _positionManager.setBuffering(false);
         break;
       case AudioProcessingState.error:
         _stateMachine.transitionTo(AudioPlayerState.error);
+        _positionManager.setBuffering(false);
         break;
       case AudioProcessingState.idle:
         _stateMachine.transitionTo(AudioPlayerState.idle);
+        _positionManager.setBuffering(false);
         break;
     }
     
