@@ -287,6 +287,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _stateManager.setHandlingCompletion(false);
     _stateManager.setTransitioning(false);
     
+    // CRITICAL FIX: Clear the current track reference to prevent old track confusion
+    _stateManager.setCurrentTrack(null);
+    
     // Additional delay to ensure all audio sources are properly released
     await Future.delayed(const Duration(milliseconds: 300));
     
