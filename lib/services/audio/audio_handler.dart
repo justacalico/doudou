@@ -82,6 +82,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // iOS audio session coordination to prevent race conditions
   late final AudioSessionCoordinator _audioSessionCoordinator;
 
+  // Player state transition coordination to prevent state machine race conditions
+  late final PlayerStateTransitionCoordinator _playerStateTransitionCoordinator;
+
   // Media browsing data for Android Auto
   List<Album> _albums = [];
   List<Artist> _artists = [];
