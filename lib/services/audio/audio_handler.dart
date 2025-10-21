@@ -1013,16 +1013,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Get stream URLs
       List<String> streamUrls = [];
-      final mediaServiceManager = _mediaServiceManager;
+      final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
       
-      if (mediaServiceManager != null) {
-        final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
-        if (primaryUrl.isNotEmpty) {
+      if (mediaServiceCoordinator != null) {
+        final primaryUrl = mediaServiceCoordinator.getStreamUrl(track.id);
+        if (primaryUrl != null && primaryUrl.isNotEmpty) {
           streamUrls.add(primaryUrl);
         }
         
         try {
-          final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
+          final altUrls = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
           streamUrls.addAll(altUrls);
         } catch (e) {
           if (kDebugMode) {
@@ -1155,16 +1155,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
         // Stream URLs fallback with service-agnostic approach
         List<String> streamUrls;
-        final mediaServiceManager = _mediaServiceManager;
+        final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
         
-        if (mediaServiceManager != null) {
-          // Use MediaServiceManager for current service - prefer alternative URLs
-          final alt = mediaServiceManager.getAlternativeStreamUrls(track.id);
+        if (mediaServiceCoordinator != null) {
+          // Use coordinated MediaServiceManager for current service - prefer alternative URLs
+          final alt = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
           if (alt.isNotEmpty) {
             streamUrls = alt;
           } else {
-            final primary = mediaServiceManager.getStreamUrl(track.id);
-            streamUrls = primary.isNotEmpty ? [primary] : [];
+            final primary = mediaServiceCoordinator.getStreamUrl(track.id);
+            streamUrls = (primary != null && primary.isNotEmpty) ? [primary] : [];
           }
         } else {
           // Fallback to JellyfinService with platform-optimized prioritization
