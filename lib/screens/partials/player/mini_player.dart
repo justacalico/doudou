@@ -155,6 +155,12 @@ class MiniPlayer extends StatelessWidget {
                           CupertinoButton(
                             padding: EdgeInsets.zero,
                             onPressed: () {
+                              if (kDebugMode) {
+                                print('=== MINI PLAYER PLAY/PAUSE BUTTON TAPPED ===');
+                                print('isPlaying: $isPlaying');
+                                print('processingState: $processingState');
+                                print('audioHandler.userIntendedPlaying: ${audioHandler.userIntendedPlaying}');
+                              }
                               appState.playPause();
                             },
                             child: SizedBox(
