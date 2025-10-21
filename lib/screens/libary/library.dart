@@ -369,7 +369,7 @@ class LibraryContent extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 80,
+        height: 85, // Increased from 80 to 85 to prevent overflow
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
@@ -386,6 +386,7 @@ class LibraryContent extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // Added to prevent unnecessary expansion
           children: [
             Icon(
               icon,
@@ -399,6 +400,8 @@ class LibraryContent extends StatelessWidget {
                 color: CupertinoColors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
+                letterSpacing: -0.4,
+                height: 1.1, // Reduced line height to save space
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -409,6 +412,8 @@ class LibraryContent extends StatelessWidget {
                 color: CupertinoColors.systemGrey.withOpacity(0.8),
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
+                letterSpacing: -0.4,
+                height: 1.1, // Reduced line height to save space
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
