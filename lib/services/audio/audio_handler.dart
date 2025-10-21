@@ -1099,8 +1099,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           
           // Set URL directly on player with timeout protection (no AudioService involved)
-          await Future.timeout(
-            _player.setUrl(streamUrl),
+          await _player.setUrl(streamUrl).timeout(
             const Duration(seconds: 30),
             onTimeout: () {
               throw TimeoutException('URL loading timed out', const Duration(seconds: 30));
@@ -1112,8 +1111,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           if (shouldPlay && _userIntendedPlaying) {
             // Play with timeout protection
-            await Future.timeout(
-              _player.play(),
+            await _player.play().timeout(
               const Duration(seconds: 10),
               onTimeout: () {
                 throw TimeoutException('Play command timed out', const Duration(seconds: 10));
