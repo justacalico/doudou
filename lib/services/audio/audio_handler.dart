@@ -23,6 +23,7 @@ import 'audio_state_machine.dart';
 import 'operation_cancellation.dart';
 import 'android_service_manager.dart';
 import 'audio_position_manager.dart';
+import 'state_persistence_manager.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -48,6 +49,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   late final AudioRadioMode _radioMode;
   late final AudioStatePersistence _statePersistence;
   late final AudioTransitionManager _transitionManager;
+  
+  // State persistence with debouncing to prevent file corruption
+  late final StatePersistenceManager _statePersistenceManager;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
@@ -114,6 +118,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return await _mutexManager.withLock('concatenationState', () async {
       return _isUsingConcatenation && _concatenatingSource != null;
     });
+  }
+  
+  // Helper method for debounced state persistence to prevent file corruption
+  void _savePlaybackStateDebounced({Duration? position, bool? isPlaying}) {
+    if (position != null && isPlaying != null) {
+      // Create specific save function for provided state
+      final specificManager = StatePersistenceManager(
+        saveFunction: () => _statePersistence.savePlaybackState(position, isPlaying),
+        debounceDelay: const Duration(milliseconds: 300),
+      );
+      specificManager.requestSave();
+    } else {
+      // Use general manager for current player state
+      _statePersistenceManager.requestSave();
+    }
   }
   
   Future<void> _clearAudioSourceCache() async {
@@ -337,6 +356,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _radioMode = AudioRadioMode(_jellyfinService);
     _statePersistence = AudioStatePersistence(_stateManager);
     _transitionManager = AudioTransitionManager();
+    
+    // Initialize state persistence manager with debouncing
+    _statePersistenceManager = StatePersistenceManager(
+      saveFunction: () async {
+        // Save current player state when no position/playing state is provided
+        final position = _player.position;
+        final isPlaying = _player.playing;
+        await _statePersistence.savePlaybackState(position, isPlaying);
+      },
+      debounceDelay: const Duration(milliseconds: 300),
+    );
     
     _logger.info('Audio components initialized', 'AudioHandler');
     
@@ -598,7 +628,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       } else {
         _statePersistence.stopPeriodicSaving();
-        _statePersistence.savePlaybackState(_player.position, playerState.playing);
+        _savePlaybackStateDebounced(position: _player.position, isPlaying: playerState.playing);
         if (kDebugMode) {
           print('Stopped playback - saved state');
         }
@@ -1666,7 +1696,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         try {
           await _player.seekToNext();
           // State will be updated automatically via currentIndexStream
-          await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
           _logger.info('Gapless skip successful', 'AudioHandler');
           return;
         } catch (e) {
@@ -1701,7 +1731,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
         _logger.info('Skip to next completed successfully', 'AudioHandler');
       } else {
         _logger.info('Already at last track, cannot skip to next', 'AudioHandler');
@@ -1793,7 +1823,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
         
         if (kDebugMode) {
           print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
@@ -1859,7 +1889,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Traditional radio mode handling
         await _stateManager.incrementCurrentIndexAtomic();
         await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
         
         if (kDebugMode) {
           print('Radio mode: Added ${similarTracks.length} tracks');
@@ -1902,7 +1932,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         try {
           await _player.seekToPrevious();
           // State will be updated automatically via currentIndexStream
-          await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
           _logger.info('Gapless skip to previous successful', 'AudioHandler');
           return;
         } catch (e) {
@@ -1966,7 +1996,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (await _stateManager.decrementCurrentIndexAtomic()) {
           _logger.info('Skipping to previous track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
           await _playCurrentTrack();
-          await _statePersistence.savePlaybackState(_player.position, _player.playing);
+          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
           if (kDebugMode) {
             print('Skipping to previous song');
           }
@@ -2006,7 +2036,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         await _stateManager.setCurrentIndexAtomic(index);
         await _playCurrentTrack();
-        await _statePersistence.savePlaybackState(_player.position, _player.playing);
+        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
       } finally {
         _transitionManager.releaseTransitionLock();
       }
@@ -3246,6 +3276,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   Future<void> dispose() async {
     _statePersistence.dispose();
+    await _statePersistenceManager.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
