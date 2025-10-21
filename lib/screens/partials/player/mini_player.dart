@@ -145,7 +145,7 @@ class MiniPlayer extends StatelessWidget {
                   StreamBuilder(
                     stream: audioHandler.playerStateStream,
                     builder: (context, snapshot) {
-                      final isPlaying = audioHandler.userIntendedPlaying;
+                      final isPlaying = snapshot.data?.playing == true;
                       final processingState = audioHandler.playerState.processingState;
                       
                       return Row(
