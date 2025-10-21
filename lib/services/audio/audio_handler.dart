@@ -3243,6 +3243,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   bool get isShuffled => _stateManager.isShuffled;
   bool get radioModeEnabled => _radioModeStateManager.isEnabled;
   int get queueLength => _stateManager.queueLength;
+  
+  /// Returns whether the user intends to play (regardless of current player state)
+  bool get userIntendedPlaying => _userIntendedPlaying;
 
   bool get normalizeVolumeEnabled => _stateManager.normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _stateManager.gaplessPlaybackEnabled;
