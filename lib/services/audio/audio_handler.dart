@@ -929,10 +929,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
 
-    if (audioSources.length == tracks.length) {
+    // Create concatenating source with whatever valid sources we have
+    // Don't require all tracks to be available - mobile optimization
+    if (audioSources.isNotEmpty) {
+      if (kDebugMode) {
+        print('Created concatenating source with ${audioSources.length}/${tracks.length} tracks');
+      }
       return ConcatenatingAudioSource(children: audioSources);
     }
 
+    if (kDebugMode) {
+      print('No valid audio sources available for concatenation');
+    }
     return null;
   }
 
