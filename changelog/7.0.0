@@ -54,3 +54,4 @@
 - **Fixed User Intent vs Player State Desynchronization**: Implemented AudioStateMachine to prevent UI showing play button while audio is paused, ensuring synchronized user intent tracking
 - **Fixed Concatenation Race Conditions**: Added operation cancellation tokens to gapless playback operations to prevent conflicts when new audio source changes interrupt ongoing concatenating transitions
 - **Fixed Android Bypass Mode Race**: Replaced mutable boolean flags with immutable AndroidServiceManager state machine to prevent inconsistent platform-specific behavior during AudioService errors
+- **Fixed Preloader Race Conditions**: Implemented reference counting system in AudioPreloader to prevent cleanup of audio sources while they're being prepared or used by the player
