@@ -41,21 +41,23 @@ class AudioQueueManager {
   }
   
   Future<bool> removeFromQueue(int index) async {
-    if (index < 0 || index >= _stateManager.queueLength || index == _stateManager.currentIndex) {
-      _logger.warning('Cannot remove track at index $index (invalid or current track)', 'QueueManager');
-      return false;
-    }
-    
-    final success = await _stateManager.removeFromPlaylistAtomic(index);
-    
-    if (success) {
-      _logger.info('Removed track from queue at index: $index', 'QueueManager');
-      if (kDebugMode) {
-        print('Removed track from queue at index: $index');
+    return await _mutexManager.withLock('queueModification', () async {
+      if (index < 0 || index >= _stateManager.queueLength || index == _stateManager.currentIndex) {
+        _logger.warning('Cannot remove track at index $index (invalid or current track)', 'QueueManager');
+        return false;
       }
-    }
-    
-    return success;
+      
+      final success = await _stateManager.removeFromPlaylistAtomic(index);
+      
+      if (success) {
+        _logger.info('Removed track from queue at index: $index', 'QueueManager');
+        if (kDebugMode) {
+          print('Removed track from queue at index: $index');
+        }
+      }
+      
+      return success;
+    });
   }
   
   Future<void> clearQueue() async {
