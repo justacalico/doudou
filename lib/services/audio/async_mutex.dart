@@ -59,7 +59,9 @@ class AsyncMutex {
       },
     );
     
-    print('AsyncMutex($name): Successfully acquired lock');
+    if (kDebugMode) {
+      print('AsyncMutex($name): Successfully acquired lock');
+    }
     
     try {
       final result = await operation();
