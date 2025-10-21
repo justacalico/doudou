@@ -129,9 +129,13 @@ class AudioQueueManager {
     _stateManager.setPlaylist([track]);
     _stateManager.setCurrentIndex(0);
     
+    // CRITICAL FIX: Immediately set the current track for consistency
+    _stateManager.setCurrentTrack(track);
+    
     _logger.info('Set single track playlist: ${track.name}', 'QueueManager');
     if (kDebugMode) {
       print('Set single track playlist: ${track.name}');
+      print('Current track set to: ${track.name}');
     }
   }
   
