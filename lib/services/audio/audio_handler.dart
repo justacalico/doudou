@@ -3635,9 +3635,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               }
               
               // Get all albums and filter by artist name
-              final mediaServiceManager = _mediaServiceManager;
-              final allAlbums = mediaServiceManager != null 
-                ? await mediaServiceManager.getAlbums()
+              final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
+              final allAlbums = mediaServiceCoordinator != null 
+                ? await mediaServiceCoordinator.getAlbums()
                 : await _jellyfinService.getAlbums();
               final artistAlbums = allAlbums.where((album) => 
                 album.artistName == artist.name
