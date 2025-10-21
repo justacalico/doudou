@@ -612,24 +612,45 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Set initial playback state with proper volume
+    // Set initial playbook state with proper volume
     _player.setVolume(_stateManager.normalizeVolumeEnabled ? 0.8 : 1.0);
     
-    playbackState.add(PlaybackState(
-      controls: [
-        MediaControl.skipToPrevious,
-        MediaControl.play,
-        MediaControl.skipToNext,
-      ],
-      systemActions: const {
-        MediaAction.seek,
-        MediaAction.seekForward,
-        MediaAction.seekBackward,
-      },
-      androidCompactActionIndices: const [0, 1, 2],
-      processingState: AudioProcessingState.idle,
-      playing: false,
-    ));
+    // Android-specific initialization to prevent foreground service startup issues
+    if (Platform.isAndroid) {
+      // Start with minimal controls to avoid triggering foreground service prematurely
+      playbackState.add(PlaybackState(
+        controls: [MediaControl.play], // Minimal controls initially
+        systemActions: const <MediaAction>{}, // No system actions initially
+        androidCompactActionIndices: const [0],
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ));
+      
+      if (kDebugMode) {
+        print('Android: Initialized with minimal controls to prevent foreground service issues');
+      }
+    } else {
+      // Full controls for other platforms
+      playbackState.add(PlaybackState(
+        controls: [
+          MediaControl.skipToPrevious,
+          MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActionIndices: const [0, 1, 2],
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ));
+      
+      if (kDebugMode) {
+        print('${Platform.operatingSystem}: Initialized with full media controls');
+      }
+    }
   }
 
   /// Initialize iOS audio session for proper background audio and interruption handling
@@ -888,6 +909,42 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('=== ANDROID SERVICE RECOVERY FAILED ===');
         print('Recovery error: $e');
+      }
+    }
+  }
+
+  /// Upgrade Android controls to full set once playback is successfully working
+  void _upgradeAndroidControlsAfterSuccess() {
+    if (!Platform.isAndroid) return;
+    
+    try {
+      final currentState = playbackState.value;
+      final upgradedState = currentState.copyWith(
+        controls: [
+          MediaControl.skipToPrevious,
+          MediaControl.play,
+          MediaControl.pause,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActionIndices: const [0, 1, 2, 3],
+      );
+      
+      playbackState.add(upgradedState);
+      
+      if (kDebugMode) {
+        print('Android: Upgraded to full media controls after successful playback');
+      }
+      
+      _logger.info('Android: Upgraded to full media controls after successful playback', 'AudioHandler');
+    } catch (e) {
+      _logger.warning('Failed to upgrade Android controls: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('Failed to upgrade Android controls: $e');
       }
     }
   }
@@ -2309,6 +2366,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('URL used: $streamUrl');
             print('=== STREAM LOAD SUCCESS END ===');
           }
+          
+          // Android: Upgrade to full controls now that playback is working
+          if (Platform.isAndroid) {
+            _upgradeAndroidControlsAfterSuccess();
+          }
+          
           break;
         }
       } catch (e) {
