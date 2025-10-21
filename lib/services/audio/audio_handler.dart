@@ -2051,31 +2051,55 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   /// Attempt to set up gapless playback using ConcatenatingAudioSource
   Future<bool> _tryGaplessPlayback() async {
     return await _playerOperationQueue.enqueue('gaplessPlayback', () async {
+      
+      // Create cancellation token for this gapless operation
+      final cancellationToken = _cancellationManager.createToken(
+        'gaplessPlayback', 
+        'New gapless playback operation started'
+      );
+      
     try {
       // CRITICAL: Completely disconnect from old audio source and clear concatenation state
       // This prevents old queue from continuing to play while new one is being set up
       try {
+        // Check for cancellation before starting
+        cancellationToken.throwIfCancelled();
+        
         // First, clear concatenation state to stop processing old events
         await _setConcatenationState(false, null);
         if (kDebugMode) {
           print('Cleared concatenation state before player stop');
         }
         
+        // Check for cancellation before stopping player
+        cancellationToken.throwIfCancelled();
+        
         // Stop player completely and wait for full stop
         await _player.stop();
-        await Future.delayed(const Duration(milliseconds: 300));
+        await cancellationToken.delay(const Duration(milliseconds: 300));
         
         if (kDebugMode) {
           print('Player stopped and cleared, proceeding with new concatenating source');
         }
+      } catch (OperationCancelledException) {
+        if (kDebugMode) {
+          print('Gapless playback cancelled during player stop: ${cancellationToken.reason}');
+        }
+        return false;
       } catch (e) {
         if (kDebugMode) {
           print('Warning: Could not stop player cleanly: $e');
         }
       }
       
+      // Check for cancellation before building concatenating source
+      cancellationToken.throwIfCancelled();
+      
       // Build concatenating source for current track and next few tracks
       final concatenatingSource = await _buildConcatenatingSource(_stateManager.playlist, _stateManager.currentIndex);
+      
+      // Check for cancellation after building source
+      cancellationToken.throwIfCancelled();
       
       if (concatenatingSource != null) {
         if (kDebugMode) {
@@ -2086,6 +2110,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Additional validation: ensure concatenating source has valid URIs
           bool hasValidSources = true;
           for (final source in concatenatingSource.children) {
+            // Check for cancellation during validation
+            cancellationToken.throwIfCancelled();
+            
             if (source is ProgressiveAudioSource) {
               final uri = source.uri;
               if (!uri.hasScheme || (uri.scheme != 'http' && uri.scheme != 'https' && uri.scheme != 'file')) {
@@ -2100,11 +2127,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             throw Exception('Concatenating source contains invalid URIs');
           }
           
+          // Final cancellation check before setting audio source
+          cancellationToken.throwIfCancelled();
+          
           // Set the concatenating source with current index
           await _player.setAudioSource(
             concatenatingSource, 
             initialIndex: _stateManager.currentIndex,
           );
+          
+          // Check for cancellation after setting source
+          cancellationToken.throwIfCancelled();
           
           if (kDebugMode) {
             print('Successfully set new concatenating source');
@@ -2112,6 +2145,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           
           // Store references for gapless operations atomically AFTER successful setAudioSource
           await _setConcatenationState(true, concatenatingSource);
+          
+          // Check for cancellation before resuming playback
+          cancellationToken.throwIfCancelled();
           
           // Resume playing if user intended it
           final userIntent = await _getUserIntentAtomic();
@@ -2121,6 +2157,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               print('Started playing new concatenating source');
             }
           }
+          
+          // Final cancellation check before updating state
+          cancellationToken.throwIfCancelled();
           
           // Update playback state
           _updatePlaybackState(playbackState.value.copyWith(
@@ -2135,6 +2174,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           });
           
           return true;
+        } catch (OperationCancelledException) {
+          if (kDebugMode) {
+            print('Gapless playback cancelled during setup: ${cancellationToken.reason}');
+          }
+          return false;
         } catch (e) {
           _logger.error('Failed to set concatenating source: $e', 'AudioHandler');
           if (kDebugMode) {
@@ -2143,10 +2187,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           rethrow; // Re-throw to trigger fallback
         }
       }
+    } catch (OperationCancelledException) {
+      if (kDebugMode) {
+        print('Gapless playback operation cancelled: ${cancellationToken.reason}');
+      }
+      return false;
     } catch (e) {
       _logger.warning('Gapless playback setup failed, will fall back to individual: $e', 'AudioHandler');
       if (kDebugMode) {
-        print('Failed to set up gapless playbook, falling back to individual: $e');
+        print('Failed to set up gapless playback, falling back to individual: $e');
       }
     }
     
