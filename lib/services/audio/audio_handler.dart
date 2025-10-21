@@ -2099,6 +2099,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final artistInfo = track.artistName != null ? ' by ${track.artistName}' : '';
     _logger.info('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}$artistInfo', 'AudioHandler');
     
+    // Protect track from download interference while streaming
+    await _downloadServiceCoordinator.markTrackAsStreaming(track.id);
+    
     if (kDebugMode) {
       print('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}');
     }
