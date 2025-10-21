@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 /// Synchronized radio mode state manager to prevent race conditions
 /// between radio mode UI state and actual streaming behavior
 class RadioModeStateManager {
@@ -165,7 +167,9 @@ class RadioModeOperationManager {
       return result;
     } catch (e) {
       // Log operation failure but don't throw to prevent cascading failures
-      print('RadioModeOperationManager: $operationName failed: $e');
+      if (kDebugMode) {
+        print('RadioModeOperationManager: $operationName failed: $e');
+      }
       rethrow;
     }
   }
