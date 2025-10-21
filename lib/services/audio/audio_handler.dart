@@ -2918,7 +2918,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> toggleMute() async {
-    await _withLock('volumeState', () async {
+    await _mutexManager.withLock('volumeState', () async {
       if (_player.volume > 0.0) {
         _previousVolume = _player.volume;
         await setVolume(0.0);
