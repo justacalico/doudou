@@ -12,38 +12,32 @@ class AsyncMutex {
   /// Acquire the mutex lock
   /// Returns immediately if available, otherwise waits asynchronously
   Future<void> acquire() async {
-    // Keep waiting until we can claim the lock
-    while (true) {
-      final currentCompleter = _completer;
-      if (currentCompleter == null) {
-        // Mutex is free, try to claim it atomically
-        final newCompleter = Completer<void>();
-        // Double check that it's still null and atomically set it
-        if (_completer == null) {
-          _completer = newCompleter;
-          return; // Successfully acquired
-        }
-        // Someone else claimed it, continue the loop
-        continue;
-      }
-      
-      // Wait for current lock to be released
-      try {
-        await currentCompleter.future;
-      } catch (_) {
-        // Ignore errors, just retry
-      }
+    if (_completer == null) {
+      // Mutex is free, claim it immediately
+      _completer = Completer<void>();
+      return;
     }
+    
+    // Mutex is busy, add ourselves to the wait queue
+    final waiter = Completer<void>();
+    _waitQueue.add(waiter);
+    
+    // Wait for our turn
+    await waiter.future;
   }
-  
+
   /// Release the mutex lock
   void release() {
-    final completer = _completer;
-    _completer = null;
-    completer?.complete();
-  }
-  
-  /// Check if the mutex is currently locked
+    if (_waitQueue.isNotEmpty) {
+      // Wake up the next waiter and give them the lock
+      final nextWaiter = _waitQueue.removeFirst();
+      nextWaiter.complete();
+    } else {
+      // No one waiting, release the lock completely
+      _completer?.complete();
+      _completer = null;
+    }
+  }  /// Check if the mutex is currently locked
   bool get isLocked => _completer != null && !_completer!.isCompleted;
   
   /// Execute a function with the mutex locked with timeout protection
