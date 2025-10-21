@@ -2265,6 +2265,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Loading track: ${track.name}, should play: $shouldPlay');
       }
+      
+      // Protect this track from preloader cleanup while loading
+      _preloader.protectAudioSource(track.id);
     
     // Activate audio session before loading (iOS specific)
     try {
