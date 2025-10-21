@@ -188,6 +188,19 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  void _clearRecentSearches() async {
+    setState(() {
+      _recentSearches.clear();
+    });
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('recent_searches');
+    } catch (e) {
+      print('Failed to clear recent searches: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
