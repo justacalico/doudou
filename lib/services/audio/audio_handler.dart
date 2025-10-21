@@ -3588,11 +3588,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (parentMediaId.startsWith('album:')) {
             final albumId = parentMediaId.substring(6);
             try {
-              // Use MediaServiceManager if available, otherwise fall back to JellyfinService
-              // Use MediaServiceManager if available, otherwise fall back to JellyfinService
-              final mediaServiceManager = _mediaServiceManager;
-              final tracks = mediaServiceManager != null 
-                ? await mediaServiceManager.getTracks(parentId: albumId)
+              // Use MediaServiceManagerCoordinator if available, otherwise fall back to JellyfinService
+              final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
+              final tracks = mediaServiceCoordinator != null 
+                ? await mediaServiceCoordinator.getTracks(parentId: albumId)
                 : await _jellyfinService.getAlbumTracks(albumId);
               
               if (tracks.isEmpty) {
