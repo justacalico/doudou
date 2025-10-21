@@ -3210,23 +3210,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       try {
         final currentTrack = stateData.playlist[stateData.currentIndex];
         
-        // Use MediaServiceManager if available to get multiple fallback URLs
-        final mediaServiceManager = _mediaServiceManager;
+        // Use MediaServiceManagerCoordinator if available to get multiple fallback URLs
+        final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
         final streamUrls = <String>[];
-        if (mediaServiceManager != null) {
+        if (mediaServiceCoordinator != null) {
           // Prefer explicit alternative URLs if the service provides them
           List<String> alt;
-          if (mediaServiceManager.currentServerType.toString().contains('plex')) {
-            alt = await mediaServiceManager.getAlternativeStreamUrlsAsync(currentTrack.id);
+          if (mediaServiceCoordinator.currentServerType.toString().contains('plex')) {
+            alt = await mediaServiceCoordinator.getAlternativeStreamUrlsAsync(currentTrack.id);
           } else {
-            alt = mediaServiceManager.getAlternativeStreamUrls(currentTrack.id);
+            alt = mediaServiceCoordinator.getAlternativeStreamUrls(currentTrack.id);
           }
           if (alt.isNotEmpty) {
             streamUrls.addAll(alt);
           } else {
             // Fallback to single canonical URL
-            final primary = mediaServiceManager.getStreamUrl(currentTrack.id);
-            if (primary.isNotEmpty) streamUrls.add(primary);
+            final primary = mediaServiceCoordinator.getStreamUrl(currentTrack.id);
+            if (primary != null && primary.isNotEmpty) streamUrls.add(primary);
           }
         } else {
           // Legacy Jellyfin-only fallback order
