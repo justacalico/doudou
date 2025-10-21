@@ -81,7 +81,7 @@ class NamedMutexManager {
   /// Execute operation with named lock
   Future<T> withLock<T>(String lockName, Future<T> Function() operation) async {
     final mutex = _getMutex(lockName);
-    return await mutex.withLock(operation);
+    return await mutex.withLock(operation, lockName);
   }
   
   /// Check if a specific lock is currently held
