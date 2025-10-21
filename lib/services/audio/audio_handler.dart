@@ -1332,7 +1332,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (kDebugMode) {
       print('Play: Attempting to acquire commandThrottle mutex...');
     }
-    return await _mutexManager.withLock('commandThrottle', () async {
+    
+    try {
+      await _mutexManager.withLock('commandThrottle', () async {
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
       if (kDebugMode) {
@@ -1502,7 +1504,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
       }
-    });
+      });
+    } catch (e) {
+      // Handle any errors that might prevent mutex release
+      if (kDebugMode) {
+        print('Error in play command (mutex level): $e');
+      }
+    }
   }
 
   @override
