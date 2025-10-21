@@ -187,9 +187,14 @@ class MediaServiceManagerCoordinator {
 
   /// Get current service safely
   BaseMediaService? get currentService {
-    return executeSyncOperation('getCurrentService', (manager) {
-      return manager.currentService;
-    });
+    if (_disposed || _disposing || _mediaServiceManager == null) {
+      return null;
+    }
+    try {
+      return _mediaServiceManager!.currentService;
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Get coordination state for debugging
