@@ -2708,7 +2708,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _resetPlayerStateCompletely();
     _logger.info('Completed player state reset', 'AudioHandler');
     
-    _queueManager.setSingleTrack(track);
+    await _queueManager.setSingleTrack(track);
     _logger.info('Set single track in queue manager', 'AudioHandler');
     
     // CRITICAL FIX: Immediately update the MediaItem to prevent UI confusion
