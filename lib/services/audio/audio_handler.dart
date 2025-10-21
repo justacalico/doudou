@@ -1614,7 +1614,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   @override
-  Future<void> seek(Duration position) => _player.seek(position);
+  Future<void> seek(Duration position) async {
+    // Record seek operation in position manager to prevent race conditions
+    await _positionManager.recordSeek(position);
+    
+    // Perform the actual seek
+    await _player.seek(position);
+    
+    // Force position update to ensure UI reflects seek immediately
+    await _positionManager.forcePositionUpdate(position);
+    
+    if (kDebugMode) {
+      print('Seek completed to ${position.inSeconds}s');
+    }
+  }
 
   @override
   Future<void> skipToNext() async {
