@@ -202,13 +202,14 @@ class AudioPreloader {
           });
           
         } catch (e) {
-          // Fallback to primary URL
-          try {
-            await player.setUrl(primaryUrl);
-            
-            _preloadedPlayers[track.id] = player;
-            _bufferedTracks.add(track.id);
-            loaded = true;
+          // Fallback to primary URL - validate first
+          if (primaryUrl.isNotEmpty && _isValidStreamUrl(primaryUrl)) {
+            try {
+              await player.setUrl(primaryUrl);
+              
+              _preloadedPlayers[track.id] = player;
+              _bufferedTracks.add(track.id);
+              loaded = true;
             
             if (kDebugMode) {
               print('✓ Started aggressive buffering (primary): ${track.name}');
