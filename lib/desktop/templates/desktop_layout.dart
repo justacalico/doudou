@@ -506,6 +506,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                         print('DateTime: ${DateTime.now()}');
                                                         print('audioHandler != null: ${audioHandler != null}');
                                                         print('currentTrack != null: ${currentTrack != null}');
+                                                        print('RAW playbackState: $playbackState');
+                                                        print('playbackState?.playing: ${playbackState?.playing}');
+                                                        print('playbackState?.processingState: ${playbackState?.processingState}');
                                                         print('currentIsPlaying: $currentIsPlaying');
                                                         print('currentIsBuffering: $currentIsBuffering');
                                                         print('Button should be enabled: ${audioHandler != null && currentTrack != null && !currentIsBuffering}');
