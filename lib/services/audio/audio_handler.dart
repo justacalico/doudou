@@ -20,6 +20,7 @@ import 'audio_transition_manager.dart';
 import 'async_mutex.dart';
 import 'jellyfin_service_coordinator.dart';
 import 'error_state_manager.dart';
+import 'audio_session_coordinator.dart';
 import 'audio_operation_queue.dart';
 import 'audio_state_machine.dart';
 import 'operation_cancellation.dart';
@@ -77,6 +78,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Centralized error state management to prevent conflicting error handling
   late final ErrorStateManager _errorStateManager;
+
+  // iOS audio session coordination to prevent race conditions
+  late final AudioSessionCoordinator _audioSessionCoordinator;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
@@ -413,6 +417,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Initialize centralized error state manager
     _errorStateManager = ErrorStateManager();
+    
+    // Initialize iOS audio session coordinator
+    _audioSessionCoordinator = AudioSessionCoordinator();
     
     // Initialize media service manager coordinator if available
     _mediaServiceManagerCoordinator = _mediaServiceManager != null 
