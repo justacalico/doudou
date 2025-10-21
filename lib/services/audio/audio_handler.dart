@@ -1924,7 +1924,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
     
     if (kDebugMode && expansionSuccessful) {
-      print('Radio mode expansion completed successfully');
+      if (kDebugMode) {
+        print('Radio mode expansion completed successfully');
+      }
     }
   }
 
