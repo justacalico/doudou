@@ -1055,11 +1055,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
 
-        // Check preloaded audio source first (for gapless)
-        final preloadedSource = _preloader.getPreloadedAudioSource(track.id);
+        // Check preloaded audio source first (for gapless) with reference counting
+        final preloadedSource = _preloader.getPreloadedAudioSource(track.id, 'concatenation_builder');
         if (preloadedSource != null) {
           if (kDebugMode) {
-            print('Using preloaded audio source for: ${track.name}');
+            print('Using preloaded audio source with reference for: ${track.name}');
           }
           return preloadedSource;
         }
