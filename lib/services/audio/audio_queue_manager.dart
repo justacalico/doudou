@@ -16,24 +16,28 @@ class AudioQueueManager {
   AudioQueueManager(this._stateManager);
   
   Future<void> addToQueue(Track track) async {
-    await _stateManager.addToPlaylistAtomic(track);
-    _logger.info('Added track to queue: ${track.name} (Total: ${_stateManager.queueLength} tracks)', 'QueueManager');
-    
-    if (kDebugMode) {
-      print('Added track to queue: ${track.name}');
-    }
+    return await _mutexManager.withLock('queueModification', () async {
+      await _stateManager.addToPlaylistAtomic(track);
+      _logger.info('Added track to queue: ${track.name} (Total: ${_stateManager.queueLength} tracks)', 'QueueManager');
+      
+      if (kDebugMode) {
+        print('Added track to queue: ${track.name}');
+      }
+    });
   }
   
   Future<void> addNext(Track track) async {
-    // Insert the track right after the current track
-    final insertIndex = _stateManager.currentIndex + 1;
-    
-    await _stateManager.insertIntoPlaylistAtomic(insertIndex, track);
-    _logger.info('Added track to play next: ${track.name} at position $insertIndex', 'QueueManager');
-    
-    if (kDebugMode) {
-      print('Added track to play next: ${track.name} at position $insertIndex');
-    }
+    return await _mutexManager.withLock('queueModification', () async {
+      // Insert the track right after the current track
+      final insertIndex = _stateManager.currentIndex + 1;
+      
+      await _stateManager.insertIntoPlaylistAtomic(insertIndex, track);
+      _logger.info('Added track to play next: ${track.name} at position $insertIndex', 'QueueManager');
+      
+      if (kDebugMode) {
+        print('Added track to play next: ${track.name} at position $insertIndex');
+      }
+    });
   }
   
   Future<bool> removeFromQueue(int index) async {
