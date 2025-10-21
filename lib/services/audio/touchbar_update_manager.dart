@@ -250,7 +250,9 @@ class TouchBarUpdateManager {
         TouchBarService.updateNowPlaying(null);
         TouchBarService.updateLyrics(null);
       } catch (e) {
-        print('TouchBarUpdateManager: Cleanup failed: $e');
+        if (kDebugMode) {
+          print('TouchBarUpdateManager: Cleanup failed: $e');
+        }
       }
     }
     
