@@ -1360,20 +1360,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _setUserIntentAtomic(true);
         _userExplicitlyPaused = false; // Clear explicit pause flag
         
-        // If no track is loaded, try to load current track in bypass mode
-        if (_stateManager.currentTrack != null && _player.audioSource == null) {
-          await _loadAndPlayTrackBypass(_stateManager.currentTrack!, true);
-        } else {
-          await _player.play();
+        try {
+          // If no track is loaded, try to load current track in bypass mode
+          if (_stateManager.currentTrack != null && _player.audioSource == null) {
+            await _loadAndPlayTrackBypass(_stateManager.currentTrack!, true);
+          } else {
+            await _player.play();
+          }
+          
+          // Update playback state to reflect the play
+          _updatePlaybackState(playbackState.value.copyWith(
+            playing: true,
+            processingState: _player.processingState == ProcessingState.ready 
+                ? AudioProcessingState.ready 
+                : AudioProcessingState.loading,
+          ));
+          
+        } catch (e) {
+          _logger.error('Play command failed in bypass mode: $e', 'AudioHandler');
+          if (kDebugMode) {
+            print('Play command failed in bypass mode: $e');
+          }
+          
+          // Update playback state to reflect the error
+          _updatePlaybackState(playbackState.value.copyWith(
+            playing: false,
+            processingState: AudioProcessingState.error,
+          ));
         }
-        
-        // Update playback state to reflect the play
-        _updatePlaybackState(playbackState.value.copyWith(
-          playing: true,
-          processingState: _player.processingState == ProcessingState.ready 
-              ? AudioProcessingState.ready 
-              : AudioProcessingState.loading,
-        ));
         
         _logger.info('Play command completed successfully (bypass mode)', 'AudioHandler');
         if (kDebugMode) {
