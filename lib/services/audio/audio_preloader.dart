@@ -388,7 +388,7 @@ class AudioPreloader {
     await _referenceManager.disposeAll();
     
     // Clear all remaining state
-    await clearAllPreloadedPlayers();
+    clearAllPreloadedPlayers();
     
     if (kDebugMode) {
       print('AudioPreloader disposed with reference counting');
