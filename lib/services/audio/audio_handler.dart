@@ -3496,11 +3496,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             return [];
           }
           return _albums.map((album) {
-            // Use MediaServiceManager if available, otherwise fall back to JellyfinService
-            final mediaServiceManager = _mediaServiceManager;
+            // Use MediaServiceManagerCoordinator if available, otherwise fall back to JellyfinService
+            final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
             final imageUrl = album.imageUrl != null 
-              ? (mediaServiceManager != null 
-                  ? mediaServiceManager.getImageUrl(album.imageUrl!, width: 300, height: 300)
+              ? (mediaServiceCoordinator != null 
+                  ? (mediaServiceCoordinator.getImageUrl(album.imageUrl!, width: 300, height: 300) ?? '')
                   : _jellyfinService.getImageUrl(album.imageUrl!, width: 300, height: 300))
               : null;
             
