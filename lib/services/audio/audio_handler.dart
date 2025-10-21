@@ -1282,7 +1282,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> pause() async {
-    return await _withLock('commandThrottle', () async {
+    return await _mutexManager.withLock('commandThrottle', () async {
       final now = DateTime.now();
       _logger.info('Pause command received', 'AudioHandler');
       
