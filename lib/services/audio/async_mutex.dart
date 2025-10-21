@@ -50,7 +50,9 @@ class AsyncMutex {
       Duration(seconds: 10),
       onTimeout: () {
         // Force release and log error
-        print('AsyncMutex($name): TIMEOUT acquiring lock, forcing release');
+        if (kDebugMode) {
+          print('AsyncMutex($name): TIMEOUT acquiring lock, forcing release');
+        }
         _completer?.complete();
         _completer = null;
         throw TimeoutException('Mutex acquisition timeout', Duration(seconds: 10));
