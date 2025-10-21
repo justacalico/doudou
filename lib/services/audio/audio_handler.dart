@@ -1800,6 +1800,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         try {
+          // Additional validation: ensure concatenating source has valid URIs
+          bool hasValidSources = true;
+          for (final source in concatenatingSource.children) {
+            if (source is ProgressiveAudioSource) {
+              final uri = source.uri;
+              if (!uri.hasScheme || (uri.scheme != 'http' && uri.scheme != 'https' && uri.scheme != 'file')) {
+                _logger.warning('Invalid URI scheme in concatenating source: ${uri.toString()}', 'AudioHandler');
+                hasValidSources = false;
+                break;
+              }
+            }
+          }
+          
+          if (!hasValidSources) {
+            throw Exception('Concatenating source contains invalid URIs');
+          }
+          
           // Set the concatenating source with current index
           await _player.setAudioSource(
             concatenatingSource, 
