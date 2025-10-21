@@ -1323,6 +1323,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
       
+      // Validate state transition before executing
+      if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.play)) {
+        _logger.warning('Play command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
+        return;
+      }
+      
+      // Request coordinated state transition
+      final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
+        PlayerTransitionEvent.play,
+        context: {'command': 'play', 'timestamp': now.millisecondsSinceEpoch},
+      );
+      
+      if (!transitionAccepted) {
+        _logger.warning('Play command queued due to ongoing state transition', 'AudioHandler');
+        return;
+      }
+      
       // Cancel any ongoing gapless operations when new play command is issued
       _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
       
