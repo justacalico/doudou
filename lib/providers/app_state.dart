@@ -1697,9 +1697,9 @@ class AppState extends ChangeNotifier {
 
   Future<void> playPause() async {
     if (_audioHandler != null) {
-      // Get the current player state
-      final playerState = await _audioHandler!.playerStateStream.first;
-      if (playerState.playing) {
+      // Use user intent instead of raw player state for more reliable UI behavior
+      final userWantsToPlay = _audioHandler!.userIntendedPlaying;
+      if (userWantsToPlay) {
         await _audioHandler!.pause();
       } else {
         await _audioHandler!.play();
