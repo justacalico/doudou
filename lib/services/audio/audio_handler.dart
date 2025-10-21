@@ -535,12 +535,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _player.playbackEventStream.listen((event) {
       // Handle playback errors
       if (event.processingState == ProcessingState.idle) {
-        // CRITICAL FIX: Don't recover if user intentionally paused or no track is loaded
+        // CRITICAL FIX: Don't recover if user explicitly paused
         // Only recover on unexpected idle states when user actually intended to play
         if (_stateManager.currentTrack != null && 
             _userIntendedPlaying && 
-            _player.playing == false &&
-            _lastPauseCommand == null) { // Ensure this wasn't a user pause
+            !_userExplicitlyPaused && // Don't recover if user explicitly paused
+            _player.playing == false) {
           _logger.warning('Playback went idle unexpectedly, attempting recovery', 'AudioHandler');
           if (kDebugMode) {
             print('Player went idle unexpectedly - attempting to recover');
@@ -550,7 +550,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           Future.delayed(const Duration(milliseconds: 500), () async {
             try {
               // Double-check user intent hasn't changed during delay
-              if (!_userIntendedPlaying) {
+              if (!_userIntendedPlaying || _userExplicitlyPaused) {
                 if (kDebugMode) {
                   print('User paused during recovery delay - cancelling recovery');
                 }
