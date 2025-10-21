@@ -1711,17 +1711,18 @@ class AppState extends ChangeNotifier {
       }
       
       try {
-        // Add timeout to prevent hanging
+        // Remove external timeout to prevent mutex interruption
+        // The audio handler has its own internal timeout and error handling
         if (currentlyPlaying) {
           if (kDebugMode) {
             print('Calling audioHandler.pause()');
           }
-          await _audioHandler!.pause().timeout(Duration(seconds: 5));
+          await _audioHandler!.pause();
         } else {
           if (kDebugMode) {
             print('Calling audioHandler.play()');
           }
-          await _audioHandler!.play().timeout(Duration(seconds: 5));
+          await _audioHandler!.play();
         }
       } catch (e) {
         if (kDebugMode) {
