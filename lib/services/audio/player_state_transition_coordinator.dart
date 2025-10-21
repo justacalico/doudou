@@ -231,6 +231,8 @@ class PlayerStateTransitionCoordinator {
         switch (event) {
           case PlayerTransitionEvent.ready:
             return StateTransitionResult.valid(PlayerTransitionState.ready); // Return to ready, not playing
+          case PlayerTransitionEvent.play:
+            return StateTransitionResult.valid(PlayerTransitionState.playing); // Allow play during buffering
           case PlayerTransitionEvent.pause:
             return StateTransitionResult.valid(PlayerTransitionState.paused);
           case PlayerTransitionEvent.buffer:
