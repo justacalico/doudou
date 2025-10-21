@@ -12,131 +12,492 @@ class LibraryContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFF000000),
-      child: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Custom header with Library title on the left
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-                child: const Text(
-                  'Library',
-                  style: TextStyle(
-                    color: Color(0xFFFFFFFF),
-                    fontSize: 34,
-                    fontWeight: FontWeight.bold,
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return CupertinoPageScaffold(
+          backgroundColor: const Color(0xFF000000),
+          child: SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                // Enhanced header with gradient background
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          const Color(0xFF1C1C1E).withOpacity(0.8),
+                          const Color(0xFF000000).withOpacity(0.9),
+                        ],
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header with profile icon
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFE91E63), Color(0xFFAD1457)],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFE91E63).withOpacity(0.3),
+                                      offset: const Offset(0, 4),
+                                      blurRadius: 12,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.person,
+                                  color: CupertinoColors.white,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Your Library',
+                                      style: TextStyle(
+                                        color: CupertinoColors.systemGrey.withOpacity(0.8),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Music Collection',
+                                      style: TextStyle(
+                                        color: CupertinoColors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Library stats card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF2C2C2E).withOpacity(0.8),
+                                  const Color(0xFF1C1C1E).withOpacity(0.6),
+                                ],
+                              ),
+                              border: Border.all(
+                                color: const Color(0xFFE91E63).withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _buildStatItem(
+                                    '${appState.albums.length}',
+                                    'Albums',
+                                    CupertinoIcons.music_albums,
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: const Color(0xFF3C3C3E),
+                                ),
+                                Expanded(
+                                  child: _buildStatItem(
+                                    '${appState.artists.length}',
+                                    'Artists',
+                                    CupertinoIcons.music_mic,
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: const Color(0xFF3C3C3E),
+                                ),
+                                Expanded(
+                                  child: _buildStatItem(
+                                    '${appState.tracks.length}',
+                                    'Songs',
+                                    CupertinoIcons.music_note,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                
+                // Quick access section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Quick Access',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Grid of quick access items
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildQuickAccessCard(
+                                context,
+                                appState,
+                                'Recently Added',
+                                'Latest albums',
+                                CupertinoIcons.clock,
+                                const Color(0xFFE91E63),
+                                () => _navigateToSection(context, 'Albums'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildQuickAccessCard(
+                                context,
+                                appState,
+                                'Favorites',
+                                'Liked songs',
+                                CupertinoIcons.heart_fill,
+                                const Color(0xFFFF6B35),
+                                () => _navigateToSection(context, 'Favorites'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 12),
+                        
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildQuickAccessCard(
+                                context,
+                                appState,
+                                'Top Artists',
+                                'Most played',
+                                CupertinoIcons.music_mic,
+                                const Color(0xFF007AFF),
+                                () => _navigateToSection(context, 'Artists'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildQuickAccessCard(
+                                context,
+                                appState,
+                                'Playlists',
+                                'Custom mixes',
+                                CupertinoIcons.music_note_list,
+                                const Color(0xFF32D74B),
+                                () => _navigateToSection(context, 'Playlists'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                
+                // Browse categories section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Browse',
+                          style: TextStyle(
+                            color: CupertinoColors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Enhanced library navigation items
+                        _buildEnhancedLibraryItem(
+                          context,
+                          appState,
+                          icon: CupertinoIcons.music_albums_fill,
+                          title: 'Albums',
+                          subtitle: '${appState.albums.length} albums',
+                          color: const Color(0xFFE91E63),
+                          onTap: () => _navigateToSection(context, 'Albums'),
+                        ),
+                        
+                        _buildEnhancedLibraryItem(
+                          context,
+                          appState,
+                          icon: CupertinoIcons.person_2_fill,
+                          title: 'Artists',
+                          subtitle: '${appState.artists.length} artists',
+                          color: const Color(0xFF007AFF),
+                          onTap: () => _navigateToSection(context, 'Artists'),
+                        ),
+                        
+                        _buildEnhancedLibraryItem(
+                          context,
+                          appState,
+                          icon: CupertinoIcons.music_note,
+                          title: 'Songs',
+                          subtitle: '${appState.tracks.length} tracks',
+                          color: const Color(0xFF32D74B),
+                          onTap: () => _navigateToSection(context, 'Songs'),
+                        ),
+                        
+                        _buildEnhancedLibraryItem(
+                          context,
+                          appState,
+                          icon: CupertinoIcons.music_note_list,
+                          title: 'Playlists',
+                          subtitle: '${appState.playlists.length} playlists',
+                          color: const Color(0xFFFF6B35),
+                          onTap: () => _navigateToSection(context, 'Playlists'),
+                        ),
+                        
+                        _buildEnhancedLibraryItem(
+                          context,
+                          appState,
+                          icon: CupertinoIcons.square_grid_2x2_fill,
+                          title: 'Collections',
+                          subtitle: 'Coming soon',
+                          color: const Color(0xFFAF52DE),
+                          onTap: () => _navigateToSection(context, 'Collections'),
+                        ),
+                        
+                        _buildEnhancedLibraryItem(
+                          context,
+                          appState,
+                          icon: CupertinoIcons.tags_fill,
+                          title: 'Genres',
+                          subtitle: 'Coming soon',
+                          color: const Color(0xFFFF9F0A),
+                          onTap: () => _navigateToSection(context, 'Genres'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                // Bottom padding for mini player
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              ],
             ),
-
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildStatItem(String value, String label, IconData icon) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: const Color(0xFFE91E63),
+          size: 20,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            color: CupertinoColors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            color: CupertinoColors.systemGrey.withOpacity(0.8),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildQuickAccessCard(
+    BuildContext context,
+    AppState appState,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 80,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            colors: [
+              color.withOpacity(0.15),
+              color.withOpacity(0.05),
+            ],
+          ),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+            const Spacer(),
+            Text(
+              title,
+              style: const TextStyle(
+                color: CupertinoColors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: CupertinoColors.systemGrey.withOpacity(0.8),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildEnhancedLibraryItem(
+    BuildContext context,
+    AppState appState, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFF1C1C1E).withOpacity(0.6),
+            border: Border.all(
+              color: const Color(0xFF3C3C3E).withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: color.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.music_mic,
-                      title: 'Artists',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Artists'),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: CupertinoColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.rectangle_stack,
-                      title: 'Albums',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Albums'),
-                    ),
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.music_note,
-                      title: 'Songs',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Songs'),
-                    ),
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.music_note_list,
-                      title: 'Playlists',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Playlists'),
-                    ),
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.square_grid_2x2,
-                      title: 'Collections',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Collections'),
-                    ),
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.music_albums,
-                      title: 'Genres',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Genres'),
-                    ),
-                    _buildLibraryItem(
-                      context,
-                      icon: CupertinoIcons.heart,
-                      title: 'Favorites',
-                      color: const Color(0xFFFF453A),
-                      onTap: () => _navigateToSection(context, 'Favorites'),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: CupertinoColors.systemGrey.withOpacity(0.8),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey.withOpacity(0.6),
+                size: 16,
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  Widget _buildLibraryItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(icon, color: CupertinoColors.white, size: 18),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: CupertinoColors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _navigateToSection(BuildContext context, String sectionType) {
+  }  void _navigateToSection(BuildContext context, String sectionType) {
     Widget page;
 
     switch (sectionType) {
