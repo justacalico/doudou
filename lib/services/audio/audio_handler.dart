@@ -2467,42 +2467,42 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _logger.info('Streaming track: ${track.name} (Platform: ${Platform.operatingSystem})', 'AudioHandler');
     List<String> streamUrls;
     
-    // Use MediaServiceManager if available, otherwise fallback to JellyfinService
-    final mediaServiceManager = _mediaServiceManager;
+    // Use MediaServiceManagerCoordinator if available, otherwise fallback to JellyfinService
+    final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
     
-    if (mediaServiceManager != null) {
+    if (mediaServiceCoordinator != null) {
       // Get multiple stream URLs for better fallback support
       streamUrls = [];
       
       // Try different stream URL approaches based on server type
-      final serverType = mediaServiceManager.currentServerType;
-      _logger.debug('Using MediaServiceManager for ${serverType.toString()} service', 'AudioHandler');
+      final serverType = mediaServiceCoordinator.currentServerType;
+      _logger.debug('Using MediaServiceManagerCoordinator for ${serverType.toString()} service', 'AudioHandler');
       
       // For Plex, use async alternative URLs with part IDs (skip broken primary URL)
       // For other services, add primary URL first then alternatives
       if (serverType.toString().contains('plex')) {
         // Skip primary URL for Plex - use async alternatives with part IDs
         try {
-          final altUrls = await mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
+          final altUrls = await mediaServiceCoordinator.getAlternativeStreamUrlsAsync(track.id);
           streamUrls.addAll(altUrls);
         } catch (e) {
           _logger.warning('Failed to get Plex async URLs: $e', 'AudioHandler');
           // Fallback to primary if async fails
-          final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
-          if (primaryUrl.isNotEmpty) {
+          final primaryUrl = mediaServiceCoordinator.getStreamUrl(track.id);
+          if (primaryUrl != null && primaryUrl.isNotEmpty) {
             streamUrls.add(primaryUrl);
           }
         }
       } else {
         // For non-Plex services, add primary URL first
-        final primaryUrl = mediaServiceManager.getStreamUrl(track.id);
-        if (primaryUrl.isNotEmpty) {
+        final primaryUrl = mediaServiceCoordinator.getStreamUrl(track.id);
+        if (primaryUrl != null && primaryUrl.isNotEmpty) {
           streamUrls.add(primaryUrl);
         }
         
         // Add alternative URLs from service
         try {
-          final altUrls = mediaServiceManager.getAlternativeStreamUrls(track.id);
+          final altUrls = mediaServiceCoordinator.getAlternativeStreamUrls(track.id);
           streamUrls.addAll(altUrls);
         } catch (e) {
           _logger.warning('Failed to get alternative URLs: $e', 'AudioHandler');
