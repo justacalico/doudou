@@ -452,16 +452,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
-    // Enhanced position stream for background tracking with reduced update frequency
+    // Enhanced position stream with atomic updates and debouncing
     _player.positionStream.listen((position) {
-      // Only update position if not currently transitioning to avoid conflicts
-      if (!_transitionManager.isTransitionInProgress && 
-          !_stateManager.isHandlingCompletion &&
-          _player.processingState != ProcessingState.buffering) {
-        _updatePlaybackState(playbackState.value.copyWith(
-          updatePosition: position,
-        ));
-      }
+      // Update position through position manager with protection against seek conflicts
+      _positionManager.updatePositionDebounced(
+        position, 
+        (validatedPosition) {
+          // Only update playback state if not currently transitioning
+          if (!_transitionManager.isTransitionInProgress && 
+              !_stateManager.isHandlingCompletion &&
+              _player.processingState != ProcessingState.buffering) {
+            _updatePlaybackState(playbackState.value.copyWith(
+              updatePosition: validatedPosition,
+            ));
+          }
+        },
+        fromStream: true,
+      );
       
       // Update TouchBar with current lyrics line (this is safe to do always)
       _updateTouchBarLyrics(position);
