@@ -971,14 +971,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('=== ANDROID BYPASS MODE RECOVERY COMPLETED ===');
         }
-      }
-    } catch (e) {
-      _logger.error('Android service failure recovery error: $e', 'AudioHandler');
-      if (kDebugMode) {
-        print('=== ANDROID SERVICE RECOVERY FAILED ===');
-        print('Recovery error: $e');
-      }
-    }
+      },
+      maxRetries: 1,
+    );
   }
 
   /// Upgrade Android controls to full set once playback is successfully working
