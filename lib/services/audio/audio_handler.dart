@@ -3802,7 +3802,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (!_touchBarEnabled) return;
     
     final currentTrack = _stateManager.currentTrack;
-    TouchBarService.updateNowPlaying(currentTrack);
+    _touchBarUpdateManager.updateNowPlaying(currentTrack);
   }
 
   void _updateTouchBarPlaybackState() {
