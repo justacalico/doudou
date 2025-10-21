@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
@@ -424,6 +425,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                           : CupertinoButton(
                                               padding: EdgeInsets.zero,
                                               onPressed: () {
+                                                if (kDebugMode) {
+                                                  print('=== NOW PLAYING PLAY/PAUSE BUTTON TAPPED ===');
+                                                  print('isPlaying: $isPlaying');
+                                                  print('processingState: $processingState');
+                                                  print('audioHandler.userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
+                                                }
                                                 appState.playPause();
                                               },
                                               child: Icon(
