@@ -211,21 +211,27 @@ class AudioPreloader {
               _bufferedTracks.add(track.id);
               loaded = true;
             
-            if (kDebugMode) {
-              print('✓ Started aggressive buffering (primary): ${track.name}');
-            }
-            
-            player.playerStateStream.listen((state) {
-              if (state.processingState == ProcessingState.ready) {
-                if (kDebugMode) {
-                  print('✓ Background buffering complete for: ${track.name}');
-                }
+              if (kDebugMode) {
+                print('✓ Started aggressive buffering (primary): ${track.name}');
               }
-            });
-            
-          } catch (primaryError) {
+              
+              player.playerStateStream.listen((state) {
+                if (state.processingState == ProcessingState.ready) {
+                  if (kDebugMode) {
+                    print('✓ Background buffering complete for: ${track.name}');
+                  }
+                }
+              });
+              
+            } catch (primaryError) {
+              if (kDebugMode) {
+                print('Failed to start aggressive buffering for ${track.name}: direct=$e, primary=$primaryError');
+              }
+              loaded = false;
+            }
+          } else {
             if (kDebugMode) {
-              print('Failed to start aggressive buffering for ${track.name}: direct=$e, primary=$primaryError');
+              print('Invalid primary URL for ${track.name}: $primaryUrl');
             }
             loaded = false;
           }
