@@ -145,6 +145,21 @@ class MediaServiceManagerCoordinator {
     return result ?? <String>[];
   }
 
+  /// Get alternative stream URLs async with coordination
+  Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
+    final result = await executeOperation('getAlternativeStreamUrlsAsync', (manager) async {
+      return await manager.getAlternativeStreamUrlsAsync(trackId);
+    });
+    return result ?? <String>[];
+  }
+
+  /// Get image URL with coordination
+  String? getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+    return executeSyncOperation('getImageUrl', (manager) {
+      return manager.getImageUrl(itemId, type: type, width: width, height: height);
+    });
+  }
+
   /// Get tracks with coordination
   Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
     final result = await executeOperation('getTracks', (manager) async {
