@@ -131,9 +131,14 @@ class AudioPreloader {
             await Future.delayed(const Duration(milliseconds: 100));
             
             _preloadedPlayers[track.id] = player;
-            // Store audio source for gapless concatenation
+            // Register audio source with reference counting
             if (player.audioSource != null) {
-              _preloadedAudioSources[track.id] = player.audioSource!;
+              _referenceManager.registerAudioSource(
+                trackId: track.id,
+                audioSource: player.audioSource!,
+                player: player,
+                requester: 'preloader_local',
+              );
             }
             _bufferedTracks.add(track.id);
             loaded = true;
