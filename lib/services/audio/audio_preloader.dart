@@ -10,22 +10,26 @@ import 'async_mutex.dart';
 
 /// Handles preloading and caching of audio tracks for instant playback
 /// Enhanced for gapless playback with AudioSource generation
-/// Thread-safe implementation to prevent cleanup/creation race conditions
+/// Thread-safe implementation with reference counting to prevent cleanup/creation race conditions
 class AudioPreloader {
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
   
+  // Reference-counted audio source management
+  final AudioSourceReferenceManager _referenceManager = AudioSourceReferenceManager();
+  
   // Synchronized preloading state
   final Map<String, AudioPlayer> _preloadedPlayers = {};
-  final Map<String, AudioSource> _preloadedAudioSources = {}; // New: Audio sources for concatenation
   final Set<String> _preloadingTracks = {}; // Tracks currently being preloaded
   final Set<String> _bufferedTracks = {}; // Tracks with buffered content
   
-  // Synchronization locks
-  Completer<void>? _preloadLock;
-  Completer<void>? _cleanupLock;
+  // Mutex-based synchronization (replacing custom locks)
+  final NamedMutexManager _mutexManager = NamedMutexManager();
   
-  AudioPreloader(this._jellyfinService, this._downloadService);
+  AudioPreloader(this._jellyfinService, this._downloadService) {
+    // Start automatic cleanup of unreferenced audio sources
+    _referenceManager.startCleanupTimer();
+  }
   
   /// Acquires preload operation lock to prevent race conditions
   Future<void> _acquirePreloadLock() async {
