@@ -76,7 +76,9 @@ class AsyncMutex {
       rethrow;
     } finally {
       release();
-      print('AsyncMutex($name): Lock released');
+      if (kDebugMode) {
+        print('AsyncMutex($name): Lock released');
+      }
     }
   }
 }
