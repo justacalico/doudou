@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 /// Request priority levels for adaptive processing
 enum RequestPriority {
