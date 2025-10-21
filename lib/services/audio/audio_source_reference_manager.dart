@@ -251,7 +251,9 @@ class AudioSourceReferenceManager {
     }
     
     if (kDebugMode && toCleanup.isNotEmpty) {
-      print('Automatic cleanup completed: ${toCleanup.length} sources cleaned');
+      if (kDebugMode) {
+        print('Automatic cleanup completed: ${toCleanup.length} sources cleaned');
+      }
     }
   }
   
