@@ -818,6 +818,80 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  /// Recover from Android foreground service failures by restarting audio system
+  Future<void> _recoverFromAndroidServiceFailure() async {
+    if (!Platform.isAndroid) return;
+    
+    try {
+      if (kDebugMode) {
+        print('=== ANDROID SERVICE RECOVERY STARTED ===');
+        print('Current track: ${_stateManager.currentTrack?.name}');
+        print('User intended playing: $_userIntendedPlaying');
+      }
+      
+      // Stop current player to reset state
+      try {
+        await _player.stop();
+        if (kDebugMode) {
+          print('Stopped current player for recovery');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error stopping player during recovery: $e');
+        }
+      }
+      
+      // Wait a moment for system to reset
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Clear concatenating source to reset audio pipeline
+      _concatenatingSource = null;
+      
+      // If we have a current track, try to reload it
+      if (_stateManager.currentTrack != null) {
+        if (kDebugMode) {
+          print('Reloading current track after Android service failure...');
+        }
+        
+        // Force individual track playback to avoid concatenating source issues
+        await _loadAndPlayTrack(_stateManager.currentTrack!, false);
+        
+        // Only start playing if user intended to play
+        if (_userIntendedPlaying) {
+          await Future.delayed(const Duration(milliseconds: 200));
+          try {
+            await _player.play();
+            if (kDebugMode) {
+              print('Successfully restarted playback after Android service recovery');
+            }
+          } catch (playError) {
+            if (kDebugMode) {
+              print('Failed to restart playback after recovery: $playError');
+            }
+          }
+        }
+        
+        // Update state with minimal controls to avoid triggering foreground service
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: _userIntendedPlaying && _player.playing,
+          processingState: _player.processingState == ProcessingState.ready 
+              ? AudioProcessingState.ready 
+              : AudioProcessingState.loading,
+        ));
+        
+        if (kDebugMode) {
+          print('=== ANDROID SERVICE RECOVERY COMPLETED ===');
+        }
+      }
+    } catch (e) {
+      _logger.error('Android service failure recovery error: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('=== ANDROID SERVICE RECOVERY FAILED ===');
+        print('Recovery error: $e');
+      }
+    }
+  }
+
   AudioProcessingState _mapProcessingState(ProcessingState state) {
     switch (state) {
       case ProcessingState.idle:
