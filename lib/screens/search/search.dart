@@ -957,10 +957,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildUnifiedAlbumItem(Album album, AppState appState) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: () {
+      margin: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () {
           Navigator.push(
             context,
             CupertinoPageRoute(
@@ -969,54 +968,77 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         },
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF000000),
-            borderRadius: BorderRadius.circular(8),
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF1C1C1E).withOpacity(0.6),
+                const Color(0xFF2C2C2E).withOpacity(0.4),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF3C3C3E).withOpacity(0.2),
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
-              // Album artwork
+              // Enhanced album artwork
               Container(
-                width: 50,
-                height: 50,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF30D158).withOpacity(0.8),
+                      const Color(0xFF32ADE6).withOpacity(0.6),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF30D158).withOpacity(0.3),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                    ),
+                  ],
                 ),
                 child: album.imageUrl != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(album.imageUrl!, width: 100, height: 100),
-                          width: 50,
-                          height: 50,
+                          imageUrl: appState.getImageUrl(album.imageUrl!, width: 112, height: 112),
+                          width: 56,
+                          height: 56,
                           fit: BoxFit.cover,
                           errorWidget: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFF30D158),
-                              borderRadius: BorderRadius.circular(8),
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF30D158).withOpacity(0.8),
+                                  const Color(0xFF32ADE6).withOpacity(0.6),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_albums,
                               color: Color(0xFFFFFFFF),
-                              size: 24,
+                              size: 28,
                             ),
                           ),
                         ),
                       )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF30D158),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          CupertinoIcons.music_albums,
-                          color: Color(0xFFFFFFFF),
-                          size: 24,
-                        ),
+                    : const Icon(
+                        CupertinoIcons.music_albums,
+                        color: Color(0xFFFFFFFF),
+                        size: 28,
                       ),
               ),
+              
               const SizedBox(width: 16),
+              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1024,25 +1046,57 @@ class _SearchScreenState extends State<SearchScreen> {
                     Text(
                       album.name,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFFFFFFF),
+                        letterSpacing: -0.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Album • ${album.artistName ?? 'Unknown Artist'}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.systemGrey2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF30D158).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Album',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF30D158),
+                            ),
+                          ),
+                        ),
+                        if (album.artistName != null) ...[
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              album.artistName!,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: CupertinoColors.systemGrey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
+              ),
+              
+              const Icon(
+                CupertinoIcons.chevron_right,
+                color: CupertinoColors.systemGrey2,
+                size: 16,
               ),
             ],
           ),
