@@ -1554,7 +1554,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Pause: Successfully acquired commandThrottle mutex');
         }
       
-      // Android service manager: Use direct player control if in bypass mode
+      // Android service manager: Use direct player control if in bypass mode  
       // Skip complex state coordination to avoid deadlocks in bypass mode
       if (_androidServiceManager.shouldSkipAudioService()) {
         if (kDebugMode) {
