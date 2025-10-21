@@ -39,7 +39,7 @@ class AsyncMutex {
       _locked = false;
     }
   }  /// Check if the mutex is currently locked
-  bool get isLocked => _completer != null && !_completer!.isCompleted;
+  bool get isLocked => _locked;
   
   /// Execute a function with the mutex locked with timeout protection
   Future<T> withLock<T>(Future<T> Function() operation, [String? debugName]) async {
