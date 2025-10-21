@@ -1506,6 +1506,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _setUserIntentAtomic(false);
         _userExplicitlyPaused = true; // Mark as intentional pause
         await _player.pause();
+        
+        // Update playback state to reflect the pause
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        _logger.info('Pause command completed successfully (bypass mode)', 'AudioHandler');
+        if (kDebugMode) {
+          print('Pause command completed (bypass mode). User intended playing: $_userIntendedPlaying');
+        }
         return;
       }
       
