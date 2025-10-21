@@ -41,20 +41,51 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _loadRecentSearches() {
-    // For now, using hardcoded recent searches
-    // In a real app, this would load from SharedPreferences
+  void _loadRecentSearches() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedSearches = prefs.getStringList('recent_searches') ?? [];
+      
+      setState(() {
+        _recentSearches = savedSearches;
+      });
+    } catch (e) {
+      // If SharedPreferences fails, populate with popular artists/albums from library
+      final appState = Provider.of<AppState>(context, listen: false);
+      _generateSuggestedSearches(appState);
+    }
+  }
+
+  void _generateSuggestedSearches(AppState appState) {
+    // Generate suggested searches based on popular artists and recent albums
+    final Set<String> suggestions = {};
+    
+    // Add top artists by track count
+    final artistTrackCounts = <String, int>{};
+    for (final track in appState.tracks) {
+      if (track.artistName != null && track.artistName!.isNotEmpty) {
+        artistTrackCounts[track.artistName!] = (artistTrackCounts[track.artistName!] ?? 0) + 1;
+      }
+    }
+    
+    final topArtists = artistTrackCounts.entries
+        .toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+    
+    // Add top 5 artists
+    for (final entry in topArtists.take(5)) {
+      suggestions.add(entry.key);
+    }
+    
+    // Add recent album names (first 3-4)
+    for (final album in appState.albums.take(4)) {
+      if (album.name.isNotEmpty) {
+        suggestions.add(album.name);
+      }
+    }
+    
     setState(() {
-      _recentSearches = [
-        'Bonzai Chan',
-        'Andrew Horowitz', 
-        'Karen Skladany',
-        'OG Maco',
-        'Michael Wyckoff & Xye',
-        'Shotgun Willy',
-        'Jelly House, Elliot Cox',
-        'Jullian, Sophie Wood',
-      ];
+      _recentSearches = suggestions.take(10).toList();
     });
   }
 
