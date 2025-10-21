@@ -1706,6 +1706,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.info('Preserving playing state during skip (user was listening)', 'AudioHandler');
     }
     
+    // Unprotect current track before transitioning to next
+    if (_stateManager.currentTrack != null) {
+      await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
+    }
+    
     // Use gapless transition if concatenation is active
     final isActive = await _isConcatenationActive();
     if (isActive) {
