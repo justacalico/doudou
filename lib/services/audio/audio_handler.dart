@@ -1256,11 +1256,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Audio Service Methods - Enhanced for background compatibility
   @override
-  @override
   Future<void> play() async {
     return await _withLock('commandThrottle', () async {
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
+      
+      // Android bypass mode: Use direct player control
+      if (_androidBypassMode) {
+        if (kDebugMode) {
+          print('Android bypass mode: Direct player play');
+        }
+        
+        await _setUserIntentAtomic(true);
+        
+        // If no track is loaded, try to load current track in bypass mode
+        if (_stateManager.currentTrack != null && _player.audioSource == null) {
+          await _loadAndPlayTrackBypass(_stateManager.currentTrack!, true);
+        } else {
+          await _player.play();
+        }
+        return;
+      }
       
       // Throttle rapid play commands
       if (_lastPlayCommand != null && 
