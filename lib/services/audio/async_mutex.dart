@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 /// Async mutex implementation to replace custom spinlocks
 /// Provides proper async synchronization without busy-waiting
 class AsyncMutex {
@@ -39,7 +41,9 @@ class AsyncMutex {
   /// Execute a function with the mutex locked with timeout protection
   Future<T> withLock<T>(Future<T> Function() operation, [String? debugName]) async {
     final name = debugName ?? 'unknown';
-    print('AsyncMutex($name): Attempting to acquire lock...');
+    if (kDebugMode) {
+      print('AsyncMutex($name): Attempting to acquire lock...');
+    }
     
     // Add timeout protection to prevent infinite waiting
     await acquire().timeout(
