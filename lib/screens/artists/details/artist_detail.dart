@@ -526,19 +526,13 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             final track = _artistTracks[index];
-                            return TrackListItem(
-                              track: track,
-                              trackNumber: index + 1,
-                              showTrackNumber: true,
-                              showAlbumArt: false,
-                              onTap: () async {
-                                final trackIndex = _artistTracks.indexOf(track);
-                                if (trackIndex != -1) {
-                                  await appState.audioHandler?.playPlaylist(_artistTracks, trackIndex);
-                                } else {
-                                  await appState.playTrack(track);
-                                }
-                              },
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                left: 20,
+                                right: 20,
+                                bottom: index < _artistTracks.length - 1 ? 12 : 20,
+                              ),
+                              child: _buildEnhancedTrackItem(track, appState, index),
                             );
                           },
                           childCount: _artistTracks.length,
