@@ -155,7 +155,9 @@ class TouchBarUpdateManager {
         TouchBarService.updateLyrics(null);
       }
     } catch (e) {
-      print('TouchBarUpdateManager: Now playing update failed: $e');
+      if (kDebugMode) {
+        print('TouchBarUpdateManager: Now playing update failed: $e');
+      }
     }
   }
 
