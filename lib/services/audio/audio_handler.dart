@@ -824,15 +824,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('=== ANDROID SERVICE RECOVERY STARTED ===');
         print('Current track: ${_stateManager.currentTrack?.name}');
         print('User intended playing: $_userIntendedPlaying');
-        print('Service blocked: $_androidServiceBlocked');
+        print('Service state: ${_androidServiceManager.currentConfig.description}');
       }
       
-      // Enable bypass mode immediately
-      _androidBypassMode = true;
-      _androidServiceBlocked = true;
+      // Transition to bypass mode immediately for recovery
+      final newConfig = _androidServiceManager.transitionToBypass(
+        BypassReason.foregroundServiceError, 
+        'Service recovery initiated'
+      );
       
       if (kDebugMode) {
-        print('Android bypass mode ENABLED - using pure just_audio without AudioService');
+        print('Android service manager: Recovery mode enabled - ${newConfig.description}');
       }
       
       // Stop current player to reset state
