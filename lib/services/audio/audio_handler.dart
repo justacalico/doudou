@@ -2148,6 +2148,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     Future.delayed(const Duration(milliseconds: 200), () {
       _preloader.preloadNextTracks(_stateManager.playlist, _stateManager.currentIndex);
     });
+    });
   }
 
   Future<void> _loadAndPlayTrack(Track track, bool shouldPlay) async {
