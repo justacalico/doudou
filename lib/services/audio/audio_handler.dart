@@ -3704,7 +3704,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
               final tracks = mediaServiceCoordinator != null 
                 ? await mediaServiceCoordinator.getPlaylistTracks(playlistId)
-                : await _jellyfinService.getPlaylistTracks(playlistId);
+                : await _jellyfinServiceCoordinator.getPlaylistTracks(playlistId);
               if (tracks.isEmpty) {
                 if (kDebugMode) {
                   print('No tracks found for playlist: $playlistId');
