@@ -1333,30 +1333,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
       
-      // Validate state transition before executing
-      if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.play)) {
-        _logger.warning('Play command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
-        return;
-      }
-      
-      // Request coordinated state transition
-      final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
-        PlayerTransitionEvent.play,
-        context: {'command': 'play', 'timestamp': now.millisecondsSinceEpoch},
-      );
-      
-      if (!transitionAccepted) {
-        _logger.warning('Play command queued due to ongoing state transition', 'AudioHandler');
-        return;
-      }
-      
-      // Cancel any ongoing gapless operations when new play command is issued
-      _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
-      
       // Android service manager: Use direct player control if in bypass mode
+      // Skip complex state coordination to avoid deadlocks in bypass mode
       if (_androidServiceManager.shouldSkipAudioService()) {
         if (kDebugMode) {
           print('Android service manager: Direct player play - ${_androidServiceManager.currentConfig.description}');
+        }
+        
+        // Simple state validation for bypass mode - just check if already playing
+        if (_player.playing) {
+          _logger.info('Play command ignored - player is already playing', 'AudioHandler');
+          if (kDebugMode) {
+            print('Play command ignored - player is already playing');
+          }
+          return;
         }
         
         await _setUserIntentAtomic(true);
@@ -1383,6 +1373,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         return;
       }
+      
+      // Full state coordination for non-bypass mode (Android/MediaSession)
+      // Validate state transition before executing
+      if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.play)) {
+        _logger.warning('Play command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
+        return;
+      }
+      
+      // Request coordinated state transition
+      final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
+        PlayerTransitionEvent.play,
+        context: {'command': 'play', 'timestamp': now.millisecondsSinceEpoch},
+      );
+      
+      if (!transitionAccepted) {
+        _logger.warning('Play command queued due to ongoing state transition', 'AudioHandler');
+        return;
+      }
+      
+      // Cancel any ongoing gapless operations when new play command is issued
+      _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
       
       // Throttle rapid play commands
       if (_lastPlayCommand != null && 
@@ -1493,6 +1504,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final now = DateTime.now();
       _logger.info('Pause command received', 'AudioHandler');
       
+      // Android service manager: Use direct player control if in bypass mode
+      // Skip complex state coordination to avoid deadlocks in bypass mode
+      if (_androidServiceManager.shouldSkipAudioService()) {
+        if (kDebugMode) {
+          print('Android service manager: Direct player pause - ${_androidServiceManager.currentConfig.description}');
+        }
+        
+        // Simple state validation for bypass mode - just check if already stopped
+        if (!_player.playing) {
+          _logger.info('Pause command ignored - player is already paused', 'AudioHandler');
+          if (kDebugMode) {
+            print('Pause command ignored - player is already paused');
+          }
+          return;
+        }
+        
+        // Direct pause without complex state coordination
+        await _setUserIntentAtomic(false);
+        _userExplicitlyPaused = true; // Mark as intentional pause
+        await _player.pause();
+        
+        // Update playback state to reflect the pause
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        _logger.info('Pause command completed successfully (bypass mode)', 'AudioHandler');
+        if (kDebugMode) {
+          print('Pause command completed (bypass mode). User intended playing: $_userIntendedPlaying');
+        }
+        return;
+      }
+      
+      // Full state coordination for non-bypass mode (Android/MediaSession)
       // Validate state transition before executing
       if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.pause)) {
         _logger.warning('Pause command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
@@ -1507,28 +1552,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       if (!transitionAccepted) {
         _logger.warning('Pause command queued due to ongoing state transition', 'AudioHandler');
-        return;
-      }
-      
-      // Android service manager: Use direct player control if in bypass mode
-      if (_androidServiceManager.shouldSkipAudioService()) {
-        if (kDebugMode) {
-          print('Android service manager: Direct player pause - ${_androidServiceManager.currentConfig.description}');
-        }
-        
-        await _setUserIntentAtomic(false);
-        _userExplicitlyPaused = true; // Mark as intentional pause
-        await _player.pause();
-        
-        // Update playback state to reflect the pause
-        _updatePlaybackState(playbackState.value.copyWith(
-          playing: false,
-        ));
-        
-        _logger.info('Pause command completed successfully (bypass mode)', 'AudioHandler');
-        if (kDebugMode) {
-          print('Pause command completed (bypass mode). User intended playing: $_userIntendedPlaying');
-        }
         return;
       }
       
