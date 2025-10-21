@@ -86,150 +86,40 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Track loading protection to prevent concurrent loads causing "Loading interrupted"
   // Now handled by operation queue
   
-  // Generic operation lock method
-  Future<T> _withLock<T>(String lockName, Future<T> Function() operation) async {
-    // Busy wait for lock (simple spinlock with yield)
-    while (true) {
-      switch (lockName) {
-        case 'userIntent':
-          if (!_userIntentLocked) {
-            _userIntentLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'commandThrottle':
-          if (!_commandThrottleLocked) {
-            _commandThrottleLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'bufferingState':
-          if (!_bufferingStateLocked) {
-            _bufferingStateLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'audioSourceCache':
-          if (!_audioSourceCacheLocked) {
-            _audioSourceCacheLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'concatenationState':
-          if (!_concatenationStateLocked) {
-            _concatenationStateLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'volumeState':
-          if (!_volumeStateLocked) {
-            _volumeStateLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'lyricsState':
-          if (!_lyricsStateLocked) {
-            _lyricsStateLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'completionHandling':
-          if (!_completionHandlingLocked) {
-            _completionHandlingLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        case 'trackLoading':
-          if (!_trackLoadingLocked) {
-            _trackLoadingLocked = true;
-            break;
-          }
-          await Future.delayed(const Duration(microseconds: 100));
-          continue;
-        default:
-          throw ArgumentError('Unknown lock: $lockName');
-      }
-      break;
-    }
-    
-    try {
-      return await operation();
-    } finally {
-      // Release lock
-      switch (lockName) {
-        case 'userIntent':
-          _userIntentLocked = false;
-          break;
-        case 'commandThrottle':
-          _commandThrottleLocked = false;
-          break;
-        case 'bufferingState':
-          _bufferingStateLocked = false;
-          break;
-        case 'audioSourceCache':
-          _audioSourceCacheLocked = false;
-          break;
-        case 'concatenationState':
-          _concatenationStateLocked = false;
-          break;
-        case 'volumeState':
-          _volumeStateLocked = false;
-          break;
-        case 'lyricsState':
-          _lyricsStateLocked = false;
-          break;
-        case 'completionHandling':
-          _completionHandlingLocked = false;
-          break;
-        case 'trackLoading':
-          _trackLoadingLocked = false;
-          break;
-      }
-    }
-  }
-  
-  // Helper methods for safe state management
+  // Helper methods for safe state management using async mutex
   Future<void> _setConcatenationState(bool usingConcatenation, [ConcatenatingAudioSource? source]) async {
-    await _withLock('concatenationState', () async {
+    return await _mutexManager.withLock('concatenationState', () async {
       _isUsingConcatenation = usingConcatenation;
       _concatenatingSource = source;
     });
   }
   
   Future<bool> _isConcatenationActive() async {
-    return await _withLock('concatenationState', () async {
+    return await _mutexManager.withLock('concatenationState', () async {
       return _isUsingConcatenation && _concatenatingSource != null;
     });
   }
   
   Future<void> _clearAudioSourceCache() async {
-    await _withLock('audioSourceCache', () async {
+    return await _mutexManager.withLock('audioSourceCache', () async {
       _audioSourceCache.clear();
     });
   }
   
   Future<void> _setUserIntentAtomic(bool intendedPlaying) async {
-    await _withLock('userIntent', () async {
+    return await _mutexManager.withLock('userIntent', () async {
       _userIntendedPlaying = intendedPlaying;
     });
   }
   
   Future<bool> _getUserIntentAtomic() async {
-    return await _withLock('userIntent', () async {
+    return await _mutexManager.withLock('userIntent', () async {
       return _userIntendedPlaying;
     });
   }
   
   Future<void> _updateBufferingLoop() async {
-    await _withLock('bufferingState', () async {
+    return await _mutexManager.withLock('bufferingState', () async {
       final now = DateTime.now();
       if (_lastBufferingTime != null && 
           now.difference(_lastBufferingTime!) < const Duration(seconds: 10)) {
@@ -242,13 +132,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
   
   Future<bool> _shouldHandleCodecLoop() async {
-    return await _withLock('bufferingState', () async {
+    return await _mutexManager.withLock('bufferingState', () async {
       return _bufferingLoopCount >= 25;
     });
   }
   
   Future<void> _resetBufferingLoop() async {
-    await _withLock('bufferingState', () async {
+    return await _mutexManager.withLock('bufferingState', () async {
       _bufferingLoopCount = 0;
       _lastBufferingTime = null;
     });
