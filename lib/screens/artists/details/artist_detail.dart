@@ -472,18 +472,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       ),
                       SliverToBoxAdapter(
                         child: SizedBox(
-                          height: 240,
+                          height: 300,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             itemCount: _artistAlbums.length,
                             itemBuilder: (context, index) {
                               final album = _artistAlbums[index];
-                              return Container(
-                                width: 160,
-                                margin: const EdgeInsets.only(right: 16),
-                                child: _buildAlbumTile(album, appState),
-                              );
+                              return _buildEnhancedAlbumCard(album, appState);
                             },
                           ),
                         ),
