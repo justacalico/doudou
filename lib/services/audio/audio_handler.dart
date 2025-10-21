@@ -467,6 +467,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final isPlaying = playerState.playing;
       final processingState = _mapProcessingState(playerState.processingState);
       
+      // Validate state transition through coordinator
+      final transitionEvent = _playerStateTransitionCoordinator.mapProcessingStateToEvent(playerState.processingState);
+      if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(transitionEvent)) {
+        if (kDebugMode) {
+          print('Invalid player state transition detected: ${_playerStateTransitionCoordinator.currentState} -> $transitionEvent');
+        }
+        return; // Skip invalid state changes
+      }
+      
+      // Request coordinated state transition
+      _playerStateTransitionCoordinator.requestTransition(transitionEvent, context: {
+        'isPlaying': isPlaying,
+        'processingState': processingState,
+        'userIntended': _userIntendedPlaying,
+      });
+      
       // Determine final playing state based on user intent and current state
       // IMPORTANT: Respect user intent over raw player state
       bool finalPlayingState;
