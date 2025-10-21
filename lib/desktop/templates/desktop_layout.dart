@@ -989,7 +989,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
                                           print('isPlaying: $isPlaying');
                                           print('isBuffering: $isBuffering');
-                                          print('currentTrack: ${currentTrack?.title ?? "null"}');
+                                          print('currentTrack: ${currentTrack?.displayTitle ?? "null"}');
                                           print('audioHandler: ${audioHandler != null}');
                                           print('userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
                                         }
