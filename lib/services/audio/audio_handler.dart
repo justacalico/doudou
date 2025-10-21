@@ -2714,6 +2714,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('=== PLAYPLAYLIST DEBUG START ===');
       print('Starting playPlaylist with ${tracks.length} tracks, startIndex: $startIndex');
       print('Track to play: ${tracks[startIndex].name}');
+      print('Previous current track: ${_stateManager.currentTrack?.name ?? "None"}');
     }
     
     // Set user intent to playing since this is an explicit play action - use atomic operation
@@ -2731,7 +2732,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Completely reset player state');
     }
     
+    // Set the new playlist and immediately verify the current track
     _queueManager.setPlaylist(tracks, startIndex);
+    
+    if (kDebugMode) {
+      print('Set new playlist: ${tracks.length} tracks, starting at index $startIndex');
+      print('New current track: ${_stateManager.currentTrack?.name ?? "None"}');
+    }
+    
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
     if (kDebugMode) {
@@ -2749,6 +2757,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('_playCurrentTrack() completed');
       final finalUserIntent = await _getUserIntentAtomic();
       print('Final player state - playing: ${_player.playing}, userIntent: $finalUserIntent');
+      print('Final current track: ${_stateManager.currentTrack?.name ?? "None"}');
       print('=== PLAYPLAYLIST DEBUG END ===');
     }
   }
