@@ -17,16 +17,16 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
+
   // Search results by category
   List<Track> _trackResults = [];
   List<Album> _albumResults = [];
   List<Artist> _artistResults = [];
   List<Playlist> _playlistResults = [];
-  
+
   // Recent searches
   List<String> _recentSearches = [];
-  
+
   bool _isSearching = false;
   String _searchQuery = '';
 
@@ -49,7 +49,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedSearches = prefs.getStringList('recent_searches') ?? [];
-      
+
       setState(() {
         _recentSearches = savedSearches;
       });
@@ -65,31 +65,31 @@ class _SearchScreenState extends State<SearchScreen> {
   void _generateSuggestedSearches(AppState appState) {
     // Generate suggested searches based on popular artists and recent albums
     final Set<String> suggestions = {};
-    
+
     // Add top artists by track count
     final artistTrackCounts = <String, int>{};
     for (final track in appState.tracks) {
       if (track.artistName != null && track.artistName!.isNotEmpty) {
-        artistTrackCounts[track.artistName!] = (artistTrackCounts[track.artistName!] ?? 0) + 1;
+        artistTrackCounts[track.artistName!] =
+            (artistTrackCounts[track.artistName!] ?? 0) + 1;
       }
     }
-    
-    final topArtists = artistTrackCounts.entries
-        .toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
-    
+
+    final topArtists = artistTrackCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
     // Add top 5 artists
     for (final entry in topArtists.take(5)) {
       suggestions.add(entry.key);
     }
-    
+
     // Add recent album names (first 3-4)
     for (final album in appState.albums.take(4)) {
       if (album.name.isNotEmpty) {
         suggestions.add(album.name);
       }
     }
-    
+
     setState(() {
       _recentSearches = suggestions.take(10).toList();
     });
@@ -97,15 +97,17 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _addToRecentSearches(String query) async {
     if (query.trim().isEmpty) return;
-    
+
     setState(() {
-      _recentSearches.removeWhere((search) => search.toLowerCase() == query.toLowerCase());
+      _recentSearches.removeWhere(
+        (search) => search.toLowerCase() == query.toLowerCase(),
+      );
       _recentSearches.insert(0, query);
       if (_recentSearches.length > 10) {
         _recentSearches = _recentSearches.take(10).toList();
       }
     });
-    
+
     // Save to SharedPreferences
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -140,38 +142,38 @@ class _SearchScreenState extends State<SearchScreen> {
 
     try {
       final searchTerm = query.toLowerCase();
-      
+
       // Search tracks
       final trackResults = appState.tracks.where((track) {
         final trackName = track.name.toLowerCase();
         final artistName = track.artistName?.toLowerCase() ?? '';
         final albumName = track.albumName?.toLowerCase() ?? '';
-        
+
         return trackName.contains(searchTerm) ||
-               artistName.contains(searchTerm) ||
-               albumName.contains(searchTerm);
+            artistName.contains(searchTerm) ||
+            albumName.contains(searchTerm);
       }).toList();
 
       // Search albums
       final albumResults = appState.albums.where((album) {
         final albumName = album.name.toLowerCase();
         final artistName = album.artistName?.toLowerCase() ?? '';
-        
+
         return albumName.contains(searchTerm) ||
-               artistName.contains(searchTerm);
+            artistName.contains(searchTerm);
       }).toList();
 
       // Search artists
       final artistResults = appState.artists.where((artist) {
         final artistName = artist.name.toLowerCase();
-        
+
         return artistName.contains(searchTerm);
       }).toList();
 
       // Search playlists
       final playlistResults = appState.playlists.where((playlist) {
         final playlistName = playlist.name.toLowerCase();
-        
+
         return playlistName.contains(searchTerm);
       }).toList();
 
@@ -197,7 +199,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _recentSearches.clear();
     });
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('recent_searches');
@@ -255,7 +257,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                   '${appState.tracks.length} songs • ${appState.albums.length} albums • ${appState.artists.length} artists',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: CupertinoColors.systemGrey.withOpacity(0.8),
+                                    color: CupertinoColors.systemGrey
+                                        .withOpacity(0.8),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -282,9 +285,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Enhanced Search Bar
                       Container(
                         decoration: BoxDecoration(
@@ -322,18 +325,20 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           backgroundColor: const Color(0x00000000),
                           onChanged: (value) => _performSearch(value, appState),
-                          onSubmitted: (value) => _performSearch(value, appState),
+                          onSubmitted: (value) =>
+                              _performSearch(value, appState),
                           autofocus: false,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
                 // Content area with enhanced design
-                Expanded(
-                  child: _buildSearchContent(appState),
-                ),
+                Expanded(child: _buildSearchContent(appState)),
               ],
             ),
           ),
@@ -349,17 +354,16 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (_isSearching) {
       return const Center(
-        child: CupertinoActivityIndicator(
-          color: Color(0xFFFFFFFF),
-        ),
+        child: CupertinoActivityIndicator(color: Color(0xFFFFFFFF)),
       );
     }
 
     // Check if we have any results
-    final hasResults = _trackResults.isNotEmpty || 
-                       _albumResults.isNotEmpty || 
-                       _artistResults.isNotEmpty || 
-                       _playlistResults.isNotEmpty;
+    final hasResults =
+        _trackResults.isNotEmpty ||
+        _albumResults.isNotEmpty ||
+        _artistResults.isNotEmpty ||
+        _playlistResults.isNotEmpty;
 
     if (!hasResults) {
       return Center(
@@ -395,7 +399,7 @@ class _SearchScreenState extends State<SearchScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 60),
-            
+
             // Enhanced empty state
             Container(
               width: 120,
@@ -419,9 +423,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: Color(0xFF007AFF),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             const Text(
               'Discover Your Music',
               style: TextStyle(
@@ -431,9 +435,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 letterSpacing: -0.5,
               ),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             const Text(
               'Search through your entire music library\nto find exactly what you\'re looking for',
               style: TextStyle(
@@ -444,9 +448,9 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Popular suggestions with enhanced design
             if (appState.artists.isNotEmpty) ...[
               Container(
@@ -485,44 +489,52 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
-                      children: appState.artists.take(6).map((artist) => 
-                        GestureDetector(
-                          onTap: () {
-                            _searchController.text = artist.name;
-                            _performSearch(artist.name, appState);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  const Color(0xFF007AFF).withOpacity(0.15),
-                                  const Color(0xFF5856D6).withOpacity(0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFF007AFF).withOpacity(0.3),
-                                width: 1,
+                      children: appState.artists
+                          .take(6)
+                          .map(
+                            (artist) => GestureDetector(
+                              onTap: () {
+                                _searchController.text = artist.name;
+                                _performSearch(artist.name, appState);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFF007AFF).withOpacity(0.15),
+                                      const Color(0xFF5856D6).withOpacity(0.1),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFF007AFF,
+                                    ).withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  artist.name,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoColors.white,
+                                  ),
+                                ),
                               ),
                             ),
-                            child: Text(
-                              artist.name,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: CupertinoColors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ).toList(),
+                          )
+                          .toList(),
                     ),
                   ],
                 ),
@@ -564,7 +576,10 @@ class _SearchScreenState extends State<SearchScreen> {
               GestureDetector(
                 onTap: _clearRecentSearches,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1C1C1E).withOpacity(0.8),
                     borderRadius: BorderRadius.circular(12),
@@ -586,7 +601,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ],
           ),
         ),
-        
+
         // Enhanced recent searches list
         Expanded(
           child: ListView.builder(
@@ -649,7 +664,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               _recentSearches.removeAt(index);
                             });
                             SharedPreferences.getInstance().then((prefs) {
-                              prefs.setStringList('recent_searches', _recentSearches);
+                              prefs.setStringList(
+                                'recent_searches',
+                                _recentSearches,
+                              );
                             });
                           },
                           child: Container(
@@ -683,34 +701,60 @@ class _SearchScreenState extends State<SearchScreen> {
 
     // Add section headers and results with enhanced design
     if (_artistResults.isNotEmpty) {
-      allResults.add(_buildSectionHeader('Artists', _artistResults.length, CupertinoIcons.person_2));
+      allResults.add(
+        _buildSectionHeader(
+          'Artists',
+          _artistResults.length,
+          CupertinoIcons.person_2,
+        ),
+      );
       for (final artist in _artistResults.take(5)) {
         allResults.add(_buildUnifiedArtistItem(artist, appState));
       }
       if (_artistResults.length > 5) {
-        allResults.add(_buildShowMoreButton('Show ${_artistResults.length - 5} more artists'));
+        allResults.add(
+          _buildShowMoreButton(
+            'Show ${_artistResults.length - 5} more artists',
+          ),
+        );
       }
     }
 
     if (_albumResults.isNotEmpty) {
       if (allResults.isNotEmpty) allResults.add(const SizedBox(height: 24));
-      allResults.add(_buildSectionHeader('Albums', _albumResults.length, CupertinoIcons.music_albums));
+      allResults.add(
+        _buildSectionHeader(
+          'Albums',
+          _albumResults.length,
+          CupertinoIcons.music_albums,
+        ),
+      );
       for (final album in _albumResults.take(5)) {
         allResults.add(_buildUnifiedAlbumItem(album, appState));
       }
       if (_albumResults.length > 5) {
-        allResults.add(_buildShowMoreButton('Show ${_albumResults.length - 5} more albums'));
+        allResults.add(
+          _buildShowMoreButton('Show ${_albumResults.length - 5} more albums'),
+        );
       }
     }
 
     if (_trackResults.isNotEmpty) {
       if (allResults.isNotEmpty) allResults.add(const SizedBox(height: 24));
-      allResults.add(_buildSectionHeader('Songs', _trackResults.length, CupertinoIcons.music_note));
+      allResults.add(
+        _buildSectionHeader(
+          'Songs',
+          _trackResults.length,
+          CupertinoIcons.music_note,
+        ),
+      );
       for (final track in _trackResults.take(8)) {
         allResults.add(_buildUnifiedTrackItem(track, appState));
       }
       if (_trackResults.length > 8) {
-        allResults.add(_buildShowMoreButton('Show ${_trackResults.length - 8} more songs'));
+        allResults.add(
+          _buildShowMoreButton('Show ${_trackResults.length - 8} more songs'),
+        );
       }
     }
 
@@ -719,7 +763,9 @@ class _SearchScreenState extends State<SearchScreen> {
       itemCount: allResults.length + 1, // +1 for bottom padding
       itemBuilder: (context, index) {
         if (index == allResults.length) {
-          return const SizedBox(height: 150); // Bottom padding for mini player + nav bar
+          return const SizedBox(
+            height: 150,
+          ); // Bottom padding for mini player + nav bar
         }
         return allResults[index];
       },
@@ -743,11 +789,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF007AFF),
-              size: 16,
-            ),
+            child: Icon(icon, color: const Color(0xFF007AFF), size: 16),
           ),
           const SizedBox(width: 12),
           Text(
@@ -880,7 +922,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(28),
                         child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(artist.imageUrl!, width: 112, height: 112),
+                          imageUrl: appState.getImageUrl(
+                            artist.imageUrl!,
+                            width: 112,
+                            height: 112,
+                          ),
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
@@ -908,9 +954,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         size: 28,
                       ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -930,7 +976,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF8E4EC6).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(8),
@@ -949,7 +998,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
               ),
-              
+
               const Icon(
                 CupertinoIcons.chevron_right,
                 color: CupertinoColors.systemGrey2,
@@ -1015,7 +1064,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(album.imageUrl!, width: 112, height: 112),
+                          imageUrl: appState.getImageUrl(
+                            album.imageUrl!,
+                            width: 112,
+                            height: 112,
+                          ),
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
@@ -1043,9 +1096,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         size: 28,
                       ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1065,7 +1118,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF30D158).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(8),
@@ -1099,7 +1155,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
               ),
-              
+
               const Icon(
                 CupertinoIcons.chevron_right,
                 color: CupertinoColors.systemGrey2,
@@ -1158,7 +1214,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(track.imageUrl!, width: 96, height: 96),
+                          imageUrl: appState.getImageUrl(
+                            track.imageUrl!,
+                            width: 96,
+                            height: 96,
+                          ),
                           width: 48,
                           height: 48,
                           fit: BoxFit.cover,
@@ -1186,9 +1246,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         size: 20,
                       ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1218,7 +1278,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
               ),
-              
+
               // Track actions
               Row(
                 mainAxisSize: MainAxisSize.min,
