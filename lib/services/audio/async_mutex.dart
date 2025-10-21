@@ -14,9 +14,15 @@ class AsyncMutex {
     while (true) {
       final currentCompleter = _completer;
       if (currentCompleter == null) {
-        // Mutex is free, try to claim it
-        _completer = Completer<void>();
-        return; // Successfully acquired
+        // Mutex is free, try to claim it atomically
+        final newCompleter = Completer<void>();
+        // Double check that it's still null and atomically set it
+        if (_completer == null) {
+          _completer = newCompleter;
+          return; // Successfully acquired
+        }
+        // Someone else claimed it, continue the loop
+        continue;
       }
       
       // Wait for current lock to be released
