@@ -1,5 +1,6 @@
 /// Operation cancellation system for preventing race conditions in audio operations
 /// Provides cancellation tokens that can abort long-running operations when needed
+library;
 
 import 'dart:async';
 
