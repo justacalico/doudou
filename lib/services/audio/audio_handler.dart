@@ -255,11 +255,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Network buffering - maintaining state machine synchronized playbook state');
       }
     }
-      
-      if (kDebugMode) {
-        print('Network buffering - maintaining user intended playback state');
-      }
-    }
     
     // Try to update playback state with Android foreground service error handling
     try {
