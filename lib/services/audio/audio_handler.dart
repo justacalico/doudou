@@ -3917,6 +3917,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   void _disposeTouchBar() {
     if (_touchBarEnabled) {
+      _touchBarUpdateManager.dispose();
       TouchBarService.dispose();
       _touchBarEnabled = false;
     }
