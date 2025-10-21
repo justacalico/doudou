@@ -2376,8 +2376,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     }
     
-    // Try local file first
-    final localFilePath = _downloadService.getLocalFilePath(track.id);
+    // Try local file first using coordinated download service
+    final localFilePath = await _downloadServiceCoordinator.getLocalFilePath(track.id);
     
     if (localFilePath != null) {
       final localFile = File(localFilePath);
