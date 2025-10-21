@@ -30,8 +30,9 @@ class AsyncMutex {
   /// Release the mutex lock
   void release() {
     if (_waitQueue.isNotEmpty) {
-      // Wake up the next waiter
+      // Wake up the next waiter and transfer ownership
       final nextWaiter = _waitQueue.removeAt(0);
+      // The lock stays locked but ownership transfers
       nextWaiter.complete();
     } else {
       // No one waiting, release the lock completely
