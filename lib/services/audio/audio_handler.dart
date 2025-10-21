@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
-import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
@@ -793,6 +792,74 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     } catch (e) {
       if (kDebugMode) {
         print('Failed to recover from codec loop: $e');
+      }
+    }
+  }
+
+  /// Handle audio session events from the coordinator
+  void _handleAudioSessionEvent(AudioSessionEvent event) {
+    if (kDebugMode) {
+      print('AudioHandler: Audio session event - ${event.type}: ${event.message}');
+    }
+    
+    switch (event.type) {
+      case AudioSessionEventType.interrupted:
+        _handleAudioInterruption(event);
+        break;
+      case AudioSessionEventType.deviceChanged:
+        _handleDeviceChange(event);
+        break;
+      case AudioSessionEventType.error:
+        _logger.warning('Audio session error: ${event.message}', 'AudioHandler');
+        break;
+      default:
+        // Log other events for debugging
+        _logger.debug('Audio session event: ${event.type} - ${event.message}', 'AudioHandler');
+        break;
+    }
+  }
+
+  /// Handle audio interruption events
+  void _handleAudioInterruption(AudioSessionEvent event) {
+    final interruption = event.context['type'];
+    final userIntended = event.context['userIntended'] ?? false;
+    
+    if (interruption == 'AudioInterruptionType.pause') {
+      // Audio was interrupted (e.g., phone call)
+      if (_player.playing) {
+        pause();
+        if (kDebugMode) {
+          print('Audio interrupted - paused playback');
+        }
+      }
+    } else if (interruption == 'AudioInterruptionType.duck') {
+      // Lower volume but continue playing
+      if (kDebugMode) {
+        print('Audio ducking - lowering volume');
+      }
+    } else if (interruption == 'AudioInterruptionType.unknown') {
+      // Handle interruption ended
+      if (userIntended && !_player.playing) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          play();
+          if (kDebugMode) {
+            print('Audio interruption ended - resuming playback');
+          }
+        });
+      }
+    }
+  }
+
+  /// Handle device change events
+  void _handleDeviceChange(AudioSessionEvent event) {
+    final devicesRemoved = event.context['devicesRemoved'] ?? 0;
+    
+    if (devicesRemoved > 0 && _player.playing) {
+      // Assume headphones were disconnected - pause playback
+      _setUserIntentAtomic(false); // User didn't explicitly pause
+      pause();
+      if (kDebugMode) {
+        print('Audio device removed - paused playback');
       }
     }
   }
