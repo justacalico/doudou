@@ -3373,6 +3373,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _downloadServiceCoordinator.dispose();
     await _jellyfinServiceCoordinator.dispose();
     await _errorStateManager.dispose();
+    await _audioSessionCoordinator.dispose();
     await _mediaServiceManagerCoordinator?.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
