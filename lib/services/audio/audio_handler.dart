@@ -1409,6 +1409,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         await _setUserIntentAtomic(false);
+        _userExplicitlyPaused = true; // Mark as intentional pause
         await _player.pause();
         return;
       }
@@ -1434,6 +1435,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _userIntendedPlaying = false;
       });
       
+      _userExplicitlyPaused = true; // Mark as intentional pause
       _logger.info('User intent set to paused', 'AudioHandler');
       
       try {
