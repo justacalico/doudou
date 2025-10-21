@@ -282,11 +282,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         return StreamBuilder<PlaybackState>(
           stream: audioHandler?.playbackState,
           builder: (context, playbackSnapshot) {
-            final playbackState = playbackSnapshot.data;
-            // Use playback state which should reflect user intent
-            final isPlaying = playbackState?.playing == true;
-            final isBuffering = playbackState?.processingState == AudioProcessingState.buffering;
-            
             return StreamBuilder<MediaItem?>(
               stream: audioHandler?.mediaItem,
               builder: (context, mediaSnapshot) {
@@ -496,29 +491,69 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   ),
                                                 ],
                                               ),
-                                              child: IconButton(
-                                                onPressed: audioHandler != null && currentTrack != null && !isBuffering
-                                                    ? () => appState.playPause()
-                                                    : null,
-                                                icon: isBuffering 
-                                                  ? SizedBox(
-                                                      width: 24,
-                                                      height: 24,
-                                                      child: CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: theme.colorScheme.onPrimary,
-                                                      ),
-                                                    )
-                                                  : Icon(
-                                                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                                      size: 28,
-                                                    ),
-                                                style: IconButton.styleFrom(
-                                                  foregroundColor: theme.colorScheme.onPrimary,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(24),
-                                                  ),
-                                                ),
+                                              child: Consumer<AppState>(
+                                                builder: (context, appState, child) {
+                                                  return StreamBuilder<PlaybackState>(
+                                                    stream: audioHandler?.playbackState,
+                                                    builder: (context, playbackSnapshot) {
+                                                      final playbackState = playbackSnapshot.data;
+                                                      final currentIsPlaying = playbackState?.playing == true;
+                                                      final currentIsBuffering = playbackState?.processingState == AudioProcessingState.buffering;
+                                                      
+                                                      // Debug logs for main desktop button
+                                                      if (kDebugMode) {
+                                                        print('=== MAIN DESKTOP BUTTON REBUILD ===');
+                                                        print('DateTime: ${DateTime.now()}');
+                                                        print('audioHandler != null: ${audioHandler != null}');
+                                                        print('currentTrack != null: ${currentTrack != null}');
+                                                        print('currentIsPlaying: $currentIsPlaying');
+                                                        print('currentIsBuffering: $currentIsBuffering');
+                                                        print('Button should be enabled: ${audioHandler != null && currentTrack != null && !currentIsBuffering}');
+                                                      }
+                                                      
+                                                      return IconButton(
+                                                        onPressed: audioHandler != null && currentTrack != null && !currentIsBuffering
+                                                            ? () {
+                                                                if (kDebugMode) {
+                                                                  print('=== MAIN DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
+                                                                  print('DateTime: ${DateTime.now()}');
+                                                                  print('currentIsPlaying: $currentIsPlaying');
+                                                                  print('currentIsBuffering: $currentIsBuffering');
+                                                                  print('currentTrack: ${currentTrack.displayTitle}');
+                                                                  print('audioHandler: available');
+                                                                  print('About to call appState.playPause()...');
+                                                                }
+                                                                appState.playPause();
+                                                              }
+                                                            : () {
+                                                                if (kDebugMode) {
+                                                                  print('=== MAIN DESKTOP BUTTON DISABLED ===');
+                                                                  print('Button disabled - audioHandler: ${audioHandler != null}, currentTrack: ${currentTrack != null}, isBuffering: $currentIsBuffering');
+                                                                }
+                                                              },
+                                                        icon: currentIsBuffering 
+                                                          ? SizedBox(
+                                                              width: 24,
+                                                              height: 24,
+                                                              child: CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                color: theme.colorScheme.onPrimary,
+                                                              ),
+                                                            )
+                                                          : Icon(
+                                                              currentIsPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                              size: 28,
+                                                            ),
+                                                        style: IconButton.styleFrom(
+                                                          foregroundColor: theme.colorScheme.onPrimary,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(24),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
                                               ),
                                             ),
                                             const SizedBox(width: 8),
