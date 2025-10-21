@@ -346,33 +346,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('=== ANDROID AUDIOSERVICE ERROR HANDLED ===');
           print('New service state: ${newConfig.description}');
-      }
-      
-      // If we transitioned to bypass mode, skip further AudioService operations
-      if (newConfig.shouldBypass) {
-        if (kDebugMode) {
-          print('Android service manager: Bypassing AudioService for future operations');
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error updating playback state (likely Android foreground service): $e');
-          print('Attempting fallback playback state update...');
         }
         
-        // Fallback: Try without media controls for Android service issues
-        try {
-          final fallbackState = finalState.copyWith(
-            controls: [], // Remove controls that might trigger foreground service
-            systemActions: const <MediaAction>{}, // Remove system actions
-          );
-          playbackState.add(fallbackState);
-          
+        // If we transitioned to bypass mode, skip further AudioService operations
+        if (newConfig.shouldBypass) {
           if (kDebugMode) {
-            print('Fallback playback state update successful');
+            print('Android service manager: Bypassing AudioService for future operations');
           }
-        } catch (fallbackError) {
+        } else {
           if (kDebugMode) {
-            print('Fallback playback state update also failed: $fallbackError');
+            print('Error updating playback state (likely Android foreground service): $e');
+            print('Attempting fallback playback state update...');
+          }
+          
+          // Fallback: Try without media controls for Android service issues
+          try {
+            final fallbackState = finalState.copyWith(
+              controls: [], // Remove controls that might trigger foreground service
+              systemActions: const <MediaAction>{}, // Remove system actions
+            );
+            playbackState.add(fallbackState);
+            
+            if (kDebugMode) {
+              print('Fallback playback state update successful');
+            }
+          } catch (fallbackError) {
+            if (kDebugMode) {
+              print('Fallback playback state update also failed: $fallbackError');
+            }
           }
         }
       }
