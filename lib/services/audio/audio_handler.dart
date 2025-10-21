@@ -427,6 +427,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Initialize iOS audio session coordinator
     _audioSessionCoordinator = AudioSessionCoordinator();
     
+    // Initialize player state transition coordinator for atomic state management
+    _playerStateTransitionCoordinator = PlayerStateTransitionCoordinator();
+    
     // Initialize media service manager coordinator if available
     _mediaServiceManagerCoordinator = _mediaServiceManager != null 
         ? MediaServiceManagerCoordinator(_mediaServiceManager)
@@ -450,6 +453,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _handleAudioSessionEvent(event);
       });
     }
+    
+    // Initialize player state transition coordinator
+    _playerStateTransitionCoordinator.initialize();
     
     _init();
     _loadPlaybackState();
