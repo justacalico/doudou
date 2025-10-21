@@ -31,50 +31,38 @@ class AudioPreloader {
     _referenceManager.startCleanupTimer();
   }
   
-  /// Acquires preload operation lock to prevent race conditions
-  Future<void> _acquirePreloadLock() async {
-    while (_preloadLock != null && !_preloadLock!.isCompleted) {
-      await _preloadLock!.future;
-    }
-    _preloadLock = Completer<void>();
-  }
-  
-  /// Releases preload operation lock
-  void _releasePreloadLock() {
-    if (_preloadLock != null && !_preloadLock!.isCompleted) {
-      _preloadLock!.complete();
-    }
-  }
-  
-  /// Acquires cleanup operation lock to prevent race conditions
-  Future<void> _acquireCleanupLock() async {
-    while (_cleanupLock != null && !_cleanupLock!.isCompleted) {
-      await _cleanupLock!.future;
-    }
-    _cleanupLock = Completer<void>();
-  }
-  
-  /// Releases cleanup operation lock
-  void _releaseCleanupLock() {
-    if (_cleanupLock != null && !_cleanupLock!.isCompleted) {
-      _cleanupLock!.complete();
-    }
-  }
-
   Map<String, AudioPlayer> get preloadedPlayers => _preloadedPlayers;
-  Map<String, AudioSource> get preloadedAudioSources => _preloadedAudioSources;
   Set<String> get preloadingTracks => _preloadingTracks;
   Set<String> get bufferedTracks => _bufferedTracks;
 
-  /// Get preloaded audio source for gapless playback
-  AudioSource? getPreloadedAudioSource(String trackId) {
-    return _preloadedAudioSources[trackId];
+  /// Get preloaded audio source for gapless playback with reference counting
+  AudioSource? getPreloadedAudioSource(String trackId, String requester) {
+    return _referenceManager.getAudioSourceWithReference(trackId, requester);
+  }
+  
+  /// Get preloaded audio source without adding reference (read-only)
+  AudioSource? peekPreloadedAudioSource(String trackId) {
+    return _referenceManager.getAudioSource(trackId);
+  }
+  
+  /// Release a reference to an audio source
+  Future<void> releaseAudioSourceReference(String trackId, String requester) async {
+    await _referenceManager.removeReference(trackId, requester);
+  }
+  
+  /// Protect an audio source from cleanup (e.g., currently playing track)
+  void protectAudioSource(String trackId) {
+    _referenceManager.protectAudioSource(trackId);
+  }
+  
+  /// Unprotect an audio source (allow cleanup)
+  void unprotectAudioSource(String trackId) {
+    _referenceManager.unprotectAudioSource(trackId);
   }
   
   /// Thread-safe aggressive preload of next tracks
   void preloadNextTracks(List<Track> playlist, int currentIndex) async {
-    // Acquire preload lock to prevent conflicts with cleanup
-    await _acquirePreloadLock();
+    return await _mutexManager.withLock('preloadOperation', () async {
     
     try {
       // Always preload next 3 tracks for instant switching
