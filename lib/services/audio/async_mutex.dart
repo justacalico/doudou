@@ -37,23 +37,34 @@ class AsyncMutex {
   bool get isLocked => _completer != null && !_completer!.isCompleted;
   
   /// Execute a function with the mutex locked with timeout protection
-  Future<T> withLock<T>(Future<T> Function() operation) async {
+  Future<T> withLock<T>(Future<T> Function() operation, [String? debugName]) async {
+    final name = debugName ?? 'unknown';
+    print('AsyncMutex($name): Attempting to acquire lock...');
+    
     // Add timeout protection to prevent infinite waiting
     await acquire().timeout(
       Duration(seconds: 10),
       onTimeout: () {
         // Force release and log error
-        print('AsyncMutex: TIMEOUT acquiring lock, forcing release');
+        print('AsyncMutex($name): TIMEOUT acquiring lock, forcing release');
         _completer?.complete();
         _completer = null;
         throw TimeoutException('Mutex acquisition timeout', Duration(seconds: 10));
       },
     );
     
+    print('AsyncMutex($name): Successfully acquired lock');
+    
     try {
-      return await operation();
+      final result = await operation();
+      print('AsyncMutex($name): Operation completed successfully');
+      return result;
+    } catch (error) {
+      print('AsyncMutex($name): Operation failed with error: $error');
+      rethrow;
     } finally {
       release();
+      print('AsyncMutex($name): Lock released');
     }
   }
 }
