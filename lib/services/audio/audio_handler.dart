@@ -1077,10 +1077,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Error in play command: $e');
         }
         
-        // Try to recover by reloading current track
-        if (_stateManager.currentTrack != null) {
-          _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
-          await _resumeCurrentTrack();
+        // Check if this is an Android foreground service error
+        if (Platform.isAndroid && e.toString().contains('ForegroundServiceStartNotAllowedException')) {
+          _logger.warning('Android foreground service blocked - attempting fallback playback', 'AudioHandler');
+          if (kDebugMode) {
+            print('=== ANDROID FOREGROUND SERVICE BLOCKED ===');
+            print('Attempting fallback audio playback without media controls...');
+          }
+          
+          try {
+            // Try to restart the player with a simplified setup
+            await _recoverFromAndroidServiceFailure();
+            
+            if (kDebugMode) {
+              print('Android service failure recovery completed');
+            }
+          } catch (recoveryError) {
+            _logger.error('Android service recovery failed: $recoveryError', 'AudioHandler');
+            if (kDebugMode) {
+              print('Android service recovery failed: $recoveryError');
+            }
+          }
+        } else {
+          // Try to recover by reloading current track for non-Android service errors
+          if (_stateManager.currentTrack != null) {
+            _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
+            await _resumeCurrentTrack();
+          }
         }
       }
     });
