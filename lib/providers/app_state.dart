@@ -1701,15 +1701,16 @@ class AppState extends ChangeNotifier {
     }
     
     if (_audioHandler != null) {
-      // Use user intent instead of raw player state for more reliable UI behavior
-      final userWantsToPlay = _audioHandler!.userIntendedPlaying;
+      // Use the same state that the UI uses for consistent behavior
+      final currentlyPlaying = _audioHandler!.playbackState.value.playing;
       
       if (kDebugMode) {
-        print('Current userIntendedPlaying: $userWantsToPlay');
-        print('Action: ${userWantsToPlay ? "PAUSE" : "PLAY"}');
+        print('Current playbackState.playing: $currentlyPlaying');
+        print('Current userIntendedPlaying: ${_audioHandler!.userIntendedPlaying}');
+        print('Action: ${currentlyPlaying ? "PAUSE" : "PLAY"}');
       }
       
-      if (userWantsToPlay) {
+      if (currentlyPlaying) {
         if (kDebugMode) {
           print('Calling audioHandler.pause()');
         }
