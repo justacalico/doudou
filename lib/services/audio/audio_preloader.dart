@@ -166,6 +166,15 @@ class AudioPreloader {
           fallbackUrl = _jellyfinService.getStreamUrl(track.id);
         }
         
+        // Validate URLs before attempting to use them - fix for FileNotFoundException
+        if (fallbackUrl.isEmpty || !_isValidStreamUrl(fallbackUrl)) {
+          if (kDebugMode) {
+            print('Invalid fallback URL for ${track.name}: $fallbackUrl');
+          }
+          player.dispose();
+          return;
+        }
+        
         // Try direct stream first (optimized based on server behavior)
         try {
           await player.setUrl(fallbackUrl);
@@ -351,6 +360,18 @@ class AudioPreloader {
     return _preloadedPlayers.remove(trackId);
   }
   
+  /// Validate if a URL is a proper HTTP/HTTPS stream URL
+  bool _isValidStreamUrl(String url) {
+    if (url.isEmpty) return false;
+    
+    try {
+      final uri = Uri.parse(url);
+      return uri.scheme == 'http' || uri.scheme == 'https';
+    } catch (e) {
+      return false;
+    }
+  }
+
   void dispose() {
     clearAllPreloadedPlayers();
   }
