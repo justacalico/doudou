@@ -89,7 +89,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  void _addToRecentSearches(String query) {
+  void _addToRecentSearches(String query) async {
     if (query.trim().isEmpty) return;
     
     setState(() {
@@ -99,7 +99,14 @@ class _SearchScreenState extends State<SearchScreen> {
         _recentSearches = _recentSearches.take(10).toList();
       }
     });
-    // In a real app, save to SharedPreferences here
+    
+    // Save to SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('recent_searches', _recentSearches);
+    } catch (e) {
+      print('Failed to save recent searches: $e');
+    }
   }
 
   void _performSearch(String query, AppState appState) async {
