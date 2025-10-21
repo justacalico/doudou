@@ -2522,11 +2522,67 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (kDebugMode) {
             print('=== ANDROID CONNECTION ABORTED DETECTED ===');
             print('This is likely due to Android blocking the foreground service');
-            print('Attempting Android-specific recovery...');
+            print('Switching to Android bypass mode...');
+          }
+          
+          // Enable bypass mode immediately when connection issues are detected
+          _androidBypassMode = true;
+          _androidServiceBlocked = true;
+          
+          if (kDebugMode) {
+            print('Android bypass mode enabled due to connection failures');
+            print('Attempting to continue with pure just_audio...');
+          }
+          
+          // Try to continue with bypass mode for remaining URLs
+          try {
+            for (int bypassIndex = i + 1; bypassIndex < streamUrls.length; bypassIndex++) {
+              final bypassUrl = streamUrls[bypassIndex];
+              
+              if (kDebugMode) {
+                print('Bypass mode: Trying URL ${bypassIndex + 1}/${streamUrls.length}');
+              }
+              
+              try {
+                await _player.stop();
+                await Future.delayed(const Duration(milliseconds: 500));
+                await _player.setUrl(bypassUrl);
+                await Future.delayed(const Duration(milliseconds: 1000));
+                
+                if (shouldPlay && _userIntendedPlaying) {
+                  await _player.play();
+                }
+                
+                loaded = true;
+                
+                if (kDebugMode) {
+                  print('=== BYPASS MODE RECOVERY SUCCESS ===');
+                  print('Successfully loaded in bypass mode');
+                  print('URL: $bypassUrl');
+                }
+                
+                break; // Exit the bypass loop on success
+                
+              } catch (bypassError) {
+                if (kDebugMode) {
+                  print('Bypass mode URL ${bypassIndex + 1} failed: $bypassError');
+                }
+              }
+            }
+            
+            // If bypass mode worked, exit the main URL loop
+            if (loaded) {
+              break;
+            }
+            
+          } catch (bypassError) {
+            if (kDebugMode) {
+              print('Bypass mode recovery failed: $bypassError');
+            }
           }
           
           try {
-            // Reset player to clear any corrupted state
+            // Reset player to clear any corrupted state (fallback)
             await _player.stop();
             await Future.delayed(const Duration(milliseconds: 1000)); // Longer delay for Android
             
