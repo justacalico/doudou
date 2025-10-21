@@ -395,6 +395,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Initialize download service coordinator to prevent streaming interference
     _downloadServiceCoordinator = DownloadServiceCoordinator(_downloadService);
     
+    // Initialize media service manager coordinator if available
+    _mediaServiceManagerCoordinator = _mediaServiceManager != null 
+        ? MediaServiceManagerCoordinator(_mediaServiceManager)
+        : null;
+    
     _logger.info('Audio components initialized', 'AudioHandler');
     
     // Initialize Touch Bar service on macOS with synchronized updates
