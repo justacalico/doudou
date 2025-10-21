@@ -917,37 +917,43 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _recoverFromAndroidServiceFailure() async {
     if (!Platform.isAndroid) return;
     
-    try {
-      if (kDebugMode) {
-        print('=== ANDROID SERVICE RECOVERY STARTED ===');
-        print('Current track: ${_stateManager.currentTrack?.name}');
-        print('User intended playing: $_userIntendedPlaying');
-        print('Service state: ${_androidServiceManager.currentConfig.description}');
-      }
-      
-      // Transition to bypass mode immediately for recovery
-      final newConfig = _androidServiceManager.transitionToBypass(
-        BypassReason.foregroundServiceError, 
-        'Service recovery initiated'
-      );
-      
-      if (kDebugMode) {
-        print('Android service manager: Recovery mode enabled - ${newConfig.description}');
-      }
-      
-      // Stop current player to reset state
-      try {
-        await _player.stop();
+    await _errorStateManager.executeWithRecovery(
+      component: 'AndroidServiceManager',
+      operation: 'serviceRecovery',
+      category: ErrorCategory.system,
+      action: () async {
         if (kDebugMode) {
-          print('Stopped current player for recovery');
+          print('=== ANDROID SERVICE RECOVERY STARTED ===');
+          print('Current track: ${_stateManager.currentTrack?.name}');
+          print('User intended playing: $_userIntendedPlaying');
+          print('Service state: ${_androidServiceManager.currentConfig.description}');
         }
-      } catch (e) {
+        
+        // Transition to bypass mode immediately for recovery
+        final newConfig = _androidServiceManager.transitionToBypass(
+          BypassReason.foregroundServiceError, 
+          'Service recovery initiated'
+        );
+        
         if (kDebugMode) {
-          print('Error stopping player during recovery: $e');
+          print('Android service manager: Recovery mode enabled - ${newConfig.description}');
         }
-      }
-      
-      // Wait a moment for system to reset
+        
+        // Stop current player to reset state
+        await _errorStateManager.executeWithErrorHandling(
+          component: 'AudioHandler',
+          operation: 'stopPlayerForRecovery',
+          category: ErrorCategory.playback,
+          severity: ErrorSeverity.medium,
+          action: () async {
+            await _player.stop();
+            if (kDebugMode) {
+              print('Stopped current player for recovery');
+            }
+          },
+        );
+        
+        // Wait a moment for system to reset
       await Future.delayed(const Duration(milliseconds: 500));
       
       // Clear concatenating source to reset audio pipeline
