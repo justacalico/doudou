@@ -987,20 +987,35 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     ? () {
                                         if (kDebugMode) {
                                           print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
+                                          print('DateTime: ${DateTime.now()}');
                                           print('isPlaying: $isPlaying');
                                           print('isBuffering: $isBuffering');
                                           print('currentTrack: ${currentTrack?.displayTitle ?? "null"}');
                                           print('audioHandler: ${audioHandler != null}');
                                           print('userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
+                                          print('audioHandler.playerState: ${audioHandler?.playerState}');
+                                          print('Button conditions met - about to call playPause');
+                                          print('About to call playPause()...');
                                         }
-                                        Provider.of<AppState>(context, listen: false).playPause();
+                                        try {
+                                          Provider.of<AppState>(context, listen: false).playPause();
+                                          if (kDebugMode) {
+                                            print('playPause() call completed successfully');
+                                          }
+                                        } catch (e) {
+                                          if (kDebugMode) {
+                                            print('ERROR calling playPause(): $e');
+                                          }
+                                        }
                                       }
                                     : () {
                                         if (kDebugMode) {
                                           print('=== DESKTOP PLAY/PAUSE BUTTON DISABLED ===');
+                                          print('DateTime: ${DateTime.now()}');
                                           print('audioHandler: ${audioHandler != null}');
                                           print('currentTrack: ${currentTrack != null}');
                                           print('isBuffering: $isBuffering');
+                                          print('Button is disabled because conditions not met');
                                         }
                                       },
                                 icon: isBuffering 
