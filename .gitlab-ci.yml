@@ -104,7 +104,8 @@ build_debug_macos:
         echo "macOS build not supported in this environment (skipping)."
         exit 0
       fi
-    - flutter build macos
+    # Prevent system sleep during build
+    - caffeinate -i flutter build macos
   artifacts:
     paths:
       - build/macos/Build/Products/Debug/
