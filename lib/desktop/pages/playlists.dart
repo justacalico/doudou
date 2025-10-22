@@ -298,65 +298,108 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.playlist_play_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _searchQuery.isNotEmpty 
-                ? 'No playlists found for "$_searchQuery"'
-                : 'No playlists found',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _searchQuery.isNotEmpty
-                ? 'Try a different search term'
-                : 'Create your first playlist to get started',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (_searchQuery.isNotEmpty)
-            TextButton(
-              onPressed: () {
-                _searchController.clear();
-                setState(() {
-                  _searchQuery = '';
-                });
-              },
-              child: const Text('Clear Search'),
-            )
-          else
-            Row(
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        // Check if not logged in
+        if (!appState.isLoggedIn) {
+          return Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () => _showCreatePlaylistDialog(context),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Playlist'),
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(width: 16),
-                OutlinedButton.icon(
+                const SizedBox(height: 16),
+                Text(
+                  'Not Connected',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please check your server connection and try logging in again',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
                   onPressed: () {
-                    final appState = context.read<AppState>();
-                    print('Manual retry: Loading library data...');
-                    appState.loadLibraryData();
+                    // Navigate to settings/login page
+                    Navigator.of(context).pushNamed('/settings');
                   },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
+                  icon: const Icon(Icons.settings),
+                  label: const Text('Go to Settings'),
                 ),
               ],
             ),
-        ],
-      ),
+          );
+        }
+
+        // Normal empty state for when logged in but no playlists
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.playlist_play_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _searchQuery.isNotEmpty 
+                    ? 'No playlists found for "$_searchQuery"'
+                    : 'No playlists found',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _searchQuery.isNotEmpty
+                    ? 'Try a different search term'
+                    : 'Create your first playlist to get started',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_searchQuery.isNotEmpty)
+                TextButton(
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                  },
+                  child: const Text('Clear Search'),
+                )
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _showCreatePlaylistDialog(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create Playlist'),
+                    ),
+                    const SizedBox(width: 16),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        final appState = context.read<AppState>();
+                        print('Manual retry: Loading library data...');
+                        appState.loadLibraryData();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
