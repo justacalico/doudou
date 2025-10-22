@@ -16,7 +16,7 @@ A beautiful, privacy-focused music player for your personal media server. Stream
 ## 🎵 Supported Media Servers
 
 - **🟢 Jellyfin** - Complete feature support, recommended
-- **🟡 Plex** - Full streaming support with Plex Pass
+- **🟡 Plex** - Wokring* (Cant create stream urls)
 - **🟢 Navidrome** - Full SubSonic API compatibility
 
 ## ✨ Features
