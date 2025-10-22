@@ -106,6 +106,68 @@ build_debug_web:
       - build/web/
     expire_in: 1 week
 
+build_debug_macos:
+  stage: build
+  tags:
+    - macos
+  allow_failure: true
+  before_script:
+    # Clean build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
+    - rm -rf .pub-cache
+    - flutter clean
+  script:
+    - flutter --version
+    - flutter config --enable-macos-desktop
+    - flutter clean
+    - flutter pub get
+    - flutter build macos --debug
+  artifacts:
+    paths:
+      - build/macos/Build/Products/Debug/
+    expire_in: 1 week
+
+build_release_macos:
+  stage: build
+  tags:
+    - macos
+  allow_failure: true
+  before_script:
+    # Clean build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
+    - rm -rf .pub-cache
+    - flutter clean
+  script:
+    - flutter --version
+    - flutter config --enable-macos-desktop
+    - flutter clean
+    - flutter pub get
+    - flutter build macos --release
+  artifacts:
+    paths:
+      - build/macos/Build/Products/Release/
+    expire_in: 1 week
+
+build_debug_ios:
+  stage: build
+  tags:
+    - macos
+  allow_failure: true
+  before_script:
+    # Clean build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
+    - rm -rf .pub-cache
+    - flutter clean
+  script:
+    - flutter --version
+    - flutter clean
+    - flutter pub get
+    - flutter build ios --debug --no-codesign
+  artifacts:
+    paths:
+      - build/ios/iphoneos/
+    expire_in: 1 week
+
 publish_release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
@@ -116,9 +178,15 @@ publish_release:
     - job: "build_debug_linux"
     - job: "build_release_linux"
     - job: "build_debug_web"
+    - job: "build_debug_macos"
+      optional: true
+    - job: "build_release_macos"
+      optional: true
+    - job: "build_debug_ios"
+      optional: true
   allow_failure: true
   script:
-    - echo "Publishing release with APKs, Linux builds, and Web builds for pipeline $CI_PIPELINE_ID"
+    - echo "Publishing release with APKs, Linux builds, Web builds, and optional macOS/iOS builds for pipeline $CI_PIPELINE_ID"
   release:
     name: "Release Pipeline $CI_PIPELINE_ID"
     description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
