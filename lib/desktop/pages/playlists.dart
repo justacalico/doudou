@@ -404,7 +404,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                     OutlinedButton.icon(
                       onPressed: () {
                         final appState = context.read<AppState>();
-                        print('Manual retry: Loading library data...');
+                        if (kDebugMode) {
+                          print('Manual retry: Loading library data...');
+                        }
                         appState.loadLibraryData();
                       },
                       icon: const Icon(Icons.refresh),
