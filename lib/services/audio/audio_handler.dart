@@ -2713,8 +2713,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await Future.delayed(const Duration(milliseconds: 200));
           }
           
-          // Get current user intent atomically
-          final userIntent = await _getUserIntentAtomic();
+          // Get current user intent directly
+          final userIntent = _userIntendedPlaying; // Direct access to avoid nested mutex
           if (userIntent && shouldPlay) {
             await _player.play();
             _logger.info('Auto-playing local file: ${track.name}', 'AudioHandler');
