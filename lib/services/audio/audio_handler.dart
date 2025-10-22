@@ -1570,83 +1570,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   @override
   Future<void> pause() async {
     if (kDebugMode) {
-      print('Pause: Attempting to acquire commandThrottle mutex...');
+      print('Pause: Processing pause command directly (no throttling)');
     }
     
+    final now = DateTime.now();
+    _logger.info('Pause command received', 'AudioHandler');
+    
     try {
-      // Add timeout to the entire mutex operation to prevent deadlocks
-      await _mutexManager.withLock('commandThrottle', () async {
-        final now = DateTime.now();
-        _logger.info('Pause command received', 'AudioHandler');
+      // Android service manager: Use direct player control if in bypass mode  
+      // Skip complex state coordination to avoid deadlocks in bypass mode
+      if (_androidServiceManager.shouldSkipAudioService()) {
         if (kDebugMode) {
-          print('Pause: Successfully acquired commandThrottle mutex');
+          print('Android service manager: Direct player pause - ${_androidServiceManager.currentConfig.description}');
         }
-      
-        // Android service manager: Use direct player control if in bypass mode  
-        // Skip complex state coordination to avoid deadlocks in bypass mode
-        if (_androidServiceManager.shouldSkipAudioService()) {
+        
+        // Simple state validation for bypass mode - just check if already stopped
+        if (!_player.playing) {
+          _logger.info('Pause command ignored - player is already paused', 'AudioHandler');
           if (kDebugMode) {
-            print('Android service manager: Direct player pause - ${_androidServiceManager.currentConfig.description}');
-          }
-          
-          // Simple state validation for bypass mode - just check if already stopped
-          if (!_player.playing) {
-            _logger.info('Pause command ignored - player is already paused', 'AudioHandler');
-            if (kDebugMode) {
-              print('Pause command ignored - player is already paused');
-            }
-            return;
-          }
-          
-          // Set user intent directly since we're already in commandThrottle mutex
-          _userIntendedPlaying = false;
-          _userExplicitlyPaused = true; // Mark as intentional pause
-          
-          // Update audio session coordinator for interruption handling
-          _audioSessionCoordinator.setUserIntendedPlaying(false);
-          
-          // Update state machine intent
-          _stateMachine.setIntent(UserIntent.pause);
-          await _player.pause();
-          
-          // Update playback state to reflect the pause
-          _updatePlaybackState(playbackState.value.copyWith(
-            playing: false,
-          ));
-          
-          _logger.info('Pause command completed successfully (bypass mode)', 'AudioHandler');
-          if (kDebugMode) {
-            print('Pause command completed (bypass mode). User intended playing: $_userIntendedPlaying');
-            print('Pause: About to release commandThrottle mutex');
+            print('Pause command ignored - player is already paused');
           }
           return;
         }
         
-        // Full state coordination for non-bypass mode (Android/MediaSession)
-        // Validate state transition before executing
-        if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.pause)) {
-          _logger.warning('Pause command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
-          return;
-        }
-        
-        // Request coordinated state transition
-        final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
-          PlayerTransitionEvent.pause,
-          context: {'command': 'pause', 'timestamp': now.millisecondsSinceEpoch},
-        );
-        
-        if (!transitionAccepted) {
-          _logger.warning('Pause command queued due to ongoing state transition', 'AudioHandler');
-          return;
-        }
-        
-        if (kDebugMode) {
-          print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
-        }
-        
-        // Set user intent to not playing (already inside commandThrottle mutex)
+        // Set user intent directly
         _userIntendedPlaying = false;
-        
         _userExplicitlyPaused = true; // Mark as intentional pause
         
         // Update audio session coordinator for interruption handling
@@ -1654,58 +1602,93 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         // Update state machine intent
         _stateMachine.setIntent(UserIntent.pause);
+        await _player.pause();
         
-        // Store current position to restore on resume (fix for position jumping bug)
-        _pausedAtPosition = _player.position;
+        // Update playback state to reflect the pause
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        _logger.info('Pause command completed successfully (bypass mode)', 'AudioHandler');
         if (kDebugMode) {
-          print('Stored pause position: ${_pausedAtPosition?.inMilliseconds}ms');
+          print('Pause command completed (bypass mode). User intended playing: $_userIntendedPlaying');
         }
-        
-        _logger.info('User intent set to paused', 'AudioHandler');
-        
-        try {
-          // Add timeout protection for player.pause() as it can hang on network issues
-          await _player.pause().timeout(
-            Duration(seconds: 2),
-            onTimeout: () {
-              _logger.warning('_player.pause() timed out', 'AudioHandler');
-              throw TimeoutException('_player.pause() timeout', Duration(seconds: 2));
-            },
-          );
-          
-          _updatePlaybackState(playbackState.value.copyWith(
-            playing: false,
-          ));
-          
-          _logger.info('Pause command completed successfully', 'AudioHandler');
-          if (kDebugMode) {
-            print('Pause command completed. User intended playing: $_userIntendedPlaying');
-          }
-        } catch (e) {
-          _logger.error('Error in pause command: $e', 'AudioHandler');
-          if (kDebugMode) {
-            print('Error in pause command: $e');
-          }
-          
-          // Force update playback state even if pause failed
-          _updatePlaybackState(playbackState.value.copyWith(
-            playing: false,
-          ));
-        }
-      }).timeout(
-        Duration(seconds: 5),
-        onTimeout: () {
-          _logger.error('Pause command timed out after 5 seconds', 'AudioHandler');
-          if (kDebugMode) {
-            print('Pause command timed out after 5 seconds - force releasing mutex');
-          }
-          throw TimeoutException('Pause command mutex timeout', Duration(seconds: 5));
-        },
+        return;
+      }
+      
+      // Full state coordination for non-bypass mode (Android/MediaSession)
+      // Validate state transition before executing
+      if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.pause)) {
+        _logger.warning('Pause command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
+        return;
+      }
+      
+      // Request coordinated state transition
+      final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
+        PlayerTransitionEvent.pause,
+        context: {'command': 'pause', 'timestamp': now.millisecondsSinceEpoch},
       );
-    } catch (e) {
-      // Handle any errors that might prevent mutex release
+      
+      if (!transitionAccepted) {
+        _logger.warning('Pause command queued due to ongoing state transition', 'AudioHandler');
+        return;
+      }
+      
       if (kDebugMode) {
-        print('Error in pause command (mutex level): $e');
+        print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
+      }
+      
+      // Set user intent to not playing
+      _userIntendedPlaying = false;
+      _userExplicitlyPaused = true; // Mark as intentional pause
+      
+      // Update audio session coordinator for interruption handling
+      _audioSessionCoordinator.setUserIntendedPlaying(false);
+      
+      // Update state machine intent
+      _stateMachine.setIntent(UserIntent.pause);
+      
+      // Store current position to restore on resume (fix for position jumping bug)
+      _pausedAtPosition = _player.position;
+      if (kDebugMode) {
+        print('Stored pause position: ${_pausedAtPosition?.inMilliseconds}ms');
+      }
+      
+      _logger.info('User intent set to paused', 'AudioHandler');
+      
+      try {
+        // Add timeout protection for player.pause() as it can hang on network issues
+        await _player.pause().timeout(
+          Duration(seconds: 2),
+          onTimeout: () {
+            _logger.warning('_player.pause() timed out', 'AudioHandler');
+            throw TimeoutException('_player.pause() timeout', Duration(seconds: 2));
+          },
+        );
+        
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        _logger.info('Pause command completed successfully', 'AudioHandler');
+        if (kDebugMode) {
+          print('Pause command completed. User intended playing: $_userIntendedPlaying');
+        }
+      } catch (e) {
+        _logger.error('Error in pause command: $e', 'AudioHandler');
+        if (kDebugMode) {
+          print('Error in pause command: $e');
+        }
+        
+        // Force update playback state even if pause failed
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+      }
+    } catch (e) {
+      // Handle any errors that might prevent command completion
+      if (kDebugMode) {
+        print('Error in pause command: $e');
       }
       _logger.error('Pause command failed: $e', 'AudioHandler');
     }
