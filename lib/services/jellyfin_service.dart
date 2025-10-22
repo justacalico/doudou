@@ -228,6 +228,34 @@ class JellyfinService implements BaseMediaService {
         print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
         print('Platform: ${Platform.operatingSystem}');
       }
+
+      // First, try to check if the server is reachable
+      try {
+        final healthResponse = await _dio.get('/health', 
+          options: Options(
+            headers: {
+              'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
+            },
+            sendTimeout: const Duration(seconds: 10),
+            receiveTimeout: const Duration(seconds: 10),
+          ),
+        );
+        if (kDebugMode) {
+          print('JellyfinService: Server health check successful (${healthResponse.statusCode})');
+        }
+      } catch (healthError) {
+        if (kDebugMode) {
+          print('JellyfinService: Server health check failed: $healthError');
+          if (healthError.toString().contains('CERTIFICATE_VERIFY_FAILED')) {
+            print('JellyfinService: SSL Certificate issue detected');
+          } else if (healthError.toString().contains('Connection refused')) {
+            print('JellyfinService: Server connection refused - check if server is running');
+          } else if (healthError.toString().contains('Network is unreachable')) {
+            print('JellyfinService: Network unreachable - check network connection');
+          }
+        }
+        // Continue with authentication attempt even if health check fails
+      }
       
       final response = await _dio.post(
         '/Users/AuthenticateByName',
@@ -241,6 +269,8 @@ class JellyfinService implements BaseMediaService {
             'Content-Type': 'application/json',
             'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
           },
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
         ),
       );
 
@@ -261,10 +291,24 @@ class JellyfinService implements BaseMediaService {
         }
         
         return true;
+      } else {
+        if (kDebugMode) {
+          print('JellyfinService: Authentication failed with status code: ${response.statusCode}');
+          print('JellyfinService: Response data: ${response.data}');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Authentication error: $e');
+        print('JellyfinService: Authentication error: $e');
+        if (e.toString().contains('SocketException')) {
+          print('JellyfinService: Network error - check server URL and network connection');
+        } else if (e.toString().contains('HandshakeException')) {
+          print('JellyfinService: SSL/TLS handshake failed - server certificate issue');
+        } else if (e.toString().contains('Connection refused')) {
+          print('JellyfinService: Connection refused - server may be down or wrong port');
+        } else if (e.toString().contains('Connection timed out')) {
+          print('JellyfinService: Connection timed out - server may be slow or unreachable');
+        }
       }
     }
     return false;
