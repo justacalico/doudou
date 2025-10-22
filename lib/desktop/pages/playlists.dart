@@ -49,11 +49,10 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       }
       
       if (!appState.isLoggedIn) {
-        if (kDebugMode) {
-          print('Not logged in - cannot load playlists');
-        }
-        return;
-      }
+            print('Not logged in - cannot load playlists');
+            _testServerConnectivity();
+            return;
+          }
       
       if (appState.playlists.isEmpty) {
         if (kDebugMode) {
