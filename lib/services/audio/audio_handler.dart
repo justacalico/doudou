@@ -1831,15 +1831,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
       
-      // Set user intent to not playing
-      _userIntendedPlaying = false;
+      // Set user intent atomically and mark as explicit pause
+      await _setUserIntentAtomic(false);
       _userExplicitlyPaused = true; // Mark as intentional pause
-      
-      // Update audio session coordinator for interruption handling
-      _audioSessionCoordinator.setUserIntendedPlaying(false);
-      
-      // Update state machine intent
-      _stateMachine.setIntent(UserIntent.pause);
       
       // Store current position to restore on resume (fix for position jumping bug)
       _pausedAtPosition = _player.position;
