@@ -575,6 +575,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   /// Attempts to recover from state misalignment
   Future<void> _attemptStateRecovery(bool shouldBePlaying) async {
+    // Don't attempt recovery if we're intentionally resetting the player
+    if (_isIntentionallyResetting) {
+      if (kDebugMode) {
+        print('State recovery skipped - intentional reset in progress');
+      }
+      return;
+    }
+    
     // Only attempt recovery if we're still in a misaligned state
     final currentlyPlaying = _player.playing;
     if (currentlyPlaying == shouldBePlaying) {
