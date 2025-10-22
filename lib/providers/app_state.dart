@@ -1704,6 +1704,17 @@ class AppState extends ChangeNotifier {
       print('=== AppState.playPause() called ===');
     }
     
+    // Debounce rapid play/pause commands to prevent deadlocks
+    final now = DateTime.now();
+    if (_lastPlayPauseCommand != null && 
+        now.difference(_lastPlayPauseCommand!) < _playPauseDebounceDelay) {
+      if (kDebugMode) {
+        print('Play/pause command debounced - too recent (${now.difference(_lastPlayPauseCommand!).inMilliseconds}ms ago)');
+      }
+      return;
+    }
+    _lastPlayPauseCommand = now;
+    
     if (_audioHandler != null) {
       // Use the same state that the UI uses for consistent behavior
       final currentlyPlaying = _audioHandler!.playbackState.value.playing;
