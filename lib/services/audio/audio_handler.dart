@@ -271,7 +271,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final stackTrace = StackTrace.current;
       final lines = stackTrace.toString().split('\n');
       print('Called from:');
-      for (int i = 1; i < math.min(4, lines.length); i++) {
+      for (int i = 1; i < 4 && i < lines.length; i++) {
         print('  ${lines[i].trim()}');
       }
     }
