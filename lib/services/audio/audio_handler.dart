@@ -2453,6 +2453,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}');
             }
             
+            // Mobile optimization: Add small delay to prevent MediaCodec race conditions
+            if (Platform.isAndroid || Platform.isIOS) {
+              await Future.delayed(const Duration(milliseconds: 75));
+            }
+            
             await _playCurrentTrack();
             _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
             _logger.info('Skip to next completed successfully', 'AudioHandler');
