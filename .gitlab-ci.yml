@@ -156,7 +156,6 @@ publish_release:
     - job: "build_debug_apk"
     - job: "build_debug_linux"
     - job: "build_release_linux"
-    - job: "build_debug_web"
     - job: "build_debug_macos"
       optional: true
     - job: "build_release_macos"
