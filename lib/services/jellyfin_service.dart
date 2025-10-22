@@ -413,6 +413,10 @@ class JellyfinService implements BaseMediaService {
     if (_server == null) throw Exception('Server not configured');
 
     try {
+      if (kDebugMode) {
+        print('JellyfinService.getPlaylists: Making API call to /Users/${_server!.userId}/Items');
+      }
+      
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
         queryParameters: {
@@ -426,11 +430,31 @@ class JellyfinService implements BaseMediaService {
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Playlist.fromJson(item)).toList();
+        if (kDebugMode) {
+          print('JellyfinService.getPlaylists: API returned ${items.length} playlists');
+          if (items.isNotEmpty) {
+            print('JellyfinService.getPlaylists: First playlist raw data: ${items.first}');
+          }
+        }
+        
+        final playlists = items.map((item) => Playlist.fromJson(item)).toList();
+        
+        if (kDebugMode) {
+          print('JellyfinService.getPlaylists: Parsed ${playlists.length} playlists');
+          if (playlists.isNotEmpty) {
+            print('JellyfinService.getPlaylists: First playlist: ${playlists.first.name}');
+          }
+        }
+        
+        return playlists;
+      } else {
+        if (kDebugMode) {
+          print('JellyfinService.getPlaylists: API call failed with status ${response.statusCode}');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching playlists: $e');
+        print('JellyfinService.getPlaylists: Error fetching playlists: $e');
       }
     }
     return [];
