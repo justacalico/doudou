@@ -1482,6 +1482,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Set user intent to playing
       _userIntendedPlaying = true;
+      _userExplicitlyPaused = false; // Clear explicit pause flag
       
       // Update audio session coordinator for interruption handling
       _audioSessionCoordinator.setUserIntendedPlaying(true);
