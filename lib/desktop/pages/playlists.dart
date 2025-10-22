@@ -45,7 +45,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       print('Current server type: ${appState.mediaServiceManager.currentServerType}');
       
       if (!appState.isLoggedIn) {
-        print('Not logged in - cannot load playlists');
+        if (kDebugMode) {
+          print('Not logged in - cannot load playlists');
+        }
         return;
       }
       
