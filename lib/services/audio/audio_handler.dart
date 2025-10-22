@@ -572,6 +572,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Initialize player state transition coordinator for atomic state management
     _playerStateTransitionCoordinator = PlayerStateTransitionCoordinator();
     
+    // Initialize app lifecycle manager to handle Android background restrictions
+    _lifecycleManager = AudioLifecycleManager(_onAppLifecycleChanged);
+    
     // Initialize media service manager coordinator if available
     _mediaServiceManagerCoordinator = _mediaServiceManager != null 
         ? MediaServiceManagerCoordinator(_mediaServiceManager)
