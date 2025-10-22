@@ -3157,7 +3157,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Set user intent to playing since this is an explicit play action - use atomic operation
     await _setUserIntentAtomic(true);
-    final userIntent = await _getUserIntentAtomic();
+    final userIntent = _userIntendedPlaying; // Direct access after setting
     
     // Clear explicit pause flag since we're starting new content
     _userExplicitlyPaused = false;
