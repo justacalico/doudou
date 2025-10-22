@@ -1348,6 +1348,114 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
   }
 
+  /// Handle app lifecycle changes to manage Android audio service restrictions
+  void _onAppLifecycleChanged(AppLifecycleState state) {
+    if (!Platform.isAndroid) return;
+
+    if (kDebugMode) {
+      print('=== APP LIFECYCLE CHANGED ===');
+      print('New state: $state');
+      print('Android service state: ${_androidServiceManager.currentConfig.state}');
+      print('User intended playing: $_userIntendedPlaying');
+    }
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _onAppResumed();
+        break;
+      case AppLifecycleState.paused:
+        _onAppPaused();
+        break;
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // App is going into deeper background
+        _onAppBackgrounded();
+        break;
+      case AppLifecycleState.inactive:
+        // Transitional state, typically short-lived
+        break;
+    }
+  }
+
+  /// Handle app resuming from background
+  void _onAppResumed() async {
+    if (!Platform.isAndroid) return;
+
+    if (kDebugMode) {
+      print('=== APP RESUMED - CHECKING AUDIO SERVICE ===');
+    }
+
+    try {
+      // Check if we're in bypass mode due to previous failures
+      if (_androidServiceManager.shouldSkipAudioService()) {
+        if (kDebugMode) {
+          print('App resumed in bypass mode - checking if we can recover to normal mode');
+        }
+
+        // Try to recover to normal AudioService mode
+        final recoveryConfig = _androidServiceManager.reset();
+        
+        if (kDebugMode) {
+          print('Android service recovery attempted: ${recoveryConfig.description}');
+        }
+
+        // If we have a track ready and user was playing, ensure it continues
+        if (_userIntendedPlaying && _stateManager.currentTrack != null) {
+          if (kDebugMode) {
+            print('Resuming playback after app resume');
+          }
+          
+          // Give a brief delay for the system to stabilize
+          await Future.delayed(const Duration(milliseconds: 500));
+          
+          // Try to resume playback
+          await play();
+        }
+      } else {
+        // Normal mode - just ensure everything is working
+        if (_userIntendedPlaying && !_player.playing && _stateManager.currentTrack != null) {
+          if (kDebugMode) {
+            print('App resumed - ensuring playback continues');
+          }
+          
+          await Future.delayed(const Duration(milliseconds: 200));
+          await play();
+        }
+      }
+    } catch (e) {
+      _logger.error('Error handling app resume: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('Error handling app resume: $e');
+      }
+    }
+  }
+
+  /// Handle app going to background
+  void _onAppPaused() {
+    if (!Platform.isAndroid) return;
+
+    if (kDebugMode) {
+      print('=== APP PAUSED ===');
+      print('Current playing state: ${_player.playing}');
+      print('User intended playing: $_userIntendedPlaying');
+    }
+
+    // Android will handle background audio through AudioService
+    // We don't need to do anything special here unless there are issues
+  }
+
+  /// Handle app going into deep background
+  void _onAppBackgrounded() {
+    if (!Platform.isAndroid) return;
+
+    if (kDebugMode) {
+      print('=== APP BACKGROUNDED ===');
+    }
+
+    // Prepare for potential Android restrictions
+    // The AudioService should handle this, but we may need to transition to bypass mode
+  }
+
   /// Load and play track in Android bypass mode (pure just_audio, no AudioService)
   Future<void> _loadAndPlayTrackBypass(Track track, bool shouldPlay) async {
     if (!Platform.isAndroid) return;
