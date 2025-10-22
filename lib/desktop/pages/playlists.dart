@@ -53,7 +53,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         }
         appState.loadLibraryData();
       } else {
-        print('Playlists found:');
+        if (kDebugMode) {
+          print('Playlists found:');
+        }
         for (final playlist in appState.playlists.take(5)) {
           print('  - ${playlist.name} (${playlist.trackCount} tracks)');
         }
