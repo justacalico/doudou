@@ -258,6 +258,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
+    if (kDebugMode) {
+      print('=== _updatePlaybackState CALLED ===');
+      print('DateTime: ${DateTime.now()}');
+      print('Input newState.playing: ${newState.playing}');
+      print('Input newState.processingState: ${newState.processingState}');
+      print('Current _userIntendedPlaying: $_userIntendedPlaying');
+      print('Current _userExplicitlyPaused: $_userExplicitlyPaused');
+      print('Previous playbackState.playing: ${playbackState.value.playing}');
+      
+      // Get stack trace to see who called this
+      final stackTrace = StackTrace.current;
+      final lines = stackTrace.toString().split('\n');
+      print('Called from:');
+      for (int i = 1; i < math.min(4, lines.length); i++) {
+        print('  ${lines[i].trim()}');
+      }
+    }
+    
     PlaybackState finalState = newState;
     
     // Use state machine for synchronized state management
