@@ -1494,6 +1494,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               throw TimeoutException('_player.play() timeout', Duration(seconds: 3));
             },
           );
+          
+          // Fix for position jumping bug: seek back to pause position if resuming from pause
+          if (_pausedAtPosition != null && _userExplicitlyPaused) {
+            if (kDebugMode) {
+              print('Resuming from pause - seeking back to position: ${_pausedAtPosition!.inMilliseconds}ms');
+            }
+            await _player.seek(_pausedAtPosition!);
+            await _positionManager.recordSeek(_pausedAtPosition!);
+            _pausedAtPosition = null; // Clear the stored position
+            if (kDebugMode) {
+              print('Successfully restored pause position');
+            }
+          }
         }
         
         // Always verify the play command worked
