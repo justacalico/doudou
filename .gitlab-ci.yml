@@ -177,15 +177,35 @@ publish_release:
     - job: "build_debug_ios"
       optional: true
   allow_failure: true
+  before_script:
+    # Install GitLab CLI if not available
+    - |
+      if ! command -v glab &> /dev/null; then
+        echo "Installing GitLab CLI..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          # macOS
+          if command -v brew &> /dev/null; then
+            brew install glab
+          else
+            echo "Homebrew not found, downloading glab binary..."
+            curl -s https://api.github.com/repos/profclems/glab/releases/latest | grep "browser_download_url.*darwin.*tar.gz" | cut -d '"' -f 4 | head -n 1 | xargs curl -L -o glab.tar.gz
+            tar -xzf glab.tar.gz
+            sudo mv bin/glab /usr/local/bin/
+          fi
+        else
+          echo "Unsupported OS for glab installation"
+          exit 1
+        fi
+      fi
   script:
     - echo "Publishing debug builds with APKs, Linux builds, and optional macOS/iOS builds for pipeline $CI_PIPELINE_ID"
-  release:
-    name: "Release Pipeline $CI_PIPELINE_ID"
-    description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
-    tag_name: "pipeline-$CI_PIPELINE_ID"
-    assets:
-      links:
-        - name: "Debug APK"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
-        - name: "Debug Linux Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_linux"
+    - |
+      if command -v glab &> /dev/null; then
+        echo "Creating release with glab..."
+        glab release create "pipeline-$CI_PIPELINE_ID" \
+          --name "Release Pipeline $CI_PIPELINE_ID" \
+          --notes "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA" \
+          --repo "$CI_PROJECT_PATH" || echo "Release creation failed but continuing..."
+      else
+        echo "GitLab CLI not available, skipping release creation"
+      fi
