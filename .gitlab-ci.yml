@@ -177,5 +177,3 @@ publish_release:
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_linux"
         - name: "Release Linux Build"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_release_linux"
-        - name: "Debug Web Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_web"
