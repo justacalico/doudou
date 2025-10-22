@@ -148,6 +148,9 @@ build_debug_ios:
     paths:
       - build/ios/iphoneos/
     expire_in: 1 week
+  after_script:
+    # Clean up build artifacts to save local space
+    - rm -rf build/
 
 publish_release:
   stage: release
