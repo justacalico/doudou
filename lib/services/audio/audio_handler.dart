@@ -3622,11 +3622,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     _logger.info('Playing playlist: ${tracks.length} tracks, starting at index $startIndex', 'AudioHandler');
     
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+    
     if (kDebugMode) {
       print('=== PLAYPLAYLIST DEBUG START ===');
       print('Starting playPlaylist with ${tracks.length} tracks, startIndex: $startIndex');
       print('Track to play: ${tracks[startIndex].name}');
       print('Previous current track: ${_stateManager.currentTrack?.name ?? "None"}');
+      print('Mobile platform: $isMobile');
     }
     
     // Set user intent to playing since this is an explicit play action - use atomic operation
@@ -3640,11 +3643,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Set _userIntendedPlaying to: $userIntent');
     }
     
-    // CRITICAL FIX: Completely reset player state to prevent old queue from continuing
-    await _resetPlayerStateCompletely();
+    // Mobile optimization: Skip full reset if we can do a lighter reset for better performance
+    if (isMobile && _androidServiceManager.shouldSkipAudioService()) {
+      if (kDebugMode) {
+        print('Mobile: Using lightweight reset for bypass mode');
+      }
+      // Lightweight reset for mobile bypass mode
+      await _player.stop();
+      _preloader.clearAllPreloadedPlayers();
+      _audioSourceCache.clear();
+      _stateManager.setCurrentTrack(null);
+      await Future.delayed(const Duration(milliseconds: 50)); // Much shorter delay
+    } else {
+      if (kDebugMode) {
+        print('Using full player state reset');
+      }
+      // CRITICAL FIX: Completely reset player state to prevent old queue from continuing
+      await _resetPlayerStateCompletely();
+    }
     
     if (kDebugMode) {
-      print('Completely reset player state');
+      print('Player state reset completed (mobile optimized: $isMobile)');
     }
     
     // Set the new playlist and immediately verify the current track
