@@ -1559,6 +1559,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     try {
+  @override
+  Future<void> pause() async {
+    if (kDebugMode) {
+      print('Pause: Attempting to acquire commandThrottle mutex...');
+    }
+    
+    try {
+      // Add aggressive timeout protection for the entire pause operation
       await _mutexManager.withLock('commandThrottle', () async {
         final now = DateTime.now();
         _logger.info('Pause command received', 'AudioHandler');
@@ -1669,7 +1677,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           playing: false,
         ));
       }
-      });
+      }).timeout(
+        Duration(seconds: 3), // Aggressive timeout for entire pause operation
+        onTimeout: () {
+          _logger.warning('Entire pause operation timed out', 'AudioHandler');
+          if (kDebugMode) {
+            print('Pause operation timed out after 3 seconds');
+          }
+          
+          // Force update to paused state
+          _userIntendedPlaying = false;
+          _userExplicitlyPaused = true;
+          _updatePlaybackState(playbackState.value.copyWith(playing: false));
+          
+          throw TimeoutException('Pause operation timeout', Duration(seconds: 3));
+        },
+      );
     } catch (e) {
       // Handle any errors that might prevent mutex release
       if (kDebugMode) {
