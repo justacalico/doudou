@@ -3811,7 +3811,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Step 1: Immediately stop all audio playback
       await _player.stop();
       
-      // Step 2: Force clear any concatenating source to stop old streams
+      // Step 2: CRITICAL - Force clear any existing audio source from player
+      try {
+        // Create a minimal empty concatenating source to completely replace any existing source
+        final emptySource = ConcatenatingAudioSource(children: []);
+        await _player.setAudioSource(emptySource);
+        await Future.delayed(const Duration(milliseconds: 50));
+        
+        // Then stop again to clear that empty source
+        await _player.stop();
+        
+        if (kDebugMode) {
+          print('AGGRESSIVE RESET: Forced empty audio source to clear old streams');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Warning during audio source clearing: $e');
+        }
+      }
+      
+      // Step 3: Force clear any concatenating source to stop old streams
       if (_concatenatingSource != null) {
         try {
           await _concatenatingSource!.clear();
@@ -3823,32 +3842,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       }
       
-      // Step 3: Aggressively clear all caches and buffers
+      // Step 4: Aggressively clear all caches and buffers
       _preloader.clearAllPreloadedPlayers();
       await _clearAudioSourceCache();
       
-      // Step 4: Destroy concatenation state completely
+      // Step 5: Destroy concatenation state completely
       _isUsingConcatenation = false;
       _concatenatingSource = null;
       
-      // Step 5: Clear all state references that could hold old track data
+      // Step 6: Clear all state references that could hold old track data
       _stateManager.setCurrentTrack(null);
       _stateManager.setHandlingCompletion(false);
       _stateManager.setTransitioning(false);
       
-      // Step 6: Clear any pending operations that might restore old state
+      // Step 7: Clear any pending operations that might restore old state
       _bufferingLoopCount = 0;
       _lastBufferingTime = null;
       
-      // Step 7: Wait for everything to settle based on platform
+      // Step 8: Wait for everything to settle based on platform
       if (isMobile) {
-        await Future.delayed(const Duration(milliseconds: 300)); // More time for mobile MediaCodec cleanup
+        await Future.delayed(const Duration(milliseconds: 400)); // Longer wait for complete clearing
       } else {
-        await Future.delayed(const Duration(milliseconds: 200)); // Faster for desktop
+        await Future.delayed(const Duration(milliseconds: 300)); // Longer wait for complete clearing
       }
       
       if (kDebugMode) {
-        print('AGGRESSIVE QUEUE CLEAR: Complete - old queue eliminated');
+        print('AGGRESSIVE QUEUE CLEAR: Complete - old queue eliminated with forced audio source clearing');
       }
     } finally {
       // Always clear the reset flag
