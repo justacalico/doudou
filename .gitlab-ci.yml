@@ -55,8 +55,15 @@ build_debug_apk:
     expire_in: 1 week
 
 build_debug_linux:
-  stage: build
+  stage: build-linux
   image: ghcr.io/cirruslabs/flutter:stable
+  needs:
+    - job: "build_debug_apk"
+      optional: true
+    - job: "build_debug_macos"
+      optional: true
+    - job: "build_debug_ios"
+      optional: true
   before_script:
     # Install Linux desktop development dependencies
     - apt-get update
