@@ -144,8 +144,8 @@ build_debug_ios:
           exit 1
         fi
       fi
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
+    # Clean build artifacts (but preserve build directory for artifacts)
+    - rm -rf .dart_tool/ .flutter-plugins-dependencies
     - rm -rf .pub-cache
     - flutter clean
   script:
