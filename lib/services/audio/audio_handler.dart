@@ -379,6 +379,83 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _updateTouchBarPlaybackState();
     }
   }
+  
+  /// Determines the intended play state based on user intent and current conditions
+  bool _getUserIntentedPlayState(PlaybackState newState) {
+    // If user explicitly paused, respect that
+    if (_userExplicitlyPaused) {
+      return false;
+    }
+    
+    // For ready and buffering states, use user intended playing state
+    if (newState.processingState == AudioProcessingState.ready ||
+        newState.processingState == AudioProcessingState.buffering) {
+      return _userIntendedPlaying;
+    }
+    
+    // For loading state, maintain user intent if available
+    if (newState.processingState == AudioProcessingState.loading) {
+      return _userIntendedPlaying;
+    }
+    
+    // For completed, error, and idle states, should not be playing
+    return false;
+  }
+  
+  /// Verifies that player state aligns with the intended state and triggers recovery if needed
+  void _verifyPlayerStateAlignment(PlaybackState finalState) {
+    // Only check alignment for ready state to avoid interference during transitions
+    if (finalState.processingState != AudioProcessingState.ready) {
+      return;
+    }
+    
+    // Check if player state and UI state are misaligned
+    final playerActuallyPlaying = _player.playing;
+    final uiShouldShowPlaying = finalState.playing;
+    
+    if (playerActuallyPlaying != uiShouldShowPlaying) {
+      if (kDebugMode) {
+        print('DETECTED STATE MISALIGNMENT: Player playing=$playerActuallyPlaying, UI playing=$uiShouldShowPlaying');
+        print('User intended: $_userIntendedPlaying, User paused: $_userExplicitlyPaused');
+      }
+      
+      // Schedule a recovery attempt after a short delay to avoid immediate conflicts
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _attemptStateRecovery(uiShouldShowPlaying);
+      });
+    }
+  }
+  
+  /// Attempts to recover from state misalignment
+  Future<void> _attemptStateRecovery(bool shouldBePlaying) async {
+    // Only attempt recovery if we're still in a misaligned state
+    final currentlyPlaying = _player.playing;
+    if (currentlyPlaying == shouldBePlaying) {
+      return; // Already aligned
+    }
+    
+    if (kDebugMode) {
+      print('Attempting state recovery: should be playing=$shouldBePlaying, currently playing=$currentlyPlaying');
+    }
+    
+    try {
+      if (shouldBePlaying && !currentlyPlaying && _userIntendedPlaying && !_userExplicitlyPaused) {
+        await _player.play();
+        if (kDebugMode) {
+          print('Recovery: Started playback');
+        }
+      } else if (!shouldBePlaying && currentlyPlaying && (!_userIntendedPlaying || _userExplicitlyPaused)) {
+        await _player.pause();
+        if (kDebugMode) {
+          print('Recovery: Paused playback');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('State recovery failed: $e');
+      }
+    }
+  }
 
   DoudouAudioHandler(this._jellyfinService, this._downloadService, [this._mediaServiceManager]) {
     _logger.info('Initializing DoudouAudioHandler', 'AudioHandler');
