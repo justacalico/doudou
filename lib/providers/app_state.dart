@@ -1555,11 +1555,16 @@ class AppState extends ChangeNotifier {
 
   Future<List<Track>> getAlbumTracks(String albumId) async {
     try {
+      if (kDebugMode) {
+        print('AppState.getAlbumTracks called for albumId: $albumId');
+        print('MediaServiceManager type: ${_mediaServiceManager.currentServerType}');
+      }
+      
       // Try cache first
       final cachedTracks = await _cacheService.getCachedAlbumTracks(albumId);
       if (cachedTracks != null) {
         if (kDebugMode) {
-          print('Loaded album tracks from cache for album: $albumId');
+          print('Loaded ${cachedTracks.length} album tracks from cache for album: $albumId');
         }
         
         // Load fresh data in background and update cache
@@ -1568,14 +1573,28 @@ class AppState extends ChangeNotifier {
         return cachedTracks;
       }
       
+      if (kDebugMode) {
+        print('No cached tracks found, calling MediaServiceManager.getTracks for albumId: $albumId');
+      }
+      
       // Load fresh data
       final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
+      
+      if (kDebugMode) {
+        print('MediaServiceManager returned ${tracks.length} tracks for albumId: $albumId');
+        if (tracks.isNotEmpty) {
+          print('Sample track from service: ${tracks.first.name}');
+        }
+      }
       
       // Cache the tracks
       await _cacheService.cacheAlbumTracks(albumId, tracks);
       
       return tracks;
     } catch (e) {
+      if (kDebugMode) {
+        print('ERROR in AppState.getAlbumTracks for albumId $albumId: $e');
+      }
       _setError('Failed to load tracks: ${e.toString()}');
       return [];
     }
