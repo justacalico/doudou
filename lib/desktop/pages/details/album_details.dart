@@ -42,14 +42,33 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
 
     try {
       if (kDebugMode) {
-        print('Loading tracks for album: ${widget.album.name} (ID: ${widget.album.id})');
+        print('=== ALBUM TRACKS LOADING DEBUG ===');
+        print('Album: ${widget.album.name}');
+        print('Album ID: ${widget.album.id}');
+        print('AppState connected: ${appState.isLoggedIn}');
+        print('Current server type: ${appState.mediaServiceManager.currentServerType}');
+        print('Total tracks in AppState: ${appState.tracks.length}');
+        print('=== CALLING getAlbumTracks ===');
       }
       
       // Fetch tracks for this album using the appropriate service
       _albumTracks = await appState.getAlbumTracks(widget.album.id);
       
       if (kDebugMode) {
+        print('=== ALBUM TRACKS RESULT ===');
         print('Loaded ${_albumTracks.length} tracks for album: ${widget.album.name}');
+        if (_albumTracks.isNotEmpty) {
+          print('First track: ${_albumTracks.first.name}');
+          print('Sample track IDs: ${_albumTracks.take(3).map((t) => t.id).toList()}');
+        }
+        
+        // Also check if we can find tracks manually by filtering appState.tracks
+        final manualTracks = appState.tracks.where((track) => track.albumId == widget.album.id).toList();
+        print('Manual filter found ${manualTracks.length} tracks with albumId: ${widget.album.id}');
+        if (manualTracks.isNotEmpty) {
+          print('Manual track example: ${manualTracks.first.name}');
+        }
+        print('=== END ALBUM TRACKS DEBUG ===');
       }
       
       // Sort by track number if available (already sorted by API, but just in case)
@@ -61,7 +80,19 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       
       if (_albumTracks.isEmpty) {
         if (kDebugMode) {
-          print('No tracks found for album: ${widget.album.name} (ID: ${widget.album.id})');
+          print('WARNING: No tracks found for album: ${widget.album.name} (ID: ${widget.album.id})');
+          print('Trying fallback method...');
+          
+          // Try manual filtering as fallback
+          final fallbackTracks = appState.tracks.where((track) => 
+            track.albumId == widget.album.id || 
+            track.albumName?.toLowerCase() == widget.album.name.toLowerCase()
+          ).toList();
+          
+          if (fallbackTracks.isNotEmpty) {
+            print('Fallback found ${fallbackTracks.length} tracks!');
+            _albumTracks = fallbackTracks;
+          }
         }
       }
     } catch (e) {
