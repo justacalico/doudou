@@ -182,6 +182,13 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
               ),
               tooltip: widget.album.isFavorite ? 'Remove from favorites' : 'Add to favorites',
             ),
+            // Refresh button (for debugging)
+            if (_albumTracks.isEmpty && !_isLoading)
+              IconButton(
+                onPressed: _refreshTracks,
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Reload tracks',
+              ),
             // More options
             PopupMenuButton<String>(
               onSelected: (value) {
