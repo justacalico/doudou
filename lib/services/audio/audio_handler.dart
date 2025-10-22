@@ -1839,6 +1839,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final now = DateTime.now();
     _logger.info('Pause command received', 'AudioHandler');
     
+    // Stop background watchdog when user explicitly pauses
+    _stopBackgroundWatchdog();
+    
     try {
       // Android service manager: Use direct player control if in bypass mode  
       // Skip complex state coordination to avoid deadlocks in bypass mode
