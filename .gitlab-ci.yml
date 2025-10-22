@@ -85,27 +85,6 @@ build_release_linux:
       - build/linux/x64/release/bundle/
     expire_in: 1 week
 
-build_debug_web:
-  stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
-  before_script:
-    # Clean build artifacts
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
-    - flutter clean
-  script:
-    - flutter --version
-    - flutter config --enable-web
-    - flutter clean
-    - flutter pub get
-    - flutter build web --debug
-  artifacts:
-    paths:
-      - build/web/
-    expire_in: 1 week
-
 build_debug_macos:
   stage: build
   tags:
