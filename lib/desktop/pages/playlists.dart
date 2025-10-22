@@ -38,7 +38,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       if (kDebugMode) {
         print('=== PLAYLISTS PAGE DEBUG ===');
       }
-      print('Current playlists count: ${appState.playlists.length}');
+      if (kDebugMode) {
+        print('Current playlists count: ${appState.playlists.length}');
+      }
       print('Is logged in: ${appState.isLoggedIn}');
       print('Current server type: ${appState.mediaServiceManager.currentServerType}');
       
