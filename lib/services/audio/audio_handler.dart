@@ -422,6 +422,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       case AudioProcessingState.error:
         _stateMachine.transitionTo(AudioPlayerState.error);
         _positionManager.setBuffering(false);
+        // Reset user intent when player enters error state
+        _userIntendedPlaying = false;
         finalState = newState.copyWith(playing: false);
         break;
       case AudioProcessingState.idle:
