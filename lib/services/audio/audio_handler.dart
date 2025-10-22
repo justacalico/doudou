@@ -998,11 +998,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     _player.playbackEventStream.listen((event) {
       // Handle playback errors
       if (event.processingState == ProcessingState.idle) {
-        // CRITICAL FIX: Don't recover if user explicitly paused
+        // CRITICAL FIX: Don't recover if user explicitly paused OR we're intentionally resetting
         // Only recover on unexpected idle states when user actually intended to play
         if (_stateManager.currentTrack != null && 
             _userIntendedPlaying && 
             !_userExplicitlyPaused && // Don't recover if user explicitly paused
+            !_isIntentionallyResetting && // Don't recover if we're intentionally resetting
             _player.playing == false) {
           _logger.warning('Playback went idle unexpectedly, attempting recovery', 'AudioHandler');
           if (kDebugMode) {
