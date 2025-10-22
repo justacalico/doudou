@@ -48,9 +48,12 @@ class AsyncMutex {
       print('AsyncMutex($name): Attempting to acquire lock...');
     }
     
+    // Shorter timeout for command throttle to prevent UI blocking
+    final timeoutDuration = name == 'commandThrottle' ? Duration(seconds: 5) : Duration(seconds: 10);
+    
     // Add timeout protection to prevent infinite waiting
     await acquire().timeout(
-      Duration(seconds: 10),
+      timeoutDuration,
       onTimeout: () {
         // Force release and log error
         if (kDebugMode) {
@@ -59,7 +62,7 @@ class AsyncMutex {
         // Clear the queue and release
         _waitQueue.clear();
         _locked = false;
-        throw TimeoutException('Mutex acquisition timeout', Duration(seconds: 10));
+        throw TimeoutException('Mutex acquisition timeout', timeoutDuration);
       },
     );
     
