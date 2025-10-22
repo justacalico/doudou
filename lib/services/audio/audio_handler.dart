@@ -3784,7 +3784,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       try {
         // Gentle mobile reset - faster than desktop but safer than aggressive reset
         await _player.stop();
-        await Future.delayed(const Duration(milliseconds: 100)); // Allow MediaCodec cleanup
+        await Future.delayed(const Duration(milliseconds: 200)); // Increased for better MediaCodec cleanup
         _preloader.clearAllPreloadedPlayers();
         _audioSourceCache.clear();
         _isUsingConcatenation = false;
@@ -3792,7 +3792,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _stateManager.setCurrentTrack(null);
         _stateManager.setHandlingCompletion(false);
         _stateManager.setTransitioning(false);
-        await Future.delayed(const Duration(milliseconds: 50)); // Brief final delay for stability
+        await Future.delayed(const Duration(milliseconds: 100)); // Increased final delay for stability
       } finally {
         // Clear the flag after reset is complete
         _isIntentionallyResetting = false;
