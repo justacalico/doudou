@@ -358,7 +358,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('=== _updatePlaybackState CALLED ===');
       }
-      print('DateTime: ${DateTime.now()}');
+      if (kDebugMode) {
+        print('DateTime: ${DateTime.now()}');
+      }
       print('Input newState.playing: ${newState.playing}');
       print('Input newState.processingState: ${newState.processingState}');
       print('Current _userIntendedPlaying: $_userIntendedPlaying');
@@ -3671,14 +3673,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Set _userIntendedPlaying to: $userIntent');
     }
     
-    // Mobile optimization: Use lightweight reset for all mobile platforms to improve responsiveness
+    // Mobile optimization: Use gentler reset for mobile platforms to avoid MediaCodec issues
     if (isMobile) {
       if (kDebugMode) {
-        print('Mobile: Using lightweight reset for faster queue switching');
+        print('Mobile: Using gentle reset to prevent MediaCodec race conditions');
       }
-      // Lightweight reset for mobile - much faster than full reset
+      // Gentle mobile reset - faster than desktop but safer than aggressive reset
       await _player.stop();
-      await Future.delayed(const Duration(milliseconds: 25)); // Very short delay
+      await Future.delayed(const Duration(milliseconds: 100)); // Allow MediaCodec cleanup
       _preloader.clearAllPreloadedPlayers();
       _audioSourceCache.clear();
       _isUsingConcatenation = false;
@@ -3686,7 +3688,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _stateManager.setCurrentTrack(null);
       _stateManager.setHandlingCompletion(false);
       _stateManager.setTransitioning(false);
-      await Future.delayed(const Duration(milliseconds: 25)); // Short final delay
+      await Future.delayed(const Duration(milliseconds: 50)); // Brief final delay for stability
     } else {
       if (kDebugMode) {
         print('Desktop: Using full player state reset');
