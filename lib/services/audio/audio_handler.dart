@@ -1354,6 +1354,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Play: Successfully acquired commandThrottle mutex');
       }
       
+      // Add timeout to prevent infinite hanging
+      await Future.any([
+        _executePlayCommand(now),
+        Future.delayed(Duration(seconds: 8)).then((_) => throw TimeoutException('Play command timeout', Duration(seconds: 8))),
+      ]);
+      });
+    } catch (e) {
+      // Handle any errors that might prevent mutex release
+      if (kDebugMode) {
+        print('Error in play command (mutex level): $e');
+      }
+      _logger.error('Play command failed at mutex level: $e', 'AudioHandler');
+    }
+  }
+
+  Future<void> _executePlayCommand(DateTime now) async {
+      
       // Android service manager: Use direct player control if in bypass mode
       // Skip complex state coordination to avoid deadlocks in bypass mode
       if (_androidServiceManager.shouldSkipAudioService()) {
