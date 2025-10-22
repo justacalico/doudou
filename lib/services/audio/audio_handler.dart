@@ -3801,7 +3801,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _player.stop();
         await Future.delayed(const Duration(milliseconds: 200)); // Increased for better MediaCodec cleanup
         _preloader.clearAllPreloadedPlayers();
-        _audioSourceCache.clear();
+        await _clearAudioSourceCache(); // Use protected method for consistency
         _isUsingConcatenation = false;
         _concatenatingSource = null;
         _stateManager.setCurrentTrack(null);
