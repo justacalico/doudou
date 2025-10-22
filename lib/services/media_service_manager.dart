@@ -66,8 +66,33 @@ class MediaServiceManager {
 
   /// Get tracks from the current service
   Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
-    if (_currentService == null) return [];
-    return await _currentService!.getTracks(libraryId: libraryId, parentId: parentId, limit: limit, startIndex: startIndex);
+    if (kDebugMode) {
+      print('MediaServiceManager.getTracks called:');
+      print('  - libraryId: $libraryId');
+      print('  - parentId: $parentId');
+      print('  - limit: $limit');
+      print('  - startIndex: $startIndex');
+      print('  - currentService: ${_currentService?.runtimeType}');
+      print('  - currentServerType: $currentServerType');
+    }
+    
+    if (_currentService == null) {
+      if (kDebugMode) {
+        print('MediaServiceManager: No current service available!');
+      }
+      return [];
+    }
+    
+    final tracks = await _currentService!.getTracks(libraryId: libraryId, parentId: parentId, limit: limit, startIndex: startIndex);
+    
+    if (kDebugMode) {
+      print('MediaServiceManager: Service returned ${tracks.length} tracks');
+      if (tracks.isNotEmpty) {
+        print('MediaServiceManager: First track: ${tracks.first.name}');
+      }
+    }
+    
+    return tracks;
   }
 
   /// Get playlists from the current service
