@@ -32,6 +32,8 @@ build_debug_apk:
     - flutter build apk --debug
   after_script:
     - pkill -f gradle || true
+    # Clean up build artifacts to save local space
+    - rm -rf build/
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
