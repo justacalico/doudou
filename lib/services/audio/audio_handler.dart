@@ -478,7 +478,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // If we transitioned to bypass mode, skip further AudioService operations
         if (newConfig.shouldBypass) {
           if (shouldDebugState) {
-            print('Android service manager: Bypassing AudioService for future operations');
+            if (kDebugMode) {
+              print('Android service manager: Bypassing AudioService for future operations');
+            }
           }
         } else {
           if (shouldDebugState) {
