@@ -3686,8 +3686,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (!loaded) {
       _logger.error('Failed to load any stream for track: ${track.name}, last error: $lastError', 'AudioHandler');
       
+      // CRITICAL FIX: Reset user intent when loading fails completely
+      // This prevents UI confusion where play/pause button shows wrong state
+      _userIntendedPlaying = false;
+      
       if (kDebugMode) {
         print('Failed to load any stream for: ${track.name}, last error: $lastError');
+        print('Reset user intent to false due to loading failure');
         if (Platform.isIOS) {
           print('iOS: Consider checking stream format compatibility');
         } else if (Platform.isMacOS) {
