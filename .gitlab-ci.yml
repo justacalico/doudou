@@ -75,9 +75,6 @@ build_debug_linux:
           exit 1
         fi
       fi
-    # Install Linux desktop development dependencies
-    - apt-get update
-    - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
     # Clean build artifacts
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
     - rm -rf .pub-cache
