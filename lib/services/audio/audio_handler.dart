@@ -211,7 +211,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         final verificationDelay = isMobile ? 25 : 100; // Reduce mobile delay from 100ms to 25ms
         
         if (kDebugMode && isMobile) {
-          print('Mobile optimized user intent: Using ${verificationDelay}ms verification delay');
+          if (kDebugMode) {
+            print('Mobile optimized user intent: Using ${verificationDelay}ms verification delay');
+          }
         }
         
         Future.delayed(Duration(milliseconds: verificationDelay), () {
