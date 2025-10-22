@@ -119,6 +119,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   bool _userIntendedPlaying = false;
   bool _userExplicitlyPaused = false; // Track intentional user pause
 
+  // Position tracking for pause/resume to prevent position jumping
+  Duration? _pausedAtPosition;
+
   // Command throttling with atomic timestamp updates
   DateTime? _lastPlayCommand;
   DateTime? _lastPauseCommand;
