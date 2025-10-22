@@ -2651,6 +2651,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Loading track: ${track.name}, should play: $shouldPlay');
       }
       
+      // Clear pause position when loading a new track to prevent invalid seeks
+      _pausedAtPosition = null;
+      _userExplicitlyPaused = false;
+      
       // Protect this track from preloader cleanup while loading
       _preloader.protectAudioSource(track.id);
     
