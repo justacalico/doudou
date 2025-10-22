@@ -1388,6 +1388,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     try {
+      // Add timeout to the entire mutex operation to prevent deadlocks
       await _mutexManager.withLock('commandThrottle', () async {
       final now = DateTime.now();
       _logger.info('Play command received', 'AudioHandler');
