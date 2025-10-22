@@ -157,9 +157,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                       ),
                       child: CupertinoButton(
                         padding: EdgeInsets.zero,
-                        onPressed: () {
-                          // TODO: Add artist options menu
-                        },
+                        onPressed: () => _showArtistOptionsMenu(context, appState),
                         child: const Icon(
                           CupertinoIcons.ellipsis,
                           color: Color(0xFFFFFFFF),
