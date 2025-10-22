@@ -2424,56 +2424,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _transitionManager.releaseTransitionLock();
     }
   }
-          print('Error stopping player during completion: $e');
-        }
-      }
-      
-      // Minimal delay for codec cleanup - reduced from 200ms
-      await Future.delayed(const Duration(milliseconds: 50));
-      
-      // Check if we can move to next track atomically
-      if (await _stateManager.incrementCurrentIndexAtomic()) {
-        if (kDebugMode) {
-          print('Moving to next track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
-          print('User intended playing during transition: $_userIntendedPlaying');
-        }
-        
-        await _playCurrentTrack();
-        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
-        
-        if (kDebugMode) {
-          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
-        }
-        
-      } else if (_radioModeStateManager.isEnabled && _stateManager.currentTrack != null) {
-        await _handleRadioModeExpansion();
-      } else {
-        // End of playlist
-        playbackState.add(playbackState.value.copyWith(
-          processingState: AudioProcessingState.completed,
-          playing: false,
-        ));
-        
-        if (kDebugMode) {
-          print('Reached end of playlist');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error handling track completion: $e');
-      }
-      
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.error,
-        playing: false,
-      ));
-    } finally {
-      // Always reset states and release lock
-      _stateManager.setHandlingCompletion(false);
-      _stateManager.setTransitioning(false);
-      _transitionManager.releaseTransitionLock();
-    }
-  }
 
   /// Handle radio mode expansion when reaching end of playlist
   Future<void> _handleRadioModeExpansion() async {
