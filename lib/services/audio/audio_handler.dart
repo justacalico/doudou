@@ -1372,22 +1372,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
+    final now = DateTime.now();
+    _logger.info('Play command received', 'AudioHandler');
     if (kDebugMode) {
-      print('Play: Attempting to acquire commandThrottle mutex...');
+      print('Play: Processing play command directly (no throttling)');
     }
     
     try {
-      // Add timeout to the entire mutex operation to prevent deadlocks
-      await _mutexManager.withLock('commandThrottle', () async {
-        final now = DateTime.now();
-        _logger.info('Play command received', 'AudioHandler');
-        if (kDebugMode) {
-          print('Play: Successfully acquired commandThrottle mutex');
-        }
-      
-        // Android service manager: Use direct player control if in bypass mode
-        // Skip complex state coordination to avoid deadlocks in bypass mode
-        if (_androidServiceManager.shouldSkipAudioService()) {
+      // Android service manager: Use direct player control if in bypass mode
+      // Skip complex state coordination to avoid deadlocks in bypass mode
+      if (_androidServiceManager.shouldSkipAudioService()) {
           if (kDebugMode) {
             print('Android service manager: Direct player play - ${_androidServiceManager.currentConfig.description}');
           }
