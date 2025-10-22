@@ -130,7 +130,7 @@ build_debug_macos:
 build_release_macos:
   stage: build
   tags:
-    - macos
+    - apple
   allow_failure: true
   before_script:
     # Clean build artifacts
