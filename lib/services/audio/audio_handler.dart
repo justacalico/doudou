@@ -49,6 +49,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   int _currentLyricsLineIndex = -1;
   String? _lastLyricsTrackId;
   
+  // Background track completion watchdog for Android
+  Timer? _backgroundWatchdog;
+  DateTime? _lastTrackPositionUpdate;
+  Duration? _lastKnownPosition;
+  Duration? _lastKnownDuration;
+  
   // Component managers
   late final AudioStateManager _stateManager;
   late final AudioPreloader _preloader;
