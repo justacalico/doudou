@@ -2585,7 +2585,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           cancellationToken.throwIfCancelled();
           
           // Resume playing if user intended it
-          final userIntent = await _getUserIntentAtomic();
+          final userIntent = _userIntendedPlaying; // Direct access to avoid nested mutex
           if (userIntent) {
             await _player.play();
             if (kDebugMode) {
