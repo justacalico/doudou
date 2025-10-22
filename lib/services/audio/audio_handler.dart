@@ -1057,6 +1057,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Should play: $shouldPlay');
       }
       
+      // Clear pause position when loading a new track to prevent invalid seeks
+      _pausedAtPosition = null;
+      _userExplicitlyPaused = false;
+      
       // Get stream URLs
       List<String> streamUrls = [];
       final mediaServiceCoordinator = _mediaServiceManagerCoordinator;
