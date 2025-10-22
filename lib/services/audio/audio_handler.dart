@@ -1008,11 +1008,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Handle playback errors
       if (event.processingState == ProcessingState.idle) {
         // CRITICAL FIX: Don't recover if user explicitly paused OR we're intentionally resetting
+        // Also don't recover if queue operations are in progress
         // Only recover on unexpected idle states when user actually intended to play
         if (_stateManager.currentTrack != null && 
             _userIntendedPlaying && 
             !_userExplicitlyPaused && // Don't recover if user explicitly paused
             !_isIntentionallyResetting && // Don't recover if we're intentionally resetting
+            !_playerOperationQueue.isProcessing && // Don't recover if queue operations are in progress
             _player.playing == false) {
           _logger.warning('Playback went idle unexpectedly, attempting recovery', 'AudioHandler');
           if (kDebugMode) {
@@ -1024,10 +1026,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           final recoveryDelay = Platform.isAndroid || Platform.isIOS ? 1500 : 500;
           Future.delayed(Duration(milliseconds: recoveryDelay), () async {
             try {
-              // Double-check user intent hasn't changed during delay and we're not intentionally resetting
-              if (!_userIntendedPlaying || _userExplicitlyPaused || _isIntentionallyResetting) {
+              // Double-check conditions haven't changed during delay
+              if (!_userIntendedPlaying || 
+                  _userExplicitlyPaused || 
+                  _isIntentionallyResetting ||
+                  _playerOperationQueue.isProcessing) {
                 if (kDebugMode) {
-                  print('Recovery cancelled - user paused or intentional reset in progress');
+                  print('Recovery cancelled - conditions changed during delay');
+                }
+                return;
+              }
+              
+              // CRITICAL FIX: Verify current track is still valid for recovery
+              final currentTrack = _stateManager.currentTrack;
+              if (currentTrack == null) {
+                if (kDebugMode) {
+                  print('Recovery cancelled - no current track to recover');
                 }
                 return;
               }
@@ -1039,7 +1053,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               }
               
               // Reload current track individually with user intent
-              await _playIndividualTrack(_stateManager.currentTrack!, _userIntendedPlaying);
+              await _playIndividualTrack(currentTrack, _userIntendedPlaying);
             } catch (e) {
               _logger.error('Error recovery failed: $e', 'AudioHandler');
             }
