@@ -57,7 +57,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           print('Playlists found:');
         }
         for (final playlist in appState.playlists.take(5)) {
-          print('  - ${playlist.name} (${playlist.trackCount} tracks)');
+          if (kDebugMode) {
+            print('  - ${playlist.name} (${playlist.trackCount} tracks)');
+          }
         }
       }
       print('=== END PLAYLISTS DEBUG ===');
