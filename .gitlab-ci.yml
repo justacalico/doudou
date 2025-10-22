@@ -110,10 +110,7 @@ publish_release:
   needs:
     - job: "build_debug_apk"
     - job: "build_debug_linux"
-    - job: "build_release_linux"
     - job: "build_debug_macos"
-      optional: true
-    - job: "build_release_macos"
       optional: true
     - job: "build_debug_ios"
       optional: true
