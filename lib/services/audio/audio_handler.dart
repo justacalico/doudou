@@ -355,7 +355,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final shouldDebugState = kDebugMode && !isMobile; // Disable verbose state logging on mobile
     
     if (shouldDebugState) {
-      print('=== _updatePlaybackState CALLED ===');
+      if (kDebugMode) {
+        print('=== _updatePlaybackState CALLED ===');
+      }
       print('DateTime: ${DateTime.now()}');
       print('Input newState.playing: ${newState.playing}');
       print('Input newState.processingState: ${newState.processingState}');
