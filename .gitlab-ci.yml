@@ -76,7 +76,7 @@ build_debug_macos:
     - flutter config --enable-macos-desktop
     - flutter clean
     - flutter pub get
-    - flutter build macos --debug
+    - flutter build macos
   artifacts:
     paths:
       - build/macos/Build/Products/Debug/
