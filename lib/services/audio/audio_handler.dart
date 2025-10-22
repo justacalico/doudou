@@ -3050,14 +3050,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     // Protect track from download interference while streaming
-    await _downloadServiceCoordinator.markTrackAsStreaming(track.id);
+    await _downloadServiceCoordinator.markTrackAsStreaming(actualTrack.id);
     
     if (kDebugMode) {
-      print('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}');
+      print('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${actualTrack.name}');
     }
     
     // Update current media item immediately
-    mediaItem.add(_trackToMediaItem(track));
+    mediaItem.add(_trackToMediaItem(actualTrack));
     
     // Update Touch Bar with new track
     if (Platform.isMacOS) {
@@ -3070,35 +3070,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Don't override user intent - if playPlaylist() set it to true, keep it
     // This preserves the user's explicit action to start playback
-      if (kDebugMode) {
-        print('Playing track with user intent: $_userIntendedPlaying, was previously playing: $wasPlaying');
-        
-        // CRITICAL VERIFICATION: Ensure we're about to play the correct track
-        print('TRACK VERIFICATION: About to play track: ${track.name} (ID: ${track.id})');
-        print('TRACK VERIFICATION: Current media item should match');
-        
-        // Additional verification: Check if this track matches what we expect from the new playlist
-        if (_stateManager.playlist.isNotEmpty && _stateManager.currentIndex < _stateManager.playlist.length) {
-          final expectedTrack = _stateManager.playlist[_stateManager.currentIndex];
-          if (expectedTrack.id != track.id) {
-            print('ERROR: Track mismatch detected!');
-            print('Expected from playlist[${_stateManager.currentIndex}]: ${expectedTrack.name} (${expectedTrack.id})');
-            print('Got from currentTrack: ${track.name} (${track.id})');
-            print('FORCING CORRECTION: Using expected track from playlist');
-            
-            // Force use the correct track from the current playlist position
-            final correctedTrack = expectedTrack;
-            _stateManager.setCurrentTrack(correctedTrack);
-            mediaItem.add(_trackToMediaItem(correctedTrack));
-            
-            // Update the track variable for the rest of the method
-            track = correctedTrack;
-            print('CORRECTED: Now using track: ${track.name} (${track.id})');
-          } else {
-            print('VERIFIED: Track matches expected playlist position');
-          }
-        }
-      }    // Try gapless playback first if enabled and conditions are met
+    if (kDebugMode) {
+      print('Playing track with user intent: $_userIntendedPlaying, was previously playing: $wasPlaying');
+      
+      // CRITICAL VERIFICATION: Ensure we're about to play the correct track
+      print('TRACK VERIFICATION: About to play track: ${actualTrack.name} (ID: ${actualTrack.id})');
+      print('TRACK VERIFICATION: Current media item should match');
+    }    // Try gapless playback first if enabled and conditions are met
     if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1) {
       _logger.info('Attempting gapless playback for playlist', 'AudioHandler');
       if (kDebugMode) {
