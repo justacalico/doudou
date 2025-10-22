@@ -180,7 +180,6 @@ build_debug_ios:
 
 publish_release:
   stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
     - apple
   needs:
