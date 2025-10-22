@@ -56,8 +56,6 @@ build_debug_apk:
 build_debug_linux:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
-  tags:
-    - android
   before_script:
     # Install Linux desktop development dependencies
     - apt-get update
