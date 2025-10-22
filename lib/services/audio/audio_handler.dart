@@ -350,7 +350,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Always update the playback state stream for UI consistency
     // The AndroidServiceManager should only control Android-specific AudioService behavior
     try {
+      if (kDebugMode) {
+        print('=== FINAL PLAYBACK STATE UPDATE ===');
+        print('finalState.playing: ${finalState.playing}');
+        print('finalState.processingState: ${finalState.processingState}');
+        print('finalState.updatePosition: ${finalState.updatePosition}');
+        print('About to call playbackState.add(finalState)');
+      }
+      
       playbackState.add(finalState);
+      
+      if (kDebugMode) {
+        print('Successfully updated playbackState stream');
+        print('=== END _updatePlaybackState ===');
+      }
     } catch (e) {
       if (kDebugMode) {
         print('=== PLAYBACK STATE UPDATE ERROR ===');
