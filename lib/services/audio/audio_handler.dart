@@ -1676,6 +1676,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         _userExplicitlyPaused = true; // Mark as intentional pause
         
+        // Update audio session coordinator for interruption handling
+        _audioSessionCoordinator.setUserIntendedPlaying(false);
+        
+        // Update state machine intent
+        _stateMachine.setIntent(UserIntent.pause);
+        
         // Store current position to restore on resume (fix for position jumping bug)
         _pausedAtPosition = _player.position;
         if (kDebugMode) {
