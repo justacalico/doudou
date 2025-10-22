@@ -1625,9 +1625,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             return;
           }
           
-          // Direct pause without complex state coordination
-          await _setUserIntentAtomic(false);
+          // Set user intent directly since we're already in commandThrottle mutex
+          _userIntendedPlaying = false;
           _userExplicitlyPaused = true; // Mark as intentional pause
+          
+          // Update audio session coordinator for interruption handling
+          _audioSessionCoordinator.setUserIntendedPlaying(false);
+          
+          // Update state machine intent
+          _stateMachine.setIntent(UserIntent.pause);
           await _player.pause();
           
           // Update playback state to reflect the pause
