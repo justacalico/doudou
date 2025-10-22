@@ -1502,9 +1502,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             await _player.seek(_pausedAtPosition!);
             await _positionManager.recordSeek(_pausedAtPosition!);
             _pausedAtPosition = null; // Clear the stored position
+            _userExplicitlyPaused = false; // Clear explicit pause flag after successful resume
             if (kDebugMode) {
               print('Successfully restored pause position');
             }
+          } else {
+            _userExplicitlyPaused = false; // Clear explicit pause flag when user plays normally
           }
         }
         
