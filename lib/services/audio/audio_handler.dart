@@ -2169,81 +2169,118 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Skip to next requested. Current: ${_stateManager.currentIndex}, Max: ${_stateManager.playlist.length - 1}');
     }
     
-    // Preserve playing state when skipping - if music was playing, it should continue playing
-    final wasPlaying = playbackState.value.playing;
-    if (wasPlaying) {
-      await _setUserIntentAtomic(true);
-      _logger.info('Preserving playing state during skip (user was listening)', 'AudioHandler');
-    }
-    
-    // Unprotect current track before transitioning to next
-    if (_stateManager.currentTrack != null) {
-      await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
-    }
-    
-    // Use gapless transition if concatenation is active
-    final isActive = await _isConcatenationActive();
-    if (isActive) {
-      final nextIndex = _stateManager.currentIndex + 1;
-      if (nextIndex < _stateManager.playlist.length) {
-        _logger.info('Using gapless skip to next track: $nextIndex', 'AudioHandler');
-        if (kDebugMode) {
-          print('Using gapless skip to next track: $nextIndex');
+    // Add timeout wrapper for the entire skip operation
+    try {
+      await _executeSkipWithTimeout('skipToNext', () async {
+        // Preserve playing state when skipping - if music was playing, it should continue playing
+        final wasPlaying = playbackState.value.playing;
+        if (wasPlaying) {
+          await _setUserIntentAtomic(true);
+          _logger.info('Preserving playing state during skip (user was listening)', 'AudioHandler');
+        }
+        
+        // Unprotect current track before transitioning to next
+        if (_stateManager.currentTrack != null) {
+          await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
+        }
+        
+        // Use gapless transition if concatenation is active
+        final isActive = await _isConcatenationActive();
+        if (isActive) {
+          final nextIndex = _stateManager.currentIndex + 1;
+          if (nextIndex < _stateManager.playlist.length) {
+            _logger.info('Using gapless skip to next track: $nextIndex', 'AudioHandler');
+            if (kDebugMode) {
+              print('Using gapless skip to next track: $nextIndex');
+            }
+            
+            try {
+              await _player.seekToNext();
+              // State will be updated automatically via currentIndexStream
+              _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
+              _logger.info('Gapless skip successful', 'AudioHandler');
+              return;
+            } catch (e) {
+              _logger.error('Gapless skip failed, falling back to traditional method: $e', 'AudioHandler');
+              if (kDebugMode) {
+                print('Gapless skip failed, falling back to traditional method: $e');
+              }
+            }
+          }
+        }
+        
+        // Fallback to traditional skip method
+        // Use atomic transition manager to prevent race conditions
+        if (!await _transitionManager.acquireTransitionLock('skipToNext')) {
+          _logger.warning('Skip to next rejected - another transition in progress', 'AudioHandler');
+          if (kDebugMode) {
+            print('Skip to next rejected - another transition in progress');
+          }
+          return;
         }
         
         try {
-          await _player.seekToNext();
-          // State will be updated automatically via currentIndexStream
-          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
-          _logger.info('Gapless skip successful', 'AudioHandler');
-          return;
-        } catch (e) {
-          _logger.error('Gapless skip failed, falling back to traditional method: $e', 'AudioHandler');
-          if (kDebugMode) {
-            print('Gapless skip failed, falling back to traditional method: $e');
+          // Reset all completion and transition handling atomically
+          _stateManager.setHandlingCompletion(false);
+          _stateManager.setTransitioning(false);
+          
+          if (await _stateManager.incrementCurrentIndexAtomic()) {
+            final nextTrack = _stateManager.currentTrack!;
+            _logger.info('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}', 'AudioHandler');
+            if (kDebugMode) {
+              print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}');
+            }
+            
+            await _playCurrentTrack();
+            _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
+            _logger.info('Skip to next completed successfully', 'AudioHandler');
+          } else {
+            _logger.info('Already at last track, cannot skip to next', 'AudioHandler');
+            if (kDebugMode) {
+              print('Already at last track, cannot skip to next');
+            }
+            
+            playbackState.add(playbackState.value.copyWith(
+              processingState: AudioProcessingState.completed,
+              playing: false,
+            ));
           }
+        } finally {
+          _transitionManager.releaseTransitionLock();
         }
-      }
-    }
-    
-    // Fallback to traditional skip method
-    // Use atomic transition manager to prevent race conditions
-    if (!await _transitionManager.acquireTransitionLock('skipToNext')) {
-      _logger.warning('Skip to next rejected - another transition in progress', 'AudioHandler');
+      });
+    } catch (e) {
+      _logger.error('Skip to next operation failed or timed out: $e', 'AudioHandler');
       if (kDebugMode) {
-        print('Skip to next rejected - another transition in progress');
+        print('Skip to next operation failed or timed out: $e');
       }
-      return;
+      // Force release transition lock and attempt recovery
+      _transitionManager.forceRelease();
     }
+  }
+  
+  /// Executes skip operations with timeout protection
+  Future<void> _executeSkipWithTimeout(String operation, Future<void> Function() skipFunction) async {
+    const timeoutDuration = Duration(seconds: 10);
     
     try {
-      // Reset all completion and transition handling atomically
-      _stateManager.setHandlingCompletion(false);
-      _stateManager.setTransitioning(false);
-      
-      if (await _stateManager.incrementCurrentIndexAtomic()) {
-        final nextTrack = _stateManager.currentTrack!;
-        _logger.info('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}', 'AudioHandler');
-        if (kDebugMode) {
-          print('Skipping to track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${nextTrack.name}');
-        }
-        
-        await _playCurrentTrack();
-        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
-        _logger.info('Skip to next completed successfully', 'AudioHandler');
-      } else {
-        _logger.info('Already at last track, cannot skip to next', 'AudioHandler');
-        if (kDebugMode) {
-          print('Already at last track, cannot skip to next');
-        }
-        
-        playbackState.add(playbackState.value.copyWith(
-          processingState: AudioProcessingState.completed,
-          playing: false,
-        ));
+      await skipFunction().timeout(timeoutDuration);
+    } on TimeoutException {
+      _logger.error('$operation timed out after ${timeoutDuration.inSeconds}s', 'AudioHandler');
+      if (kDebugMode) {
+        print('$operation timed out after ${timeoutDuration.inSeconds}s - attempting recovery');
       }
-    } finally {
-      _transitionManager.releaseTransitionLock();
+      
+      // Force release any locks and attempt recovery
+      _transitionManager.forceRelease();
+      
+      // Try to recover the UI state
+      final currentState = playbackState.value;
+      _updatePlaybackState(currentState.copyWith(
+        processingState: AudioProcessingState.ready,
+      ));
+      
+      throw TimeoutException('$operation timeout', timeoutDuration);
     }
   }
 
