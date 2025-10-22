@@ -306,7 +306,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final finalDelay = isMobile ? 100 : 300; // Reduce mobile delay from 300ms to 100ms
       
       if (kDebugMode && isMobile) {
-        print('Mobile optimized reset: Using reduced delays (${stopDelay}ms + ${finalDelay}ms)');
+        if (kDebugMode) {
+          print('Mobile optimized reset: Using reduced delays (${stopDelay}ms + ${finalDelay}ms)');
+        }
       }
       
       // Stop player first and wait for it to fully stop
