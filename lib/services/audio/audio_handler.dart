@@ -880,7 +880,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('_userExplicitlyPaused: $_userExplicitlyPaused');
         }
-        print('_userIntendedPlaying: $_userIntendedPlaying');
+        if (kDebugMode) {
+          print('_userIntendedPlaying: $_userIntendedPlaying');
+        }
         if (kDebugMode) {
           print('_player.playing: ${_player.playing}');
         }
