@@ -1487,6 +1487,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Set user intent to playing (already inside commandThrottle mutex)
         _userIntendedPlaying = true;
         
+        // Update audio session coordinator for interruption handling
+        _audioSessionCoordinator.setUserIntendedPlaying(true);
+        
+        // Update state machine intent
+        _stateMachine.setIntent(UserIntent.play);
+        
         _logger.info('User intent set to playing', 'AudioHandler');
         
         try {
