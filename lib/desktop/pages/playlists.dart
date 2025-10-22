@@ -48,7 +48,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         print('Current server type: ${appState.mediaServiceManager.currentServerType}');
       }
       if (appState.playlists.isEmpty) {
-        print('No playlists found, calling loadLibraryData()');
+        if (kDebugMode) {
+          print('No playlists found, calling loadLibraryData()');
+        }
         appState.loadLibraryData();
       } else {
         print('Playlists found:');
