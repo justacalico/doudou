@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../templates/desktop_layout.dart';
 import '../../templates/track_list_template.dart';
+import 'artist_details.dart';
 
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
