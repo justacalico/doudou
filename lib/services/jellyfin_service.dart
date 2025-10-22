@@ -412,25 +412,63 @@ class JellyfinService implements BaseMediaService {
   Future<List<Playlist>> getPlaylists() async {
     if (_server == null) throw Exception('Server not configured');
 
+    if (kDebugMode) {
+      print('JellyfinService.getPlaylists() called');
+      print('  - Server: ${_server!.serverUrl}');
+      print('  - UserId: ${_server!.userId}');
+    }
+
     try {
-      final response = await _dio.get(
-        '/Users/${_server!.userId}/Items',
-        queryParameters: {
-          'IncludeItemTypes': 'Playlist',
-          'Recursive': true,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags,ChildCount',
-          'SortBy': 'SortName',
-          'SortOrder': 'Ascending',
-        },
-      );
+      final url = '/Users/${_server!.userId}/Items';
+      final queryParams = {
+        'IncludeItemTypes': 'Playlist',
+        'Recursive': true,
+        'Fields': 'PrimaryImageAspectRatio,ImageTags,ChildCount',
+        'SortBy': 'SortName',
+        'SortOrder': 'Ascending',
+      };
+      
+      if (kDebugMode) {
+        print('JellyfinService: Making request to: $url');
+        print('JellyfinService: Query params: $queryParams');
+      }
+
+      final response = await _dio.get(url, queryParameters: queryParams);
+
+      if (kDebugMode) {
+        print('JellyfinService: Response status: ${response.statusCode}');
+        print('JellyfinService: Response data type: ${response.data.runtimeType}');
+      }
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
-        return items.map((item) => Playlist.fromJson(item)).toList();
+        
+        if (kDebugMode) {
+          print('JellyfinService: Found ${items.length} playlist items');
+          if (items.isNotEmpty) {
+            print('JellyfinService: First playlist raw data: ${items.first}');
+          }
+        }
+        
+        final playlists = items.map((item) => Playlist.fromJson(item)).toList();
+        
+        if (kDebugMode) {
+          print('JellyfinService: Converted to ${playlists.length} playlist objects');
+          if (playlists.isNotEmpty) {
+            print('JellyfinService: First playlist: ${playlists.first.name} (${playlists.first.trackCount} tracks)');
+          }
+        }
+        
+        return playlists;
+      } else {
+        if (kDebugMode) {
+          print('JellyfinService: Unexpected response status: ${response.statusCode}');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching playlists: $e');
+        print('JellyfinService: Error fetching playlists: $e');
+        print('JellyfinService: Error type: ${e.runtimeType}');
       }
     }
     return [];
