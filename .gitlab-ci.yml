@@ -96,7 +96,7 @@ build_debug_ios:
     - flutter --version
     - flutter clean
     - flutter pub get
-    - flutter build ios --debug --no-codesign
+    - flutter build ios --no-codesign
   artifacts:
     paths:
       - build/ios/iphoneos/
