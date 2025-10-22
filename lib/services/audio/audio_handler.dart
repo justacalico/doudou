@@ -1641,6 +1641,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _userIntendedPlaying = false;
       
       _userExplicitlyPaused = true; // Mark as intentional pause
+      
+      // Store current position to restore on resume (fix for position jumping bug)
+      _pausedAtPosition = _player.position;
+      if (kDebugMode) {
+        print('Stored pause position: ${_pausedAtPosition?.inMilliseconds}ms');
+      }
+      
       _logger.info('User intent set to paused', 'AudioHandler');
       
       try {
