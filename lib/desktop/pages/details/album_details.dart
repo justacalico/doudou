@@ -84,6 +84,10 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
     return appState.getImageUrl(imageId);
   }
 
+  void _refreshTracks() {
+    _loadAlbumTracks();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
