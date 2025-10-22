@@ -16,7 +16,7 @@ build_debug_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
-    - android
+    - apple
   before_script:
     # Fully clean build artifacts, caches, and temp directories
     - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
@@ -41,7 +41,7 @@ build_debug_linux:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
-    - android
+    - apple
   before_script:
     # Install Linux desktop development dependencies
     - apt-get update
@@ -147,7 +147,7 @@ publish_release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - android
+    - apple
   needs:
     - job: "build_debug_apk"
     - job: "build_debug_linux"
