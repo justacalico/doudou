@@ -1463,7 +1463,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Set user intent to playing (already inside commandThrottle mutex)
       _userIntendedPlaying = true;
       
-      _userExplicitlyPaused = false; // Clear explicit pause flag when user plays
       _logger.info('User intent set to playing', 'AudioHandler');
       
       try {
