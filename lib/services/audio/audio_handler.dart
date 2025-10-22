@@ -2606,6 +2606,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   Future<void> _handleTrackCompletion() async {
+    // CRITICAL: Don't handle track completion if we're intentionally resetting for a new queue
+    if (_isIntentionallyResetting) {
+      if (kDebugMode) {
+        print('Track completion ignored - intentionally resetting for new queue');
+      }
+      return;
+    }
+    
     // Double-check if we're already handling completion to prevent duplicate calls
     if (_stateManager.isHandlingCompletion) {
       if (kDebugMode) {
