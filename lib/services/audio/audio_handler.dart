@@ -3632,8 +3632,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Mobile platform: $isMobile');
     }
     
-    // Set user intent to playing since this is an explicit play action - use atomic operation
-    await _setUserIntentAtomic(true);
+    // Mobile optimization: Set user intent more efficiently for mobile platforms
+    if (isMobile) {
+      // Direct assignment for mobile to reduce mutex overhead
+      _userIntendedPlaying = true;
+      _userExplicitlyPaused = false;
+      _audioSessionCoordinator.setUserIntendedPlaying(true);
+      _stateMachine.setIntent(UserIntent.play);
+      
+      if (kDebugMode) {
+        print('Mobile: Set user intent directly for faster response');
+      }
+    } else {
+      // Full atomic operation for desktop
+      await _setUserIntentAtomic(true);
+    }
+    
     final userIntent = _userIntendedPlaying; // Direct access after setting
     
     // Clear explicit pause flag since we're starting new content
