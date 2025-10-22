@@ -200,7 +200,6 @@ class AppState extends ChangeNotifier {
                     androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                     androidNotificationChannelName: 'Doudou Music',
                     androidNotificationOngoing: true,
-                    androidStopForegroundOnPause: false, // Keep notification when paused for better background operation
                   ),
                 );
                 
