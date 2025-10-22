@@ -503,9 +503,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // If user explicitly paused, always show paused regardless of player state
       if (_userExplicitlyPaused || !_userIntendedPlaying) {
         finalPlayingState = false;
-        if (kDebugMode && isPlaying) {
-          if (kDebugMode) {
-            print('Player wants to play but user paused (explicitly: $_userExplicitlyPaused, intended: $_userIntendedPlaying) - respecting user intent');
+        if (kDebugMode) {
+          print('DECISION: User paused state detected -> finalPlayingState = false');
+          if (isPlaying) {
+            print('Respecting explicit user pause - forcing playing: false');
           }
         }
       }
@@ -515,13 +516,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (processingState == AudioProcessingState.idle && !isPlaying) {
           finalPlayingState = false;
           if (kDebugMode) {
-            print('User wants to play but player is idle - showing not playing');
+            print('DECISION: User wants to play but player is idle -> finalPlayingState = false');
           }
         } else {
           // For all other states (ready, buffering, playing), show as playing if user intended
           finalPlayingState = true;
-          if (kDebugMode && !isPlaying) {
-            if (kDebugMode) {
+          if (kDebugMode) {
+            print('DECISION: User intended playing -> finalPlayingState = true');
+            if (!isPlaying) {
               print('User intended playing, showing as playing despite player state');
             }
           }
@@ -530,6 +532,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Fallback to actual player state (shouldn't happen with proper user intent)
       else {
         finalPlayingState = isPlaying;
+        if (kDebugMode) {
+          print('DECISION: Fallback to player state -> finalPlayingState = $isPlaying');
+        }
       }
       
       // Always update playback state to keep system informed
