@@ -810,7 +810,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Enhanced position stream with atomic updates and debouncing
     _player.positionStream.listen((position) {
-      if (kDebugMode) {
+      // Mobile optimization: Reduce debug logging overhead for better performance
+      final isMobile = Platform.isAndroid || Platform.isIOS;
+      final shouldDebugPosition = kDebugMode && !isMobile; // Disable verbose position logging on mobile
+      
+      if (shouldDebugPosition) {
         print('=== POSITION STREAM LISTENER ===');
         print('DateTime: ${DateTime.now()}');
         print('Position: ${position.inMilliseconds}ms');
@@ -823,7 +827,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Only attempt position restoration if we have a stored pause position
       // and the player has resumed from an explicit pause
       if (_pausedAtPosition != null && _userExplicitlyPaused && _player.playing) {
-        if (kDebugMode) {
+        if (shouldDebugPosition) {
           print('Position restoration triggered - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
         }
         
@@ -831,7 +835,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Increased threshold to prevent unnecessary seeks during normal playback
         final positionDiff = (position.inMilliseconds - _pausedAtPosition!.inMilliseconds).abs();
         if (positionDiff > 500) {
-          if (kDebugMode) {
+          if (shouldDebugPosition) {
             print('Position jump detected (${positionDiff}ms), seeking to restore pause position');
           }
           
@@ -840,11 +844,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             try {
               await _player.seek(_pausedAtPosition!);
               await _positionManager.recordSeek(_pausedAtPosition!);
-              if (kDebugMode) {
+              if (shouldDebugPosition) {
                 print('Successfully restored pause position to ${_pausedAtPosition!.inMilliseconds}ms');
               }
             } catch (e) {
-              if (kDebugMode) {
+              if (shouldDebugPosition) {
                 print('Failed to restore pause position: $e');
               }
             }
