@@ -81,6 +81,12 @@ build_debug_linux:
     - flutter clean
   script:
     - flutter --version
+    # Skip Linux build on macOS since cross-compilation may not be available
+    - |
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "Linux build not supported on macOS (skipping)."
+        exit 0
+      fi
     - flutter config --enable-linux-desktop
     - flutter clean
     - flutter pub get
