@@ -484,7 +484,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         } else {
           if (shouldDebugState) {
-            print('Error updating playback state (likely Android foreground service): $e');
+            if (kDebugMode) {
+              print('Error updating playback state (likely Android foreground service): $e');
+            }
             print('Attempting fallback playback state update...');
           }
           
