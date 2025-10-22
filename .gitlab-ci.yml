@@ -127,5 +127,3 @@ publish_release:
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
         - name: "Debug Linux Build"
           url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_debug_linux"
-        - name: "Release Linux Build"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/$CI_COMMIT_SHA/download?job=build_release_linux"
