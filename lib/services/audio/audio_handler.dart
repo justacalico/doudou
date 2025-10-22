@@ -3826,8 +3826,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('AGGRESSIVE QUEUE CLEAR: Completely destroying old queue and all audio state');
     }
     
-    // Set flag to prevent ANY recovery interference
+    // Set flag to prevent ANY recovery interference AND track completion during reset
     _isIntentionallyResetting = true;
+    _stateManager.setHandlingCompletion(true); // CRITICAL: Block completion handling during reset
     
     try {
       // Step 1: Immediately stop all audio playback
@@ -3874,7 +3875,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Step 6: Clear all state references that could hold old track data
       _stateManager.setCurrentTrack(null);
-      _stateManager.setHandlingCompletion(false);
       _stateManager.setTransitioning(false);
       
       // Step 7: Clear any pending operations that might restore old state
@@ -3892,8 +3892,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('AGGRESSIVE QUEUE CLEAR: Complete - old queue eliminated with forced audio source clearing');
       }
     } finally {
-      // Always clear the reset flag
+      // Always clear the reset flag but keep completion blocked until we're fully set up
       _isIntentionallyResetting = false;
+      // Note: We keep _stateManager.setHandlingCompletion(true) until after the new queue is set up
     }
     
     if (kDebugMode) {
