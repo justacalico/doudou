@@ -136,7 +136,8 @@ build_debug_ios:
     - flutter --version
     - flutter clean
     - flutter pub get
-    - flutter build ios --no-codesign
+    # Prevent system sleep during build
+    - caffeinate -i flutter build ios --no-codesign
   artifacts:
     paths:
       - build/ios/iphoneos/
