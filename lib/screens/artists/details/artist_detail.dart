@@ -246,19 +246,21 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       await appState.audioHandler?.playPlaylist(shuffledTracks, 0);
       
       // Show confirmation
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('Radio Station Created'),
-          content: Text('Started ${widget.artist.name} radio station with infinite playback'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('Radio Station Created'),
+            content: Text('Started ${widget.artist.name} radio station with infinite playback'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
