@@ -367,7 +367,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Input newState.processingState: ${newState.processingState}');
       }
-      print('Current _userIntendedPlaying: $_userIntendedPlaying');
+      if (kDebugMode) {
+        print('Current _userIntendedPlaying: $_userIntendedPlaying');
+      }
       print('Current _userExplicitlyPaused: $_userExplicitlyPaused');
       print('Previous playbackState.playing: ${playbackState.value.playing}');
     }
