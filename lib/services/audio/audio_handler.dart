@@ -52,7 +52,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Background track completion watchdog for Android
   Timer? _backgroundWatchdog;
   DateTime? _lastTrackPositionUpdate;
-  Duration? _lastKnownPosition;
   Duration? _lastKnownDuration;
   
   // Component managers
