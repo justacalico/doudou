@@ -382,13 +382,32 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Navigate to settings/login page
-                    Navigator.of(context).pushNamed('/settings');
-                  },
-                  icon: const Icon(Icons.settings),
-                  label: const Text('Go to Settings'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigate to settings/login page
+                        Navigator.of(context).pushNamed('/settings');
+                      },
+                      icon: const Icon(Icons.settings),
+                      label: const Text('Go to Settings'),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        _testServerConnectivity();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Connection test results in console/logs'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.network_check),
+                      label: const Text('Test Connection'),
+                    ),
+                  ],
                 ),
               ],
             ),
