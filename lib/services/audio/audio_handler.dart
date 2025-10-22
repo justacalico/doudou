@@ -1598,24 +1598,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         // Simple state validation for bypass mode - just check if already playing
-        if (_player.playing) {
-          _logger.info('Play command ignored - player is already playing', 'AudioHandler');
+        if (_player.playing && _userIntendedPlaying) {
+          _logger.info('Play command ignored - already playing and user intended', 'AudioHandler');
           if (kDebugMode) {
-            print('Play command ignored - player is already playing');
+            print('Play command ignored - player is already playing and user intended');
           }
           return;
         }
         
-        // Set user intent directly
-        _userIntendedPlaying = true;
-        _userExplicitlyPaused = false; // Clear explicit pause flag
+        // Set user intent atomically
+        await _setUserIntentAtomic(true);
         _pausedAtPosition = null; // Clear stored pause position when resuming
-        
-        // Update audio session coordinator for interruption handling
-        _audioSessionCoordinator.setUserIntendedPlaying(true);
-        
-        // Update state machine intent
-        _stateMachine.setIntent(UserIntent.play);
         
         try {
           // If no track is loaded, try to load current track in bypass mode
