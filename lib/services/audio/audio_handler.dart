@@ -2461,23 +2461,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Cancel any ongoing gapless operations when skipping
     _cancellationManager.createToken('skipCommand', 'Skip to previous track cancelling previous operations');
     
-    // Preserve playing state when skipping - if music was playing, it should continue playing
-    final wasPlaying = playbackState.value.playing;
-    if (wasPlaying) {
-      await _setUserIntentAtomic(true);
-      _logger.info('Preserving playing state during skip to previous', 'AudioHandler');
-    }
-    
-    // Unprotect current track before transitioning to previous
-    if (_stateManager.currentTrack != null) {
-      await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
-    }
-    
-    // Use gapless transition if concatenation is active
-    final isActive = await _isConcatenationActive();
-    if (isActive) {
-      final prevIndex = _stateManager.currentIndex - 1;
-      if (prevIndex >= 0) {
+    // Add timeout wrapper for the entire skip operation
+    try {
+      await _executeSkipWithTimeout('skipToPrevious', () async {
         _logger.info('Using gapless skip to previous track: $prevIndex', 'AudioHandler');
         if (kDebugMode) {
           print('Using gapless skip to previous track: $prevIndex');
