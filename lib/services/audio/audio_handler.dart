@@ -3795,36 +3795,60 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Set _userIntendedPlaying to: $userIntent');
     }
     
-    // Mobile optimization: Use gentler reset for mobile platforms to avoid MediaCodec issues
-    if (isMobile) {
-      if (kDebugMode) {
-        print('Mobile: Using gentle reset to prevent MediaCodec race conditions');
-      }
-      // CRITICAL FIX: Set intentional reset flag to prevent recovery interference
-      _isIntentionallyResetting = true;
+    // CRITICAL FIX: Aggressively clear EVERYTHING from old queue to prevent audio bleeding
+    if (kDebugMode) {
+      print('AGGRESSIVE QUEUE CLEAR: Completely destroying old queue and all audio state');
+    }
+    
+    // Set flag to prevent ANY recovery interference
+    _isIntentionallyResetting = true;
+    
+    try {
+      // Step 1: Immediately stop all audio playback
+      await _player.stop();
       
-      try {
-        // Gentle mobile reset - faster than desktop but safer than aggressive reset
-        await _player.stop();
-        await Future.delayed(const Duration(milliseconds: 200)); // Increased for better MediaCodec cleanup
-        _preloader.clearAllPreloadedPlayers();
-        await _clearAudioSourceCache(); // Use protected method for consistency
-        _isUsingConcatenation = false;
-        _concatenatingSource = null;
-        _stateManager.setCurrentTrack(null);
-        _stateManager.setHandlingCompletion(false);
-        _stateManager.setTransitioning(false);
-        await Future.delayed(const Duration(milliseconds: 100)); // Increased final delay for stability
-      } finally {
-        // Clear the flag after reset is complete
-        _isIntentionallyResetting = false;
+      // Step 2: Force clear any concatenating source to stop old streams
+      if (_concatenatingSource != null) {
+        try {
+          await _concatenatingSource!.clear();
+        } catch (e) {
+          // Ignore errors when clearing concatenating source
+          if (kDebugMode) {
+            print('Ignoring error clearing concatenating source: $e');
+          }
+        }
       }
-    } else {
+      
+      // Step 3: Aggressively clear all caches and buffers
+      _preloader.clearAllPreloadedPlayers();
+      await _clearAudioSourceCache();
+      
+      // Step 4: Destroy concatenation state completely
+      _isUsingConcatenation = false;
+      _concatenatingSource = null;
+      
+      // Step 5: Clear all state references that could hold old track data
+      _stateManager.setCurrentTrack(null);
+      _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
+      
+      // Step 6: Clear any pending operations that might restore old state
+      _bufferingLoopCount = 0;
+      _lastBufferingTime = null;
+      
+      // Step 7: Wait for everything to settle based on platform
+      if (isMobile) {
+        await Future.delayed(const Duration(milliseconds: 300)); // More time for mobile MediaCodec cleanup
+      } else {
+        await Future.delayed(const Duration(milliseconds: 200)); // Faster for desktop
+      }
+      
       if (kDebugMode) {
-        print('Desktop: Using full player state reset');
+        print('AGGRESSIVE QUEUE CLEAR: Complete - old queue eliminated');
       }
-      // CRITICAL FIX: Completely reset player state to prevent old queue from continuing
-      await _resetPlayerStateCompletely();
+    } finally {
+      // Always clear the reset flag
+      _isIntentionallyResetting = false;
     }
     
     if (kDebugMode) {
@@ -3842,6 +3866,22 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (kDebugMode) {
       print('Set new playlist: ${tracks.length} tracks, starting at index $startIndex');
       print('New current track: ${_stateManager.currentTrack?.name ?? "None"}');
+      
+      // VERIFICATION: Check if the correct track is set
+      final expectedTrack = tracks[startIndex];
+      final actualTrack = _stateManager.currentTrack;
+      if (actualTrack == null || actualTrack.id != expectedTrack.id) {
+        print('ERROR: Track mismatch after setting playlist!');
+        print('Expected: ${expectedTrack.name} (${expectedTrack.id})');
+        print('Actual: ${actualTrack?.name ?? "null"} (${actualTrack?.id ?? "null"})');
+        
+        // Force set the correct track
+        _stateManager.setCurrentTrack(expectedTrack);
+        mediaItem.add(_trackToMediaItem(expectedTrack));
+        print('CORRECTED: Forced set to expected track');
+      } else {
+        print('VERIFIED: Correct track is set');
+      }
     }
     
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
