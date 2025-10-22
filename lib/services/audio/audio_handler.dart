@@ -467,7 +467,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         final newConfig = _androidServiceManager.handlePlaybackStateError(e);
         
         if (shouldDebugState) {
-          print('=== ANDROID AUDIOSERVICE ERROR HANDLED ===');
+          if (kDebugMode) {
+            print('=== ANDROID AUDIOSERVICE ERROR HANDLED ===');
+          }
           if (kDebugMode) {
             print('New service state: ${newConfig.description}');
           }
