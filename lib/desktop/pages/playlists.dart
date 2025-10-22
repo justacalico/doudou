@@ -39,6 +39,11 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       print('Is logged in: ${appState.isLoggedIn}');
       print('Current server type: ${appState.mediaServiceManager.currentServerType}');
       
+      if (!appState.isLoggedIn) {
+        print('Not logged in - cannot load playlists');
+        return;
+      }
+      
       if (appState.playlists.isEmpty) {
         print('Playlists empty, calling loadLibraryData()');
         appState.loadLibraryData();
