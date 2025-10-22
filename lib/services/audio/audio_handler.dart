@@ -128,6 +128,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Legacy user intent tracking - will be replaced by state machine
   bool _userIntendedPlaying = false;
   bool _userExplicitlyPaused = false; // Track intentional user pause
+  bool _isIntentionallyResetting = false; // Track when we're intentionally resetting to prevent recovery interference
 
   // Position tracking for pause/resume to prevent position jumping
   Duration? _pausedAtPosition;
@@ -300,16 +301,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return await _playerOperationQueue.enqueue('resetPlayerState', () async {
       _logger.info('Completely resetting player state', 'AudioHandler');
       
-      // Optimize for mobile: Reduce delays for faster queue switching but keep them stable
-      final isMobile = Platform.isAndroid || Platform.isIOS;
-      final stopDelay = isMobile ? 150 : 200; // Conservative mobile delay for MediaCodec stability
-      final finalDelay = isMobile ? 200 : 300; // Conservative mobile delay for MediaCodec stability
+      // Set flag to prevent recovery interference during intentional reset
+      _isIntentionallyResetting = true;
       
-      if (kDebugMode && isMobile) {
-        if (kDebugMode) {
-          print('Mobile optimized reset: Using conservative delays (${stopDelay}ms + ${finalDelay}ms)');
+      try {
+        // Optimize for mobile: Reduce delays for faster queue switching but keep them stable
+        final isMobile = Platform.isAndroid || Platform.isIOS;
+        final stopDelay = isMobile ? 150 : 200; // Conservative mobile delay for MediaCodec stability
+        final finalDelay = isMobile ? 200 : 300; // Conservative mobile delay for MediaCodec stability
+        
+        if (kDebugMode && isMobile) {
+          if (kDebugMode) {
+            print('Mobile optimized reset: Using conservative delays (${stopDelay}ms + ${finalDelay}ms)');
+          }
         }
-      }
       
       // Stop player first and wait for it to fully stop
       await _errorStateManager.executeWithErrorHandling(
