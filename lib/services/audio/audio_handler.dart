@@ -2745,6 +2745,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> _playCurrentTrack() async {
     _logger.info('_playCurrentTrack called - Playlist: ${_stateManager.playlist.length} tracks, Index: ${_stateManager.currentIndex}, User intent: $_userIntendedPlaying', 'AudioHandler');
     
+    // Stop any existing background watchdog when starting a new track
+    _stopBackgroundWatchdog();
+    
     if (kDebugMode) {
       print('=== _playCurrentTrack DEBUG START ===');
       print('Playlist size: ${_stateManager.playlist.length}');
