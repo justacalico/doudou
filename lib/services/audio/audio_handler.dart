@@ -1636,8 +1636,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         return;
       }
       
-      _lastPauseCommand = now;
-      
       if (kDebugMode) {
         print('Pause command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
