@@ -1372,103 +1372,33 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
-    final now = DateTime.now();
-    _logger.info('Play command received', 'AudioHandler');
     if (kDebugMode) {
       print('Play: Processing play command directly (no throttling)');
     }
+    
+    final now = DateTime.now();
+    _logger.info('Play command received', 'AudioHandler');
     
     try {
       // Android service manager: Use direct player control if in bypass mode
       // Skip complex state coordination to avoid deadlocks in bypass mode
       if (_androidServiceManager.shouldSkipAudioService()) {
-          if (kDebugMode) {
-            print('Android service manager: Direct player play - ${_androidServiceManager.currentConfig.description}');
-          }
-          
-          // Simple state validation for bypass mode - just check if already playing
-          if (_player.playing) {
-            _logger.info('Play command ignored - player is already playing', 'AudioHandler');
-            if (kDebugMode) {
-              print('Play command ignored - player is already playing');
-            }
-            return;
-          }
-          
-          // Set user intent directly since we're already in commandThrottle mutex
-          _userIntendedPlaying = true;
-          _userExplicitlyPaused = false; // Clear explicit pause flag
-          
-          // Update audio session coordinator for interruption handling
-          _audioSessionCoordinator.setUserIntendedPlaying(true);
-          
-          // Update state machine intent
-          _stateMachine.setIntent(UserIntent.play);
-          
-          try {
-            // If no track is loaded, try to load current track in bypass mode
-            if (_stateManager.currentTrack != null && _player.audioSource == null) {
-              await _loadAndPlayTrackBypass(_stateManager.currentTrack!, true);
-            } else {
-              await _player.play();
-            }
-            
-            // Update playback state to reflect the play
-            _updatePlaybackState(playbackState.value.copyWith(
-              playing: true,
-              processingState: _player.processingState == ProcessingState.ready 
-                  ? AudioProcessingState.ready 
-                  : AudioProcessingState.loading,
-            ));
-            
-          } catch (e) {
-            _logger.error('Play command failed in bypass mode: $e', 'AudioHandler');
-            if (kDebugMode) {
-              print('Play command failed in bypass mode: $e');
-            }
-            
-            // Update playback state to reflect the error
-            _updatePlaybackState(playbackState.value.copyWith(
-              playing: false,
-              processingState: AudioProcessingState.error,
-            ));
-          }
-          
-          _logger.info('Play command completed successfully (bypass mode)', 'AudioHandler');
-          if (kDebugMode) {
-            print('Play command completed (bypass mode). User intended playing: $_userIntendedPlaying');
-            print('Play: About to release commandThrottle mutex');
-          }
-          return;
-        }
-        
-        // Full state coordination for non-bypass mode (Android/MediaSession)
-        // Validate state transition before executing
-        if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.play)) {
-          _logger.warning('Play command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
-          return;
-        }
-        
-        // Request coordinated state transition
-        final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
-          PlayerTransitionEvent.play,
-          context: {'command': 'play', 'timestamp': now.millisecondsSinceEpoch},
-        );
-        
-        if (!transitionAccepted) {
-          _logger.warning('Play command queued due to ongoing state transition', 'AudioHandler');
-          return;
-        }
-        
-        // Cancel any ongoing gapless operations when new play command is issued
-        _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
-        
         if (kDebugMode) {
-          print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
+          print('Android service manager: Direct player play - ${_androidServiceManager.currentConfig.description}');
         }
         
-        // Set user intent to playing (already inside commandThrottle mutex)
+        // Simple state validation for bypass mode - just check if already playing
+        if (_player.playing) {
+          _logger.info('Play command ignored - player is already playing', 'AudioHandler');
+          if (kDebugMode) {
+            print('Play command ignored - player is already playing');
+          }
+          return;
+        }
+        
+        // Set user intent directly
         _userIntendedPlaying = true;
+        _userExplicitlyPaused = false; // Clear explicit pause flag
         
         // Update audio session coordinator for interruption handling
         _audioSessionCoordinator.setUserIntendedPlaying(true);
@@ -1476,102 +1406,162 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Update state machine intent
         _stateMachine.setIntent(UserIntent.play);
         
-        _logger.info('User intent set to playing', 'AudioHandler');
-        
         try {
-          // Ensure we have a track to play
-          if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
-            _logger.info('No current track, loading from playlist', 'AudioHandler');
-            if (kDebugMode) {
-              print('No current track, loading from playlist');
-            }
-            // Add timeout protection for _playCurrentTrack as it can hang
-            await _playCurrentTrack().timeout(
-              Duration(seconds: 5),
-              onTimeout: () {
-                _logger.warning('_playCurrentTrack timed out, attempting recovery', 'AudioHandler');
-                throw TimeoutException('_playCurrentTrack timeout', Duration(seconds: 5));
-              },
-            );
+          // If no track is loaded, try to load current track in bypass mode
+          if (_stateManager.currentTrack != null && _player.audioSource == null) {
+            await _loadAndPlayTrackBypass(_stateManager.currentTrack!, true);
           } else {
-            _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
-            if (kDebugMode) {
-              print('Playing existing track');
-            }
-            // Add timeout protection for player.play() as it can hang on network issues
-            await _player.play().timeout(
-              Duration(seconds: 3),
-              onTimeout: () {
-                _logger.warning('_player.play() timed out', 'AudioHandler');
-                throw TimeoutException('_player.play() timeout', Duration(seconds: 3));
-              },
-            );
+            await _player.play();
           }
           
-          // Always verify the play command worked
-          await Future.delayed(const Duration(milliseconds: 100));
-          
-          // Update state to reflect actual player state, but force playing if user intended
+          // Update playback state to reflect the play
           _updatePlaybackState(playbackState.value.copyWith(
-            playing: true, // Force true since user explicitly requested play
+            playing: true,
             processingState: _player.processingState == ProcessingState.ready 
                 ? AudioProcessingState.ready 
                 : AudioProcessingState.loading,
           ));
           
-          _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
-          if (kDebugMode) {
-            print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
-          }
         } catch (e) {
-          _logger.error('Error in play command: $e', 'AudioHandler');
+          _logger.error('Play command failed in bypass mode: $e', 'AudioHandler');
           if (kDebugMode) {
-            print('Error in play command: $e');
+            print('Play command failed in bypass mode: $e');
           }
           
-          // Check if this is an Android foreground service error
-          if (Platform.isAndroid && e.toString().contains('ForegroundServiceStartNotAllowedException')) {
-            _logger.warning('Android foreground service blocked - attempting fallback playback', 'AudioHandler');
-            if (kDebugMode) {
-              print('=== ANDROID FOREGROUND SERVICE BLOCKED ===');
-              print('Attempting fallback audio playback without media controls...');
-            }
+          // Update playback state to reflect the error
+          _updatePlaybackState(playbackState.value.copyWith(
+            playing: false,
+            processingState: AudioProcessingState.error,
+          ));
+        }
+        
+        _logger.info('Play command completed successfully (bypass mode)', 'AudioHandler');
+        if (kDebugMode) {
+          print('Play command completed (bypass mode). User intended playing: $_userIntendedPlaying');
+        }
+        return;
+      }
+      
+      // Full state coordination for non-bypass mode (Android/MediaSession)
+      // Validate state transition before executing
+      if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.play)) {
+        _logger.warning('Play command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
+        return;
+      }
+      
+      // Request coordinated state transition
+      final transitionAccepted = await _playerStateTransitionCoordinator.requestTransition(
+        PlayerTransitionEvent.play,
+        context: {'command': 'play', 'timestamp': now.millisecondsSinceEpoch},
+      );
+      
+      if (!transitionAccepted) {
+        _logger.warning('Play command queued due to ongoing state transition', 'AudioHandler');
+        return;
+      }
+      
+      // Cancel any ongoing gapless operations when new play command is issued
+      _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
+      
+      if (kDebugMode) {
+        print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
+      }
+      
+      // Set user intent to playing
+      _userIntendedPlaying = true;
+      
+      // Update audio session coordinator for interruption handling
+      _audioSessionCoordinator.setUserIntendedPlaying(true);
+      
+      // Update state machine intent
+      _stateMachine.setIntent(UserIntent.play);
+      
+      _logger.info('User intent set to playing', 'AudioHandler');
+      
+      try {
+        // Ensure we have a track to play
+        if (_stateManager.currentTrack == null && _stateManager.playlist.isNotEmpty) {
+          _logger.info('No current track, loading from playlist', 'AudioHandler');
+          if (kDebugMode) {
+            print('No current track, loading from playlist');
+          }
+          // Add timeout protection for _playCurrentTrack as it can hang
+          await _playCurrentTrack().timeout(
+            Duration(seconds: 5),
+            onTimeout: () {
+              _logger.warning('_playCurrentTrack timed out, attempting recovery', 'AudioHandler');
+              throw TimeoutException('_playCurrentTrack timeout', Duration(seconds: 5));
+            },
+          );
+        } else {
+          _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
+          if (kDebugMode) {
+            print('Playing existing track');
+          }
+          // Add timeout protection for player.play() as it can hang on network issues
+          await _player.play().timeout(
+            Duration(seconds: 3),
+            onTimeout: () {
+              _logger.warning('_player.play() timed out', 'AudioHandler');
+              throw TimeoutException('_player.play() timeout', Duration(seconds: 3));
+            },
+          );
+        }
+        
+        // Always verify the play command worked
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Update state to reflect actual player state, but force playing if user intended
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: true, // Force true since user explicitly requested play
+          processingState: _player.processingState == ProcessingState.ready 
+              ? AudioProcessingState.ready 
+              : AudioProcessingState.loading,
+        ));
+        
+        _logger.info('Play command completed successfully. Playing: ${_player.playing}', 'AudioHandler');
+        if (kDebugMode) {
+          print('Play command completed. User intended playing: $_userIntendedPlaying, Actually playing: ${_player.playing}');
+        }
+      } catch (e) {
+        _logger.error('Error in play command: $e', 'AudioHandler');
+        if (kDebugMode) {
+          print('Error in play command: $e');
+        }
+        
+        // Check if this is an Android foreground service error
+        if (Platform.isAndroid && e.toString().contains('ForegroundServiceStartNotAllowedException')) {
+          _logger.warning('Android foreground service blocked - attempting fallback playback', 'AudioHandler');
+          if (kDebugMode) {
+            print('=== ANDROID FOREGROUND SERVICE BLOCKED ===');
+            print('Attempting fallback audio playbook without media controls...');
+          }
+          
+          try {
+            // Try to restart the player with a simplified setup
+            await _recoverFromAndroidServiceFailure();
             
-            try {
-              // Try to restart the player with a simplified setup
-              await _recoverFromAndroidServiceFailure();
-              
-              if (kDebugMode) {
-                print('Android service failure recovery completed');
-              }
-            } catch (recoveryError) {
-              _logger.error('Android service recovery failed: $recoveryError', 'AudioHandler');
-              if (kDebugMode) {
-                print('Android service recovery failed: $recoveryError');
-              }
+            if (kDebugMode) {
+              print('Android service failure recovery completed');
             }
-          } else {
-            // Try to recover by reloading current track for non-Android service errors
-            if (_stateManager.currentTrack != null) {
-              _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
-              await _resumeCurrentTrack();
+          } catch (recoveryError) {
+            _logger.error('Android service recovery failed: $recoveryError', 'AudioHandler');
+            if (kDebugMode) {
+              print('Android service recovery failed: $recoveryError');
             }
+          }
+        } else {
+          // Try to recover by reloading current track for non-Android service errors
+          if (_stateManager.currentTrack != null) {
+            _logger.info('Attempting recovery by reloading current track', 'AudioHandler');
+            await _resumeCurrentTrack();
           }
         }
-      }).timeout(
-        Duration(seconds: 10),
-        onTimeout: () {
-          _logger.error('Play command timed out after 10 seconds', 'AudioHandler');
-          if (kDebugMode) {
-            print('Play command timed out after 10 seconds - force releasing mutex');
-          }
-          throw TimeoutException('Play command mutex timeout', Duration(seconds: 10));
-        },
-      );
+      }
     } catch (e) {
-      // Handle any errors that might prevent mutex release
+      // Handle any errors that might prevent command completion
       if (kDebugMode) {
-        print('Error in play command (mutex level): $e');
+        print('Error in play command: $e');
       }
       _logger.error('Play command failed: $e', 'AudioHandler');
     }
