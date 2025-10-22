@@ -881,7 +881,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('_userExplicitlyPaused: $_userExplicitlyPaused');
         }
         print('_userIntendedPlaying: $_userIntendedPlaying');
-        print('_player.playing: ${_player.playing}');
+        if (kDebugMode) {
+          print('_player.playing: ${_player.playing}');
+        }
       }
       
       // Only attempt position restoration if we have a stored pause position
