@@ -1441,6 +1441,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Set user intent directly
         _userIntendedPlaying = true;
         _userExplicitlyPaused = false; // Clear explicit pause flag
+        _pausedAtPosition = null; // Clear stored pause position when resuming
         
         // Update audio session coordinator for interruption handling
         _audioSessionCoordinator.setUserIntendedPlaying(true);
@@ -1512,6 +1513,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Set user intent to playing
       _userIntendedPlaying = true;
       _userExplicitlyPaused = false; // Clear explicit pause flag
+      _pausedAtPosition = null; // Clear stored pause position when resuming
       
       // Update audio session coordinator for interruption handling
       _audioSessionCoordinator.setUserIntendedPlaying(true);
@@ -1710,21 +1712,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         );
         
         // Immediately update playback state to reflect the pause
-        // Force playing: false to override any state machine logic that might interfere
-        _updatePlaybackState(playbackState.value.copyWith(
+        // Force playing: false and preserve the current position
+        final currentState = playbackState.value;
+        _updatePlaybackState(currentState.copyWith(
           playing: false,
+          updatePosition: _pausedAtPosition ?? currentState.updatePosition,
         ));
         
         // Add a small delay then force another state update to ensure UI gets the change
         await Future.delayed(const Duration(milliseconds: 50));
         _updatePlaybackState(playbackState.value.copyWith(
           playing: false,
+          updatePosition: _pausedAtPosition ?? playbackState.value.updatePosition,
         ));
         
         _logger.info('Pause command completed successfully', 'AudioHandler');
         if (kDebugMode) {
           print('Pause command completed. User intended playing: $_userIntendedPlaying');
           print('Forced playback state to playing: false');
+          print('Preserved position: ${_pausedAtPosition?.inMilliseconds}ms');
         }
       } catch (e) {
         _logger.error('Error in pause command: $e', 'AudioHandler');
@@ -1733,14 +1739,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         // Force update playback state even if pause failed
-        _updatePlaybackState(playbackState.value.copyWith(
+        final currentState = playbackState.value;
+        _updatePlaybackState(currentState.copyWith(
           playing: false,
+          updatePosition: _pausedAtPosition ?? currentState.updatePosition,
         ));
         
         // Double-ensure the state sticks
         await Future.delayed(const Duration(milliseconds: 50));
         _updatePlaybackState(playbackState.value.copyWith(
           playing: false,
+          updatePosition: _pausedAtPosition ?? playbackState.value.updatePosition,
         ));
       }
     } catch (e) {
