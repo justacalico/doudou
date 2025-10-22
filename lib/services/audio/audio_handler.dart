@@ -614,15 +614,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Enhanced position stream with atomic updates and debouncing
     _player.positionStream.listen((position) {
-      // Fix for position jumping bug: restore pause position if needed
+      // Only attempt position restoration if we have a stored pause position
+      // and the player has resumed from an explicit pause
       if (_pausedAtPosition != null && _userExplicitlyPaused && _player.playing) {
         if (kDebugMode) {
           print('Position stream detected resume - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
         }
         
-        // Only seek if the position is significantly different (more than 100ms)
+        // Only seek if the position is significantly different (more than 500ms)
+        // Increased threshold to prevent unnecessary seeks during normal playback
         final positionDiff = (position.inMilliseconds - _pausedAtPosition!.inMilliseconds).abs();
-        if (positionDiff > 100) {
+        if (positionDiff > 500) {
           if (kDebugMode) {
             print('Position jump detected (${positionDiff}ms), seeking to restore pause position');
           }
@@ -640,6 +642,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 print('Failed to restore pause position: $e');
               }
             }
+            // Clear the restoration flags
             _pausedAtPosition = null;
             _userExplicitlyPaused = false;
           });
@@ -647,7 +650,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Return early to avoid updating with the wrong position
           return;
         } else {
-          // Position is close enough, clear the flags
+          // Position is close enough, clear the flags without seeking
+          if (kDebugMode) {
+            print('Position close enough (${positionDiff}ms), clearing pause restoration flags');
+          }
           _pausedAtPosition = null;
           _userExplicitlyPaused = false;
         }
