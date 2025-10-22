@@ -27,18 +27,30 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _loadAlbumTracks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAlbumTracks();
+    });
   }
 
   void _loadAlbumTracks() async {
+    if (!mounted) return;
+    
     final appState = context.read<AppState>();
     setState(() {
       _isLoading = true;
     });
 
     try {
+      if (kDebugMode) {
+        print('Loading tracks for album: ${widget.album.name} (ID: ${widget.album.id})');
+      }
+      
       // Fetch tracks for this album using the appropriate service
       _albumTracks = await appState.getAlbumTracks(widget.album.id);
+      
+      if (kDebugMode) {
+        print('Loaded ${_albumTracks.length} tracks for album: ${widget.album.name}');
+      }
       
       // Sort by track number if available (already sorted by API, but just in case)
       _albumTracks.sort((a, b) {
@@ -59,9 +71,11 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
       }
       _albumTracks = [];
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
