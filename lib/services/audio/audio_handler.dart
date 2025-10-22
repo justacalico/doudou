@@ -4595,4 +4595,65 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _touchBarEnabled = false;
     }
   }
+
+  /// Start background watchdog to detect track completion when app is backgrounded
+  void _startBackgroundWatchdog(Duration remainingTime) {
+    // Cancel any existing watchdog
+    _backgroundWatchdog?.cancel();
+    
+    // Add a buffer to the remaining time to account for slight timing differences
+    final watchdogDelay = remainingTime + const Duration(milliseconds: 1500);
+    
+    if (kDebugMode) {
+      print('Starting background watchdog for ${watchdogDelay.inMilliseconds}ms (remaining: ${remainingTime.inMilliseconds}ms)');
+    }
+    
+    _backgroundWatchdog = Timer(watchdogDelay, () async {
+      // Only trigger if we're still playing and haven't moved to next track
+      if (_userIntendedPlaying && 
+          !_userExplicitlyPaused && 
+          !_transitionManager.isTransitionInProgress &&
+          !_stateManager.isHandlingCompletion) {
+        
+        // Double-check that we should have completed by now
+        final currentPosition = _player.position;
+        final duration = _player.duration;
+        
+        if (duration != null && currentPosition.inMilliseconds >= (duration.inMilliseconds - 1000)) {
+          if (kDebugMode) {
+            print('Background watchdog triggered - track should have completed but no event fired');
+            print('Position: ${currentPosition.inMilliseconds}ms, Duration: ${duration.inMilliseconds}ms');
+            print('Processing state: ${_player.processingState}');
+          }
+          
+          _logger.warning('Background watchdog detected missed track completion - forcing transition', 'AudioHandler');
+          
+          // Check if we're actually still playing the same track that started the watchdog
+          if (_lastKnownDuration != null && 
+              duration.inMilliseconds == _lastKnownDuration!.inMilliseconds) {
+            // Force track completion handling
+            await _handleTrackCompletion();
+          }
+        } else {
+          if (kDebugMode) {
+            print('Background watchdog fired but track position suggests it should still be playing');
+            print('Position: ${currentPosition.inMilliseconds}ms, Duration: ${duration?.inMilliseconds}ms');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('Background watchdog fired but conditions changed - user paused or transition in progress');
+        }
+      }
+    });
+  }
+
+  /// Stop the background watchdog
+  void _stopBackgroundWatchdog() {
+    _backgroundWatchdog?.cancel();
+    _backgroundWatchdog = null;
+    if (kDebugMode) {
+      print('Background watchdog stopped');
+    }
+  }
 }
