@@ -205,9 +205,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _stateMachine.setIntent(UserIntent.pause);
       }
       
-      // If intent changed, trigger immediate state verification
+      // Mobile optimization: Reduce verification delay for faster response
       if (previousIntent != intendedPlaying) {
-        Future.delayed(const Duration(milliseconds: 100), () {
+        final isMobile = Platform.isAndroid || Platform.isIOS;
+        final verificationDelay = isMobile ? 25 : 100; // Reduce mobile delay from 100ms to 25ms
+        
+        if (kDebugMode && isMobile) {
+          print('Mobile optimized user intent: Using ${verificationDelay}ms verification delay');
+        }
+        
+        Future.delayed(Duration(milliseconds: verificationDelay), () {
           _verifyUserIntentAlignment();
         });
       }
