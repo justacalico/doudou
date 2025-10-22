@@ -89,7 +89,12 @@ class AudioTransitionManager {
       
       _transitionLock!.complete();
       _currentOperation = 'idle';
+      _lockAcquiredTime = null;
     }
+    
+    // Cancel timeout timer
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
   }
   
   /// Checks if a transition is currently in progress
@@ -99,10 +104,27 @@ class AudioTransitionManager {
   /// Gets the current operation type
   String get currentOperation => _currentOperation;
   
-  /// Waits for any current transition to complete
-  Future<void> waitForTransitionComplete() async {
+  /// Gets how long the current lock has been held
+  Duration? get lockDuration {
+    if (_lockAcquiredTime == null) return null;
+    return DateTime.now().difference(_lockAcquiredTime!);
+  }
+  
+  /// Waits for any current transition to complete with timeout
+  Future<void> waitForTransitionComplete({Duration? timeout}) async {
     if (_transitionLock != null && !_transitionLock!.isCompleted) {
-      await _transitionLock!.future;
+      if (timeout != null) {
+        try {
+          await _transitionLock!.future.timeout(timeout);
+        } on TimeoutException {
+          if (kDebugMode) {
+            print('Waiting for transition completion timed out after ${timeout.inSeconds}s - force releasing');
+          }
+          forceRelease();
+        }
+      } else {
+        await _transitionLock!.future;
+      }
     }
   }
   
@@ -114,6 +136,11 @@ class AudioTransitionManager {
       }
       _transitionLock!.complete();
       _currentOperation = 'idle';
+      _lockAcquiredTime = null;
     }
+    
+    // Cancel timeout timer
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
   }
 }
