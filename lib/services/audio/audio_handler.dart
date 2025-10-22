@@ -633,11 +633,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Enhanced position stream with atomic updates and debouncing
     _player.positionStream.listen((position) {
+      if (kDebugMode) {
+        print('=== POSITION STREAM LISTENER ===');
+        print('DateTime: ${DateTime.now()}');
+        print('Position: ${position.inMilliseconds}ms');
+        print('_pausedAtPosition: ${_pausedAtPosition?.inMilliseconds}ms');
+        print('_userExplicitlyPaused: $_userExplicitlyPaused');
+        print('_userIntendedPlaying: $_userIntendedPlaying');
+        print('_player.playing: ${_player.playing}');
+      }
+      
       // Only attempt position restoration if we have a stored pause position
       // and the player has resumed from an explicit pause
       if (_pausedAtPosition != null && _userExplicitlyPaused && _player.playing) {
         if (kDebugMode) {
-          print('Position stream detected resume - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
+          print('Position restoration triggered - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
         }
         
         // Only seek if the position is significantly different (more than 500ms)
