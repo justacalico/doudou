@@ -566,8 +566,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('User intended: $_userIntendedPlaying, User paused: $_userExplicitlyPaused');
       }
       
-      // Schedule a recovery attempt after a short delay to avoid immediate conflicts
-      Future.delayed(const Duration(milliseconds: 500), () {
+      // Schedule a recovery attempt after a delay - longer on mobile to avoid conflicts with intentional resets
+      final recoveryDelay = Platform.isAndroid || Platform.isIOS ? 1200 : 500;
+      Future.delayed(Duration(milliseconds: recoveryDelay), () {
         _attemptStateRecovery(uiShouldShowPlaying);
       });
     }
