@@ -3048,6 +3048,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // This preserves the user's explicit action to start playback
     if (kDebugMode) {
       print('Playing track with user intent: $_userIntendedPlaying, was previously playing: $wasPlaying');
+      
+      // CRITICAL VERIFICATION: Ensure we're about to play the correct track
+      print('TRACK VERIFICATION: About to play track: ${track.name} (ID: ${track.id})');
+      print('TRACK VERIFICATION: Current media item should match');
     }
     
     // Try gapless playback first if enabled and conditions are met
