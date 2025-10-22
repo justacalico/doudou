@@ -186,18 +186,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
   }
-  
-  Future<bool> _getUserIntentAtomic() async {
-    return await _mutexManager.withLock('userIntent', () async {
-      // Use state machine as primary source of truth
-      if (_stateMachine.userWantsToPlay) {
-        _userIntendedPlaying = true;
-      } else if (_stateMachine.userWantsToPause) {
-        _userIntendedPlaying = false;
-      }
-      return _userIntendedPlaying;
-    });
-  }
+
   
   Future<void> _updateBufferingLoop() async {
     return await _mutexManager.withLock('bufferingState', () async {
