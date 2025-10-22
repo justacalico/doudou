@@ -481,10 +481,24 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         'processingState': processingState,
         'userIntended': _userIntendedPlaying,
       });
+
+      if (kDebugMode) {
+        print('=== PLAYER STATE STREAM LISTENER ===');
+        print('DateTime: ${DateTime.now()}');
+        print('Raw player state - isPlaying: $isPlaying, processingState: $processingState');
+        print('Current flags - _userIntendedPlaying: $_userIntendedPlaying, _userExplicitlyPaused: $_userExplicitlyPaused');
+        print('Previous playback state playing: ${playbackState.value.playing}');
+      }
       
       // Determine final playing state based on user intent and current state
       // IMPORTANT: Always respect user intent as the primary source of truth
       bool finalPlayingState;
+
+      if (kDebugMode) {
+        print('=== DETERMINING FINAL PLAYING STATE ===');
+        print('Condition 1: _userExplicitlyPaused || !_userIntendedPlaying = ${_userExplicitlyPaused || !_userIntendedPlaying}');
+        print('Condition 2: _userIntendedPlaying && !_userExplicitlyPaused = ${_userIntendedPlaying && !_userExplicitlyPaused}');
+      }
       
       // If user explicitly paused, always show paused regardless of player state
       if (_userExplicitlyPaused || !_userIntendedPlaying) {
