@@ -1641,7 +1641,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       _logger.info('User intent set to paused', 'AudioHandler');
       
       try {
-        await _player.pause();
+        // Add timeout protection for player.pause() as it can hang on network issues
+        await _player.pause().timeout(
+          Duration(seconds: 2),
+          onTimeout: () {
+            _logger.warning('_player.pause() timed out', 'AudioHandler');
+            throw TimeoutException('_player.pause() timeout', Duration(seconds: 2));
+          },
+        );
         
         _updatePlaybackState(playbackState.value.copyWith(
           playing: false,
@@ -1656,6 +1663,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('Error in pause command: $e');
         }
+        
+        // Force update playback state even if pause failed
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
       }
       });
     } catch (e) {
