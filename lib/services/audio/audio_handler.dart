@@ -1543,7 +1543,21 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
       }
-      });
+      }).timeout(
+        Duration(seconds: 3), // Aggressive timeout for entire play operation
+        onTimeout: () {
+          _logger.warning('Entire play operation timed out', 'AudioHandler');
+          if (kDebugMode) {
+            print('Play operation timed out after 3 seconds');
+          }
+          
+          // Force update to expected state
+          _userIntendedPlaying = true;
+          _userExplicitlyPaused = false;
+          
+          throw TimeoutException('Play operation timeout', Duration(seconds: 3));
+        },
+      );
     } catch (e) {
       // Handle any errors that might prevent mutex release
       if (kDebugMode) {
