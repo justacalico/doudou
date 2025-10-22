@@ -340,7 +340,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Mobile optimization: Reduce final delay for faster response
       await Future.delayed(Duration(milliseconds: finalDelay));
       
-      _logger.info('Player state reset completed (mobile optimized: ${isMobile})', 'AudioHandler');
+      _logger.info('Player state reset completed (mobile optimized: $isMobile)', 'AudioHandler');
     });
   }
 
