@@ -75,6 +75,47 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     });
   }
 
+  void _testServerConnectivity() async {
+    // Test common Jellyfin server URLs
+    final testUrls = [
+      'http://192.168.0.176:30013',
+      'http://98.168.53.28:30013',
+    ];
+    
+    if (kDebugMode) {
+      print('=== SERVER CONNECTIVITY TEST ===');
+    }
+    
+    for (final url in testUrls) {
+      try {
+        if (kDebugMode) {
+          print('Testing connectivity to: $url');
+        }
+        
+        final uri = Uri.parse('$url/health');
+        final client = HttpClient();
+        client.connectionTimeout = const Duration(seconds: 5);
+        
+        final request = await client.getUrl(uri);
+        final response = await request.close();
+        
+        if (kDebugMode) {
+          print('Server $url responded with status: ${response.statusCode}');
+        }
+        
+        client.close();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Server $url connection failed: $e');
+        }
+      }
+    }
+    
+    if (kDebugMode) {
+      print('=== END CONNECTIVITY TEST ===');
+    }
+  }
+
   String? _getImageUrl(AppState appState, String? imageId) {
     if (imageId == null) return null;
     return appState.getImageUrl(imageId);
