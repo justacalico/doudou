@@ -3102,7 +3102,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     if (kDebugMode) {
       print('Playing individual track...');
     }
-    await _playIndividualTrack(track, wasPlaying);
+    await _playIndividualTrack(actualTrack, wasPlaying);
     
     _logger.info('_playCurrentTrack completed', 'AudioHandler');
     if (kDebugMode) {
