@@ -77,6 +77,207 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     }
   }
 
+  void _showArtistOptionsMenu(BuildContext context, AppState appState) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(
+          widget.artist.name,
+          style: const TextStyle(fontSize: 16),
+        ),
+        message: Text(
+          '${_artistTracks.length} ${_artistTracks.length == 1 ? 'song' : 'songs'} • ${_artistAlbums.length} ${_artistAlbums.length == 1 ? 'album' : 'albums'}',
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          // Download all tracks
+          if (_artistTracks.isNotEmpty)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _downloadAllTracks(appState);
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.arrow_down_circle,
+                    size: 18,
+                    color: Color(0xFF007AFF),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Download All',
+                    style: TextStyle(color: Color(0xFF007AFF)),
+                  ),
+                ],
+              ),
+            ),
+          // Add all to queue
+          if (_artistTracks.isNotEmpty)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _addAllToQueue(appState);
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.plus,
+                    size: 18,
+                    color: Color(0xFF007AFF),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Add All to Queue',
+                    style: TextStyle(color: Color(0xFF007AFF)),
+                  ),
+                ],
+              ),
+            ),
+          // Create artist radio/station
+          if (_artistTracks.isNotEmpty)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _createArtistRadio(appState);
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.infinite,
+                    size: 18,
+                    color: Color(0xFF007AFF),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Create Radio Station',
+                    style: TextStyle(color: Color(0xFF007AFF)),
+                  ),
+                ],
+              ),
+            ),
+          // Share artist
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _shareArtist(context);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.share,
+                  size: 18,
+                  color: Color(0xFF007AFF),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Share Artist',
+                  style: TextStyle(color: Color(0xFF007AFF)),
+                ),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _downloadAllTracks(AppState appState) {
+    for (final track in _artistTracks) {
+      if (!appState.downloadService.isTrackDownloaded(track.id)) {
+        appState.downloadService.downloadTrack(track);
+      }
+    }
+    
+    // Show confirmation
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Download Started'),
+        content: Text('Downloading ${_artistTracks.length} tracks by ${widget.artist.name}'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addAllToQueue(AppState appState) {
+    for (final track in _artistTracks) {
+      appState.addToQueue(track);
+    }
+    
+    // Show confirmation
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Added to Queue'),
+        content: Text('Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _createArtistRadio(AppState appState) async {
+    if (_artistTracks.isNotEmpty) {
+      // Enable radio mode and start playing
+      appState.enableRadioMode();
+      final shuffledTracks = List<Track>.from(_artistTracks)..shuffle();
+      await appState.audioHandler?.playPlaylist(shuffledTracks, 0);
+      
+      // Show confirmation
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Radio Station Created'),
+          content: Text('Started ${widget.artist.name} radio station with infinite playback'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _shareArtist(BuildContext context) {
+    final artistInfo = '${widget.artist.name} - Check out this artist!';
+    
+    // For now, just show the artist info in a dialog
+    // In a real app, you would use a share plugin like share_plus
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Share Artist'),
+        content: Text(artistInfo),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
