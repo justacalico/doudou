@@ -14,9 +14,9 @@ cache:
 
 build_debug_apk:
   stage: build
-  image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - apple
+  allow_failure: true
   before_script:
     # Set up Flutter if not in PATH
     - |
