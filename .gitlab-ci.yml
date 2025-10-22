@@ -167,8 +167,11 @@ build_debug_ios:
 
 publish_release:
   stage: release
+  # We use the official GitLab Release CLI image, which provides the necessary tool
+  # and often has better integration with the CI_JOB_TOKEN for release actions.
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - apple
+    - apple # Keeping the tag to use the same runner that ran the builds
   needs:
     - job: "build_debug_apk"
     - job: "build_debug_linux"
@@ -176,36 +179,34 @@ publish_release:
       optional: true
     - job: "build_debug_ios"
       optional: true
-  allow_failure: true
-  before_script:
-    # Install GitLab CLI if not available
-    - |
-      if ! command -v glab &> /dev/null; then
-        echo "Installing GitLab CLI..."
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-          # macOS
-          if command -v brew &> /dev/null; then
-            brew install glab
-          else
-            echo "Homebrew not found, downloading glab binary..."
-            curl -s https://api.github.com/repos/profclems/glab/releases/latest | grep "browser_download_url.*darwin.*tar.gz" | cut -d '"' -f 4 | head -n 1 | xargs curl -L -o glab.tar.gz
-            tar -xzf glab.tar.gz
-            sudo mv bin/glab /usr/local/bin/
-          fi
-        else
-          echo "Unsupported OS for glab installation"
-          exit 1
-        fi
-      fi
+  # allow_failure: false # Change to false once permissions are confirmed, but left as true for safety.
+  
   script:
-    - echo "Publishing debug builds with APKs, Linux builds, and optional macOS/iOS builds for pipeline $CI_PIPELINE_ID"
+    - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
+
+    # Define release tag and notes variables
+    - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
+    - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
+
+    # Construct the assets list for all uploaded artifacts
+    - ASSETS_LIST=""
+    - ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Android APK\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_apk/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk\\\"}\""
+    - ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Linux Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_linux/artifacts/raw/build/linux/x64/debug/bundle/\\\"}\""
+    
+    # Optional assets (using shell to conditionally add macOS/iOS links)
     - |
-      if command -v glab &> /dev/null; then
-        echo "Creating release with glab..."
-        glab release create "pipeline-$CI_PIPELINE_ID" \
-          --name "Release Pipeline $CI_PIPELINE_ID" \
-          --notes "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA" \
-          --repo "$CI_PROJECT_PATH" || echo "Release creation failed but continuing..."
-      else
-        echo "GitLab CLI not available, skipping release creation"
+      if [ "$build_debug_macos" ]; then
+        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"macOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_macos/artifacts/raw/build/macos/Build/Products/Debug/\\\"}\""
       fi
+      if [ "$build_debug_ios" ]; then
+        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"iOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_ios/artifacts/raw/build/ios/iphoneos/\\\"}\""
+      fi
+
+    # Execute release-cli command
+    - |
+      release-cli create \
+        --name "Release Pipeline $CI_PIPELINE_ID" \
+        --tag "$RELEASE_TAG" \
+        --description "$RELEASE_NOTES" \
+        --ref "$CI_COMMIT_SHA" \
+        $ASSETS_LIST
