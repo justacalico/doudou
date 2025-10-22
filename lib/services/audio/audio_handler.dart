@@ -457,7 +457,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('=== PLAYBACK STATE UPDATE ERROR ===');
         }
-        print('Error updating playback state: $e');
+        if (kDebugMode) {
+          print('Error updating playback state: $e');
+        }
       }
       
       // Handle the error through the service manager (Android-specific)
