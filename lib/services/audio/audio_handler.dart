@@ -2645,7 +2645,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await _setConcatenationState(false, null);
     
     // Use user intent instead of previous playing state for automatic transitions
-    final shouldPlay = await _getUserIntentAtomic();
+    final shouldPlay = _userIntendedPlaying; // Direct access to avoid nested mutex
     
     if (kDebugMode) {
       print('Individual track playback - wasPlaying: $wasPlaying, userIntended: $shouldPlay, shouldPlay: $shouldPlay');
