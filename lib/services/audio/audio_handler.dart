@@ -897,7 +897,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               }
             } catch (e) {
               if (shouldDebugPosition) {
-                print('Failed to restore pause position: $e');
+                if (kDebugMode) {
+                  print('Failed to restore pause position: $e');
+                }
               }
             }
             // Clear the restoration flags ONLY when actually playing/resuming AND not explicitly paused
