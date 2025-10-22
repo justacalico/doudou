@@ -1412,8 +1412,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             return;
           }
           
-          await _setUserIntentAtomic(true);
+          // Set user intent directly since we're already in commandThrottle mutex
+          _userIntendedPlaying = true;
           _userExplicitlyPaused = false; // Clear explicit pause flag
+          
+          // Update audio session coordinator for interruption handling
+          _audioSessionCoordinator.setUserIntendedPlaying(true);
+          
+          // Update state machine intent
+          _stateMachine.setIntent(UserIntent.play);
           
           try {
             // If no track is loaded, try to load current track in bypass mode
