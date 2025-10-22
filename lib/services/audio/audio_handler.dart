@@ -1671,16 +1671,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
       
-      // Set user intent to playing
-      _userIntendedPlaying = true;
-      _userExplicitlyPaused = false; // Clear explicit pause flag
+      // Set user intent atomically
+      await _setUserIntentAtomic(true);
       _pausedAtPosition = null; // Clear stored pause position when resuming
-      
-      // Update audio session coordinator for interruption handling
-      _audioSessionCoordinator.setUserIntendedPlaying(true);
-      
-      // Update state machine intent
-      _stateMachine.setIntent(UserIntent.play);
       
       _logger.info('User intent set to playing', 'AudioHandler');
       
@@ -1791,23 +1784,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         // Simple state validation for bypass mode - just check if already stopped
-        if (!_player.playing) {
-          _logger.info('Pause command ignored - player is already paused', 'AudioHandler');
+        if (!_player.playing && !_userIntendedPlaying) {
+          _logger.info('Pause command ignored - already paused and user intended', 'AudioHandler');
           if (kDebugMode) {
-            print('Pause command ignored - player is already paused');
+            print('Pause command ignored - player is already paused and user intended');
           }
           return;
         }
         
-        // Set user intent directly
-        _userIntendedPlaying = false;
+        // Set user intent atomically and mark as explicit pause
+        await _setUserIntentAtomic(false);
         _userExplicitlyPaused = true; // Mark as intentional pause
-        
-        // Update audio session coordinator for interruption handling
-        _audioSessionCoordinator.setUserIntendedPlaying(false);
-        
-        // Update state machine intent
-        _stateMachine.setIntent(UserIntent.pause);
         await _player.pause();
         
         // Update playback state to reflect the pause
