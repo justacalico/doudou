@@ -28,6 +28,7 @@ import 'android_service_manager.dart';
 import 'audio_position_manager.dart';
 import 'state_persistence_manager.dart';
 import 'radio_mode_state_manager.dart';
+import 'audio_lifecycle_manager.dart';
 import 'touchbar_update_manager.dart';
 import 'download_service_coordinator.dart';
 import 'media_service_manager_coordinator.dart';
@@ -89,6 +90,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Player state transition coordination to prevent state machine race conditions
   late final PlayerStateTransitionCoordinator _playerStateTransitionCoordinator;
+
+  // App lifecycle management to handle Android background restrictions
+  late final AudioLifecycleManager _lifecycleManager;
 
   // Media browsing data for Android Auto
   List<Album> _albums = [];
