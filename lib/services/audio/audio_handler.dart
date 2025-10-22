@@ -487,16 +487,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       bool finalPlayingState;
       
       // If user explicitly paused, always show paused regardless of player state
-      if (!_userIntendedPlaying) {
+      if (_userExplicitlyPaused || !_userIntendedPlaying) {
         finalPlayingState = false;
         if (kDebugMode && isPlaying) {
           if (kDebugMode) {
-            print('Player wants to play but user paused - respecting user intent');
+            print('Player wants to play but user paused (explicitly: $_userExplicitlyPaused, intended: $_userIntendedPlaying) - respecting user intent');
           }
         }
       }
-      // If user wants to play, show playing unless there's an error or stopped state
-      else if (_userIntendedPlaying) {
+      // If user wants to play and hasn't explicitly paused, show playing unless there's an error or stopped state
+      else if (_userIntendedPlaying && !_userExplicitlyPaused) {
         // Only show not playing if we're in a truly stopped/error state
         if (processingState == AudioProcessingState.idle && !isPlaying) {
           finalPlayingState = false;
@@ -642,20 +642,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 print('Failed to restore pause position: $e');
               }
             }
-            // Clear the restoration flags
-            _pausedAtPosition = null;
-            _userExplicitlyPaused = false;
+            // Clear the restoration flags ONLY when actually playing/resuming
+            if (_player.playing && _userIntendedPlaying) {
+              _pausedAtPosition = null;
+              _userExplicitlyPaused = false;
+            }
           });
           
           // Return early to avoid updating with the wrong position
           return;
         } else {
           // Position is close enough, clear the flags without seeking
+          // BUT: only clear if we're actually playing/resuming, not just updating position while paused
           if (kDebugMode) {
-            print('Position close enough (${positionDiff}ms), clearing pause restoration flags');
+            print('Position close enough (${positionDiff}ms), clearing pause restoration flags only if playing');
           }
-          _pausedAtPosition = null;
-          _userExplicitlyPaused = false;
+          if (_player.playing && _userIntendedPlaying) {
+            _pausedAtPosition = null;
+            _userExplicitlyPaused = false;
+          }
         }
       }
       
