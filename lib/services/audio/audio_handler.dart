@@ -1340,6 +1340,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 
   // Audio Service Methods - Enhanced for background compatibility
+  // Audio Service Methods - Enhanced for background compatibility
   @override
   Future<void> play() async {
     if (kDebugMode) {
@@ -1353,11 +1354,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Play: Successfully acquired commandThrottle mutex');
       }
-      
-      // Add timeout to prevent infinite hanging
-      await Future.any([
-        _executePlayCommand(now),
-        Future.delayed(Duration(seconds: 8)).then((_) => throw TimeoutException('Play command timeout', Duration(seconds: 8))),
       ]);
       });
     } catch (e) {
