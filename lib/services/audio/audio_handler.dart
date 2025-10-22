@@ -437,7 +437,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         if (kDebugMode) {
           print('shouldBePlaying (user intent): $shouldBePlaying');
         }
-        print('About to call playbackState.add(finalState)');
+        if (kDebugMode) {
+          print('About to call playbackState.add(finalState)');
+        }
       }
       
       playbackState.add(finalState);
