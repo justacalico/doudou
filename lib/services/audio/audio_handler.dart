@@ -293,18 +293,23 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     }
     
     // If we're buffering but user intended to play, override the playing state
-    if (newState.processingState == AudioProcessingState.buffering && userWantsToPlay) {
-      // Force playing state to true during buffering if user intended to play
+    // BUT: respect explicit pause commands - don't override if user explicitly paused
+    if (newState.processingState == AudioProcessingState.buffering && 
+        userWantsToPlay && 
+        !_userExplicitlyPaused) {
+      // Force playing state to true during buffering if user intended to play AND didn't explicitly pause
       finalState = newState.copyWith(playing: true);
       
       if (kDebugMode) {
-        print('Buffering detected but maintaining playbook (state machine synchronized: $isStateSynced)');
+        print('Buffering detected but maintaining playing state (state machine synchronized: $isStateSynced)');
       }
     }
-    // If we're trying to set buffering state while currently playing, maintain playbook
+    // If we're trying to set buffering state while currently playing, maintain playing state
+    // BUT: respect explicit pause commands
     else if (newState.processingState == AudioProcessingState.buffering && 
         playbackState.value.playing && 
-        playbackState.value.processingState == AudioProcessingState.ready) {
+        playbackState.value.processingState == AudioProcessingState.ready &&
+        !_userExplicitlyPaused) {
       
       // Keep current state but show buffering processing state
       finalState = newState.copyWith(
@@ -312,7 +317,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       );
       
       if (kDebugMode) {
-        print('Network buffering - maintaining state machine synchronized playbook state');
+        print('Network buffering - maintaining state machine synchronized playing state');
+      }
+    }
+    // If user explicitly paused, always respect that regardless of other conditions
+    else if (_userExplicitlyPaused && newState.playing == false) {
+      finalState = newState.copyWith(playing: false);
+      
+      if (kDebugMode) {
+        print('Respecting explicit user pause - forcing playing: false');
       }
     }
     
