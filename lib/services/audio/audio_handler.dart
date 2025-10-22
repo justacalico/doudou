@@ -1470,13 +1470,27 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (kDebugMode) {
             print('No current track, loading from playlist');
           }
-          await _playCurrentTrack();
+          // Add timeout protection for _playCurrentTrack as it can hang
+          await _playCurrentTrack().timeout(
+            Duration(seconds: 5),
+            onTimeout: () {
+              _logger.warning('_playCurrentTrack timed out, attempting recovery', 'AudioHandler');
+              throw TimeoutException('_playCurrentTrack timeout', Duration(seconds: 5));
+            },
+          );
         } else {
           _logger.info('Resuming existing track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
           if (kDebugMode) {
             print('Playing existing track');
           }
-          await _player.play();
+          // Add timeout protection for player.play() as it can hang on network issues
+          await _player.play().timeout(
+            Duration(seconds: 3),
+            onTimeout: () {
+              _logger.warning('_player.play() timed out', 'AudioHandler');
+              throw TimeoutException('_player.play() timeout', Duration(seconds: 3));
+            },
+          );
         }
         
         // Always verify the play command worked
