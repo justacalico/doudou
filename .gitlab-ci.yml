@@ -109,6 +109,9 @@ build_debug_macos:
     paths:
       - build/macos/Build/Products/Debug/
     expire_in: 1 week
+  after_script:
+    # Clean up build artifacts to save local space
+    - rm -rf build/
 
 build_debug_ios:
   stage: build
