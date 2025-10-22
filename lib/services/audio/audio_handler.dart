@@ -350,6 +350,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await Future.delayed(Duration(milliseconds: finalDelay));
       
       _logger.info('Player state reset completed (mobile optimized: $isMobile)', 'AudioHandler');
+      } finally {
+        // Always clear the reset flag when done
+        _isIntentionallyResetting = false;
+      }
     });
   }
 
