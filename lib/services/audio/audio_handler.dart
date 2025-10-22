@@ -953,6 +953,30 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             _handleTrackCompletion();
           }
         });
+        
+        // Add a safety mechanism: if track is still completed after 2 seconds and user wanted music to continue, force next track
+        Future.delayed(const Duration(seconds: 2), () async {
+          if (_player.processingState == ProcessingState.completed && 
+              _userIntendedPlaying && 
+              !_userExplicitlyPaused &&
+              !_transitionManager.isTransitionInProgress &&
+              _stateManager.currentIndex < _stateManager.playlist.length - 1) {
+            
+            if (kDebugMode) {
+              print('SAFETY: Track stuck in completed state, forcing manual transition to next track');
+            }
+            _logger.warning('Track stuck in completed state, forcing manual transition', 'AudioHandler');
+            
+            // Force manual skip to next track
+            try {
+              await skipToNext();
+            } catch (e) {
+              if (kDebugMode) {
+                print('Failed to force manual transition: $e');
+              }
+            }
+          }
+        });
       }
     });
 
