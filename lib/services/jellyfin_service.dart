@@ -228,34 +228,6 @@ class JellyfinService implements BaseMediaService {
         print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
         print('Platform: ${Platform.operatingSystem}');
       }
-
-      // First, try to check if the server is reachable
-      try {
-        final healthResponse = await _dio.get('/health', 
-          options: Options(
-            headers: {
-              'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
-            },
-            sendTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 10),
-          ),
-        );
-        if (kDebugMode) {
-          print('JellyfinService: Server health check successful (${healthResponse.statusCode})');
-        }
-      } catch (healthError) {
-        if (kDebugMode) {
-          print('JellyfinService: Server health check failed: $healthError');
-          if (healthError.toString().contains('CERTIFICATE_VERIFY_FAILED')) {
-            print('JellyfinService: SSL Certificate issue detected');
-          } else if (healthError.toString().contains('Connection refused')) {
-            print('JellyfinService: Server connection refused - check if server is running');
-          } else if (healthError.toString().contains('Network is unreachable')) {
-            print('JellyfinService: Network unreachable - check network connection');
-          }
-        }
-        // Continue with authentication attempt even if health check fails
-      }
       
       final response = await _dio.post(
         '/Users/AuthenticateByName',
@@ -269,8 +241,6 @@ class JellyfinService implements BaseMediaService {
             'Content-Type': 'application/json',
             'User-Agent': 'Doudou-Flutter/1.0.0 (${Platform.operatingSystem})',
           },
-          sendTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
         ),
       );
 
@@ -291,24 +261,10 @@ class JellyfinService implements BaseMediaService {
         }
         
         return true;
-      } else {
-        if (kDebugMode) {
-          print('JellyfinService: Authentication failed with status code: ${response.statusCode}');
-          print('JellyfinService: Response data: ${response.data}');
-        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('JellyfinService: Authentication error: $e');
-        if (e.toString().contains('SocketException')) {
-          print('JellyfinService: Network error - check server URL and network connection');
-        } else if (e.toString().contains('HandshakeException')) {
-          print('JellyfinService: SSL/TLS handshake failed - server certificate issue');
-        } else if (e.toString().contains('Connection refused')) {
-          print('JellyfinService: Connection refused - server may be down or wrong port');
-        } else if (e.toString().contains('Connection timed out')) {
-          print('JellyfinService: Connection timed out - server may be slow or unreachable');
-        }
+        print('Authentication error: $e');
       }
     }
     return false;
@@ -457,10 +413,6 @@ class JellyfinService implements BaseMediaService {
     if (_server == null) throw Exception('Server not configured');
 
     try {
-      if (kDebugMode) {
-        print('JellyfinService.getPlaylists: Making API call to /Users/${_server!.userId}/Items');
-      }
-      
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
         queryParameters: {
@@ -474,31 +426,11 @@ class JellyfinService implements BaseMediaService {
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
-        if (kDebugMode) {
-          print('JellyfinService.getPlaylists: API returned ${items.length} playlists');
-          if (items.isNotEmpty) {
-            print('JellyfinService.getPlaylists: First playlist raw data: ${items.first}');
-          }
-        }
-        
-        final playlists = items.map((item) => Playlist.fromJson(item)).toList();
-        
-        if (kDebugMode) {
-          print('JellyfinService.getPlaylists: Parsed ${playlists.length} playlists');
-          if (playlists.isNotEmpty) {
-            print('JellyfinService.getPlaylists: First playlist: ${playlists.first.name}');
-          }
-        }
-        
-        return playlists;
-      } else {
-        if (kDebugMode) {
-          print('JellyfinService.getPlaylists: API call failed with status ${response.statusCode}');
-        }
+        return items.map((item) => Playlist.fromJson(item)).toList();
       }
     } catch (e) {
       if (kDebugMode) {
-        print('JellyfinService.getPlaylists: Error fetching playlists: $e');
+        print('Error fetching playlists: $e');
       }
     }
     return [];

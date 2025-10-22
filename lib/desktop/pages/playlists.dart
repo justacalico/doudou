@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
@@ -36,85 +34,10 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = context.read<AppState>();
-      if (kDebugMode) {
-        print('=== PLAYLISTS PAGE DEBUG ===');
-      }
-      if (kDebugMode) {
-        print('Current playlists count: ${appState.playlists.length}');
-      }
-      if (kDebugMode) {
-        print('Is logged in: ${appState.isLoggedIn}');
-      }
-      if (kDebugMode) {
-        print('Current server type: ${appState.mediaServiceManager.currentServerType}');
-      }
-      
-      if (!appState.isLoggedIn) {
-            print('Not logged in - cannot load playlists');
-            _testServerConnectivity();
-            return;
-          }
-      
       if (appState.playlists.isEmpty) {
-        if (kDebugMode) {
-          print('Playlists empty, calling loadLibraryData()');
-        }
         appState.loadLibraryData();
-      } else {
-        if (kDebugMode) {
-          print('Playlists already loaded:');
-        }
-        for (var playlist in appState.playlists.take(3)) {
-          if (kDebugMode) {
-            print('  - ${playlist.name}');
-          }
-        }
-      }
-      if (kDebugMode) {
-        print('=== END PLAYLISTS DEBUG ===');
       }
     });
-  }
-
-  void _testServerConnectivity() async {
-    // Test common Jellyfin server URLs
-    final testUrls = [
-      'http://192.168.0.176:30013',
-      'http://98.168.53.28:30013',
-    ];
-    
-    if (kDebugMode) {
-      print('=== SERVER CONNECTIVITY TEST ===');
-    }
-    
-    for (final url in testUrls) {
-      try {
-        if (kDebugMode) {
-          print('Testing connectivity to: $url');
-        }
-        
-        final uri = Uri.parse('$url/health');
-        final client = HttpClient();
-        client.connectionTimeout = const Duration(seconds: 5);
-        
-        final request = await client.getUrl(uri);
-        final response = await request.close();
-        
-        if (kDebugMode) {
-          print('Server $url responded with status: ${response.statusCode}');
-        }
-        
-        client.close();
-      } catch (e) {
-        if (kDebugMode) {
-          print('Server $url connection failed: $e');
-        }
-      }
-    }
-    
-    if (kDebugMode) {
-      print('=== END CONNECTIVITY TEST ===');
-    }
   }
 
   String? _getImageUrl(AppState appState, String? imageId) {
@@ -355,129 +278,50 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   }
 
   Widget _buildEmptyState() {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        // Check if not logged in
-        if (!appState.isLoggedIn) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Not Connected',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please check your server connection and try logging in again',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Navigate to settings/login page
-                        Navigator.of(context).pushNamed('/settings');
-                      },
-                      icon: const Icon(Icons.settings),
-                      label: const Text('Go to Settings'),
-                    ),
-                    const SizedBox(width: 12),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        _testServerConnectivity();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Connection test results in console/logs'),
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.network_check),
-                      label: const Text('Test Connection'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }
-
-        // Normal empty state for when logged in but no playlists
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.playlist_play_outlined,
-                size: 64,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _searchQuery.isNotEmpty 
-                    ? 'No playlists found for "$_searchQuery"'
-                    : 'No playlists found',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _searchQuery.isNotEmpty
-                    ? 'Try a different search term'
-                    : 'Create your first playlist to get started',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (_searchQuery.isNotEmpty)
-                TextButton(
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _searchQuery = '';
-                    });
-                  },
-                  child: const Text('Clear Search'),
-                )
-              else
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () => _showCreatePlaylistDialog(context),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Create Playlist'),
-                    ),
-                    const SizedBox(width: 16),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        final appState = context.read<AppState>();
-                        if (kDebugMode) {
-                          print('Manual retry: Loading library data...');
-                        }
-                        appState.loadLibraryData();
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
-                    ),
-                  ],
-                ),
-            ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.playlist_play_outlined,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-        );
-      },
+          const SizedBox(height: 16),
+          Text(
+            _searchQuery.isNotEmpty 
+                ? 'No playlists found for "$_searchQuery"'
+                : 'No playlists found',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _searchQuery.isNotEmpty
+                ? 'Try a different search term'
+                : 'Create your first playlist to get started',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_searchQuery.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
+              child: const Text('Clear Search'),
+            )
+          else
+            ElevatedButton.icon(
+              onPressed: () => _showCreatePlaylistDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Create Playlist'),
+            ),
+        ],
+      ),
     );
   }
 
