@@ -61,7 +61,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         }
         appState.loadLibraryData();
       } else {
-        print('Playlists already loaded:');
+        if (kDebugMode) {
+          print('Playlists already loaded:');
+        }
         for (var playlist in appState.playlists.take(3)) {
           print('  - ${playlist.name}');
         }
