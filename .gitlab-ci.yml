@@ -18,6 +18,22 @@ build_debug_apk:
   tags:
     - apple
   before_script:
+    # Set up Flutter if not in PATH
+    - |
+      if ! command -v flutter &> /dev/null; then
+        echo "Flutter not found in PATH. Attempting to set up Flutter..."
+        # Common Flutter installation paths on macOS
+        if [ -d "$HOME/flutter/bin" ]; then
+          export PATH="$HOME/flutter/bin:$PATH"
+        elif [ -d "/usr/local/flutter/bin" ]; then
+          export PATH="/usr/local/flutter/bin:$PATH"
+        elif [ -d "/opt/flutter/bin" ]; then
+          export PATH="/opt/flutter/bin:$PATH"
+        else
+          echo "Flutter installation not found. Please install Flutter or update PATH."
+          exit 1
+        fi
+      fi
     # Fully clean build artifacts, caches, and temp directories
     - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
     - rm -rf .pub-cache # Completely delete pub-cache to prevent temp file errors
