@@ -865,7 +865,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (shouldDebugPosition) {
         print('=== POSITION STREAM LISTENER ===');
         print('DateTime: ${DateTime.now()}');
-        print('Position: ${position.inMilliseconds}ms');
+        if (kDebugMode) {
+          print('Position: ${position.inMilliseconds}ms');
+        }
         if (kDebugMode) {
           print('_pausedAtPosition: ${_pausedAtPosition?.inMilliseconds}ms');
         }
