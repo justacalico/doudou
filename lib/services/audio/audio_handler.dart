@@ -3201,7 +3201,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     if (kDebugMode) {
       print('_playCurrentTrack() completed');
-      final finalUserIntent = await _getUserIntentAtomic();
+      final finalUserIntent = _userIntendedPlaying; // Direct access to avoid deadlock
       print('Final player state - playing: ${_player.playing}, userIntent: $finalUserIntent');
       print('Final current track: ${_stateManager.currentTrack?.name ?? "None"}');
       print('=== PLAYPLAYLIST DEBUG END ===');
