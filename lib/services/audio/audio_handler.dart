@@ -132,6 +132,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Position tracking for pause/resume to prevent position jumping
   Duration? _pausedAtPosition;
+  
+  // Playlist operation debouncing
+  DateTime? _lastPlaylistOperation;
 
   // Codec loop detection with synchronized access
   DateTime? _lastBufferingTime;
