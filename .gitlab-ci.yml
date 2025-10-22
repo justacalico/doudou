@@ -62,6 +62,9 @@ build_debug_linux:
     paths:
       - build/linux/x64/debug/bundle/
     expire_in: 1 week
+  after_script:
+    # Clean up build artifacts to save local space
+    - rm -rf build/
 
 build_debug_macos:
   stage: build
