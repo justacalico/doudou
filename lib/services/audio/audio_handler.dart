@@ -468,7 +468,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         if (shouldDebugState) {
           print('=== ANDROID AUDIOSERVICE ERROR HANDLED ===');
-          print('New service state: ${newConfig.description}');
+          if (kDebugMode) {
+            print('New service state: ${newConfig.description}');
+          }
         }
         
         // If we transitioned to bypass mode, skip further AudioService operations
