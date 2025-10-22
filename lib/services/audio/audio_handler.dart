@@ -1438,26 +1438,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Cancel any ongoing gapless operations when new play command is issued
       _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
       
-      // Throttle rapid play commands
-      if (_lastPlayCommand != null && 
-          now.difference(_lastPlayCommand!) < _commandThrottleDelay) {
-        _logger.warning('Play command throttled - too recent (${now.difference(_lastPlayCommand!).inMilliseconds}ms ago)', 'AudioHandler');
-        if (kDebugMode) {
-          print('Play command throttled - too recent');
-        }
-        return;
-      }
-      
-      // Prevent play immediately after pause
-      if (_lastPauseCommand != null && 
-          now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
-        _logger.warning('Play command blocked - recent pause command detected', 'AudioHandler');
-        if (kDebugMode) {
-          print('Play command blocked - recent pause command detected');
-        }
-        return;
-      }
-      
       _lastPlayCommand = now;
       
       if (kDebugMode) {
@@ -1640,16 +1620,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       if (!transitionAccepted) {
         _logger.warning('Pause command queued due to ongoing state transition', 'AudioHandler');
-        return;
-      }
-      
-      // Throttle rapid pause commands
-      if (_lastPauseCommand != null && 
-          now.difference(_lastPauseCommand!) < _commandThrottleDelay) {
-        _logger.warning('Pause command throttled - too recent', 'AudioHandler');
-        if (kDebugMode) {
-          print('Pause command throttled - too recent');
-        }
         return;
       }
       
