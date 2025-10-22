@@ -2293,6 +2293,32 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       return;
     }
     
+    // Add timeout protection for the entire completion handling
+    try {
+      await _executeTrackCompletionWithTimeout();
+    } catch (e) {
+      _logger.error('Track completion handling failed or timed out: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('Track completion handling failed or timed out: $e');
+      }
+      // Force release any locks and attempt recovery
+      _transitionManager.forceRelease();
+      _stateManager.setHandlingCompletion(false);
+    }
+  }
+  
+  /// Executes track completion with timeout protection
+  Future<void> _executeTrackCompletionWithTimeout() async {
+    const timeoutDuration = Duration(seconds: 15);
+    
+    await Future.any([
+      _performTrackCompletion(),
+      Future.delayed(timeoutDuration).then((_) => throw TimeoutException('Track completion timeout', timeoutDuration))
+    ]);
+  }
+  
+  /// Performs the actual track completion logic
+  Future<void> _performTrackCompletion() async {
     // Unprotect the current track since it's finished streaming
     if (_stateManager.currentTrack != null) {
       await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
@@ -2326,7 +2352,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Use atomic transition manager to prevent race conditions with manual skips
     if (!await _transitionManager.acquireTransitionLock('trackCompletion')) {
       if (kDebugMode) {
-        print('Track completion rejected - another transition in progress');
+        print('Track completion rejected - another transition in progress (likely manual skip)');
       }
       return;
     }
@@ -2348,6 +2374,56 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _player.stop();
       } catch (e) {
         if (kDebugMode) {
+          print('Error stopping player during completion: $e');
+        }
+      }
+      
+      // Minimal delay for codec cleanup - reduced from 200ms
+      await Future.delayed(const Duration(milliseconds: 50));
+      
+      // Check if we can move to next track atomically
+      if (await _stateManager.incrementCurrentIndexAtomic()) {
+        if (kDebugMode) {
+          print('Moving to next track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${_stateManager.currentTrack!.name}');
+          print('User intended playing during transition: $_userIntendedPlaying');
+        }
+        
+        await _playCurrentTrack();
+        _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
+        
+        if (kDebugMode) {
+          print('Successfully moved to next track: ${_stateManager.currentTrack!.name}');
+        }
+        
+      } else if (_radioModeStateManager.isEnabled && _stateManager.currentTrack != null) {
+        await _handleRadioModeExpansion();
+      } else {
+        // End of playlist
+        playbackState.add(playbackState.value.copyWith(
+          processingState: AudioProcessingState.completed,
+          playing: false,
+        ));
+        
+        if (kDebugMode) {
+          print('Reached end of playlist');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error handling track completion: $e');
+      }
+      
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+        playing: false,
+      ));
+    } finally {
+      // Always reset states and release lock
+      _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
+      _transitionManager.releaseTransitionLock();
+    }
+  }
           print('Error stopping player during completion: $e');
         }
       }
