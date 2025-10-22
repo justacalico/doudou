@@ -3764,17 +3764,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Mobile: Using gentle reset to prevent MediaCodec race conditions');
       }
-      // Gentle mobile reset - faster than desktop but safer than aggressive reset
-      await _player.stop();
-      await Future.delayed(const Duration(milliseconds: 100)); // Allow MediaCodec cleanup
-      _preloader.clearAllPreloadedPlayers();
-      _audioSourceCache.clear();
-      _isUsingConcatenation = false;
-      _concatenatingSource = null;
-      _stateManager.setCurrentTrack(null);
-      _stateManager.setHandlingCompletion(false);
-      _stateManager.setTransitioning(false);
-      await Future.delayed(const Duration(milliseconds: 50)); // Brief final delay for stability
+      // CRITICAL FIX: Set intentional reset flag to prevent recovery interference
+      _isIntentionallyResetting = true;
+      
+      try {
+        // Gentle mobile reset - faster than desktop but safer than aggressive reset
+        await _player.stop();
+        await Future.delayed(const Duration(milliseconds: 100)); // Allow MediaCodec cleanup
+        _preloader.clearAllPreloadedPlayers();
+        _audioSourceCache.clear();
+        _isUsingConcatenation = false;
+        _concatenatingSource = null;
+        _stateManager.setCurrentTrack(null);
+        _stateManager.setHandlingCompletion(false);
+        _stateManager.setTransitioning(false);
+        await Future.delayed(const Duration(milliseconds: 50)); // Brief final delay for stability
+      } finally {
+        // Clear the flag after reset is complete
+        _isIntentionallyResetting = false;
+      }
     } else {
       if (kDebugMode) {
         print('Desktop: Using full player state reset');
