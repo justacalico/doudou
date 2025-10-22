@@ -300,14 +300,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return await _playerOperationQueue.enqueue('resetPlayerState', () async {
       _logger.info('Completely resetting player state', 'AudioHandler');
       
-      // Optimize for mobile: Reduce delays for faster queue switching
+      // Optimize for mobile: Reduce delays for faster queue switching but keep them stable
       final isMobile = Platform.isAndroid || Platform.isIOS;
-      final stopDelay = isMobile ? 50 : 200; // Reduce mobile delay from 200ms to 50ms
-      final finalDelay = isMobile ? 100 : 300; // Reduce mobile delay from 300ms to 100ms
+      final stopDelay = isMobile ? 150 : 200; // Conservative mobile delay for MediaCodec stability
+      final finalDelay = isMobile ? 200 : 300; // Conservative mobile delay for MediaCodec stability
       
       if (kDebugMode && isMobile) {
         if (kDebugMode) {
-          print('Mobile optimized reset: Using reduced delays (${stopDelay}ms + ${finalDelay}ms)');
+          print('Mobile optimized reset: Using conservative delays (${stopDelay}ms + ${finalDelay}ms)');
         }
       }
       
@@ -1001,7 +1001,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           
           // Try to recover by disabling gapless and reloading current track
-          Future.delayed(const Duration(milliseconds: 500), () async {
+          // Use longer delay on mobile to prevent race conditions with MediaCodec
+          final recoveryDelay = Platform.isAndroid || Platform.isIOS ? 1000 : 500;
+          Future.delayed(Duration(milliseconds: recoveryDelay), () async {
             try {
               // Double-check user intent hasn't changed during delay
               if (!_userIntendedPlaying || _userExplicitlyPaused) {
