@@ -519,6 +519,29 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
       
       // Always update playback state to keep system informed
+      // Preserve current position during state changes to prevent 00:00 resets
+      final currentPosition = playbackState.value.updatePosition;
+      final playerPosition = _player.position;
+      
+      // Use stored pause position if available, otherwise use current player position
+      // but preserve existing position if player position is 0 (reset state)
+      Duration finalPosition;
+      if (_pausedAtPosition != null && _userExplicitlyPaused) {
+        finalPosition = _pausedAtPosition!;
+        if (kDebugMode) {
+          print('Using stored pause position: ${finalPosition.inMilliseconds}ms');
+        }
+      } else if (playerPosition.inMilliseconds > 0) {
+        finalPosition = playerPosition;
+      } else if (currentPosition.inMilliseconds > 0) {
+        finalPosition = currentPosition;
+        if (kDebugMode) {
+          print('Preserving existing position: ${finalPosition.inMilliseconds}ms (player at ${playerPosition.inMilliseconds}ms)');
+        }
+      } else {
+        finalPosition = Duration.zero;
+      }
+      
       final newPlaybackState = playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
@@ -533,7 +556,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         androidCompactActionIndices: const [0, 1, 2],
         processingState: processingState,
         playing: finalPlayingState,
-        updatePosition: _player.position,
+        updatePosition: finalPosition,
         bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
         queueIndex: _stateManager.currentIndex,
