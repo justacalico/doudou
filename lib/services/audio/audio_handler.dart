@@ -3745,6 +3745,18 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
     
+    // Debounce rapid playlist operations to prevent race conditions
+    final now = DateTime.now();
+    if (_lastPlaylistOperation != null && 
+        now.difference(_lastPlaylistOperation!) < const Duration(milliseconds: 300)) {
+      _logger.warning('Playlist operation debounced - too rapid', 'AudioHandler');
+      if (kDebugMode) {
+        print('Playlist operation debounced - ${now.difference(_lastPlaylistOperation!).inMilliseconds}ms since last operation');
+      }
+      return;
+    }
+    _lastPlaylistOperation = now;
+    
     _logger.info('Playing playlist: ${tracks.length} tracks, starting at index $startIndex', 'AudioHandler');
     
     final isMobile = Platform.isAndroid || Platform.isIOS;
