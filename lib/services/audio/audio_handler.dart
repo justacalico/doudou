@@ -692,7 +692,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Simplified completion detection - only handle actual completion
     _player.processingStateStream.listen((state) async {
-      final userIntent = await _getUserIntentAtomic();
+      final userIntent = _userIntendedPlaying; // Direct access to avoid mutex deadlock
       _logger.info('Processing state changed: $state (userIntended: $userIntent)', 'AudioHandler');
       if (kDebugMode) {
         print('Processing state changed: $state');
