@@ -2324,14 +2324,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
     }
     
-    // If using concatenation, the transition is automatic - just handle state updates
+    // If using concatenation, the transition is automatic - but we need to verify it works
     if (_isUsingConcatenation && _concatenatingSource != null) {
       if (kDebugMode) {
-        print('Track completion with gapless - letting concatenation handle transition');
+        print('Track completion with gapless - attempting automatic transition');
       }
       
-      // The currentIndexStream listener will handle state updates automatically
-      // Just need to handle end-of-playlist scenarios
+      // Check if we're at the end of playlist first
       if (_stateManager.currentIndex >= _stateManager.playlist.length - 1) {
         if (_radioModeStateManager.isEnabled && _stateManager.currentTrack != null) {
           await _handleRadioModeExpansion();
@@ -2344,8 +2343,34 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             playing: false,
           ));
         }
+        return;
       }
-      return;
+      
+      // Wait a bit for gapless transition to happen naturally
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Check if gapless transition actually happened
+      final expectedNextIndex = _stateManager.currentIndex + 1;
+      final currentPlayerIndex = _player.currentIndex;
+      
+      if (kDebugMode) {
+        print('Gapless transition check: expected=$expectedNextIndex, current=$currentPlayerIndex');
+      }
+      
+      // If gapless transition worked, the currentIndexStream listener will handle everything
+      if (currentPlayerIndex == expectedNextIndex) {
+        if (kDebugMode) {
+          print('Gapless transition successful - letting concatenation handle');
+        }
+        return;
+      } else {
+        if (kDebugMode) {
+          print('Gapless transition failed - falling back to manual transition');
+        }
+        // Fall through to manual transition logic
+        _isUsingConcatenation = false;
+        _concatenatingSource = null;
+      }
     }
     
     // Traditional track completion handling for non-gapless mode
