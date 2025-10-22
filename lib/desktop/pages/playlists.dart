@@ -34,9 +34,21 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = context.read<AppState>();
+      print('=== PLAYLISTS PAGE DEBUG ===');
+      print('Current playlists count: ${appState.playlists.length}');
+      print('Is logged in: ${appState.isLoggedIn}');
+      print('Current server type: ${appState.mediaServiceManager.currentServerType}');
+      
       if (appState.playlists.isEmpty) {
+        print('Playlists empty, calling loadLibraryData()');
         appState.loadLibraryData();
+      } else {
+        print('Playlists already loaded:');
+        for (var playlist in appState.playlists.take(3)) {
+          print('  - ${playlist.name}');
+        }
       }
+      print('=== END PLAYLISTS DEBUG ===');
     });
   }
 
