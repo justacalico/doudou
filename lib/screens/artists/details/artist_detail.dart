@@ -221,19 +221,21 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     }
     
     // Show confirmation
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Added to Queue'),
-        content: Text('Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    if (mounted) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Added to Queue'),
+          content: Text('Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _createArtistRadio(AppState appState) async {
