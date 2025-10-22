@@ -291,6 +291,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     return await _playerOperationQueue.enqueue('resetPlayerState', () async {
       _logger.info('Completely resetting player state', 'AudioHandler');
       
+      // Optimize for mobile: Reduce delays for faster queue switching
+      final isMobile = Platform.isAndroid || Platform.isIOS;
+      final stopDelay = isMobile ? 50 : 200; // Reduce mobile delay from 200ms to 50ms
+      final finalDelay = isMobile ? 100 : 300; // Reduce mobile delay from 300ms to 100ms
+      
+      if (kDebugMode && isMobile) {
+        print('Mobile optimized reset: Using reduced delays (${stopDelay}ms + ${finalDelay}ms)');
+      }
+      
       // Stop player first and wait for it to fully stop
       await _errorStateManager.executeWithErrorHandling(
         component: 'AudioHandler',
@@ -301,7 +310,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           await _player.stop();
           
           // Wait for player to fully stop and release all resources
-          await Future.delayed(const Duration(milliseconds: 200));
+          await Future.delayed(Duration(milliseconds: stopDelay));
           
           _logger.info('Player stopped successfully', 'AudioHandler');
         },
@@ -321,10 +330,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // CRITICAL FIX: Clear the current track reference to prevent old track confusion
       _stateManager.setCurrentTrack(null);
       
-      // Additional delay to ensure all audio sources are properly released
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Mobile optimization: Reduce final delay for faster response
+      await Future.delayed(Duration(milliseconds: finalDelay));
       
-      _logger.info('Player state reset completed', 'AudioHandler');
+      _logger.info('Player state reset completed (mobile optimized: ${isMobile})', 'AudioHandler');
     });
   }
 
