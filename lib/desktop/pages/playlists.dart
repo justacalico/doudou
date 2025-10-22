@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
@@ -34,7 +35,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = context.read<AppState>();
-      print('=== PLAYLISTS PAGE DEBUG ===');
+      if (kDebugMode) {
+        print('=== PLAYLISTS PAGE DEBUG ===');
+      }
       print('Current playlists count: ${appState.playlists.length}');
       print('Is logged in: ${appState.isLoggedIn}');
       print('Current server type: ${appState.mediaServiceManager.currentServerType}');
