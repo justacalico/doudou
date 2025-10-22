@@ -3745,9 +3745,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (tracks.isEmpty) return;
     
-    // Queue the entire playlist operation to prevent race conditions
-    return await _playerOperationQueue.enqueue('playPlaylist', () async {
-      
     // Debounce rapid playlist operations to prevent race conditions
     final now = DateTime.now();
     if (_lastPlaylistOperation != null && 
@@ -3860,8 +3857,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Final current track: ${_stateManager.currentTrack?.name ?? "None"}');
       print('=== PLAYPLAYLIST DEBUG END ===');
     }
-    
-    }); // Close the _playerOperationQueue.enqueue
   }
 
   MediaItem _trackToMediaItem(Track track) {
