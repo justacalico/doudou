@@ -2165,6 +2165,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   @override
   Future<void> stop() async {
+    // Stop background watchdog when stopping playback
+    _stopBackgroundWatchdog();
+    
     // Validate state transition before executing
     if (!_playerStateTransitionCoordinator.wouldTransitionBeValid(PlayerTransitionEvent.stop)) {
       _logger.warning('Stop command rejected - invalid state transition from ${_playerStateTransitionCoordinator.currentState}', 'AudioHandler');
