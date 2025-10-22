@@ -1666,6 +1666,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           },
         );
         
+        // Immediately update playback state to reflect the pause
+        // Force playing: false to override any state machine logic that might interfere
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        // Add a small delay then force another state update to ensure UI gets the change
+        await Future.delayed(const Duration(milliseconds: 50));
         _updatePlaybackState(playbackState.value.copyWith(
           playing: false,
         ));
@@ -1673,6 +1681,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         _logger.info('Pause command completed successfully', 'AudioHandler');
         if (kDebugMode) {
           print('Pause command completed. User intended playing: $_userIntendedPlaying');
+          print('Forced playback state to playing: false');
         }
       } catch (e) {
         _logger.error('Error in pause command: $e', 'AudioHandler');
@@ -1681,6 +1690,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         // Force update playback state even if pause failed
+        _updatePlaybackState(playbackState.value.copyWith(
+          playing: false,
+        ));
+        
+        // Double-ensure the state sticks
+        await Future.delayed(const Duration(milliseconds: 50));
         _updatePlaybackState(playbackState.value.copyWith(
           playing: false,
         ));
