@@ -45,6 +45,10 @@ class AppState extends ChangeNotifier {
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   
+  // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
+  DateTime? _lastPlayPauseCommand;
+  static const Duration _playPauseDebounceDelay = Duration(milliseconds: 300);
+  
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = Colors.purple;
