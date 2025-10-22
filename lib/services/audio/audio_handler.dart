@@ -1499,6 +1499,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           );
           
           // Fix for position jumping bug: seek back to pause position if resuming from pause
+          if (kDebugMode) {
+            print('Checking resume conditions: _pausedAtPosition=${_pausedAtPosition?.inMilliseconds}ms, _userExplicitlyPaused=$_userExplicitlyPaused');
+          }
           if (_pausedAtPosition != null && _userExplicitlyPaused) {
             if (kDebugMode) {
               print('Resuming from pause - seeking back to position: ${_pausedAtPosition!.inMilliseconds}ms');
