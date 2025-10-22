@@ -642,10 +642,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
                 print('Failed to restore pause position: $e');
               }
             }
-            // Clear the restoration flags ONLY when actually playing/resuming
-            if (_player.playing && _userIntendedPlaying) {
+            // Clear the restoration flags ONLY when actually playing/resuming AND not explicitly paused
+            // Do NOT clear _userExplicitlyPaused during position updates - only during explicit play commands
+            if (_player.playing && _userIntendedPlaying && !_userExplicitlyPaused) {
               _pausedAtPosition = null;
-              _userExplicitlyPaused = false;
             }
           });
           
@@ -654,12 +654,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         } else {
           // Position is close enough, clear the flags without seeking
           // BUT: only clear if we're actually playing/resuming, not just updating position while paused
+          // Do NOT clear _userExplicitlyPaused during position updates - only during explicit play commands
           if (kDebugMode) {
-            print('Position close enough (${positionDiff}ms), clearing pause restoration flags only if playing');
+            print('Position close enough (${positionDiff}ms), clearing pause restoration flags only if playing and not explicitly paused');
           }
-          if (_player.playing && _userIntendedPlaying) {
+          if (_player.playing && _userIntendedPlaying && !_userExplicitlyPaused) {
             _pausedAtPosition = null;
-            _userExplicitlyPaused = false;
           }
         }
       }
