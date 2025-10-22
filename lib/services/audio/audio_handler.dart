@@ -4109,6 +4109,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     await _audioSessionCoordinator.dispose();
     _playerStateTransitionCoordinator.dispose();
     await _mediaServiceManagerCoordinator?.dispose();
+    _lifecycleManager.dispose();
     _preloader.dispose();
     _audioSourceCache.clear();
     _isUsingConcatenation = false;
