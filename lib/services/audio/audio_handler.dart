@@ -863,6 +863,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         fromStream: true,
       );
       
+      // Background completion watchdog for Android - detect when track should have completed
+      // but stream listeners might be paused due to background restrictions
+      if (Platform.isAndroid && _userIntendedPlaying && !_userExplicitlyPaused) {
+        _lastTrackPositionUpdate = DateTime.now();
+        _lastKnownPosition = position;
+        
+        // Get track duration for completion detection
+        final duration = _player.duration;
+        if (duration != null && duration.inMilliseconds > 0) {
+          _lastKnownDuration = duration;
+          
+          // If we're very close to the end (within 3 seconds) and should be playing,
+          // start/restart the background watchdog
+          final remainingTime = duration - position;
+          if (remainingTime.inMilliseconds <= 3000 && remainingTime.inMilliseconds > 0) {
+            _startBackgroundWatchdog(remainingTime);
+          }
+        }
+      }
+      
       // Update TouchBar with current lyrics line (this is safe to do always)
       _updateTouchBarLyrics(position);
     });
