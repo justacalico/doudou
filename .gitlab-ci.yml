@@ -76,6 +76,13 @@ build_debug_macos:
     - flutter config --enable-macos-desktop
     - flutter clean
     - flutter pub get
+    # If the Flutter SDK in this environment doesn't support `flutter build macos`,
+    # detect and skip the macOS build to avoid a failing job on non-macOS runners.
+    - |
+      if ! flutter help build | grep -q "macos"; then
+        echo "macOS build not supported in this environment (skipping)."
+        exit 0
+      fi
     - flutter build macos
   artifacts:
     paths:
