@@ -370,8 +370,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Current _userIntendedPlaying: $_userIntendedPlaying');
       }
-      print('Current _userExplicitlyPaused: $_userExplicitlyPaused');
-      print('Previous playbackState.playing: ${playbackState.value.playing}');
+      if (kDebugMode) {
+        print('Current _userExplicitlyPaused: $_userExplicitlyPaused');
+      }
+      if (kDebugMode) {
+        print('Previous playbackState.playing: ${playbackState.value.playing}');
+      }
     }
     
     PlaybackState finalState = newState;
@@ -421,8 +425,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Always update the playback state stream for UI consistency
     try {
       if (shouldDebugState) {
-        print('=== FINAL PLAYBACK STATE UPDATE ===');
-        print('finalState.playing: ${finalState.playing}');
+        if (kDebugMode) {
+          print('=== FINAL PLAYBACK STATE UPDATE ===');
+        }
+        if (kDebugMode) {
+          print('finalState.playing: ${finalState.playing}');
+        }
         print('finalState.processingState: ${finalState.processingState}');
         print('shouldBePlaying (user intent): $shouldBePlaying');
         print('About to call playbackState.add(finalState)');
