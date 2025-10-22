@@ -56,7 +56,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       }
       
       if (appState.playlists.isEmpty) {
-        print('Playlists empty, calling loadLibraryData()');
+        if (kDebugMode) {
+          print('Playlists empty, calling loadLibraryData()');
+        }
         appState.loadLibraryData();
       } else {
         print('Playlists already loaded:');
