@@ -364,7 +364,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (kDebugMode) {
         print('Input newState.playing: ${newState.playing}');
       }
-      print('Input newState.processingState: ${newState.processingState}');
+      if (kDebugMode) {
+        print('Input newState.processingState: ${newState.processingState}');
+      }
       print('Current _userIntendedPlaying: $_userIntendedPlaying');
       print('Current _userExplicitlyPaused: $_userExplicitlyPaused');
       print('Previous playbackState.playing: ${playbackState.value.playing}');
@@ -3650,17 +3652,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Mobile platform: $isMobile');
     }
     
-    // Mobile optimization: Set user intent more efficiently for mobile platforms
+    // Set user intent to playing since this is an explicit play action
+    // Mobile optimization: Use faster atomic operation for mobile
     if (isMobile) {
-      // Direct assignment for mobile to reduce mutex overhead
-      _userIntendedPlaying = true;
-      _userExplicitlyPaused = false;
-      _audioSessionCoordinator.setUserIntendedPlaying(true);
-      _stateMachine.setIntent(UserIntent.play);
-      
-      if (kDebugMode) {
-        print('Mobile: Set user intent directly for faster response');
-      }
+      // Use reduced verification delay for mobile
+      await _setUserIntentAtomic(true);
     } else {
       // Full atomic operation for desktop
       await _setUserIntentAtomic(true);
