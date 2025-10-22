@@ -62,7 +62,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           }
         }
       }
-      print('=== END PLAYLISTS DEBUG ===');
+      if (kDebugMode) {
+        print('=== END PLAYLISTS DEBUG ===');
+      }
     });
   }
 
