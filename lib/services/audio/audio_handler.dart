@@ -122,11 +122,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Position tracking for pause/resume to prevent position jumping
   Duration? _pausedAtPosition;
 
-  // Command throttling with atomic timestamp updates
-  DateTime? _lastPlayCommand;
-  DateTime? _lastPauseCommand;
-  static const Duration _commandThrottleDelay = Duration(milliseconds: 500);
-
   // Codec loop detection with synchronized access
   DateTime? _lastBufferingTime;
   int _bufferingLoopCount = 0;
@@ -594,6 +589,45 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Enhanced position stream with atomic updates and debouncing
     _player.positionStream.listen((position) {
+      // Fix for position jumping bug: restore pause position if needed
+      if (_pausedAtPosition != null && _userExplicitlyPaused && _player.playing) {
+        if (kDebugMode) {
+          print('Position stream detected resume - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
+        }
+        
+        // Only seek if the position is significantly different (more than 100ms)
+        final positionDiff = (position.inMilliseconds - _pausedAtPosition!.inMilliseconds).abs();
+        if (positionDiff > 100) {
+          if (kDebugMode) {
+            print('Position jump detected (${positionDiff}ms), seeking to restore pause position');
+          }
+          
+          // Seek back to the pause position asynchronously to avoid blocking the stream
+          Future.microtask(() async {
+            try {
+              await _player.seek(_pausedAtPosition!);
+              await _positionManager.recordSeek(_pausedAtPosition!);
+              if (kDebugMode) {
+                print('Successfully restored pause position to ${_pausedAtPosition!.inMilliseconds}ms');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('Failed to restore pause position: $e');
+              }
+            }
+            _pausedAtPosition = null;
+            _userExplicitlyPaused = false;
+          });
+          
+          // Return early to avoid updating with the wrong position
+          return;
+        } else {
+          // Position is close enough, clear the flags
+          _pausedAtPosition = null;
+          _userExplicitlyPaused = false;
+        }
+      }
+      
       // Update position through position manager with protection against seek conflicts
       _positionManager.updatePositionDebounced(
         position, 
@@ -1477,25 +1511,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               throw TimeoutException('_player.play() timeout', Duration(seconds: 3));
             },
           );
-          
-          // Fix for position jumping bug: seek back to pause position if resuming from pause
-          if (kDebugMode) {
-            print('Checking resume conditions: _pausedAtPosition=${_pausedAtPosition?.inMilliseconds}ms, _userExplicitlyPaused=$_userExplicitlyPaused');
-          }
-          if (_pausedAtPosition != null && _userExplicitlyPaused) {
-            if (kDebugMode) {
-              print('Resuming from pause - seeking back to position: ${_pausedAtPosition!.inMilliseconds}ms');
-            }
-            await _player.seek(_pausedAtPosition!);
-            await _positionManager.recordSeek(_pausedAtPosition!);
-            _pausedAtPosition = null; // Clear the stored position
-            _userExplicitlyPaused = false; // Clear explicit pause flag after successful resume
-            if (kDebugMode) {
-              print('Successfully restored pause position');
-            }
-          } else {
-            _userExplicitlyPaused = false; // Clear explicit pause flag when user plays normally
-          }
         }
         
         // Always verify the play command worked
