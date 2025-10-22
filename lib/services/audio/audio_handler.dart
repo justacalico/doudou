@@ -3025,6 +3025,30 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     final artistInfo = track.artistName != null ? ' by ${track.artistName}' : '';
     _logger.info('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}$artistInfo', 'AudioHandler');
     
+    // CRITICAL: Verify and potentially correct the track reference
+    Track actualTrack = track;
+    if (kDebugMode) {
+      // Additional verification: Check if this track matches what we expect from the new playlist
+      if (_stateManager.playlist.isNotEmpty && _stateManager.currentIndex < _stateManager.playlist.length) {
+        final expectedTrack = _stateManager.playlist[_stateManager.currentIndex];
+        if (expectedTrack.id != track.id) {
+          print('ERROR: Track mismatch detected!');
+          print('Expected from playlist[${_stateManager.currentIndex}]: ${expectedTrack.name} (${expectedTrack.id})');
+          print('Got from currentTrack: ${track.name} (${track.id})');
+          print('FORCING CORRECTION: Using expected track from playlist');
+          
+          // Force use the correct track from the current playlist position
+          actualTrack = expectedTrack;
+          _stateManager.setCurrentTrack(actualTrack);
+          mediaItem.add(_trackToMediaItem(actualTrack));
+          
+          print('CORRECTED: Now using track: ${actualTrack.name} (${actualTrack.id})');
+        } else {
+          print('VERIFIED: Track matches expected playlist position');
+        }
+      }
+    }
+    
     // Protect track from download interference while streaming
     await _downloadServiceCoordinator.markTrackAsStreaming(track.id);
     
