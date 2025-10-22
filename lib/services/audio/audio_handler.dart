@@ -863,7 +863,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       final shouldDebugPosition = kDebugMode && !isMobile; // Disable verbose position logging on mobile
       
       if (shouldDebugPosition) {
-        print('=== POSITION STREAM LISTENER ===');
+        if (kDebugMode) {
+          print('=== POSITION STREAM LISTENER ===');
+        }
         if (kDebugMode) {
           print('DateTime: ${DateTime.now()}');
         }
