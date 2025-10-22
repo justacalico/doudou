@@ -173,7 +173,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   Future<void> _setUserIntentAtomic(bool intendedPlaying) async {
     return await _mutexManager.withLock('userIntent', () async {
+      if (kDebugMode) {
+        print('Setting user intent atomically: $_userIntendedPlaying -> $intendedPlaying');
+      }
+      
+      final previousIntent = _userIntendedPlaying;
       _userIntendedPlaying = intendedPlaying;
+      
+      // Clear explicit pause flag when user intends to play
+      if (intendedPlaying) {
+        _userExplicitlyPaused = false;
+      }
       
       // Update audio session coordinator for interruption handling
       _audioSessionCoordinator.setUserIntendedPlaying(intendedPlaying);
@@ -184,7 +194,59 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       } else {
         _stateMachine.setIntent(UserIntent.pause);
       }
+      
+      // If intent changed, trigger immediate state verification
+      if (previousIntent != intendedPlaying) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _verifyUserIntentAlignment();
+        });
+      }
+      
+      if (kDebugMode) {
+        print('User intent updated successfully: $intendedPlaying');
+      }
     });
+  }
+  
+  /// Verifies that the actual player state aligns with user intent and corrects if needed
+  Future<void> _verifyUserIntentAlignment() async {
+    // Skip verification during transitions to avoid interference
+    if (_transitionManager.isTransitionInProgress || _stateManager.isHandlingCompletion) {
+      return;
+    }
+    
+    final playerPlaying = _player.playing;
+    final userWantsPlaying = _userIntendedPlaying && !_userExplicitlyPaused;
+    final processingState = _player.processingState;
+    
+    // Only verify for ready state to avoid interfering with loading/buffering
+    if (processingState != ProcessingState.ready) {
+      return;
+    }
+    
+    if (playerPlaying != userWantsPlaying) {
+      if (kDebugMode) {
+        print('USER INTENT MISALIGNMENT: Player=$playerPlaying, UserWants=$userWantsPlaying, Intended=$_userIntendedPlaying, ExplicitPause=$_userExplicitlyPaused');
+      }
+      
+      try {
+        if (userWantsPlaying && !playerPlaying) {
+          if (kDebugMode) {
+            print('Correcting: Starting playback to align with user intent');
+          }
+          await _player.play();
+        } else if (!userWantsPlaying && playerPlaying) {
+          if (kDebugMode) {
+            print('Correcting: Pausing playback to align with user intent');
+          }
+          await _player.pause();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to correct user intent alignment: $e');
+        }
+      }
+    }
   }
 
   
