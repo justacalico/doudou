@@ -902,7 +902,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         final positionDiff = (position.inMilliseconds - _pausedAtPosition!.inMilliseconds).abs();
         if (positionDiff > 500) {
           if (shouldDebugPosition) {
-            print('Position jump detected (${positionDiff}ms), seeking to restore pause position');
+            if (kDebugMode) {
+              print('Position jump detected (${positionDiff}ms), seeking to restore pause position');
+            }
           }
           
           // Seek back to the pause position asynchronously to avoid blocking the stream
