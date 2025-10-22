@@ -4627,21 +4627,53 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Double-check that we should have completed by now
         final currentPosition = _player.position;
         final duration = _player.duration;
+        final processingState = _player.processingState;
         
-        if (duration != null && currentPosition.inMilliseconds >= (duration.inMilliseconds - 1000)) {
+        if (kDebugMode) {
+          print('Background watchdog checking: position=${currentPosition.inMilliseconds}ms, duration=${duration?.inMilliseconds}ms, state=$processingState');
+        }
+        
+        // Check multiple conditions that indicate the track should have completed
+        bool shouldHaveCompleted = false;
+        
+        if (duration != null) {
+          // Track is at or very near the end
+          final remainingMs = duration.inMilliseconds - currentPosition.inMilliseconds;
+          if (remainingMs <= 500) {
+            shouldHaveCompleted = true;
+          }
+          
+          // Track position hasn't changed in a while (might be stuck)
+          if (_lastTrackPositionUpdate != null) {
+            final timeSinceLastUpdate = DateTime.now().difference(_lastTrackPositionUpdate!);
+            if (timeSinceLastUpdate.inSeconds > 3 && remainingMs <= 2000) {
+              shouldHaveCompleted = true;
+              if (kDebugMode) {
+                print('Position appears stuck for ${timeSinceLastUpdate.inSeconds}s near end of track');
+              }
+            }
+          }
+        }
+        
+        if (shouldHaveCompleted) {
           if (kDebugMode) {
             print('Background watchdog triggered - track should have completed but no event fired');
-            print('Position: ${currentPosition.inMilliseconds}ms, Duration: ${duration.inMilliseconds}ms');
-            print('Processing state: ${_player.processingState}');
+            print('Position: ${currentPosition.inMilliseconds}ms, Duration: ${duration?.inMilliseconds}ms');
+            print('Processing state: $processingState');
           }
           
           _logger.warning('Background watchdog detected missed track completion - forcing transition', 'AudioHandler');
           
           // Check if we're actually still playing the same track that started the watchdog
           if (_lastKnownDuration != null && 
+              duration != null &&
               duration.inMilliseconds == _lastKnownDuration!.inMilliseconds) {
             // Force track completion handling
-            await _handleTrackCompletion();
+            try {
+              await _handleTrackCompletion();
+            } catch (e) {
+              _logger.error('Background watchdog failed to handle completion: $e', 'AudioHandler');
+            }
           }
         } else {
           if (kDebugMode) {
