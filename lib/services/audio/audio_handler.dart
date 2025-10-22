@@ -3932,8 +3932,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     queue.add(_stateManager.playlist.map(_trackToMediaItem).toList());
     
+    // CRITICAL: Now that the new queue is set up, re-enable completion handling
+    _stateManager.setHandlingCompletion(false);
+    
     if (kDebugMode) {
       print('Set playlist and queue');
+      print('CRITICAL: Re-enabled completion handling for new queue');
     }
     
     playbackState.add(playbackState.value.copyWith(
