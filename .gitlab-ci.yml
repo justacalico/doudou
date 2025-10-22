@@ -59,6 +59,22 @@ build_debug_linux:
   tags:
     - apple
   before_script:
+    # Set up Flutter if not in PATH
+    - |
+      if ! command -v flutter &> /dev/null; then
+        echo "Flutter not found in PATH. Attempting to set up Flutter..."
+        # Common Flutter installation paths on macOS
+        if [ -d "$HOME/flutter/bin" ]; then
+          export PATH="$HOME/flutter/bin:$PATH"
+        elif [ -d "/usr/local/flutter/bin" ]; then
+          export PATH="/usr/local/flutter/bin:$PATH"
+        elif [ -d "/opt/flutter/bin" ]; then
+          export PATH="/opt/flutter/bin:$PATH"
+        else
+          echo "Flutter installation not found. Please install Flutter or update PATH."
+          exit 1
+        fi
+      fi
     # Install Linux desktop development dependencies
     - apt-get update
     - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
