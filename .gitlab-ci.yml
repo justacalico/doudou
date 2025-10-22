@@ -116,7 +116,7 @@ publish_release:
       optional: true
   allow_failure: true
   script:
-    - echo "Publishing release with APKs, Linux builds, and optional macOS/iOS builds for pipeline $CI_PIPELINE_ID"
+    - echo "Publishing debug builds with APKs, Linux builds, and optional macOS/iOS builds for pipeline $CI_PIPELINE_ID"
   release:
     name: "Release Pipeline $CI_PIPELINE_ID"
     description: "Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
