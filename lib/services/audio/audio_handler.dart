@@ -1020,14 +1020,14 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
           
           // Try to recover by disabling gapless and reloading current track
-          // Use longer delay on mobile to prevent race conditions with MediaCodec
-          final recoveryDelay = Platform.isAndroid || Platform.isIOS ? 1000 : 500;
+          // Use longer delay on mobile to prevent race conditions with MediaCodec and intentional resets
+          final recoveryDelay = Platform.isAndroid || Platform.isIOS ? 1500 : 500;
           Future.delayed(Duration(milliseconds: recoveryDelay), () async {
             try {
-              // Double-check user intent hasn't changed during delay
-              if (!_userIntendedPlaying || _userExplicitlyPaused) {
+              // Double-check user intent hasn't changed during delay and we're not intentionally resetting
+              if (!_userIntendedPlaying || _userExplicitlyPaused || _isIntentionallyResetting) {
                 if (kDebugMode) {
-                  print('User paused during recovery delay - cancelling recovery');
+                  print('Recovery cancelled - user paused or intentional reset in progress');
                 }
                 return;
               }
