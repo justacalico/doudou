@@ -266,21 +266,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Current _userIntendedPlaying: $_userIntendedPlaying');
       print('Current _userExplicitlyPaused: $_userExplicitlyPaused');
       print('Previous playbackState.playing: ${playbackState.value.playing}');
-      
-      // Get stack trace to see who called this
-      final stackTrace = StackTrace.current;
-      final lines = stackTrace.toString().split('\n');
-      print('Called from:');
-      for (int i = 1; i < 4 && i < lines.length; i++) {
-        print('  ${lines[i].trim()}');
-      }
     }
     
     PlaybackState finalState = newState;
     
-    // Use state machine for synchronized state management
-    final userWantsToPlay = _stateMachine.userWantsToPlay;
-    final isStateSynced = _stateMachine.isStateSynchronized;
+    // Simplified state synchronization - prioritize user intent over complex logic
+    final shouldBePlaying = _getUserIntentedPlayState(newState);
     
     // Update state machine based on processing state
     switch (newState.processingState) {
@@ -291,70 +282,43 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       case AudioProcessingState.ready:
         _stateMachine.transitionTo(AudioPlayerState.ready);
         _positionManager.setBuffering(false);
+        // For ready state, ensure UI reflects user intent
+        finalState = newState.copyWith(playing: shouldBePlaying);
         break;
       case AudioProcessingState.buffering:
         _stateMachine.transitionTo(AudioPlayerState.buffering);
         _positionManager.setBuffering(true);
+        // During buffering, maintain user intent in UI
+        finalState = newState.copyWith(playing: shouldBePlaying);
         break;
       case AudioProcessingState.completed:
         _stateMachine.transitionTo(AudioPlayerState.completed);
         _positionManager.setBuffering(false);
+        // Track completed - respect that unless radio mode continues
+        finalState = newState.copyWith(playing: false);
         break;
       case AudioProcessingState.error:
         _stateMachine.transitionTo(AudioPlayerState.error);
         _positionManager.setBuffering(false);
+        finalState = newState.copyWith(playing: false);
         break;
       case AudioProcessingState.idle:
         _stateMachine.transitionTo(AudioPlayerState.idle);
         _positionManager.setBuffering(false);
+        finalState = newState.copyWith(playing: false);
         break;
     }
     
-    // If we're buffering but user intended to play, override the playing state
-    // BUT: respect explicit pause commands - don't override if user explicitly paused
-    if (newState.processingState == AudioProcessingState.buffering && 
-        userWantsToPlay && 
-        !_userExplicitlyPaused) {
-      // Force playing state to true during buffering if user intended to play AND didn't explicitly pause
-      finalState = newState.copyWith(playing: true);
-      
-      if (kDebugMode) {
-        print('Buffering detected but maintaining playing state (state machine synchronized: $isStateSynced)');
-      }
-    }
-    // If we're trying to set buffering state while currently playing, maintain playing state
-    // BUT: respect explicit pause commands
-    else if (newState.processingState == AudioProcessingState.buffering && 
-        playbackState.value.playing && 
-        playbackState.value.processingState == AudioProcessingState.ready &&
-        !_userExplicitlyPaused) {
-      
-      // Keep current state but show buffering processing state
-      finalState = newState.copyWith(
-        playing: userWantsToPlay, // Use state machine intent
-      );
-      
-      if (kDebugMode) {
-        print('Network buffering - maintaining state machine synchronized playing state');
-      }
-    }
-    // If user explicitly paused, always respect that regardless of other conditions
-    else if (_userExplicitlyPaused && newState.playing == false) {
-      finalState = newState.copyWith(playing: false);
-      
-      if (kDebugMode) {
-        print('Respecting explicit user pause - forcing playing: false');
-      }
-    }
+    // Verify actual player state alignment with intended state
+    _verifyPlayerStateAlignment(finalState);
     
     // Always update the playback state stream for UI consistency
-    // The AndroidServiceManager should only control Android-specific AudioService behavior
     try {
       if (kDebugMode) {
         print('=== FINAL PLAYBACK STATE UPDATE ===');
         print('finalState.playing: ${finalState.playing}');
         print('finalState.processingState: ${finalState.processingState}');
-        print('finalState.updatePosition: ${finalState.updatePosition}');
+        print('shouldBePlaying (user intent): $shouldBePlaying');
         print('About to call playbackState.add(finalState)');
       }
       
