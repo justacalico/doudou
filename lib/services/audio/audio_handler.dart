@@ -737,6 +737,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         
         // Only update if this is a legitimate gapless transition
         if (index != _stateManager.currentIndex) {
+          if (kDebugMode) {
+            print('Gapless transition: ${_stateManager.currentIndex} -> $index');
+          }
+          
           // Update state manager without stopping playback
           _stateManager.setCurrentIndex(index);
           
@@ -749,18 +753,28 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             _preloader.preloadNextTracks(_stateManager.playlist, index);
           });
           
-          // Update playback state with new index
+          // Update playback state with new index and ensure playing state if user intended
           _updatePlaybackState(playbackState.value.copyWith(
             queueIndex: index,
+            playing: _userIntendedPlaying && !_userExplicitlyPaused,
+            processingState: AudioProcessingState.ready,
           ));
           
           if (kDebugMode) {
-            print('Updated to track: ${track.name} (index: $index)');
+            print('Gapless transition successful: ${track.name} (index: $index)');
+          }
+        } else {
+          if (kDebugMode) {
+            print('Received same index $index during gapless mode - no change needed');
           }
         }
       } else if (index != null && !isConcatenationActive) {
         if (kDebugMode) {
           print('Received index change ($index) but concatenation is not active, ignoring');
+        }
+      } else if (index == null && isConcatenationActive) {
+        if (kDebugMode) {
+          print('Received null index with concatenation active - possible end of queue');
         }
       }
     });
