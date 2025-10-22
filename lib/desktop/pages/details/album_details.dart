@@ -503,8 +503,44 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
   }
 
   void _navigateToArtist() {
-    // Navigate to artist page
-    // This would require finding the artist and navigating to ArtistDetailsPage
+    if (widget.album.artistName == null) {
+      if (kDebugMode) {
+        print('No artist name available for album: ${widget.album.name}');
+      }
+      return;
+    }
+
+    final appState = context.read<AppState>();
+    
+    // Find the artist by name in the artists list
+    final artist = appState.artists.firstWhere(
+      (artist) => artist.name.toLowerCase() == widget.album.artistName!.toLowerCase(),
+      orElse: () => Artist(
+        id: '', // We'll use empty ID as a fallback
+        name: widget.album.artistName!,
+      ),
+    );
+
+    if (artist.id.isEmpty) {
+      if (kDebugMode) {
+        print('Artist not found in artists list: ${widget.album.artistName}');
+      }
+      // Show a message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Artist "${widget.album.artistName}" not found'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Navigate to artist details page
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ArtistDetailsPage(artist: artist),
+      ),
+    );
   }
 
   void _showAddToPlaylistDialog() {
