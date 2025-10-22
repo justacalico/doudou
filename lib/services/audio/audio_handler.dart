@@ -866,7 +866,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // but stream listeners might be paused due to background restrictions
       if (Platform.isAndroid && _userIntendedPlaying && !_userExplicitlyPaused) {
         _lastTrackPositionUpdate = DateTime.now();
-        _lastKnownPosition = position;
         
         // Get track duration for completion detection
         final duration = _player.duration;
