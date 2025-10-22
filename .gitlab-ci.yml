@@ -32,8 +32,6 @@ build_debug_apk:
     - flutter build apk --debug
   after_script:
     - pkill -f gradle || true
-    # Clean up build artifacts to save local space
-    - rm -rf build/
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
@@ -62,9 +60,6 @@ build_debug_linux:
     paths:
       - build/linux/x64/debug/bundle/
     expire_in: 1 week
-  after_script:
-    # Clean up build artifacts to save local space
-    - rm -rf build/
 
 build_debug_macos:
   stage: build
@@ -104,15 +99,11 @@ build_debug_macos:
         echo "macOS build not supported in this environment (skipping)."
         exit 0
       fi
-    # Prevent system sleep during build
-    - caffeinate -i flutter build macos
+    - flutter build macos
   artifacts:
     paths:
       - build/macos/Build/Products/Debug/
     expire_in: 1 week
-  after_script:
-    # Clean up build artifacts to save local space
-    - rm -rf build/
 
 build_debug_ios:
   stage: build
@@ -144,15 +135,11 @@ build_debug_ios:
     - flutter --version
     - flutter clean
     - flutter pub get
-    # Prevent system sleep during build
-    - caffeinate -i flutter build ios --no-codesign
+    - flutter build ios --no-codesign
   artifacts:
     paths:
       - build/ios/iphoneos/
     expire_in: 1 week
-  after_script:
-    # Clean up build artifacts to save local space
-    - rm -rf build/
 
 publish_release:
   stage: release
