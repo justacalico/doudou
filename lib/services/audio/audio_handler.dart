@@ -346,7 +346,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Helper method to update playback state while preventing automatic buffering pauses
   void _updatePlaybackState(PlaybackState newState) {
-    if (kDebugMode) {
+    // Mobile optimization: Reduce debug logging overhead for better performance
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+    final shouldDebugState = kDebugMode && !isMobile; // Disable verbose state logging on mobile
+    
+    if (shouldDebugState) {
       print('=== _updatePlaybackState CALLED ===');
       print('DateTime: ${DateTime.now()}');
       print('Input newState.playing: ${newState.playing}');
