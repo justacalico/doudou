@@ -2464,87 +2464,119 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Add timeout wrapper for the entire skip operation
     try {
       await _executeSkipWithTimeout('skipToPrevious', () async {
-        _logger.info('Using gapless skip to previous track: $prevIndex', 'AudioHandler');
-        if (kDebugMode) {
-          print('Using gapless skip to previous track: $prevIndex');
+        // Preserve playing state when skipping - if music was playing, it should continue playing
+        final wasPlaying = playbackState.value.playing;
+        if (wasPlaying) {
+          await _setUserIntentAtomic(true);
+          _logger.info('Preserving playing state during skip to previous', 'AudioHandler');
+        }
+        
+        // Unprotect current track before transitioning to previous
+        if (_stateManager.currentTrack != null) {
+          await _downloadServiceCoordinator.unmarkTrackAsStreaming(_stateManager.currentTrack!.id);
+        }
+        
+        // Use gapless transition if concatenation is active
+        final isActive = await _isConcatenationActive();
+        if (isActive) {
+          final prevIndex = _stateManager.currentIndex - 1;
+          if (prevIndex >= 0) {
+            _logger.info('Using gapless skip to previous track: $prevIndex', 'AudioHandler');
+            if (kDebugMode) {
+              print('Using gapless skip to previous track: $prevIndex');
+            }
+            
+            try {
+              await _player.seekToPrevious();
+              // State will be updated automatically via currentIndexStream
+              _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
+              _logger.info('Gapless skip to previous successful', 'AudioHandler');
+              return;
+            } catch (e) {
+              _logger.error('Gapless skip to previous failed, falling back: $e', 'AudioHandler');
+              if (kDebugMode) {
+                print('Gapless skip to previous failed, falling back: $e');
+              }
+            }
+          }
+        }
+        
+        // Use atomic transition manager for traditional skip
+        if (!await _transitionManager.acquireTransitionLock('skipToPrevious')) {
+          _logger.warning('Skip to previous rejected - another transition in progress', 'AudioHandler');
+          if (kDebugMode) {
+            print('Skip to previous rejected - another transition in progress');
+          }
+          return;
         }
         
         try {
-          await _player.seekToPrevious();
-          // State will be updated automatically via currentIndexStream
-          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
-          _logger.info('Gapless skip to previous successful', 'AudioHandler');
-          return;
-        } catch (e) {
-          _logger.error('Gapless skip to previous failed, falling back: $e', 'AudioHandler');
-          if (kDebugMode) {
-            print('Gapless skip to previous failed, falling back: $e');
-          }
-        }
-      }
-    }
-    
-    // Use atomic transition manager for traditional skip
-    if (!await _transitionManager.acquireTransitionLock('skipToPrevious')) {
-      _logger.warning('Skip to previous rejected - another transition in progress', 'AudioHandler');
-      if (kDebugMode) {
-        print('Skip to previous rejected - another transition in progress');
-      }
-      return;
-    }
-    
-    try {
-      // Reset completion handling flags
-      _stateManager.setHandlingCompletion(false);
-      _stateManager.setTransitioning(false);
-      
-      // Fallback to traditional skip logic with restart behavior
-      final now = DateTime.now();
-      final currentPosition = _player.position;
-      final duration = _player.duration;
-      
-      bool shouldRestartCurrentSong = false;
-      
-      if (duration != null && duration.inMilliseconds > 0) {
-        final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
-        final minThresholdMs = Duration(seconds: 5).inMilliseconds;
-        final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
-        
-        if (currentPosition.inMilliseconds > thresholdMs) {
-          if (_stateManager.lastSkipToPreviousTime != null && 
-              now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
-            shouldRestartCurrentSong = false;
+          // Reset completion handling flags
+          _stateManager.setHandlingCompletion(false);
+          _stateManager.setTransitioning(false);
+          
+          // Fallback to traditional skip logic with restart behavior
+          final now = DateTime.now();
+          final currentPosition = _player.position;
+          final duration = _player.duration;
+          
+          bool shouldRestartCurrentSong = false;
+          
+          if (duration != null && duration.inMilliseconds > 0) {
+            final restartThresholdMs = (duration.inMilliseconds * _stateManager.restartThresholdPercentage).round();
+            final minThresholdMs = Duration(seconds: 5).inMilliseconds;
+            final thresholdMs = restartThresholdMs < minThresholdMs ? restartThresholdMs : minThresholdMs;
+            
+            if (currentPosition.inMilliseconds > thresholdMs) {
+              if (_stateManager.lastSkipToPreviousTime != null && 
+                  now.difference(_stateManager.lastSkipToPreviousTime!) < _stateManager.skipToPreviousThreshold) {
+                shouldRestartCurrentSong = false;
+              } else {
+                shouldRestartCurrentSong = true;
+              }
+            } else {
+              shouldRestartCurrentSong = false;
+            }
           } else {
-            shouldRestartCurrentSong = true;
+            shouldRestartCurrentSong = false;
           }
-        } else {
-          shouldRestartCurrentSong = false;
-        }
-      } else {
-        shouldRestartCurrentSong = false;
-      }
-      
-      _stateManager.setLastSkipToPreviousTime(now);
-      
-      if (shouldRestartCurrentSong) {
-        _logger.info('Restarting current song: ${_stateManager.currentTrack?.name}', 'AudioHandler');
-        await _player.seek(Duration.zero);
-        if (kDebugMode) {
-          print('Restarting current song: ${_stateManager.currentTrack?.name}');
-        }
-      } else {
-        if (await _stateManager.decrementCurrentIndexAtomic()) {
-          _logger.info('Skipping to previous track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
-          await _playCurrentTrack();
-          _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
-          if (kDebugMode) {
-            print('Skipping to previous song');
+          
+          _stateManager.setLastSkipToPreviousTime(now);
+          
+          if (shouldRestartCurrentSong) {
+            _logger.info('Restarting current song: ${_stateManager.currentTrack?.name}', 'AudioHandler');
+            await _player.seek(Duration.zero);
+            if (kDebugMode) {
+              print('Restarting current song: ${_stateManager.currentTrack?.name}');
+            }
+          } else {
+            if (await _stateManager.decrementCurrentIndexAtomic()) {
+              _logger.info('Skipping to previous track: ${_stateManager.currentTrack?.name}', 'AudioHandler');
+              await _playCurrentTrack();
+              _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
+              if (kDebugMode) {
+                print('Skipping to previous song');
+              }
+            } else {
+              _logger.info('Already at first track, restarting current track', 'AudioHandler');
+              await _player.seek(Duration.zero);
+              if (kDebugMode) {
+                print('Already at first song, restarting');
+              }
+            }
           }
+        } finally {
+          _transitionManager.releaseTransitionLock();
+          _logger.info('Skip to previous completed', 'AudioHandler');
         }
+      });
+    } catch (e) {
+      _logger.error('Skip to previous operation failed or timed out: $e', 'AudioHandler');
+      if (kDebugMode) {
+        print('Skip to previous operation failed or timed out: $e');
       }
-    } finally {
-      _transitionManager.releaseTransitionLock();
-      _logger.info('Skip to previous completed', 'AudioHandler');
+      // Force release transition lock and attempt recovery
+      _transitionManager.forceRelease();
     }
   }
 
