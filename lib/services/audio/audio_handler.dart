@@ -3643,20 +3643,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('Set _userIntendedPlaying to: $userIntent');
     }
     
-    // Mobile optimization: Skip full reset if we can do a lighter reset for better performance
-    if (isMobile && _androidServiceManager.shouldSkipAudioService()) {
+    // Mobile optimization: Use lightweight reset for all mobile platforms to improve responsiveness
+    if (isMobile) {
       if (kDebugMode) {
-        print('Mobile: Using lightweight reset for bypass mode');
+        print('Mobile: Using lightweight reset for faster queue switching');
       }
-      // Lightweight reset for mobile bypass mode
+      // Lightweight reset for mobile - much faster than full reset
       await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 25)); // Very short delay
       _preloader.clearAllPreloadedPlayers();
       _audioSourceCache.clear();
+      _isUsingConcatenation = false;
+      _concatenatingSource = null;
       _stateManager.setCurrentTrack(null);
-      await Future.delayed(const Duration(milliseconds: 50)); // Much shorter delay
+      _stateManager.setHandlingCompletion(false);
+      _stateManager.setTransitioning(false);
+      await Future.delayed(const Duration(milliseconds: 25)); // Short final delay
     } else {
       if (kDebugMode) {
-        print('Using full player state reset');
+        print('Desktop: Using full player state reset');
       }
       // CRITICAL FIX: Completely reset player state to prevent old queue from continuing
       await _resetPlayerStateCompletely();
