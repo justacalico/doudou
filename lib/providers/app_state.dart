@@ -1716,26 +1716,28 @@ class AppState extends ChangeNotifier {
     _lastPlayPauseCommand = now;
     
     if (_audioHandler != null) {
-      // Use the same state that the UI uses for consistent behavior
-      final currentlyPlaying = _audioHandler!.playbackState.value.playing;
+      // CRITICAL FIX: Use userIntendedPlaying instead of playbackState.playing to avoid race conditions
+      // playbackState.playing can lag behind the actual command completion, causing double-click issues
+      final userIntendedPlaying = _audioHandler!.userIntendedPlaying;
+      final playbackStatePlaying = _audioHandler!.playbackState.value.playing;
       
       if (kDebugMode) {
-        print('Current playbackState.playing: $currentlyPlaying');
-        print('Current userIntendedPlaying: ${_audioHandler!.userIntendedPlaying}');
-        print('Action: ${currentlyPlaying ? "PAUSE" : "PLAY"}');
+        print('Current playbackState.playing: $playbackStatePlaying');
+        print('Current userIntendedPlaying: $userIntendedPlaying');
+        print('Action: ${userIntendedPlaying ? "PAUSE" : "PLAY"} (using userIntendedPlaying to avoid race condition)');
       }
       
       try {
         // Remove external timeout to prevent mutex interruption
         // The audio handler has its own internal timeout and error handling
-        if (currentlyPlaying) {
+        if (userIntendedPlaying) {
           if (kDebugMode) {
-            print('Calling audioHandler.pause()');
+            print('Calling audioHandler.pause() (based on userIntendedPlaying)');
           }
           await _audioHandler!.pause();
         } else {
           if (kDebugMode) {
-            print('Calling audioHandler.play()');
+            print('Calling audioHandler.play() (based on userIntendedPlaying)');
           }
           await _audioHandler!.play();
         }
