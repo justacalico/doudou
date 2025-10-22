@@ -55,38 +55,19 @@ build_debug_apk:
 
 build_debug_linux:
   stage: build
+  image: ghcr.io/cirruslabs/flutter:stable
   tags:
-    - apple
-  allow_failure: true
+    - android
   before_script:
-    # Set up Flutter if not in PATH
-    - |
-      if ! command -v flutter &> /dev/null; then
-        echo "Flutter not found in PATH. Attempting to set up Flutter..."
-        # Common Flutter installation paths on macOS
-        if [ -d "$HOME/flutter/bin" ]; then
-          export PATH="$HOME/flutter/bin:$PATH"
-        elif [ -d "/usr/local/flutter/bin" ]; then
-          export PATH="/usr/local/flutter/bin:$PATH"
-        elif [ -d "/opt/flutter/bin" ]; then
-          export PATH="/opt/flutter/bin:$PATH"
-        else
-          echo "Flutter installation not found. Please install Flutter or update PATH."
-          exit 1
-        fi
-      fi
+    # Install Linux desktop development dependencies
+    - apt-get update
+    - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
     # Clean build artifacts
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
     - rm -rf .pub-cache
     - flutter clean
   script:
     - flutter --version
-    # Skip Linux build on macOS since cross-compilation may not be available
-    - |
-      if [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "Linux build not supported on macOS (skipping)."
-        exit 0
-      fi
     - flutter config --enable-linux-desktop
     - flutter clean
     - flutter pub get
