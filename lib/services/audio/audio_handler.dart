@@ -1472,8 +1472,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Cancel any ongoing gapless operations when new play command is issued
       _cancellationManager.createToken('playCommand', 'New play command cancelling previous operations');
       
-      _lastPlayCommand = now;
-      
       if (kDebugMode) {
         print('Play command received (Android Auto/MediaSession compatible) - Current user intent: $_userIntendedPlaying');
       }
