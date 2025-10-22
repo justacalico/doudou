@@ -406,7 +406,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Always update the playback state stream for UI consistency
     try {
-      if (kDebugMode) {
+      if (shouldDebugState) {
         print('=== FINAL PLAYBACK STATE UPDATE ===');
         print('finalState.playing: ${finalState.playing}');
         print('finalState.processingState: ${finalState.processingState}');
@@ -416,12 +416,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       playbackState.add(finalState);
       
-      if (kDebugMode) {
+      if (shouldDebugState) {
         print('Successfully updated playbackState stream');
         print('=== END _updatePlaybackState ===');
       }
     } catch (e) {
-      if (kDebugMode) {
+      if (shouldDebugState) {
         print('=== PLAYBACK STATE UPDATE ERROR ===');
         print('Error updating playback state: $e');
       }
