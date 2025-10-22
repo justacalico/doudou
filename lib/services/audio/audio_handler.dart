@@ -892,7 +892,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // and the player has resumed from an explicit pause
       if (_pausedAtPosition != null && _userExplicitlyPaused && _player.playing) {
         if (shouldDebugPosition) {
-          print('Position restoration triggered - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
+          if (kDebugMode) {
+            print('Position restoration triggered - current: ${position.inMilliseconds}ms, should be: ${_pausedAtPosition!.inMilliseconds}ms');
+          }
         }
         
         // Only seek if the position is significantly different (more than 500ms)
