@@ -327,10 +327,25 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               child: const Text('Clear Search'),
             )
           else
-            ElevatedButton.icon(
-              onPressed: () => _showCreatePlaylistDialog(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Create Playlist'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _showCreatePlaylistDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create Playlist'),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final appState = context.read<AppState>();
+                    print('Manual retry: Loading library data...');
+                    appState.loadLibraryData();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
             ),
         ],
       ),
