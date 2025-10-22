@@ -198,19 +198,21 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     }
     
     // Show confirmation
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Download Started'),
-        content: Text('Downloading ${_artistTracks.length} tracks by ${widget.artist.name}'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    if (mounted) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Download Started'),
+          content: Text('Downloading ${_artistTracks.length} tracks by ${widget.artist.name}'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _addAllToQueue(AppState appState) {
