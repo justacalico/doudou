@@ -136,8 +136,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 ],
               ),
             ),
-          // Create artist radio/station
-          if (_artistTracks.isNotEmpty)
+          // Create artist radio/station (only for Jellyfin)
+          if (_artistTracks.isNotEmpty && appState.mediaServiceManager.currentServerType == ServerType.jellyfin)
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
