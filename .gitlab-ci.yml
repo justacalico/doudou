@@ -167,11 +167,8 @@ build_debug_ios:
 
 publish_release:
   stage: release
-  # We use the official GitLab Release CLI image, which provides the necessary tool
-  # and often has better integration with the CI_JOB_TOKEN for release actions.
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
-    - apple # Keeping the tag to use the same runner that ran the builds
+    - apple # Use the same macOS runner that ran the builds
   needs:
     - job: "build_debug_apk"
     - job: "build_debug_linux"
@@ -180,6 +177,18 @@ publish_release:
     - job: "build_debug_ios"
       optional: true
   # allow_failure: false # Change to false once permissions are confirmed, but left as true for safety.
+  
+  before_script:
+    # Install release-cli if not available
+    - |
+      if ! command -v release-cli &> /dev/null; then
+        echo "Installing GitLab release-cli..."
+        # Download the latest release-cli binary for macOS
+        curl -L "https://gitlab.com/gitlab-org/release-cli/-/releases/permalink/latest/downloads/release-cli-darwin-amd64" -o release-cli
+        chmod +x release-cli
+        sudo mv release-cli /usr/local/bin/
+      fi
+    - release-cli version
   
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
