@@ -52,7 +52,7 @@ build_debug_apk:
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
-    expire_in: 1 week
+    expire_in: 1 hour
 
 build_debug_linux:
   stage: build-linux
@@ -81,7 +81,7 @@ build_debug_linux:
   artifacts:
     paths:
       - build/linux/x64/debug/bundle/
-    expire_in: 1 week
+    expire_in: 1 hour
 
 build_debug_macos:
   stage: build
@@ -126,7 +126,7 @@ build_debug_macos:
   artifacts:
     paths:
       - build/macos/Build/Products/Debug/
-    expire_in: 1 week
+    expire_in: 1 hour
 
 build_debug_ios:
   stage: build
@@ -163,7 +163,7 @@ build_debug_ios:
   artifacts:
     paths:
       - build/ios/iphoneos/
-    expire_in: 1 week
+    expire_in: 1 hour
 
 publish_release:
   stage: release
