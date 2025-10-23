@@ -208,25 +208,52 @@ publish_release:
     - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
     - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
 
-    # Construct the assets list for all uploaded artifacts
-    - ASSETS_LIST=""
-    - ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Android APK\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_apk/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk\\\"}\""
-    - ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Linux Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_linux/artifacts/raw/build/linux/x64/debug/bundle/\\\"}\""
-    
-    # Optional assets (using shell to conditionally add macOS/iOS links)
+    # Create release using either release-cli or API fallback
     - |
-      if [ "$build_debug_macos" ]; then
-        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"macOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_macos/artifacts/raw/build/macos/Build/Products/Debug/\\\"}\""
-      fi
-      if [ "$build_debug_ios" ]; then
-        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"iOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_ios/artifacts/raw/build/ios/iphoneos/\\\"}\""
-      fi
+      if [ "$USE_RELEASE_CLI" = "true" ]; then
+        echo "Using release-cli..."
+        # Construct the assets list for all uploaded artifacts
+        ASSETS_LIST=""
+        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Android APK\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_apk/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk\\\"}\""
+        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Linux Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_linux/artifacts/raw/build/linux/x64/debug/bundle/\\\"}\""
+        
+        # Optional assets (using shell to conditionally add macOS/iOS links)
+        if [ "$build_debug_macos" ]; then
+          ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"macOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_macos/artifacts/raw/build/macos/Build/Products/Debug/\\\"}\""
+        fi
+        if [ "$build_debug_ios" ]; then
+          ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"iOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_ios/artifacts/raw/build/ios/iphoneos/\\\"}\""
+        fi
 
-    # Execute release-cli command
-    - |
-      release-cli create \
-        --name "Release Pipeline $CI_PIPELINE_ID" \
-        --tag "$RELEASE_TAG" \
-        --description "$RELEASE_NOTES" \
-        --ref "$CI_COMMIT_SHA" \
-        $ASSETS_LIST
+        # Execute release-cli command
+        release-cli create \
+          --name "Release Pipeline $CI_PIPELINE_ID" \
+          --tag "$RELEASE_TAG" \
+          --description "$RELEASE_NOTES" \
+          --ref "$CI_COMMIT_SHA" \
+          $ASSETS_LIST
+      else
+        echo "Using GitLab API fallback..."
+        # Create release using GitLab API directly
+        curl --header "Content-Type: application/json" \
+             --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+             --data '{
+               "name": "Release Pipeline '"$CI_PIPELINE_ID"'",
+               "tag_name": "'"$RELEASE_TAG"'",
+               "description": "'"$RELEASE_NOTES"'",
+               "ref": "'"$CI_COMMIT_SHA"'",
+               "assets": {
+                 "links": [
+                   {
+                     "name": "Android APK",
+                     "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/artifacts/'"$CI_COMMIT_REF_NAME"'/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
+                   },
+                   {
+                     "name": "Linux Build", 
+                     "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/artifacts/'"$CI_COMMIT_REF_NAME"'/download?job=build_debug_linux"
+                   }
+                 ]
+               }
+             }' \
+             --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+      fi
