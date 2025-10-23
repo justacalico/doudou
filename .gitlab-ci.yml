@@ -190,24 +190,39 @@ publish_release:
     - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
     - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
 
-    # Create release using GitLab API
+    # Create release using GitLab API with proper job IDs and authentication
     - echo "Creating release using GitLab API..."
     - |
-      # Get job IDs for artifact URLs
-      APK_JOB_ID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | \
-        grep -o '"id":[0-9]*.*"name":"build_debug_apk"' | grep -o '[0-9]*' | head -1)
+      # Get the complete pipeline jobs data and parse it properly
+      JOBS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
       
-      LINUX_JOB_ID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | \
-        grep -o '"id":[0-9]*.*"name":"build_debug_linux"' | grep -o '[0-9]*' | head -1)
+      echo "Jobs data response:"
+      echo "$JOBS_DATA" | head -5
+      
+      # Extract job IDs more reliably using jq-style parsing
+      APK_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_apk"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      LINUX_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_linux"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
       
       echo "APK Job ID: $APK_JOB_ID"
       echo "Linux Job ID: $LINUX_JOB_ID"
       
-      # Create the release
-      curl --fail --header "Content-Type: application/json" \
-           --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+      # Validate we got valid job IDs
+      if [ -z "$APK_JOB_ID" ] || [ -z "$LINUX_JOB_ID" ]; then
+        echo "Failed to extract job IDs. Using simplified artifact URLs..."
+        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
+        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_linux"
+      else
+        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk"
+        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
+      fi
+      
+      echo "APK URL: $APK_URL"
+      echo "Linux URL: $LINUX_URL"
+      
+      # Create the release using JOB-TOKEN instead of PRIVATE-TOKEN
+      RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --data '{
              "name": "Release Pipeline '"$CI_PIPELINE_ID"'",
              "tag_name": "'"$RELEASE_TAG"'",
@@ -217,15 +232,30 @@ publish_release:
                "links": [
                  {
                    "name": "Android APK",
-                   "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/'"$APK_JOB_ID"'/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk",
+                   "url": "'"$APK_URL"'",
                    "link_type": "package"
                  },
                  {
                    "name": "Linux Build Archive", 
-                   "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/'"$LINUX_JOB_ID"'/artifacts/download",
+                   "url": "'"$LINUX_URL"'",
                    "link_type": "package"
                  }
                ]
              }
            }' \
-           --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
+           --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases")
+      
+      # Check response
+      HTTP_CODE=${RESPONSE: -3}
+      RESPONSE_BODY=${RESPONSE%???}
+      
+      echo "HTTP Response Code: $HTTP_CODE"
+      echo "Response Body: $RESPONSE_BODY"
+      
+      if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+        echo "✅ Release created successfully!"
+      else
+        echo "❌ Release creation failed with HTTP $HTTP_CODE"
+        echo "Response: $RESPONSE_BODY"
+        exit 1
+      fi
