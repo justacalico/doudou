@@ -179,16 +179,27 @@ publish_release:
   # allow_failure: false # Change to false once permissions are confirmed, but left as true for safety.
   
   before_script:
-    # Install release-cli if not available
+    # Install release-cli if not available, with fallback to API approach
     - |
       if ! command -v release-cli &> /dev/null; then
         echo "Installing GitLab release-cli..."
-        # Download the latest release-cli binary for macOS
-        curl -L "https://gitlab.com/gitlab-org/release-cli/-/releases/permalink/latest/downloads/release-cli-darwin-amd64" -o release-cli
-        chmod +x release-cli
-        sudo mv release-cli /usr/local/bin/
+        # Try to download and install release-cli
+        if curl -L "https://gitlab.com/gitlab-org/release-cli/-/releases/permalink/latest/downloads/release-cli-darwin-amd64" -o release-cli 2>/dev/null; then
+          chmod +x release-cli
+          sudo mv release-cli /usr/local/bin/ 2>/dev/null || mv release-cli ./release-cli
+          export PATH=".:$PATH"
+        else
+          echo "Failed to install release-cli, will use API fallback"
+        fi
       fi
-    - release-cli version
+    - |
+      if command -v release-cli &> /dev/null; then
+        release-cli version
+        export USE_RELEASE_CLI=true
+      else
+        echo "Using GitLab API fallback for release creation"
+        export USE_RELEASE_CLI=false
+      fi
   
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
