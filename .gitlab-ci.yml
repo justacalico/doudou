@@ -179,27 +179,9 @@ publish_release:
   # allow_failure: false # Change to false once permissions are confirmed, but left as true for safety.
   
   before_script:
-    # Install release-cli if not available, with fallback to API approach
-    - |
-      if ! command -v release-cli &> /dev/null; then
-        echo "Installing GitLab release-cli..."
-        # Try to download and install release-cli
-        if curl -L "https://gitlab.com/gitlab-org/release-cli/-/releases/permalink/latest/downloads/release-cli-darwin-amd64" -o release-cli 2>/dev/null; then
-          chmod +x release-cli
-          sudo mv release-cli /usr/local/bin/ 2>/dev/null || mv release-cli ./release-cli
-          export PATH=".:$PATH"
-        else
-          echo "Failed to install release-cli, will use API fallback"
-        fi
-      fi
-    - |
-      if command -v release-cli &> /dev/null; then
-        release-cli version
-        export USE_RELEASE_CLI=true
-      else
-        echo "Using GitLab API fallback for release creation"
-        export USE_RELEASE_CLI=false
-      fi
+    # Skip release-cli installation and use GitLab API directly
+    - echo "Using GitLab API for release creation (more reliable than release-cli on shell executors)"
+    - export USE_RELEASE_CLI=false
   
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
@@ -208,52 +190,42 @@ publish_release:
     - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
     - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
 
-    # Create release using either release-cli or API fallback
+    # Create release using GitLab API
+    - echo "Creating release using GitLab API..."
     - |
-      if [ "$USE_RELEASE_CLI" = "true" ]; then
-        echo "Using release-cli..."
-        # Construct the assets list for all uploaded artifacts
-        ASSETS_LIST=""
-        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Android APK\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_apk/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk\\\"}\""
-        ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"Linux Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_linux/artifacts/raw/build/linux/x64/debug/bundle/\\\"}\""
-        
-        # Optional assets (using shell to conditionally add macOS/iOS links)
-        if [ "$build_debug_macos" ]; then
-          ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"macOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_macos/artifacts/raw/build/macos/Build/Products/Debug/\\\"}\""
-        fi
-        if [ "$build_debug_ios" ]; then
-          ASSETS_LIST="$ASSETS_LIST --asset-link \"{\\\"name\\\":\\\"iOS Build\\\",\\\"url\\\":\\\"$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$build_debug_ios/artifacts/raw/build/ios/iphoneos/\\\"}\""
-        fi
-
-        # Execute release-cli command
-        release-cli create \
-          --name "Release Pipeline $CI_PIPELINE_ID" \
-          --tag "$RELEASE_TAG" \
-          --description "$RELEASE_NOTES" \
-          --ref "$CI_COMMIT_SHA" \
-          $ASSETS_LIST
-      else
-        echo "Using GitLab API fallback..."
-        # Create release using GitLab API directly
-        curl --header "Content-Type: application/json" \
-             --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-             --data '{
-               "name": "Release Pipeline '"$CI_PIPELINE_ID"'",
-               "tag_name": "'"$RELEASE_TAG"'",
-               "description": "'"$RELEASE_NOTES"'",
-               "ref": "'"$CI_COMMIT_SHA"'",
-               "assets": {
-                 "links": [
-                   {
-                     "name": "Android APK",
-                     "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/artifacts/'"$CI_COMMIT_REF_NAME"'/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
-                   },
-                   {
-                     "name": "Linux Build", 
-                     "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/artifacts/'"$CI_COMMIT_REF_NAME"'/download?job=build_debug_linux"
-                   }
-                 ]
-               }
-             }' \
-             --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
-      fi
+      # Get job IDs for artifact URLs
+      APK_JOB_ID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | \
+        grep -o '"id":[0-9]*.*"name":"build_debug_apk"' | grep -o '[0-9]*' | head -1)
+      
+      LINUX_JOB_ID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | \
+        grep -o '"id":[0-9]*.*"name":"build_debug_linux"' | grep -o '[0-9]*' | head -1)
+      
+      echo "APK Job ID: $APK_JOB_ID"
+      echo "Linux Job ID: $LINUX_JOB_ID"
+      
+      # Create the release
+      curl --fail --header "Content-Type: application/json" \
+           --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+           --data '{
+             "name": "Release Pipeline '"$CI_PIPELINE_ID"'",
+             "tag_name": "'"$RELEASE_TAG"'",
+             "description": "'"$RELEASE_NOTES"'",
+             "ref": "'"$CI_COMMIT_SHA"'",
+             "assets": {
+               "links": [
+                 {
+                   "name": "Android APK",
+                   "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/'"$APK_JOB_ID"'/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk",
+                   "link_type": "package"
+                 },
+                 {
+                   "name": "Linux Build Archive", 
+                   "url": "'"$CI_SERVER_URL/$CI_PROJECT_PATH"'/-/jobs/'"$LINUX_JOB_ID"'/artifacts/download",
+                   "link_type": "package"
+                 }
+               ]
+             }
+           }' \
+           --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases"
