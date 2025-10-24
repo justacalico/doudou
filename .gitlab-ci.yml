@@ -342,6 +342,14 @@ publish_release:
       
       echo "Asset links JSON: [$ASSET_LINKS]"
       
+      # Check if we have any artifacts to release
+      if [ -z "$ASSET_LINKS" ]; then
+        echo "❌ No successful builds found - cannot create release"
+        echo "Available jobs in pipeline:"
+        echo "$JOBS_DATA" | grep '"name"' | head -10
+        exit 1
+      fi
+      
       # Create the release using JOB-TOKEN with dynamic asset links
       echo "Creating release with available artifacts..."
       RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
