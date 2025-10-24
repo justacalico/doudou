@@ -71,6 +71,17 @@ class AppState extends ChangeNotifier {
   DownloadService get downloadService => _downloadService;
   BaseAudioHandler? get audioHandler => _audioHandler;
 
+  // Helper method to safely call audio handler configuration methods
+  void _configureAudioHandler() {
+    if (_audioHandler is DoudouAudioHandler) {
+      (_audioHandler as DoudouAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
+      (_audioHandler as DoudouAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
+    } else if (_audioHandler is WebAudioHandler) {
+      (_audioHandler as WebAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
+      (_audioHandler as WebAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
+    }
+  }
+
   // Helper method to find a track by ID
   Track? findTrackById(String? trackId) {
     if (trackId == null) return null;
