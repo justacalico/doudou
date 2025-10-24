@@ -302,6 +302,10 @@ publish_release:
       echo "macOS Job ID: $MACOS_JOB_ID"
       echo "iOS Job ID: $IOS_JOB_ID"
       
+      # Debug: Show all job names and IDs for troubleshooting
+      echo "=== DEBUG: All jobs in pipeline ==="
+      echo "$JOBS_DATA" | grep -E '"(name|id)":' | grep -A1 '"name":' | head -20
+      
       # Build artifact URLs for available builds
       ASSET_LINKS=""
       
