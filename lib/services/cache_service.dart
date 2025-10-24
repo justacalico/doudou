@@ -385,16 +385,45 @@ class CacheService {
   }
   
   Future<void> _clearExpiredCache(String table, Duration maxAge) async {
-    if (_database == null) return;
-    
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final expiredThreshold = now - maxAge.inMilliseconds;
-    
-    await _database!.delete(
-      table,
-      where: 'timestamp < ?',
-      whereArgs: [expiredThreshold],
-    );
+    if (kIsWeb) {
+      // For web, we need to check each SharedPreferences key individually
+      if (_prefs == null) return;
+      
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final expiredThreshold = now - maxAge.inMilliseconds;
+      final keys = _prefs!.getKeys();
+      
+      for (final key in keys) {
+        if (key.startsWith('${table}_')) {
+          try {
+            final dataJson = _prefs!.getString(key);
+            if (dataJson != null) {
+              final cacheData = jsonDecode(dataJson) as Map<String, dynamic>;
+              final timestamp = cacheData['timestamp'] as int;
+              
+              if (timestamp < expiredThreshold) {
+                await _prefs!.remove(key);
+              }
+            }
+          } catch (e) {
+            // Remove corrupted entries
+            await _prefs!.remove(key);
+          }
+        }
+      }
+    } else {
+      // Use database for other platforms
+      if (_database == null) return;
+      
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final expiredThreshold = now - maxAge.inMilliseconds;
+      
+      await _database!.delete(
+        table,
+        where: 'timestamp < ?',
+        whereArgs: [expiredThreshold],
+      );
+    }
   }
   
   // Albums caching
