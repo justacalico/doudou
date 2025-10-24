@@ -3909,23 +3909,15 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       
       // Step 2: CRITICAL - Force clear any existing audio source from player
       try {
-        // First stop completely
+        // CRITICAL FIX: Don't use empty ConcatenatingAudioSource - it causes immediate completion
+        // Just stop the player completely and wait for cleanup
         await _player.stop();
-        await Future.delayed(const Duration(milliseconds: 100));
         
-        // Create multiple empty sources to completely flush the audio pipeline
-        for (int i = 0; i < 2; i++) {
-          final emptySource = ConcatenatingAudioSource(children: []);
-          await _player.setAudioSource(emptySource);
-          await Future.delayed(const Duration(milliseconds: 50));
-          await _player.stop();
-        }
-        
-        // Final empty state to ensure no audio remains
-        await Future.delayed(const Duration(milliseconds: 100));
+        // Wait for audio pipeline to fully clear
+        await Future.delayed(const Duration(milliseconds: 300));
         
         if (kDebugMode) {
-          print('AGGRESSIVE RESET: Multiple empty sources forced to completely eliminate old streams');
+          print('AGGRESSIVE RESET: Player stopped completely to eliminate old streams');
         }
       } catch (e) {
         if (kDebugMode) {
