@@ -269,40 +269,69 @@ class CacheService {
   }
 
   Future<Map<String, dynamic>?> _getCache(String table, String key, Duration maxAge) async {
-    if (_database == null) return null;
-    
-    try {
-      final result = await _database!.query(
-        table,
-        where: 'id = ?',
-        whereArgs: [key],
-        limit: 1,
-      );
+    if (kIsWeb) {
+      // Use SharedPreferences for web
+      if (_prefs == null) return null;
       
-      if (result.isEmpty) return null;
-      
-      final row = result.first;
-      final timestamp = row['timestamp'] as int;
-      final now = DateTime.now().millisecondsSinceEpoch;
-      
-      // Check if cache is still valid
-      if (now - timestamp > maxAge.inMilliseconds) {
-        // Cache expired, remove it
-        await _database!.delete(table, where: 'id = ?', whereArgs: [key]);
+      try {
+        final dataJson = _prefs!.getString('${table}_$key');
+        if (dataJson == null) return null;
+        
+        final cacheData = jsonDecode(dataJson) as Map<String, dynamic>;
+        final timestamp = cacheData['timestamp'] as int;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        
+        // Check if cache is still valid
+        if (now - timestamp > maxAge.inMilliseconds) {
+          // Cache expired, remove it
+          await _prefs!.remove('${table}_$key');
+          return null;
+        }
+        
+        return cacheData['data'] as Map<String, dynamic>;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error reading from SharedPreferences cache $table: $e');
+        }
         return null;
       }
+    } else {
+      // Use database for other platforms
+      if (_database == null) return null;
       
-      final dataJson = row['data'] as String;
-      return jsonDecode(dataJson) as Map<String, dynamic>;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error reading from cache table $table: $e');
-        print('Attempting to recreate table with correct schema...');
+      try {
+        final result = await _database!.query(
+          table,
+          where: 'id = ?',
+          whereArgs: [key],
+          limit: 1,
+        );
+        
+        if (result.isEmpty) return null;
+        
+        final row = result.first;
+        final timestamp = row['timestamp'] as int;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        
+        // Check if cache is still valid
+        if (now - timestamp > maxAge.inMilliseconds) {
+          // Cache expired, remove it
+          await _database!.delete(table, where: 'id = ?', whereArgs: [key]);
+          return null;
+        }
+        
+        final dataJson = row['data'] as String;
+        return jsonDecode(dataJson) as Map<String, dynamic>;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error reading from cache table $table: $e');
+          print('Attempting to recreate table with correct schema...');
+        }
+        
+        // If there's a schema error, recreate the table
+        await _recreateTableWithCorrectSchema(table);
+        return null;
       }
-      
-      // If there's a schema error, recreate the table
-      await _recreateTableWithCorrectSchema(table);
-      return null;
     }
   }
   
