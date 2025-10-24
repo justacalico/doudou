@@ -246,7 +246,12 @@ class LoggingService {
     buffer.writeln('=== Doudou Application Logs ===');
     buffer.writeln('Exported: ${DateTime.now()}');
     buffer.writeln('App Version: [Will be filled by settings screen]');
-    buffer.writeln('Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}');
+    
+    if (!kIsWeb) {
+      buffer.writeln('Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}');
+    } else {
+      buffer.writeln('Platform: Web');
+    }
     buffer.writeln('');
     
     final files = await getAllLogFiles();
@@ -257,7 +262,16 @@ class LoggingService {
       buffer.writeln('');
     }
     
-    if (buffer.isEmpty) {
+    // Include memory logs for web platforms or when no files available
+    if (files.isEmpty && _memoryLogs.isNotEmpty) {
+      buffer.writeln('--- Memory Logs ---');
+      for (final log in _memoryLogs) {
+        buffer.writeln(log);
+      }
+      buffer.writeln('');
+    }
+    
+    if (buffer.length <= 100) { // Only headers were written
       buffer.writeln('No logs available');
     }
     
