@@ -252,16 +252,16 @@ publish_release:
           }
         fi
         
-        # Build comprehensive release notes
-        RELEASE_NOTES="# Release Pipeline $CI_PIPELINE_ID\\n\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}**Build Information:**\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Pipeline: $CI_PIPELINE_ID\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Commit: $CI_COMMIT_SHORT_SHA\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\\n\\n"
+        # Build comprehensive release notes (JSON-safe)
+        RELEASE_NOTES="# Release Pipeline $CI_PIPELINE_ID\n\n"
+        RELEASE_NOTES="${RELEASE_NOTES}**Build Information:**\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Pipeline: $CI_PIPELINE_ID\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Commit: $CI_COMMIT_SHORT_SHA\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\n\n"
         
         if [ "$COMMIT_COUNT" -gt 0 ] && [ -n "$COMMIT_LIST" ]; then
-          RELEASE_NOTES="${RELEASE_NOTES}**Changes Since Last Release ($COMMIT_COUNT commits):**\\n$COMMIT_LIST"
+          RELEASE_NOTES="${RELEASE_NOTES}**Changes Since Last Release ($COMMIT_COUNT commits):**\n$COMMIT_LIST"
         else
           RELEASE_NOTES="${RELEASE_NOTES}**Changes:** First release or no commits found since last successful build"
         fi
