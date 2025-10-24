@@ -114,6 +114,45 @@ class WebAudioHandler {
     }
   }
   
+  Future<void> _loadAudioForWeb(String streamUrl) async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Attempting web-specific audio loading');
+    }
+    
+    try {
+      // Method 1: Try with a modified URL that includes CORS headers as query params
+      final uri = Uri.parse(streamUrl);
+      final corsUri = uri.replace(queryParameters: {
+        ...uri.queryParameters,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+      });
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: Trying with CORS query params: $corsUri');
+      }
+      
+      await _audioPlayer!.setAudioSource(AudioSource.uri(corsUri));
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: CORS query param method successful');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: CORS query param method failed: $e');
+        print('WebAudioHandler: Trying direct URL method...');
+      }
+      
+      // Method 2: Try direct URL (original approach)
+      await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: Direct URL method completed (may still have CORS issues)');
+      }
+    }
+  }
+
   void _updateMediaItem() {
     final track = currentTrack;
     if (kDebugMode) {
@@ -209,8 +248,14 @@ class WebAudioHandler {
         print('WebAudioHandler: Loading audio from: $streamUrl');
       }
       
-      // Load the audio source first
-      await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+      // Try multiple approaches for web CORS handling
+      if (kIsWeb) {
+        // For web, try to create an audio source with modified headers or proxy
+        await _loadAudioForWeb(streamUrl);
+      } else {
+        // Load the audio source directly for other platforms
+        await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+      }
       
       if (kDebugMode) {
         print('WebAudioHandler: Audio source set successfully');
