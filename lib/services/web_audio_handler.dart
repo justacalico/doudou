@@ -212,7 +212,15 @@ class WebAudioHandler {
       // Load the audio source first
       await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
       
+      if (kDebugMode) {
+        print('WebAudioHandler: Audio source set successfully');
+      }
+      
       _updateMediaItem();
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: MediaItem updated after setting audio source');
+      }
       
       // For web, don't auto-play immediately due to browser policies
       if (kIsWeb) {
