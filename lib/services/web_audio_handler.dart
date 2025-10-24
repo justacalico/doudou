@@ -239,7 +239,14 @@ class WebAudioHandler {
       }
       return;
     }
-    
+
+    // Set the MediaItem first, before trying to load audio
+    // This ensures the UI updates even if audio loading fails
+    if (kDebugMode) {
+      print('WebAudioHandler: Setting MediaItem before audio loading');
+    }
+    _updateMediaItem();
+
     try {
       // Get the stream URL from the media service
       final streamUrl = _mediaServiceManager.getStreamUrl(track.id);
@@ -259,15 +266,7 @@ class WebAudioHandler {
       
       if (kDebugMode) {
         print('WebAudioHandler: Audio source set successfully');
-      }
-      
-      _updateMediaItem();
-      
-      if (kDebugMode) {
-        print('WebAudioHandler: MediaItem updated after setting audio source');
-      }
-      
-      // For web, don't auto-play immediately due to browser policies
+      }      // For web, don't auto-play immediately due to browser policies
       if (kIsWeb) {
         if (kDebugMode) {
           print('WebAudioHandler: Audio loaded, ready to play (web)');
