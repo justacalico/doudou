@@ -10,7 +10,6 @@ import '../services/jellyfin_service.dart';
 import '../services/media_service_manager.dart';
 import '../services/base_service.dart';
 import '../services/audio/audio_handler.dart';
-import '../services/audio/web_audio_handler.dart';
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
@@ -21,7 +20,7 @@ class AppState extends ChangeNotifier {
   final MediaServiceManager _mediaServiceManager = MediaServiceManager();
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
-  BaseAudioHandler? _audioHandler;
+  DoudouAudioHandler? _audioHandler;
   
   // Platform detection helpers (web-safe)
   bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -68,18 +67,7 @@ class AppState extends ChangeNotifier {
   JellyfinService get jellyfinService => _jellyfinService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
-  BaseAudioHandler? get audioHandler => _audioHandler;
-
-  // Helper method to safely call audio handler configuration methods
-  void _configureAudioHandler() {
-    if (_audioHandler is DoudouAudioHandler) {
-      (_audioHandler as DoudouAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
-      (_audioHandler as DoudouAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
-    } else if (_audioHandler is WebAudioHandler) {
-      (_audioHandler as WebAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
-      (_audioHandler as WebAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
-    }
-  }
+  DoudouAudioHandler? get audioHandler => _audioHandler;
 
   // Helper method to find a track by ID
   Track? findTrackById(String? trackId) {
@@ -216,13 +204,8 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                if (_audioHandler is DoudouAudioHandler) {
-                  (_audioHandler as DoudouAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
-                  (_audioHandler as DoudouAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
-                } else if (_audioHandler is WebAudioHandler) {
-                  (_audioHandler as WebAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
-                  (_audioHandler as WebAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
-                }
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -250,7 +233,8 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _configureAudioHandler();
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -271,7 +255,8 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
                 
                 // Apply user settings to the audio handler
-                _configureAudioHandler();
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -292,7 +277,8 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
                 
                 // Apply user settings to the audio handler
-                _configureAudioHandler();
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -303,21 +289,6 @@ class AppState extends ChangeNotifier {
               } catch (audioError) {
                 if (kDebugMode) {
                   print('Failed to initialize Linux audio handler: $audioError');
-                }
-                // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else if (kIsWeb) {
-              // Web: Initialize web-compatible audio handler
-              try {
-                _audioHandler = WebAudioHandler();
-                
-                if (kDebugMode) {
-                  print('Web audio handler initialized successfully');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize web audio handler: $audioError');
                 }
                 // Continue without audio handler
                 _audioHandler = null;
@@ -403,7 +374,8 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _configureAudioHandler();
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -431,7 +403,8 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _configureAudioHandler();
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -452,7 +425,8 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
                 
                 // Apply user settings to the audio handler
-                _configureAudioHandler();
+                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -616,7 +590,8 @@ class AppState extends ChangeNotifier {
             );
             
             // Apply user settings to the audio handler
-            _configureAudioHandler();
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
             // Set up listeners for automatic UI updates
             _setupAudioHandlerListeners();
@@ -638,7 +613,8 @@ class AppState extends ChangeNotifier {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
             // Apply user settings to the audio handler
-            _configureAudioHandler();
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
             // Set up listeners for automatic UI updates
             _setupAudioHandlerListeners();
@@ -831,7 +807,8 @@ class AppState extends ChangeNotifier {
               ),
             );
             
-            _configureAudioHandler();
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -855,7 +832,8 @@ class AppState extends ChangeNotifier {
               ),
             );
             
-            _configureAudioHandler();
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -872,7 +850,8 @@ class AppState extends ChangeNotifier {
           try {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
-            _configureAudioHandler();
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -889,7 +868,8 @@ class AppState extends ChangeNotifier {
           try {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
-            _configureAudioHandler();
+            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -2446,7 +2426,8 @@ class AppState extends ChangeNotifier {
           );
           
           // Apply user settings to the audio handler
-          _configureAudioHandler();
+          _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
+          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           
           // Set up listeners for automatic UI updates
           _setupAudioHandlerListeners();
