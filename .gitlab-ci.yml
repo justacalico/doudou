@@ -85,7 +85,7 @@ build_debug_linux:
     - flutter build linux --debug
   artifacts:
     paths:
-      - build/linux/x64/debug/bundle/
+      - build*/linux/x64/debug/bundle/
     expire_in: 1 hour
 
 build_debug_macos:
