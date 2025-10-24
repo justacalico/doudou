@@ -356,17 +356,28 @@ publish_release:
       
       # Create the release using JOB-TOKEN with dynamic asset links
       echo "Creating release with available artifacts..."
+      
+      # Build the JSON payload safely
+      RELEASE_JSON=$(cat <<EOF
+{
+  "name": "Release Pipeline $CI_PIPELINE_ID",
+  "tag_name": "$RELEASE_TAG",
+  "description": "$RELEASE_NOTES",
+  "ref": "$CI_COMMIT_SHA",
+  "assets": {
+    "links": [$ASSET_LINKS]
+  }
+}
+EOF
+)
+      
+      echo "=== DEBUG: JSON Payload ==="
+      echo "$RELEASE_JSON" | head -10
+      echo "=== END DEBUG ==="
+      
       RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-           --data '{
-             "name": "Release Pipeline '"$CI_PIPELINE_ID"'",
-             "tag_name": "'"$RELEASE_TAG"'",
-             "description": "'"$RELEASE_NOTES"'",
-             "ref": "'"$CI_COMMIT_SHA"'",
-             "assets": {
-               "links": ['"$ASSET_LINKS"']
-             }
-           }' \
+           --data "$RELEASE_JSON" \
            --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases")
       
       # Check response
