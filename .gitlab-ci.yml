@@ -250,6 +250,8 @@ publish_release:
       
       echo "APK URL: $APK_URL"
       echo "Linux URL: $LINUX_URL"
+      echo "iOS URL: $IOS_URL"
+      echo "macOS URL: $MACOS_URL"
       
       # Create the release using JOB-TOKEN with retry logic and rate limiting
       for i in {1..3}; do
