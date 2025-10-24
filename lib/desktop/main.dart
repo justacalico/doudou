@@ -417,8 +417,8 @@ Future<void> _logSystemInfo(String context) async {
       logger.info('Web platform: Using HTML5 audio/video elements', 'SystemInfo');
     }
     
-    // Only check GStreamer on Linux
-    if (Platform.isLinux) {
+    // Only check GStreamer on Linux (not available on web)
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       try {
         final result = await Process.run('gst-inspect-1.0', ['--print-all']).timeout(const Duration(seconds: 5));
         if (result.exitCode == 0) {
@@ -432,34 +432,39 @@ Future<void> _logSystemInfo(String context) async {
       }
     }
     
-    // Audio system detection (Linux-specific)
-    if (Platform.isLinux) {
-      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
-      try {
-        // Check PulseAudio
-        final pulseResult = await Process.run('pulseaudio', ['--check', '-v']).timeout(const Duration(seconds: 3));
-        logger.info('PulseAudio status: exit code ${pulseResult.exitCode}', 'SystemInfo');
-      } catch (e) {
-        logger.info('PulseAudio status: error ($e)', 'SystemInfo');
-      }
-      
-      try {
-        // Check PipeWire
-        final pipewireResult = await Process.run('pipewire', ['--version']).timeout(const Duration(seconds: 3));
-        if (pipewireResult.exitCode == 0) {
-          logger.info('PipeWire: ${pipewireResult.stdout.toString().trim()}', 'SystemInfo');
-        } else {
-          logger.info('PipeWire: not available', 'SystemInfo');
+    // Audio system detection (platform-specific, not available on web)
+    if (!kIsWeb) {
+      if (defaultTargetPlatform == TargetPlatform.linux) {
+        logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+        try {
+          // Check PulseAudio
+          final pulseResult = await Process.run('pulseaudio', ['--check', '-v']).timeout(const Duration(seconds: 3));
+          logger.info('PulseAudio status: exit code ${pulseResult.exitCode}', 'SystemInfo');
+        } catch (e) {
+          logger.info('PulseAudio status: error ($e)', 'SystemInfo');
         }
-      } catch (e) {
-        logger.info('PipeWire: error checking ($e)', 'SystemInfo');
+        
+        try {
+          // Check PipeWire
+          final pipewireResult = await Process.run('pipewire', ['--version']).timeout(const Duration(seconds: 3));
+          if (pipewireResult.exitCode == 0) {
+            logger.info('PipeWire: ${pipewireResult.stdout.toString().trim()}', 'SystemInfo');
+          } else {
+            logger.info('PipeWire: not available', 'SystemInfo');
+          }
+        } catch (e) {
+          logger.info('PipeWire: error checking ($e)', 'SystemInfo');
+        }
+      } else if (defaultTargetPlatform == TargetPlatform.macOS) {
+        logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+        logger.info('macOS: Using Core Audio (native)', 'SystemInfo');
+      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+        logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+        logger.info('Windows: Using DirectSound/WASAPI (native)', 'SystemInfo');
       }
-    } else if (Platform.isMacOS) {
-      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
-      logger.info('macOS: Using Core Audio (native)', 'SystemInfo');
-    } else if (Platform.isWindows) {
-      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
-      logger.info('Windows: Using DirectSound/WASAPI (native)', 'SystemInfo');
+    } else {
+      logger.info('=== WEB AUDIO SYSTEM ===', 'SystemInfo');
+      logger.info('Web: Using Web Audio API', 'SystemInfo');
     }
     
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
