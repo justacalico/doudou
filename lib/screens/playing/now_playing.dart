@@ -129,8 +129,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                         fit: BoxFit.cover,
                       ),
                     ),
-                    child: StreamBuilder(
-                      stream: audioHandler?.playerStateStream,
+                    child: StreamBuilder<PlayerState>(
+                      stream: appState.playerStateStream,
                       builder: (context, snapshot) {
                         final isPlaying = snapshot.data?.playing == true;
                         return AnimatedContainer(
