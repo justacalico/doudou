@@ -539,23 +539,54 @@ class CacheService {
   
   // Clear specific cache
   Future<void> clearAlbumsCache() async {
-    await _database?.delete('albums_cache');
+    if (kIsWeb) {
+      await _clearCacheTableWeb('albums_cache');
+    } else {
+      await _database?.delete('albums_cache');
+    }
   }
   
   Future<void> clearArtistsCache() async {
-    await _database?.delete('artists_cache');
+    if (kIsWeb) {
+      await _clearCacheTableWeb('artists_cache');
+    } else {
+      await _database?.delete('artists_cache');
+    }
   }
   
   Future<void> clearTracksCache() async {
-    await _database?.delete('tracks_cache');
+    if (kIsWeb) {
+      await _clearCacheTableWeb('tracks_cache');
+    } else {
+      await _database?.delete('tracks_cache');
+    }
   }
   
   Future<void> clearPlaylistsCache() async {
-    await _database?.delete('playlists_cache');
+    if (kIsWeb) {
+      await _clearCacheTableWeb('playlists_cache');
+    } else {
+      await _database?.delete('playlists_cache');
+    }
   }
   
   Future<void> clearFavoritesCache() async {
-    await _database?.delete('favorites_cache');
+    if (kIsWeb) {
+      await _clearCacheTableWeb('favorites_cache');
+    } else {
+      await _database?.delete('favorites_cache');
+    }
+  }
+
+  Future<void> _clearCacheTableWeb(String table) async {
+    if (_prefs == null) return;
+    
+    final keys = _prefs!.getKeys();
+    for (final key in keys) {
+      if (key.startsWith('${table}_')) {
+        await _prefs!.remove(key);
+      }
+    }
   }
   
   // Clear all cache
