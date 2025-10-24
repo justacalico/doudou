@@ -29,9 +29,6 @@ class AppState extends ChangeNotifier {
   bool get _isMacOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
   bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
   
-  // Audio handler getter - returns the appropriate handler for the platform
-  dynamic get audioHandler => _audioHandler;
-  
   bool _isLoggedIn = false;
   bool _isLoading = false;
   bool _isInitialized = false;
