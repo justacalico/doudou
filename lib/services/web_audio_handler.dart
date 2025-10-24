@@ -120,35 +120,45 @@ class WebAudioHandler {
     }
     
     try {
-      // Method 1: Try with a modified URL that includes CORS headers as query params
-      final uri = Uri.parse(streamUrl);
-      final corsUri = uri.replace(queryParameters: {
-        ...uri.queryParameters,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS',
-        'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
-      });
-      
+      // Method 1: Try with AudioSource.uri directly (simplest approach)
       if (kDebugMode) {
-        print('WebAudioHandler: Trying with CORS query params: $corsUri');
+        print('WebAudioHandler: Trying direct AudioSource.uri: $streamUrl');
       }
       
-      await _audioPlayer!.setAudioSource(AudioSource.uri(corsUri));
-      
-      if (kDebugMode) {
-        print('WebAudioHandler: CORS query param method successful');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('WebAudioHandler: CORS query param method failed: $e');
-        print('WebAudioHandler: Trying direct URL method...');
-      }
-      
-      // Method 2: Try direct URL (original approach)
       await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
       
       if (kDebugMode) {
-        print('WebAudioHandler: Direct URL method completed (may still have CORS issues)');
+        print('WebAudioHandler: Direct AudioSource.uri method successful');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Direct AudioSource.uri failed: $e');
+        print('WebAudioHandler: Trying with modified headers...');
+      }
+      
+      // Method 2: Try with a different AudioSource configuration
+      try {
+        final uri = Uri.parse(streamUrl);
+        await _audioPlayer!.setAudioSource(
+          AudioSource.uri(
+            uri,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS',
+              'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+            },
+          ),
+        );
+        
+        if (kDebugMode) {
+          print('WebAudioHandler: Modified headers method successful');
+        }
+      } catch (e2) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Modified headers method also failed: $e2');
+          print('WebAudioHandler: All web loading methods failed');
+        }
+        rethrow;
       }
     }
   }
