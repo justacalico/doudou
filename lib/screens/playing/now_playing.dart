@@ -199,8 +199,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                             // Album Art - responsive to available space
                             Expanded(
                               flex: 3,
-                              child: StreamBuilder(
-                                stream: audioHandler?.playerStateStream,
+                              child: StreamBuilder<PlayerState>(
+                                stream: appState.playerStateStream,
                                 builder: (context, snapshot) {
                                   final isPlaying = snapshot.data?.playing == true;
                                   
