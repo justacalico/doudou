@@ -179,18 +179,11 @@ class WebAudioHandler {
         print('WebAudioHandler: Loading audio from: $streamUrl');
       }
       
-      // For web, we need to handle CORS properly
+      // For web, try a different approach to handle CORS
       if (kIsWeb) {
-        // Try to load with CORS headers
+        // Try using Progressive download instead of streaming
         await _audioPlayer!.setAudioSource(
-          AudioSource.uri(
-            Uri.parse(streamUrl),
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            },
-          ),
+          ProgressiveAudioSource(Uri.parse(streamUrl)),
         );
       } else {
         // Load normally for other platforms
@@ -209,6 +202,22 @@ class WebAudioHandler {
     } catch (e) {
       if (kDebugMode) {
         print('WebAudioHandler: Error loading track: $e');
+        print('WebAudioHandler: Trying fallback method...');
+      }
+      
+      // Fallback: try without web-specific handling
+      try {
+        await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(_mediaServiceManager.getStreamUrl(track.id))));
+        await _audioPlayer!.play();
+        _userIntendedPlaying = true;
+        
+        if (kDebugMode) {
+          print('WebAudioHandler: Fallback successful');
+        }
+      } catch (fallbackError) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Fallback also failed: $fallbackError');
+        }
       }
     }
   }
