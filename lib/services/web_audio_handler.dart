@@ -349,6 +349,49 @@ class WebAudioHandler {
     }
   }
   
+  Future<void> setVolume(double volume) async {
+    if (_audioPlayer != null) {
+      await _audioPlayer!.setVolume(volume.clamp(0.0, 1.0));
+    }
+  }
+  
+  Future<void> toggleMute() async {
+    if (_audioPlayer != null) {
+      final currentVolume = _audioPlayer!.volume;
+      if (currentVolume > 0) {
+        await _audioPlayer!.setVolume(0.0);
+      } else {
+        await _audioPlayer!.setVolume(1.0);
+      }
+    }
+  }
+  
+  void setNormalizeVolume(bool enabled) {
+    // Volume normalization not implemented for web
+    if (kDebugMode) {
+      print('WebAudioHandler: Volume normalization not supported on web');
+    }
+  }
+  
+  void setGaplessPlayback(bool enabled) {
+    // Gapless playback not implemented for web
+    if (kDebugMode) {
+      print('WebAudioHandler: Gapless playback not supported on web');
+    }
+  }
+  
+  void updateMediaLibrary({
+    List<Album>? albums,
+    List<Artist>? artists,
+    List<Track>? tracks,
+    List<Playlist>? playlists,
+  }) {
+    // Not needed for web implementation
+    if (kDebugMode) {
+      print('WebAudioHandler: Media library update not needed on web');
+    }
+  }
+  
   Future<void> dispose() async {
     await _audioPlayer?.dispose();
     _audioPlayer = null;
