@@ -226,7 +226,7 @@ class JellyfinService implements BaseMediaService {
       
       if (kDebugMode) {
         print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
-        print('Platform: ${Platform.operatingSystem}');
+        print('Platform: ${kIsWeb ? 'Web' : defaultTargetPlatform.name}');
       }
       
       final response = await _dio.post(
