@@ -1853,18 +1853,44 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Add operation tracking for shuffle operations to prevent audio bleeding
+  DateTime? _lastShuffleAllOperation;
+  DateTime? _lastShuffleFavoritesOperation;
+  
   Future<void> shuffleAllTracks() async {
     if (_tracks.isNotEmpty && _audioHandler != null) {
+      // CRITICAL FIX: Add aggressive debouncing for shuffle all button
+      final now = DateTime.now();
+      if (_lastShuffleAllOperation != null && 
+          now.difference(_lastShuffleAllOperation!) < const Duration(milliseconds: 800)) {
+        if (kDebugMode) {
+          print('Shuffle all debounced - ${now.difference(_lastShuffleAllOperation!).inMilliseconds}ms since last operation');
+        }
+        return; // Ignore rapid successive taps
+      }
+      _lastShuffleAllOperation = now;
+      
+      if (kDebugMode) {
+        print('=== SHUFFLE ALL CALLED ===');
+        print('Found ${_tracks.length} total tracks');
+      }
+      
       final shuffledTracks = List<Track>.from(_tracks);
       shuffledTracks.shuffle();
+      
+      if (kDebugMode) {
+        print('Playing shuffled all tracks - first track: ${shuffledTracks.first.name}');
+      }
+      
       await _audioHandler!.playPlaylist(shuffledTracks, 0);
       _audioHandler!.shuffle(); // Enable shuffle mode
       notifyListeners();
+      
+      if (kDebugMode) {
+        print('=== SHUFFLE ALL COMPLETED ===');
+      }
     }
   }
-
-  // Add operation tracking for shuffle favorites to prevent audio bleeding
-  DateTime? _lastShuffleFavoritesOperation;
   
   Future<void> shuffleFavoriteTracks() async {
     final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
