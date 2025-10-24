@@ -133,29 +133,29 @@ class WebAudioHandler {
     } catch (e) {
       if (kDebugMode) {
         print('WebAudioHandler: Direct AudioSource.uri failed: $e');
-        print('WebAudioHandler: Trying with modified headers...');
+        print('WebAudioHandler: Trying with basic CORS headers...');
       }
       
-      // Method 2: Try with a different AudioSource configuration
+      // Method 2: Try with minimal, safe CORS headers only
       try {
         final uri = Uri.parse(streamUrl);
         await _audioPlayer!.setAudioSource(
           AudioSource.uri(
             uri,
             headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS',
-              'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+              // Only include browser-safe headers
+              'Accept': 'audio/*,*/*',
+              'Range': 'bytes=0-', // Support for range requests
             },
           ),
         );
         
         if (kDebugMode) {
-          print('WebAudioHandler: Modified headers method successful');
+          print('WebAudioHandler: Basic CORS headers method successful');
         }
       } catch (e2) {
         if (kDebugMode) {
-          print('WebAudioHandler: Modified headers method also failed: $e2');
+          print('WebAudioHandler: Basic CORS headers method also failed: $e2');
           print('WebAudioHandler: All web loading methods failed');
         }
         rethrow;
