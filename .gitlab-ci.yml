@@ -342,7 +342,8 @@ publish_release:
       
       echo "Asset links JSON: [$ASSET_LINKS]"
       
-      # Create the release using JOB-TOKEN instead of PRIVATE-TOKEN
+      # Create the release using JOB-TOKEN with dynamic asset links
+      echo "Creating release with available artifacts..."
       RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --data '{
@@ -351,18 +352,7 @@ publish_release:
              "description": "'"$RELEASE_NOTES"'",
              "ref": "'"$CI_COMMIT_SHA"'",
              "assets": {
-               "links": [
-                 {
-                   "name": "Android APK",
-                   "url": "'"$APK_URL"'",
-                   "link_type": "package"
-                 },
-                 {
-                   "name": "Linux Build Archive", 
-                   "url": "'"$LINUX_URL"'",
-                   "link_type": "package"
-                 }
-               ]
+               "links": ['"$ASSET_LINKS"']
              }
            }' \
            --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases")
