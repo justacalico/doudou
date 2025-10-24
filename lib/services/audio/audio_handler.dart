@@ -33,8 +33,9 @@ import 'audio_lifecycle_manager.dart';
 import 'touchbar_update_manager.dart';
 import 'download_service_coordinator.dart';
 import 'media_service_manager_coordinator.dart';
+import 'app_audio_handler_interface.dart';
 
-class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
+class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler implements AppAudioHandler {
   final AudioPlayer _player = AudioPlayer();
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
