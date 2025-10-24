@@ -44,15 +44,23 @@ class JellyfinService implements BaseMediaService {
     // Platform-specific configurations (not available on web)
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       // On Linux, we might need more lenient SSL handling for self-signed certificates
-      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
-        client.badCertificateCallback = (cert, host, port) {
-          if (kDebugMode) {
-            print('Warning: Accepting bad certificate for $host:$port');
-          }
-          return true; // Accept all certificates for now (development)
-        };
-        return client;
-      };
+      try {
+        if (_dio.httpClientAdapter is IOHttpClientAdapter) {
+          (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
+            client.badCertificateCallback = (cert, host, port) {
+              if (kDebugMode) {
+                print('Warning: Accepting bad certificate for $host:$port');
+              }
+              return true; // Accept all certificates for now (development)
+            };
+            return client;
+          };
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Could not configure SSL certificate handling: $e');
+        }
+      }
     }
     
     // Add error handling interceptor
