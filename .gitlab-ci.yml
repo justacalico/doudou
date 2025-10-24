@@ -227,15 +227,25 @@ publish_release:
       
       echo "APK Job ID: $APK_JOB_ID"
       echo "Linux Job ID: $LINUX_JOB_ID"
+      echo "iOS Job ID: $IOS_JOB_ID"
+      echo "macOS Job ID: $MACOS_JOB_ID"
       
       # Validate we got valid job IDs
       if [ -z "$APK_JOB_ID" ] || [ -z "$LINUX_JOB_ID" ]; then
         echo "Failed to extract job IDs. Using simplified artifact URLs..."
         APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
         LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_linux"
+        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_ios"
+        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_macos"
       else
         APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk"
         LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
+        if [ -n "$IOS_JOB_ID" ]; then
+          IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/download"
+        fi
+        if [ -n "$MACOS_JOB_ID" ]; then
+          MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/download"
+        fi
       fi
       
       echo "APK URL: $APK_URL"
