@@ -20,6 +20,7 @@ class WebAudioHandler {
   // Streams for state management
   final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
   final StreamController<PlayerState> _playbackStateController = StreamController<PlayerState>.broadcast();
+  final StreamController<PlaybackState> _audioServiceStateController = StreamController<PlaybackState>.broadcast();
   final StreamController<MediaItem?> _mediaItemController = StreamController<MediaItem?>.broadcast();
   
   // Duration and position tracking
@@ -30,6 +31,7 @@ class WebAudioHandler {
   
   Stream<Duration> get positionStream => _audioPlayer?.positionStream ?? Stream.value(Duration.zero);
   Stream<PlayerState> get playbackState => _playbackStateController.stream;
+  Stream<PlaybackState> get playbackStateAudioService => _audioServiceStateController.stream;
   Stream<MediaItem?> get mediaItem => _mediaItemController.stream;
   
   Duration get duration => _audioPlayer?.duration ?? Duration.zero;
