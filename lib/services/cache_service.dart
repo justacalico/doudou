@@ -336,7 +336,8 @@ class CacheService {
   }
   
   Future<void> _recreateTableWithCorrectSchema(String tableName) async {
-    if (_database == null) return;
+    // Only applicable for database platforms, not web
+    if (kIsWeb || _database == null) return;
     
     try {
       // Drop the problematic table
