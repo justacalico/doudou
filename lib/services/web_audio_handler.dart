@@ -353,6 +353,7 @@ class WebAudioHandler {
     
     await _positionController.close();
     await _playbackStateController.close();
+    await _audioServiceStateController.close();
     await _mediaItemController.close();
   }
 }
