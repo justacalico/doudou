@@ -1856,11 +1856,17 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       } else {
         // CRITICAL FIX: Create lightweight placeholder to maintain index alignment
-        // Use a minimal silent source that won't interfere with playback but preserves indexing
+        // Use a minimal source that won't interfere with playback but preserves indexing
         try {
-          // Create a minimal placeholder - just use the stream URL without probing
-          final streamUrl = await _getStreamUrl(track);
-          if (streamUrl != null) {
+          // Create a minimal placeholder - just use the primary stream URL without probing
+          String? streamUrl;
+          if (_mediaServiceManagerCoordinator != null) {
+            streamUrl = _mediaServiceManagerCoordinator!.getStreamUrl(track.id);
+          } else {
+            streamUrl = _jellyfinService.getStreamUrl(track.id);
+          }
+          
+          if (streamUrl != null && streamUrl.isNotEmpty) {
             audioSource = AudioSource.uri(Uri.parse(streamUrl));
             if (kDebugMode) {
               print('Created placeholder for track $i: ${track.name} (mobile optimization)');
