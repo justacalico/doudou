@@ -39,21 +39,14 @@ class JellyfinService implements BaseMediaService {
     // Configure timeouts for better network handling
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
-    
-    // Only set sendTimeout for non-web platforms (web doesn't support it)
-    if (!kIsWeb) {
-      _dio.options.sendTimeout = const Duration(seconds: 30);
-    }
+    _dio.options.sendTimeout = const Duration(seconds: 30);
     
     // Platform-specific configurations (not available on web)
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       // On Linux, we might need more lenient SSL handling for self-signed certificates
       try {
-        // Check if the adapter supports HTTP client customization
-        final adapter = _dio.httpClientAdapter;
-        if (adapter.runtimeType.toString().contains('IOHttpClientAdapter')) {
-          // Use dynamic type to avoid compile-time errors on web
-          (adapter as dynamic).onHttpClientCreate = (client) {
+        if (_dio.httpClientAdapter is IOHttpClientAdapter) {
+          (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
             client.badCertificateCallback = (cert, host, port) {
               if (kDebugMode) {
                 print('Warning: Accepting bad certificate for $host:$port');
