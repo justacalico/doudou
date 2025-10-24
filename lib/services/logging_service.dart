@@ -168,7 +168,8 @@ class LoggingService {
   /// Write log entry to file
   Future<void> _writeToFile(String logEntry) async {
     try {
-      if (_logFile != null) {
+      // Only write to file on non-web platforms
+      if (!kIsWeb && _logFile != null) {
         await _logFile!.writeAsString('$logEntry\n', mode: FileMode.append);
         
         // Check if we need to rotate
@@ -204,6 +205,9 @@ class LoggingService {
   /// Get all log files
   Future<List<File>> getAllLogFiles() async {
     try {
+      // Return empty list on web platforms
+      if (kIsWeb) return [];
+      
       final directory = await getApplicationDocumentsDirectory();
       final logDir = Directory('${directory.path}/logs');
       
