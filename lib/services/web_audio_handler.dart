@@ -49,23 +49,6 @@ class WebAudioHandler {
   
   Stream<PlayerState> get playerStateStream => _playbackStateController.stream;
   
-  AudioProcessingState _getProcessingState() {
-    if (_audioPlayer == null) return AudioProcessingState.idle;
-    
-    final playerState = _audioPlayer!.playerState;
-    switch (playerState.processingState) {
-      case ProcessingState.idle:
-        return AudioProcessingState.idle;
-      case ProcessingState.loading:
-      case ProcessingState.buffering:
-        return AudioProcessingState.buffering;
-      case ProcessingState.ready:
-        return AudioProcessingState.ready;
-      case ProcessingState.completed:
-        return AudioProcessingState.completed;
-    }
-  }
-  
   WebAudioHandler(
     this._mediaServiceManager,
   ) {
