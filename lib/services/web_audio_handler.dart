@@ -169,7 +169,19 @@ class WebAudioHandler {
   
   Future<void> _loadAndPlayCurrentTrack() async {
     final track = currentTrack;
-    if (track == null || _audioPlayer == null) return;
+    if (kDebugMode) {
+      print('WebAudioHandler: _loadAndPlayCurrentTrack called');
+      print('WebAudioHandler: Queue length: ${_queue.length}');
+      print('WebAudioHandler: Current index: $_currentIndex');
+      print('WebAudioHandler: Current track: ${track?.name ?? "null"}');
+    }
+    
+    if (track == null || _audioPlayer == null) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Cannot load - track: ${track != null}, audioPlayer: ${_audioPlayer != null}');
+      }
+      return;
+    }
     
     try {
       // Get the stream URL from the media service
