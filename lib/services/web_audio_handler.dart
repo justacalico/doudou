@@ -49,8 +49,6 @@ class WebAudioHandler {
   
   PlayerState get playerState => _audioPlayer?.playerState ?? PlayerState(false, ProcessingState.idle);
   
-  Stream<PlayerState> get playerStateStream => _playbackStateController.stream;
-  
   WebAudioHandler(
     this._mediaServiceManager,
   ) {
