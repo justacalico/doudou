@@ -219,9 +219,11 @@ publish_release:
       echo "Jobs data response:"
       echo "$JOBS_DATA" | head -5
       
-      # Extract job IDs more reliably using jq-style parsing
-      APK_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_apk"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
-      LINUX_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_linux"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      # Extract job IDs more reliably - get the job object first, then extract ID
+      APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
       
       echo "APK Job ID: $APK_JOB_ID"
       echo "Linux Job ID: $LINUX_JOB_ID"
