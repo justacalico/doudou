@@ -100,13 +100,9 @@ class WebAudioHandler {
   }
   
   void _updatePlaybackState() {
-    final state = PlaybackState(
-      playing: _audioPlayer?.playing ?? false,
-      processingState: _getProcessingState(),
-      repeatMode: _repeatMode,
-      shuffleMode: _isShuffled ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
-    );
-    _playbackStateController.add(state);
+    if (_audioPlayer != null) {
+      _playbackStateController.add(_audioPlayer!.playerState);
+    }
   }
   
   void _updateMediaItem() {
