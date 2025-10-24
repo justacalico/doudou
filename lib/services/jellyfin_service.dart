@@ -1,9 +1,11 @@
-import 'dart:io' show Platform, HttpClient;
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import '../models/jellyfin_models.dart';
 import 'base_service.dart';
+
+// Conditional imports for platform-specific functionality
+import 'package:dio/io.dart' if (dart.library.html) 'package:dio/browser.dart';
+import 'dart:io' if (dart.library.html) 'dart:html' as platform;
 
 // Network error types for better error handling
 enum NetworkErrorType {
