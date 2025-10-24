@@ -22,7 +22,7 @@ class AppState extends ChangeNotifier {
   final MediaServiceManager _mediaServiceManager = MediaServiceManager();
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
-  BaseAudioHandler? _audioHandler;
+  AppAudioHandler? _audioHandler;
   
   // Platform detection helpers (web-safe)
   bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
