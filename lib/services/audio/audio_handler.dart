@@ -1861,7 +1861,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Create a minimal placeholder - just use the primary stream URL without probing
           String? streamUrl;
           if (_mediaServiceManagerCoordinator != null) {
-            streamUrl = _mediaServiceManagerCoordinator!.getStreamUrl(track.id);
+            streamUrl = _mediaServiceManagerCoordinator.getStreamUrl(track.id);
           } else {
             streamUrl = _jellyfinService.getStreamUrl(track.id);
           }
