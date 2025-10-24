@@ -275,6 +275,16 @@ publish_release:
                      "name": "Linux Build Archive", 
                      "url": "'"$LINUX_URL"'",
                      "link_type": "package"
+                   },
+                   {
+                     "name": "iOS Build Archive",
+                     "url": "'"$IOS_URL"'",
+                     "link_type": "package"
+                   },
+                   {
+                     "name": "macOS Build Archive",
+                     "url": "'"$MACOS_URL"'",
+                     "link_type": "package"
                    }
                  ]
                }
