@@ -68,7 +68,8 @@ class AppState extends ChangeNotifier {
   JellyfinService get jellyfinService => _jellyfinService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
-  DoudouAudioHandler? get audioHandler => _audioHandler;
+  // Audio handler getter - returns the appropriate handler for the platform
+  dynamic get audioHandler => _audioHandler;
 
   // Helper method to find a track by ID
   Track? findTrackById(String? trackId) {
