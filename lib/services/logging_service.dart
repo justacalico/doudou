@@ -91,7 +91,8 @@ class LoggingService {
   /// Rotate the log file when it gets too large
   Future<void> _rotateLog() async {
     try {
-      if (_logFile == null || !await _logFile!.exists()) return;
+      // Only rotate logs on non-web platforms
+      if (kIsWeb || _logFile == null || !await _logFile!.exists()) return;
       
       final directory = await getApplicationDocumentsDirectory();
       final logDir = Directory('${directory.path}/logs');
