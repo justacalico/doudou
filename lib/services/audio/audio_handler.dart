@@ -3188,22 +3188,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // CRITICAL FIX: Force stop and completely clear any existing audio source
         await _player.stop();
         
-        // CRITICAL: Clear the audio source completely rather than setting empty source
-        // Empty ConcatenatingAudioSource causes immediate completion which confuses the state machine
-        try {
-          await _player.setAudioSource(null);
-          if (kDebugMode) {
-            print('CRITICAL: Cleared audio source completely to stop old audio');
-          }
-        } catch (e) {
-          // If setAudioSource(null) fails, just ensure we're stopped 
-          if (kDebugMode) {
-            print('Could not clear audio source, ensuring stopped: $e');
-          }
-          await _player.stop();
+        // CRITICAL: Don't set empty source - it causes immediate completion
+        // Just ensure we're fully stopped and wait for cleanup
+        if (kDebugMode) {
+          print('CRITICAL: Player stopped completely to clear old audio');
         }
         
-        // Wait for audio to fully clear
+        // Wait for audio to fully clear and any lingering operations to complete
         await cancellationToken.delay(const Duration(milliseconds: 200));
         
         if (kDebugMode) {
