@@ -267,8 +267,8 @@ class WebAudioHandler {
       
       // Try multiple approaches for web CORS handling
       if (kIsWeb) {
-        // For web, try to create an audio source with modified headers or proxy
-        await _loadAudioForWeb(streamUrl);
+        // For web, try to create an audio source with multiple fallbacks
+        await _loadAudioForWeb(streamUrl, track);
       } else {
         // Load the audio source directly for other platforms
         await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
