@@ -1,15 +1,19 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
+import 'app_audio_handler_interface.dart';
 
 /// Web-compatible audio handler using just_audio
 /// This handler provides basic audio playback functionality for web platforms
-class WebAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
+class WebAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler implements AppAudioHandler {
   final AudioPlayer _player = AudioPlayer();
   
   WebAudioHandler() {
     _init();
   }
+
+  @override
+  BaseAudioHandler get handler => this;
 
   Future<void> _init() async {
     // Listen to player state changes
