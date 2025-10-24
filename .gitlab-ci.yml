@@ -50,7 +50,7 @@ build_debug_apk:
     - mkdir -p "$GRADLE_USER_HOME"
     # Fetch dependencies safely
     - flutter pub get
-    - flutter build apk --debug --build-dir="$BUILD_DIR"
+    - flutter build apk --debug
   after_script:
     - pkill -f "gradle.*$CI_JOB_ID" || true
   artifacts:
