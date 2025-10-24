@@ -200,24 +200,48 @@ class CacheService {
   
   // Generic cache methods
   Future<void> _setCache(String table, String key, Map<String, dynamic> data, {Duration? duration}) async {
-    if (_database == null) return;
-    
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final dataJson = jsonEncode(data);
-    
-    try {
-      await _database!.insert(
-        table,
-        {
-          'id': key,
-          'data': dataJson,
-          'timestamp': now,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+    if (kIsWeb) {
+      // Use SharedPreferences for web
+      if (_prefs == null) return;
+      
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final cacheData = {
+        'data': data,
+        'timestamp': now,
+      };
+      final dataJson = jsonEncode(cacheData);
+      await _prefs!.setString('${table}_$key', dataJson);
       
       if (kDebugMode) {
-        print('Cached $key in $table');
+        print('Cached $key in $table (web)');
+      }
+    } else {
+      // Use database for other platforms
+      if (_database == null) return;
+      
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final dataJson = jsonEncode(data);
+      
+      try {
+        await _database!.insert(
+          table,
+          {
+            'id': key,
+            'data': dataJson,
+            'timestamp': now,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        
+        if (kDebugMode) {
+          print('Cached $key in $table');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to cache $key: $e');
+        }
+      }
+    }
       }
     } catch (e) {
       if (kDebugMode) {
