@@ -1841,8 +1841,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     final audioSources = <AudioSource>[];
     
-    // For mobile: Create full structure but only preload nearby tracks
-    // For desktop: Create all tracks (existing behavior)
+    // CRITICAL FIX: Always maintain 1:1 index mapping between playlist and concatenating source
+    // Create placeholder sources for tracks we don't preload to maintain correct indexing
     for (int i = 0; i < tracks.length; i++) {
       final track = tracks[i];
       final shouldPreload = !isMobile || (i >= currentIndex && i < currentIndex + maxTracksToPreload);
@@ -1855,38 +1855,60 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('Preloaded track $i: ${track.name}');
         }
       } else {
-        // For mobile: Skip creating placeholders that might be invalid
-        // Only add tracks that we can actually create valid sources for
-        if (kDebugMode) {
-          print('Skipping placeholder for track $i: ${track.name} (mobile optimization)');
+        // CRITICAL FIX: Create lightweight placeholder to maintain index alignment
+        // Use a minimal silent source that won't interfere with playback but preserves indexing
+        try {
+          // Create a minimal placeholder - just use the stream URL without probing
+          final streamUrl = await _getStreamUrl(track);
+          if (streamUrl != null) {
+            audioSource = AudioSource.uri(Uri.parse(streamUrl));
+            if (kDebugMode) {
+              print('Created placeholder for track $i: ${track.name} (mobile optimization)');
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to create placeholder for track $i: ${track.name} - $e');
+          }
         }
-        continue; // Skip this track instead of creating invalid placeholder
       }
       
       if (audioSource != null) {
         audioSources.add(audioSource);
       } else {
-        // If we can't create a source for a track, fall back to individual playback
-        if (kDebugMode) {
-          print('Failed to create audio source for concatenation: ${track.name}');
+        // CRITICAL: If we can't create ANY source for a track, we must still maintain indexing
+        // Create a minimal placeholder to prevent index misalignment
+        try {
+          // Create a basic placeholder using the track ID as a dummy URI
+          // This won't play but prevents index confusion
+          audioSource = AudioSource.uri(Uri.parse('placeholder://track/${track.id}'));
+          audioSources.add(audioSource);
+          if (kDebugMode) {
+            print('Created fallback placeholder for track $i: ${track.name}');
+          }
+        } catch (e) {
+          // If even placeholder creation fails, fall back to individual playback
+          if (kDebugMode) {
+            print('Complete failure to create source for concatenation: ${track.name} - $e');
+          }
+          return null;
         }
-        return null;
       }
     }
 
-    // Create concatenating source with whatever valid sources we have
-    // Don't require all tracks to be available - mobile optimization
-    if (audioSources.isNotEmpty) {
+    // VERIFICATION: Ensure we have exactly the same number of sources as tracks
+    if (audioSources.length != tracks.length) {
       if (kDebugMode) {
-        print('Created concatenating source with ${audioSources.length}/${tracks.length} tracks');
+        print('ERROR: Source count mismatch! Sources: ${audioSources.length}, Tracks: ${tracks.length}');
+        print('This would cause index misalignment - falling back to individual playback');
       }
-      return ConcatenatingAudioSource(children: audioSources);
+      return null;
     }
 
     if (kDebugMode) {
-      print('No valid audio sources available for concatenation');
+      print('Built concatenating source with ${audioSources.length} tracks');
     }
-    return null;
+    return ConcatenatingAudioSource(children: audioSources);
   }
 
   // Audio Service Methods - Enhanced for background compatibility
