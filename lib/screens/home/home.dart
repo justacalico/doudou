@@ -335,6 +335,17 @@ class _HomeContentState extends State<HomeContent> {
                                     icon: CupertinoIcons.heart_fill,
                                     label: 'Shuffle favorites',
                                     onPressed: () async {
+                                      // CRITICAL FIX: Add UI-level debouncing to prevent rapid taps
+                                      final now = DateTime.now();
+                                      if (_lastShuffleFavoritesTap != null && 
+                                          now.difference(_lastShuffleFavoritesTap!) < const Duration(milliseconds: 1000)) {
+                                        if (kDebugMode) {
+                                          print('Shuffle favorites button debounced - ${now.difference(_lastShuffleFavoritesTap!).inMilliseconds}ms since last tap');
+                                        }
+                                        return; // Ignore rapid taps
+                                      }
+                                      _lastShuffleFavoritesTap = now;
+                                      
                                       final favoriteCount = appState.favoriteTracks.length;
                                       if (favoriteCount > 0) {
                                         await appState.shuffleFavoriteTracks();
