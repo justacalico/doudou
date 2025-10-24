@@ -1791,7 +1791,24 @@ class AppState extends ChangeNotifier {
       // CRITICAL FIX: Use userIntendedPlaying instead of playbackState.playing to avoid race conditions
       // playbackState.playing can lag behind the actual command completion, causing double-click issues
       final userIntendedPlaying = _audioHandler!.userIntendedPlaying;
-      final playbackStatePlaying = _audioHandler!.playbackState.value.playing;
+      
+      // Handle different audio handler types (web vs mobile)
+      bool playbackStatePlaying = false;
+      try {
+        if (_audioHandler!.playbackState is ValueStream) {
+          // Mobile/Desktop audio handler with .value accessor
+          playbackStatePlaying = (_audioHandler!.playbackState as ValueStream).value.playing;
+        } else {
+          // Web audio handler - use userIntendedPlaying as fallback
+          playbackStatePlaying = userIntendedPlaying;
+        }
+      } catch (e) {
+        // Fallback to userIntendedPlaying if playbackState access fails
+        playbackStatePlaying = userIntendedPlaying;
+        if (kDebugMode) {
+          print('Warning: Could not access playbackState.value, using userIntendedPlaying: $e');
+        }
+      }
       
       if (kDebugMode) {
         print('Current playbackState.playing: $playbackStatePlaying');
