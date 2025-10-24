@@ -3847,6 +3847,20 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // CRITICAL: Cancel any ongoing audio operations to prevent old audio from continuing
     _cancellationManager.createToken('playPlaylist', 'New playlist request cancelling previous operations');
     
+    // ADDITIONAL: Immediately stop any current playback to prevent audio bleeding
+    try {
+      if (_player.playing) {
+        await _player.stop();
+        if (kDebugMode) {
+          print('CRITICAL: Stopped current playback to prevent audio bleeding from rapid playlist changes');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Warning: Could not stop current playback: $e');
+      }
+    }
+    
     _logger.info('Playing playlist: ${tracks.length} tracks, starting at index $startIndex', 'AudioHandler');
     
     final isMobile = Platform.isAndroid || Platform.isIOS;
