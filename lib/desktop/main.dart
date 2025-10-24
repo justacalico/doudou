@@ -387,29 +387,34 @@ Future<void> _logSystemInfo(String context) async {
       logger.info('Running in web browser - environment variables not available', 'SystemInfo');
     }
     
-    // Check for media-related executables and libraries (platform-specific)
-    List<String> mediaCommands = [];
-    if (Platform.isLinux) {
-      mediaCommands = ['gst-launch-1.0', 'ffmpeg', 'mpv', 'pulseaudio', 'pipewire'];
-    } else if (Platform.isMacOS) {
-      mediaCommands = ['ffmpeg', 'mpv']; // Only check commonly installed tools on macOS
-    } else if (Platform.isWindows) {
-      mediaCommands = ['ffmpeg']; // Only check ffmpeg on Windows
-    }
-    
-    logger.info('=== MEDIA COMMAND AVAILABILITY ===', 'SystemInfo');
-    for (final cmd in mediaCommands) {
-      try {
-        final whichCmd = Platform.isWindows ? 'where' : 'which';
-        final result = await Process.run(whichCmd, [cmd]).timeout(const Duration(seconds: 2));
-        if (result.exitCode == 0) {
-          logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
-        } else {
-          logger.info('$cmd: not found', 'SystemInfo');
-        }
-      } catch (e) {
-        logger.info('$cmd: error checking ($e)', 'SystemInfo');
+    // Check for media-related executables and libraries (platform-specific, not available on web)
+    if (!kIsWeb) {
+      List<String> mediaCommands = [];
+      if (defaultTargetPlatform == TargetPlatform.linux) {
+        mediaCommands = ['gst-launch-1.0', 'ffmpeg', 'mpv', 'pulseaudio', 'pipewire'];
+      } else if (defaultTargetPlatform == TargetPlatform.macOS) {
+        mediaCommands = ['ffmpeg', 'mpv']; // Only check commonly installed tools on macOS
+      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+        mediaCommands = ['ffmpeg']; // Only check ffmpeg on Windows
       }
+      
+      logger.info('=== MEDIA COMMAND AVAILABILITY ===', 'SystemInfo');
+      for (final cmd in mediaCommands) {
+        try {
+          final whichCmd = defaultTargetPlatform == TargetPlatform.windows ? 'where' : 'which';
+          final result = await Process.run(whichCmd, [cmd]).timeout(const Duration(seconds: 2));
+          if (result.exitCode == 0) {
+            logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
+          } else {
+            logger.info('$cmd: not found', 'SystemInfo');
+          }
+        } catch (e) {
+          logger.info('$cmd: error checking ($e)', 'SystemInfo');
+        }
+      }
+    } else {
+      logger.info('=== WEB MEDIA ===', 'SystemInfo');
+      logger.info('Web platform: Using HTML5 audio/video elements', 'SystemInfo');
     }
     
     // Only check GStreamer on Linux
