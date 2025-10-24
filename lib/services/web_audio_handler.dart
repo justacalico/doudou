@@ -19,7 +19,7 @@ class WebAudioHandler {
   
   // Streams for state management
   final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
-  final StreamController<PlaybackState> _playbackStateController = StreamController<PlaybackState>.broadcast();
+  final StreamController<PlayerState> _playbackStateController = StreamController<PlayerState>.broadcast();
   final StreamController<MediaItem?> _mediaItemController = StreamController<MediaItem?>.broadcast();
   
   // Duration and position tracking
