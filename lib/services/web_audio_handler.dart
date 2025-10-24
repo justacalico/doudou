@@ -17,8 +17,6 @@ class WebAudioHandler {
   AudioServiceRepeatMode _repeatMode = AudioServiceRepeatMode.none;
   
   // Services
-  final JellyfinService _jellyfinService;
-  final DownloadService _downloadService;
   final MediaServiceManager _mediaServiceManager;
   
   // Streams for state management
