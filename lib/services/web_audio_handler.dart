@@ -45,14 +45,9 @@ class WebAudioHandler {
   bool get hasPrevious => _currentIndex > 0;
   bool get hasNext => _currentIndex < _queue.length - 1;
   
-  PlaybackState get playerState => PlaybackState(
-    playing: _audioPlayer?.playing ?? false,
-    processingState: _getProcessingState(),
-    repeatMode: _repeatMode,
-    shuffleMode: _isShuffled ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
-  );
+  PlayerState get playerState => _audioPlayer?.playerState ?? PlayerState(false, ProcessingState.idle);
   
-  Stream<PlaybackState> get playerStateStream => _playbackStateController.stream;
+  Stream<PlayerState> get playerStateStream => _playbackStateController.stream;
   
   AudioProcessingState _getProcessingState() {
     if (_audioPlayer == null) return AudioProcessingState.idle;
