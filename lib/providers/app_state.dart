@@ -1795,12 +1795,14 @@ class AppState extends ChangeNotifier {
       // Handle different audio handler types (web vs mobile)
       bool playbackStatePlaying = false;
       try {
-        if (_audioHandler!.playbackState is ValueStream) {
-          // Mobile/Desktop audio handler with .value accessor
-          playbackStatePlaying = (_audioHandler!.playbackState as ValueStream).value.playing;
-        } else {
-          // Web audio handler - use userIntendedPlaying as fallback
+        // Try to access .value property (mobile/desktop audio handler)
+        final playbackStateValue = _audioHandler!.playbackState;
+        if (playbackStateValue != null && playbackStateValue is Stream) {
+          // For web audio handler, playbackState is a stream - use userIntendedPlaying
           playbackStatePlaying = userIntendedPlaying;
+        } else {
+          // For mobile/desktop, try to access .value
+          playbackStatePlaying = (playbackStateValue as dynamic).value?.playing ?? userIntendedPlaying;
         }
       } catch (e) {
         // Fallback to userIntendedPlaying if playbackState access fails
