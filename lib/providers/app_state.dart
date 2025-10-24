@@ -898,6 +898,20 @@ class AppState extends ChangeNotifier {
             }
             _audioHandler = null;
           }
+        } else if (kIsWeb) {
+          // Web: Initialize web audio handler
+          try {
+            _audioHandler = WebAudioHandler(_mediaServiceManager);
+            
+            if (kDebugMode) {
+              print('Web audio handler initialized for $serverType');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to initialize web audio handler: $e');
+            }
+            _audioHandler = null;
+          }
         } else {
           if (kDebugMode) {
             print('Audio handler initialization skipped on unsupported platform');
