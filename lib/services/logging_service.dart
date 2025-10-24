@@ -318,21 +318,25 @@ class LoggingService {
       final files = await getAllLogFiles();
       int totalSize = 0;
       
-      for (final file in files) {
-        totalSize += await file.length();
+      if (!kIsWeb) {
+        for (final file in files) {
+          totalSize += await file.length();
+        }
       }
       
       return {
         'file_count': files.length,
         'total_size': totalSize,
         'memory_logs': _memoryLogs.length,
-        'current_log_file': _logFile?.path.split('/').last,
+        'current_log_file': !kIsWeb ? _logFile?.path.split('/').last : 'memory_only',
+        'platform': kIsWeb ? 'web' : 'native',
       };
     } catch (e) {
       return {
         'file_count': 0,
         'total_size': 0,
         'memory_logs': _memoryLogs.length,
+        'platform': kIsWeb ? 'web' : 'native',
         'error': e.toString(),
       };
     }
