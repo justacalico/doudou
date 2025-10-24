@@ -325,6 +325,17 @@ class _HomeContentState extends State<HomeContent> {
                                     icon: CupertinoIcons.shuffle,
                                     label: 'Shuffle all',
                                     onPressed: () async {
+                                      // CRITICAL FIX: Add UI-level debouncing to prevent rapid taps
+                                      final now = DateTime.now();
+                                      if (_lastShuffleAllTap != null && 
+                                          now.difference(_lastShuffleAllTap!) < const Duration(milliseconds: 1000)) {
+                                        if (kDebugMode) {
+                                          print('Shuffle all button debounced - ${now.difference(_lastShuffleAllTap!).inMilliseconds}ms since last tap');
+                                        }
+                                        return; // Ignore rapid taps
+                                      }
+                                      _lastShuffleAllTap = now;
+                                      
                                       await appState.shuffleAllTracks();
                                     },
                                     isPrimary: true,
