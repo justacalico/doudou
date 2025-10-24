@@ -164,58 +164,63 @@ Future<void> _logSystemInfo(String context) async {
     logger.info('Flutter target: ${defaultTargetPlatform.name}', 'SystemInfo');
     logger.info('Is debug mode: $kDebugMode', 'SystemInfo');
 
-    // Environment variables critical for Flatpak and media playback
-    final criticalEnvVars = [
-      'FLATPAK_ID',
-      'FLATPAK_DEST',
-      'FLATPAK_SANDBOX_DIR',
-      'LD_LIBRARY_PATH',
-      'PATH',
-      'HOME',
-      'XDG_DATA_HOME',
-      'XDG_CONFIG_HOME',
-      'XDG_CACHE_HOME',
-      'XDG_RUNTIME_DIR',
-      'PULSE_RUNTIME_PATH',
-      'PULSE_SYSTEM',
-      'ALSA_PCM_CARD',
-      'ALSA_PCM_DEVICE',
-      'GST_PLUGIN_PATH',
-      'GST_PLUGIN_SYSTEM_PATH',
-      'GST_REGISTRY',
-      'DISPLAY',
-      'WAYLAND_DISPLAY',
-      'PIPEWIRE_RUNTIME_DIR',
-    ];
+    // Environment variables critical for Flatpak and media playback (not available on web)
+    if (!kIsWeb) {
+      final criticalEnvVars = [
+        'FLATPAK_ID',
+        'FLATPAK_DEST',
+        'FLATPAK_SANDBOX_DIR',
+        'LD_LIBRARY_PATH',
+        'PATH',
+        'HOME',
+        'XDG_DATA_HOME',
+        'XDG_CONFIG_HOME',
+        'XDG_CACHE_HOME',
+        'XDG_RUNTIME_DIR',
+        'PULSE_RUNTIME_PATH',
+        'PULSE_SYSTEM',
+        'ALSA_PCM_CARD',
+        'ALSA_PCM_DEVICE',
+        'GST_PLUGIN_PATH',
+        'GST_PLUGIN_SYSTEM_PATH',
+        'GST_REGISTRY',
+        'DISPLAY',
+        'WAYLAND_DISPLAY',
+        'PIPEWIRE_RUNTIME_DIR',
+      ];
 
-    logger.info('=== ENVIRONMENT VARIABLES ===', 'SystemInfo');
-    for (final envVar in criticalEnvVars) {
-      final value = Platform.environment[envVar];
-      if (value != null) {
-        logger.info('$envVar: $value', 'SystemInfo');
+      logger.info('=== ENVIRONMENT VARIABLES ===', 'SystemInfo');
+      for (final envVar in criticalEnvVars) {
+        final value = Platform.environment[envVar];
+        if (value != null) {
+          logger.info('$envVar: $value', 'SystemInfo');
+        } else {
+          logger.info('$envVar: (not set)', 'SystemInfo');
+        }
+      }
+
+      // Check if running in Flatpak
+      final flatpakId = Platform.environment['FLATPAK_ID'];
+      if (flatpakId != null) {
+        logger.info('DETECTED: Running in Flatpak ($flatpakId)', 'SystemInfo');
       } else {
-        logger.info('$envVar: (not set)', 'SystemInfo');
+        logger.info('DETECTED: Not running in Flatpak', 'SystemInfo');
       }
-    }
 
-    // Check if running in Flatpak
-    final flatpakId = Platform.environment['FLATPAK_ID'];
-    if (flatpakId != null) {
-      logger.info('DETECTED: Running in Flatpak ($flatpakId)', 'SystemInfo');
+      // Library path analysis
+      final ldLibraryPath = Platform.environment['LD_LIBRARY_PATH'];
+      if (ldLibraryPath != null) {
+        logger.info('LD_LIBRARY_PATH directories:', 'SystemInfo');
+        final paths = ldLibraryPath.split(':');
+        for (int i = 0; i < paths.length; i++) {
+          final dir = Directory(paths[i]);
+          final exists = await dir.exists();
+          logger.info('  [$i] ${paths[i]} (exists: $exists)', 'SystemInfo');
+        }
+      }
     } else {
-      logger.info('DETECTED: Not running in Flatpak', 'SystemInfo');
-    }
-
-    // Library path analysis
-    final ldLibraryPath = Platform.environment['LD_LIBRARY_PATH'];
-    if (ldLibraryPath != null) {
-      logger.info('LD_LIBRARY_PATH directories:', 'SystemInfo');
-      final paths = ldLibraryPath.split(':');
-      for (int i = 0; i < paths.length; i++) {
-        final dir = Directory(paths[i]);
-        final exists = await dir.exists();
-        logger.info('  [$i] ${paths[i]} (exists: $exists)', 'SystemInfo');
-      }
+      logger.info('=== WEB ENVIRONMENT ===', 'SystemInfo');
+      logger.info('Running in web browser - environment variables not available', 'SystemInfo');
     }
 
     // Check for media-related executables and libraries
