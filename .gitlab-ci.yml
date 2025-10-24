@@ -357,19 +357,11 @@ publish_release:
       # Create the release using JOB-TOKEN with dynamic asset links
       echo "Creating release with available artifacts..."
       
+      # Escape release notes for JSON (basic escaping)
+      RELEASE_NOTES_ESCAPED=$(echo "$RELEASE_NOTES" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+      
       # Build the JSON payload safely
-      RELEASE_JSON=$(cat <<EOF
-{
-  "name": "Release Pipeline $CI_PIPELINE_ID",
-  "tag_name": "$RELEASE_TAG",
-  "description": "$RELEASE_NOTES",
-  "ref": "$CI_COMMIT_SHA",
-  "assets": {
-    "links": [$ASSET_LINKS]
-  }
-}
-EOF
-)
+      RELEASE_JSON="{\"name\":\"Release Pipeline $CI_PIPELINE_ID\",\"tag_name\":\"$RELEASE_TAG\",\"description\":\"$RELEASE_NOTES_ESCAPED\",\"ref\":\"$CI_COMMIT_SHA\",\"assets\":{\"links\":[$ASSET_LINKS]}}"
       
       echo "=== DEBUG: JSON Payload ==="
       echo "$RELEASE_JSON" | head -10
