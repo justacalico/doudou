@@ -206,8 +206,13 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+                if (_audioHandler is DoudouAudioHandler) {
+                  (_audioHandler as DoudouAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
+                  (_audioHandler as DoudouAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
+                } else if (_audioHandler is WebAudioHandler) {
+                  (_audioHandler as WebAudioHandler).setNormalizeVolume(_normalizeVolumeEnabled);
+                  (_audioHandler as WebAudioHandler).setGaplessPlayback(_gaplessPlaybackEnabled);
+                }
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
