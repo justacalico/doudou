@@ -363,11 +363,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                           const SizedBox(height: 20),
                           
                           // Control buttons
-                          StreamBuilder(
-                            stream: audioHandler?.playerStateStream,
+                          StreamBuilder<PlayerState>(
+                            stream: appState.playerStateStream,
                             builder: (context, snapshot) {
                               final isPlaying = snapshot.data?.playing == true;
-                              final processingState = audioHandler?.playerState.processingState;
+                              final processingState = snapshot.data?.processingState ?? ProcessingState.idle;
                               
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 50),
