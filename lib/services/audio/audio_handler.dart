@@ -3144,9 +3144,26 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         // Check for cancellation before stopping player
         cancellationToken.throwIfCancelled();
         
-        // Stop player completely and wait for full stop
+        // CRITICAL FIX: Force stop and release any existing audio source COMPLETELY
         await _player.stop();
-        await cancellationToken.delay(const Duration(milliseconds: 300));
+        
+        // ADDITIONAL: Force set to empty source to ensure old audio is completely stopped
+        try {
+          final silenceSource = ConcatenatingAudioSource(children: []);
+          await _player.setAudioSource(silenceSource);
+          await Future.delayed(const Duration(milliseconds: 100));
+          await _player.stop();
+          if (kDebugMode) {
+            print('CRITICAL: Forced silence source to completely stop old audio');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning during silence source setup: $e');
+          }
+        }
+        
+        // Wait longer to ensure complete audio cessation
+        await cancellationToken.delay(const Duration(milliseconds: 500));
         
         if (kDebugMode) {
           print('Player stopped and cleared, proceeding with new concatenating source');
