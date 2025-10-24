@@ -3346,19 +3346,10 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     try {
       await _player.stop();
       
-      // CRITICAL FIX: Force empty source to ensure old audio is completely stopped
-      try {
-        final silenceSource = ConcatenatingAudioSource(children: []);
-        await _player.setAudioSource(silenceSource);
-        await Future.delayed(const Duration(milliseconds: 50));
-        await _player.stop();
-        if (kDebugMode) {
-          print('CRITICAL: Individual track - forced silence to stop old audio');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Warning during individual track silence setup: $e');
-        }
+      // CRITICAL FIX: Don't use empty source - it causes immediate completion
+      // Just wait for player to fully stop
+      if (kDebugMode) {
+        print('CRITICAL: Individual track - stopped player to clear old audio');
       }
       
       await Future.delayed(const Duration(milliseconds: 200)); // Wait for complete stop
