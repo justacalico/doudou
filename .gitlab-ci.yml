@@ -374,6 +374,11 @@ publish_release:
       
       if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
         echo "✅ Release created successfully!"
+        echo "🎉 Release includes the following artifacts:"
+        if [ -n "$APK_JOB_ID" ]; then echo "   📱 Android APK"; fi
+        if [ -n "$LINUX_JOB_ID" ]; then echo "   🐧 Linux Build"; fi
+        if [ -n "$MACOS_JOB_ID" ]; then echo "   🍎 macOS App"; fi
+        if [ -n "$IOS_JOB_ID" ]; then echo "   📱 iOS Build"; fi
       else
         echo "❌ Release creation failed with HTTP $HTTP_CODE"
         echo "Response: $RESPONSE_BODY"
