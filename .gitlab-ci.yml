@@ -186,9 +186,97 @@ publish_release:
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
 
-    # Define release tag and notes variables
+    # Define release tag 
     - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
-    - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
+    
+    # Get all commits since last successful pipeline for comprehensive release notes
+    - |
+      echo "Gathering commits since last successful build..."
+      
+      # Find the last successful pipeline before this one
+      LAST_SUCCESS_SHA=""
+      PIPELINES_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines?status=success&per_page=50")
+      
+      # Extract the SHA of the most recent successful pipeline (excluding current)
+      LAST_SUCCESS_SHA=$(echo "$PIPELINES_DATA" | grep -o '"sha":"[^"]*"' | grep -v "$CI_COMMIT_SHA" | head -1 | cut -d'"' -f4)
+      
+      echo "Last successful pipeline SHA: $LAST_SUCCESS_SHA"
+      echo "Current SHA: $CI_COMMIT_SHA"
+      
+      # Generate comprehensive commit list
+      if [ -n "$LAST_SUCCESS_SHA" ]; then
+        echo "Fetching commits since last successful build..."
+        
+        # Get commit range from last success to current
+        COMMIT_RANGE="$LAST_SUCCESS_SHA..$CI_COMMIT_SHA"
+        echo "Commit range: $COMMIT_RANGE"
+        
+        # Get detailed commit information
+        COMMITS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits?ref_name=$CI_COMMIT_REF_NAME&since=$(date -d '30 days ago' -Iseconds)&per_page=200")
+        
+        # Extract commits newer than last success
+        COMMIT_LOG=""
+        COMMIT_COUNT=0
+        
+        # Parse commits and build formatted list
+        echo "$COMMITS_DATA" | grep -E '"(id|title|author_name|created_at)"' | while IFS= read -r line; do
+          if echo "$line" | grep -q '"id"'; then
+            COMMIT_ID=$(echo "$line" | cut -d'"' -f4)
+          elif echo "$line" | grep -q '"title"'; then
+            COMMIT_TITLE=$(echo "$line" | cut -d'"' -f4 | sed 's/"/\\"/g')
+          elif echo "$line" | grep -q '"author_name"'; then
+            COMMIT_AUTHOR=$(echo "$line" | cut -d'"' -f4)
+          elif echo "$line" | grep -q '"created_at"'; then
+            COMMIT_DATE=$(echo "$line" | cut -d'"' -f4 | cut -dT -f1)
+            
+            # Stop when we reach the last successful commit
+            if [ "$COMMIT_ID" = "$LAST_SUCCESS_SHA" ]; then
+              break
+            fi
+            
+            # Add commit to log
+            if [ -n "$COMMIT_ID" ] && [ -n "$COMMIT_TITLE" ]; then
+              COMMIT_LOG="$COMMIT_LOG\\n• $COMMIT_TITLE ($COMMIT_AUTHOR - $COMMIT_DATE) [$COMMIT_ID]"
+              COMMIT_COUNT=$((COMMIT_COUNT + 1))
+            fi
+          fi
+        done > /tmp/commit_processing.txt
+        
+        # Read the processed commits
+        if [ -f "/tmp/commit_processing.txt" ]; then
+          COMMIT_LOG=$(cat /tmp/commit_processing.txt)
+        fi
+        
+        # Build comprehensive release notes
+        RELEASE_NOTES="# Release Pipeline $CI_PIPELINE_ID\\n\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}**Build Information:**\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Pipeline: $CI_PIPELINE_ID\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Commit: $CI_COMMIT_SHORT_SHA\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\\n\\n"
+        
+        if [ "$COMMIT_COUNT" -gt 0 ]; then
+          RELEASE_NOTES="${RELEASE_NOTES}**Changes Since Last Release ($COMMIT_COUNT commits):**\\n$COMMIT_LOG"
+        else
+          RELEASE_NOTES="${RELEASE_NOTES}**Changes:** First release or no commits found since last successful build"
+        fi
+        
+        echo "Generated release notes with $COMMIT_COUNT commits"
+      else
+        echo "No previous successful pipeline found, creating basic release notes..."
+        RELEASE_NOTES="# Release Pipeline $CI_PIPELINE_ID\\n\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}**Build Information:**\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Pipeline: $CI_PIPELINE_ID\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Commit: $CI_COMMIT_SHORT_SHA\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\\n\\n"
+        RELEASE_NOTES="${RELEASE_NOTES}**Changes:** Initial release - no previous successful builds found"
+      fi
+      
+      echo "Final release notes preview:"
+      echo -e "$RELEASE_NOTES"
 
     # Create release using GitLab API with proper job IDs and authentication
     - echo "Creating release using GitLab API..."
