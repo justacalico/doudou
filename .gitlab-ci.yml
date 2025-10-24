@@ -55,7 +55,7 @@ build_debug_apk:
     - pkill -f "gradle.*$CI_JOB_ID" || true
   artifacts:
     paths:
-      - build*/app/outputs/flutter-apk/app-debug.apk
+      - build/app/outputs/flutter-apk/app-debug.apk
     expire_in: 1 hour
 
 build_debug_linux:
