@@ -117,6 +117,9 @@ class LoggingService {
   /// Clean up old log files, keeping only the most recent ones
   Future<void> _cleanOldLogs(Directory logDir) async {
     try {
+      // Only clean logs on non-web platforms
+      if (kIsWeb) return;
+      
       final files = logDir.listSync()
           .whereType<File>()
           .where((f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'))
