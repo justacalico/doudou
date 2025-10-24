@@ -22,10 +22,15 @@ class CacheService {
   
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    await _initDatabase();
+    if (!kIsWeb) {
+      await _initDatabase();
+    }
   }
   
   Future<void> _initDatabase() async {
+    // Only initialize database on non-web platforms
+    if (kIsWeb) return;
+    
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, 'doudou_cache.db');
     
