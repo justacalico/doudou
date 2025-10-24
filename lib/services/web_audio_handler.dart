@@ -179,22 +179,22 @@ class WebAudioHandler {
         print('WebAudioHandler: Loading audio from: $streamUrl');
       }
       
-      // For web, try a different approach to handle CORS
-      if (kIsWeb) {
-        // Try using Progressive download instead of streaming
-        await _audioPlayer!.setAudioSource(
-          ProgressiveAudioSource(Uri.parse(streamUrl)),
-        );
-      } else {
-        // Load normally for other platforms
-        await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
-      }
+      // Load the audio source first
+      await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
       
       _updateMediaItem();
       
-      // Auto-play
-      await _audioPlayer!.play();
-      _userIntendedPlaying = true;
+      // For web, don't auto-play immediately due to browser policies
+      if (kIsWeb) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Audio loaded, ready to play (web)');
+        }
+        // We'll start playback when user explicitly calls play()
+      } else {
+        // Auto-play for other platforms
+        await _audioPlayer!.play();
+        _userIntendedPlaying = true;
+      }
       
       if (kDebugMode) {
         print('WebAudioHandler: Successfully started playback');
