@@ -269,12 +269,12 @@ publish_release:
         echo "Generated release notes with $COMMIT_COUNT commits"
       else
         echo "No previous successful pipeline found, creating basic release notes..."
-        RELEASE_NOTES="# Release Pipeline $CI_PIPELINE_ID\\n\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}**Build Information:**\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Pipeline: $CI_PIPELINE_ID\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Commit: $CI_COMMIT_SHORT_SHA\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\\n"
-        RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\\n\\n"
+        RELEASE_NOTES="# Release Pipeline $CI_PIPELINE_ID\n\n"
+        RELEASE_NOTES="${RELEASE_NOTES}**Build Information:**\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Pipeline: $CI_PIPELINE_ID\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Commit: $CI_COMMIT_SHORT_SHA\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\n"
+        RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\n\n"
         RELEASE_NOTES="${RELEASE_NOTES}**Changes:** Initial release - no previous successful builds found"
       fi
       
