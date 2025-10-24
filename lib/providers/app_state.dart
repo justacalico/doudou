@@ -74,9 +74,9 @@ class AppState extends ChangeNotifier {
   
   // Stream getters that handle both DoudouAudioHandler and WebAudioHandler
   Stream<PlayerState>? get playerStateStream => _audioHandler?.playerStateStream;
-  Stream<PlaybackState>? get playbackStateStream => _audioHandler?.playbackState;
+  Stream<PlaybackState>? get playbackState => _audioHandler?.playbackState;
   Stream<Duration>? get positionStream => _audioHandler?.positionStream;
-  Stream<MediaItem?>? get mediaItemStream => _audioHandler?.mediaItem;
+  Stream<MediaItem?>? get mediaItem => _audioHandler?.mediaItem;
 
   // Helper method to find a track by ID
   Track? findTrackById(String? trackId) {
