@@ -72,8 +72,6 @@ class WebAudioHandler {
   }
   
   WebAudioHandler(
-    this._jellyfinService,
-    this._downloadService,
     this._mediaServiceManager,
   ) {
     _initializeAudioPlayer();
