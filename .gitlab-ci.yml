@@ -130,7 +130,7 @@ build_debug_macos:
     - caffeinate -i flutter build macos
   artifacts:
     paths:
-      - build/macos/Build/Products/Debug/
+      - build/macos/Build/Products/Release/
     expire_in: 1 hour
 
 build_debug_ios:
