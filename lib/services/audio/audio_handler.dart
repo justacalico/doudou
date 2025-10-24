@@ -3310,15 +3310,31 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       playing: shouldPlay, // Use user intent, not previous state
     ));
     
-    // Minimal stop for codec cleanup - no excessive delays
+    // Minimal stop for codec cleanup - ensure complete audio cessation
     try {
       await _player.stop();
-      await Future.delayed(const Duration(milliseconds: 100)); // Reduced from 300ms
+      
+      // CRITICAL FIX: Force empty source to ensure old audio is completely stopped
+      try {
+        final silenceSource = ConcatenatingAudioSource(children: []);
+        await _player.setAudioSource(silenceSource);
+        await Future.delayed(const Duration(milliseconds: 50));
+        await _player.stop();
+        if (kDebugMode) {
+          print('CRITICAL: Individual track - forced silence to stop old audio');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Warning during individual track silence setup: $e');
+        }
+      }
+      
+      await Future.delayed(const Duration(milliseconds: 200)); // Wait for complete stop
     } catch (e) {
       if (kDebugMode) {
         print('Error stopping player: $e');
       }
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 100));
     }
     
     // Load and play the track using user intent
