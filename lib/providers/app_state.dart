@@ -458,6 +458,21 @@ class AppState extends ChangeNotifier {
                 // Continue without audio handler
                 _audioHandler = null;
               }
+            } else if (kIsWeb) {
+              // Web: Initialize web audio handler (offline mode)
+              try {
+                _audioHandler = WebAudioHandler(_mediaServiceManager);
+                
+                if (kDebugMode) {
+                  print('Web audio handler initialized successfully (offline mode)');
+                }
+              } catch (audioError) {
+                if (kDebugMode) {
+                  print('Failed to initialize web audio handler in offline mode: $audioError');
+                }
+                // Continue without audio handler
+                _audioHandler = null;
+              }
             } else {
               if (kDebugMode) {
                 print('Audio service initialization skipped on unsupported platform (offline mode)');
