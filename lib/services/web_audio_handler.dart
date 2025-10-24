@@ -84,7 +84,31 @@ class WebAudioHandler {
   
   void _updatePlaybackState() {
     if (_audioPlayer != null) {
-      _playbackStateController.add(_audioPlayer!.playerState);
+      final playerState = _audioPlayer!.playerState;
+      _playbackStateController.add(playerState);
+      
+      // Convert PlayerState to PlaybackState for audio service compatibility
+      final playbackState = PlaybackState(
+        playing: playerState.playing,
+        processingState: _convertProcessingState(playerState.processingState),
+        repeatMode: _repeatMode,
+        shuffleMode: _isShuffled ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
+      );
+      _audioServiceStateController.add(playbackState);
+    }
+  }
+  
+  AudioProcessingState _convertProcessingState(ProcessingState processingState) {
+    switch (processingState) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
     }
   }
   
