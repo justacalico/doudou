@@ -317,10 +317,14 @@ Future<void> _logSystemInfo(String context) async {
   try {
     logger.info('=== SYSTEM INFO START ($context) ===', 'SystemInfo');
     
-    // Basic platform info
-    logger.info('Platform: ${Platform.operatingSystem}', 'SystemInfo');
-    logger.info('Platform version: ${Platform.operatingSystemVersion}', 'SystemInfo');
-    logger.info('Number of processors: ${Platform.numberOfProcessors}', 'SystemInfo');
+    // Basic platform info (web-safe)
+    if (!kIsWeb) {
+      logger.info('Platform: ${Platform.operatingSystem}', 'SystemInfo');
+      logger.info('Platform version: ${Platform.operatingSystemVersion}', 'SystemInfo');
+      logger.info('Number of processors: ${Platform.numberOfProcessors}', 'SystemInfo');
+    } else {
+      logger.info('Platform: Web', 'SystemInfo');
+    }
     logger.info('Flutter target: ${defaultTargetPlatform.name}', 'SystemInfo');
     logger.info('Is debug mode: $kDebugMode', 'SystemInfo');
     
