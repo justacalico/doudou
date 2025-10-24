@@ -1651,13 +1651,13 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return StreamBuilder(
-      stream: audioHandler.playbackState,
+    return StreamBuilder<PlaybackState>(
+      stream: appState.playbackState,
       builder: (context, playbackStateSnapshot) {
-        return StreamBuilder(
-          stream: audioHandler.mediaItem,
+        return StreamBuilder<MediaItem?>(
+          stream: appState.mediaItem,
           builder: (context, mediaItemSnapshot) {
-            final currentTrack = audioHandler.currentTrack;
+            final currentTrack = audioHandler?.currentTrack;
             final isPlaying = playbackStateSnapshot.data?.playing == true;
 
             if (currentTrack == null) {
