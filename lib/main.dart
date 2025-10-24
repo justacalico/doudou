@@ -223,84 +223,89 @@ Future<void> _logSystemInfo(String context) async {
       logger.info('Running in web browser - environment variables not available', 'SystemInfo');
     }
 
-    // Check for media-related executables and libraries
-    final mediaCommands = [
-      'gst-launch-1.0',
-      'ffmpeg',
-      'mpv',
-      'pulseaudio',
-      'pipewire',
-    ];
-    logger.info('=== MEDIA COMMAND AVAILABILITY ===', 'SystemInfo');
-    for (final cmd in mediaCommands) {
+    // Check for media-related executables and libraries (not available on web)
+    if (!kIsWeb) {
+      final mediaCommands = [
+        'gst-launch-1.0',
+        'ffmpeg',
+        'mpv',
+        'pulseaudio',
+        'pipewire',
+      ];
+      logger.info('=== MEDIA COMMAND AVAILABILITY ===', 'SystemInfo');
+      for (final cmd in mediaCommands) {
+        try {
+          final result = await Process.run('which', [cmd]);
+          if (result.exitCode == 0) {
+            logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
+          } else {
+            logger.info('$cmd: not found', 'SystemInfo');
+          }
+        } catch (e) {
+          logger.info('$cmd: error checking ($e)', 'SystemInfo');
+        }
+      }
+
+      // Check GStreamer plugins
       try {
-        final result = await Process.run('which', [cmd]);
+        final result = await Process.run('gst-inspect-1.0', [
+          '--print-all',
+        ]).timeout(const Duration(seconds: 5));
         if (result.exitCode == 0) {
-          logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
+          final plugins = result.stdout
+              .toString()
+              .split('\n')
+              .where((line) => line.contains(':'))
+              .take(10);
+          logger.info(
+            'GStreamer plugins (first 10): ${plugins.join(', ')}',
+            'SystemInfo',
+          );
         } else {
-          logger.info('$cmd: not found', 'SystemInfo');
+          logger.info(
+            'GStreamer plugins: failed to list (exit code: ${result.exitCode})',
+            'SystemInfo',
+          );
         }
       } catch (e) {
-        logger.info('$cmd: error checking ($e)', 'SystemInfo');
+        logger.info('GStreamer plugins: error checking ($e)', 'SystemInfo');
       }
-    }
 
-    // Check GStreamer plugins
-    try {
-      final result = await Process.run('gst-inspect-1.0', [
-        '--print-all',
-      ]).timeout(const Duration(seconds: 5));
-      if (result.exitCode == 0) {
-        final plugins = result.stdout
-            .toString()
-            .split('\n')
-            .where((line) => line.contains(':'))
-            .take(10);
+      // Audio system detection
+      logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
+      try {
+        // Check PulseAudio
+        final pulseResult = await Process.run('pulseaudio', [
+          '--check',
+          '-v',
+        ]).timeout(const Duration(seconds: 3));
         logger.info(
-          'GStreamer plugins (first 10): ${plugins.join(', ')}',
+          'PulseAudio status: exit code ${pulseResult.exitCode}',
           'SystemInfo',
         );
-      } else {
-        logger.info(
-          'GStreamer plugins: failed to list (exit code: ${result.exitCode})',
-          'SystemInfo',
-        );
+      } catch (e) {
+        logger.info('PulseAudio status: error ($e)', 'SystemInfo');
       }
-    } catch (e) {
-      logger.info('GStreamer plugins: error checking ($e)', 'SystemInfo');
-    }
 
-    // Audio system detection
-    logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
-    try {
-      // Check PulseAudio
-      final pulseResult = await Process.run('pulseaudio', [
-        '--check',
-        '-v',
-      ]).timeout(const Duration(seconds: 3));
-      logger.info(
-        'PulseAudio status: exit code ${pulseResult.exitCode}',
-        'SystemInfo',
-      );
-    } catch (e) {
-      logger.info('PulseAudio status: error ($e)', 'SystemInfo');
-    }
-
-    try {
-      // Check PipeWire
-      final pipewireResult = await Process.run('pipewire', [
-        '--version',
-      ]).timeout(const Duration(seconds: 3));
-      if (pipewireResult.exitCode == 0) {
-        logger.info(
-          'PipeWire: ${pipewireResult.stdout.toString().trim()}',
-          'SystemInfo',
-        );
-      } else {
-        logger.info('PipeWire: not available', 'SystemInfo');
+      try {
+        // Check PipeWire
+        final pipewireResult = await Process.run('pipewire', [
+          '--version',
+        ]).timeout(const Duration(seconds: 3));
+        if (pipewireResult.exitCode == 0) {
+          logger.info(
+            'PipeWire: ${pipewireResult.stdout.toString().trim()}',
+            'SystemInfo',
+          );
+        } else {
+          logger.info('PipeWire: not available', 'SystemInfo');
+        }
+      } catch (e) {
+        logger.info('PipeWire: error checking ($e)', 'SystemInfo');
       }
-    } catch (e) {
-      logger.info('PipeWire: error checking ($e)', 'SystemInfo');
+    } else {
+      logger.info('=== WEB MEDIA ===', 'SystemInfo');
+      logger.info('Web platform: Using HTML5 audio/video elements', 'SystemInfo');
     }
 
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
