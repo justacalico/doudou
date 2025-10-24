@@ -31,6 +31,7 @@ class WebAudioHandler {
   
   Stream<Duration> get positionStream => _audioPlayer?.positionStream ?? Stream.value(Duration.zero);
   Stream<Duration?> get durationStream => _audioPlayer?.durationStream ?? Stream.value(null);
+  Stream<double> get volumeStream => _audioPlayer?.volumeStream ?? Stream.value(1.0);
   Stream<PlaybackState> get playbackState => _audioServiceStateController.stream;
   Stream<PlayerState> get playerStateStream => _playbackStateController.stream;
   Stream<MediaItem?> get mediaItem => _mediaItemController.stream;
