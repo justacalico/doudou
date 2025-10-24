@@ -3905,29 +3905,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Step 1: Immediately stop all audio playback
       await _player.stop();
       
-      // Step 2: CRITICAL - Completely dispose and recreate player to eliminate persistent audio streams
+      // Step 2: CRITICAL - Force complete audio source clearing to terminate persistent streams
       try {
         if (kDebugMode) {
-          print('CRITICAL: Disposing player completely to terminate old audio streams');
+          print('CRITICAL: Aggressively clearing all audio sources to terminate old streams');
         }
         
-        // Dispose the current player completely
-        await _player.dispose();
+        // Force set empty audio source to completely clear player
+        await _player.setAudioSource(ConcatenatingAudioSource(children: []));
         
-        // Create a completely new player instance
-        _player = AudioPlayer();
+        // Immediately stop again to ensure empty source doesn't play
+        await _player.stop();
         
-        // Re-initialize the player with our settings
-        await _setupPlayer();
+        // Clear the audio source completely - this should release all streams
+        await _player.setAudioSource(ConcatenatingAudioSource(children: []));
+        await _player.stop();
+        
+        // Wait longer for audio pipeline to fully clear
+        await Future.delayed(const Duration(milliseconds: 500));
         
         if (kDebugMode) {
-          print('AGGRESSIVE RESET: Player recreated completely - old streams eliminated');
+          print('AGGRESSIVE RESET: Player audio sources cleared completely - old streams eliminated');
         }
       } catch (e) {
         if (kDebugMode) {
-          print('Warning during player recreation: $e');
+          print('Warning during aggressive audio source clearing: $e');
         }
-        // Fallback to just stopping if disposal fails
+        // Fallback to multiple stops
+        await _player.stop();
+        await Future.delayed(const Duration(milliseconds: 300));
         await _player.stop();
       }
       
