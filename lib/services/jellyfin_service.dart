@@ -4,7 +4,6 @@ import '../models/jellyfin_models.dart';
 import 'base_service.dart';
 
 // Only import IO adapter for non-web platforms
-import 'package:dio/io.dart' if (dart.library.html) 'package:dio/browser.dart';
 
 // Network error types for better error handling
 enum NetworkErrorType {
