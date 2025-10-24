@@ -114,7 +114,7 @@ class WebAudioHandler {
     }
   }
   
-  Future<void> _loadAudioForWeb(String streamUrl) async {
+  Future<void> _loadAudioForWeb(String streamUrl, Track track) async {
     if (kDebugMode) {
       print('WebAudioHandler: Attempting web-specific audio loading');
     }
@@ -156,8 +156,30 @@ class WebAudioHandler {
       } catch (e2) {
         if (kDebugMode) {
           print('WebAudioHandler: Basic CORS headers method also failed: $e2');
-          print('WebAudioHandler: All web loading methods failed');
+          print('WebAudioHandler: Trying direct download URL...');
         }
+        
+        // Method 3: Try with direct download URL (no transcoding)
+        try {
+          final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+          if (kDebugMode) {
+            print('WebAudioHandler: Trying direct download: $directUrl');
+          }
+          
+          await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(directUrl)));
+          
+          if (kDebugMode) {
+            print('WebAudioHandler: Direct download method successful');
+          }
+        } catch (e3) {
+          if (kDebugMode) {
+            print('WebAudioHandler: Direct download also failed: $e3');
+            print('WebAudioHandler: All web loading methods failed');
+          }
+          rethrow; // Propagate the error to the caller
+        }
+      }
+    }
         rethrow;
       }
     }
