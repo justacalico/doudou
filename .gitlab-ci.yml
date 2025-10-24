@@ -259,8 +259,8 @@ publish_release:
         RELEASE_NOTES="${RELEASE_NOTES}• Branch: $CI_COMMIT_REF_NAME\\n"
         RELEASE_NOTES="${RELEASE_NOTES}• Date: $(date)\\n\\n"
         
-        if [ "$COMMIT_COUNT" -gt 0 ]; then
-          RELEASE_NOTES="${RELEASE_NOTES}**Changes Since Last Release ($COMMIT_COUNT commits):**\\n$COMMIT_LOG"
+        if [ "$COMMIT_COUNT" -gt 0 ] && [ -n "$COMMIT_LIST" ]; then
+          RELEASE_NOTES="${RELEASE_NOTES}**Changes Since Last Release ($COMMIT_COUNT commits):**\\n$COMMIT_LIST"
         else
           RELEASE_NOTES="${RELEASE_NOTES}**Changes:** First release or no commits found since last successful build"
         fi
