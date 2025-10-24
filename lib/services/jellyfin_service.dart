@@ -39,7 +39,10 @@ class JellyfinService implements BaseMediaService {
     // Configure timeouts for better network handling
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
-    _dio.options.sendTimeout = const Duration(seconds: 30);
+    // Don't set sendTimeout on web as it's not supported
+    if (!kIsWeb) {
+      _dio.options.sendTimeout = const Duration(seconds: 30);
+    }
     
     // Platform-specific configurations (not available on web)
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
