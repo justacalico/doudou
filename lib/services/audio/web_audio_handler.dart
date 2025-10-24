@@ -235,4 +235,19 @@ class WebAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await stop();
     await _player.dispose();
   }
+
+  /// Web-specific configuration methods
+  void setNormalizeVolume(bool enabled) {
+    // Web implementation - could use Web Audio API for volume normalization
+    if (kDebugMode) {
+      print('WebAudioHandler: Volume normalization ${enabled ? 'enabled' : 'disabled'}');
+    }
+  }
+
+  void setGaplessPlayback(bool enabled) {
+    // Web implementation - just_audio handles gapless playback
+    if (kDebugMode) {
+      print('WebAudioHandler: Gapless playback ${enabled ? 'enabled' : 'disabled'}');
+    }
+  }
 }
