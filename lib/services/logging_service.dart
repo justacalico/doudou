@@ -283,23 +283,26 @@ class LoggingService {
     try {
       _memoryLogs.clear();
       
-      final directory = await getApplicationDocumentsDirectory();
-      final logDir = Directory('${directory.path}/logs');
-      
-      if (await logDir.exists()) {
-        final files = logDir.listSync()
-            .whereType<File>()
-            .where((f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'))
-            .toList();
+      // Only clear file logs on non-web platforms
+      if (!kIsWeb) {
+        final directory = await getApplicationDocumentsDirectory();
+        final logDir = Directory('${directory.path}/logs');
         
-        for (final file in files) {
-          await file.delete();
+        if (await logDir.exists()) {
+          final files = logDir.listSync()
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'))
+              .toList();
+          
+          for (final file in files) {
+            await file.delete();
+          }
         }
+        
+        // Reinitialize to create a fresh log file
+        _initialized = false;
+        await initialize();
       }
-      
-      // Reinitialize to create a fresh log file
-      _initialized = false;
-      await initialize();
       
       info('Logs cleared by user');
     } catch (e) {
