@@ -591,17 +591,38 @@ class CacheService {
   
   // Clear all cache
   Future<void> clearAllCache() async {
-    if (_database == null) return;
-    
-    await Future.wait([
-      _database!.delete('albums_cache'),
-      _database!.delete('artists_cache'),
-      _database!.delete('tracks_cache'),
-      _database!.delete('playlists_cache'),
-      _database!.delete('album_tracks_cache'),
-      _database!.delete('playlist_tracks_cache'),
-      _database!.delete('favorites_cache'),
-    ]);
+    if (kIsWeb) {
+      // Clear all cache entries from SharedPreferences
+      if (_prefs == null) return;
+      
+      final keys = _prefs!.getKeys();
+      final cacheKeys = keys.where((key) => 
+        key.startsWith('albums_cache_') ||
+        key.startsWith('artists_cache_') ||
+        key.startsWith('tracks_cache_') ||
+        key.startsWith('playlists_cache_') ||
+        key.startsWith('album_tracks_cache_') ||
+        key.startsWith('playlist_tracks_cache_') ||
+        key.startsWith('favorites_cache_')
+      );
+      
+      for (final key in cacheKeys) {
+        await _prefs!.remove(key);
+      }
+    } else {
+      // Use database for other platforms
+      if (_database == null) return;
+      
+      await Future.wait([
+        _database!.delete('albums_cache'),
+        _database!.delete('artists_cache'),
+        _database!.delete('tracks_cache'),
+        _database!.delete('playlists_cache'),
+        _database!.delete('album_tracks_cache'),
+        _database!.delete('playlist_tracks_cache'),
+        _database!.delete('favorites_cache'),
+      ]);
+    }
     
     if (kDebugMode) {
       print('All cache cleared');
