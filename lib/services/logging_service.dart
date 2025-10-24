@@ -43,32 +43,37 @@ class LoggingService {
       final prefs = await SharedPreferences.getInstance();
       _loggingEnabled = prefs.getBool('logging_enabled') ?? false;
       
-      final directory = await getApplicationDocumentsDirectory();
-      final logDir = Directory('${directory.path}/logs');
-      if (!await logDir.exists()) {
-        await logDir.create(recursive: true);
-      }
-      
-      final now = DateTime.now();
-      final dateStr = _formatDate(now);
-      _logFile = File('${logDir.path}/doudou_$dateStr.log');
-      
-      // Rotate log if too large
-      if (await _logFile!.exists()) {
-        final fileSize = await _logFile!.length();
-        if (fileSize > _maxLogFileSize) {
-          await _rotateLog();
+      // Only initialize file logging on non-web platforms
+      if (!kIsWeb) {
+        final directory = await getApplicationDocumentsDirectory();
+        final logDir = Directory('${directory.path}/logs');
+        if (!await logDir.exists()) {
+          await logDir.create(recursive: true);
+        }
+        
+        final now = DateTime.now();
+        final dateStr = _formatDate(now);
+        _logFile = File('${logDir.path}/doudou_$dateStr.log');
+        
+        // Rotate log if too large
+        if (await _logFile!.exists()) {
+          final fileSize = await _logFile!.length();
+          if (fileSize > _maxLogFileSize) {
+            await _rotateLog();
+          }
         }
       }
       
       _initialized = true;
       if (_loggingEnabled) {
-        log('INFO', 'Logging service initialized (logging enabled)');
+        log('INFO', 'Logging service initialized (logging enabled)${kIsWeb ? ' - web mode' : ''}');
       }
     } catch (e) {
       if (kDebugMode) {
         print('Failed to initialize logging service: $e');
       }
+      // Mark as initialized even if file logging failed (web compatibility)
+      _initialized = true;
     }
   }
 
