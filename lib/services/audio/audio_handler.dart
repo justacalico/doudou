@@ -3905,22 +3905,30 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Step 1: Immediately stop all audio playback
       await _player.stop();
       
-      // Step 2: CRITICAL - Force clear any existing audio source from player
+      // Step 2: CRITICAL - Completely dispose and recreate player to eliminate persistent audio streams
       try {
-        // CRITICAL FIX: Don't use empty ConcatenatingAudioSource - it causes immediate completion
-        // Just stop the player completely and wait for cleanup
-        await _player.stop();
+        if (kDebugMode) {
+          print('CRITICAL: Disposing player completely to terminate old audio streams');
+        }
         
-        // Wait for audio pipeline to fully clear
-        await Future.delayed(const Duration(milliseconds: 300));
+        // Dispose the current player completely
+        await _player.dispose();
+        
+        // Create a completely new player instance
+        _player = AudioPlayer();
+        
+        // Re-initialize the player with our settings
+        await _setupPlayer();
         
         if (kDebugMode) {
-          print('AGGRESSIVE RESET: Player stopped completely to eliminate old streams');
+          print('AGGRESSIVE RESET: Player recreated completely - old streams eliminated');
         }
       } catch (e) {
         if (kDebugMode) {
-          print('Warning during audio source clearing: $e');
+          print('Warning during player recreation: $e');
         }
+        // Fallback to just stopping if disposal fails
+        await _player.stop();
       }
       
       // Step 3: Force clear any concatenating source to stop old streams
