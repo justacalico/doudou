@@ -157,8 +157,8 @@ build_debug_ios:
         fi
       fi
     # Use job-specific directories to prevent race conditions
-    - mkdir -p "$PUB_CACHE" "$BUILD_DIR"
-    - rm -rf "$BUILD_DIR" .dart_tool/ .flutter-plugins-dependencies
+    - mkdir -p "$PUB_CACHE"
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
     - rm -rf "$PUB_CACHE" # Use job-specific pub cache
     - flutter clean
   script:
