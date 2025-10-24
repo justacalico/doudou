@@ -212,41 +212,43 @@ publish_release:
         COMMIT_RANGE="$LAST_SUCCESS_SHA..$CI_COMMIT_SHA"
         echo "Commit range: $COMMIT_RANGE"
         
-        # Get detailed commit information
-        COMMITS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits?ref_name=$CI_COMMIT_REF_NAME&since=$(date -d '30 days ago' -Iseconds)&per_page=200")
+        # Get detailed commit information using git log approach (more reliable)
+        echo "Fetching commits using git log..."
         
-        # Extract commits newer than last success
-        COMMIT_LOG=""
+        # Ensure we're in a git repository and fetch latest
+        git fetch origin --unshallow 2>/dev/null || git fetch origin
+        
+        # Get commit list since last success SHA
+        COMMIT_LIST=""
         COMMIT_COUNT=0
         
-        # Parse commits and build formatted list
-        echo "$COMMITS_DATA" | grep -E '"(id|title|author_name|created_at)"' | while IFS= read -r line; do
-          if echo "$line" | grep -q '"id"'; then
-            COMMIT_ID=$(echo "$line" | cut -d'"' -f4)
-          elif echo "$line" | grep -q '"title"'; then
-            COMMIT_TITLE=$(echo "$line" | cut -d'"' -f4 | sed 's/"/\\"/g')
-          elif echo "$line" | grep -q '"author_name"'; then
-            COMMIT_AUTHOR=$(echo "$line" | cut -d'"' -f4)
-          elif echo "$line" | grep -q '"created_at"'; then
-            COMMIT_DATE=$(echo "$line" | cut -d'"' -f4 | cut -dT -f1)
-            
-            # Stop when we reach the last successful commit
-            if [ "$COMMIT_ID" = "$LAST_SUCCESS_SHA" ]; then
-              break
-            fi
-            
-            # Add commit to log
-            if [ -n "$COMMIT_ID" ] && [ -n "$COMMIT_TITLE" ]; then
-              COMMIT_LOG="$COMMIT_LOG\\n• $COMMIT_TITLE ($COMMIT_AUTHOR - $COMMIT_DATE) [$COMMIT_ID]"
+        if git rev-parse --verify "$LAST_SUCCESS_SHA" >/dev/null 2>&1; then
+          # Use git log to get commits since last successful build
+          COMMIT_LIST=$(git log --oneline --pretty=format:"• %s (%an - %ad) [%h]" --date=short "$LAST_SUCCESS_SHA..$CI_COMMIT_SHA" 2>/dev/null || echo "")
+          COMMIT_COUNT=$(git rev-list --count "$LAST_SUCCESS_SHA..$CI_COMMIT_SHA" 2>/dev/null || echo "0")
+        else
+          echo "Warning: Could not find last success SHA in git history, trying API fallback..."
+          
+          # Fallback to API-based approach
+          COMMITS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+            "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits?ref_name=$CI_COMMIT_REF_NAME&per_page=50")
+          
+          # Parse recent commits until we find the last successful one
+          COMMIT_LIST=""
+          echo "$COMMITS_DATA" | jq -r '.[] | "• \(.title) (\(.author_name) - \(.created_at | split("T")[0])) [\(.short_id)]"' 2>/dev/null | while read -r line; do
+            if [ -n "$line" ]; then
+              COMMIT_LIST="$COMMIT_LIST$line\\n"
               COMMIT_COUNT=$((COMMIT_COUNT + 1))
+              # Limit to reasonable number if we can't find last success
+              if [ "$COMMIT_COUNT" -gt 20 ]; then
+                break
+              fi
             fi
-          fi
-        done > /tmp/commit_processing.txt
-        
-        # Read the processed commits
-        if [ -f "/tmp/commit_processing.txt" ]; then
-          COMMIT_LOG=$(cat /tmp/commit_processing.txt)
+          done || {
+            # Final fallback if jq is not available
+            COMMIT_LIST="• Recent commits (detailed parsing unavailable)"
+            COMMIT_COUNT=1
+          }
         fi
         
         # Build comprehensive release notes
