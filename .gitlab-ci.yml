@@ -195,8 +195,9 @@ publish_release:
       
       # Find the last successful pipeline before this one
       LAST_SUCCESS_SHA=""
+      echo "Fetching recent successful pipelines..."
       PIPELINES_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines?status=success&per_page=50")
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines?status=success&per_page=10&order_by=id&sort=desc")
       
       # Extract the SHA of the most recent successful pipeline (excluding current)
       LAST_SUCCESS_SHA=$(echo "$PIPELINES_DATA" | grep -o '"sha":"[^"]*"' | grep -v "$CI_COMMIT_SHA" | head -1 | cut -d'"' -f4)
