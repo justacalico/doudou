@@ -1882,23 +1882,12 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       if (audioSource != null) {
         audioSources.add(audioSource);
       } else {
-        // CRITICAL: If we can't create ANY source for a track, we must still maintain indexing
-        // Create a minimal placeholder to prevent index misalignment
-        try {
-          // Create a basic placeholder using the track ID as a dummy URI
-          // This won't play but prevents index confusion
-          audioSource = AudioSource.uri(Uri.parse('placeholder://track/${track.id}'));
-          audioSources.add(audioSource);
-          if (kDebugMode) {
-            print('Created fallback placeholder for track $i: ${track.name}');
-          }
-        } catch (e) {
-          // If even placeholder creation fails, fall back to individual playback
-          if (kDebugMode) {
-            print('Complete failure to create source for concatenation: ${track.name} - $e');
-          }
-          return null;
+        // CRITICAL: If we can't create ANY source for a track, fall back to individual playback
+        // instead of creating potentially problematic placeholders
+        if (kDebugMode) {
+          print('Failed to create audio source for track $i: ${track.name} - falling back to individual playback');
         }
+        return null;
       }
     }
 
