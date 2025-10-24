@@ -179,8 +179,23 @@ class WebAudioHandler {
         print('WebAudioHandler: Loading audio from: $streamUrl');
       }
       
-      // Load the audio source
-      await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+      // For web, we need to handle CORS properly
+      if (kIsWeb) {
+        // Try to load with CORS headers
+        await _audioPlayer!.setAudioSource(
+          AudioSource.uri(
+            Uri.parse(streamUrl),
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
+          ),
+        );
+      } else {
+        // Load normally for other platforms
+        await _audioPlayer!.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+      }
       
       _updateMediaItem();
       
