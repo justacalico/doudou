@@ -309,7 +309,10 @@ class WebAudioHandler {
       } catch (fallbackError) {
         if (kDebugMode) {
           print('WebAudioHandler: Fallback also failed: $fallbackError');
+          print('WebAudioHandler: Keeping MediaItem set even though audio failed to load');
         }
+        // Don't clear the MediaItem even if audio loading fails
+        // The UI should still show the track information
       }
     }
   }
