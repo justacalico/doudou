@@ -19,6 +19,10 @@ class _HomeContentState extends State<HomeContent> {
   List<Album>? _madeForYouAlbums;
   List<Album>? _recommendedAlbums;
   List<Album>? _similarToFavoritesAlbums;
+  
+  // Add debouncing for shuffle buttons to prevent audio bleeding
+  DateTime? _lastShuffleAllTap;
+  DateTime? _lastShuffleFavoritesTap;
 
   void _initializeAlbumLists(List<Album> allAlbums, List<Track> favoriteTracks) {
     if (_shuffledAlbums == null || _shuffledAlbums!.isEmpty) {
