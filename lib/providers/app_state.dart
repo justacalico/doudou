@@ -70,6 +70,11 @@ class AppState extends ChangeNotifier {
   DownloadService get downloadService => _downloadService;
   // Audio handler getter - returns the appropriate handler for the platform
   dynamic get audioHandler => _audioHandler;
+  
+  // Stream getters that handle both DoudouAudioHandler and WebAudioHandler
+  Stream<PlayerState>? get playerStateStream => _audioHandler?.playerStateStream;
+  Stream<Duration>? get positionStream => _audioHandler?.positionStream;
+  Stream<MediaItem?>? get mediaItemStream => _audioHandler?.mediaItem;
 
   // Helper method to find a track by ID
   Track? findTrackById(String? trackId) {
