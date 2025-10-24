@@ -3020,6 +3020,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('User intended playing: $_userIntendedPlaying');
     }
     
+    // CRITICAL: Always get the track from the current playlist position to prevent stale references
     if (_stateManager.playlist.isEmpty || _stateManager.currentIndex >= _stateManager.playlist.length) {
       _logger.error('Cannot play current track: playlist empty or index out of bounds', 'AudioHandler');
       if (kDebugMode) {
@@ -3029,7 +3030,19 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       return;
     }
 
-    final track = _stateManager.currentTrack!;
+    // CRITICAL: Always use track from current playlist position, not cached currentTrack
+    final track = _stateManager.playlist[_stateManager.currentIndex];
+    
+    // Ensure state manager has the correct track reference
+    if (_stateManager.currentTrack?.id != track.id) {
+      if (kDebugMode) {
+        print('CORRECTED: State manager had wrong track, fixing reference');
+        print('Was: ${_stateManager.currentTrack?.name ?? "null"} (${_stateManager.currentTrack?.id ?? "null"})');
+        print('Now: ${track.name} (${track.id})');
+      }
+      _stateManager.setCurrentTrack(track);
+    }
+    
     final artistInfo = track.artistName != null ? ' by ${track.artistName}' : '';
     _logger.info('Playing track ${_stateManager.currentIndex + 1}/${_stateManager.playlist.length}: ${track.name}$artistInfo', 'AudioHandler');
     
