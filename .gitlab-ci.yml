@@ -110,9 +110,10 @@ build_debug_macos:
           exit 1
         fi
       fi
-    # Clean build artifacts (but preserve build directory for artifacts)
-    - rm -rf .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf .pub-cache
+    # Use job-specific directories to prevent race conditions
+    - mkdir -p "$PUB_CACHE" "$BUILD_DIR"
+    - rm -rf "$BUILD_DIR" .dart_tool/ .flutter-plugins-dependencies
+    - rm -rf "$PUB_CACHE" # Use job-specific pub cache
     - flutter clean
   script:
     - flutter --version
@@ -130,7 +131,7 @@ build_debug_macos:
     - caffeinate -i flutter build macos
   artifacts:
     paths:
-      - build/macos/Build/Products/Release/
+      - build*/macos/Build/Products/Release/
     expire_in: 1 hour
 
 build_debug_ios:
@@ -168,7 +169,7 @@ build_debug_ios:
     - caffeinate -i flutter build ios --no-codesign
   artifacts:
     paths:
-      - build/ios/iphoneos/
+      - build*/ios/iphoneos/
     expire_in: 1 hour
 
 publish_release:
