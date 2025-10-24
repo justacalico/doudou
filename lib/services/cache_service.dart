@@ -648,23 +648,49 @@ class CacheService {
   
   // Get cache stats
   Future<Map<String, int>> getCacheStats() async {
-    if (_database == null) return {};
-    
     final stats = <String, int>{};
     
-    final tables = [
-      'albums_cache',
-      'artists_cache', 
-      'tracks_cache',
-      'playlists_cache',
-      'album_tracks_cache',
-      'playlist_tracks_cache',
-      'favorites_cache',
-    ];
-    
-    for (final table in tables) {
-      final result = await _database!.rawQuery('SELECT COUNT(*) as count FROM $table');
-      stats[table] = result.first['count'] as int;
+    if (kIsWeb) {
+      // Count SharedPreferences entries for web
+      if (_prefs == null) return {};
+      
+      final keys = _prefs!.getKeys();
+      final tables = [
+        'albums_cache',
+        'artists_cache', 
+        'tracks_cache',
+        'playlists_cache',
+        'album_tracks_cache',
+        'playlist_tracks_cache',
+        'favorites_cache',
+      ];
+      
+      for (final table in tables) {
+        final count = keys.where((key) => key.startsWith('${table}_')).length;
+        stats[table] = count;
+      }
+    } else {
+      // Use database for other platforms
+      if (_database == null) return {};
+      
+      final tables = [
+        'albums_cache',
+        'artists_cache', 
+        'tracks_cache',
+        'playlists_cache',
+        'album_tracks_cache',
+        'playlist_tracks_cache',
+        'favorites_cache',
+      ];
+      
+      for (final table in tables) {
+        try {
+          final result = await _database!.rawQuery('SELECT COUNT(*) as count FROM $table');
+          stats[table] = result.first['count'] as int;
+        } catch (e) {
+          stats[table] = 0; // Table doesn't exist or error occurred
+        }
+      }
     }
     
     return stats;
