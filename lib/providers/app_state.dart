@@ -252,7 +252,6 @@ class AppState extends ChangeNotifier {
                 
                 // Apply user settings to the audio handler
                 _configureAudioHandler();
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -274,7 +273,6 @@ class AppState extends ChangeNotifier {
                 
                 // Apply user settings to the audio handler
                 _configureAudioHandler();
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -296,7 +294,6 @@ class AppState extends ChangeNotifier {
                 
                 // Apply user settings to the audio handler
                 _configureAudioHandler();
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -408,7 +405,6 @@ class AppState extends ChangeNotifier {
                 
                 // Apply user settings to the audio handler
                 _configureAudioHandler();
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -437,7 +433,6 @@ class AppState extends ChangeNotifier {
                 
                 // Apply user settings to the audio handler
                 _configureAudioHandler();
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -459,7 +454,6 @@ class AppState extends ChangeNotifier {
                 
                 // Apply user settings to the audio handler
                 _configureAudioHandler();
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
@@ -624,7 +618,6 @@ class AppState extends ChangeNotifier {
             
             // Apply user settings to the audio handler
             _configureAudioHandler();
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
             // Set up listeners for automatic UI updates
             _setupAudioHandlerListeners();
@@ -647,7 +640,6 @@ class AppState extends ChangeNotifier {
             
             // Apply user settings to the audio handler
             _configureAudioHandler();
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
             // Set up listeners for automatic UI updates
             _setupAudioHandlerListeners();
@@ -841,7 +833,6 @@ class AppState extends ChangeNotifier {
             );
             
             _configureAudioHandler();
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -866,7 +857,6 @@ class AppState extends ChangeNotifier {
             );
             
             _configureAudioHandler();
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -884,7 +874,6 @@ class AppState extends ChangeNotifier {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
             _configureAudioHandler();
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -902,7 +891,6 @@ class AppState extends ChangeNotifier {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
             _configureAudioHandler();
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
             if (kDebugMode) {
@@ -2460,7 +2448,6 @@ class AppState extends ChangeNotifier {
           
           // Apply user settings to the audio handler
           _configureAudioHandler();
-          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           
           // Set up listeners for automatic UI updates
           _setupAudioHandlerListeners();
