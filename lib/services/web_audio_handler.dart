@@ -116,6 +116,12 @@ class WebAudioHandler {
   
   void _updateMediaItem() {
     final track = currentTrack;
+    if (kDebugMode) {
+      print('WebAudioHandler: _updateMediaItem called');
+      print('WebAudioHandler: Current track: ${track?.name ?? "null"}');
+      print('WebAudioHandler: Duration: $_duration');
+    }
+    
     if (track != null) {
       final mediaItem = MediaItem(
         id: track.id,
@@ -125,8 +131,20 @@ class WebAudioHandler {
         duration: _duration,
         artUri: track.imageUrl != null ? Uri.parse(track.imageUrl!) : null,
       );
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: Created MediaItem: ${mediaItem.title} by ${mediaItem.artist}');
+      }
+      
       _mediaItemController.add(mediaItem);
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: MediaItem added to stream');
+      }
     } else {
+      if (kDebugMode) {
+        print('WebAudioHandler: Adding null MediaItem to stream');
+      }
       _mediaItemController.add(null);
     }
   }
