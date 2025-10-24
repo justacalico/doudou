@@ -291,25 +291,56 @@ publish_release:
       echo "Jobs data response:"
       echo "$JOBS_DATA" | head -5
       
-      # Extract job IDs more reliably using jq-style parsing
+      # Extract job IDs for all platforms
       APK_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_apk"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
       LINUX_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_linux"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      MACOS_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_macos"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      IOS_JOB_ID=$(echo "$JOBS_DATA" | grep -A5 -B5 '"name":"build_debug_ios"' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
       
       echo "APK Job ID: $APK_JOB_ID"
       echo "Linux Job ID: $LINUX_JOB_ID"
+      echo "macOS Job ID: $MACOS_JOB_ID"
+      echo "iOS Job ID: $IOS_JOB_ID"
       
-      # Validate we got valid job IDs
-      if [ -z "$APK_JOB_ID" ] || [ -z "$LINUX_JOB_ID" ]; then
-        echo "Failed to extract job IDs. Using simplified artifact URLs..."
-        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
-        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_linux"
-      else
+      # Build artifact URLs for available builds
+      ASSET_LINKS=""
+      
+      if [ -n "$APK_JOB_ID" ]; then
         APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk"
-        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Android APK\", \"url\": \"$APK_URL\", \"link_type\": \"package\"},"
+        echo "✅ Android APK: $APK_URL"
+      else
+        echo "⚠️  Android APK build not found"
       fi
       
-      echo "APK URL: $APK_URL"
-      echo "Linux URL: $LINUX_URL"
+      if [ -n "$LINUX_JOB_ID" ]; then
+        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Linux Build Archive\", \"url\": \"$LINUX_URL\", \"link_type\": \"package\"},"
+        echo "✅ Linux Build: $LINUX_URL"
+      else
+        echo "⚠️  Linux build not found"
+      fi
+      
+      if [ -n "$MACOS_JOB_ID" ]; then
+        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/download"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS App Bundle\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
+        echo "✅ macOS App: $MACOS_URL"
+      else
+        echo "⚠️  macOS build not found"
+      fi
+      
+      if [ -n "$IOS_JOB_ID" ]; then
+        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/download"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Build Archive\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
+        echo "✅ iOS Build: $IOS_URL"
+      else
+        echo "⚠️  iOS build not found"
+      fi
+      
+      # Remove trailing comma from asset links
+      ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
+      
+      echo "Asset links JSON: [$ASSET_LINKS]"
       
       # Create the release using JOB-TOKEN instead of PRIVATE-TOKEN
       RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
