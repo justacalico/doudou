@@ -697,6 +697,8 @@ class CacheService {
   }
   
   void dispose() {
-    _database?.close();
+    if (!kIsWeb) {
+      _database?.close();
+    }
   }
 }
