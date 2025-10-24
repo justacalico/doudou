@@ -4,13 +4,14 @@ stages:
   - release
 
 variables:
-  PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
+  PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache-$CI_JOB_NAME"
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
+  BUILD_DIR: "$CI_PROJECT_DIR/build-$CI_JOB_NAME"
 
 cache:
-  key: "$CI_COMMIT_REF_SLUG-v2"
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG-v2"
   paths:
-    - .pub-cache/
+    - .pub-cache-$CI_JOB_NAME/
   policy: pull-push
 
 build_debug_apk:
@@ -35,20 +36,24 @@ build_debug_apk:
           exit 1
         fi
       fi
-    # Fully clean build artifacts, caches, and temp directories
-    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
-    - rm -rf .pub-cache # Completely delete pub-cache to prevent temp file errors
+    # Use job-specific directories to prevent race conditions
+    - mkdir -p "$PUB_CACHE" "$BUILD_DIR"
+    - rm -rf "$BUILD_DIR" .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
+    - rm -rf "$PUB_CACHE" # Use job-specific pub cache
     - flutter clean
   script:
     - flutter --version
     - flutter clean
-    # Kill any existing Gradle daemons
-    - pkill -f gradle || true
+    # Kill only our job's Gradle daemons to avoid interfering with other jobs
+    - pkill -f "gradle.*$CI_JOB_ID" || true
+    # Use job-specific Gradle user home to prevent conflicts
+    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle-$CI_JOB_NAME"
+    - mkdir -p "$GRADLE_USER_HOME"
     # Fetch dependencies safely
     - flutter pub get
-    - flutter build apk --debug
+    - flutter build apk --debug --build-dir="$BUILD_DIR"
   after_script:
-    - pkill -f gradle || true
+    - pkill -f "gradle.*$CI_JOB_ID" || true
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
