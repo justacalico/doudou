@@ -195,6 +195,16 @@ publish_release:
     # Skip release-cli installation and use GitLab API directly
     - echo "Using GitLab API for release creation (more reliable than release-cli on shell executors)"
     - export USE_RELEASE_CLI=false
+    # Install jq for better JSON parsing if not available
+    - |
+      if ! command -v jq &> /dev/null; then
+        echo "Installing jq for JSON parsing..."
+        if command -v brew &> /dev/null; then
+          brew install jq
+        else
+          echo "jq not available, will use sed fallback"
+        fi
+      fi
   
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
@@ -287,10 +297,7 @@ publish_release:
         exit 1
       fi
       
-      echo "APK URL: $APK_URL"
-      echo "Linux URL: $LINUX_URL"
-      echo "iOS URL: $IOS_URL"
-      echo "macOS URL: $MACOS_URL"
+      echo "Available artifact links: $ASSET_LINKS"
       
       # Create the release using JOB-TOKEN with retry logic and rate limiting
       for i in {1..3}; do
@@ -304,28 +311,7 @@ publish_release:
                "description": "'"$RELEASE_NOTES"'",
                "ref": "'"$CI_COMMIT_SHA"'",
                "assets": {
-                 "links": [
-                   {
-                     "name": "Android APK",
-                     "url": "'"$APK_URL"'",
-                     "link_type": "package"
-                   },
-                   {
-                     "name": "Linux Build Archive", 
-                     "url": "'"$LINUX_URL"'",
-                     "link_type": "package"
-                   },
-                   {
-                     "name": "iOS Build Archive",
-                     "url": "'"$IOS_URL"'",
-                     "link_type": "package"
-                   },
-                   {
-                     "name": "macOS Build Archive",
-                     "url": "'"$MACOS_URL"'",
-                     "link_type": "package"
-                   }
-                 ]
+                 "links": ['"$ASSET_LINKS"']
                }
              }' \
              --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases")
