@@ -214,6 +214,19 @@ publish_release:
     - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
 
     # Create release using GitLab API with proper job IDs and authentication
+    - |
+      # Check if release already exists and delete it if necessary
+      echo "Checking if release $RELEASE_TAG already exists..."
+      EXISTING_RELEASE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$RELEASE_TAG")
+      
+      if echo "$EXISTING_RELEASE" | grep -q '"tag_name"'; then
+        echo "Release $RELEASE_TAG already exists, deleting it..."
+        curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+          --request DELETE "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$RELEASE_TAG"
+        sleep 2
+      fi
+    
     - echo "Creating release using GitLab API..."
     - |
       # Get the complete pipeline jobs data and parse it properly with retry logic
