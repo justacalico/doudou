@@ -221,33 +221,70 @@ publish_release:
       echo "Jobs data response:"
       echo "$JOBS_DATA" | head -5
       
-      # Extract job IDs more reliably - get the job object first, then extract ID
-      APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
-      LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
-      IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
-      MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/},{/p' | grep '"id":' | head -1 | sed 's/.*"id":\([0-9]*\).*/\1/')
+      # Extract job IDs more reliably using a different approach
+      # Use jq if available, otherwise use sed with better parsing
+      if command -v jq &> /dev/null; then
+        APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .id')
+        LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .id')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .id')
+        MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .id')
+      else
+        # More robust sed parsing - look for the job object and get the first "id" field
+        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+      fi
       
       echo "APK Job ID: $APK_JOB_ID"
       echo "Linux Job ID: $LINUX_JOB_ID"
       echo "iOS Job ID: $IOS_JOB_ID"
       echo "macOS Job ID: $MACOS_JOB_ID"
       
-      # Validate we got valid job IDs
-      if [ -z "$APK_JOB_ID" ] || [ -z "$LINUX_JOB_ID" ]; then
-        echo "Failed to extract job IDs. Using simplified artifact URLs..."
-        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/raw/build/app/outputs/flutter-apk/app-debug.apk?job=build_debug_apk"
-        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_linux"
-        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_ios"
-        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/artifacts/main/download?job=build_debug_macos"
+      # Check job statuses to determine which artifacts are available
+      if command -v jq &> /dev/null; then
+        APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .status')
+        LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .status')
+        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .status')
+        MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .status')
       else
+        APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+      fi
+      
+      echo "Job statuses - APK: $APK_STATUS, Linux: $LINUX_STATUS, iOS: $IOS_STATUS, macOS: $MACOS_STATUS"
+      
+      # Build artifact URLs only for successful jobs with valid IDs
+      ASSET_LINKS=""
+      
+      if [ -n "$APK_JOB_ID" ] && [ "$APK_STATUS" = "success" ]; then
         APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Android APK\", \"url\": \"$APK_URL\", \"link_type\": \"package\"},"
+      fi
+      
+      if [ -n "$LINUX_JOB_ID" ] && [ "$LINUX_STATUS" = "success" ]; then
         LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
-        if [ -n "$IOS_JOB_ID" ]; then
-          IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/download"
-        fi
-        if [ -n "$MACOS_JOB_ID" ]; then
-          MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/download"
-        fi
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Linux Build Archive\", \"url\": \"$LINUX_URL\", \"link_type\": \"package\"},"
+      fi
+      
+      if [ -n "$IOS_JOB_ID" ] && [ "$IOS_STATUS" = "success" ]; then
+        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/download"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Build Archive\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
+      fi
+      
+      if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
+        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/download"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Build Archive\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
+      fi
+      
+      # Remove trailing comma
+      ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
+      
+      if [ -z "$ASSET_LINKS" ]; then
+        echo "No successful builds with artifacts found. Cannot create release."
+        exit 1
       fi
       
       echo "APK URL: $APK_URL"
