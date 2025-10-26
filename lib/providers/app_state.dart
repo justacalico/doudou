@@ -281,7 +281,7 @@ class AppState extends ChangeNotifier {
             } else if (_isLinux) {
               // Linux: Initialize audio handler without AudioService wrapper (like iOS)
               try {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
                 
                 // Apply user settings to the audio handler
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
