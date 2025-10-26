@@ -52,6 +52,10 @@ dependencies:
   # Cryptography
   crypto: ^3.0.3
   
+  # Sharing and clipboard
+  share_plus: ^7.2.2
+  clipboard: ^0.1.3
+  
   # Touch Bar support (macOS only)
   touch_bar: ^0.3.0-alpha.1
 
