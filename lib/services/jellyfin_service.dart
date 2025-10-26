@@ -1277,19 +1277,27 @@ class JellyfinService implements BaseMediaService {
       }
     }
     
-    // Return Jellyfin alternative stream URLs for fallback
+    // Return multiple Jellyfin stream URLs in order of preference for fallback
     final urls = [
-      getStreamUrl(trackId),          // Primary transcoded URL
-      getDirectStreamUrl(trackId),    // Direct stream
-      getUniversalStreamUrl(trackId), // Universal fallback
-    ];
+      getStreamUrl(trackId),          // Primary transcoded stream URL
+      getUniversalStreamUrl(trackId), // Universal stream URL
+      getDirectStreamUrl(trackId),    // Direct download URL
+      getSimpleStreamUrl(trackId),    // Simple stream format
+      getMinimalStreamUrl(trackId),   // Minimal params format
+    ].where((url) => url.isNotEmpty).toList(); // Filter out empty URLs
     
     if (kDebugMode) {
-      print('JellyfinService.getAlternativeStreamUrls: Generated ${urls.length} URLs:');
+      print('JellyfinService.getAlternativeStreamUrls: Generated ${urls.length} valid URLs:');
       for (int i = 0; i < urls.length; i++) {
         final url = urls[i];
         print('  [$i] ${url.isEmpty ? '<EMPTY>' : url}');
       }
+    }
+    
+    if (urls.isEmpty && kDebugMode) {
+      print('JellyfinService.getAlternativeStreamUrls: ERROR - No valid URLs generated!');
+      print('  Server configuration valid: ${_isServerConfigurationValid()}');
+      print('  Track ID provided: ${trackId.isNotEmpty}');
     }
     
     return urls;
