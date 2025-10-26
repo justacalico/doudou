@@ -76,13 +76,18 @@
             </intent-filter>
         </activity>
         
-        <!-- Audio service -->
+        <!-- Audio service with enhanced background survival -->
         <service android:name="com.ryanheise.audioservice.AudioService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="true"
+            android:enabled="true"
+            android:stopWithTask="false"
             tools:ignore="Instantiatable">
-            <intent-filter>
+            <intent-filter android:priority="1000">
                 <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
         
