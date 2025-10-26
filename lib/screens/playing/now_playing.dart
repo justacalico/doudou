@@ -480,7 +480,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with TickerProvider
                                         }
                                       },
                                       child: StreamBuilder<AudioServiceRepeatMode>(
-                                        stream: audioHandler?.playbackState.map((state) => state.repeatMode),
+                                        stream: audioHandler?.playbackState.map((state) => state.repeatMode).cast<AudioServiceRepeatMode>(),
                                         builder: (context, snapshot) {
                                           final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
                                           
