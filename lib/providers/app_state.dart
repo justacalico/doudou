@@ -16,7 +16,6 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
-import '../services/android_battery_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -136,8 +135,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-
-
   void _setupAudioHandlerListeners() {
     if (_audioHandler != null) {
       // Listen to media item changes (track changes)
@@ -221,18 +218,6 @@ class AppState extends ChangeNotifier {
                 
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
-                
-                // Request battery optimization whitelist for uninterrupted playbook
-                try {
-                  await AndroidBatteryService.requestBatteryOptimization();
-                  if (kDebugMode) {
-                    print('Android battery optimization requested');
-                  }
-                } catch (e) {
-                  if (kDebugMode) {
-                    print('Failed to request Android battery optimization: $e');
-                  }
-                }
                 
                 if (kDebugMode) {
                   print('Android audio service initialized successfully');

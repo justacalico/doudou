@@ -33,7 +33,6 @@ import 'audio_lifecycle_manager.dart';
 import 'touchbar_update_manager.dart';
 import 'download_service_coordinator.dart';
 import 'media_service_manager_coordinator.dart';
-import '../android_battery_service.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -1213,9 +1212,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Android-specific initialization to prevent foreground service startup issues
     if (Platform.isAndroid) {
-      // Request battery optimization whitelist and prepare wake lock
-      _initializeAndroidBatteryOptimizations();
-      
       // Start with minimal controls to avoid triggering foreground service prematurely
       playbackState.add(PlaybackState(
         controls: [MediaControl.play], // Minimal controls initially
@@ -1226,7 +1222,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
       
       if (kDebugMode) {
-        print('Android: Initialized with minimal controls and battery optimizations');
+        print('Android: Initialized with minimal controls to prevent foreground service issues');
       }
     } else {
       // Full controls for other platforms
@@ -1625,56 +1621,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Prepare for potential Android restrictions
     // The AudioService should handle this, but we may need to transition to bypass mode
   }
-  
-  /// Initialize Android-specific battery and wake lock optimizations
-  Future<void> _initializeAndroidBatteryOptimizations() async {
-    if (!Platform.isAndroid) return;
-    
-    try {
-      // Request battery optimization whitelist
-      await AndroidBatteryService.requestBatteryOptimization();
-      
-      if (kDebugMode) {
-        print('Android battery optimizations initialized');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize Android battery optimizations: $e');
-      }
-    }
-  }
-  
-  /// Acquire wake lock when starting playback
-  Future<void> _acquireWakeLock() async {
-    if (!Platform.isAndroid) return;
-    
-    try {
-      await AndroidBatteryService.acquireWakeLock();
-      if (kDebugMode) {
-        print('Wake lock acquired for audio playback');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to acquire wake lock: $e');
-      }
-    }
-  }
-  
-  /// Release wake lock when stopping playbook
-  Future<void> _releaseWakeLock() async {
-    if (!Platform.isAndroid) return;
-    
-    try {
-      await AndroidBatteryService.releaseWakeLock();
-      if (kDebugMode) {
-        print('Wake lock released');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to release wake lock: $e');
-      }
-    }
-  }
 
   /// Load and play track in Android bypass mode (pure just_audio, no AudioService)
   Future<void> _loadAndPlayTrackBypass(Track track, bool shouldPlay) async {
@@ -2024,9 +1970,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         await _setUserIntentAtomic(true);
         _pausedAtPosition = null; // Clear stored pause position when resuming
         
-        // Acquire wake lock for Android to prevent system from killing audio
-        await _acquireWakeLock();
-        
         try {
           // If no track is loaded, try to load current track in bypass mode
           if (_stateManager.currentTrack != null && _player.audioSource == null) {
@@ -2091,9 +2034,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Set user intent atomically
       await _setUserIntentAtomic(true);
       _pausedAtPosition = null; // Clear stored pause position when resuming
-      
-      // Acquire wake lock for Android to prevent system from killing audio
-      await _acquireWakeLock();
       
       _logger.info('User intent set to playing', 'AudioHandler');
       
@@ -2543,9 +2483,6 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Reset user intent on stop atomically
     await _setUserIntentAtomic(false);
-    
-    // Release wake lock when stopping playback
-    await _releaseWakeLock();
     
     await _player.stop();
     _updatePlaybackState(playbackState.value.copyWith(
