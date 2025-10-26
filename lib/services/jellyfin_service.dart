@@ -982,14 +982,39 @@ class JellyfinService implements BaseMediaService {
 
   // Get download URL for a track
   String getDownloadUrl(String itemId) {
-    if (_server == null) return '';
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService.getDownloadUrl: Server not configured');
+      }
+      return '';
+    }
+    
+    if (itemId.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getDownloadUrl: Empty itemId provided');
+      }
+      return '';
+    }
+    
+    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getDownloadUrl: Access token is null or empty');
+      }
+      return '';
+    }
     
     // Remove trailing slash from serverUrl to prevent double slashes
     final baseUrl = _server!.serverUrl.endsWith('/') 
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
     
-    return '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
+    final downloadUrl = '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getDownloadUrl: Generated URL: $downloadUrl');
+    }
+    
+    return downloadUrl;
   }
 
   // Get authentication headers for HTTP requests
