@@ -111,6 +111,7 @@ class AppState extends ChangeNotifier {
   Color get accentColor => _accentColor;
 
   AppState() {
+    _mediaServiceManager = MediaServiceManager.withJellyfinService(_jellyfinService);
     _downloadService = DownloadService(_jellyfinService);
     _initializeApp();
   }
