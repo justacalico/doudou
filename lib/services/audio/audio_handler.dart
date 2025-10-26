@@ -148,6 +148,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   // Completion handling protection - managed by transition manager
   
   // Track loading protection to prevent concurrent loads causing "Loading interrupted"
+  Exception? _lastPlaybackError; // Track the last error for error recovery
   // Now handled by operation queue
   
   // Helper methods for safe state management using async mutex
@@ -1010,6 +1011,35 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
     // Add playback event listener to handle errors gracefully
     _player.playbackEventStream.listen((event) {
+      // Handle HTTP errors and other playback errors
+      if (event.processingState == ProcessingState.idle && event.androidAudioSessionId == null) {
+        // Check if this idle state is due to an error (especially HTTP 500)
+        final hasLastError = lastError != null;
+        final errorString = lastError?.toString().toLowerCase() ?? '';
+        
+        if (hasLastError && (errorString.contains('500') || errorString.contains('response code: 500'))) {
+          _logger.error('HTTP 500 error in playback event - server unavailable', 'AudioHandler');
+          if (kDebugMode) {
+            print('=== HTTP 500 ERROR IN PLAYBACK EVENT ===');
+            print('Server returned 500 error, playback failed');
+            print('Setting error state and stopping recovery attempts');
+          }
+          
+          // Set error state and stop further recovery attempts
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.error,
+            playing: false,
+          ));
+          
+          // Reset user intent to prevent endless retry loops
+          _userIntendedPlaying = false;
+          
+          // Show user-friendly error message
+          _showErrorNotification('Server Error', 'The music server is temporarily unavailable. Please try again later.');
+          return;
+        }
+      }
+      
       // Handle playback errors
       if (event.processingState == ProcessingState.idle) {
         // CRITICAL FIX: Don't recover if user explicitly paused OR we're intentionally resetting
