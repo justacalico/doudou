@@ -364,17 +364,25 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         print('DoudouAudioHandler: Playing track at index $index: ${track.name}');
       }
 
-      // Get stream URL
+      // Get stream URL with fallbacks
       final streamUrl = await _getStreamUrl(track);
       if (streamUrl == null) {
         throw Exception('No stream URL available for track: ${track.name}');
       }
 
-      // Load and play the track
+      // Load the track with appropriate audio source
+      AudioSource audioSource;
       if (streamUrl.startsWith('file://')) {
-        await _player.setFilePath(streamUrl.substring(7));
+        audioSource = AudioSource.file(streamUrl.substring(7));
       } else {
-        await _player.setUrl(streamUrl);
+        audioSource = AudioSource.uri(Uri.parse(streamUrl));
+      }
+
+      // Set up gapless playback if we have multiple tracks
+      if (_playlist.length > 1) {
+        await _setupGaplessPlayback(index, audioSource);
+      } else {
+        await _player.setAudioSource(audioSource);
       }
 
       // Update media item and state
@@ -395,6 +403,47 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         processingState: AudioProcessingState.error,
         playing: false,
       ));
+    }
+  }
+
+  /// Set up gapless playback with concatenating audio source
+  Future<void> _setupGaplessPlayback(int currentIndex, AudioSource currentSource) async {
+    try {
+      final audioSources = <AudioSource>[];
+      
+      // Add current track
+      audioSources.add(currentSource);
+      
+      // Add next few tracks for gapless playback (limit to 3 for performance)
+      final tracksToPreload = 3;
+      for (int i = 1; i <= tracksToPreload && (currentIndex + i) < _playlist.length; i++) {
+        final nextTrack = _playlist[currentIndex + i];
+        final nextStreamUrl = await _getStreamUrl(nextTrack);
+        
+        if (nextStreamUrl != null) {
+          AudioSource nextSource;
+          if (nextStreamUrl.startsWith('file://')) {
+            nextSource = AudioSource.file(nextStreamUrl.substring(7));
+          } else {
+            nextSource = AudioSource.uri(Uri.parse(nextStreamUrl));
+          }
+          audioSources.add(nextSource);
+        }
+      }
+      
+      // Create concatenating source and set initial index
+      final concatenatingSource = ConcatenatingAudioSource(children: audioSources);
+      await _player.setAudioSource(concatenatingSource, initialIndex: 0);
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Set up gapless playback with ${audioSources.length} tracks');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to set up gapless playback, falling back to single track: $e');
+      }
+      // Fallback to single track
+      await _player.setAudioSource(currentSource);
     }
   }
 
