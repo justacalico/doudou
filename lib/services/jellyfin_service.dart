@@ -593,7 +593,26 @@ class JellyfinService implements BaseMediaService {
   }
 
   String getDirectStreamUrl(String itemId) {
-    if (_server == null) return '';
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService.getDirectStreamUrl: Server not configured');
+      }
+      return '';
+    }
+    
+    if (itemId.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getDirectStreamUrl: Empty itemId provided');
+      }
+      return '';
+    }
+    
+    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getDirectStreamUrl: Access token is null or empty');
+      }
+      return '';
+    }
     
     // Remove trailing slash from serverUrl to prevent double slashes
     final baseUrl = _server!.serverUrl.endsWith('/') 
@@ -601,7 +620,13 @@ class JellyfinService implements BaseMediaService {
         : _server!.serverUrl;
     
     // Alternative: direct download URL (no transcoding)
-    return '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
+    final directUrl = '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getDirectStreamUrl: Generated URL: $directUrl');
+    }
+    
+    return directUrl;
   }
 
   String getUniversalStreamUrl(String itemId) {
