@@ -1625,6 +1625,56 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Prepare for potential Android restrictions
     // The AudioService should handle this, but we may need to transition to bypass mode
   }
+  
+  /// Initialize Android-specific battery and wake lock optimizations
+  Future<void> _initializeAndroidBatteryOptimizations() async {
+    if (!Platform.isAndroid) return;
+    
+    try {
+      // Request battery optimization whitelist
+      await AndroidBatteryService.requestBatteryOptimization();
+      
+      if (kDebugMode) {
+        print('Android battery optimizations initialized');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize Android battery optimizations: $e');
+      }
+    }
+  }
+  
+  /// Acquire wake lock when starting playback
+  Future<void> _acquireWakeLock() async {
+    if (!Platform.isAndroid) return;
+    
+    try {
+      await AndroidBatteryService.acquireWakeLock();
+      if (kDebugMode) {
+        print('Wake lock acquired for audio playback');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to acquire wake lock: $e');
+      }
+    }
+  }
+  
+  /// Release wake lock when stopping playbook
+  Future<void> _releaseWakeLock() async {
+    if (!Platform.isAndroid) return;
+    
+    try {
+      await AndroidBatteryService.releaseWakeLock();
+      if (kDebugMode) {
+        print('Wake lock released');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to release wake lock: $e');
+      }
+    }
+  }
 
   /// Load and play track in Android bypass mode (pure just_audio, no AudioService)
   Future<void> _loadAndPlayTrackBypass(Track track, bool shouldPlay) async {
