@@ -3744,10 +3744,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
         
         // Platform-specific URL retry logic  
-        if ((Platform.isIOS || Platform.isMacOS) && i < streamUrls.length - 1) {
+        if ((Platform.isIOS || Platform.isMacOS || Platform.isLinux) && i < streamUrls.length - 1) {
           _logger.info('Trying next stream URL...', 'AudioHandler');
           if (kDebugMode) {
-            print('${Platform.isIOS ? "iOS" : "macOS"}: Trying next stream URL immediately...');
+            String platformName = Platform.isIOS ? "iOS" : (Platform.isMacOS ? "macOS" : "Linux");
+            print('$platformName: Trying next stream URL immediately...');
           }
           continue;
         }
