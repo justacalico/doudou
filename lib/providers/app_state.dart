@@ -139,12 +139,9 @@ class AppState extends ChangeNotifier {
   AudioServiceConfig _getEnhancedAudioServiceConfig() {
     return const AudioServiceConfig(
       androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-      androidNotificationChannelName: 'Doudou Music',
-      androidNotificationChannelDescription: 'Music playback controls and status - HIGH PRIORITY',
+      androidNotificationChannelName: 'Doudou Music - Background Audio',
       androidNotificationOngoing: true,
-      androidNotificationClickStartsActivity: true,
       androidStopForegroundOnPause: false,
-      androidShowNotificationBadge: true,
     );
   }
 
