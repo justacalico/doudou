@@ -384,12 +384,12 @@ class AppState extends ChangeNotifier {
             // Initialize cache service for offline mode
             await _cacheService.initialize();
             
-            // Try to initialize audio handler for offline playback with platform-specific handling
+            // Try to initialize audio handler for offline playbook with platform-specific handling
             if (_isAndroid) {
               // Android: Use AudioService for background audio and Android Auto
               try {
                 _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
+                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
                   config: const AudioServiceConfig(
                     androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                     androidNotificationChannelName: 'Doudou Music',
