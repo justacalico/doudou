@@ -19,7 +19,7 @@ import '../services/logging_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
-  final MediaServiceManager _mediaServiceManager = MediaServiceManager();
+  late final MediaServiceManager _mediaServiceManager;
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
   dynamic _audioHandler; // DoudouAudioHandler for native platforms, WebAudioHandler for web
