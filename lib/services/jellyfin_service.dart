@@ -998,6 +998,77 @@ class JellyfinService implements BaseMediaService {
   @override
   JellyfinServer? get currentServer => _server;
 
+  // Validate server configuration for stream URL generation
+  bool _isServerConfigurationValid() {
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService._isServerConfigurationValid: Server is null');
+      }
+      return false;
+    }
+    
+    if (_server!.serverUrl.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService._isServerConfigurationValid: Server URL is empty');
+      }
+      return false;
+    }
+    
+    if (_server!.userId == null || _server!.userId!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService._isServerConfigurationValid: User ID is null or empty');
+      }
+      return false;
+    }
+    
+    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService._isServerConfigurationValid: Access token is null or empty');
+      }
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Get alternative stream URL format (simple direct playback)
+  String getSimpleStreamUrl(String itemId) {
+    if (!_isServerConfigurationValid() || itemId.isEmpty) {
+      return '';
+    }
+    
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
+    final simpleUrl = '$baseUrl/Audio/$itemId/stream.mp3?api_key=${_server!.accessToken}';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getSimpleStreamUrl: Generated URL: $simpleUrl');
+    }
+    
+    return simpleUrl;
+  }
+
+  // Get alternative stream URL format (with minimal params)
+  String getMinimalStreamUrl(String itemId) {
+    if (!_isServerConfigurationValid() || itemId.isEmpty) {
+      return '';
+    }
+    
+    final baseUrl = _server!.serverUrl.endsWith('/') 
+        ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
+        : _server!.serverUrl;
+    
+    final minimalUrl = '$baseUrl/Audio/$itemId?api_key=${_server!.accessToken}';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getMinimalStreamUrl: Generated URL: $minimalUrl');
+    }
+    
+    return minimalUrl;
+  }
+
   // Get download URL for a track
   String getDownloadUrl(String itemId) {
     if (_server == null) {
