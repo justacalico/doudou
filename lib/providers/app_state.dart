@@ -233,7 +233,7 @@ class AppState extends ChangeNotifier {
               // macOS: Use AudioService for background audio like Android
               try {
                 _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
                   config: const AudioServiceConfig(
                     androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                     androidNotificationChannelName: 'Doudou Music',
@@ -386,7 +386,7 @@ class AppState extends ChangeNotifier {
               // Android: Use AudioService for background audio and Android Auto
               try {
                 _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
                   config: const AudioServiceConfig(
                     androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                     androidNotificationChannelName: 'Doudou Music',
@@ -414,7 +414,7 @@ class AppState extends ChangeNotifier {
               // macOS: Use AudioService for background audio like Android
               try {
                 _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
                   config: const AudioServiceConfig(
                     androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                     androidNotificationChannelName: 'Doudou Music',
@@ -441,7 +441,7 @@ class AppState extends ChangeNotifier {
             } else if (_isIOS) {
               // iOS: Initialize audio handler without AudioService wrapper
               try {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
                 
                 // Apply user settings to the audio handler
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
@@ -532,7 +532,7 @@ class AppState extends ChangeNotifier {
               if (_isAndroid) {
                 try {
                   _audioHandler = await AudioService.init(
-                    builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+                    builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
                     config: const AudioServiceConfig(
                       androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                       androidNotificationChannelName: 'Doudou Music',
@@ -540,10 +540,10 @@ class AppState extends ChangeNotifier {
                     ),
                   );
                 } catch (e) {
-                  _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+                  _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
                 }
               } else {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
               }
               
               // Load library data
@@ -614,7 +614,7 @@ class AppState extends ChangeNotifier {
         if (_isAndroid) {
           try {
             _audioHandler = await AudioService.init(
-              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
               config: const AudioServiceConfig(
                 androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
                 androidNotificationChannelName: 'Doudou Music',
@@ -642,7 +642,7 @@ class AppState extends ChangeNotifier {
             print('AppState: Starting Linux audio handler initialization after login');
           }
           try {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
             // Apply user settings to the audio handler
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
@@ -829,7 +829,7 @@ class AppState extends ChangeNotifier {
           // Android: Use AudioService for background audio and Android Auto
           try {
             _audioHandler = await AudioService.init(
-              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
               config: const AudioServiceConfig(
                 androidNotificationChannelId: 'com.doudou.app.channel.audio',
                 androidNotificationChannelName: 'Doudou Audio Service',
@@ -854,7 +854,7 @@ class AppState extends ChangeNotifier {
           // macOS: Use AudioService for background audio like Android
           try {
             _audioHandler = await AudioService.init(
-              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
               config: const AudioServiceConfig(
                 androidNotificationChannelId: 'com.doudou.app.channel.audio',
                 androidNotificationChannelName: 'Doudou Audio Service',
@@ -877,7 +877,7 @@ class AppState extends ChangeNotifier {
         } else if (_isLinux) {
           // Linux: Initialize audio handler without AudioService wrapper (like iOS)
           try {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
@@ -894,7 +894,7 @@ class AppState extends ChangeNotifier {
         } else if (_isIOS) {
           // iOS: Initialize audio handler without AudioService wrapper
           try {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
+            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
             
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
@@ -2457,7 +2457,7 @@ class AppState extends ChangeNotifier {
       if (_isAndroid) {
         try {
           _audioHandler = await AudioService.init(
-            builder: () => DoudouAudioHandler(_jellyfinService, _downloadService),
+            builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
             config: const AudioServiceConfig(
               androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
               androidNotificationChannelName: 'Doudou Music',
