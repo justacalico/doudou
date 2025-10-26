@@ -3675,6 +3675,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
         }
       } catch (e) {
         lastError = e as Exception?;
+        _lastPlaybackError = lastError; // Track for error recovery
         _logger.warning('Failed to load stream URL ${i + 1}/${streamUrls.length}: $e', 'AudioHandler');
         if (kDebugMode) {
           print('=== STREAM LOAD FAILED ===');
