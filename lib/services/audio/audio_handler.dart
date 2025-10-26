@@ -1213,6 +1213,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     
     // Android-specific initialization to prevent foreground service startup issues
     if (Platform.isAndroid) {
+      // Request battery optimization whitelist and prepare wake lock
+      _initializeAndroidBatteryOptimizations();
+      
       // Start with minimal controls to avoid triggering foreground service prematurely
       playbackState.add(PlaybackState(
         controls: [MediaControl.play], // Minimal controls initially
@@ -1223,7 +1226,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       ));
       
       if (kDebugMode) {
-        print('Android: Initialized with minimal controls to prevent foreground service issues');
+        print('Android: Initialized with minimal controls and battery optimizations');
       }
     } else {
       // Full controls for other platforms
