@@ -2092,6 +2092,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       await _setUserIntentAtomic(true);
       _pausedAtPosition = null; // Clear stored pause position when resuming
       
+      // Acquire wake lock for Android to prevent system from killing audio
+      await _acquireWakeLock();
+      
       _logger.info('User intent set to playing', 'AudioHandler');
       
       try {
