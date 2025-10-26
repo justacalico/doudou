@@ -2544,6 +2544,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     // Reset user intent on stop atomically
     await _setUserIntentAtomic(false);
     
+    // Release wake lock when stopping playback
+    await _releaseWakeLock();
+    
     await _player.stop();
     _updatePlaybackState(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
