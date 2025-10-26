@@ -8,9 +8,18 @@ import 'navidrome_service.dart';
 class MediaServiceManager {
   BaseMediaService? _currentService;
   ServerType _currentServerType = ServerType.jellyfin;
+  JellyfinService? _sharedJellyfinService;
 
   ServerType get currentServerType => _currentServerType;
   BaseMediaService? get currentService => _currentService;
+
+  /// Constructor that uses a shared JellyfinService instance
+  MediaServiceManager.withJellyfinService(JellyfinService jellyfinService) {
+    _sharedJellyfinService = jellyfinService;
+  }
+
+  /// Default constructor
+  MediaServiceManager();
 
   /// Initialize service based on server type
   void initializeService(ServerType serverType) {
