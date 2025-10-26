@@ -135,6 +135,19 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Get enhanced AudioService configuration for maximum background survival
+  AudioServiceConfig _getEnhancedAudioServiceConfig() {
+    return const AudioServiceConfig(
+      androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
+      androidNotificationChannelName: 'Doudou Music',
+      androidNotificationChannelDescription: 'Music playback controls and status - HIGH PRIORITY',
+      androidNotificationOngoing: true,
+      androidNotificationClickStartsActivity: true,
+      androidStopForegroundOnPause: false,
+      androidShowNotificationBadge: true,
+    );
+  }
+
   void _setupAudioHandlerListeners() {
     if (_audioHandler != null) {
       // Listen to media item changes (track changes)
