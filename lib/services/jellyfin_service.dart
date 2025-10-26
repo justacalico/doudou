@@ -535,16 +535,42 @@ class JellyfinService implements BaseMediaService {
 
   @override
   String getStreamUrl(String itemId, {int? bitrate}) {
-    if (_server == null) return '';
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService.getStreamUrl: Server not configured');
+      }
+      return '';
+    }
+    
+    if (itemId.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getStreamUrl: Empty itemId provided');
+      }
+      return '';
+    }
+    
+    if (_server!.userId == null || _server!.userId!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getStreamUrl: User ID is null or empty');
+      }
+      return '';
+    }
+    
+    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getStreamUrl: Access token is null or empty');
+      }
+      return '';
+    }
     
     // Use the stream endpoint with specific parameters for better compatibility
     final params = {
-      'UserId': _server!.userId,
+      'UserId': _server!.userId!,
       'DeviceId': 'doudou-flutter',
-      'api_key': _server!.accessToken,
+      'api_key': _server!.accessToken!,
       'Container': 'mp3,aac,m4a,flac,webm,mp4,ogg', // Specify supported containers
       'AudioCodec': 'mp3,aac,flac,vorbis,opus',      // Specify supported codecs
-      'AudioBitRate': '128000',                       // Set reasonable bitrate
+      'AudioBitRate': bitrate?.toString() ?? '320000', // Use provided bitrate or default to high quality
       'MaxAudioChannels': '2',                        // Stereo
       'TranscodingContainer': 'mp3',                  // Fallback container
       'TranscodingProtocol': 'http',                  // Use HTTP protocol
@@ -557,7 +583,13 @@ class JellyfinService implements BaseMediaService {
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
     
-    return '$baseUrl/Audio/$itemId/stream?$queryString';
+    final streamUrl = '$baseUrl/Audio/$itemId/stream?$queryString';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getStreamUrl: Generated URL: $streamUrl');
+    }
+    
+    return streamUrl;
   }
 
   String getDirectStreamUrl(String itemId) {
