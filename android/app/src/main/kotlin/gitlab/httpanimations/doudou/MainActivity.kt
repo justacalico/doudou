@@ -47,10 +47,35 @@ class MainActivity : AudioServiceActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Create high priority notification channel for audio service
+        createNotificationChannel()
+        
         // Request battery optimization whitelist on app start
         requestBatteryOptimization()
         
         Log.d("MainActivity", "Audio app initialized with battery optimization handling")
+    }
+    
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "gitlab.openlyst.doudou.channel.audio"
+            val channelName = "Doudou Music"
+            val channelDescription = "Music playback controls and status"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = channelDescription
+                setSound(null, null) // No sound for media controls
+                enableVibration(false) // No vibration for media controls
+                setShowBadge(true)
+                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+            }
+            
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager?.createNotificationChannel(channel)
+            
+            Log.d("MainActivity", "High priority notification channel created")
+        }
     }
     
     private fun requestBatteryOptimization() {
