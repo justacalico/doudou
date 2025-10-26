@@ -1203,9 +1203,15 @@ class JellyfinService implements BaseMediaService {
     }
     
     if (urls.isEmpty && kDebugMode) {
-      print('JellyfinService.getAlternativeStreamUrls: ERROR - No valid URLs generated!');
-      print('  Server configuration valid: ${_isServerConfigurationValid()}');
-      print('  Track ID provided: ${trackId.isNotEmpty}');
+      if (kDebugMode) {
+        print('JellyfinService.getAlternativeStreamUrls: ERROR - No valid URLs generated!');
+      }
+      if (kDebugMode) {
+        print('  Server configuration valid: ${_isServerConfigurationValid()}');
+      }
+      if (kDebugMode) {
+        print('  Track ID provided: ${trackId.isNotEmpty}');
+      }
     }
     
     return urls;
