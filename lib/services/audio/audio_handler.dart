@@ -1014,8 +1014,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       // Handle HTTP errors and other playback errors
       if (event.processingState == ProcessingState.idle && event.androidAudioSessionId == null) {
         // Check if this idle state is due to an error (especially HTTP 500)
-        final hasLastError = lastError != null;
-        final errorString = lastError?.toString().toLowerCase() ?? '';
+        final hasLastError = _lastPlaybackError != null;
+        final errorString = _lastPlaybackError?.toString().toLowerCase() ?? '';
         
         if (hasLastError && (errorString.contains('500') || errorString.contains('response code: 500'))) {
           _logger.error('HTTP 500 error in playback event - server unavailable', 'AudioHandler');
