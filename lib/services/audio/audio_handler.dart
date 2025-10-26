@@ -3650,9 +3650,84 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           print('=== STREAM LOAD FAILED END ===');
         }
         
-        // Special handling for "Loading interrupted" errors - give a longer recovery delay
+        // Special handling for HTTP 500 errors - server is temporarily unavailable
         final errorString = e.toString().toLowerCase();
-        if (errorString.contains('loading interrupted') || errorString.contains('interrupted')) {
+        if (errorString.contains('response code: 500') || errorString.contains('500')) {
+          _logger.warning('HTTP 500 server error detected, attempting recovery with backoff', 'AudioHandler');
+          if (kDebugMode) {
+            print('=== HTTP 500 SERVER ERROR DETECTED ===');
+            print('Server is temporarily unavailable, applying exponential backoff');
+            print('Attempt ${i + 1}/${streamUrls.length}');
+          }
+          
+          // Apply exponential backoff for 500 errors
+          final backoffDelay = Duration(milliseconds: 1000 * (i + 1)); // 1s, 2s, 3s...
+          await Future.delayed(backoffDelay);
+          
+          // For HTTP 500 errors, also try to refresh the stream URL from server
+          if (i == streamUrls.length - 1) { // Last attempt - try getting fresh URLs
+            if (kDebugMode) {
+              print('Last attempt failed with 500 error - trying to refresh stream URLs');
+            }
+            
+            try {
+              // Try to get fresh stream URLs
+              final freshUrls = <String>[];
+              
+              if (_mediaServiceManagerCoordinator != null) {
+                final freshUrl = _mediaServiceManagerCoordinator.getStreamUrl(track.id);
+                if (freshUrl != null && freshUrl.isNotEmpty && !streamUrls.contains(freshUrl)) {
+                  freshUrls.add(freshUrl);
+                }
+              } else {
+                final freshDirectUrl = _jellyfinService.getDirectStreamUrl(track.id);
+                final freshTranscodedUrl = _jellyfinService.getStreamUrl(track.id);
+                
+                if (freshDirectUrl.isNotEmpty && !streamUrls.contains(freshDirectUrl)) {
+                  freshUrls.add(freshDirectUrl);
+                }
+                if (freshTranscodedUrl.isNotEmpty && !streamUrls.contains(freshTranscodedUrl)) {
+                  freshUrls.add(freshTranscodedUrl);
+                }
+              }
+              
+              // Try the fresh URLs
+              for (final freshUrl in freshUrls) {
+                if (kDebugMode) {
+                  print('Trying fresh URL after 500 error: $freshUrl');
+                }
+                
+                try {
+                  await _player.setUrl(freshUrl);
+                  await Future.delayed(const Duration(milliseconds: 500));
+                  
+                  if (shouldPlay && _userIntendedPlaying) {
+                    await _player.play();
+                  }
+                  
+                  loaded = true;
+                  if (kDebugMode) {
+                    print('=== FRESH URL SUCCESS AFTER 500 ERROR ===');
+                    print('Successfully loaded with fresh URL: $freshUrl');
+                  }
+                  break;
+                } catch (freshError) {
+                  if (kDebugMode) {
+                    print('Fresh URL also failed: $freshError');
+                  }
+                }
+              }
+              
+              if (loaded) break; // Exit main loop if fresh URL worked
+            } catch (refreshError) {
+              if (kDebugMode) {
+                print('Failed to get fresh URLs after 500 error: $refreshError');
+              }
+            }
+          }
+        }
+        // Special handling for "Loading interrupted" errors - give a longer recovery delay
+        else if (errorString.contains('loading interrupted') || errorString.contains('interrupted')) {
           _logger.info('Loading interrupted detected, adding recovery delay', 'AudioHandler');
           await Future.delayed(const Duration(milliseconds: 500));
         }
