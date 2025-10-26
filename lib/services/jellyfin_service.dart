@@ -517,17 +517,7 @@ class JellyfinService implements BaseMediaService {
 
   @override
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
-    if (_server == null) {
-      if (kDebugMode) {
-        print('JellyfinService.getImageUrl: Server not configured');
-      }
-      return '';
-    }
-    
-    if (itemId.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getImageUrl: Empty itemId provided');
-      }
+    if (_server == null || itemId.isEmpty) {
       return '';
     }
     
