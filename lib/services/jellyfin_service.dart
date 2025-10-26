@@ -630,7 +630,33 @@ class JellyfinService implements BaseMediaService {
   }
 
   String getUniversalStreamUrl(String itemId) {
-    if (_server == null) return '';
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService.getUniversalStreamUrl: Server not configured');
+      }
+      return '';
+    }
+    
+    if (itemId.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getUniversalStreamUrl: Empty itemId provided');
+      }
+      return '';
+    }
+    
+    if (_server!.userId == null || _server!.userId!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getUniversalStreamUrl: User ID is null or empty');
+      }
+      return '';
+    }
+    
+    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getUniversalStreamUrl: Access token is null or empty');
+      }
+      return '';
+    }
     
     // Remove trailing slash from serverUrl to prevent double slashes
     final baseUrl = _server!.serverUrl.endsWith('/') 
@@ -638,7 +664,13 @@ class JellyfinService implements BaseMediaService {
         : _server!.serverUrl;
     
     // Alternative: universal endpoint with minimal params
-    return '$baseUrl/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
+    final universalUrl = '$baseUrl/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getUniversalStreamUrl: Generated URL: $universalUrl');
+    }
+    
+    return universalUrl;
   }
 
   @override
