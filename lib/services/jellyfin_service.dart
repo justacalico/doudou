@@ -1153,12 +1153,32 @@ class JellyfinService implements BaseMediaService {
 
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
+    if (kDebugMode) {
+      print('JellyfinService.getAlternativeStreamUrls: Getting URLs for trackId: $trackId');
+      print('JellyfinService.getAlternativeStreamUrls: Server configured: ${_server != null}');
+      if (_server != null) {
+        print('JellyfinService.getAlternativeStreamUrls: Server URL: ${_server!.serverUrl}');
+        print('JellyfinService.getAlternativeStreamUrls: User ID: ${_server!.userId}');
+        print('JellyfinService.getAlternativeStreamUrls: Access Token exists: ${_server!.accessToken != null && _server!.accessToken!.isNotEmpty}');
+      }
+    }
+    
     // Return Jellyfin alternative stream URLs for fallback
-    return [
+    final urls = [
       getStreamUrl(trackId),          // Primary transcoded URL
       getDirectStreamUrl(trackId),    // Direct stream
       getUniversalStreamUrl(trackId), // Universal fallback
     ];
+    
+    if (kDebugMode) {
+      print('JellyfinService.getAlternativeStreamUrls: Generated ${urls.length} URLs:');
+      for (int i = 0; i < urls.length; i++) {
+        final url = urls[i];
+        print('  [$i] ${url.isEmpty ? '<EMPTY>' : url}');
+      }
+    }
+    
+    return urls;
   }
 
   @override
