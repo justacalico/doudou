@@ -137,20 +137,20 @@ class DoudouAudioService {
     });
 
     // Listen to playback mode changes
-    if (_audioHandler.customState != null) {
-      _audioHandler.customState!.listen((state) {
-        if (state['shuffle'] != null) {
-          _shuffleController.add(state['shuffle'] as bool);
-        }
-        if (state['repeat'] != null) {
-          final repeatIndex = state['repeat'] as int;
+    _audioHandler.customState.listen((state) {
+      if (state['shuffle'] != null) {
+        _shuffleController.add(state['shuffle'] as bool);
+      }
+      if (state['repeat'] != null) {
+        final repeatIndex = state['repeat'] as int;
+        if (repeatIndex >= 0 && repeatIndex < RepeatMode.values.length) {
           _repeatModeController.add(RepeatMode.values[repeatIndex]);
         }
-        if (state['currentIndex'] != null) {
-          _currentIndexController.add(state['currentIndex'] as int?);
-        }
-      });
-    }
+      }
+      if (state['currentIndex'] != null) {
+        _currentIndexController.add(state['currentIndex'] as int?);
+      }
+    });
   }
 
   /// Convert MediaItem back to Track
