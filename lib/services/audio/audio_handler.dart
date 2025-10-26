@@ -320,8 +320,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   /// Build image URI for track artwork
   Uri? _buildImageUri(String imageId) {
     try {
-      final baseUrl = _jellyfinService.serverUrl;
-      return Uri.parse('$baseUrl/Items/$imageId/Images/Primary');
+      final imageUrl = _jellyfinService.getImageUrl(imageId, type: 'Primary');
+      if (imageUrl.isNotEmpty) {
+        return Uri.parse(imageUrl);
+      }
+      return null;
     } catch (e) {
       if (kDebugMode) {
         print('DoudouAudioHandler: Failed to build image URI: $e');
