@@ -1034,8 +1034,11 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           // Reset user intent to prevent endless retry loops
           _userIntendedPlaying = false;
           
-          // Show user-friendly error message
-          _showErrorNotification('Server Error', 'The music server is temporarily unavailable. Please try again later.');
+          // Log user-friendly error message
+          _logger.error('Server Error: The music server is temporarily unavailable', 'AudioHandler');
+          if (kDebugMode) {
+            print('SERVER ERROR: The music server is temporarily unavailable. Please try again later.');
+          }
           return;
         }
       }
