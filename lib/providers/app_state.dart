@@ -135,15 +135,7 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Get enhanced AudioService configuration for maximum background survival
-  AudioServiceConfig _getEnhancedAudioServiceConfig() {
-    return const AudioServiceConfig(
-      androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-      androidNotificationChannelName: 'Doudou Music - Background Audio',
-      androidNotificationOngoing: true,
-      androidStopForegroundOnPause: false,
-    );
-  }
+
 
   void _setupAudioHandlerListeners() {
     if (_audioHandler != null) {
