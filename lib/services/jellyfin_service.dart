@@ -553,31 +553,7 @@ class JellyfinService implements BaseMediaService {
 
   @override
   String getStreamUrl(String itemId, {int? bitrate}) {
-    if (_server == null) {
-      if (kDebugMode) {
-        print('JellyfinService.getStreamUrl: Server not configured');
-      }
-      return '';
-    }
-    
-    if (itemId.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getStreamUrl: Empty itemId provided');
-      }
-      return '';
-    }
-    
-    if (_server!.userId == null || _server!.userId!.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getStreamUrl: User ID is null or empty');
-      }
-      return '';
-    }
-    
-    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getStreamUrl: Access token is null or empty');
-      }
+    if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
     
