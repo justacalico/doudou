@@ -344,11 +344,15 @@ class JellyfinServiceAdapter implements BaseMediaService {
 
   @override
   void setServer(String serverUrl) {
-    // Convert string URL to JellyfinServer object
-    final server = JellyfinServer(
-      serverUrl: serverUrl,
-    );
-    _jellyfinService.setJellyfinServer(server);
+    // Only set server if it's not already configured or if the URL is different
+    final currentServer = _jellyfinService.currentServer;
+    if (currentServer == null || currentServer.serverUrl != serverUrl) {
+      // Convert string URL to JellyfinServer object
+      final server = JellyfinServer(
+        serverUrl: serverUrl,
+      );
+      _jellyfinService.setJellyfinServer(server);
+    }
   }
 
   @override
