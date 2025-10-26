@@ -150,9 +150,85 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       }
     });
 
+    // Listen to playback events for completion handling
+    _player.playbackEventStream.listen((event) {
+      _handlePlaybackEvent(event);
+    });
+
     if (kDebugMode) {
       print('DoudouAudioHandler: Player listeners set up');
     }
+  }
+
+  /// Handle playback events (completion, errors, etc.)
+  void _handlePlaybackEvent(PlaybackEvent event) {
+    // Handle track completion
+    if (event.processingState == ProcessingState.completed) {
+      _handleTrackCompletion();
+    }
+
+    // Handle playback errors
+    if (event.processingState == ProcessingState.idle && 
+        _currentIndex != null && 
+        _playlist.isNotEmpty &&
+        _player.duration != null) {
+      // Track unexpectedly went idle - attempt recovery
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Unexpected idle state, attempting recovery');
+      }
+      _handlePlaybackError();
+    }
+  }
+
+  /// Handle track completion and auto-advance
+  void _handleTrackCompletion() async {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Track completed, handling auto-advance');
+    }
+
+    try {
+      // Handle repeat one mode
+      if (_repeatMode == AudioServiceRepeatMode.one) {
+        await seek(Duration.zero);
+        await play();
+        return;
+      }
+
+      // Move to next track
+      await skipToNext();
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Error handling track completion: $e');
+      }
+    }
+  }
+
+  /// Handle playback errors with simple recovery
+  void _handlePlaybackError() {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Handling playback error, attempting recovery');
+    }
+
+    // Simple error recovery - try to reload current track after a delay
+    Future.delayed(const Duration(seconds: 2), () async {
+      if (_currentIndex != null && _currentIndex! < _playlist.length) {
+        try {
+          await _playTrackAtIndex(_currentIndex!);
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Recovery successful');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Recovery failed: $e');
+          }
+          // Update state to show error
+          playbackState.add(playbackState.value.copyWith(
+            processingState: AudioProcessingState.error,
+            playing: false,
+          ));
+        }
+      }
+    });
   }
 
   /// Update the playback state based on current player state
