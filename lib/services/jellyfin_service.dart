@@ -607,31 +607,7 @@ class JellyfinService implements BaseMediaService {
   }
 
   String getUniversalStreamUrl(String itemId) {
-    if (_server == null) {
-      if (kDebugMode) {
-        print('JellyfinService.getUniversalStreamUrl: Server not configured');
-      }
-      return '';
-    }
-    
-    if (itemId.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getUniversalStreamUrl: Empty itemId provided');
-      }
-      return '';
-    }
-    
-    if (_server!.userId == null || _server!.userId!.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getUniversalStreamUrl: User ID is null or empty');
-      }
-      return '';
-    }
-    
-    if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
-      if (kDebugMode) {
-        print('JellyfinService.getUniversalStreamUrl: Access token is null or empty');
-      }
+    if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
     
