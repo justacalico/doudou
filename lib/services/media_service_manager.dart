@@ -27,7 +27,9 @@ class MediaServiceManager {
     
     switch (serverType) {
       case ServerType.jellyfin:
-        _currentService = JellyfinServiceAdapter(JellyfinService());
+        // Use shared JellyfinService if available, otherwise create a new one
+        final jellyfinService = _sharedJellyfinService ?? JellyfinService();
+        _currentService = JellyfinServiceAdapter(jellyfinService);
         break;
       case ServerType.plex:
         _currentService = PlexService();
