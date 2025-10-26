@@ -517,7 +517,19 @@ class JellyfinService implements BaseMediaService {
 
   @override
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
-    if (_server == null) return '';
+    if (_server == null) {
+      if (kDebugMode) {
+        print('JellyfinService.getImageUrl: Server not configured');
+      }
+      return '';
+    }
+    
+    if (itemId.isEmpty) {
+      if (kDebugMode) {
+        print('JellyfinService.getImageUrl: Empty itemId provided');
+      }
+      return '';
+    }
     
     final params = <String, String>{};
     if (width != null) params['width'] = width.toString();
@@ -530,7 +542,13 @@ class JellyfinService implements BaseMediaService {
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
     
-    return '$baseUrl/Items/$itemId/Images/Primary$queryString';
+    final imageUrl = '$baseUrl/Items/$itemId/Images/$type$queryString';
+    
+    if (kDebugMode) {
+      print('JellyfinService.getImageUrl: Generated URL: $imageUrl');
+    }
+    
+    return imageUrl;
   }
 
   @override
