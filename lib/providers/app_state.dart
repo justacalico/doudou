@@ -213,7 +213,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -242,7 +241,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -264,7 +262,6 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -286,7 +283,6 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -398,7 +394,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -427,7 +422,6 @@ class AppState extends ChangeNotifier {
                 );
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -449,7 +443,6 @@ class AppState extends ChangeNotifier {
                 _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
                 
                 // Apply user settings to the audio handler
-                _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
                 _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 
                 // Set up listeners for automatic UI updates
@@ -629,7 +622,6 @@ class AppState extends ChangeNotifier {
             );
             
             // Apply user settings to the audio handler
-            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
             // Set up listeners for automatic UI updates
@@ -652,7 +644,6 @@ class AppState extends ChangeNotifier {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
             
             // Apply user settings to the audio handler
-            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             
             // Set up listeners for automatic UI updates
@@ -846,7 +837,6 @@ class AppState extends ChangeNotifier {
               ),
             );
             
-            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
@@ -871,7 +861,6 @@ class AppState extends ChangeNotifier {
               ),
             );
             
-            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
@@ -889,7 +878,6 @@ class AppState extends ChangeNotifier {
           try {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
             
-            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
@@ -907,7 +895,6 @@ class AppState extends ChangeNotifier {
           try {
             _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService);
             
-            _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
             _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             
@@ -2214,7 +2201,6 @@ class AppState extends ChangeNotifier {
     _normalizeVolumeEnabled = enabled;
     
     // Update the audio handler with the new normalize volume setting
-    _audioHandler?.setNormalizeVolume(enabled);
     
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
@@ -2479,7 +2465,6 @@ class AppState extends ChangeNotifier {
           );
           
           // Apply user settings to the audio handler
-          _audioHandler?.setNormalizeVolume(_normalizeVolumeEnabled);
           _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           
           // Set up listeners for automatic UI updates
