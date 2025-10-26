@@ -33,6 +33,7 @@ import 'audio_lifecycle_manager.dart';
 import 'touchbar_update_manager.dart';
 import 'download_service_coordinator.dart';
 import 'media_service_manager_coordinator.dart';
+import '../android_battery_service.dart';
 
 class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
