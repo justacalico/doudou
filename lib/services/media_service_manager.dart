@@ -347,6 +347,14 @@ class JellyfinServiceAdapter implements BaseMediaService {
     // Only set server if it's not already configured or if the URL is different
     final currentServer = _jellyfinService.currentServer;
     if (currentServer == null || currentServer.serverUrl != serverUrl) {
+      // If the service is already authenticated, don't override the server config
+      if (currentServer?.accessToken != null && currentServer?.serverUrl == serverUrl) {
+        if (kDebugMode) {
+          print('JellyfinServiceAdapter.setServer: Server already authenticated, skipping override');
+        }
+        return;
+      }
+      
       // Convert string URL to JellyfinServer object
       final server = JellyfinServer(
         serverUrl: serverUrl,
