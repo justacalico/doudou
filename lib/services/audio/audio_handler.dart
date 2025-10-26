@@ -4429,7 +4429,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
 
   // Transcoding support methods
   bool _shouldTranscodeTrack(Track track) {
-    return true; // Enable transcoding for maximum compatibility
+    return false; // Disable HLS transcoding - use regular stream URLs for better compatibility
   }
 
   String _getHlsStreamUrl(Track track) {
