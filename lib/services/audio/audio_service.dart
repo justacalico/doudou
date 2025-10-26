@@ -72,7 +72,6 @@ class DoudouAudioService {
             androidNotificationChannelDescription: 'Music playback controls',
             androidNotificationIcon: 'drawable/ic_notification',
             androidShowNotificationBadge: true,
-            androidNotificationColorRgb: 0xFF181818,
           ),
         );
       } else {
