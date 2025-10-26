@@ -567,7 +567,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           }
         }
 
-        final currentQueue = List<MediaItem>.from(queue.value ?? []);
+        final currentQueue = List<MediaItem>.from(queue.value);
         if (index < currentQueue.length) {
           currentQueue.removeAt(index);
           super.queue.add(currentQueue);
