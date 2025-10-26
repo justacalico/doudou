@@ -222,6 +222,18 @@ class AppState extends ChangeNotifier {
                 // Set up listeners for automatic UI updates
                 _setupAudioHandlerListeners();
                 
+                // Request battery optimization whitelist for uninterrupted playbook
+                try {
+                  await AndroidBatteryService.requestBatteryOptimization();
+                  if (kDebugMode) {
+                    print('Android battery optimization requested');
+                  }
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('Failed to request Android battery optimization: $e');
+                  }
+                }
+                
                 if (kDebugMode) {
                   print('Android audio service initialized successfully');
                 }
