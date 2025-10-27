@@ -21,7 +21,7 @@ class AppState extends ChangeNotifier {
   late final MediaServiceManager _mediaServiceManager;
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
-  dynamic _audioHandler; // DoudouAudioHandler for native platforms, WebAudioHandler for web
+  AudioServiceIntegration? _audioHandler;
   
   // Platform detection helpers (web-safe)
   bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -71,7 +71,7 @@ class AppState extends ChangeNotifier {
   // Audio handler getter - returns the appropriate handler for the platform
   dynamic get audioHandler => _audioHandler;
   
-  // Stream getters that handle both DoudouAudioHandler and WebAudioHandler
+  // Stream getters for the integrated audio system
   Stream<PlayerState>? get playerStateStream => _audioHandler?.playerStateStream;
   Stream<PlaybackState>? get playbackState => _audioHandler?.playbackState;
   Stream<Duration>? get positionStream => _audioHandler?.positionStream;
