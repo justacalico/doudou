@@ -370,13 +370,15 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> play() async {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Play command received');
+    }
+
+    // Update UI state immediately for responsiveness
+    _stateController.updateUserIntent(true);
+    _stateController.updateState(base_handler.AudioPlayerState.loading);
+
     return _stateController.queueCommand(() async {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Play command received');
-      }
-
-      _stateController.updateUserIntent(true);
-
       try {
         await _player.play();
         if (kDebugMode) {
@@ -388,6 +390,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         }
         _stateController.updateError('Play failed: $e');
         _stateController.updateUserIntent(false);
+        _stateController.updateState(base_handler.AudioPlayerState.error);
         rethrow;
       }
     });
