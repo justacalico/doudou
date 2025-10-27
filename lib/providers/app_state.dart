@@ -595,108 +595,21 @@ class AppState extends ChangeNotifier {
         // Initialize cache service
         await _cacheService.initialize();
         
-        // Initialize audio handler for all service types using MediaServiceManager
-        // Platform-specific audio handler initialization
-        if (_isAndroid) {
-          // Android: Use AudioService for background audio and Android Auto
-          try {
-            _audioHandler = await AudioService.init(
-              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-              config: const AudioServiceConfig(
-                androidNotificationChannelId: 'com.doudou.app.channel.audio',
-                androidNotificationChannelName: 'Doudou Audio Service',
-                androidNotificationOngoing: true,
-                androidStopForegroundOnPause: true,
-              ),
-            );
-            
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-            _setupAudioHandlerListeners();
-            
-            if (kDebugMode) {
-              print('Android audio handler initialized for $serverType');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Failed to initialize Android audio handler: $e');
-            }
-            _audioHandler = null;
-          }
-        } else if (_isMacOS) {
-          // macOS: Use AudioService for background audio like Android
-          try {
-            _audioHandler = await AudioService.init(
-              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-              config: const AudioServiceConfig(
-                androidNotificationChannelId: 'com.doudou.app.channel.audio',
-                androidNotificationChannelName: 'Doudou Audio Service',
-                androidNotificationOngoing: true,
-              ),
-            );
-            
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-            _setupAudioHandlerListeners();
-            
-            if (kDebugMode) {
-              print('macOS audio handler initialized for $serverType');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Failed to initialize macOS audio handler: $e');
-            }
-            _audioHandler = null;
-          }
-        } else if (_isLinux) {
-          // Linux: Initialize audio handler without AudioService wrapper (like iOS)
-          try {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
-            
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-            _setupAudioHandlerListeners();
-            
-            if (kDebugMode) {
-              print('Linux audio handler initialized for $serverType');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Failed to initialize Linux audio handler: $e');
-            }
-            _audioHandler = null;
-          }
-        } else if (_isIOS) {
-          // iOS: Initialize audio handler without AudioService wrapper
-          try {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
-            
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-            _setupAudioHandlerListeners();
-            
-            if (kDebugMode) {
-              print('iOS audio handler initialized for $serverType');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Failed to initialize iOS audio handler: $e');
-            }
-            _audioHandler = null;
-          }
-        } else if (kIsWeb) {
-          // Web: Initialize web audio handler
-          try {
-            _audioHandler = WebAudioHandler(_mediaServiceManager);
-            
-            if (kDebugMode) {
-              print('Web audio handler initialized for $serverType');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('Failed to initialize web audio handler: $e');
-            }
-            _audioHandler = null;
-          }
-        } else {
+        // Initialize new audio system with automatic platform detection
+        try {
+          final audioService = AudioServiceIntegration.instance;
+          await audioService.initialize(_mediaServiceManager);
+          _audioHandler = audioService;
+          
+          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+          _setupAudioHandlerListeners();
+          
           if (kDebugMode) {
-            print('Audio handler initialization skipped on unsupported platform');
+            print('Audio system initialized for $serverType, platform: ${audioService.platformType}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to initialize audio system: $e');
           }
           _audioHandler = null;
         }
