@@ -75,7 +75,7 @@ class AudioService {
         await _setupMobileHandlerStreams();
       } else {
         // Desktop platforms (Linux, macOS, Windows)
-        _audioHandler = DesktopAudioHandler(mediaServiceManager: mediaServiceManager);
+        _audioHandler = DesktopAudioHandler(mediaServiceManager);
         await _setupDesktopHandlerStreams();
       }
 
