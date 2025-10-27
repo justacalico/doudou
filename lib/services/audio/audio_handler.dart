@@ -2546,6 +2546,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               }
               // Immediately disable concatenation for this session to avoid further timeouts
               _isUsingConcatenation = false;
+              // Also clear concatenation state
+              await _setConcatenationState(false, null);
             }
           }
         }
