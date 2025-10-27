@@ -411,7 +411,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateState(base_handler.AudioPlayerState.paused);
 
     // Run the actual audio operation asynchronously without blocking UI
-    unawaited(_performPauseOperation());
+    _performPauseOperation();
   }
 
   Future<void> _performPauseOperation() async {
