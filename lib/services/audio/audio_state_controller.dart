@@ -214,7 +214,9 @@ class AudioStateController {
   void updateError(String? error) {
     _errorSubject.add(error);
     if (error != null && kDebugMode) {
-      print('AudioState: Error updated - $error');
+      if (kDebugMode) {
+        print('AudioState: Error updated - $error');
+      }
     }
   }
   
