@@ -541,35 +541,41 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
-    return _stateController.queueCommand(() async {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
+    }
+
+    // Update UI immediately  
+    if (tracks.isEmpty) {
+      _stateController.updateError('Cannot play empty playlist');
+      return;
+    }
+
+    final validStartIndex = startIndex.clamp(0, tracks.length - 1);
+    
+    // Set up queue immediately for UI responsiveness
+    _queueManager.setQueue(tracks, startIndex: validStartIndex);
+    _stateController.updateCurrentTrack(tracks[validStartIndex]);
+    _stateController.updateState(base_handler.AudioPlayerState.loading);
+
+    // Run actual playback asynchronously
+    _performPlayPlaylist(tracks, validStartIndex);
+  }
+
+  Future<void> _performPlayPlaylist(List<Track> tracks, int startIndex) async {
+    try {
+      // Play the starting track
+      await _playTrackAtIndex(startIndex);
+      
       if (kDebugMode) {
-        print('DoudouAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
+        print('DoudouAudioHandler: Playlist loaded and playing');
       }
-
-      try {
-        if (tracks.isEmpty) {
-          throw Exception('Cannot play empty playlist');
-        }
-
-        final validStartIndex = startIndex.clamp(0, tracks.length - 1);
-        
-        // Set up queue
-        _queueManager.setQueue(tracks, startIndex: validStartIndex);
-        
-        // Play the starting track
-        await _playTrackAtIndex(validStartIndex);
-        
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Playlist loaded and playing');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Failed to play playlist: $e');
-        }
-        _stateController.updateError('Failed to play playlist: $e');
-        rethrow;
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to play playlist: $e');
       }
-    });
+      _stateController.updateError('Failed to play playlist: $e');
+    }
   }
 
   @override
