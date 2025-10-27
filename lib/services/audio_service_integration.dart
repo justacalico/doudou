@@ -399,11 +399,6 @@ class AudioServiceIntegration {
     }
   }
 
-  /// Enable shuffle mode
-  Future<void> shuffle() async {
-    await setShuffleMode(true);
-  }
-
   /// Disable shuffle mode
   Future<void> unshuffle() async {
     await setShuffleMode(false);
