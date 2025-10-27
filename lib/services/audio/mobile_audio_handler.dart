@@ -564,6 +564,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   @override
+  @override
   Future<void> skipToQueueItem(int index) async {
     return _stateController.queueCommand(() async {
       try {
