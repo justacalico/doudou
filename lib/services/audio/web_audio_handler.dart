@@ -217,30 +217,7 @@ class WebAudioHandler implements BaseAudioHandler {
   @override
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
-  @override
-  Stream<PlaybackState> get playbackState =>
-    CombineLatestStream.combine3(
-      stateStream,
-      positionStream,
-      _player.speedStream,
-      (state, position, speed) => WebPlaybackState(
-        playing: state == AudioPlayerState.playing,
-        updatePosition: position,
-        speed: speed,
-      )
-    );
 
-  @override
-  Stream<List<MediaItem>> get queueStream =>
-    _stateController.queueStream.map((tracks) =>
-      tracks.map(_trackToMediaItem).toList()
-    );
-
-  @override
-  Stream<MediaItem?> get mediaItem =>
-    _stateController.currentTrackStream.map((track) =>
-      track != null ? _trackToMediaItem(track) : null
-    );
 
   @override
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
