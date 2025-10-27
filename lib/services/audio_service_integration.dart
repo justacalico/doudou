@@ -454,6 +454,26 @@ class AudioServiceIntegration {
     return false;
   }
 
+  /// Get current track
+  Track? get currentTrack {
+    if (!_initialized || _audioHandler == null) return null;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).currentTrack;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).currentTrack;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).currentTrack;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting current track: $e');
+      }
+    }
+    return null;
+  }
+
   /// Check if there is a previous track available
   bool get hasPrevious {
     if (!_initialized || _audioHandler == null) return false;
