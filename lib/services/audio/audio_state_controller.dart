@@ -115,8 +115,9 @@ class AudioStateController {
         final command = _commandQueue.removeFirst();
         await command();
         
-        // Small delay to prevent overwhelming the system
-        await Future.delayed(const Duration(milliseconds: 10));
+        // Remove delay for better responsiveness
+        // Only yield control to allow other operations
+        await Future.delayed(Duration.zero);
       }
     } catch (e) {
       if (kDebugMode) {
