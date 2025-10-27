@@ -75,7 +75,7 @@ class AudioService {
         await _setupMobileHandlerStreams();
       } else {
         // Desktop platforms (Linux, macOS, Windows)
-        _audioHandler = SimpleDesktopAudioHandler(mediaServiceManager);
+        _audioHandler = DesktopAudioHandler(mediaServiceManager);
         await _setupDesktopHandlerStreams();
       }
 
@@ -207,7 +207,7 @@ class AudioService {
 
   /// Set up streams for desktop audio handler
   Future<void> _setupDesktopHandlerStreams() async {
-    final handler = _audioHandler as SimpleDesktopAudioHandler;
+    final handler = _audioHandler as DesktopAudioHandler;
     
     handler.stateStream.listen((state) {
       _currentState = state;
@@ -272,8 +272,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).play();
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).play();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).play();
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).play();
     }
   }
 
@@ -285,8 +285,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).pause();
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).pause();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).pause();
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).pause();
     }
   }
 
@@ -298,8 +298,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).stop();
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).stop();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).stop();
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).stop();
     }
   }
 
@@ -311,8 +311,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).playTrack(track);
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).playTrack(track);
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).playTrack(track);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).playTrack(track);
     }
   }
 
@@ -324,8 +324,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).seek(position);
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).seek(position);
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).seek(position);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).seek(position);
     }
   }
 
@@ -337,8 +337,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).skipToNext();
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).skipToNext();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).skipToNext();
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).skipToNext();
     }
   }
 
@@ -350,8 +350,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).skipToPrevious();
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).skipToPrevious();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).skipToPrevious();
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).skipToPrevious();
     }
   }
 
@@ -364,8 +364,8 @@ class AudioService {
     } else if (_audioHandler is DoudouAudioHandler) {
       // Mobile handler might need different approach for queue
       await (_audioHandler as DoudouAudioHandler).playPlaylist(tracks, initialIndex ?? 0);
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).setQueue(tracks, initialIndex: initialIndex);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).setQueue(tracks, initialIndex: initialIndex);
     }
   }
 
@@ -377,8 +377,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).setVolume(volume);
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).setVolume(volume);
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).setVolume(volume);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).setVolume(volume);
     }
   }
 
@@ -390,8 +390,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).setSpeed(speed);
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).setSpeed(speed);
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).setSpeed(speed);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).setSpeed(speed);
     }
   }
 
@@ -403,8 +403,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).enableShuffle(enabled);
     } else if (_audioHandler is DoudouAudioHandler) {
       (_audioHandler as DoudouAudioHandler).toggleShuffle();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).enableShuffle(enabled);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).enableShuffle(enabled);
     }
   }
 
@@ -429,8 +429,8 @@ class AudioService {
           break;
       }
       await (_audioHandler as DoudouAudioHandler).setRepeatMode(audioServiceMode);
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).setRepeatMode(mode);
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).setRepeatMode(mode);
     }
   }
 
@@ -476,8 +476,8 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).dispose();
     } else if (_audioHandler is DoudouAudioHandler) {
       await (_audioHandler as DoudouAudioHandler).dispose();
-    } else if (_audioHandler is SimpleDesktopAudioHandler) {
-      await (_audioHandler as SimpleDesktopAudioHandler).dispose();
+    } else if (_audioHandler is DesktopAudioHandler) {
+      await (_audioHandler as DesktopAudioHandler).dispose();
     }
 
     // Close all stream controllers
