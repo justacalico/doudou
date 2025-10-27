@@ -566,11 +566,11 @@ class AudioServiceIntegration {
 
     try {
       if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).disableRadioMode();
+        (_audioHandler as WebAudioHandler).disableRadioMode();
       } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).disableRadioMode();
+        (_audioHandler as DesktopAudioHandler).disableRadioMode();
       } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).disableRadioMode();
+        (_audioHandler as DoudouAudioHandler).disableRadioMode();
       }
     } catch (e) {
       if (kDebugMode) {
