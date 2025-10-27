@@ -147,6 +147,21 @@ class DoudouAudioHandler extends BaseAudioHandler {
     );
   }
 
+  /// Update AudioService queue index for proper UI synchronization
+  void _updateAudioServiceQueueIndex(int index) {
+    // Create a new PlaybackState with the updated queue index
+    final currentState = playbackState.valueOrNull ?? PlaybackState();
+    final updatedState = currentState.copyWith(
+      queueIndex: index,
+      updateTime: DateTime.now().millisecondsSinceEpoch,
+    );
+    playbackState.add(updatedState);
+    
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Updated AudioService queue index to $index');
+    }
+  }
+
   /// Handle player state changes
   void _handlePlayerStateChange(PlayerState playerState) {
     switch (playerState.processingState) {
