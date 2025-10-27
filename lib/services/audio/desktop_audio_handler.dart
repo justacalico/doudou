@@ -137,15 +137,88 @@ class DesktopAudioHandler implements BaseAudioHandler {
       return;
     }
 
-    // Normal mode - advance to next track
+    // Normal mode - advance to next track with retry logic
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
-      await skipToQueueItem(nextIndex);
+      await _playNextTrackWithRetry(nextIndex);
     } else {
       // End of queue
       _stateController.updateState(AudioPlayerState.completed);
       _stateController.updateUserIntent(false);
     }
+  }
+
+  /// Play next track with retry logic for network issues
+  Future<void> _playNextTrackWithRetry(int startIndex, {int maxRetries = 3}) async {
+    int currentIndex = startIndex;
+    int retryCount = 0;
+    
+    while (retryCount < maxRetries && currentIndex < _stateController.queue.length) {
+      try {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Attempting to play track at index $currentIndex (attempt ${retryCount + 1})');
+        }
+        
+        await skipToQueueItem(currentIndex);
+        
+        // If we get here without exception, playback started successfully
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Successfully started track at index $currentIndex');
+        }
+        return;
+        
+      } catch (e) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Failed to play track at index $currentIndex: $e');
+        }
+        
+        retryCount++;
+        
+        // If this was the last retry for this track, try the next track
+        if (retryCount >= maxRetries) {
+          retryCount = 0; // Reset retry count for next track
+          currentIndex = _getNextAvailableTrackIndex(currentIndex);
+          
+          if (currentIndex == -1) {
+            // No more tracks available
+            if (kDebugMode) {
+              print('DesktopAudioHandler: No more tracks available, stopping playback');
+            }
+            _stateController.updateState(AudioPlayerState.completed);
+            _stateController.updateUserIntent(false);
+            return;
+          }
+        } else {
+          // Wait a bit before retrying the same track
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      }
+    }
+    
+    // If we exhausted all retries and tracks, stop playback
+    if (kDebugMode) {
+      print('DesktopAudioHandler: Exhausted all retry attempts, stopping playback');
+    }
+    _stateController.updateState(AudioPlayerState.completed);
+    _stateController.updateUserIntent(false);
+  }
+
+  /// Get next available track index, returns -1 if no more tracks
+  int _getNextAvailableTrackIndex(int currentIndex) {
+    final queue = _stateController.queue;
+    final nextIndex = currentIndex + 1;
+    
+    if (nextIndex < queue.length) {
+      return nextIndex;
+    }
+    
+    // Check if we should loop based on repeat mode
+    final repeatMode = _stateController.repeatMode;
+    if (repeatMode == RepeatMode.all && queue.isNotEmpty) {
+      return 0; // Loop back to beginning
+    }
+    
+    return -1; // No more tracks
   }
 
   /// Handle radio mode - fetch similar tracks
@@ -531,9 +604,13 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
       
-      // Try to set the audio source with more detailed error handling
+      // Try to set the audio source with timeout to prevent hanging
       try {
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)))
+            .timeout(const Duration(seconds: 10), onTimeout: () {
+          throw Exception('Audio source loading timed out after 10 seconds');
+        });
+        
         if (kDebugMode) {
           print('DesktopAudioHandler: Audio source set successfully');
         }
@@ -541,12 +618,31 @@ class DesktopAudioHandler implements BaseAudioHandler {
         if (kDebugMode) {
           print('DesktopAudioHandler: Failed to set audio source: $sourceError');
         }
+        
+        // Try fallback URL if direct stream failed
+        if (url.contains('Download?')) {
+          if (kDebugMode) {
+            print('DesktopAudioHandler: Direct stream failed, trying transcoded stream');
+          }
+          final currentTrack = _stateController.currentTrack;
+          if (currentTrack != null) {
+            final transcodedUrl = _mediaServiceManager.getStreamUrl(currentTrack.id);
+            if (transcodedUrl != url) {
+              // Recursive call with transcoded URL
+              return await _loadAndPlayTrack(transcodedUrl);
+            }
+          }
+        }
+        
         rethrow;
       }
       
-      // Try to play with detailed error handling
+      // Try to play with timeout protection
       try {
-        await _player.play();
+        await _player.play().timeout(const Duration(seconds: 5), onTimeout: () {
+          throw Exception('Playback start timed out after 5 seconds');
+        });
+        
         if (kDebugMode) {
           print('DesktopAudioHandler: Playback started successfully');
         }
@@ -563,6 +659,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
       }
       _stateController.updateState(AudioPlayerState.error);
       _stateController.updateUserIntent(false);
+      _stateController.updateError('Failed to load track: $e');
       rethrow;
     }
   }
