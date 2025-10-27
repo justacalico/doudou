@@ -2530,9 +2530,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             try {
               // Add timeout to seekToNext to prevent hanging
               await _player.seekToNext().timeout(
-                const Duration(seconds: 5),
+                const Duration(seconds: 3),
                 onTimeout: () {
-                  throw TimeoutException('seekToNext timed out', const Duration(seconds: 5));
+                  throw TimeoutException('seekToNext timed out', const Duration(seconds: 3));
                 },
               );
               // State will be updated automatically via currentIndexStream
@@ -2544,6 +2544,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               if (kDebugMode) {
                 print('Gapless skip failed, falling back to traditional method: $e');
               }
+              // Immediately disable concatenation for this session to avoid further timeouts
+              _isUsingConcatenation = false;
             }
           }
         }
