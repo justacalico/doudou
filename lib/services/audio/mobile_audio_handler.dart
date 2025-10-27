@@ -672,21 +672,8 @@ class DoudouAudioHandler extends BaseAudioHandler implements base_handler.BaseAu
   // Playback modes
 
   @override
-  Future<void> setRepeatMode(AudioServiceRepeatMode mode) async {
-    // Convert from AudioService repeat mode to our repeat mode
-    base_handler.RepeatMode ourMode;
-    switch (mode) {
-      case AudioServiceRepeatMode.none:
-        ourMode = base_handler.RepeatMode.none;
-        break;
-      case AudioServiceRepeatMode.one:
-        ourMode = base_handler.RepeatMode.one;
-        break;
-      case AudioServiceRepeatMode.all:
-        ourMode = base_handler.RepeatMode.all;
-        break;
-    }
-    _stateController.updateRepeatMode(ourMode);
+  void setRepeatMode(base_handler.RepeatMode mode) {
+    _stateController.updateRepeatMode(mode);
   }
 
   @override
