@@ -45,7 +45,7 @@ class AudioServiceFactory {
           builder: () => DoudouAudioHandler(
             mediaServiceManager: mediaServiceManager,
           ),
-          config: const audio_service.AudioServiceConfig(
+          config: audio_service.AudioServiceConfig(
             androidNotificationChannelId: 'com.doudoubox.audio',
             androidNotificationChannelName: 'Doudou Audio',
             androidNotificationOngoing: true,
