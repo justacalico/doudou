@@ -508,33 +508,36 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> playTrack(Track track) async {
-    return _stateController.queueCommand(() async {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Playing single track: ${track.name}');
-      }
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Playing single track: ${track.name}');
+    }
 
-      try {
-        // Set up single track queue
-        _queueManager.setQueue([track], startIndex: 0);
-        _stateController.updateCurrentTrack(track);
-        
-        // Get stream URL
-        final streamUrl = _getStreamUrl(track);
-        
-        // Load and play the track
-        await _loadAndPlayTrack(streamUrl);
-        
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Track loaded and playing');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Failed to play track: $e');
-        }
-        _stateController.updateError('Failed to play track: $e');
-        rethrow;
+    // Update UI immediately
+    _queueManager.setQueue([track], startIndex: 0);
+    _stateController.updateCurrentTrack(track);
+    _stateController.updateState(base_handler.AudioPlayerState.loading);
+
+    // Run actual playback asynchronously
+    _performPlayTrack(track);
+  }
+
+  Future<void> _performPlayTrack(Track track) async {
+    try {
+      // Get stream URL
+      final streamUrl = _getStreamUrl(track);
+      
+      // Load and play the track
+      await _loadAndPlayTrack(streamUrl);
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Track loaded and playing');
       }
-    });
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to play track: $e');
+      }
+      _stateController.updateError('Failed to play track: $e');
+    }
   }
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
