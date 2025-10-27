@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/audio_service_integration.dart';
 import '../services/media_service_manager.dart';
@@ -42,13 +43,17 @@ class _NewAudioDemoState extends State<NewAudioDemo> {
         _status = _isInitialized ? 'Ready' : 'Failed to initialize';
       });
 
-      print('New audio system initialized successfully for platform: $_platformType');
+      if (kDebugMode) {
+        print('New audio system initialized successfully for platform: $_platformType');
+      }
     } catch (e) {
       setState(() {
         _status = 'Error: $e';
         _isInitialized = false;
       });
-      print('Failed to initialize new audio system: $e');
+      if (kDebugMode) {
+        print('Failed to initialize new audio system: $e');
+      }
     }
   }
 
