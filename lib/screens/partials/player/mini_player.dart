@@ -211,8 +211,7 @@ class MiniPlayer extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        )));
+          )));
           },
         );
       },
