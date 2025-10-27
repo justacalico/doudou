@@ -550,9 +550,7 @@ class JellyfinService implements BaseMediaService {
     
     // Only log first generation of each URL, not repeated calls
     if (kDebugMode && _imageUrlCache.length % 50 == 1) {
-      if (kDebugMode) {
-        print('JellyfinService.getImageUrl: Cached ${_imageUrlCache.length} image URLs');
-      }
+      print('JellyfinService.getImageUrl: Cached ${_imageUrlCache.length} image URLs');
     }
     
     return imageUrl;
