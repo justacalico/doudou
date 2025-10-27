@@ -690,12 +690,16 @@ class DoudouAudioHandler extends BaseAudioHandler {
       print('DoudouAudioHandler: Skip to queue item $index requested');
     }
 
-    // Update UI immediately
+    // Update UI immediately with comprehensive synchronization
     final queue = _stateController.queue;
     if (index >= 0 && index < queue.length) {
+      final track = queue[index];
       _stateController.updateCurrentIndex(index);
-      _stateController.updateCurrentTrack(queue[index]);
+      _stateController.updateCurrentTrack(track);
       _stateController.updateState(base_handler.AudioPlayerState.loading);
+      
+      // Force UI synchronization to prevent desync
+      _forceUISynchronization(track, index);
     }
 
     // Run actual skip operation asynchronously
