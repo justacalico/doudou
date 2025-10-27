@@ -558,24 +558,35 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  @override
   Future<void> skipToNext() async {
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
+      // Update UI immediately
+      final queue = _stateController.queue;
+      if (nextIndex < queue.length) {
+        _stateController.updateCurrentIndex(nextIndex);
+        _stateController.updateCurrentTrack(queue[nextIndex]);
+        _stateController.updateState(base_handler.AudioPlayerState.loading);
+      }
       await skipToQueueItem(nextIndex);
     }
   }
 
   @override
-  @override
   Future<void> skipToPrevious() async {
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
+      // Update UI immediately
+      final queue = _stateController.queue;
+      if (previousIndex >= 0 && previousIndex < queue.length) {
+        _stateController.updateCurrentIndex(previousIndex);
+        _stateController.updateCurrentTrack(queue[previousIndex]);
+        _stateController.updateState(base_handler.AudioPlayerState.loading);
+      }
       await skipToQueueItem(previousIndex);
     }
   }
 
-  @override
   @override
   Future<void> skipToQueueItem(int index) async {
     return _stateController.queueCommand(() async {
