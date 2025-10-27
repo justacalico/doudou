@@ -308,7 +308,9 @@ extension QueueManagement on AudioStateController {
   void reorderQueueItems(int oldIndex, int newIndex) {
     if (oldIndex < 0 || oldIndex >= queue.length || 
         newIndex < 0 || newIndex >= queue.length || 
-        oldIndex == newIndex) return;
+        oldIndex == newIndex) {
+      return;
+    }
     
     final currentQueue = List<Track>.from(queue);
     final track = currentQueue.removeAt(oldIndex);
