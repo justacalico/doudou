@@ -208,6 +208,22 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Skip to next track and ensure playback continues in background
       await skipToQueueItem(nextIndex);
       
+      // Force update UI state immediately for proper synchronization
+      final queue = _stateController.queue;
+      if (nextIndex < queue.length) {
+        final nextTrack = queue[nextIndex];
+        
+        // Explicitly update MediaItem for AudioService
+        mediaItem.add(_trackToMediaItem(nextTrack));
+        
+        // Update the AudioService queue position
+        _updateAudioServiceQueueIndex(nextIndex);
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: UI state synchronized for track: ${nextTrack.name}');
+        }
+      }
+      
       // Explicitly trigger play after a brief delay to ensure background service continues
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_stateController.userIntendedPlaying) {
