@@ -591,6 +591,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Skip to previous requested');
+    }
+
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
       // Update UI immediately
@@ -600,7 +604,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
         _stateController.updateCurrentTrack(queue[previousIndex]);
         _stateController.updateState(base_handler.AudioPlayerState.loading);
       }
-      await skipToQueueItem(previousIndex);
+      // Run actual skip operation asynchronously
+      _performSkipToQueueItem(previousIndex);
     }
   }
 
