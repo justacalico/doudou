@@ -705,9 +705,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           return StreamBuilder<MediaItem?>(
             stream: audioHandler?.mediaItem,
             builder: (context, mediaItemSnapshot) {
-              return Dialog(
-            insetPadding: const EdgeInsets.all(16),
-            child: Container(
+              return AnimatedDialog(
+                child: Dialog(
+                  insetPadding: const EdgeInsets.all(16),
+                  child: Container(
               width: MediaQuery.of(context).size.width * 0.85,
               height: MediaQuery.of(context).size.height * 0.85,
               constraints: const BoxConstraints(
@@ -742,7 +743,15 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                         ),
                         const Spacer(),
                         IconButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            // Find the AnimatedDialog in the widget tree and trigger close animation
+                            final animatedDialog = context.findAncestorStateOfType<_AnimatedDialogState>();
+                            if (animatedDialog != null) {
+                              animatedDialog.closeDialog();
+                            } else {
+                              Navigator.pop(context);
+                            }
+                          },
                           icon: const Icon(Icons.close),
                         ),
                       ],
@@ -910,10 +919,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   _buildNowPlayingControls(context, audioHandler),
                 ],
               ),
-            ),
-            );
-          },
-        );
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
     );
@@ -1915,6 +1925,87 @@ class _SyncedLyricsContentState extends State<_SyncedLyricsContent> {
           },
         );
       },
+    );
+  }
+}
+
+class AnimatedDialog extends StatefulWidget {
+  final Widget child;
+  
+  const AnimatedDialog({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  State<AnimatedDialog> createState() => _AnimatedDialogState();
+}
+
+class _AnimatedDialogState extends State<AnimatedDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.elasticOut,
+    ));
+    
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> closeDialog() async {
+    await _controller.reverse();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        await closeDialog();
+        return false;
+      },
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Opacity(
+              opacity: _opacityAnimation.value,
+              child: widget.child,
+            ),
+          );
+        },
+      ),
     );
   }
 }
