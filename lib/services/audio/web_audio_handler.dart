@@ -207,76 +207,76 @@ class WebAudioHandler {
 
   // BaseAudioHandler implementation - Stream getters
 
-  @override
+  
   Stream<AudioPlayerState> get stateStream => _stateController.stateStream;
 
-  @override
+  
   Stream<Duration> get positionStream => _stateController.positionStream;
 
-  @override
+  
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
 
 
-  @override
+  
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
 
   // Property getters
 
-  @override
+  
   AudioPlayerState get currentState => _stateController.currentState;
 
-  @override
+  
   Duration get position => _stateController.position;
 
-  @override
+  
   Duration get duration => _stateController.duration;
 
-  @override
+  
   Track? get currentTrack => _stateController.currentTrack;
 
-  @override
+  
   List<Track> get queueTracks => _stateController.queue;
 
-  @override
+  
   List<Track> get upNext => _queueManager.getUpNext();
 
-  @override
+  
   double get volume => _stateController.volume;
 
-  @override
+  
   double get speed => _stateController.speed;
 
-  @override
+  
   bool get userIntendedPlaying => _stateController.userIntendedPlaying;
 
-  @override
+  
   PlayerState get playerState => _player.playerState;
 
-  @override
+  
   int? get currentIndex => _stateController.currentIndex;
 
-  @override
+  
   bool get hasNext => _queueManager.hasNext;
 
-  @override
+  
   bool get hasPrevious => _queueManager.hasPrevious;
 
-  @override
+  
   RepeatMode get repeatMode => _stateController.repeatMode;
 
-  @override
+  
   bool get shuffleEnabled => _stateController.shuffleEnabled;
 
-  @override
+  
   bool get gaplessPlaybackEnabled => _stateController.gaplessPlaybackEnabled;
 
-  @override
+  
   bool get radioModeEnabled => _radioModeEnabled;
 
   // Playback control methods
 
-  @override
+  
   Future<void> play() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -301,7 +301,7 @@ class WebAudioHandler {
     });
   }
 
-  @override
+  
   Future<void> pause() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -325,7 +325,7 @@ class WebAudioHandler {
     });
   }
 
-  @override
+  
   Future<void> stop() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -350,7 +350,7 @@ class WebAudioHandler {
     });
   }
 
-  @override
+  
   Future<void> seek(Duration position) async {
     return _stateController.queueCommand(() async {
       try {
@@ -367,7 +367,7 @@ class WebAudioHandler {
     });
   }
 
-  @override
+  
   Future<void> setSpeed(double speed) async {
     try {
       await _player.setSpeed(speed);
@@ -381,7 +381,7 @@ class WebAudioHandler {
     }
   }
 
-  @override
+  
   Future<void> setVolume(double volume) async {
     try {
       await _player.setVolume(volume);
@@ -394,7 +394,7 @@ class WebAudioHandler {
     }
   }
 
-  @override
+  
   Future<void> playTrack(Track track) async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -425,7 +425,7 @@ class WebAudioHandler {
     });
   }
 
-  @override
+  
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -458,7 +458,7 @@ class WebAudioHandler {
     });
   }
 
-  @override
+  
   Future<void> skipToNext() async {
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
@@ -466,7 +466,7 @@ class WebAudioHandler {
     }
   }
 
-  @override
+  
   Future<void> skipToPrevious() async {
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
@@ -474,7 +474,7 @@ class WebAudioHandler {
     }
   }
 
-  @override
+  
   Future<void> skipToQueueItem(int index) async {
     return _stateController.queueCommand(() async {
       try {
@@ -531,61 +531,61 @@ class WebAudioHandler {
 
   // Queue management
 
-  @override
+  
   void addToQueue(Track track) {
     _queueManager.addToQueue(track);
   }
 
-  @override
+  
   void addNext(Track track) {
     _queueManager.addNext(track);
   }
 
-  @override
+  
   void removeFromQueue(int index) {
     _queueManager.removeFromQueue(index);
   }
 
-  @override
+  
   void reorderQueue(int oldIndex, int newIndex) {
     _queueManager.reorderQueue(oldIndex, newIndex);
   }
 
-  @override
+  
   void clearQueue() {
     _queueManager.clearQueue();
   }
 
   // Playback modes
 
-  @override
+  
   void setRepeatMode(RepeatMode mode) {
     _stateController.updateRepeatMode(mode);
   }
 
-  @override
+  
   void toggleShuffle() {
     _queueManager.toggleShuffle();
   }
 
-  @override
+  
   void setGaplessPlayback(bool enabled) {
     _stateController.updateGaplessPlayback(enabled);
   }
 
-  @override
+  
   void toggleRadioMode() {
     _radioModeEnabled = !_radioModeEnabled;
     _stateController.updateRadioMode(_radioModeEnabled);
   }
 
-  @override
+  
   void enableRadioMode() {
     _radioModeEnabled = true;
     _stateController.updateRadioMode(true);
   }
 
-  @override
+  
   void disableRadioMode() {
     _radioModeEnabled = false;
     _stateController.updateRadioMode(false);
@@ -593,7 +593,7 @@ class WebAudioHandler {
 
   // Lifecycle management
 
-  @override
+  
   Future<void> dispose() async {
     if (kDebugMode) {
       print('WebAudioHandler: Disposing...');
