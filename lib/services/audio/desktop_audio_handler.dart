@@ -209,6 +209,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
   @override
+  Stream<double> get volumeStream => _player.volumeStream;
+
+  @override
   Stream<audio_service.PlaybackState> get playbackState => 
     CombineLatestStream.combine3(
       stateStream,
