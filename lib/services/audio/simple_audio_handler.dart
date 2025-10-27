@@ -24,12 +24,12 @@ class SimpleAudioHandler extends BaseAudioHandler {
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   
-  SimpleAudioHandler(this._jellyfinService, [this._mediaServiceManager]) {
+  SimpleAudioHandler(this._mediaService) {
     _player = AudioPlayer();
     _initializePlayer();
     
     if (kDebugMode) {
-      print('SimpleAudioHandler initialized');
+      print('SimpleAudioHandler initialized for service: ${_mediaService.serviceName}');
     }
   }
 
