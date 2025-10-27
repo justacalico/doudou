@@ -516,9 +516,20 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
+  // Simple cache for image URLs to reduce repeated generations
+  static final Map<String, String> _imageUrlCache = <String, String>{};
+
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     if (_server == null || itemId.isEmpty) {
       return '';
+    }
+    
+    // Create cache key
+    final cacheKey = '$itemId-$type-$width-$height';
+    
+    // Return cached URL if available
+    if (_imageUrlCache.containsKey(cacheKey)) {
+      return _imageUrlCache[cacheKey]!;
     }
     
     final params = <String, String>{};
@@ -534,8 +545,12 @@ class JellyfinService implements BaseMediaService {
     
     final imageUrl = '$baseUrl/Items/$itemId/Images/$type$queryString';
     
-    if (kDebugMode) {
-      print('JellyfinService.getImageUrl: Generated URL: $imageUrl');
+    // Cache the generated URL
+    _imageUrlCache[cacheKey] = imageUrl;
+    
+    // Only log first generation of each URL, not repeated calls
+    if (kDebugMode && _imageUrlCache.length % 50 == 1) {
+      print('JellyfinService.getImageUrl: Cached ${_imageUrlCache.length} image URLs');
     }
     
     return imageUrl;
