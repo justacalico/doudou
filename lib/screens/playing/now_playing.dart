@@ -86,18 +86,49 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
-        final currentTrack = audioHandler?.currentTrack;
 
-        // Check lyrics availability when track changes
-        if (currentTrack != null && currentTrack.artistName != null) {
-          _checkLyricsAvailability(
-            currentTrack.name,
-            currentTrack.artistName!,
-            currentTrack.id,
+        if (audioHandler == null) {
+          return CupertinoPageScaffold(
+            backgroundColor: const Color(0xFF000000),
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.music_note,
+                    size: 64,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No audio handler available',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
-        if (currentTrack == null) {
+        // Listen to current track changes in real-time
+        return StreamBuilder<Track?>(
+          stream: audioHandler.currentTrackStream,
+          builder: (context, trackSnapshot) {
+            final currentTrack = trackSnapshot.data;
+
+            // Check lyrics availability when track changes
+            if (currentTrack != null && currentTrack.artistName != null) {
+              _checkLyricsAvailability(
+                currentTrack.name,
+                currentTrack.artistName!,
+                currentTrack.id,
+              );
+            }
+
+            if (currentTrack == null) {
           return CupertinoPageScaffold(
             backgroundColor: const Color(0xFF000000),
             child: const Center(
