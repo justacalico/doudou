@@ -192,7 +192,19 @@ class DoudouAudioHandler extends BaseAudioHandler {
     // Normal mode - advance to next track
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Auto-advancing to next track (index: $nextIndex)');
+      }
+      
+      // Skip to next track and ensure playback continues in background
       await skipToQueueItem(nextIndex);
+      
+      // Explicitly trigger play after a brief delay to ensure background service continues
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_stateController.userIntendedPlaying) {
+          play();
+        }
+      });
     } else {
       // End of queue
       _stateController.updateState(base_handler.AudioPlayerState.completed);
