@@ -3562,8 +3562,8 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             print('Track: ${track.name} (ID: ${track.id})');
           }
           
-          // Add small delay before setting URL to prevent interruption issues
-          await Future.delayed(const Duration(milliseconds: 100));
+          // Minimal delay for faster loading
+          await Future.delayed(const Duration(milliseconds: 25));
           
           if (_shouldTranscodeTrack(track)) {
             final hlsUrl = _getHlsStreamUrl(track);
