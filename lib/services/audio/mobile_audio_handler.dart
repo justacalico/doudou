@@ -391,6 +391,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     });
   }
 
+  @override
   Future<void> pause() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -414,6 +415,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     });
   }
 
+  @override
   Future<void> stop() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -438,6 +440,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     });
   }
 
+  @override
   Future<void> seek(Duration position) async {
     return _stateController.queueCommand(() async {
       try {
@@ -453,6 +456,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     });
   }
 
+  @override
   Future<void> setSpeed(double speed) async {
     try {
       await _player.setSpeed(speed);
@@ -539,6 +543,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     });
   }
 
+  @override
   Future<void> skipToNext() async {
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
@@ -546,6 +551,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
+  @override
   Future<void> skipToPrevious() async {
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
@@ -553,6 +559,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
+  @override
   Future<void> skipToQueueItem(int index) async {
     return _stateController.queueCommand(() async {
       try {
@@ -629,6 +636,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   // Playback modes
 
+  @override
   Future<void> setRepeatMode(AudioServiceRepeatMode mode) async {
     // Convert AudioService repeat mode to our repeat mode
     base_handler.RepeatMode ourMode;
