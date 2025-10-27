@@ -199,125 +199,20 @@ class AppState extends ChangeNotifier {
             // Initialize cache service first
             await _cacheService.initialize();
             
-            // Try to initialize audio handler with platform-specific handling
-            if (_isAndroid) {
-              // Android: Use AudioService for background audio and Android Auto
-              try {
-                _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-                  config: const AudioServiceConfig(
-                    androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-                    androidNotificationChannelName: 'Doudou Music',
-                    androidNotificationOngoing: true,
-                  ),
-                );
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('Android audio service initialized successfully');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize Android audio service: $audioError');
-                }
-                // Continue without audio service
-                _audioHandler = null;
-              }
-            } else if (_isMacOS) {
-              // macOS: Use AudioService for background audio like Android
-              try {
-                _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-                  config: const AudioServiceConfig(
-                    androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-                    androidNotificationChannelName: 'Doudou Music',
-                    androidNotificationOngoing: true,
-                  ),
-                );
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('macOS audio service initialized successfully');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize macOS audio service: $audioError');
-                }
-                // Continue without audio service
-                _audioHandler = null;
-              }
-            } else if (_isIOS) {
-              // iOS: Initialize audio handler without AudioService wrapper
-              try {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('iOS audio handler initialized successfully');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize iOS audio handler: $audioError');
-                }
-                // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else if (_isLinux) {
-              // Linux: Initialize audio handler without AudioService wrapper (like iOS)
-              try {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('Linux audio handler initialized successfully');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize Linux audio handler: $audioError');
-                }
-                // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else if (kIsWeb) {
-              // Web: Initialize web audio handler
-              try {
-                _audioHandler = WebAudioHandler(_mediaServiceManager);
-                
-                if (kDebugMode) {
-                  print('Web audio handler initialized successfully');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize web audio handler: $audioError');
-                }
-                // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else {
+            // Initialize new audio system with automatic platform detection
+            try {
+              final audioService = AudioServiceIntegration.instance;
+              await audioService.initialize(_mediaServiceManager);
+              _audioHandler = audioService;
+              
               if (kDebugMode) {
-                print('Audio service initialization skipped on unsupported platform');
+                print('New audio system initialized successfully for platform: ${audioService.platformType}');
               }
-              // On other platforms, we don't use audio services
+            } catch (audioError) {
+              if (kDebugMode) {
+                print('Failed to initialize new audio system: $audioError');
+              }
+              // Continue without audio service
               _audioHandler = null;
             }
             
