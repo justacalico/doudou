@@ -49,7 +49,7 @@ class AudioServiceFactory {
             androidNotificationChannelId: 'com.doudoubox.audio',
             androidNotificationChannelName: 'Doudou Audio',
             androidNotificationOngoing: true,
-            androidStopForegroundOnPause: false,
+            androidStopForegroundOnPause: true,
           ),
         );
         if (kDebugMode) {
