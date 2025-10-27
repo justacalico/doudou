@@ -153,7 +153,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
     final currentState = playbackState.valueOrNull ?? PlaybackState();
     final updatedState = currentState.copyWith(
       queueIndex: index,
-      updateTime: DateTime.now().millisecondsSinceEpoch,
     );
     playbackState.add(updatedState);
     
