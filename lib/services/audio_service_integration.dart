@@ -250,8 +250,10 @@ class AudioServiceIntegration {
     
     if (_audioHandler is DoudouAudioHandler) {
       return (_audioHandler as DoudouAudioHandler).playbackState.stream;
+    } else if (_audioHandler is DesktopAudioHandler) {
+      return (_audioHandler as DesktopAudioHandler).playbackState;
     }
-    // For web/desktop, we need to create a compatible stream
+    // For web, we need to create a compatible stream
     return null;
   }
 
