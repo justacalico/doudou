@@ -209,14 +209,14 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
   @override
-  Stream<PlaybackState> get playbackState => 
+  Stream<audio_service.PlaybackState> get playbackState => 
     CombineLatestStream.combine3(
       stateStream,
       positionStream,
       _player.speedStream,
-      (state, position, speed) => PlaybackState(
+      (state, position, speed) => audio_service.PlaybackState(
         playing: state == AudioPlayerState.playing,
-        processingState: AudioProcessingState.ready,
+        processingState: audio_service.AudioProcessingState.ready,
         updatePosition: position,
         speed: speed,
       )
