@@ -449,12 +449,16 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  @override
   Future<void> seek(Duration position) async {
+    // Update UI position immediately for responsiveness
+    _stateController.updatePosition(position);
+
     return _stateController.queueCommand(() async {
       try {
         await _player.seek(position);
-        _stateController.updatePosition(position);
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Seek to ${position.inSeconds}s completed');
+        }
       } catch (e) {
         if (kDebugMode) {
           print('DoudouAudioHandler: Seek failed: $e');
