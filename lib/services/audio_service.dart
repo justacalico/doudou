@@ -65,7 +65,7 @@ class AudioService {
           builder: () => DoudouAudioHandler(
             mediaServiceManager: mediaServiceManager,
           ),
-          config: const AudioServiceConfig(
+          config: const audio_service.AudioServiceConfig(
             androidNotificationChannelId: 'gitlab.openlyst.doudou',
             androidNotificationChannelName: 'Doudou Audio',
             androidNotificationOngoing: true,
