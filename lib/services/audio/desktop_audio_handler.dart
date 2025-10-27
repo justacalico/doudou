@@ -223,7 +223,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
     );
 
   @override
-  Stream<List<MediaItem>> get queueStream => 
+  Stream<List<audio_service.MediaItem>> get queueStream => 
     _stateController.queueStream.map((tracks) => 
       tracks.map(_trackToMediaItem).toList()
     );
