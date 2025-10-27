@@ -458,6 +458,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   @override
+  @override
   Future<void> setSpeed(double speed) async {
     try {
       await _player.setSpeed(speed);
