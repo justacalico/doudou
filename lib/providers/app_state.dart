@@ -275,104 +275,26 @@ class AppState extends ChangeNotifier {
             // Initialize cache service for offline mode
             await _cacheService.initialize();
             
-            // Try to initialize audio handler for offline playbook with platform-specific handling
-            if (_isAndroid) {
-              // Android: Use AudioService for background audio and Android Auto
-              try {
-                _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-                  config: const AudioServiceConfig(
-                    androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-                    androidNotificationChannelName: 'Doudou Music',
-                    androidNotificationOngoing: true,
-                  ),
-                );
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('Android audio service initialized successfully (offline mode)');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize Android audio service in offline mode: $audioError');
-                }
-                // Continue without audio service
-                _audioHandler = null;
-              }
-            } else if (_isMacOS) {
-              // macOS: Use AudioService for background audio like Android
-              try {
-                _audioHandler = await AudioService.init(
-                  builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-                  config: const AudioServiceConfig(
-                    androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-                    androidNotificationChannelName: 'Doudou Music',
-                    androidNotificationOngoing: true,
-                  ),
-                );
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('macOS audio service initialized successfully (offline mode)');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize macOS audio service in offline mode: $audioError');
-                }
-                // Continue without audio service
-                _audioHandler = null;
-              }
-            } else if (_isIOS) {
-              // iOS: Initialize audio handler without AudioService wrapper
-              try {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
-                
-                // Apply user settings to the audio handler
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-                
-                // Set up listeners for automatic UI updates
-                _setupAudioHandlerListeners();
-                
-                if (kDebugMode) {
-                  print('iOS audio handler initialized successfully (offline mode)');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize iOS audio handler in offline mode: $audioError');
-                }
-                // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else if (kIsWeb) {
-              // Web: Initialize web audio handler (offline mode)
-              try {
-                _audioHandler = WebAudioHandler(_mediaServiceManager);
-                
-                if (kDebugMode) {
-                  print('Web audio handler initialized successfully (offline mode)');
-                }
-              } catch (audioError) {
-                if (kDebugMode) {
-                  print('Failed to initialize web audio handler in offline mode: $audioError');
-                }
-                // Continue without audio handler
-                _audioHandler = null;
-              }
-            } else {
+            // Initialize new audio system with automatic platform detection
+            try {
+              final audioService = AudioServiceIntegration.instance;
+              await audioService.initialize(_mediaServiceManager);
+              _audioHandler = audioService;
+              
+              // Apply user settings to the audio handler
+              _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+              
+              // Set up listeners for automatic UI updates
+              _setupAudioHandlerListeners();
+              
               if (kDebugMode) {
-                print('Audio service initialization skipped on unsupported platform (offline mode)');
+                print('Audio system initialized successfully for offline mode, platform: ${audioService.platformType}');
               }
-              // On other platforms, we don't use audio services
+            } catch (audioError) {
+              if (kDebugMode) {
+                print('Failed to initialize audio system in offline mode: $audioError');
+              }
+              // Continue without audio service
               _audioHandler = null;
             }
             
