@@ -161,6 +161,15 @@ class DoudouAudioHandler extends BaseAudioHandler {
         if (playerState.playing) {
           _stateController.updateState(base_handler.AudioPlayerState.playing);
         } else {
+          // Check if we should auto-continue playback (important for background track transitions)
+          if (_stateController.userIntendedPlaying && 
+              _stateController.currentState == base_handler.AudioPlayerState.loading) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Track ready, auto-continuing playback in background');
+            }
+            // Resume playback without blocking
+            Future.microtask(() => _player.play());
+          }
           _stateController.updateState(base_handler.AudioPlayerState.paused);
         }
         break;
