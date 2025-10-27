@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:media_kit/media_kit.dart' as mk;
 import 'package:rxdart/rxdart.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import '../../models/jellyfin_models.dart';
