@@ -10,7 +10,7 @@ import '../models/jellyfin_models.dart';
 import '../services/jellyfin_service.dart';
 import '../services/media_service_manager.dart';
 import '../services/base_service.dart';
-import '../services/audio_service_factory.dart';
+import '../services/audio_service_integration.dart';
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
