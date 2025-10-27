@@ -33,6 +33,7 @@ abstract class BaseAudioHandler {
   Stream<AudioPlayerState> get stateStream;
   Stream<Duration> get positionStream;
   Stream<Duration?> get durationStream;
+  Stream<double> get volumeStream;
   Stream<PlaybackState> get playbackState;
   Stream<MediaItem?> get mediaItem;
   Stream<List<MediaItem>> get queueStream;
