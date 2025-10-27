@@ -144,7 +144,7 @@ class AppState extends ChangeNotifier {
       });
       
       // Listen to playback state changes (for playing/paused status)
-      _audioHandler!.playbackState.listen((playbackState) {
+      _audioHandler!.playbackState?.listen((playbackState) {
         // Notify listeners when playback state changes
         notifyListeners();
       });
