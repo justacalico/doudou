@@ -166,7 +166,9 @@ class AudioStateController {
     if (_currentTrackSubject.value?.id != track?.id) {
       _currentTrackSubject.add(track);
       if (kDebugMode && track != null) {
-        print('AudioState: Current track updated to ${track.name}');
+        if (kDebugMode) {
+          print('AudioState: Current track updated to ${track.name}');
+        }
       }
     }
   }
