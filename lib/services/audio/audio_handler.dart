@@ -2890,7 +2890,13 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
             }
             
             try {
-              await _player.seekToPrevious();
+              // Add timeout to seekToPrevious to prevent hanging
+              await _player.seekToPrevious().timeout(
+                const Duration(seconds: 5),
+                onTimeout: () {
+                  throw TimeoutException('seekToPrevious timed out', const Duration(seconds: 5));
+                },
+              );
               // State will be updated automatically via currentIndexStream
               _savePlaybackStateDebounced(position: _player.position, isPlaying: _player.playing);
               _logger.info('Gapless skip to previous successful', 'AudioHandler');
