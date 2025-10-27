@@ -364,8 +364,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   bool get radioModeEnabled => _radioModeEnabled;
 
-  // Playback control methods
+  // Playbook control methods
 
+  @override
   Future<void> play() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
