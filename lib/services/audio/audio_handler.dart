@@ -2546,8 +2546,16 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               }
               // Immediately disable concatenation for this session to avoid further timeouts
               _isUsingConcatenation = false;
-              // Also clear concatenation state
+              // Also clear concatenation state and reset audio player
               await _setConcatenationState(false, null);
+              // Force stop to clear any stuck concatenated source
+              try {
+                await _player.stop();
+              } catch (stopError) {
+                if (kDebugMode) {
+                  print('Error stopping player during concatenation reset: $stopError');
+                }
+              }
             }
           }
         }
