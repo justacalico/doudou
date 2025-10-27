@@ -153,6 +153,24 @@ class MediaServiceManager {
     return streamUrl;
   }
 
+  /// Get direct stream URL (no transcoding) from the current service
+  String getDirectStreamUrl(String trackId) {
+    if (_currentService == null) {
+      if (kDebugMode) {
+        print('ERROR: Current service is null!');
+      }
+      return '';
+    }
+    
+    if (_currentService is JellyfinServiceAdapter) {
+      final jellyfinAdapter = _currentService as JellyfinServiceAdapter;
+      return jellyfinAdapter.getDirectStreamUrl(trackId);
+    }
+    
+    // For other services, fallback to regular stream URL
+    return _currentService!.getStreamUrl(trackId);
+  }
+
   /// Get alternative stream URLs for fallback from the current service
   List<String> getAlternativeStreamUrls(String trackId) {
     if (_currentService == null) return [];
@@ -410,6 +428,11 @@ class JellyfinServiceAdapter implements BaseMediaService {
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
     return _jellyfinService.getStreamUrl(trackId);
+  }
+
+  /// Get direct stream URL (no transcoding)
+  String getDirectStreamUrl(String trackId) {
+    return _jellyfinService.getDirectStreamUrl(trackId);
   }
 
   @override
