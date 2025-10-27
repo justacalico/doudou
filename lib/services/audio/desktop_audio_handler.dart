@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart' as ja;
+import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:media_kit/media_kit.dart' as mk;
 import 'package:rxdart/rxdart.dart';
-import '../../models/jellyfin_models.dart' as models;
+import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
 import 'base_audio_handler.dart';
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 
 /// DesktopAudioHandler - Audio handler for Linux, macOS, and Windows
-/// Uses media_kit for enhanced codec support on desktop platforms
+/// Uses just_audio with media_kit backend for enhanced codec support
 class DesktopAudioHandler implements BaseAudioHandler {
   final MediaServiceManager _mediaServiceManager;
   final AudioStateController _stateController = AudioStateController();
@@ -30,22 +29,15 @@ class DesktopAudioHandler implements BaseAudioHandler {
     _initializeAudio();
   }
 
-  /// Initialize audio system with media_kit
+  /// Initialize audio system with media_kit backend
   Future<void> _initializeAudio() async {
     try {
       if (kDebugMode) {
         print('DesktopAudioHandler: Initializing desktop audio system...');
       }
 
-      // Initialize media_kit for enhanced codec support
-      MediaKit.ensureInitialized();
-      
-      // Configure just_audio to use media_kit
-      if (defaultTargetPlatform == TargetPlatform.linux ||
-          defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.macOS) {
-        JustAudioMediaKit.ensureInitialized();
-      }
+      // Configure just_audio to use media_kit backend for better codec support
+      JustAudioMediaKit.ensureInitialized();
       
       // Set up player event listeners
       _setupPlayerListeners();
@@ -611,12 +603,10 @@ class DesktopAudioHandler implements BaseAudioHandler {
     
     // Configure gapless playback on the player if supported
     try {
-      _player.setAudioSource(
-        ConcatenatingAudioSource(
-          children: [],
-          useLazyPreparation: !enabled,
-        )
-      );
+      if (!enabled) {
+        // Disable gapless by using individual audio sources
+        // This is handled in the queue setup
+      }
     } catch (e) {
       if (kDebugMode) {
         print('DesktopAudioHandler: Failed to configure gapless playback: $e');
@@ -676,4 +666,48 @@ class DesktopAudioHandler implements BaseAudioHandler {
       print('DesktopAudioHandler: Disposed');
     }
   }
+}
+
+// Create required types to match audio_service interfaces
+class PlaybackState {
+  final bool playing;
+  final AudioProcessingState processingState;
+  final Duration updatePosition;
+  final double speed;
+  
+  PlaybackState({
+    required this.playing,
+    required this.processingState,
+    required this.updatePosition,
+    required this.speed,
+  });
+}
+
+class MediaItem {
+  final String id;
+  final String title;
+  final String? artist;
+  final String? album;
+  final Duration? duration;
+  final Uri? artUri;
+  final Map<String, dynamic>? extras;
+  
+  MediaItem({
+    required this.id,
+    required this.title,
+    this.artist,
+    this.album,
+    this.duration,
+    this.artUri,
+    this.extras,
+  });
+}
+
+enum AudioProcessingState {
+  idle,
+  loading,
+  ready,
+  buffering,
+  completed,
+  error,
 }
