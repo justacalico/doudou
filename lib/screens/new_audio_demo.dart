@@ -8,9 +8,9 @@ class NewAudioDemo extends StatefulWidget {
   final MediaServiceManager mediaServiceManager;
 
   const NewAudioDemo({
-    Key? key,
+    super.key,
     required this.mediaServiceManager,
-  }) : super(key: key);
+  });
 
   @override
   State<NewAudioDemo> createState() => _NewAudioDemoState();
