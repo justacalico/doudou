@@ -540,8 +540,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
   }
 
   /// Convert Track to MediaItem for compatibility
-  MediaItem _trackToMediaItem(Track track) {
-    return MediaItem(
+  audio_service.MediaItem _trackToMediaItem(Track track) {
+    return audio_service.MediaItem(
       id: track.id,
       album: track.albumName,
       title: track.name,
