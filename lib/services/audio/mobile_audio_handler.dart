@@ -616,7 +616,21 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Get stream URL for track
   String _getStreamUrl(Track track) {
-    return _mediaServiceManager.getStreamUrl(track.id);
+    // Try direct stream first (no transcoding) for better compatibility
+    final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+    if (directUrl.isNotEmpty) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Using direct stream URL: $directUrl');
+      }
+      return directUrl;
+    }
+    
+    // Fallback to transcoded stream
+    final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Using transcoded stream URL: $transcodedUrl');
+    }
+    return transcodedUrl;
   }
 
   // Queue management
