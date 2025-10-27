@@ -611,22 +611,36 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    return _stateController.queueCommand(() async {
-      try {
-        final queue = _stateController.queue;
-        if (index < 0 || index >= queue.length) {
-          throw Exception('Invalid queue index: $index');
-        }
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Skip to queue item $index requested');
+    }
 
-        await _playTrackAtIndex(index);
-      } catch (e) {
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Skip to index failed: $e');
-        }
-        _stateController.updateError('Skip failed: $e');
-        rethrow;
+    // Update UI immediately
+    final queue = _stateController.queue;
+    if (index >= 0 && index < queue.length) {
+      _stateController.updateCurrentIndex(index);
+      _stateController.updateCurrentTrack(queue[index]);
+      _stateController.updateState(base_handler.AudioPlayerState.loading);
+    }
+
+    // Run actual skip operation asynchronously
+    _performSkipToQueueItem(index);
+  }
+
+  Future<void> _performSkipToQueueItem(int index) async {
+    try {
+      final queue = _stateController.queue;
+      if (index < 0 || index >= queue.length) {
+        throw Exception('Invalid queue index: $index');
       }
-    });
+
+      await _playTrackAtIndex(index);
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Skip to index failed: $e');
+      }
+      _stateController.updateError('Skip failed: $e');
+    }
   }
 
   /// Play track at specific queue index
