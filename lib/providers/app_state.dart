@@ -138,7 +138,7 @@ class AppState extends ChangeNotifier {
   void _setupAudioHandlerListeners() {
     if (_audioHandler != null) {
       // Listen to media item changes (track changes)
-      _audioHandler!.mediaItem.listen((mediaItem) {
+      _audioHandler!.mediaItem?.listen((mediaItem) {
         // Notify listeners when the current track changes
         notifyListeners();
       });
