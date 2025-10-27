@@ -1092,12 +1092,7 @@ class AppState extends ChangeNotifier {
       
       // Update audio handler with media library for Android Auto browsing
       try {
-        _audioHandler?.updateMediaLibrary(
-          albums: _albums,
-          artists: _artists,
-          tracks: _tracks,
-          playlists: _playlists,
-        );
+        _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
         
         if (kDebugMode) {
           print('AppState: Updated AudioHandler MediaBrowser with fresh library data');
