@@ -99,6 +99,44 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Play current track
+  Future<void> play() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).play();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).play();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).play();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error playing: $e');
+      }
+    }
+  }
+
+  /// Pause current track
+  Future<void> pause() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).pause();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).pause();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).pause();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error pausing: $e');
+      }
+    }
+  }
+
   /// Play/pause toggle
   Future<void> playPause() async {
     if (!_initialized || _audioHandler == null) return;
@@ -119,8 +157,14 @@ class AudioServiceIntegration {
           await handler.play();
         }
       } else if (_audioHandler is DoudouAudioHandler) {
-        // For mobile, use AudioService play/pause
-        await (_audioHandler as DoudouAudioHandler).play();
+        // For mobile, determine state from playback state
+        final handler = _audioHandler as DoudouAudioHandler;
+        final state = handler.playbackState.value;
+        if (state.playing) {
+          await handler.pause();
+        } else {
+          await handler.play();
+        }
       }
     } catch (e) {
       if (kDebugMode) {
