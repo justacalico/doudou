@@ -211,10 +211,14 @@ class MiniPlayer extends StatelessWidget {
                 ],
               ),
             ),
-          )));
-          },
-        );
-      },
-    );
-  }
-}
+          ), // GestureDetector
+        ), // Container
+        ), // BackdropFilter
+        ), // ClipRRect
+        ); // Container - the main container
+          }, // StreamBuilder builder
+        ); // StreamBuilder
+      }, // Consumer builder
+    ); // Consumer
+  } // build method
+} // MiniPlayer class
