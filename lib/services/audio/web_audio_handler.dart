@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:rxdart/rxdart.dart';
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
 import 'base_audio_handler.dart';
@@ -630,40 +629,3 @@ class WebAudioHandler implements BaseAudioHandler {
 
 // Web-specific types for compatibility
 
-class WebPlaybackState implements PlaybackState {
-  final bool playing;
-  final Duration updatePosition;
-  final double speed;
-
-  WebPlaybackState({
-    required this.playing,
-    required this.updatePosition,
-    required this.speed,
-  });
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class WebMediaItem implements MediaItem {
-  final String id;
-  final String title;
-  final String? artist;
-  final String? album;
-  final Duration? duration;
-  final Uri? artUri;
-  final Map<String, dynamic>? extras;
-
-  WebMediaItem({
-    required this.id,
-    required this.title,
-    this.artist,
-    this.album,
-    this.duration,
-    this.artUri,
-    this.extras,
-  });
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
