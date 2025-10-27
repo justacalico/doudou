@@ -3131,7 +3131,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
       print('TRACK VERIFICATION: About to play track: ${actualTrack.name} (ID: ${actualTrack.id})');
       print('TRACK VERIFICATION: Current media item should match');
     }    // Try gapless playback first if enabled and conditions are met
-    if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1) {
+    if (_stateManager.gaplessPlaybackEnabled && _stateManager.playlist.length > 1 && _isUsingConcatenation) {
       _logger.info('Attempting gapless playback for playlist', 'AudioHandler');
       if (kDebugMode) {
         print('Attempting gapless playback...');
