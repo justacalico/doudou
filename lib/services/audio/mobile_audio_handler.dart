@@ -326,6 +326,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
+  Stream<double> get volumeStream => _player.volumeStream;
+
   Stream<List<MediaItem>> get queueStream => queue.stream;
 
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
