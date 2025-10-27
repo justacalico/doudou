@@ -4,6 +4,7 @@ import 'media_service_manager.dart';
 import 'audio/web_audio_handler.dart';
 import 'audio/mobile_audio_handler.dart';
 import 'audio/desktop_audio_handler.dart';
+import 'audio/base_audio_handler.dart';
 import '../models/jellyfin_models.dart';
 
 /// Simple wrapper to integrate new audio system with existing AppState
