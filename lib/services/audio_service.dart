@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:audio_service/audio_service.dart';
+import 'package:audio_service/audio_service.dart' as audio_service;
 import '../models/jellyfin_models.dart';
 import 'media_service_manager.dart';
 import 'audio/base_audio_handler.dart';
