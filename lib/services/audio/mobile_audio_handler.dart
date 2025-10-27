@@ -334,6 +334,17 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
 
+  // Additional streams for AudioService integration
+  Stream<Track?> get currentTrackStream => _stateController.currentTrackStream;
+  
+  Stream<base_handler.RepeatMode> get repeatModeStream => _stateController.repeatModeStream;
+  
+  Stream<bool> get shuffleEnabledStream => _stateController.shuffleEnabledStream;
+  
+  Stream<double> get speedStream => _stateController.speedStream;
+  
+  Stream<String?> get errorStream => _stateController.errorStream;
+
   base_handler.AudioPlayerState get currentState => _stateController.currentState;
 
   Duration get position => _stateController.position;
