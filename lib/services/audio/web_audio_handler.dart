@@ -9,7 +9,7 @@ import 'queue_manager.dart';
 
 /// WebAudioHandler - Audio handler for web platform
 /// Uses just_audio with web-specific optimizations
-class WebAudioHandler implements BaseAudioHandler {
+class WebAudioHandler {
   final MediaServiceManager _mediaServiceManager;
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
