@@ -254,23 +254,21 @@ class AudioQueueManager {
   List<Track> getUpNext({int limit = 10}) {
     final currentIndex = _stateController.currentIndex;
     final queue = _stateController.queue;
-    
+
     if (currentIndex == null || queue.isEmpty) return [];
-    
+
     final upNext = <Track>[];
-    int nextIndex = currentIndex;
-    
+    int? nextIndex = currentIndex;
+
     for (int i = 0; i < limit; i++) {
-      nextIndex = _getNextIndexForUpNext(nextIndex, queue.length);
+      nextIndex = _getNextIndexForUpNext(nextIndex!, queue.length);
       if (nextIndex == null || nextIndex == currentIndex) break;
-      
+
       upNext.add(queue[nextIndex]);
     }
-    
+
     return upNext;
-  }
-  
-  /// Helper method to get next index for up next calculation
+  }  /// Helper method to get next index for up next calculation
   int? _getNextIndexForUpNext(int currentIndex, int queueLength) {
     switch (_stateController.repeatMode) {
       case RepeatMode.one:
