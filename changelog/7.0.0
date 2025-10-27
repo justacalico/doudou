@@ -30,6 +30,7 @@
 - Fixed race issues when pausing music
 - Redesigned mobile home page
 - Redesigned mobile library page
+- Complete rewrite of the EVERY audio service files. 
 
 ## Removed
 
