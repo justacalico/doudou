@@ -1,17 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
-import '../jellyfin_service.dart';
 import '../media_service_manager.dart';
 import '../../models/jellyfin_models.dart';
 
-/// A simple, reliable audio handler that focuses on basic functionality
-/// without complex gapless playback or concatenation issues.
+/// A simple, reliable audio handler that works with all supported services
+/// (Jellyfin, Plex, Navidrome) through the MediaServiceManager interface.
+/// Focuses on basic functionality without complex gapless playback.
 class SimpleAudioHandler extends BaseAudioHandler {
-  final JellyfinService _jellyfinService;
-  final MediaServiceManager? _mediaServiceManager;
+  final MediaServiceManager _mediaService;
   
   // Core audio player
   late final AudioPlayer _player;
