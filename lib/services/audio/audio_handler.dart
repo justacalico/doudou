@@ -2605,7 +2605,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   
   /// Executes skip operations with timeout protection
   Future<void> _executeSkipWithTimeout(String operation, Future<void> Function() skipFunction) async {
-    const timeoutDuration = Duration(seconds: 10);
+    const timeoutDuration = Duration(seconds: 8);
     
     try {
       await skipFunction().timeout(timeoutDuration);
