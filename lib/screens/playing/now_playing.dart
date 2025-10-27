@@ -728,9 +728,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
             ],
           ),
         );
-      },
-    );
-  }
+          }, // StreamBuilder builder
+        ); // StreamBuilder
+      }, // Consumer builder
+    ); // Consumer
+  } // build method
 
   void _showLyricsOverlay(BuildContext context, dynamic currentTrack) {
     showSyncedLyricsOverlay(
