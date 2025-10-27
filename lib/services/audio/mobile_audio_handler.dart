@@ -646,7 +646,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
     // Convert AudioService repeat mode to our repeat mode
     base_handler.RepeatMode ourMode;
-    switch (mode) {
+    switch (repeatMode) {
       case AudioServiceRepeatMode.none:
         ourMode = base_handler.RepeatMode.none;
         break;
