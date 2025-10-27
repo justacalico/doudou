@@ -113,11 +113,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           );
         }
 
-        // Listen to current track changes in real-time
-        return StreamBuilder<Track?>(
-          stream: audioHandler.currentTrackStream,
-          builder: (context, trackSnapshot) {
-            final currentTrack = trackSnapshot.data;
+        // Listen to current track changes in real-time using MediaItem stream
+        return StreamBuilder<MediaItem?>(
+          stream: appState.mediaItem,
+          builder: (context, mediaItemSnapshot) {
+            final mediaItem = mediaItemSnapshot.data;
+            
+            // Convert MediaItem to Track or use currentTrack as fallback
+            final currentTrack = mediaItem != null 
+                ? appState.findTrackById(mediaItem.id) ?? audioHandler?.currentTrack
+                : audioHandler?.currentTrack;
 
             // Check lyrics availability when track changes
             if (currentTrack != null && currentTrack.artistName != null) {
