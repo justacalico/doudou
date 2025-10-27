@@ -6,6 +6,7 @@ import 'dart:ui';
 import '../../../providers/app_state.dart';
 import '../../playing/now_playing.dart';
 import '../../../widgets/cached_image_widget.dart';
+import '../../../models/jellyfin_models.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
@@ -211,7 +212,9 @@ class MiniPlayer extends StatelessWidget {
               ),
             ),
           ),
-        ))));
+        )));
+          },
+        );
       },
     );
   }
