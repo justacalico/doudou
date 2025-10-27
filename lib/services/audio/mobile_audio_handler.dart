@@ -410,21 +410,23 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateUserIntent(false);
     _stateController.updateState(base_handler.AudioPlayerState.paused);
 
-    return _stateController.queueCommand(() async {
-      try {
-        await _player.pause();
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Pause command completed');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Pause failed: $e');
-        }
-        _stateController.updateError('Pause failed: $e');
-        _stateController.updateState(base_handler.AudioPlayerState.error);
-        rethrow;
+    // Run the actual audio operation asynchronously without blocking UI
+    unawaited(_performPauseOperation());
+  }
+
+  Future<void> _performPauseOperation() async {
+    try {
+      await _player.pause();
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Pause command completed');
       }
-    });
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Pause failed: $e');
+      }
+      _stateController.updateError('Pause failed: $e');
+      _stateController.updateState(base_handler.AudioPlayerState.error);
+    }
   }
 
   @override
