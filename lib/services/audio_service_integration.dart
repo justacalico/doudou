@@ -617,6 +617,44 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Remove track from queue
+  Future<void> removeFromQueue(int index) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        (_audioHandler as WebAudioHandler).removeFromQueue(index);
+      } else if (_audioHandler is DesktopAudioHandler) {
+        (_audioHandler as DesktopAudioHandler).removeFromQueue(index);
+      } else if (_audioHandler is DoudouAudioHandler) {
+        (_audioHandler as DoudouAudioHandler).removeFromQueue(index);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error removing from queue: $e');
+      }
+    }
+  }
+
+  /// Clear the entire queue
+  Future<void> clearQueue() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        (_audioHandler as WebAudioHandler).clearQueue();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        (_audioHandler as DesktopAudioHandler).clearQueue();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        (_audioHandler as DoudouAudioHandler).clearQueue();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error clearing queue: $e');
+      }
+    }
+  }
+
   /// Get current queue tracks
   List<Track> get queueTracks {
     if (!_initialized || _audioHandler == null) return [];
