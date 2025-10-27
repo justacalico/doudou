@@ -534,6 +534,26 @@ class AudioServiceIntegration {
     return Duration.zero;
   }
 
+  /// Check if shuffle is enabled
+  bool get isShuffled {
+    if (!_initialized || _audioHandler == null) return false;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).shuffleEnabled;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).shuffleEnabled;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).shuffleEnabled;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting shuffle state: $e');
+      }
+    }
+    return false;
+  }
+
   /// Add track to queue
   Future<void> addToQueue(Track track) async {
     if (!_initialized || _audioHandler == null) return;
