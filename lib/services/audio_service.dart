@@ -416,16 +416,16 @@ class AudioService {
       await (_audioHandler as WebAudioHandler).setRepeatMode(mode);
     } else if (_audioHandler is DoudouAudioHandler) {
       // Convert to AudioService repeat mode
-      AudioServiceRepeatMode audioServiceMode;
+      audio_service.AudioServiceRepeatMode audioServiceMode;
       switch (mode) {
         case RepeatMode.none:
-          audioServiceMode = AudioServiceRepeatMode.none;
+          audioServiceMode = audio_service.AudioServiceRepeatMode.none;
           break;
         case RepeatMode.one:
-          audioServiceMode = AudioServiceRepeatMode.one;
+          audioServiceMode = audio_service.AudioServiceRepeatMode.one;
           break;
         case RepeatMode.all:
-          audioServiceMode = AudioServiceRepeatMode.all;
+          audioServiceMode = audio_service.AudioServiceRepeatMode.all;
           break;
       }
       await (_audioHandler as DoudouAudioHandler).setRepeatMode(audioServiceMode);
