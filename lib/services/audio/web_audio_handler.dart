@@ -9,7 +9,7 @@ import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 
 /// WebAudioHandler - Audio handler for web platform
-/// Uses just_audio with web-specific optimizations and media session integration
+/// Uses just_audio with web-specific optimizations
 class WebAudioHandler implements BaseAudioHandler {
   final MediaServiceManager _mediaServiceManager;
   final AudioStateController _stateController = AudioStateController();
@@ -22,9 +22,6 @@ class WebAudioHandler implements BaseAudioHandler {
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
-  
-  // Web-specific media session
-  html.MediaSession? _mediaSession;
   
   // Constructor
   WebAudioHandler(this._mediaServiceManager) {
@@ -41,9 +38,6 @@ class WebAudioHandler implements BaseAudioHandler {
       // Set up player event listeners
       _setupPlayerListeners();
       
-      // Set up web media session
-      _setupMediaSession();
-      
       if (kDebugMode) {
         print('WebAudioHandler: Web audio system initialized successfully');
       }
@@ -52,62 +46,6 @@ class WebAudioHandler implements BaseAudioHandler {
         print('WebAudioHandler: Failed to initialize web audio system: $e');
       }
       _stateController.updateError('Failed to initialize web audio: $e');
-    }
-  }
-
-  /// Set up web media session for system integration
-  void _setupMediaSession() {
-    try {
-      _mediaSession = html.window.navigator.mediaSession;
-      
-      if (_mediaSession != null) {
-        // Set up media session action handlers
-        _mediaSession!.setActionHandler('play', (details) => play());
-        _mediaSession!.setActionHandler('pause', (details) => pause());
-        _mediaSession!.setActionHandler('previoustrack', (details) => skipToPrevious());
-        _mediaSession!.setActionHandler('nexttrack', (details) => skipToNext());
-        _mediaSession!.setActionHandler('seekto', (details) {
-          if (details.seekTime != null) {
-            seek(Duration(seconds: details.seekTime!.round()));
-          }
-        });
-        
-        if (kDebugMode) {
-          print('WebAudioHandler: Media session configured');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('WebAudioHandler: Failed to configure media session: $e');
-      }
-    }
-  }
-
-  /// Update media session metadata
-  void _updateMediaSessionMetadata(Track track) {
-    try {
-      if (_mediaSession != null) {
-        _mediaSession!.metadata = html.MediaMetadata({
-          'title': track.name,
-          'artist': track.artistName ?? 'Unknown Artist',
-          'album': track.albumName ?? '',
-          'artwork': [
-            {
-              'src': _mediaServiceManager.getImageUrl(
-                track.albumId ?? track.id,
-                width: 512,
-                height: 512,
-              ),
-              'sizes': '512x512',
-              'type': 'image/jpeg',
-            }
-          ],
-        });
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('WebAudioHandler: Failed to update media session metadata: $e');
-      }
     }
   }
 
