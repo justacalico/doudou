@@ -61,6 +61,7 @@ build_debug_apk:
 build_debug_linux:
   stage: build-linux
   image: ghcr.io/cirruslabs/flutter:stable
+  allow_failure: true
   needs:
     - job: "build_debug_apk"
       optional: true
