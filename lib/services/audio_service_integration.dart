@@ -369,6 +369,61 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Skip to specific queue item
+  Future<void> skipToQueueItem(int index) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).skipToQueueItem(index);
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).skipToQueueItem(index);
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).skipToQueueItem(index);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error skipping to queue item: $e');
+      }
+    }
+  }
+
+  /// Update media library (optional method)
+  Future<void> updateMediaLibrary(List<Track> tracks, List<Album> albums, List<Artist> artists, List<Playlist> playlists) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      // Most handlers don't need this method, but we can implement if needed
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Media library updated with ${tracks.length} tracks');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error updating media library: $e');
+      }
+    }
+  }
+
+  /// Get user intended playing state (compatibility method)
+  bool get userIntendedPlaying {
+    if (!_initialized || _audioHandler == null) return false;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).currentState == AudioPlayerState.playing;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).currentState == AudioPlayerState.playing;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).playbackState.value.playing;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting user intended playing: $e');
+      }
+    }
+    return false;
+  }
+
   /// Dispose resources
   Future<void> dispose() async {
     if (_audioHandler != null) {
