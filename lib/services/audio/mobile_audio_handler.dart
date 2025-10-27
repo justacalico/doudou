@@ -601,13 +601,43 @@ class DoudouAudioHandler extends BaseAudioHandler {
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     try {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Loading audio source: $url');
+      }
+      
       _stateController.updateState(base_handler.AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
       
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
-      await _player.play();
+      // Try to set the audio source with detailed error handling
+      try {
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Audio source set successfully');
+        }
+      } catch (sourceError) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Failed to set audio source: $sourceError');
+        }
+        rethrow;
+      }
+      
+      // Try to play with detailed error handling
+      try {
+        await _player.play();
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Playback started successfully');
+        }
+      } catch (playError) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Failed to start playback: $playError');
+        }
+        rethrow;
+      }
       
     } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Load and play failed: $e');
+      }
       _stateController.updateState(base_handler.AudioPlayerState.error);
       _stateController.updateUserIntent(false);
       rethrow;
