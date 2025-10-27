@@ -344,22 +344,21 @@ class AppState extends ChangeNotifier {
               // Initialize cache service first
               await _cacheService.initialize();
               
-              // Initialize audio handler
-              if (_isAndroid) {
-                try {
-                  _audioHandler = await AudioService.init(
-                    builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-                    config: const AudioServiceConfig(
-                      androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-                      androidNotificationChannelName: 'Doudou Music',
-                      androidNotificationOngoing: true,
-                    ),
-                  );
-                } catch (e) {
-                  _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+              // Initialize new audio system with automatic platform detection
+              try {
+                final audioService = AudioServiceIntegration.instance;
+                await audioService.initialize(_mediaServiceManager);
+                _audioHandler = audioService;
+                
+                if (kDebugMode) {
+                  print('Audio system initialized successfully, platform: ${audioService.platformType}');
                 }
-              } else {
-                _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
+              } catch (audioError) {
+                if (kDebugMode) {
+                  print('Failed to initialize audio system: $audioError');
+                }
+                // Continue without audio service
+                _audioHandler = null;
               }
               
               // Load library data
