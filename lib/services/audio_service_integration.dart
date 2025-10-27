@@ -559,6 +559,26 @@ class AudioServiceIntegration {
     return false;
   }
 
+  /// Get current queue index
+  int? get currentIndex {
+    if (!_initialized || _audioHandler == null) return null;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).currentIndex;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).currentIndex;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).currentIndex;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting current index: $e');
+      }
+    }
+    return null;
+  }
+
   /// Add track to queue
   Future<void> addToQueue(Track track) async {
     if (!_initialized || _audioHandler == null) return;
