@@ -78,7 +78,7 @@ class AudioServiceIntegration {
   }
 
   /// Play a playlist
-  Future<void> playPlaylist(List<Track> tracks, {int startIndex = 0}) async {
+  Future<void> playPlaylist(List<Track> tracks, [int startIndex = 0]) async {
     if (!_initialized || _audioHandler == null || tracks.isEmpty) return;
 
     try {
