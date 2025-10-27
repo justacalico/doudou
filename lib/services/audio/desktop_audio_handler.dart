@@ -229,7 +229,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
     );
 
   @override
-  Stream<MediaItem?> get mediaItem => 
+  Stream<audio_service.MediaItem?> get mediaItem => 
     _stateController.currentTrackStream.map((track) => 
       track != null ? _trackToMediaItem(track) : null
     );
