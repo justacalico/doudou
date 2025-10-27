@@ -2137,36 +2137,26 @@ class AppState extends ChangeNotifier {
       // Filter content to show only downloaded items
       _filterContentForOfflineMode();
       
-      // Try to initialize audio handler for offline playback
-      // Only initialize audio service on Android (needed for background audio and Android Auto)
-      if (_isAndroid) {
-        try {
-          _audioHandler = await AudioService.init(
-            builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-            config: const AudioServiceConfig(
-              androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-              androidNotificationChannelName: 'Doudou Music',
-              androidNotificationOngoing: true,
-            ),
-          );
-          
-          // Apply user settings to the audio handler
-          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-          
-          // Set up listeners for automatic UI updates
-          _setupAudioHandlerListeners();
-          
-        } catch (audioError) {
-          if (kDebugMode) {
-            print('Failed to initialize audio service for offline mode: $audioError');
-          }
-          // Continue without audio service
-        }
-      } else {
+      // Initialize new audio system for offline playback
+      try {
+        final audioService = AudioServiceIntegration.instance;
+        await audioService.initialize(_mediaServiceManager);
+        _audioHandler = audioService;
+        
+        // Apply user settings to the audio handler
+        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+        
+        // Set up listeners for automatic UI updates
+        _setupAudioHandlerListeners();
+        
         if (kDebugMode) {
-          print('Audio service initialization skipped on non-Android platform (offline mode)');
+          print('Audio system initialized for offline mode, platform: ${audioService.platformType}');
         }
-        // On non-Android platforms, we don't use AudioService
+      } catch (audioError) {
+        if (kDebugMode) {
+          print('Failed to initialize audio system for offline mode: $audioError');
+        }
+        // Continue without audio service
         _audioHandler = null;
       }
       
