@@ -81,9 +81,11 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Set up player event listeners
   void _setupPlayerListeners() {
-    // Position stream
+    // Position stream - don't queue position updates for performance
     _subscriptions.add(
-      _player.positionStream.listen(_stateController.updatePosition)
+      _player.positionStream.listen((position) {
+        _stateController.updatePosition(position);
+      })
     );
     
     // Duration stream  
