@@ -268,6 +268,19 @@ class AudioServiceIntegration {
     return null;
   }
 
+  Stream<Duration?>? get durationStream {
+    if (!_initialized || _audioHandler == null) return null;
+    
+    if (_audioHandler is WebAudioHandler) {
+      return (_audioHandler as WebAudioHandler).durationStream;
+    } else if (_audioHandler is DesktopAudioHandler) {
+      return (_audioHandler as DesktopAudioHandler).durationStream;
+    } else if (_audioHandler is DoudouAudioHandler) {
+      return (_audioHandler as DoudouAudioHandler).durationStream;
+    }
+    return null;
+  }
+
   Stream<audio_service.MediaItem?>? get mediaItem {
     if (!_initialized || _audioHandler == null) return null;
     
