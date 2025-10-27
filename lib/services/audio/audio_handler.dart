@@ -8,13 +8,13 @@ import '../../models/jellyfin_models.dart';
 import '../jellyfin_service.dart';
 import '../download_service.dart';
 import '../media_service_manager.dart';
-import 'base_audio_handler.dart';
+import 'base_audio_handler.dart' as base_handler;
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';
 
 /// DoudouAudioHandler - Mobile audio handler for Android and iOS
 /// Integrates with AudioService for background playback and system integration
-class DoudouAudioHandler extends BaseAudioHandler implements BaseAudioService {
+class DoudouAudioHandler extends audio_service.BaseAudioHandler implements base.BaseAudioHandler {
   final JellyfinService _jellyfinService;
   final DownloadService _downloadService;
   final MediaServiceManager _mediaServiceManager;
