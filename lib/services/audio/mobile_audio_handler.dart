@@ -441,6 +441,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   @override
+  @override
   Future<void> seek(Duration position) async {
     return _stateController.queueCommand(() async {
       try {
