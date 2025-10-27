@@ -424,73 +424,30 @@ class AppState extends ChangeNotifier {
             print('AppState: Cache service initialized successfully');
           }
         
-        // Try to initialize audio handler after successful login
-        // Only initialize audio service on Android (needed for background audio and Android Auto)
-        if (_isAndroid) {
-          try {
-            _audioHandler = await AudioService.init(
-              builder: () => DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager),
-              config: const AudioServiceConfig(
-                androidNotificationChannelId: 'gitlab.openlyst.doudou.channel.audio',
-                androidNotificationChannelName: 'Doudou Music',
-                androidNotificationOngoing: true,
-              ),
-            );
-            
-            // Apply user settings to the audio handler
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-            
-            // Set up listeners for automatic UI updates
-            _setupAudioHandlerListeners();
-            
-            // Notify listeners after audio handler is ready
-            notifyListeners();
-          } catch (audioError) {
-            if (kDebugMode) {
-              print('Failed to initialize audio service: $audioError');
-            }
-            // Continue without audio service
-          }
-        } else if (_isLinux) {
-          // Linux: Initialize audio handler without AudioService wrapper (like iOS)
-          if (kDebugMode) {
-            print('AppState: Starting Linux audio handler initialization after login');
-          }
-          try {
-            _audioHandler = DoudouAudioHandler(_jellyfinService, _downloadService, _mediaServiceManager);
-            
-            // Apply user settings to the audio handler
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-            
-            // Set up listeners for automatic UI updates
-            _setupAudioHandlerListeners();
-            
-            if (kDebugMode) {
-              print('Linux audio handler initialized successfully after login');
-            }
-            
-            // Notify listeners that login is complete
-            notifyListeners();
-          } catch (audioError) {
-            if (kDebugMode) {
-              print('Failed to initialize Linux audio handler after login: $audioError');
-              print('Stack trace: ${StackTrace.current}');
-            }
-            // Continue without audio handler
-            _audioHandler = null;
-            notifyListeners();
-          }
-          if (kDebugMode) {
-            print('AppState: Linux audio handler initialization block completed');
-          }
-        } else {
-          if (kDebugMode) {
-            print('Audio service initialization skipped on non-Android platform');
-          }
-          // On other platforms, we don't use AudioService
-          _audioHandler = null;
+        // Initialize new audio system with automatic platform detection
+        try {
+          final audioService = AudioServiceIntegration.instance;
+          await audioService.initialize(_mediaServiceManager);
+          _audioHandler = audioService;
           
-          // Notify listeners that login is complete
+          // Apply user settings to the audio handler
+          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+          
+          // Set up listeners for automatic UI updates
+          _setupAudioHandlerListeners();
+          
+          // Notify listeners after audio handler is ready
+          notifyListeners();
+          
+          if (kDebugMode) {
+            print('Audio system initialized successfully after login, platform: ${audioService.platformType}');
+          }
+        } catch (audioError) {
+          if (kDebugMode) {
+            print('Failed to initialize audio system after login: $audioError');
+          }
+          // Continue without audio service
+          _audioHandler = null;
           notifyListeners();
         }
         
