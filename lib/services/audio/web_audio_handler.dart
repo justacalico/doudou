@@ -528,25 +528,7 @@ class WebAudioHandler implements BaseAudioHandler {
     return _mediaServiceManager.getStreamUrl(track.id);
   }
 
-  /// Convert Track to WebMediaItem for compatibility
-  WebMediaItem _trackToMediaItem(Track track) {
-    return WebMediaItem(
-      id: track.id,
-      album: track.albumName,
-      title: track.name,
-      artist: track.artistName ?? 'Unknown Artist',
-      duration: track.duration != null ? Duration(milliseconds: track.duration!) : null,
-      artUri: Uri.tryParse(_mediaServiceManager.getImageUrl(
-        track.albumId ?? track.id,
-        width: 300,
-        height: 300,
-      )),
-      extras: {
-        'trackId': track.id,
-        'albumId': track.albumId,
-      },
-    );
-  }
+
 
   // Queue management
 
