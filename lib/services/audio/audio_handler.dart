@@ -3759,7 +3759,7 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
           if (kDebugMode) {
             print('Android: Trying next stream URL after recovery delay...');
           }
-          await Future.delayed(const Duration(milliseconds: 800)); // Extra delay for Android
+          await Future.delayed(const Duration(milliseconds: 200)); // Reduced delay for faster playback
           continue;
         }
       }
