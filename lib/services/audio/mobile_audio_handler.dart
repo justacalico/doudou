@@ -708,10 +708,17 @@ class DoudouAudioHandler extends BaseAudioHandler {
         print('DoudouAudioHandler: Audio source set successfully');
       }
       
-      // Start playback without blocking UI
-      await _player.play();
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Playback started successfully');
+      // Only start playback if user intended to play (important for background transitions)
+      if (_stateController.userIntendedPlaying) {
+        await _player.play();
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Playback started successfully');
+        }
+      } else {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)');
+        }
+        _stateController.updateState(base_handler.AudioPlayerState.paused);
       }
     } catch (e) {
       if (kDebugMode) {
