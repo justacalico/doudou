@@ -1444,7 +1444,7 @@ class AppState extends ChangeNotifier {
       // CRITICAL FIX: Use userIntendedPlaying instead of playbackState.playing to avoid race conditions
       // playbackState.playing can lag behind the actual command completion, causing double-click issues
       final userIntendedPlaying = _audioHandler!.userIntendedPlaying;
-      final playbackStatePlaying = _audioHandler!.playbackState.value.playing;
+      final playbackStatePlaying = _audioHandler!.userIntendedPlaying; // Use userIntendedPlaying instead of accessing stream value
       
       if (kDebugMode) {
         print('Current playbackState.playing: $playbackStatePlaying');
