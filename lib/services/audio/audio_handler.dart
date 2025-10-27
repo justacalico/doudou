@@ -3689,9 +3689,9 @@ class DoudouAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
               
               try {
                 await _player.stop();
-                await Future.delayed(const Duration(milliseconds: 500));
+                await Future.delayed(const Duration(milliseconds: 100));
                 await _player.setUrl(bypassUrl);
-                await Future.delayed(const Duration(milliseconds: 1000));
+                await Future.delayed(const Duration(milliseconds: 200));
                 
                 if (shouldPlay && _userIntendedPlaying) {
                   await _player.play();
