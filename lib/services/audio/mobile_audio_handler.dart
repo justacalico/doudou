@@ -147,17 +147,24 @@ class DoudouAudioHandler extends BaseAudioHandler {
     );
   }
 
-  /// Update AudioService queue index for proper UI synchronization
-  void _updateAudioServiceQueueIndex(int index) {
-    // Create a new PlaybackState with the updated queue index
-    final currentState = playbackState.valueOrNull ?? PlaybackState();
-    final updatedState = currentState.copyWith(
+  /// Force comprehensive UI synchronization for track changes
+  void _forceUISynchronization(Track track, int index) {
+    // Update MediaItem for AudioService notifications and lock screen
+    mediaItem.add(_trackToMediaItem(track));
+    
+    // Update PlaybackState with correct queue index
+    final currentPlaybackState = playbackState.valueOrNull ?? PlaybackState();
+    final updatedPlaybackState = currentPlaybackState.copyWith(
       queueIndex: index,
     );
-    playbackState.add(updatedState);
+    playbackState.add(updatedPlaybackState);
+    
+    // Ensure state controller has the latest information
+    _stateController.updateCurrentIndex(index);
+    _stateController.updateCurrentTrack(track);
     
     if (kDebugMode) {
-      print('DoudouAudioHandler: Updated AudioService queue index to $index');
+      print('DoudouAudioHandler: Force UI sync - track: ${track.name}, index: $index');
     }
   }
 
@@ -227,11 +234,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
       if (nextIndex < queue.length) {
         final nextTrack = queue[nextIndex];
         
-        // Explicitly update MediaItem for AudioService
-        mediaItem.add(_trackToMediaItem(nextTrack));
-        
-        // Update the AudioService queue position
-        _updateAudioServiceQueueIndex(nextIndex);
+        // Force comprehensive UI synchronization
+        _forceUISynchronization(nextTrack, nextIndex);
         
         if (kDebugMode) {
           print('DoudouAudioHandler: UI state synchronized for track: ${nextTrack.name}');
