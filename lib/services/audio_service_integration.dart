@@ -437,6 +437,46 @@ class AudioServiceIntegration {
     return false;
   }
 
+  /// Check if there is a previous track available
+  bool get hasPrevious {
+    if (!_initialized || _audioHandler == null) return false;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).hasPrevious;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).hasPrevious;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).hasPrevious;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting hasPrevious: $e');
+      }
+    }
+    return false;
+  }
+
+  /// Check if there is a next track available
+  bool get hasNext {
+    if (!_initialized || _audioHandler == null) return false;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).hasNext;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).hasNext;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).hasNext;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting hasNext: $e');
+      }
+    }
+    return false;
+  }
+
   /// Add track to queue
   Future<void> addToQueue(Track track) async {
     if (!_initialized || _audioHandler == null) return;
