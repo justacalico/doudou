@@ -890,12 +890,7 @@ class AppState extends ChangeNotifier {
         
         // Update audio handler with cached media library for Android Auto
         try {
-          _audioHandler?.updateMediaLibrary(
-            albums: _albums,
-            artists: _artists,
-            tracks: _tracks,
-            playlists: _playlists,
-          );
+          _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
         } catch (e) {
           if (kDebugMode) {
             print('Warning: Failed to update AudioHandler with cached data: $e');
