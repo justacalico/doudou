@@ -15,12 +15,22 @@ class MiniPlayer extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
-        final currentTrack = audioHandler?.currentTrack;
         
-        // Return empty widget if no track is playing
-        if (currentTrack == null || audioHandler == null) {
+        // Return empty widget if no audio handler
+        if (audioHandler == null) {
           return const SizedBox.shrink();
         }
+
+        // Listen to current track changes in real-time
+        return StreamBuilder<Track?>(
+          stream: audioHandler.currentTrackStream,
+          builder: (context, trackSnapshot) {
+            final currentTrack = trackSnapshot.data;
+            
+            // Return empty widget if no track is playing
+            if (currentTrack == null) {
+              return const SizedBox.shrink();
+            }
 
         // Determine if we're on a desktop platform
         final isDesktop = !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
