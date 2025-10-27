@@ -424,6 +424,180 @@ class AudioServiceIntegration {
     return false;
   }
 
+  /// Add track to queue
+  Future<void> addToQueue(Track track) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).addToQueue(track);
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).addToQueue(track);
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).addToQueue(track);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error adding to queue: $e');
+      }
+    }
+  }
+
+  /// Add track to play next
+  Future<void> addNext(Track track) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).addNext(track);
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).addNext(track);
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).addNext(track);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error adding next: $e');
+      }
+    }
+  }
+
+  /// Get current queue tracks
+  List<Track> get queueTracks {
+    if (!_initialized || _audioHandler == null) return [];
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).queueTracks;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).queueTracks;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).queueTracks;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting queue tracks: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Get up next tracks
+  List<Track> get upNext {
+    if (!_initialized || _audioHandler == null) return [];
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).upNext;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).upNext;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).upNext;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting up next: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Check if radio mode is enabled
+  bool get radioModeEnabled {
+    if (!_initialized || _audioHandler == null) return false;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).radioModeEnabled;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).radioModeEnabled;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).radioModeEnabled;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting radio mode: $e');
+      }
+    }
+    return false;
+  }
+
+  /// Toggle radio mode
+  Future<void> toggleRadioMode() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).toggleRadioMode();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).toggleRadioMode();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).toggleRadioMode();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error toggling radio mode: $e');
+      }
+    }
+  }
+
+  /// Enable radio mode
+  Future<void> enableRadioMode() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).enableRadioMode();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).enableRadioMode();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).enableRadioMode();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error enabling radio mode: $e');
+      }
+    }
+  }
+
+  /// Disable radio mode
+  Future<void> disableRadioMode() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).disableRadioMode();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).disableRadioMode();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).disableRadioMode();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error disabling radio mode: $e');
+      }
+    }
+  }
+
+  /// Shuffle current queue
+  Future<void> shuffle() async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).shuffle();
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).shuffle();
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).shuffle();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error shuffling: $e');
+      }
+    }
+  }
+
   /// Dispose resources
   Future<void> dispose() async {
     if (_audioHandler != null) {
