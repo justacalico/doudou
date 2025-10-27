@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/audio_service_integration.dart';
 import '../services/media_service_manager.dart';
-import '../models/jellyfin_models.dart';
+
 
 /// Simple demo of the new audio system
 class NewAudioDemo extends StatefulWidget {
