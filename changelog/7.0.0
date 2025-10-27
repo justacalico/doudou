@@ -1,7 +1,6 @@
 # 7.0.0
 
 ## Added
-
 - Comprehensive logging system with file rotation and export capabilities
 - Mobile and desktop log viewer in settings
 - Detailed playback logging for troubleshooting music playback issues
@@ -16,7 +15,6 @@
 - Ability to download songs on desktop
 - Use real history for the mobile search page
 - Redesigned the mobile search page
-
 ## Changed
 
 - New description
@@ -30,16 +28,14 @@
 - Fixed race issues when pausing music
 - Redesigned mobile home page
 - Redesigned mobile library page
-- Complete rewrite of the EVERY audio service files. 
+- Complete rewrite of EVERY audio service file
 
 ## Removed
-
 - Removed crossfades
 - Removed debugging for images
 - Removed debugging for audio states
 
 ## Fixed
-
 - Fixed skipping on Linux
 - Improved playback diagnostics with comprehensive logging throughout the audio system
 - Fixed a bug that often caused the audio player to not work when using local addresses
@@ -49,7 +45,6 @@
 - Fixed switching queues breaking the audio stream
 
 ### Critical Race Condition Fixes (Audio System Overhaul)
-
 - **Fixed Custom Spinlock System**: Replaced 9 custom spinlock implementations with proper async Mutex system to eliminate busy-wait loops causing CPU spikes and deadlocks
 - **Fixed Concurrent Player Operations**: Implemented AudioOperationQueue to prevent "Loading interrupted" errors from concurrent _resetPlayerStateCompletely and _tryGaplessPlayback operations
 - **Fixed User Intent vs Player State Desynchronization**: Implemented AudioStateMachine to prevent UI showing play button while audio is paused, ensuring synchronized user intent tracking
