@@ -579,21 +579,20 @@ class AudioServiceIntegration {
     }
   }
 
-  /// Shuffle current queue
+  /// Shuffle current queue (basic implementation)
   Future<void> shuffle() async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).shuffle();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).shuffle();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).shuffle();
+      // Enable shuffle mode instead of calling a shuffle method
+      await setShuffleMode(true);
+      
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Enabled shuffle mode');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('AudioServiceIntegration: Error shuffling: $e');
+        print('AudioServiceIntegration: Error enabling shuffle: $e');
       }
     }
   }
