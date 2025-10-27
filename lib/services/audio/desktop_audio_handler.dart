@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:media_kit/media_kit.dart' as mk;
 import 'package:rxdart/rxdart.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import '../../models/jellyfin_models.dart';
@@ -524,13 +525,43 @@ class DesktopAudioHandler implements BaseAudioHandler {
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     try {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Loading audio source: $url');
+      }
+      
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
       
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
-      await _player.play();
+      // Try to set the audio source with more detailed error handling
+      try {
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Audio source set successfully');
+        }
+      } catch (sourceError) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Failed to set audio source: $sourceError');
+        }
+        rethrow;
+      }
+      
+      // Try to play with detailed error handling
+      try {
+        await _player.play();
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Playback started successfully');
+        }
+      } catch (playError) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Failed to start playback: $playError');
+        }
+        rethrow;
+      }
       
     } catch (e) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Load and play failed: $e');
+      }
       _stateController.updateState(AudioPlayerState.error);
       _stateController.updateUserIntent(false);
       rethrow;
@@ -539,7 +570,21 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   /// Get stream URL for track
   String _getStreamUrl(Track track) {
-    return _mediaServiceManager.getStreamUrl(track.id);
+    // Try direct stream first (no transcoding) for better compatibility
+    final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+    if (directUrl.isNotEmpty) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Using direct stream URL: $directUrl');
+      }
+      return directUrl;
+    }
+    
+    // Fallback to transcoded stream
+    final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
+    if (kDebugMode) {
+      print('DesktopAudioHandler: Using transcoded stream URL: $transcodedUrl');
+    }
+    return transcodedUrl;
   }
 
   /// Convert Track to MediaItem for compatibility
