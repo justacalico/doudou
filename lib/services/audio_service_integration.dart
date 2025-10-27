@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:audio_service/audio_service.dart' as audio_service;
+import 'package:just_audio/just_audio.dart';
 import 'audio_service_factory.dart';
 import 'media_service_manager.dart';
 import 'audio/web_audio_handler.dart';
@@ -180,6 +182,145 @@ class AudioServiceIntegration {
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error setting volume: $e');
+      }
+    }
+  }
+
+  /// Stream getters for backwards compatibility with AppState
+  
+  Stream<PlayerState>? get playerStateStream {
+    if (!_initialized || _audioHandler == null) return null;
+    
+    if (_audioHandler is WebAudioHandler) {
+      return (_audioHandler as WebAudioHandler).playerStateStream;
+    } else if (_audioHandler is DesktopAudioHandler) {
+      return (_audioHandler as DesktopAudioHandler).playerStateStream;
+    } else if (_audioHandler is DoudouAudioHandler) {
+      return (_audioHandler as DoudouAudioHandler).playerStateStream;
+    }
+    return null;
+  }
+
+  Stream<audio_service.PlaybackState>? get playbackState {
+    if (!_initialized || _audioHandler == null) return null;
+    
+    if (_audioHandler is DoudouAudioHandler) {
+      return (_audioHandler as DoudouAudioHandler).playbackState.stream;
+    }
+    // For web/desktop, we need to create a compatible stream
+    return null;
+  }
+
+  Stream<Duration>? get positionStream {
+    if (!_initialized || _audioHandler == null) return null;
+    
+    if (_audioHandler is WebAudioHandler) {
+      return (_audioHandler as WebAudioHandler).positionStream;
+    } else if (_audioHandler is DesktopAudioHandler) {
+      return (_audioHandler as DesktopAudioHandler).positionStream;
+    } else if (_audioHandler is DoudouAudioHandler) {
+      return (_audioHandler as DoudouAudioHandler).positionStream;
+    }
+    return null;
+  }
+
+  Stream<audio_service.MediaItem?>? get mediaItem {
+    if (!_initialized || _audioHandler == null) return null;
+    
+    if (_audioHandler is DoudouAudioHandler) {
+      return (_audioHandler as DoudouAudioHandler).mediaItem.stream;
+    }
+    // For web/desktop, return a compatible stream
+    return null;
+  }
+
+  /// Additional methods that AppState expects
+
+  Future<void> setGaplessPlayback(bool enabled) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        // Web doesn't need special gapless handling
+      } else if (_audioHandler is DesktopAudioHandler) {
+        // Desktop can implement if needed
+      } else if (_audioHandler is DoudouAudioHandler) {
+        // Mobile may have gapless options
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error setting gapless playback: $e');
+      }
+    }
+  }
+
+  Future<void> seek(Duration position) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        await (_audioHandler as WebAudioHandler).seek(position);
+      } else if (_audioHandler is DesktopAudioHandler) {
+        await (_audioHandler as DesktopAudioHandler).seek(position);
+      } else if (_audioHandler is DoudouAudioHandler) {
+        await (_audioHandler as DoudouAudioHandler).seek(position);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error seeking: $e');
+      }
+    }
+  }
+
+  Future<void> setRepeatMode(RepeatMode mode) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        (_audioHandler as WebAudioHandler).setRepeatMode(mode);
+      } else if (_audioHandler is DesktopAudioHandler) {
+        (_audioHandler as DesktopAudioHandler).setRepeatMode(mode);
+      } else if (_audioHandler is DoudouAudioHandler) {
+        // Convert RepeatMode to AudioServiceRepeatMode
+        audio_service.AudioServiceRepeatMode audioServiceMode;
+        switch (mode) {
+          case RepeatMode.none:
+            audioServiceMode = audio_service.AudioServiceRepeatMode.none;
+            break;
+          case RepeatMode.one:
+            audioServiceMode = audio_service.AudioServiceRepeatMode.one;
+            break;
+          case RepeatMode.all:
+            audioServiceMode = audio_service.AudioServiceRepeatMode.all;
+            break;
+        }
+        await (_audioHandler as DoudouAudioHandler).setRepeatMode(audioServiceMode);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error setting repeat mode: $e');
+      }
+    }
+  }
+
+  Future<void> setShuffleMode(bool enabled) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        // Web handler doesn't have shuffle mode method yet - implement if needed
+      } else if (_audioHandler is DesktopAudioHandler) {
+        // Desktop handler doesn't have shuffle mode method yet - implement if needed
+      } else if (_audioHandler is DoudouAudioHandler) {
+        // Convert bool to AudioServiceShuffleMode
+        final shuffleMode = enabled 
+          ? audio_service.AudioServiceShuffleMode.all 
+          : audio_service.AudioServiceShuffleMode.none;
+        await (_audioHandler as DoudouAudioHandler).setShuffleMode(shuffleMode);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error setting shuffle mode: $e');
       }
     }
   }
