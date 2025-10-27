@@ -517,7 +517,7 @@ class JellyfinService implements BaseMediaService {
 
   @override
   // Simple cache for image URLs to reduce repeated generations
-  static final Map<String, String> _imageUrlCache = <String, String>{};
+  final Map<String, String> _imageUrlCache = <String, String>{};
 
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     if (_server == null || itemId.isEmpty) {
