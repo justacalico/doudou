@@ -966,12 +966,7 @@ class AppState extends ChangeNotifier {
         
         // Update audio handler with empty but safe data
         try {
-          _audioHandler?.updateMediaLibrary(
-            albums: _albums,
-            artists: _artists,
-            tracks: _tracks,
-            playlists: _playlists,
-          );
+          _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
         } catch (audioError) {
           if (kDebugMode) {
             print('Warning: Failed to update AudioHandler with empty data: $audioError');
