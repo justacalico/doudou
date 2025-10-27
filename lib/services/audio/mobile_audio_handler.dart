@@ -555,6 +555,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   @override
+  @override
   Future<void> skipToPrevious() async {
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
