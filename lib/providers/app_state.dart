@@ -25,8 +25,6 @@ class AppState extends ChangeNotifier {
   
   // Platform detection helpers (web-safe)
   bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-  bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-  bool get _isMacOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
   bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
   
   bool _isLoggedIn = false;
