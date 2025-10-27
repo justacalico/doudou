@@ -1186,12 +1186,13 @@ class JellyfinService implements BaseMediaService {
     }
     
     // Return multiple Jellyfin stream URLs in order of preference for fallback
+    // Prioritize direct download since it works most reliably
     final urls = [
-      getStreamUrl(trackId),          // Primary transcoded stream URL
-      getUniversalStreamUrl(trackId), // Universal stream URL
-      getDirectStreamUrl(trackId),    // Direct download URL
+      getDirectStreamUrl(trackId),    // Direct download URL (most reliable)
       getSimpleStreamUrl(trackId),    // Simple stream format
       getMinimalStreamUrl(trackId),   // Minimal params format
+      getStreamUrl(trackId),          // Primary transcoded stream URL
+      getUniversalStreamUrl(trackId), // Universal stream URL
     ].where((url) => url.isNotEmpty).toList(); // Filter out empty URLs
     
     if (kDebugMode) {
