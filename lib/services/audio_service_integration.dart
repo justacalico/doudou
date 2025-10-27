@@ -449,11 +449,11 @@ class AudioServiceIntegration {
 
     try {
       if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).addNext(track);
+        (_audioHandler as WebAudioHandler).addNext(track);
       } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).addNext(track);
+        (_audioHandler as DesktopAudioHandler).addNext(track);
       } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).addNext(track);
+        (_audioHandler as DoudouAudioHandler).addNext(track);
       }
     } catch (e) {
       if (kDebugMode) {
