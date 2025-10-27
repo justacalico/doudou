@@ -514,6 +514,26 @@ class AudioServiceIntegration {
     return false;
   }
 
+  /// Get current track duration
+  Duration get duration {
+    if (!_initialized || _audioHandler == null) return Duration.zero;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).duration;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).duration;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        return (_audioHandler as DoudouAudioHandler).duration;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting duration: $e');
+      }
+    }
+    return Duration.zero;
+  }
+
   /// Add track to queue
   Future<void> addToQueue(Track track) async {
     if (!_initialized || _audioHandler == null) return;
