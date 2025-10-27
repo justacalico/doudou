@@ -29,7 +29,7 @@ class SimpleAudioHandler extends BaseAudioHandler {
     _initializePlayer();
     
     if (kDebugMode) {
-      print('SimpleAudioHandler initialized for service: ${_mediaService.serviceName}');
+      print('SimpleAudioHandler initialized for service: ${_mediaService.currentServerType}');
     }
   }
 
