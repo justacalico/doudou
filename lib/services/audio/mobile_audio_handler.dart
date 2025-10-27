@@ -18,21 +18,20 @@ class DoudouAudioHandler extends BaseAudioHandler {
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
   final AudioPlayer _player = AudioPlayer();
-  
+
   // Stream subscriptions for proper cleanup
   late final List<StreamSubscription> _subscriptions = [];
-  
+
   // Playback session management
   AudioSession? _session;
-  
+
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
-  
+
   // Constructor
-  DoudouAudioHandler({
-    required MediaServiceManager mediaServiceManager,
-  }) : _mediaServiceManager = mediaServiceManager {
+  DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
+    : _mediaServiceManager = mediaServiceManager {
     _initializeAudio();
   }
 
@@ -45,13 +44,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
       // Initialize audio session
       await _initializeAudioSession();
-      
+
       // Set up player event listeners
       _setupPlayerListeners();
-      
+
       // Set up state synchronization
       _setupStateSynchronization();
-      
+
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio system initialized successfully');
       }
@@ -68,7 +67,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     try {
       _session = await AudioSession.instance;
       await _session!.configure(const AudioSessionConfiguration.music());
-      
+
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio session configured');
       }
@@ -85,31 +84,31 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _subscriptions.add(
       _player.positionStream.listen((position) {
         _stateController.updatePosition(position);
-      })
+      }),
     );
-    
-    // Duration stream  
+
+    // Duration stream
     _subscriptions.add(
       _player.durationStream.listen((duration) {
         _stateController.updateDuration(duration ?? Duration.zero);
-      })
+      }),
     );
-    
+
     // Player state stream
     _subscriptions.add(
-      _player.playerStateStream.listen(_handlePlayerStateChange)
+      _player.playerStateStream.listen(_handlePlayerStateChange),
     );
-    
+
     // Processing state for loading detection
     _subscriptions.add(
-      _player.processingStateStream.listen(_handleProcessingStateChange)
+      _player.processingStateStream.listen(_handleProcessingStateChange),
     );
-    
+
     // Player completion
     _subscriptions.add(
       _player.playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
-          .listen((_) => _handleTrackCompletion())
+          .listen((_) => _handleTrackCompletion()),
     );
   }
 
@@ -121,13 +120,16 @@ class DoudouAudioHandler extends BaseAudioHandler {
         _stateController.stateStream,
         _stateController.positionStream,
         _player.speedStream,
-        (base_handler.AudioPlayerState state, Duration position, double speed) => 
-            _createPlaybackState(state, position, speed),
+        (
+          base_handler.AudioPlayerState state,
+          Duration position,
+          double speed,
+        ) => _createPlaybackState(state, position, speed),
       ).listen((playbackState) {
         this.playbackState.add(playbackState);
-      })
+      }),
     );
-    
+
     // Sync current track to MediaItem
     _subscriptions.add(
       _stateController.currentTrackStream.listen((track) {
@@ -136,14 +138,14 @@ class DoudouAudioHandler extends BaseAudioHandler {
         } else {
           mediaItem.add(null);
         }
-      })
+      }),
     );
-    
+
     // Sync queue to AudioService
     _subscriptions.add(
       _stateController.queueStream.listen((tracks) {
         queue.add(tracks.map(_trackToMediaItem).toList());
-      })
+      }),
     );
   }
 
@@ -151,20 +153,22 @@ class DoudouAudioHandler extends BaseAudioHandler {
   void _forceUISynchronization(Track track, int index) {
     // Update MediaItem for AudioService notifications and lock screen
     mediaItem.add(_trackToMediaItem(track));
-    
+
     // Update PlaybackState with correct queue index
     final currentPlaybackState = playbackState.valueOrNull ?? PlaybackState();
     final updatedPlaybackState = currentPlaybackState.copyWith(
       queueIndex: index,
     );
     playbackState.add(updatedPlaybackState);
-    
+
     // Ensure state controller has the latest information
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
-    
+
     if (kDebugMode) {
-      print('DoudouAudioHandler: Force UI sync - track: ${track.name}, index: $index');
+      print(
+        'DoudouAudioHandler: Force UI sync - track: ${track.name}, index: $index',
+      );
     }
   }
 
@@ -183,10 +187,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
           _stateController.updateState(base_handler.AudioPlayerState.playing);
         } else {
           // Check if we should auto-continue playback (important for background track transitions)
-          if (_stateController.userIntendedPlaying && 
-              _stateController.currentState == base_handler.AudioPlayerState.loading) {
+          if (_stateController.userIntendedPlaying &&
+              _stateController.currentState ==
+                  base_handler.AudioPlayerState.loading) {
             if (kDebugMode) {
-              print('DoudouAudioHandler: Track ready, auto-continuing playback in background');
+              print(
+                'DoudouAudioHandler: Track ready, auto-continuing playback in background',
+              );
             }
             // Resume playback without blocking
             Future.microtask(() => _player.play());
@@ -223,25 +230,29 @@ class DoudouAudioHandler extends BaseAudioHandler {
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
       if (kDebugMode) {
-        print('DoudouAudioHandler: Auto-advancing to next track (index: $nextIndex)');
+        print(
+          'DoudouAudioHandler: Auto-advancing to next track (index: $nextIndex)',
+        );
       }
-      
+
       // Skip to next track and ensure playback continues in background
       await skipToQueueItem(nextIndex);
-      
+
       // Force update UI state immediately for proper synchronization
       final queue = _stateController.queue;
       if (nextIndex < queue.length) {
         final nextTrack = queue[nextIndex];
-        
+
         // Force comprehensive UI synchronization
         _forceUISynchronization(nextTrack, nextIndex);
-        
+
         if (kDebugMode) {
-          print('DoudouAudioHandler: UI state synchronized for track: ${nextTrack.name}');
+          print(
+            'DoudouAudioHandler: UI state synchronized for track: ${nextTrack.name}',
+          );
         }
       }
-      
+
       // Explicitly trigger play after a brief delay to ensure background service continues
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_stateController.userIntendedPlaying) {
@@ -264,7 +275,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Fetch similar tracks from the media service
       // This is a placeholder - implement based on your media service capabilities
       final similarTracks = await _fetchSimilarTracks(currentTrack);
-      
+
       if (similarTracks.isNotEmpty) {
         // Add similar tracks to queue and play next
         for (final track in similarTracks.take(5)) {
@@ -291,11 +302,11 @@ class DoudouAudioHandler extends BaseAudioHandler {
         parentId: track.artistName,
         limit: 20,
       );
-      
+
       // Filter out current track and already queued tracks
       final currentQueue = _stateController.queue;
       final queueIds = currentQueue.map((t) => t.id).toSet();
-      
+
       return artistTracks
           .where((t) => t.id != track.id && !queueIds.contains(t.id))
           .toList();
@@ -316,9 +327,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
     return PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
-        if (state == base_handler.AudioPlayerState.playing) 
-          MediaControl.pause 
-        else 
+        if (state == base_handler.AudioPlayerState.playing)
+          MediaControl.pause
+        else
           MediaControl.play,
         MediaControl.skipToNext,
         MediaControl.stop,
@@ -339,7 +350,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   /// Map internal state to AudioService ProcessingState
-  AudioProcessingState _mapToAudioServiceProcessingState(base_handler.AudioPlayerState state) {
+  AudioProcessingState _mapToAudioServiceProcessingState(
+    base_handler.AudioPlayerState state,
+  ) {
     switch (state) {
       case base_handler.AudioPlayerState.idle:
         return AudioProcessingState.idle;
@@ -362,22 +375,24 @@ class DoudouAudioHandler extends BaseAudioHandler {
       album: track.albumName,
       title: track.name,
       artist: track.artistName ?? 'Unknown Artist',
-      duration: track.duration != null ? Duration(milliseconds: track.duration!) : null,
-      artUri: Uri.tryParse(_mediaServiceManager.getImageUrl(
-        track.albumId ?? track.id,
-        width: 300,
-        height: 300,
-      )),
-      extras: {
-        'trackId': track.id,
-        'albumId': track.albumId,
-      },
+      duration: track.duration != null
+          ? Duration(milliseconds: track.duration!)
+          : null,
+      artUri: Uri.tryParse(
+        _mediaServiceManager.getImageUrl(
+          track.albumId ?? track.id,
+          width: 300,
+          height: 300,
+        ),
+      ),
+      extras: {'trackId': track.id, 'albumId': track.albumId},
     );
   }
 
   // BaseAudioHandler implementation
 
-  Stream<base_handler.AudioPlayerState> get stateStream => _stateController.stateStream;
+  Stream<base_handler.AudioPlayerState> get stateStream =>
+      _stateController.stateStream;
 
   Stream<Duration> get positionStream => _stateController.positionStream;
 
@@ -391,16 +406,19 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   // Additional streams for AudioService integration
   Stream<Track?> get currentTrackStream => _stateController.currentTrackStream;
-  
-  Stream<base_handler.RepeatMode> get repeatModeStream => _stateController.repeatModeStream;
-  
-  Stream<bool> get shuffleEnabledStream => _stateController.shuffleEnabledStream;
-  
+
+  Stream<base_handler.RepeatMode> get repeatModeStream =>
+      _stateController.repeatModeStream;
+
+  Stream<bool> get shuffleEnabledStream =>
+      _stateController.shuffleEnabledStream;
+
   Stream<double> get speedStream => _stateController.speedStream;
-  
+
   Stream<String?> get errorStream => _stateController.errorStream;
 
-  base_handler.AudioPlayerState get currentState => _stateController.currentState;
+  base_handler.AudioPlayerState get currentState =>
+      _stateController.currentState;
 
   Duration get position => _stateController.position;
 
@@ -591,10 +609,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
     try {
       // Get stream URL
       final streamUrl = _getStreamUrl(track);
-      
+
       // Load and play the track
       await _loadAndPlayTrack(streamUrl);
-      
+
       if (kDebugMode) {
         print('DoudouAudioHandler: Track loaded and playing');
       }
@@ -608,17 +626,19 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (kDebugMode) {
-      print('DoudouAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
+      print(
+        'DoudouAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex',
+      );
     }
 
-    // Update UI immediately  
+    // Update UI immediately
     if (tracks.isEmpty) {
       _stateController.updateError('Cannot play empty playlist');
       return;
     }
 
     final validStartIndex = startIndex.clamp(0, tracks.length - 1);
-    
+
     // Set up queue immediately for UI responsiveness
     _queueManager.setQueue(tracks, startIndex: validStartIndex);
     _stateController.updateCurrentTrack(tracks[validStartIndex]);
@@ -632,7 +652,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     try {
       // Play the starting track
       await _playTrackAtIndex(startIndex);
-      
+
       if (kDebugMode) {
         print('DoudouAudioHandler: Playlist loaded and playing');
       }
@@ -697,7 +717,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _stateController.updateCurrentIndex(index);
       _stateController.updateCurrentTrack(track);
       _stateController.updateState(base_handler.AudioPlayerState.loading);
-      
+
       // Force UI synchronization to prevent desync
       _forceUISynchronization(track, index);
     }
@@ -726,10 +746,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
   Future<void> _playTrackAtIndex(int index) async {
     final queue = _stateController.queue;
     final track = queue[index];
-    
+
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
-    
+
     final streamUrl = _getStreamUrl(track);
     await _loadAndPlayTrack(streamUrl);
   }
@@ -739,7 +759,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     if (kDebugMode) {
       print('DoudouAudioHandler: Loading audio source: $url');
     }
-    
+
     _stateController.updateState(base_handler.AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
 
@@ -754,7 +774,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio source set successfully');
       }
-      
+
       // Only start playback if user intended to play (important for background transitions)
       if (_stateController.userIntendedPlaying) {
         await _player.play();
@@ -763,7 +783,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
         }
       } else {
         if (kDebugMode) {
-          print('DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)');
+          print(
+            'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
+          );
         }
         _stateController.updateState(base_handler.AudioPlayerState.paused);
       }
@@ -787,7 +809,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       }
       return directUrl;
     }
-    
+
     // Fallback to transcoded stream
     final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
     if (kDebugMode) {
