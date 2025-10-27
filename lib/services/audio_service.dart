@@ -5,7 +5,7 @@ import '../models/jellyfin_models.dart';
 import 'media_service_manager.dart';
 import 'audio/base_audio_handler.dart';
 import 'audio/mobile_audio_handler.dart';
-import 'audio/simple_desktop_audio_handler.dart';
+import 'audio/desktop_audio_handler.dart';
 import 'audio/web_audio_handler.dart';
 
 /// Main audio service that provides a unified interface across all platforms
@@ -66,7 +66,7 @@ class AudioService {
             mediaServiceManager: mediaServiceManager,
           ),
           config: const AudioServiceConfig(
-            androidNotificationChannelId: 'com.doudoubox.audio',
+            androidNotificationChannelId: 'gitlab.openlyst.doudou',
             androidNotificationChannelName: 'Doudou Audio',
             androidNotificationOngoing: true,
             androidStopForegroundOnPause: false,
