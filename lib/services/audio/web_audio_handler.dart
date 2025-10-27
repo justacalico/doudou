@@ -216,8 +216,8 @@ class WebAudioHandler {
   
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
-
-
+  @override
+  Stream<double> get volumeStream => _player.volumeStream;
   
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
 
