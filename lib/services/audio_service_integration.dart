@@ -81,14 +81,11 @@ class AudioServiceIntegration {
 
     try {
       if (_audioHandler is WebAudioHandler) {
-        // For web, set queue and play
-        await (_audioHandler as WebAudioHandler).queue(tracks);
-        if (startIndex < tracks.length) {
-          await (_audioHandler as WebAudioHandler).playTrack(tracks[startIndex]);
-        }
+        // For web, use playPlaylist method
+        await (_audioHandler as WebAudioHandler).playPlaylist(tracks, startIndex);
       } else if (_audioHandler is DesktopAudioHandler) {
-        // For desktop, set queue and play
-        await (_audioHandler as DesktopAudioHandler).setQueue(tracks, initialIndex: startIndex);
+        // For desktop, use playPlaylist method
+        await (_audioHandler as DesktopAudioHandler).playPlaylist(tracks, startIndex);
       } else if (_audioHandler is DoudouAudioHandler) {
         // For mobile, use playPlaylist method
         await (_audioHandler as DoudouAudioHandler).playPlaylist(tracks, startIndex);
