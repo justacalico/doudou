@@ -129,32 +129,32 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
             }
 
             if (currentTrack == null) {
-          return CupertinoPageScaffold(
-            backgroundColor: const Color(0xFF000000),
-            child: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.music_note,
-                    size: 64,
-                    color: CupertinoColors.systemGrey,
+              return CupertinoPageScaffold(
+                backgroundColor: const Color(0xFF000000),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.music_note,
+                        size: 64,
+                        color: CupertinoColors.systemGrey,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'No music playing',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: CupertinoColors.systemGrey,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No music playing',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: CupertinoColors.systemGrey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
+                ),
+              );
+            }
 
-        return Scaffold(
+            return Scaffold(
           backgroundColor: const Color(0xFF000000),
           body: Stack(
             children: [
