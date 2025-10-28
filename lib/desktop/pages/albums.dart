@@ -213,116 +213,167 @@ class _AlbumsPageState extends State<AlbumsPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Results count
-            Text(
-              '$filteredCount albums',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive layout based on available width
+            final isNarrow = constraints.maxWidth < 800;
             
-            const SizedBox(width: 24),
-            
-            // Filter dropdown
-            Text('Filter:', style: theme.textTheme.bodyMedium),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
-              value: _filterBy,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _filterBy = value;
-                  });
-                }
-              },
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Albums')),
-                DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
-                DropdownMenuItem(value: 'recent', child: Text('Recently Added')),
-              ],
-            ),
-            
-            const SizedBox(width: 24),
-            
-            // Sort dropdown
-            Text('Sort by:', style: theme.textTheme.bodyMedium),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
-              value: _sortBy,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _sortBy = value;
-                  });
-                }
-              },
-              items: const [
-                DropdownMenuItem(value: 'name', child: Text('Album Name')),
-                DropdownMenuItem(value: 'artist', child: Text('Artist')),
-                DropdownMenuItem(value: 'year', child: Text('Year')),
-                DropdownMenuItem(value: 'dateAdded', child: Text('Date Added')),
-              ],
-            ),
-            
-            const SizedBox(width: 8),
-            
-            // Sort direction toggle
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _isAscending = !_isAscending;
-                });
-              },
-              icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-              tooltip: _isAscending ? 'Ascending' : 'Descending',
-            ),
-            
-            const Spacer(),
-            
-            // Quick action buttons
-            TextButton.icon(
-              onPressed: () async {
-                final filteredAlbums = _getFilteredAndSortedAlbums(appState);
-                if (filteredAlbums.isNotEmpty) {
-                  List<Track> allTracks = [];
-                  for (var album in filteredAlbums) {
-                    final tracks = await appState.getAlbumTracks(album.id);
-                    allTracks.addAll(tracks);
-                  }
-                  if (allTracks.isNotEmpty) {
-                    await appState.playPlaylist(allTracks, 0);
-                  }
-                }
-              },
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Play All'),
-            ),
-            
-            const SizedBox(width: 8),
-            
-            TextButton.icon(
-              onPressed: () async {
-                final filteredAlbums = _getFilteredAndSortedAlbums(appState);
-                if (filteredAlbums.isNotEmpty) {
-                  List<Track> allTracks = [];
-                  for (var album in filteredAlbums) {
-                    final tracks = await appState.getAlbumTracks(album.id);
-                    allTracks.addAll(tracks);
-                  }
-                  if (allTracks.isNotEmpty) {
-                    allTracks.shuffle();
-                    await appState.playPlaylist(allTracks, 0);
-                  }
-                }
-              },
-              icon: const Icon(Icons.shuffle),
-              label: const Text('Shuffle All'),
-            ),
-          ],
+            if (isNarrow) {
+              // Compact layout for small screens
+              return Column(
+                children: [
+                  // First row: Results count and quick actions
+                  Row(
+                    children: [
+                      Text(
+                        '$filteredCount albums',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      _buildQuickActions(appState),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Second row: Filter and sort controls
+                  Row(
+                    children: [
+                      _buildFilterControls(theme),
+                      const Spacer(),
+                      _buildSortControls(theme),
+                    ],
+                  ),
+                ],
+              );
+            } else {
+              // Full layout for larger screens
+              return Row(
+                children: [
+                  // Results count
+                  Text(
+                    '$filteredCount albums',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  _buildFilterControls(theme),
+                  const SizedBox(width: 24),
+                  _buildSortControls(theme),
+                  const Spacer(),
+                  _buildQuickActions(appState),
+                ],
+              );
+            }
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildFilterControls(ThemeData theme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Filter:', style: theme.textTheme.bodyMedium),
+        const SizedBox(width: 8),
+        DropdownButton<String>(
+          value: _filterBy,
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _filterBy = value;
+              });
+            }
+          },
+          items: const [
+            DropdownMenuItem(value: 'all', child: Text('All Albums')),
+            DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
+            DropdownMenuItem(value: 'recent', child: Text('Recently Added')),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSortControls(ThemeData theme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Sort by:', style: theme.textTheme.bodyMedium),
+        const SizedBox(width: 8),
+        DropdownButton<String>(
+          value: _sortBy,
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _sortBy = value;
+              });
+            }
+          },
+          items: const [
+            DropdownMenuItem(value: 'name', child: Text('Album Name')),
+            DropdownMenuItem(value: 'artist', child: Text('Artist')),
+            DropdownMenuItem(value: 'year', child: Text('Year')),
+            DropdownMenuItem(value: 'dateAdded', child: Text('Date Added')),
+          ],
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _isAscending = !_isAscending;
+            });
+          },
+          icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
+          tooltip: _isAscending ? 'Ascending' : 'Descending',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActions(AppState appState) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextButton.icon(
+          onPressed: () async {
+            final filteredAlbums = _getFilteredAndSortedAlbums(appState);
+            if (filteredAlbums.isNotEmpty) {
+              List<Track> allTracks = [];
+              for (var album in filteredAlbums) {
+                final tracks = await appState.getAlbumTracks(album.id);
+                allTracks.addAll(tracks);
+              }
+              if (allTracks.isNotEmpty) {
+                await appState.playPlaylist(allTracks, 0);
+              }
+            }
+          },
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Play All'),
+        ),
+        const SizedBox(width: 8),
+        TextButton.icon(
+          onPressed: () async {
+            final filteredAlbums = _getFilteredAndSortedAlbums(appState);
+            if (filteredAlbums.isNotEmpty) {
+              List<Track> allTracks = [];
+              for (var album in filteredAlbums) {
+                final tracks = await appState.getAlbumTracks(album.id);
+                allTracks.addAll(tracks);
+              }
+              if (allTracks.isNotEmpty) {
+                allTracks.shuffle();
+                await appState.playPlaylist(allTracks, 0);
+              }
+            }
+          },
+          icon: const Icon(Icons.shuffle),
+          label: const Text('Shuffle All'),
+        ),
+      ],
     );
   }
 
