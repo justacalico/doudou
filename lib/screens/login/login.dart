@@ -248,7 +248,33 @@ class _LoginScreenState extends State<LoginScreen>
         height: constraints.maxHeight,
         child: Column(
           children: [
-            // Form section - full height on mobile
+            // Small mobile header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+              ),
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.5),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: _animationController,
+                  curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+                )),
+                child: Text(
+                  'Doudou - Welcome',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            
+            // Form section
             Expanded(
               child: Container(
                 width: double.infinity,
