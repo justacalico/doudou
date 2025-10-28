@@ -43,6 +43,7 @@ class AppState extends ChangeNotifier {
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
+  bool _useDynamicIsle = true; // Enabled by default
   
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
@@ -99,6 +100,7 @@ class AppState extends ChangeNotifier {
 
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
+  bool get useDynamicIsle => _useDynamicIsle;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
   bool get loggingEnabled => _loggingEnabled;
