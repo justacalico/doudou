@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       );
     } else {
-      // Mobile uses system theme
+      // Mobile: Ensure MaterialLocalizations while inheriting system theme
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
