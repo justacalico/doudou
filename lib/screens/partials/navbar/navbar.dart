@@ -14,6 +14,7 @@ import '../../search/search.dart';
 import '../../downloads/downloads.dart';
 import '../../shared/detail_track_view.dart';
 import '../player/mini_player.dart';
+import '../../../widgets/isle.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1948,6 +1949,9 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildTabContent(4, appState), // Settings
           ],
         ),
+
+        // Dynamic Isle - only show on mobile (HomeScreen is only shown when logged in)
+        const DynamicIsle(),
 
         // Custom glassmorphism tab bar positioned at the bottom
         Positioned(
