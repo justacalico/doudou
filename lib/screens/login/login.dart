@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen>
             ? CupertinoColors.systemBackground 
             : CupertinoColors.black,
           child: SafeArea(
-            child: _buildMobileLayoutWithMaterial(context),
+            child: _buildMobileLayout(context),
           ),
         ),
       );
