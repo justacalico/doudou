@@ -85,7 +85,7 @@ class _DynamicIsleState extends State<DynamicIsle>
           right: 0,
           child: Center(
             child: AnimatedBuilder(
-              animation: Listenable.merge([_expandAnimation, _pulseAnimation]),
+              animation: _expandAnimation,
               builder: (context, child) {
                 // Remove bouncing/pulsing animation when shrunken
                 const scale = 1.0;
