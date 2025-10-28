@@ -769,9 +769,11 @@ class _LoginScreenState extends State<LoginScreen>
       child: OutlinedButton(
         onPressed: appState.isLoading ? null : _enterOfflineMode,
         style: OutlinedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: CupertinoColors.systemPurple.color,
           side: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
+            color: MediaQuery.of(context).platformBrightness == Brightness.dark
+              ? const Color(0xFF3A3A3C)
+              : CupertinoColors.systemGrey4.color,
             width: 1,
           ),
           shape: RoundedRectangleBorder(
