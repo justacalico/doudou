@@ -65,29 +65,37 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
           showBackButton: true,
           title: widget.playlist.name,
           selectedIndex: 3, // Playlists page index
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Action buttons row
-                _buildActionButtons(theme),
-                
-                const SizedBox(height: 24),
-                
-                // Playlist header
-                _buildPlaylistHeader(theme, appState),
-                
-                const SizedBox(height: 32),
-                
-                // Track list
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _buildTrackList(theme, appState),
+          child: Column(
+            children: [
+              // Fixed header section
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Action buttons row
+                    _buildActionButtons(theme),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Playlist header
+                    _buildPlaylistHeader(theme, appState),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Scrollable track list section
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _buildTrackList(theme, appState),
+                      ),
+              ),
+            ],
           ),
         );
       },
@@ -172,39 +180,47 @@ class _PlaylistDetailsPageState extends State<PlaylistDetailsPage> {
         padding: const EdgeInsets.all(24),
         child: Row(
           children: [
-            // Playlist artwork
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: widget.playlist.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _getImageUrl(appState, widget.playlist.imageUrl)!,
-                        width: 200,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.playlist_play,
-                            size: 80,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          );
-                        },
-                      ),
-                    )
-                  : Icon(
-                      Icons.playlist_play,
-                      size: 80,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+            // Playlist artwork - responsive size
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Use smaller artwork on smaller screens
+                final artworkSize = constraints.maxWidth < 800 ? 150.0 : 200.0;
+                final iconSize = constraints.maxWidth < 800 ? 60.0 : 80.0;
+                
+                return Container(
+                  width: artworkSize,
+                  height: artworkSize,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: widget.playlist.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _getImageUrl(appState, widget.playlist.imageUrl)!,
+                            width: artworkSize,
+                            height: artworkSize,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.playlist_play,
+                                size: iconSize,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.playlist_play,
+                          size: iconSize,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                );
+              },
             ),
             
-            const SizedBox(width: 24),
+            const SizedBox(width: 16),
             
             // Playlist info
             Expanded(
