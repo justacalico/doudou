@@ -58,17 +58,21 @@ class _LoginScreenState extends State<LoginScreen>
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 768;
     
-    return Scaffold(
-      backgroundColor: _getBackgroundColor(context),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (isDesktop) {
-              return _buildDesktopLayout(context, constraints);
-            } else {
-              return _buildMobileLayout(context, constraints);
-            }
-          },
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: Theme.of(context),
+      home: Scaffold(
+        backgroundColor: _getBackgroundColor(context),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (isDesktop) {
+                return _buildDesktopLayout(context, constraints);
+              } else {
+                return _buildMobileLayout(context, constraints);
+              }
+            },
+          ),
         ),
       ),
     );
@@ -240,13 +244,13 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+      child: SizedBox(
+        height: constraints.maxHeight,
         child: Column(
           children: [
             // Mobile header with gradient
             Container(
-              height: constraints.maxHeight * 0.45,
+              height: constraints.maxHeight * 0.4,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
