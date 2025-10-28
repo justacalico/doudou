@@ -11,17 +11,41 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _serverController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _plexTokenController = TextEditingController();
   
-  String _selectedServerType = 'jellyfin'; // Default to Jellyfin
+  String _selectedServerType = 'jellyfin';
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    _animationController.forward();
+    
+    // Set default server URLs
+    _serverController.text = _getServerPlaceholder();
+  }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _serverController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -33,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 768;
-    final isTablet = screenSize.width > 480 && screenSize.width <= 768;
     
     return Scaffold(
       backgroundColor: _getBackgroundColor(context),
@@ -60,11 +83,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
-    return Container(
-      decoration: _buildBackgroundDecoration(context),
+    return FadeTransition(
+      opacity: _fadeAnimation,
       child: Row(
         children: [
-          // Left side - Hero section with gradient
+          // Left side - Hero section
           Expanded(
             flex: 5,
             child: Container(
@@ -81,8 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               child: Stack(
                 children: [
-                  // Animated background elements
-                  _buildAnimatedBackground(),
+                  // Animated background pattern
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _BackgroundPatternPainter(
+                        animation: _animationController,
+                      ),
+                    ),
+                  ),
                   
                   // Hero content
                   Padding(
@@ -92,55 +121,82 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // App icon with glow effect
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.white.withOpacity(0.3),
-                                blurRadius: 30,
-                                spreadRadius: 5,
+                        TweenAnimationBuilder(
+                          duration: const Duration(milliseconds: 800),
+                          tween: Tween<double>(begin: 0.0, end: 1.0),
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(30),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.3 * value),
+                                      blurRadius: 30 * value,
+                                      spreadRadius: 5 * value,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.music_note_2,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ],
-                          ),
-                          child: const Icon(
-                            CupertinoIcons.music_note_2,
-                            size: 60,
-                            color: Colors.white,
-                          ),
+                            );
+                          },
                         ),
                         
                         const SizedBox(height: 40),
                         
-                        // Welcome text
-                        Text(
-                          'Welcome to\nDoudou',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.2,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                        // Welcome text with animation
+                        SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(-0.5, 0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: _animationController,
+                            curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+                          )),
+                          child: Text(
+                            'Welcome to\nDoudou',
+                            style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         
                         const SizedBox(height: 20),
                         
-                        Text(
-                          'Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white.withOpacity(0.9),
-                            height: 1.6,
+                        SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(-0.3, 0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: _animationController,
+                            curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+                          )),
+                          child: Text(
+                            'Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white.withOpacity(0.9),
+                              height: 1.6,
+                            ),
                           ),
                         ),
                       ],
@@ -161,7 +217,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(60),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 400),
-                    child: _buildLoginForm(context, isDesktop: true),
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.3, 0),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: _animationController,
+                        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+                      )),
+                      child: _buildLoginForm(context, isDesktop: true),
+                    ),
                   ),
                 ),
               ),
@@ -173,62 +238,88 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
-    return Container(
-      decoration: _buildBackgroundDecoration(context),
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Column(
-            children: [
-              // Mobile header with gradient
-              Container(
-                height: constraints.maxHeight * 0.4,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      CupertinoColors.systemPurple.resolveFrom(context),
-                      CupertinoColors.systemBlue.resolveFrom(context),
-                    ],
-                  ),
+    return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Column(
+          children: [
+            // Mobile header with gradient
+            Container(
+              height: constraints.maxHeight * 0.45,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    CupertinoColors.systemPurple.resolveFrom(context),
+                    CupertinoColors.systemBlue.resolveFrom(context),
+                  ],
                 ),
-                child: Stack(
-                  children: [
-                    _buildAnimatedBackground(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // App icon
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(25),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.white.withOpacity(0.3),
-                                  blurRadius: 20,
-                                  spreadRadius: 3,
+              ),
+              child: Stack(
+                children: [
+                  // Background pattern
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _BackgroundPatternPainter(
+                        animation: _animationController,
+                      ),
+                    ),
+                  ),
+                  
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // App icon with animation
+                        FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: TweenAnimationBuilder(
+                            duration: const Duration(milliseconds: 800),
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return Transform.scale(
+                                scale: value,
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(25),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withOpacity(0.3 * value),
+                                        blurRadius: 20 * value,
+                                        spreadRadius: 3 * value,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    CupertinoIcons.music_note_2,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.music_note_2,
-                              size: 50,
-                              color: Colors.white,
-                            ),
+                              );
+                            },
                           ),
-                          
-                          const SizedBox(height: 24),
-                          
-                          // Welcome text
-                          Text(
+                        ),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Welcome text
+                        SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.5),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: _animationController,
+                            curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+                          )),
+                          child: Text(
                             'Welcome to Doudou',
                             style: TextStyle(
                               fontSize: 32,
@@ -244,10 +335,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          
-                          const SizedBox(height: 12),
-                          
-                          Text(
+                        ),
+                        
+                        const SizedBox(height: 12),
+                        
+                        SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.3),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: _animationController,
+                            curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+                          )),
+                          child: Text(
                             'Your personal music companion',
                             style: TextStyle(
                               fontSize: 16,
@@ -255,45 +355,42 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Form section
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
+                ],
+              ),
+            ),
+            
+            // Form section
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.3),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: _animationController,
+                      curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+                    )),
                     child: _buildLoginForm(context, isDesktop: false),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBackgroundDecoration(BuildContext context) {
-    return Container(); // Simple container for now, can be enhanced with patterns
-  }
-
-  Widget _buildAnimatedBackground() {
-    return Positioned.fill(
-      child: CustomPaint(
-        painter: _BackgroundPatternPainter(),
       ),
     );
   }
@@ -533,7 +630,7 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: obscureText,
           autocorrect: false,
           style: TextStyle(
-            fontSize: isDesktop ? 16 : 16,
+            fontSize: 16,
             color: Theme.of(context).colorScheme.onSurface,
           ),
           decoration: InputDecoration(
@@ -652,7 +749,7 @@ class _LoginScreenState extends State<LoginScreen> {
               message,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onErrorContainer,
-                fontSize: isDesktop ? 14 : 14,
+                fontSize: 14,
               ),
             ),
           ),
@@ -695,7 +792,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Signing In...',
                   style: TextStyle(
-                    fontSize: isDesktop ? 16 : 16,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -704,7 +801,7 @@ class _LoginScreenState extends State<LoginScreen> {
           : Text(
               'Sign In',
               style: TextStyle(
-                fontSize: isDesktop ? 16 : 16,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -744,7 +841,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Text(
               'Use Offline Mode',
               style: TextStyle(
-                fontSize: isDesktop ? 16 : 16,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -753,297 +850,15 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-                    // Header section with logo and title
-                    Container(
-                      padding: const EdgeInsets.only(top: 60, bottom: 40),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemPurple,
-                              borderRadius: BorderRadius.circular(22),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.music_note_2,
-                              size: 50,
-                              color: CupertinoColors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            'Welcome to Doudou',
-                            style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle.copyWith(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: CupertinoColors.label.resolveFrom(context),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _getServerSubtitle(),
-                            style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-                              fontSize: 17,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    // Server Type Selection
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Choose Your Server',
-                            style: TextStyle(
-                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildServerButton(
-                                context,
-                                'Jellyfin',
-                                'assets/icons/jellyfin.svg',
-                                CupertinoColors.systemPurple,
-                                _selectedServerType == 'jellyfin',
-                                () {
-                                  setState(() {
-                                    _selectedServerType = 'jellyfin';
-                                    _serverController.text = 'http://your-jellyfin-server:8096';
-                                    _plexTokenController.clear();
-                                  });
-                                },
-                              ),
-                              _buildServerButton(
-                                context,
-                                'Plex',
-                                'assets/icons/plex.svg',
-                                CupertinoColors.systemOrange,
-                                _selectedServerType == 'plex',
-                                () {
-                                  setState(() {
-                                    _selectedServerType = 'plex';
-                                    _serverController.text = 'http://your-plex-server:32400';
-                                    _usernameController.clear();
-                                    _passwordController.clear();
-                                  });
-                                },
-                              ),
-                              _buildServerButton(
-                                context,
-                                'Navidrome',
-                                'assets/icons/navidrome.svg',
-                                CupertinoColors.systemBlue,
-                                _selectedServerType == 'navidrome',
-                                () {
-                                  setState(() {
-                                    _selectedServerType = 'navidrome';
-                                    _serverController.text = 'http://your-navidrome-server:4533';
-                                    _plexTokenController.clear();
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 32),
-
-                    // Form fields section
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      child: CupertinoFormSection.insetGrouped(
-                        header: Text(
-                          'Server Details',
-                          style: TextStyle(
-                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        children: [
-                          CupertinoTextFormFieldRow(
-                            controller: _serverController,
-                            prefix: Icon(
-                              CupertinoIcons.globe,
-                              color: CupertinoColors.systemGrey.resolveFrom(context),
-                            ),
-                            placeholder: _getServerPlaceholder(),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter server URL';
-                              }
-                              return null;
-                            },
-                            keyboardType: TextInputType.url,
-                            autocorrect: false,
-                            style: TextStyle(
-                              color: CupertinoColors.label.resolveFrom(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      child: CupertinoFormSection.insetGrouped(
-                        header: Text(
-                          _getAccountSectionTitle(),
-                          style: TextStyle(
-                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        children: _buildAccountFields(),
-                      ),
-                    ),
-
-                    
-                    const SizedBox(height: 32),
-
-                    // Error Message
-                    if (appState.errorMessage != null)
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemRed.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: CupertinoColors.systemRed.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              CupertinoIcons.exclamationmark_triangle,
-                              color: CupertinoColors.systemRed,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                appState.errorMessage!,
-                                style: TextStyle(
-                                  color: CupertinoColors.systemRed,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (appState.errorMessage != null) const SizedBox(height: 24),
-
-                    // Sign In Button
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      width: double.infinity,
-                      child: CupertinoButton.filled(
-                        onPressed: appState.isLoading ? null : _login,
-                        borderRadius: BorderRadius.circular(12),
-                        child: appState.isLoading
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CupertinoActivityIndicator(
-                                      color: CupertinoColors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Signing In...',
-                                    style: TextStyle(
-                                      color: CupertinoColors.white,
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Offline Mode Button
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      width: double.infinity,
-                      child: CupertinoButton(
-                        onPressed: appState.isLoading ? null : _enterOfflineMode,
-                        borderRadius: BorderRadius.circular(12),
-                        color: CupertinoColors.systemGrey5.resolveFrom(context),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              CupertinoIcons.arrow_down_circle,
-                              size: 20,
-                              color: CupertinoColors.systemPurple,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Use Offline Mode',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                                color: CupertinoColors.label.resolveFrom(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    
-                    // Bottom spacing
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
+  // Login and utility methods
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       String identifier;
       String credential;
       
       if (_selectedServerType == 'plex') {
-        identifier = ''; // Plex doesn't use username for token auth
+        identifier = '';
         credential = _plexTokenController.text;
       } else {
         identifier = _usernameController.text.trim();
@@ -1058,7 +873,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
-        // Navigation will be handled by the main app based on login state
+        // Navigation handled by main app
       }
     }
   }
@@ -1068,7 +883,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final success = await appState.enterOfflineModeWithoutLogin();
     
     if (!success && mounted) {
-      // Show an alert to the user if no downloaded content is available
       showCupertinoDialog(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
@@ -1083,7 +897,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
-    // If successful, navigation will be handled by the main app based on login state
   }
 
   String _getServerSubtitle() {
@@ -1120,127 +933,35 @@ class _LoginScreenState extends State<LoginScreen> {
         return 'Account';
     }
   }
+}
 
-  List<Widget> _buildAccountFields() {
-    if (_selectedServerType == 'plex') {
-      return [
-        CupertinoTextFormFieldRow(
-          controller: _plexTokenController,
-          prefix: Icon(
-            CupertinoIcons.creditcard,
-            color: CupertinoColors.systemGrey.resolveFrom(context),
-          ),
-          placeholder: 'X-Plex-Token',
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your Plex token';
-            }
-            return null;
-          },
-          autocorrect: false,
-          style: TextStyle(
-            color: CupertinoColors.label.resolveFrom(context),
-          ),
-        ),
-      ];
-    } else {
-      return [
-        CupertinoTextFormFieldRow(
-          controller: _usernameController,
-          prefix: Icon(
-            CupertinoIcons.person,
-            color: CupertinoColors.systemGrey.resolveFrom(context),
-          ),
-          placeholder: 'Username',
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter username';
-            }
-            return null;
-          },
-          autocorrect: false,
-          style: TextStyle(
-            color: CupertinoColors.label.resolveFrom(context),
-          ),
-        ),
-        CupertinoTextFormFieldRow(
-          controller: _passwordController,
-          prefix: Icon(
-            CupertinoIcons.lock,
-            color: CupertinoColors.systemGrey.resolveFrom(context),
-          ),
-          placeholder: 'Password',
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter password';
-            }
-            return null;
-          },
-          obscureText: true,
-          autocorrect: false,
-          style: TextStyle(
-            color: CupertinoColors.label.resolveFrom(context),
-          ),
-        ),
-      ];
+class _BackgroundPatternPainter extends CustomPainter {
+  final Animation<double>? animation;
+
+  _BackgroundPatternPainter({this.animation}) : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.fill;
+
+    final animationValue = animation?.value ?? 0.5;
+    
+    // Create floating circles pattern
+    for (int i = 0; i < 20; i++) {
+      final x = (i * 80.0 + animationValue * 50) % (size.width + 100);
+      final y = (i * 60.0 + animationValue * 30) % (size.height + 100);
+      final radius = 20 + (i % 3) * 10.0;
+      
+      canvas.drawCircle(
+        Offset(x, y),
+        radius,
+        paint..color = Colors.white.withOpacity(0.05 + (i % 3) * 0.02),
+      );
     }
   }
 
-  Widget _buildServerButton(
-    BuildContext context,
-    String label,
-    String svgAssetPath,
-    Color color,
-    bool isSelected,
-    VoidCallback onPressed,
-  ) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        child: CupertinoButton(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          onPressed: onPressed,
-          borderRadius: BorderRadius.circular(16),
-          color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
-          child: Column(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: isSelected ? color.withOpacity(0.2) : color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isSelected ? color : color.withOpacity(0.3),
-                    width: isSelected ? 3 : 2,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: SvgPicture.asset(
-                    svgAssetPath,
-                    width: 36,
-                    height: 36,
-                    colorFilter: ColorFilter.mode(
-                      color,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.label.resolveFrom(context),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
