@@ -104,7 +104,7 @@ class AudioStateController {
     return completer.future;
   }
   
-  /// Process command queue sequentially
+  /// Process command queue sequentially with minimal delays
   Future<void> _processCommandQueue() async {
     if (_processingCommands || _commandQueue.isEmpty) return;
     
@@ -115,9 +115,8 @@ class AudioStateController {
         final command = _commandQueue.removeFirst();
         await command();
         
-        // Remove delay for better responsiveness
-        // Only yield control to allow other operations
-        await Future.delayed(Duration.zero);
+        // No delay for maximum responsiveness
+        // Commands are processed as fast as possible
       }
     } catch (e) {
       if (kDebugMode) {
