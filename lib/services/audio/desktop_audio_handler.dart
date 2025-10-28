@@ -480,9 +480,12 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> setSpeed(double speed) async {
+    // Update UI immediately for instant feedback
+    _stateController.updateSpeed(speed);
+    
     try {
+      // Execute without queueing for instant response
       await _player.setSpeed(speed);
-      _stateController.updateSpeed(speed);
     } catch (e) {
       if (kDebugMode) {
         print('DesktopAudioHandler: Set speed failed: $e');
@@ -493,9 +496,12 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> setVolume(double volume) async {
+    // Update UI immediately for instant feedback
+    _stateController.updateVolume(volume);
+    
     try {
+      // Execute without queueing for instant response
       await _player.setVolume(volume);
-      _stateController.updateVolume(volume);
     } catch (e) {
       if (kDebugMode) {
         print('DesktopAudioHandler: Set volume failed: $e');
