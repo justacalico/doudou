@@ -410,6 +410,8 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildServerCard(String type, String label, String iconPath, Color color, bool isDesktop) {
     final isSelected = _selectedServerType == type;
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
     
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -433,12 +435,16 @@ class _LoginScreenState extends State<LoginScreen>
             padding: EdgeInsets.all(isDesktop ? 20 : 16),
             decoration: BoxDecoration(
               color: isSelected 
-                ? color.withOpacity(0.1)
-                : Theme.of(context).cardColor,
+                ? color.withOpacity(0.15)
+                : (isDark 
+                    ? const Color(0xFF2C2C2E) 
+                    : CupertinoColors.systemGrey6.color),
               border: Border.all(
                 color: isSelected 
                   ? color
-                  : Theme.of(context).dividerColor,
+                  : (isDark 
+                      ? const Color(0xFF3A3A3C) 
+                      : CupertinoColors.systemGrey4.color),
                 width: isSelected ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(16),
