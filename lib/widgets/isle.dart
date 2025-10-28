@@ -15,9 +15,7 @@ class DynamicIsle extends StatefulWidget {
 class _DynamicIsleState extends State<DynamicIsle>
     with TickerProviderStateMixin {
   late AnimationController _expandController;
-  late AnimationController _pulseController;
   late Animation<double> _expandAnimation;
-  late Animation<double> _pulseAnimation;
 
   bool _isExpanded = false;
 
