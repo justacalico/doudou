@@ -424,7 +424,8 @@ class _LoginScreenState extends State<LoginScreen>
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
+          onTap: () async {
+            await _triggerButtonPress();
             setState(() {
               _selectedServerType = type;
               _serverController.text = _getServerPlaceholder();
