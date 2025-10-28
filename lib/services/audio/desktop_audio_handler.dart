@@ -288,7 +288,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Stream<audio_service.PlaybackState> get playbackState => 
     CombineLatestStream.combine3(
       stateStream,
-      positionStream,
+      // Throttle position updates to reduce UI rebuilds (update at most every 200ms)
+      positionStream.throttleTime(const Duration(milliseconds: 200)),
       _player.speedStream,
       (state, position, speed) => audio_service.PlaybackState(
         playing: state == AudioPlayerState.playing,
