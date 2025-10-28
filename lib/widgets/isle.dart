@@ -95,6 +95,7 @@ class _DynamicIsleState extends State<DynamicIsle>
                   scale: scale,
                   child: GestureDetector(
                     onTap: _toggleExpanded,
+                    onLongPress: () => _openNowPlaying(context),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
