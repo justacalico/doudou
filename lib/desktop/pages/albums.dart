@@ -101,36 +101,50 @@ class _AlbumsPageState extends State<AlbumsPage> {
         return PageTemplate(
           title: 'Albums',
           actions: [
-            // Search field
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search albums...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                            });
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
+            // Search field - responsive width
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate responsive search field width
+                double searchWidth;
+                if (constraints.maxWidth < 600) {
+                  searchWidth = constraints.maxWidth * 0.4; // 40% of available width
+                } else if (constraints.maxWidth < 900) {
+                  searchWidth = 250;
+                } else {
+                  searchWidth = 300;
+                }
+                
+                return SizedBox(
+                  width: searchWidth.clamp(150, 300), // Min 150px, Max 300px
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search albums...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              ),
+                );
+              },
             ),
             const SizedBox(width: 16),
             
