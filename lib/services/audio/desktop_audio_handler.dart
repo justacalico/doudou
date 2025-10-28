@@ -25,6 +25,10 @@ class DesktopAudioHandler implements BaseAudioHandler {
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
   
+  // Preloading system for faster skips
+  String? _preloadedNextUrl;
+  String? _preloadedPreviousUrl;
+  
   // Constructor
   DesktopAudioHandler(this._mediaServiceManager) {
     _initializeAudio();
