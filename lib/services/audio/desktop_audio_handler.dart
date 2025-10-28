@@ -451,18 +451,19 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> seek(Duration position) async {
-    return _stateController.queueCommand(() async {
-      try {
-        await _player.seek(position);
-        _stateController.updatePosition(position);
-      } catch (e) {
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Seek failed: $e');
-        }
-        _stateController.updateError('Seek failed: $e');
-        rethrow;
+    // Update position immediately for instant UI feedback
+    _stateController.updatePosition(position);
+    
+    try {
+      // Execute seek directly without queueing for instant response
+      await _player.seek(position);
+    } catch (e) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Seek failed: $e');
       }
-    });
+      _stateController.updateError('Seek failed: $e');
+      rethrow;
+    }
   }
 
   @override
