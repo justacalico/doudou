@@ -574,22 +574,27 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    return _stateController.queueCommand(() async {
-      try {
-        final queue = _stateController.queue;
-        if (index < 0 || index >= queue.length) {
-          throw Exception('Invalid queue index: $index');
-        }
-
-        await _playTrackAtIndex(index);
-      } catch (e) {
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Skip to index failed: $e');
-        }
-        _stateController.updateError('Skip failed: $e');
-        rethrow;
+    try {
+      final queue = _stateController.queue;
+      if (index < 0 || index >= queue.length) {
+        throw Exception('Invalid queue index: $index');
       }
-    });
+
+      // Update track info immediately for instant UI feedback
+      _stateController.updateCurrentIndex(index);
+      _stateController.updateCurrentTrack(queue[index]);
+      _stateController.updateState(AudioPlayerState.loading);
+
+      // Load and play track asynchronously but don't queue it for instant response
+      await _playTrackAtIndex(index, updateStateImmediately: false);
+    } catch (e) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Skip to index failed: $e');
+      }
+      _stateController.updateError('Skip failed: $e');
+      _stateController.updateState(AudioPlayerState.error);
+      rethrow;
+    }
   }
 
   /// Play track at specific queue index
