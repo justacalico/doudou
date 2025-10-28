@@ -37,7 +37,6 @@ class _DynamicIsleState extends State<DynamicIsle>
   @override
   void dispose() {
     _expandController.dispose();
-    _pulseController.dispose();
     super.dispose();
   }
 
