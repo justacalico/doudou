@@ -74,15 +74,23 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       );
     } else {
-      // Mobile: Wrap in Material to provide MaterialLocalizations while using system theme
+      // Mobile: Provide MaterialLocalizations while using system theme
       final brightness = MediaQuery.of(context).platformBrightness;
-      return Material(
-        child: CupertinoPageScaffold(
-          backgroundColor: brightness == Brightness.light 
-            ? CupertinoColors.systemBackground 
-            : CupertinoColors.black,
-          child: SafeArea(
-            child: _buildMobileLayout(context),
+      return Localizations(
+        locale: const Locale('en', 'US'),
+        delegates: const [
+          DefaultMaterialLocalizations.delegate,
+          DefaultCupertinoLocalizations.delegate,
+          DefaultWidgetsLocalizations.delegate,
+        ],
+        child: Material(
+          child: CupertinoPageScaffold(
+            backgroundColor: brightness == Brightness.light 
+              ? CupertinoColors.systemBackground 
+              : CupertinoColors.black,
+            child: SafeArea(
+              child: _buildMobileLayout(context),
+            ),
           ),
         ),
       );
