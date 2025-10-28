@@ -502,15 +502,20 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> playTrack(Track track) async {
-    return _stateController.queueCommand(() async {
-      if (kDebugMode) {
-        print('DesktopAudioHandler: Playing single track: ${track.name}');
-      }
+    if (kDebugMode) {
+      print('DesktopAudioHandler: Playing single track: ${track.name}');
+    }
 
+    // Update UI immediately for instant feedback
+    _stateController.updateCurrentTrack(track);
+    _stateController.updateState(AudioPlayerState.loading);
+    _stateController.updateUserIntent(true);
+    
+    // Queue complex operation to prevent blocking subsequent commands
+    return _stateController.queueCommand(() async {
       try {
         // Set up single track queue
         _queueManager.setQueue([track], startIndex: 0);
-        _stateController.updateCurrentTrack(track);
         
         // Get stream URL
         final streamUrl = _getStreamUrl(track);
@@ -526,6 +531,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
           print('DesktopAudioHandler: Failed to play track: $e');
         }
         _stateController.updateError('Failed to play track: $e');
+        _stateController.updateState(AudioPlayerState.error);
         rethrow;
       }
     });
