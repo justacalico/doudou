@@ -634,6 +634,30 @@ class DesktopAudioHandler implements BaseAudioHandler {
     
     final streamUrl = _getStreamUrl(track);
     await _loadAndPlayTrack(streamUrl);
+    
+    // Preload next/previous tracks in background for faster skips
+    _preloadAdjacentTracks(index);
+  }
+  
+  /// Preload adjacent tracks for faster skipping
+  void _preloadAdjacentTracks(int currentIndex) {
+    final queue = _stateController.queue;
+    
+    // Preload next track
+    if (currentIndex + 1 < queue.length) {
+      final nextTrack = queue[currentIndex + 1];
+      _preloadedNextUrl = _getStreamUrl(nextTrack);
+    } else {
+      _preloadedNextUrl = null;
+    }
+    
+    // Preload previous track
+    if (currentIndex - 1 >= 0) {
+      final previousTrack = queue[currentIndex - 1];
+      _preloadedPreviousUrl = _getStreamUrl(previousTrack);
+    } else {
+      _preloadedPreviousUrl = null;
+    }
   }
 
   /// Load and play track from URL
