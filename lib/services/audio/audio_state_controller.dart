@@ -183,6 +183,41 @@ class AudioStateController {
     }
   }
   
+  /// Add track to queue (for queue management)
+  void addTrackToQueue(Track track) {
+    final currentQueue = List<Track>.from(_queueSubject.value);
+    currentQueue.add(track);
+    _queueSubject.add(List.unmodifiable(currentQueue));
+  }
+  
+  /// Add track as next in queue
+  void addTrackNext(Track track) {
+    final currentQueue = List<Track>.from(_queueSubject.value);
+    final currentIndex = _currentIndexSubject.value ?? 0;
+    final insertPosition = (currentIndex + 1).clamp(0, currentQueue.length);
+    currentQueue.insert(insertPosition, track);
+    _queueSubject.add(List.unmodifiable(currentQueue));
+  }
+  
+  /// Remove track from queue by index
+  void removeTrackFromQueue(int index) {
+    final currentQueue = List<Track>.from(_queueSubject.value);
+    if (index >= 0 && index < currentQueue.length) {
+      currentQueue.removeAt(index);
+      _queueSubject.add(List.unmodifiable(currentQueue));
+      
+      // Update current index if needed
+      final currentIndex = _currentIndexSubject.value;
+      if (currentIndex != null) {
+        if (index < currentIndex) {
+          _currentIndexSubject.add(currentIndex - 1);
+        } else if (index == currentIndex && currentIndex >= currentQueue.length) {
+          _currentIndexSubject.add(currentQueue.length - 1);
+        }
+      }
+    }
+  }
+  
   void updateCurrentIndex(int? index) {
     _currentIndexSubject.add(index);
   }
