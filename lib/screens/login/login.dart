@@ -479,7 +479,11 @@ class _LoginScreenState extends State<LoginScreen>
                       label,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? color : Theme.of(context).colorScheme.onSurface,
+                        color: isSelected 
+                          ? color 
+                          : (isDark 
+                              ? CupertinoColors.white 
+                              : CupertinoColors.black),
                       ),
                     ),
                   ],
