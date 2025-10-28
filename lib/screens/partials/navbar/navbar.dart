@@ -348,9 +348,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 0, // Let content extend to the bottom, overlays will handle spacing
             child: content,
           ),
-          // Only show mini player when not on settings screen (index 4) - positioned as overlay
+          // Only show mini player when Dynamic Isle is disabled, not on settings screen (index 4)
           // Also hide on search screen (index 3) when keyboard is open
-          if (index != 4 &&
+          if (!appState.useDynamicIsle &&
+              index != 4 &&
               !(index == 3 && MediaQuery.of(context).viewInsets.bottom > 0))
             Positioned(
               left: 0,
@@ -1950,8 +1951,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
 
-        // Dynamic Isle - only show on mobile (HomeScreen is only shown when logged in)
-        const DynamicIsle(),
+        // Dynamic Isle - only show on mobile and when enabled in settings
+        if (appState.useDynamicIsle)
+          const DynamicIsle(),
 
         // Custom glassmorphism tab bar positioned at the bottom
         Positioned(
