@@ -451,7 +451,10 @@ class _DynamicIsleState extends State<DynamicIsle>
             children: [
               // Previous button
               GestureDetector(
-                onTap: () => appState.skipToPrevious(),
+                onTap: () async {
+                  await _triggerButtonHaptic();
+                  appState.skipToPrevious();
+                },
                 child: Container(
                   width: 32,
                   height: 32,
@@ -471,7 +474,10 @@ class _DynamicIsleState extends State<DynamicIsle>
 
               // Play/pause button
               GestureDetector(
-                onTap: () => appState.playPause(),
+                onTap: () async {
+                  await _triggerButtonHaptic();
+                  appState.playPause();
+                },
                 child: Container(
                   width: 36,
                   height: 36,
@@ -493,7 +499,10 @@ class _DynamicIsleState extends State<DynamicIsle>
 
               // Next button
               GestureDetector(
-                onTap: () => appState.skipToNext(),
+                onTap: () async {
+                  await _triggerButtonHaptic();
+                  appState.skipToNext();
+                },
                 child: Container(
                   width: 32,
                   height: 32,
