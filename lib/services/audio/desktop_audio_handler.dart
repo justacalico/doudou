@@ -313,6 +313,10 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
+  
+  /// High-frequency position stream for progress bars and other UI elements
+  /// that need smooth position updates. Use sparingly to avoid performance issues.
+  Stream<Duration> get highFrequencyPositionStream => _stateController.positionStream;
 
   @override
   AudioPlayerState get currentState => _stateController.currentState;
