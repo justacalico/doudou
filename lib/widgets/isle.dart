@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import '../models/jellyfin_models.dart';
+import '../services/audio/base_audio_handler.dart';
 
 class DynamicIsle extends StatefulWidget {
   const DynamicIsle({super.key});
@@ -75,7 +76,23 @@ class _DynamicIsleState extends State<DynamicIsle>
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final currentTrack = appState.audioHandler?.currentTrack;
-        final isPlaying = appState.audioHandler?.isPlaying ?? false;
+        
+        // Check if playing by looking at the audio handler's current state or user intent
+        bool isPlaying = false;
+        if (appState.audioHandler != null) {
+          // Try to get the playing state from different sources
+          try {
+            final state = appState.audioHandler!.currentState;
+            isPlaying = state == AudioPlayerState.playing;
+          } catch (e) {
+            // Fallback to user intended playing
+            try {
+              isPlaying = appState.audioHandler!.userIntendedPlaying ?? false;
+            } catch (e2) {
+              isPlaying = false;
+            }
+          }
+        }
         
         // Hide when no track is playing
         if (currentTrack == null) {
