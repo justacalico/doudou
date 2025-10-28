@@ -899,19 +899,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  String _getServerSubtitle() {
-    switch (_selectedServerType) {
-      case 'jellyfin':
-        return 'Sign in to your Jellyfin server';
-      case 'plex':
-        return 'Sign in to your Plex server';
-      case 'navidrome':
-        return 'Sign in to your Navidrome server';
-      default:
-        return 'Sign in to your server';
-    }
-  }
-
   String _getServerPlaceholder() {
     switch (_selectedServerType) {
       case 'jellyfin':
@@ -922,15 +909,6 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-navidrome-server:4533';
       default:
         return 'http://your-server:port';
-    }
-  }
-
-  String _getAccountSectionTitle() {
-    switch (_selectedServerType) {
-      case 'plex':
-        return 'Authentication';
-      default:
-        return 'Account';
     }
   }
 }
