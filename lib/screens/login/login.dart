@@ -74,14 +74,35 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       );
     } else {
-      // Mobile: Ensure MaterialLocalizations while inheriting system theme
-      return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return _buildMobileLayout(context, constraints);
-            },
+      // Mobile: Use MaterialApp to provide MaterialLocalizations while inheriting system theme
+      final brightness = MediaQuery.of(context).platformBrightness;
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: brightness == Brightness.light 
+          ? ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: CupertinoColors.systemPurple.color,
+                brightness: Brightness.light,
+              ),
+            )
+          : ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: CupertinoColors.systemPurple.color,
+                brightness: Brightness.dark,
+              ),
+            ),
+        home: Scaffold(
+          backgroundColor: brightness == Brightness.light 
+            ? Colors.white 
+            : const Color(0xFF121212),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return _buildMobileLayout(context, constraints);
+              },
+            ),
           ),
         ),
       );
