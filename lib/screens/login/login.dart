@@ -81,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen>
         locale: const Locale('en', 'US'),
         delegates: const [
           DefaultMaterialLocalizations.delegate,
-          DefaultCupertinoLocalizations.delegate,
           DefaultWidgetsLocalizations.delegate,
         ],
         child: Material(
