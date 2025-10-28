@@ -31,6 +31,7 @@
 - Redesigned mobile library page
 - Complete rewrite of EVERY audio service file
 - Added smooth scaling animation to desktop now playing screen opening and closing with elastic curve and opacity effects for enhanced user experience.
+- Completely redesigned login screen with elegant responsive design supporting both desktop and mobile layouts. Features animated gradient backgrounds, smooth transitions, modern Material Design elements, and improved visual hierarchy for better user experience.
 
 ## Removed
 - Removed crossfades
