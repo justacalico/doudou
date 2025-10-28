@@ -811,6 +811,9 @@ class _LoginScreenState extends State<LoginScreen>
   // Login and utility methods
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      // Trigger button press haptic feedback
+      await _triggerButtonPress();
+      
       String identifier;
       String credential;
       
@@ -830,8 +833,16 @@ class _LoginScreenState extends State<LoginScreen>
       );
 
       if (success && mounted) {
+        // Success vibration
+        await _triggerHapticFeedback(isSuccess: true);
         // Navigation handled by main app
+      } else if (mounted) {
+        // Error vibration
+        await _triggerHapticFeedback(isSuccess: false);
       }
+    } else {
+      // Form validation failed - error vibration
+      await _triggerHapticFeedback(isSuccess: false);
     }
   }
   
