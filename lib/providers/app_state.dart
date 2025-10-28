@@ -1919,6 +1919,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleDynamicIsle(bool enabled) async {
+    _useDynamicIsle = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_dynamic_isle', enabled);
+    notifyListeners();
+  }
+
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
