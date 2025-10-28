@@ -539,23 +539,29 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
+    if (kDebugMode) {
+      print('DesktopAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
+    }
+
+    if (tracks.isEmpty) {
+      throw Exception('Cannot play empty playlist');
+    }
+
+    final validStartIndex = startIndex.clamp(0, tracks.length - 1);
+    
+    // Update UI immediately for instant feedback
+    _stateController.updateCurrentTrack(tracks[validStartIndex]);
+    _stateController.updateState(AudioPlayerState.loading);
+    _stateController.updateUserIntent(true);
+    
+    // Queue complex operation to prevent blocking subsequent commands
     return _stateController.queueCommand(() async {
-      if (kDebugMode) {
-        print('DesktopAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
-      }
-
       try {
-        if (tracks.isEmpty) {
-          throw Exception('Cannot play empty playlist');
-        }
-
-        final validStartIndex = startIndex.clamp(0, tracks.length - 1);
-        
         // Set up queue
         _queueManager.setQueue(tracks, startIndex: validStartIndex);
         
         // Play the starting track
-        await _playTrackAtIndex(validStartIndex);
+        await _playTrackAtIndex(validStartIndex, updateStateImmediately: false);
         
         if (kDebugMode) {
           print('DesktopAudioHandler: Playlist loaded and playing');
@@ -565,6 +571,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
           print('DesktopAudioHandler: Failed to play playlist: $e');
         }
         _stateController.updateError('Failed to play playlist: $e');
+        _stateController.updateState(AudioPlayerState.error);
         rethrow;
       }
     });
