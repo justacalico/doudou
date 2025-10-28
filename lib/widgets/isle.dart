@@ -164,15 +164,34 @@ class _DynamicIsleState extends State<DynamicIsle>
 
   Widget _buildCompactContent(BuildContext context, AppState appState, Track currentTrack, bool isPlaying) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Waveform indicator
-          SizedBox(
-            width: 24,
-            height: 24,
-            child: _buildWaveform(isPlaying),
+          // Album art (circular)
+          Container(
+            width: 28,
+            height: 28,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF2C2C2E),
+            ),
+            child: ClipOval(
+              child: currentTrack.imageUrl != null
+                ? Image.network(
+                    appState.getImageUrl(currentTrack.imageUrl!, width: 56, height: 56),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      CupertinoIcons.music_note,
+                      color: CupertinoColors.systemGrey,
+                      size: 14,
+                    ),
+                  )
+                : const Icon(
+                    CupertinoIcons.music_note,
+                    color: CupertinoColors.systemGrey,
+                    size: 14,
+                  ),
+            ),
           ),
           
           const SizedBox(width: 8),
@@ -193,11 +212,22 @@ class _DynamicIsleState extends State<DynamicIsle>
           
           const SizedBox(width: 8),
           
-          // Play/pause icon
-          Icon(
-            isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-            color: CupertinoColors.systemPurple,
-            size: 16,
+          // Skip button
+          GestureDetector(
+            onTap: () => appState.skipToNext(),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemPurple.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                CupertinoIcons.forward_fill,
+                color: CupertinoColors.systemPurple,
+                size: 12,
+              ),
+            ),
           ),
         ],
       ),
@@ -375,23 +405,5 @@ class _DynamicIsleState extends State<DynamicIsle>
     );
   }
 
-  Widget _buildWaveform(bool isPlaying) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(4, (index) {
-        return AnimatedContainer(
-          duration: Duration(milliseconds: 300 + (index * 100)),
-          width: 3,
-          height: isPlaying ? (8 + (index % 2 * 8)).toDouble() : 6,
-          decoration: BoxDecoration(
-            color: isPlaying 
-              ? CupertinoColors.systemPurple
-              : CupertinoColors.systemGrey,
-            borderRadius: BorderRadius.circular(1.5),
-          ),
-        );
-      }),
-    );
-  }
+
 }
