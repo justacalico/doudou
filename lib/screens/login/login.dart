@@ -868,6 +868,41 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-server:port';
     }
   }
+
+  // Haptic feedback methods
+  Future<void> _triggerHapticFeedback({required bool isSuccess}) async {
+    try {
+      // Check if vibration is available
+      bool? hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator != true) return;
+      
+      if (isSuccess) {
+        // Success pattern: Light vibration
+        HapticFeedback.lightImpact();
+        await Vibration.vibrate(duration: 100);
+      } else {
+        // Error pattern: Strong vibration with pattern
+        HapticFeedback.heavyImpact();
+        await Vibration.vibrate(pattern: [0, 100, 50, 100]);
+      }
+    } catch (e) {
+      // Silently fail if vibration is not supported
+      // Fall back to haptic feedback only
+      if (isSuccess) {
+        HapticFeedback.lightImpact();
+      } else {
+        HapticFeedback.heavyImpact();
+      }
+    }
+  }
+
+  Future<void> _triggerButtonPress() async {
+    try {
+      HapticFeedback.selectionClick();
+    } catch (e) {
+      // Silently fail if haptic feedback is not supported
+    }
+  }
 }
 
 class _BackgroundPatternPainter extends CustomPainter {
