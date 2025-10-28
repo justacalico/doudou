@@ -20,7 +20,6 @@ class _DynamicIsleState extends State<DynamicIsle>
   late Animation<double> _pulseAnimation;
 
   bool _isExpanded = false;
-  bool _isDragging = false;
 
   @override
   void initState() {
