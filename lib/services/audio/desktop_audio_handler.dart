@@ -54,44 +54,52 @@ class DesktopAudioHandler implements BaseAudioHandler {
     }
   }
 
-  /// Set up player event listeners
+  /// Set up player event listeners with optimized debouncing
   void _setupPlayerListeners() {
-    // Position stream
+    // Position stream - throttle to prevent excessive updates during seeks
     _subscriptions.add(
-      _player.positionStream.listen(_stateController.updatePosition)
+      _player.positionStream
+          .throttleTime(const Duration(milliseconds: 100))
+          .listen(_stateController.updatePosition)
     );
     
-    // Duration stream  
+    // Duration stream - debounce to prevent multiple rapid updates  
     _subscriptions.add(
-      _player.durationStream.listen((duration) {
+      _player.durationStream
+          .debounceTime(const Duration(milliseconds: 100))
+          .listen((duration) {
         _stateController.updateDuration(duration ?? Duration.zero);
       })
     );
     
-    // Player state stream
+    // Player state stream - immediate updates for state changes
     _subscriptions.add(
       _player.playerStateStream.listen(_handlePlayerStateChange)
     );
     
-    // Processing state for loading detection
+    // Processing state for loading detection - immediate updates
     _subscriptions.add(
       _player.processingStateStream.listen(_handleProcessingStateChange)
     );
     
-    // Player completion
+    // Player completion - immediate handling
     _subscriptions.add(
       _player.playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
           .listen((_) => _handleTrackCompletion())
     );
     
-    // Volume and speed synchronization
+    // Volume and speed synchronization - debounce to prevent UI spam
     _subscriptions.add(
-      _player.volumeStream.listen(_stateController.updateVolume)
+      _player.volumeStream
+          .debounceTime(const Duration(milliseconds: 50))
+          .listen(_stateController.updateVolume)
     );
     
     _subscriptions.add(
-      _player.speedStream.listen(_stateController.updateSpeed)
+      _player.speedStream
+          .debounceTime(const Duration(milliseconds: 50))
+          .listen(_stateController.updateSpeed)
     );
   }
 
