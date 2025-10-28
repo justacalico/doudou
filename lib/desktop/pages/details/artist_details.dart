@@ -204,93 +204,141 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Row(
-          children: [
-            // Artist image
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: widget.artist.imageUrl != null
-                  ? ClipOval(
-                      child: Image.network(
-                        _getImageUrl(appState, widget.artist.imageUrl)!,
-                        width: 200,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.person,
-                            size: 80,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          );
-                        },
-                      ),
-                    )
-                  : Icon(
-                      Icons.person,
-                      size: 80,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-            ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 600;
             
-            const SizedBox(width: 32),
-            
-            // Artist info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            if (isNarrow) {
+              // Vertical layout for narrow screens
+              return Column(
                 children: [
-                  Text(
-                    'Artist',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.artist.name,
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text(
-                        '${_artistAlbums.length} albums',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        '${_getTotalTracks()} songs',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Artist image
+                  _buildArtistImage(theme, appState, constraints.maxWidth < 400 ? 120.0 : 150.0),
+                  const SizedBox(height: 20),
+                  // Artist info
+                  _buildArtistInfo(theme, isNarrow),
                 ],
-              ),
-            ),
-          ],
+              );
+            } else {
+              // Horizontal layout for wider screens
+              return Row(
+                children: [
+                  // Artist image
+                  _buildArtistImage(theme, appState, constraints.maxWidth < 800 ? 150.0 : 200.0),
+                  const SizedBox(width: 24),
+                  // Artist info
+                  Expanded(child: _buildArtistInfo(theme, isNarrow)),
+                ],
+              );
+            }
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildArtistImage(ThemeData theme, AppState appState, double size) {
+    final iconSize = size * 0.4;
+    
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: widget.artist.imageUrl != null
+          ? ClipOval(
+              child: Image.network(
+                _getImageUrl(appState, widget.artist.imageUrl)!,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.person,
+                    size: iconSize,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  );
+                },
+              ),
+            )
+          : Icon(
+              Icons.person,
+              size: iconSize,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+    );
+  }
+
+  Widget _buildArtistInfo(ThemeData theme, bool isNarrow) {
+    return Column(
+      crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Artist',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          widget.artist.name,
+          style: theme.textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            fontSize: isNarrow ? 24 : null,
+          ),
+          textAlign: isNarrow ? TextAlign.center : TextAlign.start,
+        ),
+        const SizedBox(height: 16),
+        isNarrow
+            ? Column(
+                children: [
+                  Text(
+                    '${_artistAlbums.length} albums',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_getTotalTracks()} songs',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Text(
+                    '${_artistAlbums.length} albums',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    '${_getTotalTracks()} songs',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+      ],
     );
   }
 
@@ -384,17 +432,39 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.75,
-          ),
-          itemCount: _artistAlbums.length,
-          itemBuilder: (context, index) {
-            final album = _artistAlbums[index];
-            return _buildAlbumCard(theme, appState, album);
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate responsive grid columns
+            int crossAxisCount;
+            double childAspectRatio;
+            
+            if (constraints.maxWidth < 400) {
+              crossAxisCount = 1;
+              childAspectRatio = 1.2;
+            } else if (constraints.maxWidth < 600) {
+              crossAxisCount = 2;
+              childAspectRatio = 0.9;
+            } else if (constraints.maxWidth < 900) {
+              crossAxisCount = 3;
+              childAspectRatio = 0.8;
+            } else {
+              crossAxisCount = 4;
+              childAspectRatio = 0.75;
+            }
+            
+            return GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
+              ),
+              itemCount: _artistAlbums.length,
+              itemBuilder: (context, index) {
+                final album = _artistAlbums[index];
+                return _buildAlbumCard(theme, appState, album);
+              },
+            );
           },
         ),
       ),
