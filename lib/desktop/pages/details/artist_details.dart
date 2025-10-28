@@ -78,34 +78,42 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
           showBackButton: true,
           title: widget.artist.name,
           selectedIndex: 5, // Artists page index
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Action buttons row
-                _buildActionButtons(theme),
-                
-                const SizedBox(height: 24),
-                
-                // Artist header
-                _buildArtistHeader(theme, appState),
-                
-                const SizedBox(height: 32),
-                
-                // Tab selector
-                _buildTabSelector(theme),
-                
-                const SizedBox(height: 16),
-                
-                // Content based on selected tab
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _buildTabContent(theme, appState),
+          child: Column(
+            children: [
+              // Fixed header section
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Action buttons row
+                    _buildActionButtons(theme),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Artist header
+                    _buildArtistHeader(theme, appState),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Tab selector
+                    _buildTabSelector(theme),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Scrollable content section
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _buildTabContent(theme, appState),
+                      ),
+              ),
+            ],
           ),
         );
       },
