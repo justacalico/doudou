@@ -376,9 +376,12 @@ class _LoginScreenState extends State<LoginScreen>
       children: [
         Text(
           'Choose Your Server',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: MediaQuery.of(context).platformBrightness == Brightness.dark
+              ? CupertinoColors.white
+              : CupertinoColors.black,
           ),
         ),
         
