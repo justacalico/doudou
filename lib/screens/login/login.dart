@@ -738,7 +738,7 @@ class _LoginScreenState extends State<LoginScreen>
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: CupertinoColors.white,
                   ),
                 ),
                 const SizedBox(width: 12),
