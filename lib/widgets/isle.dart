@@ -109,8 +109,6 @@ class _DynamicIsleState extends State<DynamicIsle>
                   scale: scale,
                   child: GestureDetector(
                     onTap: _toggleExpanded,
-                    onPanStart: (_) => setState(() => _isDragging = true),
-                    onPanEnd: (_) => setState(() => _isDragging = false),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
