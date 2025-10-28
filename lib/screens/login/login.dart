@@ -718,8 +718,8 @@ class _LoginScreenState extends State<LoginScreen>
       child: ElevatedButton(
         onPressed: appState.isLoading ? null : _login,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: CupertinoColors.systemPurple.color,
+          foregroundColor: CupertinoColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
