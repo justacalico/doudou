@@ -353,7 +353,7 @@ class _DynamicIsleState extends State<DynamicIsle>
               
               // Next button
               GestureDetector(
-                onTap: () => appState.audioHandler?.skipToNext(),
+                onTap: () => appState.skipToNext(),
                 child: Container(
                   width: 32,
                   height: 32,
