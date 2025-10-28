@@ -547,9 +547,12 @@ class _LoginScreenState extends State<LoginScreen>
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            fontSize: 16,
+            color: MediaQuery.of(context).platformBrightness == Brightness.dark
+              ? CupertinoColors.white
+              : CupertinoColors.black,
           ),
         ),
         const SizedBox(height: 8),
@@ -561,13 +564,28 @@ class _LoginScreenState extends State<LoginScreen>
           autocorrect: false,
           style: TextStyle(
             fontSize: 16,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: MediaQuery.of(context).platformBrightness == Brightness.dark
+              ? CupertinoColors.white
+              : CupertinoColors.black,
           ),
           decoration: InputDecoration(
             hintText: placeholder,
-            prefixIcon: Icon(icon, size: 20),
+            hintStyle: TextStyle(
+              color: MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? CupertinoColors.systemGrey
+                : CupertinoColors.systemGrey2,
+            ),
+            prefixIcon: Icon(
+              icon, 
+              size: 20,
+              color: MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? CupertinoColors.systemGrey
+                : CupertinoColors.systemGrey2,
+            ),
             filled: true,
-            fillColor: Theme.of(context).colorScheme.surface,
+            fillColor: MediaQuery.of(context).platformBrightness == Brightness.dark
+              ? const Color(0xFF2C2C2E)
+              : CupertinoColors.systemGrey6.color,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -575,21 +593,23 @@ class _LoginScreenState extends State<LoginScreen>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Theme.of(context).dividerColor,
+                color: MediaQuery.of(context).platformBrightness == Brightness.dark
+                  ? const Color(0xFF3A3A3C)
+                  : CupertinoColors.systemGrey4.color,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
+                color: CupertinoColors.systemPurple.color,
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.error,
+                color: CupertinoColors.systemRed.color,
                 width: 1,
               ),
             ),
