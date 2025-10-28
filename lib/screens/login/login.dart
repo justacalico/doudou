@@ -848,10 +848,19 @@ class _LoginScreenState extends State<LoginScreen>
   }
   
   Future<void> _enterOfflineMode() async {
+    // Trigger button press haptic feedback
+    await _triggerButtonPress();
+    
     final appState = context.read<AppState>();
     final success = await appState.enterOfflineModeWithoutLogin();
     
-    if (!success && mounted) {
+    if (success && mounted) {
+      // Success vibration
+      await _triggerHapticFeedback(isSuccess: true);
+    } else if (mounted) {
+      // Error vibration for no offline content
+      await _triggerHapticFeedback(isSuccess: false);
+      
       showCupertinoDialog(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
