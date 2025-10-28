@@ -229,6 +229,28 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           const SizedBox(width: 8),
 
+          // Play/pause button
+          GestureDetector(
+            onTap: () => appState.playPause(),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemPurple.withOpacity(0.9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isPlaying
+                    ? CupertinoIcons.pause_fill
+                    : CupertinoIcons.play_fill,
+                color: CupertinoColors.white,
+                size: 12,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 6),
+
           // Skip button
           GestureDetector(
             onTap: () => appState.skipToNext(),
