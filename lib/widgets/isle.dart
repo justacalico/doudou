@@ -18,37 +18,33 @@ class _DynamicIsleState extends State<DynamicIsle>
   late AnimationController _pulseController;
   late Animation<double> _expandAnimation;
   late Animation<double> _pulseAnimation;
-  
+
   bool _isExpanded = false;
   bool _isDragging = false;
 
   @override
   void initState() {
     super.initState();
-    
+
     _expandController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _expandAnimation = CurvedAnimation(
       parent: _expandController,
       curve: Curves.easeInOut,
     );
-    
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
     // Start pulse animation for playing state
     _pulseController.repeat(reverse: true);
   }
@@ -76,7 +72,7 @@ class _DynamicIsleState extends State<DynamicIsle>
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final currentTrack = appState.audioHandler?.currentTrack;
-        
+
         // Check if playing by looking at the audio handler's current state or user intent
         bool isPlaying = false;
         if (appState.audioHandler != null) {
@@ -93,7 +89,7 @@ class _DynamicIsleState extends State<DynamicIsle>
             }
           }
         }
-        
+
         // Hide when no track is playing
         if (currentTrack == null) {
           return const SizedBox.shrink();
@@ -109,7 +105,7 @@ class _DynamicIsleState extends State<DynamicIsle>
               builder: (context, child) {
                 final shouldPulse = isPlaying && !_isExpanded && !_isDragging;
                 final scale = shouldPulse ? _pulseAnimation.value : 1.0;
-                
+
                 return Transform.scale(
                   scale: scale,
                   child: GestureDetector(
@@ -125,9 +121,9 @@ class _DynamicIsleState extends State<DynamicIsle>
                         color: const Color(0xFF1C1C1E),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isPlaying 
-                            ? CupertinoColors.systemPurple.withOpacity(0.6)
-                            : CupertinoColors.systemGrey4.withOpacity(0.3),
+                          color: isPlaying
+                              ? CupertinoColors.systemPurple.withOpacity(0.6)
+                              : CupertinoColors.systemGrey4.withOpacity(0.3),
                           width: 1,
                         ),
                         boxShadow: [
@@ -139,7 +135,9 @@ class _DynamicIsleState extends State<DynamicIsle>
                           ),
                           if (isPlaying)
                             BoxShadow(
-                              color: CupertinoColors.systemPurple.withOpacity(0.2),
+                              color: CupertinoColors.systemPurple.withOpacity(
+                                0.2,
+                              ),
                               blurRadius: 15,
                               spreadRadius: 2,
                             ),
@@ -147,9 +145,19 @@ class _DynamicIsleState extends State<DynamicIsle>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: _isExpanded 
-                          ? _buildExpandedContent(context, appState, currentTrack, isPlaying)
-                          : _buildCompactContent(context, appState, currentTrack, isPlaying),
+                        child: _isExpanded
+                            ? _buildExpandedContent(
+                                context,
+                                appState,
+                                currentTrack,
+                                isPlaying,
+                              )
+                            : _buildCompactContent(
+                                context,
+                                appState,
+                                currentTrack,
+                                isPlaying,
+                              ),
                       ),
                     ),
                   ),
@@ -162,7 +170,12 @@ class _DynamicIsleState extends State<DynamicIsle>
     );
   }
 
-  Widget _buildCompactContent(BuildContext context, AppState appState, Track currentTrack, bool isPlaying) {
+  Widget _buildCompactContent(
+    BuildContext context,
+    AppState appState,
+    Track currentTrack,
+    bool isPlaying,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
@@ -177,25 +190,29 @@ class _DynamicIsleState extends State<DynamicIsle>
             ),
             child: ClipOval(
               child: currentTrack.imageUrl != null
-                ? Image.network(
-                    appState.getImageUrl(currentTrack.imageUrl!, width: 56, height: 56),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
+                  ? Image.network(
+                      appState.getImageUrl(
+                        currentTrack.imageUrl!,
+                        width: 56,
+                        height: 56,
+                      ),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        CupertinoIcons.music_note,
+                        color: CupertinoColors.systemGrey,
+                        size: 14,
+                      ),
+                    )
+                  : const Icon(
                       CupertinoIcons.music_note,
                       color: CupertinoColors.systemGrey,
                       size: 14,
                     ),
-                  )
-                : const Icon(
-                    CupertinoIcons.music_note,
-                    color: CupertinoColors.systemGrey,
-                    size: 14,
-                  ),
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // Track title (truncated)
           Expanded(
             child: Text(
@@ -209,9 +226,9 @@ class _DynamicIsleState extends State<DynamicIsle>
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // Skip button
           GestureDetector(
             onTap: () => appState.skipToNext(),
@@ -234,7 +251,12 @@ class _DynamicIsleState extends State<DynamicIsle>
     );
   }
 
-  Widget _buildExpandedContent(BuildContext context, AppState appState, Track currentTrack, bool isPlaying) {
+  Widget _buildExpandedContent(
+    BuildContext context,
+    AppState appState,
+    Track currentTrack,
+    bool isPlaying,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -250,25 +272,29 @@ class _DynamicIsleState extends State<DynamicIsle>
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: currentTrack.imageUrl != null
-                ? Image.network(
-                    appState.getImageUrl(currentTrack.imageUrl!, width: 132, height: 132),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
+                  ? Image.network(
+                      appState.getImageUrl(
+                        currentTrack.imageUrl!,
+                        width: 132,
+                        height: 132,
+                      ),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        CupertinoIcons.music_note,
+                        color: CupertinoColors.systemGrey,
+                        size: 24,
+                      ),
+                    )
+                  : const Icon(
                       CupertinoIcons.music_note,
                       color: CupertinoColors.systemGrey,
                       size: 24,
                     ),
-                  )
-                : const Icon(
-                    CupertinoIcons.music_note,
-                    color: CupertinoColors.systemGrey,
-                    size: 24,
-                  ),
             ),
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           // Track info and controls
           Expanded(
             child: Column(
@@ -286,9 +312,9 @@ class _DynamicIsleState extends State<DynamicIsle>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                
+
                 const SizedBox(height: 2),
-                
+
                 // Artist name
                 Text(
                   currentTrack.artistName ?? 'Unknown Artist',
@@ -299,9 +325,9 @@ class _DynamicIsleState extends State<DynamicIsle>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 // Mini progress bar
                 Container(
                   height: 2,
@@ -313,11 +339,12 @@ class _DynamicIsleState extends State<DynamicIsle>
                     stream: appState.positionStream,
                     builder: (context, snapshot) {
                       final position = snapshot.data ?? Duration.zero;
-                      final duration = appState.audioHandler?.duration ?? Duration.zero;
-                      final progress = duration.inMilliseconds > 0 
-                        ? position.inMilliseconds / duration.inMilliseconds 
-                        : 0.0;
-                      
+                      final duration =
+                          appState.audioHandler?.duration ?? Duration.zero;
+                      final progress = duration.inMilliseconds > 0
+                          ? position.inMilliseconds / duration.inMilliseconds
+                          : 0.0;
+
                       return FractionallySizedBox(
                         alignment: Alignment.centerLeft,
                         widthFactor: progress.clamp(0.0, 1.0),
@@ -334,9 +361,9 @@ class _DynamicIsleState extends State<DynamicIsle>
               ],
             ),
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           // Control buttons
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -358,9 +385,9 @@ class _DynamicIsleState extends State<DynamicIsle>
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: 8),
-              
+
               // Play/pause button
               GestureDetector(
                 onTap: () => appState.playPause(),
@@ -372,15 +399,17 @@ class _DynamicIsleState extends State<DynamicIsle>
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                    isPlaying
+                        ? CupertinoIcons.pause_fill
+                        : CupertinoIcons.play_fill,
                     color: CupertinoColors.white,
                     size: 18,
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: 8),
-              
+
               // Next button
               GestureDetector(
                 onTap: () => appState.skipToNext(),
@@ -404,6 +433,4 @@ class _DynamicIsleState extends State<DynamicIsle>
       ),
     );
   }
-
-
 }
