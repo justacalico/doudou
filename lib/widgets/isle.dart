@@ -115,7 +115,7 @@ class _DynamicIsleState extends State<DynamicIsle>
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
-                      width: _isExpanded ? 350 : 150,
+                      width: _isExpanded ? 350 : 180,
                       height: _isExpanded ? 90 : 40,
                       decoration: BoxDecoration(
                         color: const Color(0xFF1C1C1E),
