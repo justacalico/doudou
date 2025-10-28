@@ -598,12 +598,14 @@ class DesktopAudioHandler implements BaseAudioHandler {
   }
 
   /// Play track at specific queue index
-  Future<void> _playTrackAtIndex(int index) async {
+  Future<void> _playTrackAtIndex(int index, {bool updateStateImmediately = true}) async {
     final queue = _stateController.queue;
     final track = queue[index];
     
-    _stateController.updateCurrentIndex(index);
-    _stateController.updateCurrentTrack(track);
+    if (updateStateImmediately) {
+      _stateController.updateCurrentIndex(index);
+      _stateController.updateCurrentTrack(track);
+    }
     
     final streamUrl = _getStreamUrl(track);
     await _loadAndPlayTrack(streamUrl);
