@@ -313,7 +313,7 @@ class _DynamicIsleState extends State<DynamicIsle>
             children: [
               // Previous button
               GestureDetector(
-                onTap: () => appState.audioHandler?.skipToPrevious(),
+                onTap: () => appState.skipToPrevious(),
                 child: Container(
                   width: 32,
                   height: 32,
@@ -333,13 +333,7 @@ class _DynamicIsleState extends State<DynamicIsle>
               
               // Play/pause button
               GestureDetector(
-                onTap: () {
-                  if (isPlaying) {
-                    appState.audioHandler?.pause();
-                  } else {
-                    appState.audioHandler?.play();
-                  }
-                },
+                onTap: () => appState.playPause(),
                 child: Container(
                   width: 36,
                   height: 36,
