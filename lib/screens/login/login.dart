@@ -790,7 +790,7 @@ class _LoginScreenState extends State<LoginScreen>
             Icon(
               CupertinoIcons.arrow_down_circle,
               size: 20,
-              color: Theme.of(context).colorScheme.primary,
+              color: CupertinoColors.systemPurple.color,
             ),
             const SizedBox(width: 8),
             Text(
