@@ -30,6 +30,7 @@
 - Redesigned mobile home page
 - Redesigned mobile library page
 - Complete rewrite of EVERY audio service file
+- Added smooth scaling animation to desktop now playing screen opening and closing with elastic curve and opacity effects for enhanced user experience.
 
 ## Removed
 - Removed crossfades
@@ -58,4 +59,3 @@
 - Fixed Download Service Race: Implemented DownloadServiceCoordinator to prevent download operations from interfering with active audio streaming by protecting tracks during playback
 - Fixed bug for forground services audio_ui's may not update causing ui state on mobile to break until tick update.
 - Fixed desktop automatic track advancement failing when network timeouts occur. Added retry logic with fallback to transcoded streams and skip to next track on persistent failures to prevent silent playback stops.
-- Added smooth scaling animation to desktop now playing screen opening and closing with elastic curve and opacity effects for enhanced user experience.
