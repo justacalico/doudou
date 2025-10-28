@@ -254,14 +254,16 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      child: SizedBox(
-        height: constraints.maxHeight,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: constraints.maxHeight,
+        ),
         child: Column(
           children: [
             // Small mobile header
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
               ),
@@ -285,13 +287,13 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             
             // Form section
-            Expanded(
+            Flexible(
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
                 ),
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: SlideTransition(
                     position: Tween<Offset>(
