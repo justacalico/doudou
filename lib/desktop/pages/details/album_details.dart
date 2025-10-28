@@ -130,29 +130,37 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
           showBackButton: true,
           title: widget.album.name,
           selectedIndex: 4, // Albums page index
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Action buttons row
-                _buildActionButtons(theme),
-                
-                const SizedBox(height: 24),
-                
-                // Album header
-                _buildAlbumHeader(theme, appState),
-                
-                const SizedBox(height: 32),
-                
-                // Track list
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _buildTrackList(theme, appState),
+          child: Column(
+            children: [
+              // Fixed header section
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Action buttons row
+                    _buildActionButtons(theme),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Album header
+                    _buildAlbumHeader(theme, appState),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Scrollable track list section
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _buildTrackList(theme, appState),
+                      ),
+              ),
+            ],
           ),
         );
       },
@@ -287,46 +295,54 @@ class _AlbumDetailsPageState extends State<AlbumDetailsPage> {
         padding: const EdgeInsets.all(24),
         child: Row(
           children: [
-            // Album artwork
-            Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: widget.album.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _getImageUrl(appState, widget.album.imageUrl)!,
-                        width: 250,
-                        height: 250,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.album,
-                            size: 100,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          );
-                        },
+            // Album artwork - responsive size
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Use smaller artwork on smaller screens
+                final artworkSize = constraints.maxWidth < 800 ? 180.0 : 250.0;
+                final iconSize = constraints.maxWidth < 800 ? 70.0 : 100.0;
+                
+                return Container(
+                  width: artworkSize,
+                  height: artworkSize,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                    )
-                  : Icon(
-                      Icons.album,
-                      size: 100,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                    ],
+                  ),
+                  child: widget.album.imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _getImageUrl(appState, widget.album.imageUrl)!,
+                            width: artworkSize,
+                            height: artworkSize,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.album,
+                                size: iconSize,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.album,
+                          size: iconSize,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                );
+              },
             ),
             
-            const SizedBox(width: 32),
+            const SizedBox(width: 20),
             
             // Album info
             Expanded(
