@@ -58,24 +58,34 @@ class _LoginScreenState extends State<LoginScreen>
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 768;
     
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: Theme.of(context),
-      home: Scaffold(
-        backgroundColor: _getBackgroundColor(context),
+    if (isDesktop) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: Theme.of(context),
+        home: Scaffold(
+          backgroundColor: _getBackgroundColor(context),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return _buildDesktopLayout(context, constraints);
+              },
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Mobile uses system theme
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              if (isDesktop) {
-                return _buildDesktopLayout(context, constraints);
-              } else {
-                return _buildMobileLayout(context, constraints);
-              }
+              return _buildMobileLayout(context, constraints);
             },
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Color _getBackgroundColor(BuildContext context) {
