@@ -670,11 +670,11 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
       
-      // Try to set the audio source with timeout to prevent hanging
+      // Try to set the audio source with reduced timeout for better responsiveness
       try {
         await _player.setAudioSource(AudioSource.uri(Uri.parse(url)))
-            .timeout(const Duration(seconds: 10), onTimeout: () {
-          throw Exception('Audio source loading timed out after 10 seconds');
+            .timeout(const Duration(seconds: 8), onTimeout: () {
+          throw Exception('Audio source loading timed out after 8 seconds');
         });
         
         if (kDebugMode) {
@@ -703,10 +703,10 @@ class DesktopAudioHandler implements BaseAudioHandler {
         rethrow;
       }
       
-      // Try to play with timeout protection
+      // Try to play with reduced timeout for better responsiveness
       try {
-        await _player.play().timeout(const Duration(seconds: 5), onTimeout: () {
-          throw Exception('Playback start timed out after 5 seconds');
+        await _player.play().timeout(const Duration(seconds: 3), onTimeout: () {
+          throw Exception('Playback start timed out after 3 seconds');
         });
         
         if (kDebugMode) {
