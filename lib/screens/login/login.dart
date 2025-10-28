@@ -177,10 +177,582 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: _buildBackgroundDecoration(context),
       child: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: ConstrainedBox(
+          child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Column(
             children: [
+              // Mobile header with gradient
+              Container(
+                height: constraints.maxHeight * 0.4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      CupertinoColors.systemPurple.resolveFrom(context),
+                      CupertinoColors.systemBlue.resolveFrom(context),
+                    ],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    _buildAnimatedBackground(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // App icon
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(25),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.music_note_2,
+                              size: 50,
+                              color: Colors.white,
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Welcome text
+                          Text(
+                            'Welcome to Doudou',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          
+                          const SizedBox(height: 12),
+                          
+                          Text(
+                            'Your personal music companion',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Form section
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: _buildLoginForm(context, isDesktop: false),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundDecoration(BuildContext context) {
+    return Container(); // Simple container for now, can be enhanced with patterns
+  }
+
+  Widget _buildAnimatedBackground() {
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: _BackgroundPatternPainter(),
+      ),
+    );
+  }
+
+  Widget _buildLoginForm(BuildContext context, {required bool isDesktop}) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Server type selection
+              _buildServerTypeSelection(context, isDesktop),
+              
+              SizedBox(height: isDesktop ? 32 : 24),
+              
+              // Server URL field
+              _buildTextField(
+                controller: _serverController,
+                label: 'Server URL',
+                icon: CupertinoIcons.globe,
+                placeholder: _getServerPlaceholder(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter server URL';
+                  }
+                  return null;
+                },
+                keyboardType: TextInputType.url,
+                isDesktop: isDesktop,
+              ),
+              
+              SizedBox(height: isDesktop ? 20 : 16),
+              
+              // Account fields
+              ..._buildAccountFieldsModern(context, isDesktop),
+              
+              SizedBox(height: isDesktop ? 32 : 24),
+              
+              // Error message
+              if (appState.errorMessage != null) ...[
+                _buildErrorMessage(context, appState.errorMessage!, isDesktop),
+                SizedBox(height: isDesktop ? 24 : 20),
+              ],
+              
+              // Sign in button
+              _buildSignInButton(context, appState, isDesktop),
+              
+              SizedBox(height: isDesktop ? 16 : 12),
+              
+              // Offline mode button
+              _buildOfflineModeButton(context, appState, isDesktop),
+              
+              if (!isDesktop) const SizedBox(height: 40),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildServerTypeSelection(BuildContext context, bool isDesktop) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Choose Your Server',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        
+        SizedBox(height: isDesktop ? 16 : 12),
+        
+        if (isDesktop)
+          Row(
+            children: [
+              Expanded(child: _buildServerCard('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', CupertinoColors.systemPurple, isDesktop)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildServerCard('plex', 'Plex', 'assets/icons/plex.svg', CupertinoColors.systemOrange, isDesktop)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildServerCard('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', CupertinoColors.systemBlue, isDesktop)),
+            ],
+          )
+        else
+          Column(
+            children: [
+              _buildServerCard('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', CupertinoColors.systemPurple, isDesktop),
+              const SizedBox(height: 12),
+              _buildServerCard('plex', 'Plex', 'assets/icons/plex.svg', CupertinoColors.systemOrange, isDesktop),
+              const SizedBox(height: 12),
+              _buildServerCard('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', CupertinoColors.systemBlue, isDesktop),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildServerCard(String type, String label, String iconPath, Color color, bool isDesktop) {
+    final isSelected = _selectedServerType == type;
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            setState(() {
+              _selectedServerType = type;
+              _serverController.text = _getServerPlaceholder();
+              if (type == 'plex') {
+                _usernameController.clear();
+                _passwordController.clear();
+              } else {
+                _plexTokenController.clear();
+              }
+            });
+          },
+          child: Container(
+            padding: EdgeInsets.all(isDesktop ? 20 : 16),
+            decoration: BoxDecoration(
+              color: isSelected 
+                ? color.withOpacity(0.1)
+                : Theme.of(context).cardColor,
+              border: Border.all(
+                color: isSelected 
+                  ? color
+                  : Theme.of(context).dividerColor,
+                width: isSelected ? 2 : 1,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : null,
+            ),
+            child: isDesktop
+              ? Column(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: SvgPicture.asset(
+                        iconPath,
+                        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? color : Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: SvgPicture.asset(
+                        iconPath,
+                        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: isSelected ? color : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    if (isSelected)
+                      Icon(
+                        CupertinoIcons.check_mark_circled_solid,
+                        color: color,
+                        size: 24,
+                      ),
+                  ],
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String placeholder,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    required bool isDesktop,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          autocorrect: false,
+          style: TextStyle(
+            fontSize: isDesktop ? 16 : 16,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          decoration: InputDecoration(
+            hintText: placeholder,
+            prefixIcon: Icon(icon, size: 20),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+                width: 1,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: isDesktop ? 16 : 14,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildAccountFieldsModern(BuildContext context, bool isDesktop) {
+    if (_selectedServerType == 'plex') {
+      return [
+        _buildTextField(
+          controller: _plexTokenController,
+          label: 'Plex Token',
+          icon: CupertinoIcons.creditcard,
+          placeholder: 'X-Plex-Token',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your Plex token';
+            }
+            return null;
+          },
+          isDesktop: isDesktop,
+        ),
+      ];
+    } else {
+      return [
+        _buildTextField(
+          controller: _usernameController,
+          label: 'Username',
+          icon: CupertinoIcons.person,
+          placeholder: 'Enter your username',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter username';
+            }
+            return null;
+          },
+          isDesktop: isDesktop,
+        ),
+        
+        SizedBox(height: isDesktop ? 20 : 16),
+        
+        _buildTextField(
+          controller: _passwordController,
+          label: 'Password',
+          icon: CupertinoIcons.lock,
+          placeholder: 'Enter your password',
+          obscureText: true,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter password';
+            }
+            return null;
+          },
+          isDesktop: isDesktop,
+        ),
+      ];
+    }
+  }
+
+  Widget _buildErrorMessage(BuildContext context, String message, bool isDesktop) {
+    return Container(
+      padding: EdgeInsets.all(isDesktop ? 16 : 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            CupertinoIcons.exclamationmark_triangle_fill,
+            color: Theme.of(context).colorScheme.error,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+                fontSize: isDesktop ? 14 : 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSignInButton(BuildContext context, AppState appState, bool isDesktop) {
+    return SizedBox(
+      height: isDesktop ? 56 : 50,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: appState.isLoading ? null : _login,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 24 : 20,
+            vertical: isDesktop ? 16 : 14,
+          ),
+        ),
+        child: appState.isLoading
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Signing In...',
+                  style: TextStyle(
+                    fontSize: isDesktop ? 16 : 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            )
+          : Text(
+              'Sign In',
+              style: TextStyle(
+                fontSize: isDesktop ? 16 : 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+      ),
+    );
+  }
+
+  Widget _buildOfflineModeButton(BuildContext context, AppState appState, bool isDesktop) {
+    return SizedBox(
+      height: isDesktop ? 56 : 50,
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: appState.isLoading ? null : _enterOfflineMode,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Theme.of(context).colorScheme.primary,
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 24 : 20,
+            vertical: isDesktop ? 16 : 14,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.arrow_down_circle,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Use Offline Mode',
+              style: TextStyle(
+                fontSize: isDesktop ? 16 : 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
                     // Header section with logo and title
                     Container(
                       padding: const EdgeInsets.only(top: 60, bottom: 40),
