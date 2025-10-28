@@ -63,6 +63,9 @@ dependencies:
   
   # Touch Bar support (macOS only)
   touch_bar: ^0.3.0-alpha.1
+  
+  # Haptic feedback
+  vibration: ^2.0.0
 
 dev_dependencies:
   flutter_test:
