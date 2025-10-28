@@ -505,7 +505,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      Text(
+                      child: Text(
                         label,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
