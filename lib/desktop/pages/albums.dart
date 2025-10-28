@@ -360,18 +360,48 @@ class _AlbumsPageState extends State<AlbumsPage> {
   }
 
   Widget _buildAlbumsGrid(AppState appState, List<dynamic> albums) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6, // 6 albums per row
-        childAspectRatio: 0.75, // Slightly taller than square
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: albums.length,
-      itemBuilder: (context, index) {
-        final album = albums[index];
-        return _buildAlbumCard(appState, album);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive grid columns based on screen width
+        int crossAxisCount;
+        double childAspectRatio;
+        
+        if (constraints.maxWidth < 600) {
+          // Very small screens: 2 columns
+          crossAxisCount = 2;
+          childAspectRatio = 0.85;
+        } else if (constraints.maxWidth < 900) {
+          // Small screens: 3 columns
+          crossAxisCount = 3;
+          childAspectRatio = 0.8;
+        } else if (constraints.maxWidth < 1200) {
+          // Medium screens: 4 columns
+          crossAxisCount = 4;
+          childAspectRatio = 0.75;
+        } else if (constraints.maxWidth < 1500) {
+          // Large screens: 5 columns
+          crossAxisCount = 5;
+          childAspectRatio = 0.75;
+        } else {
+          // Extra large screens: 6 columns
+          crossAxisCount = 6;
+          childAspectRatio = 0.75;
+        }
+        
+        return GridView.builder(
+          padding: const EdgeInsets.all(8),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: albums.length,
+          itemBuilder: (context, index) {
+            final album = albums[index];
+            return _buildAlbumCard(appState, album);
+          },
+        );
       },
     );
   }
