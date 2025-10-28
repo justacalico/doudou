@@ -378,7 +378,7 @@ class _LoginScreenState extends State<LoginScreen>
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: Padding(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: SlideTransition(
                     position: Tween<Offset>(
