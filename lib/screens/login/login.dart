@@ -505,12 +505,16 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: Text(
+                      Text(
                         label,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          color: isSelected ? color : Theme.of(context).colorScheme.onSurface,
+                          color: isSelected 
+                            ? color 
+                            : (isDark 
+                                ? CupertinoColors.white 
+                                : CupertinoColors.black),
                         ),
                       ),
                     ),
