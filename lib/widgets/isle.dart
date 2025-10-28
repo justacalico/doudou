@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import '../models/jellyfin_models.dart';
 import '../services/audio/base_audio_handler.dart';
+import '../screens/playing/now_playing.dart';
 
 class DynamicIsle extends StatefulWidget {
   const DynamicIsle({super.key});
