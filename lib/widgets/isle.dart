@@ -280,7 +280,7 @@ class _DynamicIsleState extends State<DynamicIsle>
                     borderRadius: BorderRadius.circular(1),
                   ),
                   child: StreamBuilder<Duration>(
-                    stream: appState.audioHandler?.positionStream,
+                    stream: appState.positionStream,
                     builder: (context, snapshot) {
                       final position = snapshot.data ?? Duration.zero;
                       final duration = appState.audioHandler?.duration ?? Duration.zero;
