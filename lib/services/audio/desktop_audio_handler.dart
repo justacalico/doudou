@@ -865,6 +865,10 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Cancel radio mode timer
     _radioModeTimer?.cancel();
+    
+    // Clear preloaded URLs
+    _preloadedNextUrl = null;
+    _preloadedPreviousUrl = null;
 
     // Stop and dispose player
     try {
