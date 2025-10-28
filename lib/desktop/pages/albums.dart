@@ -613,48 +613,71 @@ class _AlbumsPageState extends State<AlbumsPage> {
               ),
             ),
             
-            // Album info
+            // Album info - responsive padding and text
             Expanded(
               flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      album.name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Adjust padding and text size based on card width
+                  final isSmall = constraints.maxWidth < 160;
+                  final padding = isSmall ? 8.0 : 12.0;
+                  
+                  return Padding(
+                    padding: EdgeInsets.all(padding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: Text(
+                        Text(
+                          album.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: isSmall ? 12 : null,
+                          ),
+                          maxLines: isSmall ? 2 : 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: isSmall ? 2 : 4),
+                        if (isSmall) ...[
+                          // Simplified layout for very small cards
+                          Text(
                             album.artistName ?? 'Unknown Artist',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 10,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        if (album.year != null) ...[
-                          Text(
-                            ' • ${album.year}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                        ] else ...[
+                          // Full layout for larger cards
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  album.artistName ?? 'Unknown Artist',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (album.year != null) ...[
+                                Text(
+                                  ' • ${album.year}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
