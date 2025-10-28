@@ -252,65 +252,54 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
+  Widget _buildMobileLayout(BuildContext context) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: constraints.maxHeight,
-        ),
-        child: Column(
-          children: [
-            // Small mobile header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-              ),
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, -0.5),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: _animationController,
-                  curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
-                )),
-                child: Text(
-                  'Doudou - Welcome',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          // Small mobile header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, -0.5),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: _animationController,
+                curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+              )),
+              child: Text(
+                'Doudou - Welcome',
+                style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: brightness == Brightness.light 
+                    ? CupertinoColors.black 
+                    : CupertinoColors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
-            
-            // Form section
-            Flexible(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _animationController,
-                      curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
-                    )),
-                    child: _buildLoginForm(context, isDesktop: false),
-                  ),
-                ),
-              ),
+          ),
+          
+          // Form section
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.3),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: _animationController,
+                curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+              )),
+              child: _buildLoginForm(context, isDesktop: false),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
