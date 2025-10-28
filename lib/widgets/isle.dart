@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:vibration/vibration.dart';
 import '../providers/app_state.dart';
 import '../models/jellyfin_models.dart';
 import '../services/audio/base_audio_handler.dart';
@@ -41,7 +43,8 @@ class _DynamicIsleState extends State<DynamicIsle>
     super.dispose();
   }
 
-  void _toggleExpanded() {
+  void _toggleExpanded() async {
+    await _triggerHapticFeedback();
     setState(() {
       _isExpanded = !_isExpanded;
       if (_isExpanded) {
@@ -52,7 +55,8 @@ class _DynamicIsleState extends State<DynamicIsle>
     });
   }
 
-  void _openNowPlaying(BuildContext context) {
+  void _openNowPlaying(BuildContext context) async {
+    await _triggerLongPressHaptic();
     Navigator.push(
       context,
       PageRouteBuilder(
@@ -75,6 +79,46 @@ class _DynamicIsleState extends State<DynamicIsle>
         },
       ),
     );
+  }
+
+  // Haptic feedback methods
+  Future<void> _triggerHapticFeedback() async {
+    try {
+      HapticFeedback.selectionClick();
+      // Light vibration for toggle expand/collapse
+      bool? hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        await Vibration.vibrate(duration: 50);
+      }
+    } catch (e) {
+      // Silently fail if vibration is not supported
+    }
+  }
+
+  Future<void> _triggerLongPressHaptic() async {
+    try {
+      HapticFeedback.mediumImpact();
+      // Medium vibration for long press
+      bool? hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        await Vibration.vibrate(duration: 100);
+      }
+    } catch (e) {
+      // Silently fail if vibration is not supported
+    }
+  }
+
+  Future<void> _triggerButtonHaptic() async {
+    try {
+      HapticFeedback.lightImpact();
+      // Very light vibration for button presses
+      bool? hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        await Vibration.vibrate(duration: 30);
+      }
+    } catch (e) {
+      // Silently fail if vibration is not supported
+    }
   }
 
   @override
@@ -240,7 +284,10 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           // Play/pause button
           GestureDetector(
-            onTap: () => appState.playPause(),
+            onTap: () async {
+              await _triggerButtonHaptic();
+              appState.playPause();
+            },
             child: Container(
               width: 24,
               height: 24,
@@ -262,7 +309,10 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           // Skip button
           GestureDetector(
-            onTap: () => appState.skipToNext(),
+            onTap: () async {
+              await _triggerButtonHaptic();
+              appState.skipToNext();
+            },
             child: Container(
               width: 24,
               height: 24,
