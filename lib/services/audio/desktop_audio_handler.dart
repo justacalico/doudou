@@ -373,51 +373,55 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> play() async {
-    return _stateController.queueCommand(() async {
+    if (kDebugMode) {
+      print('DesktopAudioHandler: Play command received');
+    }
+
+    // Update UI state immediately for instant feedback
+    _stateController.updateUserIntent(true);
+    _stateController.updateState(AudioPlayerState.playing);
+
+    try {
+      // Execute play command directly without queueing for instant response
+      await _player.play();
       if (kDebugMode) {
-        print('DesktopAudioHandler: Play command received');
+        print('DesktopAudioHandler: Play command completed');
       }
-
-      _stateController.updateUserIntent(true);
-
-      try {
-        await _player.play();
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Play command completed');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Play failed: $e');
-        }
-        _stateController.updateError('Play failed: $e');
-        _stateController.updateUserIntent(false);
-        rethrow;
+    } catch (e) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Play failed: $e');
       }
-    });
+      _stateController.updateError('Play failed: $e');
+      _stateController.updateUserIntent(false);
+      _stateController.updateState(AudioPlayerState.error);
+      rethrow;
+    }
   }
 
   @override
   Future<void> pause() async {
-    return _stateController.queueCommand(() async {
+    if (kDebugMode) {
+      print('DesktopAudioHandler: Pause command received');
+    }
+
+    // Update UI state immediately for instant feedback
+    _stateController.updateUserIntent(false);
+    _stateController.updateState(AudioPlayerState.paused);
+
+    try {
+      // Execute pause command directly without queueing for instant response
+      await _player.pause();
       if (kDebugMode) {
-        print('DesktopAudioHandler: Pause command received');
+        print('DesktopAudioHandler: Pause command completed');
       }
-
-      _stateController.updateUserIntent(false);
-
-      try {
-        await _player.pause();
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Pause command completed');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Pause failed: $e');
-        }
-        _stateController.updateError('Pause failed: $e');
-        rethrow;
+    } catch (e) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Pause failed: $e');
       }
-    });
+      _stateController.updateError('Pause failed: $e');
+      _stateController.updateState(AudioPlayerState.error);
+      rethrow;
+    }
   }
 
   @override
