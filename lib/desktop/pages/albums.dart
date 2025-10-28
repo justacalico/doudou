@@ -146,34 +146,46 @@ class _AlbumsPageState extends State<AlbumsPage> {
                 );
               },
             ),
-            const SizedBox(width: 16),
-            
-            // View toggle buttons
-            ToggleButtons(
-              isSelected: [true, false], // Grid view selected by default
-              onPressed: (index) {
-                // Toggle between grid and list view
+            // Responsive spacing and controls
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 600;
+                
+                return Row(
+                  children: [
+                    SizedBox(width: isNarrow ? 8 : 16),
+                    
+                    // View toggle buttons - hide on very small screens
+                    if (!isNarrow) ...[
+                      ToggleButtons(
+                        isSelected: [true, false], // Grid view selected by default
+                        onPressed: (index) {
+                          // Toggle between grid and list view
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        children: const [
+                          Tooltip(
+                            message: 'Grid View',
+                            child: Icon(Icons.grid_view),
+                          ),
+                          Tooltip(
+                            message: 'List View',
+                            child: Icon(Icons.list),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: isNarrow ? 8 : 16),
+                    ],
+                    
+                    // Refresh button
+                    IconButton(
+                      onPressed: () => appState.loadLibraryData(),
+                      icon: const Icon(Icons.refresh),
+                      tooltip: 'Refresh Albums',
+                    ),
+                  ],
+                );
               },
-              borderRadius: BorderRadius.circular(8),
-              children: const [
-                Tooltip(
-                  message: 'Grid View',
-                  child: Icon(Icons.grid_view),
-                ),
-                Tooltip(
-                  message: 'List View',
-                  child: Icon(Icons.list),
-                ),
-              ],
-            ),
-            
-            const SizedBox(width: 16),
-            
-            // Refresh button
-            IconButton(
-              onPressed: () => appState.loadLibraryData(),
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh Albums',
             ),
           ],
           child: Column(
