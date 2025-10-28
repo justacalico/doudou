@@ -31,18 +31,156 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(context),
-      resizeToAvoidBottomInset: true,
-      child: SafeArea(
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Consumer<AppState>(
-            builder: (context, appState, child) {
-              return Form(
-                key: _formKey,
-                child: Column(
-                  children: [
+    final screenSize = MediaQuery.of(context).size;
+    final isDesktop = screenSize.width > 768;
+    final isTablet = screenSize.width > 480 && screenSize.width <= 768;
+    
+    return Scaffold(
+      backgroundColor: _getBackgroundColor(context),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (isDesktop) {
+              return _buildDesktopLayout(context, constraints);
+            } else {
+              return _buildMobileLayout(context, constraints);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Color _getBackgroundColor(BuildContext context) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    if (brightness == Brightness.dark) {
+      return const Color(0xFF0A0A0A);
+    }
+    return const Color(0xFFF8F9FA);
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
+    return Container(
+      decoration: _buildBackgroundDecoration(context),
+      child: Row(
+        children: [
+          // Left side - Hero section with gradient
+          Expanded(
+            flex: 5,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    CupertinoColors.systemPurple.resolveFrom(context),
+                    CupertinoColors.systemIndigo.resolveFrom(context),
+                    CupertinoColors.systemBlue.resolveFrom(context),
+                  ],
+                ),
+              ),
+              child: Stack(
+                children: [
+                  // Animated background elements
+                  _buildAnimatedBackground(),
+                  
+                  // Hero content
+                  Padding(
+                    padding: const EdgeInsets.all(60),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // App icon with glow effect
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.3),
+                                blurRadius: 30,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.music_note_2,
+                            size: 60,
+                            color: Colors.white,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 40),
+                        
+                        // Welcome text
+                        Text(
+                          'Welcome to\nDoudou',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1.2,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        Text(
+                          'Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white.withOpacity(0.9),
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Right side - Login form
+          Expanded(
+            flex: 4,
+            child: Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(60),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: _buildLoginForm(context, isDesktop: true),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
+    return Container(
+      decoration: _buildBackgroundDecoration(context),
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            children: [
                     // Header section with logo and title
                     Container(
                       padding: const EdgeInsets.only(top: 60, bottom: 40),
