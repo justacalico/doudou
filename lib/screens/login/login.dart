@@ -450,7 +450,7 @@ class _LoginScreenState extends State<LoginScreen>
               // Offline mode button
               _buildOfflineModeButton(context, appState, isDesktop),
               
-              if (!isDesktop) const SizedBox(height: 40),
+              SizedBox(height: isDesktop ? 40 : 60),
             ],
           ),
         );
