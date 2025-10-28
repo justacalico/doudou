@@ -736,8 +736,34 @@ class DesktopAudioHandler implements BaseAudioHandler {
     }
   }
 
-  /// Get stream URL for track
+  /// Get stream URL for track, using preloaded URLs when possible
   String _getStreamUrl(Track track) {
+    final currentIndex = _stateController.currentIndex;
+    final queue = _stateController.queue;
+    
+    // Check if we can use preloaded URLs for faster access
+    if (currentIndex != null) {
+      // Check if this is the next track and we have it preloaded
+      if (currentIndex + 1 < queue.length && 
+          queue[currentIndex + 1].id == track.id && 
+          _preloadedNextUrl != null) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Using preloaded next URL');
+        }
+        return _preloadedNextUrl!;
+      }
+      
+      // Check if this is the previous track and we have it preloaded
+      if (currentIndex - 1 >= 0 && 
+          queue[currentIndex - 1].id == track.id && 
+          _preloadedPreviousUrl != null) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Using preloaded previous URL');
+        }
+        return _preloadedPreviousUrl!;
+      }
+    }
+    
     // Try direct stream first (no transcoding) for better compatibility
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
