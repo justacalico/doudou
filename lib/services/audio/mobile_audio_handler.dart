@@ -510,13 +510,21 @@ class DoudouAudioHandler extends BaseAudioHandler {
   /// Attempt to start foreground service, gracefully handle failure
   Future<void> _attemptForegroundService() async {
     try {
-      // Force the audio service to enter playing state which should start foreground service
-      final currentPlaybackState = playbackState.valueOrNull ?? PlaybackState();
-      final updatedPlaybackState = currentPlaybackState.copyWith(
-        processingState: AudioProcessingState.ready,
+      // Update playback state to trigger foreground service
+      final currentState = _stateController.currentState;
+      final position = _stateController.position;
+      final speed = _stateController.speed;
+      
+      final playbackState = _createPlaybackState(currentState, position, speed).copyWith(
         playing: true,
+        processingState: AudioProcessingState.ready,
       );
-      playbackState.add(updatedPlaybackState);
+      
+      this.playbackState.add(playbackState);
+      
+      // Small delay to allow the service to process the state change
+      await Future.delayed(const Duration(milliseconds: 50));
+      
     } catch (e) {
       // Silently handle foreground service start failures 
       // This can happen when the app is in background on Android 12+
