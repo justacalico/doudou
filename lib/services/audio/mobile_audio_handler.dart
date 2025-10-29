@@ -609,7 +609,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         processingState: AudioProcessingState.ready,
       );
       
-      this.playbackState.add(playbackState);
+      _safeUpdatePlaybackState(playbackState);
       
       // Small delay to allow the service to process the state change
       await Future.delayed(const Duration(milliseconds: 50));
