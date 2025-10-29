@@ -310,7 +310,7 @@ publish_release:
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
     - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
-    - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
+    - RELEASE_NOTES="Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
     - |
       echo "Checking if release $RELEASE_TAG already exists..."
       EXISTING_RELEASE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
