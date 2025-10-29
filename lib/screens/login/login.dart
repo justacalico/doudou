@@ -853,6 +853,7 @@ class _LoginScreenState extends State<LoginScreen>
     // Trigger button press haptic feedback
     await _triggerButtonPress();
     
+    if (!mounted) return;
     final appState = context.read<AppState>();
     final success = await appState.enterOfflineModeWithoutLogin();
     
