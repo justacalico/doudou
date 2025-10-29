@@ -200,7 +200,7 @@ build_release_macos:
     # Don't fail the job if artifact upload fails
     when: on_success
 
-build_debug_ios:
+build_release_ios:
   stage: build
   tags:
     - apple
