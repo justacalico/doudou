@@ -6,6 +6,8 @@ stages:
 variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache-$CI_JOB_NAME"
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
+  GIT_STRATEGY: clone
+  GIT_CLEAN_FLAGS: -ffdx
 
 cache:
   key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG-v3"
