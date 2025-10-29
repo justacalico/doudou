@@ -288,7 +288,12 @@ class _HomeContentState extends State<HomeContent> {
                             child: CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
-                                // TODO: Navigate to settings
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => const SettingsScreen(),
+                                  ),
+                                );
                               },
                               child: const Icon(
                                 CupertinoIcons.gear_alt,
