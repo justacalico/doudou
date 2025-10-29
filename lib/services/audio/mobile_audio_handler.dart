@@ -470,6 +470,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Future<void> _performPlayOperation() async {
     try {
+      // Try to start foreground service, but continue if it fails
+      await _attemptForegroundService();
+      
       await _player.play();
       if (kDebugMode) {
         print('DoudouAudioHandler: Play command completed');
@@ -481,6 +484,27 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _stateController.updateError('Play failed: $e');
       _stateController.updateUserIntent(false);
       _stateController.updateState(base_handler.AudioPlayerState.error);
+    }
+  }
+
+  /// Attempt to start foreground service, gracefully handle failure
+  Future<void> _attemptForegroundService() async {
+    try {
+      // Force the audio service to enter playing state which should start foreground service
+      final currentPlaybackState = playbackState.valueOrNull ?? PlaybackState();
+      final updatedPlaybackState = currentPlaybackState.copyWith(
+        processingState: AudioProcessingState.ready,
+        playing: true,
+      );
+      playbackState.add(updatedPlaybackState);
+    } catch (e) {
+      // Silently handle foreground service start failures 
+      // This can happen when the app is in background on Android 12+
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Foreground service start failed (continuing anyway): $e');
+      }
+      // Continue without foreground service - audio will still work in background
+      // but without the persistent notification when app is backgrounded
     }
   }
 
@@ -777,6 +801,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
       // Only start playback if user intended to play (important for background transitions)
       if (_stateController.userIntendedPlaying) {
+        // Try to handle foreground service before starting playback
+        await _attemptForegroundService();
+        
         await _player.play();
         if (kDebugMode) {
           print('DoudouAudioHandler: Playback started successfully');
