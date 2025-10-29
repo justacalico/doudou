@@ -557,8 +557,6 @@ class WebAudioHandler {
       _stateController.updateCurrentTrack(track);
       _stateController.updateState(AudioPlayerState.loading);
 
-      // Force UI synchronization to prevent desync
-      _stateController.notifyListeners();
     }
 
     // Run actual skip operation asynchronously
