@@ -493,5 +493,5 @@ cleanup_linux_runner:
     - pkill -f "flutter.*doudou" || true
     - echo "✅ Linux runner cleanup completed"
   needs:
-    - job: "build_debug_linux"
+    - job: "build_release_linux"
       optional: true
