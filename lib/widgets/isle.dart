@@ -57,6 +57,7 @@ class _DynamicIsleState extends State<DynamicIsle>
 
   void _openNowPlaying(BuildContext context) async {
     await _triggerLongPressHaptic();
+    if (!mounted) return;
     Navigator.push(
       context,
       PageRouteBuilder(
