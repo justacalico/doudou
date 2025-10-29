@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-import '../models/jellyfin_models.dart';
-import 'base_service.dart';
+import '../../models/jellyfin_models.dart';
+import '../base_service.dart';
 
 // Only import IO adapter for non-web platforms
 

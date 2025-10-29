@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/download_models.dart';
 import '../models/jellyfin_models.dart';
-import 'jellyfin_service.dart';
+import 'players/jellyfin_service.dart';
 
 class DownloadService extends ChangeNotifier {
   final JellyfinService _jellyfinService;

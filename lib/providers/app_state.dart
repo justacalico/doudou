@@ -7,7 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 import '../models/jellyfin_models.dart';
-import '../services/jellyfin_service.dart';
+import '../services/players/jellyfin_service.dart';
 import '../services/media_service_manager.dart';
 import '../services/base_service.dart';
 import '../services/audio_service_integration.dart';

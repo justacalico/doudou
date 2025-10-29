@@ -6,7 +6,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
-import '../plex_service.dart';
+import '../players/plex_service.dart';
 import 'base_audio_handler.dart';
 import 'audio_state_controller.dart';
 import 'queue_manager.dart';

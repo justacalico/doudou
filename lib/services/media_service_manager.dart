@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/jellyfin_models.dart';
 import 'base_service.dart';
-import 'jellyfin_service.dart';
-import 'plex_service.dart';
-import 'navidrome_service.dart';
+import 'players/jellyfin_service.dart';
+import 'players/plex_service.dart';
+import 'players/navidrome_service.dart';
 
 class MediaServiceManager {
   BaseMediaService? _currentService;

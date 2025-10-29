@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
-import '../models/jellyfin_models.dart';
-import 'base_service.dart';
+import '../../models/jellyfin_models.dart';
+import '../base_service.dart';
 
 class PlexService implements BaseMediaService {
   late Dio _dio;
