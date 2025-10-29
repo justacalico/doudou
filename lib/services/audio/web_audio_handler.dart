@@ -518,7 +518,7 @@ class WebAudioHandler {
   String _getStreamUrl(Track track) {
     if (kIsWeb) {
       // For web, try to get a direct download URL which might work better with CORS
-      final directUrl = _getDirectStreamUrl(track);
+      final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
       if (directUrl.isNotEmpty) {
         if (kDebugMode) {
           print('WebAudioHandler: Using direct stream URL for web: $directUrl');
@@ -528,16 +528,6 @@ class WebAudioHandler {
     }
     
     return _mediaServiceManager.getStreamUrl(track.id);
-  }
-
-  /// Get direct stream URL for web compatibility
-  String _getDirectStreamUrl(Track track) {
-    // Try to get direct download URL from Jellyfin service
-    if (_mediaServiceManager.currentService is JellyfinServiceAdapter) {
-      // Access the jellyfin service directly for direct URL
-      return _mediaServiceManager.getDirectStreamUrl(track.id);
-    }
-    return '';
   }
 
   // Queue management
