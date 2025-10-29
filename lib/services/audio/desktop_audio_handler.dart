@@ -639,7 +639,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _stateController.updateCurrentTrack(track);
     }
     
-    final streamUrl = _getStreamUrl(track);
+    final streamUrl = await _getBestStreamUrl(track);
     await _loadAndPlayTrack(streamUrl);
     
     // Preload next/previous tracks in background for faster skips
