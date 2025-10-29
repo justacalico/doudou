@@ -120,6 +120,10 @@ build_debug_macos:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+  variables:
+    GIT_STRATEGY: clone
+    GIT_CLEAN_FLAGS: -ffdx
+  cache: {}  # Disable cache for this job to prevent conflicts
   before_script:
     # Force cleanup any problematic cached directories from previous jobs
     - pkill -f gradle || true
