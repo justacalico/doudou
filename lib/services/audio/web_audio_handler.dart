@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:http/http.dart' as http;
 import '../../models/jellyfin_models.dart';
 import '../media_service_manager.dart';
 import 'base_audio_handler.dart';
