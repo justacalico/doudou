@@ -377,13 +377,13 @@ publish_release:
       fi
       
       if [ -n "$IOS_JOB_ID" ] && [ "$IOS_STATUS" = "success" ]; then
-        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-debug-ios.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Debug Build\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
+        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-release-ios.tar.gz"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Release Build\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
       fi
       
       if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
-        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/raw/build/doudou-debug-macos.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Debug Build\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
+        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/raw/build/doudou-release-macos.tar.gz"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Release Build\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
       fi
       
       ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
