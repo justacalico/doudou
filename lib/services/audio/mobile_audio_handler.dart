@@ -29,6 +29,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
 
+  // Foreground service management
+  bool _foregroundServiceIssues = false;
+
   // Constructor
   DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
     : _mediaServiceManager = mediaServiceManager {
