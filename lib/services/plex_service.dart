@@ -610,6 +610,32 @@ class PlexService implements BaseMediaService {
     return getDownloadUrl(trackId);
   }
 
+  /// Get the best stream URL (async version that fetches metadata)
+  /// This tries all methods from the bash script in order of reliability
+  Future<String> getBestStreamUrl(String trackId, {int? bitrate}) async {
+    // Try to get metadata for better URLs
+    final partKey = await _getTrackPartKey(trackId);
+    if (partKey != null) {
+      if (kDebugMode) {
+        print('Plex: Using Method 1 - Direct stream with part key: $partKey');
+      }
+      return getDirectStreamWithPartKey(partKey);
+    }
+    
+    final partId = await _getTrackPartId(trackId);
+    if (partId != null) {
+      if (kDebugMode) {
+        print('Plex: Using Method 3 - Direct file with part ID: $partId');
+      }
+      return getDirectPartUrl(partId);
+    }
+    
+    if (kDebugMode) {
+      print('Plex: Falling back to Method 4 - Download URL');
+    }
+    return getDownloadUrl(trackId);
+  }
+
   /// Get the best stream URL (async version that fetches part ID)
   /// This is what your bash script uses - Method 3 (Direct File)
   Future<String> getPreferredStreamUrl(String trackId, {int? bitrate}) async {
