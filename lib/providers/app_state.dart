@@ -1999,6 +1999,11 @@ class AppState extends ChangeNotifier {
     
     final accentColorValue = prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
+    
+    // Load recent tracks (only after tracks are loaded)
+    if (_tracks.isNotEmpty) {
+      await _loadRecentTracks();
+    }
   }
 
   // Theme management methods
