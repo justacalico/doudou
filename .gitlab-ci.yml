@@ -83,18 +83,18 @@ build_release_apk:
       - build/app/outputs/flutter-apk/app-release.apk
     expire_in: 1 hour
 
-build_debug_linux:
+build_release_linux:
   stage: build-linux
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - linux
   allow_failure: true
   needs:
-    - job: "build_debug_apk"
+    - job: "build_release_apk"
       optional: true
-    - job: "build_debug_macos"
+    - job: "build_release_macos"
       optional: true
-    - job: "build_debug_ios"
+    - job: "build_release_ios"
       optional: true
   before_script:
     - apt-get update
