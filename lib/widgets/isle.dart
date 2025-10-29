@@ -59,7 +59,7 @@ class _DynamicIsleState extends State<DynamicIsle>
     await _triggerLongPressHaptic();
     if (!mounted) return;
     Navigator.push(
-      context,
+      this.context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             const NowPlayingScreen(),
