@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../shared/detail_track_view.dart';
+import '../settings/settings.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
