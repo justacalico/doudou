@@ -146,25 +146,12 @@ Love using Doudou? Here's how you can help:
 
 [Report Issues](https://gitlab.com/Openlyst/doudou/issues) • [Join Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
 
-## 📞 Support
+## � Need Help?
 
-- 🐛 [Bug Reports](https://gitlab.com/Openlyst/doudou/issues)
-- 💬 [Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
+- 🐛 [Report a Bug](https://gitlab.com/Openlyst/doudou/issues)
+- 💡 [Request a Feature](https://gitlab.com/Openlyst/doudou/issues)
+- 💬 [Community Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
 - 📧 [Email Support](mailto:support@openlyst.com)
-
-### FAQ
-
-**Q: Which servers are supported?**  
-A: Jellyfin, Plex (with Plex Pass), and Navidrome are fully supported.
-
-**Q: Can I use this remotely?**  
-A: Yes, if your server is accessible over the internet. Use a VPN or reverse proxy for security.
-
-**Q: Desktop interface different?**  
-A: Yes, desktop platforms get an enhanced UI optimized for larger screens.
-
-**Q: Offline downloads?**  
-A: Long-press any item and select "Download for offline listening."
 
 ## 🙏 Acknowledgments
 
