@@ -115,6 +115,11 @@ build_debug_macos:
   tags:
     - apple
   allow_failure: true
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
   before_script:
     # Force cleanup any problematic cached directories from previous jobs
     - pkill -f gradle || true
