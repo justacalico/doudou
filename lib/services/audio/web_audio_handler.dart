@@ -482,12 +482,39 @@ class WebAudioHandler {
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
 
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+      // For web, we need to handle CORS issues by creating a blob URL
+      final audioSource = await _createWebAudioSource(url);
+      await _player.setAudioSource(audioSource);
       await _player.play();
     } catch (e) {
       _stateController.updateState(AudioPlayerState.error);
       _stateController.updateUserIntent(false);
       rethrow;
+    }
+  }
+
+  /// Create web-compatible audio source
+  Future<AudioSource> _createWebAudioSource(String url) async {
+    if (kIsWeb) {
+      try {
+        // Try to create a CORS-friendly request
+        return AudioSource.uri(
+          Uri.parse(url),
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: CORS-friendly approach failed, trying direct: $e');
+        }
+        // Fallback to direct URI (may fail due to CORS)
+        return AudioSource.uri(Uri.parse(url));
+      }
+    } else {
+      return AudioSource.uri(Uri.parse(url));
     }
   }
 
