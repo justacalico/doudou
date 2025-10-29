@@ -402,19 +402,30 @@ class WebAudioHandler {
   }
 
   Future<void> seek(Duration position) async {
-    return _stateController.queueCommand(() async {
-      try {
-        await _player.seek(position);
-        _stateController.updatePosition(position);
-        _updateMediaSessionPlaybackState();
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioHandler: Seek failed: $e');
-        }
-        _stateController.updateError('Seek failed: $e');
-        rethrow;
+    if (kDebugMode) {
+      print('WebAudioHandler: Seek to ${position.inSeconds}s requested');
+    }
+
+    // Update UI position immediately for responsiveness
+    _stateController.updatePosition(position);
+
+    // Run the actual seek operation asynchronously without blocking UI
+    _performSeekOperation(position);
+  }
+
+  Future<void> _performSeekOperation(Duration position) async {
+    try {
+      await _player.seek(position);
+      _updateMediaSessionPlaybackState();
+      if (kDebugMode) {
+        print('WebAudioHandler: Seek completed successfully');
       }
-    });
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Seek failed: $e');
+      }
+      _stateController.updateError('Seek failed: $e');
+    }
   }
 
   Future<void> setSpeed(double speed) async {
