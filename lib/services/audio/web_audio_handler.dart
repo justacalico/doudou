@@ -220,7 +220,7 @@ class WebAudioHandler {
 
   // Web-specific streams for AudioService compatibility
   Stream<PlaybackState> get playbackState => _createPlaybackStateStream();
-  
+
   Stream<MediaItem?> get mediaItem => _createMediaItemStream();
 
   /// Create a PlaybackState stream compatible with AudioService
@@ -251,20 +251,17 @@ class WebAudioHandler {
   Stream<MediaItem?> _createMediaItemStream() {
     return _stateController.currentTrackStream.map((track) {
       if (track == null) return null;
-      
+
       return MediaItem(
         id: track.id,
         album: track.albumName,
         title: track.name,
         artist: track.artistName,
         duration: Duration(seconds: track.duration ?? 0),
-        artUri: track.imageUrl != null 
+        artUri: track.imageUrl != null
             ? Uri.parse(_mediaServiceManager.getImageUrl(track.imageUrl!))
             : null,
-        extras: {
-          'albumId': track.albumId,
-          'trackNumber': track.trackNumber,
-        },
+        extras: {'albumId': track.albumId, 'trackNumber': track.trackNumber},
       );
     });
   }
@@ -546,11 +543,11 @@ class WebAudioHandler {
     _stateController.updateCurrentTrack(track);
 
     final streamUrl = _getStreamUrl(track);
-    
+
     if (kDebugMode) {
       print('WebAudioHandler: Stream URL for ${track.name}: $streamUrl');
     }
-    
+
     await _loadAndPlayTrack(streamUrl);
   }
 
@@ -579,19 +576,19 @@ class WebAudioHandler {
 
       // Create and load new audio source
       final audioSource = await _createWebAudioSource(url);
-      
+
       if (kDebugMode) {
         print('WebAudioHandler: Setting new audio source');
       }
-      
+
       await _player.setAudioSource(audioSource);
-      
+
       if (kDebugMode) {
         print('WebAudioHandler: Starting playback of new track');
       }
-      
+
       await _player.play();
-      
+
       if (kDebugMode) {
         print('WebAudioHandler: New track playback started successfully');
       }
@@ -612,7 +609,7 @@ class WebAudioHandler {
         if (kDebugMode) {
           print('WebAudioHandler: Creating web audio source for: $url');
         }
-        
+
         // For web, try the direct stream URL first
         return AudioSource.uri(Uri.parse(url));
       } catch (e) {
@@ -638,7 +635,7 @@ class WebAudioHandler {
         return directUrl;
       }
     }
-    
+
     return _mediaServiceManager.getStreamUrl(track.id);
   }
 
