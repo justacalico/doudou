@@ -277,9 +277,22 @@ class DoudouAudioHandler extends BaseAudioHandler {
       }
 
       // Explicitly trigger play after a brief delay to ensure background service continues
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future.delayed(const Duration(milliseconds: 100), () async {
         if (_stateController.userIntendedPlaying) {
-          play();
+          try {
+            // For auto-advance, try starting without foreground service requirements
+            // since the app might be backgrounded
+            await _player.play();
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Auto-advance playback started');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Auto-advance playback failed: $e');
+            }
+            // Still try the normal play method as fallback
+            play();
+          }
         }
       });
     } else {
