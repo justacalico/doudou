@@ -498,21 +498,17 @@ class WebAudioHandler {
   Future<AudioSource> _createWebAudioSource(String url) async {
     if (kIsWeb) {
       try {
-        // Try to create a CORS-friendly request
-        return AudioSource.uri(
-          Uri.parse(url),
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          },
-        );
+        if (kDebugMode) {
+          print('WebAudioHandler: Creating web audio source for: $url');
+        }
+        
+        // For web, try the direct stream URL first
+        return AudioSource.uri(Uri.parse(url));
       } catch (e) {
         if (kDebugMode) {
-          print('WebAudioHandler: CORS-friendly approach failed, trying direct: $e');
+          print('WebAudioHandler: Failed to create audio source: $e');
         }
-        // Fallback to direct URI (may fail due to CORS)
-        return AudioSource.uri(Uri.parse(url));
+        rethrow;
       }
     } else {
       return AudioSource.uri(Uri.parse(url));
