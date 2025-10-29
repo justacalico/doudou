@@ -255,6 +255,11 @@ build_debug_ios:
     - flutter pub get
     # Build iOS without codesigning (debug mode)
     - flutter build ios --no-codesign --debug
+  after_script:
+    # Copy artifacts back to original workspace for GitLab to pick up
+    - if [ -d "$JOB_WORK_DIR" ]; then cp -r "$JOB_WORK_DIR/build" . 2>/dev/null || true; fi
+    # Cleanup isolated workspace
+    - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
       - build/ios/iphoneos/
