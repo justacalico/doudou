@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  doudou-web:
+    image: httpanimations/doudou:latest
+    container_name: doudou-web
+    ports:
+      - "34273:34273"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:34273/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.doudou.rule=Host(\`doudou.local\`)"
+      - "traefik.http.services.doudou.loadbalancer.server.port=34273"
+
+  # Optional: If you want to run Jellyfin alongside Doudou
+  # jellyfin:
+  #   image: jellyfin/jellyfin:latest
+  #   container_name: jellyfin
+  #   ports:
+  #     - "8096:8096"
+  #   volumes:
+  #     - jellyfin-config:/config
+  #     - jellyfin-cache:/cache
+  #     - /path/to/your/media:/media:ro
+  #   restart: unless-stopped
+
+# volumes:
+#   jellyfin-config:
+#   jellyfin-cache:
