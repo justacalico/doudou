@@ -153,25 +153,44 @@ Love using Doudou? Here's how you can help:
 - 💬 [Community Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
 - 📧 [Email Support](mailto:support@openlyst.com)
 
-## 🙏 Acknowledgments
+---
 
-Built with these amazing open-source projects:
+## �️ For Developers
 
-- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Navidrome](https://navidrome.org/) - Media server platforms
-- [Flutter](https://flutter.dev/) & [Dart](https://dart.dev/) - Cross-platform framework
-- [just_audio](https://pub.dev/packages/just_audio) - Audio playback
+**Building from source:**
+```bash
+git clone https://gitlab.com/Openlyst/doudou.git
+cd doudou
+flutter pub get
+flutter run
+```
+
+**Requirements:** Flutter 3.8.0+, Dart 3.0.0+
+
+**Build targets:** `make android`, `make ios`, `make macos`, `make linux`, `make windows`
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+
+## 🙏 Credits
+
+Built with love using these incredible open-source projects:
+
+- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Navidrome](https://navidrome.org/) - Media servers
+- [Flutter](https://flutter.dev/) - Cross-platform framework  
+- [just_audio](https://pub.dev/packages/just_audio) - Audio engine
 - [audio_service](https://pub.dev/packages/audio_service) - Background audio
-- [provider](https://pub.dev/packages/provider) - State management
 
-Thanks to the media server and Flutter communities for making self-hosted music possible!
+Special thanks to the self-hosted and Flutter communities! 🎵
 
 ## 📄 License
 
-GPL-3.0 License - see [LICENSE](LICENSE) for details.
+**GPL-3.0** - Free and open source forever.
 
-- ✅ Free to use, modify, and distribute
-- ✅ Source code must remain available
-- ❌ No warranty provided
+✅ Use, modify, and share freely  
+✅ Source code stays open  
+❌ No warranty provided  
+
+See [LICENSE](LICENSE) for full details.
 
 ---
 
