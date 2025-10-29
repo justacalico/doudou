@@ -272,7 +272,7 @@ build_release_ios:
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
-      - build/doudou-debug-ios.tar.gz
+      - build/doudou-release-ios.tar.gz
     expire_in: 1 hour
     when: on_success
 
