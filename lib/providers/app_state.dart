@@ -37,6 +37,7 @@ class AppState extends ChangeNotifier {
   List<Artist> _artists = [];
   List<Track> _tracks = [];
   List<Playlist> _playlists = [];
+  List<Track> _recentTracks = [];
 
   bool _normalizeVolumeEnabled = false;
   bool _gaplessPlaybackEnabled = true;
@@ -64,6 +65,7 @@ class AppState extends ChangeNotifier {
   List<Artist> get artists => _artists;
   List<Track> get tracks => _tracks;
   List<Playlist> get playlists => _playlists;
+  List<Track> get recentTracks => _recentTracks;
   JellyfinService get jellyfinService => _jellyfinService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
