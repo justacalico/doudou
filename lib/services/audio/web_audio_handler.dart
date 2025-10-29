@@ -636,20 +636,8 @@ class WebAudioHandler {
         }
       }
 
-      // Create and load new audio source
-      final audioSource = await _createWebAudioSource(url);
-
-      if (kDebugMode) {
-        print('WebAudioHandler: Setting new audio source');
-      }
-
-      await _player.setAudioSource(audioSource);
-
-      if (kDebugMode) {
-        print('WebAudioHandler: Starting playback of new track');
-      }
-
-      await _player.play();
+      // Try to load and play the audio with fallback handling for CORS
+      await _tryLoadWithFallbacks(url);
 
       if (kDebugMode) {
         print('WebAudioHandler: New track playback started successfully');
@@ -662,6 +650,63 @@ class WebAudioHandler {
       _stateController.updateUserIntent(false);
       rethrow;
     }
+  }
+
+  /// Try to load audio with fallbacks for CORS issues
+  Future<void> _tryLoadWithFallbacks(String primaryUrl) async {
+    List<String> urlsToTry = [primaryUrl];
+    
+    // Add fallback URLs if we have them
+    if (kIsWeb && _stateController.currentTrack != null) {
+      urlsToTry.addAll(_getFallbackUrls(_stateController.currentTrack!));
+    }
+
+    Exception? lastError;
+    
+    for (int i = 0; i < urlsToTry.length; i++) {
+      final url = urlsToTry[i];
+      try {
+        if (kDebugMode) {
+          print('WebAudioHandler: Trying URL ${i + 1}/${urlsToTry.length}: $url');
+        }
+
+        // Create and load new audio source
+        final audioSource = await _createWebAudioSource(url);
+        await _player.setAudioSource(audioSource);
+        await _player.play();
+        
+        if (kDebugMode) {
+          print('WebAudioHandler: Successfully loaded URL ${i + 1}/${urlsToTry.length}');
+        }
+        return; // Success - exit the retry loop
+        
+      } catch (e) {
+        lastError = e is Exception ? e : Exception(e.toString());
+        if (kDebugMode) {
+          print('WebAudioHandler: Failed to load URL ${i + 1}/${urlsToTry.length}: $e');
+        }
+        
+        // If it's a CORS-related error and we have more URLs to try, continue
+        if (i < urlsToTry.length - 1 && _isCorsError(e)) {
+          if (kDebugMode) {
+            print('WebAudioHandler: CORS error detected, trying next URL...');
+          }
+          continue;
+        }
+      }
+    }
+    
+    // If we get here, all URLs failed
+    throw lastError ?? Exception('All stream URLs failed to load');
+  }
+
+  /// Check if error is CORS-related
+  bool _isCorsError(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    return errorString.contains('cors') || 
+           errorString.contains('cross-origin') ||
+           errorString.contains('blocked') ||
+           errorString.contains('access-control');
   }
 
   /// Create web-compatible audio source
