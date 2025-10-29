@@ -663,12 +663,11 @@ class PlexService implements BaseMediaService {
     // Note: This synchronous version can't fetch part IDs
     // Use getAlternativeStreamUrlsAsync() for better Plex support
     return [
-      // Method 2 - Universal transcode (high quality)
-      getUniversalStreamUrl(trackId, bitrate: 192),
-      // Method 2 - Universal transcode (standard quality)  
-      getUniversalStreamUrl(trackId, bitrate: 128),
-      // Method 4 - Download URL as final fallback
+      // Method 4 - Download URL (most reliable for synchronous calls)
       getDownloadUrl(trackId),
+      // Method 2 - Universal transcode fallbacks
+      getImprovedUniversalStreamUrl(trackId, bitrate: 192),
+      getImprovedUniversalStreamUrl(trackId, bitrate: 128),
     ];
   }
 
