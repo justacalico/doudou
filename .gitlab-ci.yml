@@ -82,6 +82,10 @@ build_debug_apk:
     - flutter build apk --debug
   after_script:
     - pkill -f "gradle.*$CI_JOB_ID" || true
+    # Copy artifacts back to original workspace for GitLab to pick up
+    - if [ -d "$JOB_WORK_DIR" ]; then cp -r "$JOB_WORK_DIR/build" . 2>/dev/null || true; fi
+    # Cleanup isolated workspace
+    - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
