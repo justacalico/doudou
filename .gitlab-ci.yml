@@ -367,7 +367,7 @@ publish_release:
       ASSET_LINKS=""
       
       if [ -n "$APK_JOB_ID" ] && [ "$APK_STATUS" = "success" ]; then
-        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-debug.apk"
+        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-release.apk"
         ASSET_LINKS="$ASSET_LINKS{\"name\": \"Android APK\", \"url\": \"$APK_URL\", \"link_type\": \"package\"},"
       fi
       
