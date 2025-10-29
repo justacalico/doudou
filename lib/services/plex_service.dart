@@ -700,30 +700,45 @@ class PlexService implements BaseMediaService {
     ];
   }
 
-  /// Get alternative stream URLs with async part ID fetching
+  /// Get alternative stream URLs with async metadata fetching (all methods from bash script)
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
-    // Fetch part ID for best quality streaming
-    final partId = await _getTrackPartId(trackId);
-    
     final urls = <String>[];
     
-    // Method 3 from bash - most reliable if we have part ID (DIRECT FILE ACCESS)
-    if (partId != null) {
-      urls.add(getDirectPartUrl(partId));
+    // Fetch part key and part ID for best quality streaming
+    final partKey = await _getTrackPartKey(trackId);
+    final partId = await _getTrackPartId(trackId);
+    
+    // Method 1 from bash - Direct stream using part key
+    if (partKey != null) {
+      urls.add(getDirectStreamWithPartKey(partKey));
       if (kDebugMode) {
-        print('Plex: Using direct file URL with part ID: $partId');
+        print('Plex: Adding Method 1 - Direct stream URL with part key: $partKey');
       }
     }
     
-    // Method 4 - Download URL (very reliable)
-    urls.add(getDownloadUrl(trackId));
+    // Method 3 from bash - Direct file access using part ID
+    if (partId != null) {
+      urls.add(getDirectPartUrl(partId));
+      if (kDebugMode) {
+        print('Plex: Adding Method 3 - Direct file URL with part ID: $partId');
+      }
+    }
     
-    // Method 2 - Universal transcode fallbacks
+    // Method 4 from bash - Download URL (very reliable)
+    urls.add(getDownloadUrl(trackId));
+    if (kDebugMode) {
+      print('Plex: Adding Method 4 - Download URL');
+    }
+    
+    // Method 2 from bash - Universal transcode fallbacks
     urls.addAll([
       getUniversalStreamUrl(trackId, bitrate: 192),
       getUniversalStreamUrl(trackId, bitrate: 128),
     ]);
+    if (kDebugMode) {
+      print('Plex: Adding Method 2 - Universal transcode URLs');
+    }
     
     return urls;
   }
