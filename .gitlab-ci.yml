@@ -37,9 +37,12 @@ build_debug_apk:
       fi
     # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies
-    - rm -rf "$PUB_CACHE" # Use job-specific pub cache
-    - flutter clean
+    # Clean more safely - avoid errors if files don't exist or are locked
+    - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies || true
+    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
+    # Clean any job-specific Gradle directories from other jobs
+    - rm -rf .gradle-*/ || true
+    - flutter clean || true
   script:
     - flutter --version
     - flutter clean
@@ -164,15 +167,18 @@ build_debug_ios:
       fi
     # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf "$PUB_CACHE" # Use job-specific pub cache
-    - flutter clean
+    # Clean more safely - avoid errors if files don't exist or are locked
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
+    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
+    # Clean any job-specific Gradle directories from other jobs
+    - rm -rf .gradle-*/ || true
+    - flutter clean || true
   script:
     - flutter --version
     - flutter clean
     - flutter pub get
-    # Prevent system sleep during build
-    - caffeinate -i flutter build ios --no-codesign
+    # Build iOS without codesigning (debug mode)
+    - flutter build ios --no-codesign --debug
   artifacts:
     paths:
       - build/ios/iphoneos/
