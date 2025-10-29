@@ -258,47 +258,60 @@ class DoudouAudioHandler extends BaseAudioHandler {
         );
       }
 
-      // Skip to next track and ensure playback continues in background
-      await skipToQueueItem(nextIndex);
 
-      // Force update UI state immediately for proper synchronization
-      final queue = _stateController.queue;
-      if (nextIndex < queue.length) {
-        final nextTrack = queue[nextIndex];
 
-        // Force comprehensive UI synchronization
-        _forceUISynchronization(nextTrack, nextIndex);
+      // For auto-advance, assume foreground service might have issues
+      // This prevents the loop issue when app is backgrounded
+      _foregroundServiceIssues = true;
 
-        if (kDebugMode) {
-          print(
-            'DoudouAudioHandler: UI state synchronized for track: ${nextTrack.name}',
-          );
-        }
-      }
-
-      // Explicitly trigger play after a brief delay to ensure background service continues
-      Future.delayed(const Duration(milliseconds: 100), () async {
-        if (_stateController.userIntendedPlaying) {
-          try {
-            // For auto-advance, try starting without foreground service requirements
-            // since the app might be backgrounded
-            await _player.play();
-            if (kDebugMode) {
-              print('DoudouAudioHandler: Auto-advance playback started');
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print('DoudouAudioHandler: Auto-advance playback failed: $e');
-            }
-            // Still try the normal play method as fallback
-            play();
-          }
-        }
-      });
+      // Skip to next track with background-safe approach
+      await _performBackgroundSafeSkip(nextIndex);
     } else {
       // End of queue
       _stateController.updateState(base_handler.AudioPlayerState.completed);
       _stateController.updateUserIntent(false);
+    }
+  }
+
+  /// Perform a background-safe skip that doesn't rely on foreground service
+  Future<void> _performBackgroundSafeSkip(int index) async {
+    try {
+      final queue = _stateController.queue;
+      if (index < 0 || index >= queue.length) {
+        throw Exception('Invalid queue index: $index');
+      }
+
+      final track = queue[index];
+      
+      // Update state immediately for UI responsiveness
+      _stateController.updateCurrentIndex(index);
+      _stateController.updateCurrentTrack(track);
+      _stateController.updateState(base_handler.AudioPlayerState.loading);
+
+      // Force UI synchronization
+      _forceUISynchronization(track, index);
+
+      // Load the new track
+      final streamUrl = _getStreamUrl(track);
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Loading audio source for background play: $streamUrl');
+      }
+
+      await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+      
+      // Start playback immediately without waiting for foreground service
+      if (_stateController.userIntendedPlaying) {
+        await _player.play();
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Background auto-advance playback started');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Background-safe skip failed: $e');
+      }
+      _stateController.updateError('Auto-advance failed: $e');
+      _stateController.updateState(base_handler.AudioPlayerState.error);
     }
   }
 
@@ -811,8 +824,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
         throw Exception('Invalid queue index: $index');
       }
 
-      // Reset foreground service issues flag for new tracks
-      // This allows retry in case the app came back to foreground
+      // Reset foreground service issues flag for manual skips
+      // (user is likely interacting with the app)
       _foregroundServiceIssues = false;
 
       await _playTrackAtIndex(index);
