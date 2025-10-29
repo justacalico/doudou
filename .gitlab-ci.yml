@@ -287,11 +287,11 @@ publish_release:
       - runner_system_failure
       - unknown_failure
   needs:
-    - job: "build_debug_apk"
-    - job: "build_debug_linux"
-    - job: "build_debug_macos"
+    - job: "build_release_apk"
+    - job: "build_release_linux"
+    - job: "build_release_macos"
       optional: true
-    - job: "build_debug_ios"
+    - job: "build_release_ios"
       optional: true
   
   before_script:
