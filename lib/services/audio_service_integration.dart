@@ -248,12 +248,13 @@ class AudioServiceIntegration {
   Stream<audio_service.PlaybackState>? get playbackState {
     if (!_initialized || _audioHandler == null) return null;
     
-    if (_audioHandler is DoudouAudioHandler) {
+    if (_audioHandler is WebAudioHandler) {
+      return (_audioHandler as WebAudioHandler).playbackState;
+    } else if (_audioHandler is DoudouAudioHandler) {
       return (_audioHandler as DoudouAudioHandler).playbackState.stream;
     } else if (_audioHandler is DesktopAudioHandler) {
       return (_audioHandler as DesktopAudioHandler).playbackState;
     }
-    // For web, we need to create a compatible stream
     return null;
   }
 
