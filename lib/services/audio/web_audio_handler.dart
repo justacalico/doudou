@@ -350,26 +350,31 @@ class WebAudioHandler {
   }
 
   Future<void> pause() async {
-    return _stateController.queueCommand(() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Pause command received');
+    }
+
+    // Update UI state immediately for responsiveness
+    _stateController.updateUserIntent(false);
+    _stateController.updateState(AudioPlayerState.paused);
+
+    // Run the actual audio operation asynchronously without blocking UI
+    _performPauseOperation();
+  }
+
+  Future<void> _performPauseOperation() async {
+    try {
+      await _player.pause();
       if (kDebugMode) {
-        print('WebAudioHandler: Pause command received');
+        print('WebAudioHandler: Pause command completed');
       }
-
-      _stateController.updateUserIntent(false);
-
-      try {
-        await _player.pause();
-        if (kDebugMode) {
-          print('WebAudioHandler: Pause command completed');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioHandler: Pause failed: $e');
-        }
-        _stateController.updateError('Pause failed: $e');
-        rethrow;
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Pause failed: $e');
       }
-    });
+      _stateController.updateError('Pause failed: $e');
+      _stateController.updateState(AudioPlayerState.error);
+    }
   }
 
   Future<void> stop() async {
