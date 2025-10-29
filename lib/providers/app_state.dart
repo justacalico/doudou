@@ -900,6 +900,9 @@ class AppState extends ChangeNotifier {
           // Don't fail completely - UI still works with cached data
         }
         
+        // Load recent tracks now that we have track data
+        await _loadRecentTracks();
+        
         _setLoading(false);
         
         if (kDebugMode) {
