@@ -80,9 +80,10 @@ build_debug_linux:
     - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
     # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf "$PUB_CACHE" # Use job-specific pub cache
-    - flutter clean
+    # Clean more safely - avoid errors if files don't exist or are locked
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
+    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
+    - flutter clean || true
   script:
     - flutter --version
     - flutter config --enable-linux-desktop
