@@ -574,9 +574,10 @@ class PlexService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    // Synchronous fallback - use universal transcode
-    // For best results, use getPreferredStreamUrl instead
-    return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
+    // Try direct file method first (most reliable)
+    // Note: This is synchronous so we can't fetch part ID here
+    // Use the improved universal transcode method as fallback
+    return getImprovedUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
   }
 
   /// Get the best stream URL (async version that fetches part ID)
@@ -630,6 +631,19 @@ class PlexService implements BaseMediaService {
         '&protocol=http'
         '&directPlay=0'
         '&directStream=0'
+        '&audioBitrate=$audioBitrate'
+        '&X-Plex-Token=$_token';
+  }
+
+  /// Get improved universal stream URL with better parameter formatting
+  String getImprovedUniversalStreamUrl(String trackId, {int? bitrate}) {
+    final audioBitrate = bitrate ?? 192;
+    // Use the music transcoding endpoint instead of generic audio endpoint
+    return '$_serverUrl/music/:/transcode/universal/start.mp3'
+        '?path=${Uri.encodeComponent('/library/metadata/$trackId')}'
+        '&mediaIndex=0'
+        '&partIndex=0'
+        '&protocol=http'
         '&audioBitrate=$audioBitrate'
         '&X-Plex-Token=$_token';
   }
