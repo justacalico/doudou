@@ -36,6 +36,7 @@
 - Added minimal mobile login header with "Doudou - Welcome" text and slide-in animation for better branding while maintaining clean, focused mobile experience.
 - Mobile login screen now respects phone's system theme (light/dark mode) while desktop maintains custom MaterialApp theming.
 - Build realse rather the debug.
+- Movies player services to thier own folder. 
 
 ## Removed
 - Removed crossfades
