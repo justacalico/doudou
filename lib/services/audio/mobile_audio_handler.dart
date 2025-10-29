@@ -117,7 +117,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Set up state synchronization with AudioService
   void _setupStateSynchronization() {
-    // Sync playback state to AudioService
+    // Sync playback state to AudioService (with foreground service error handling)
     _subscriptions.add(
       CombineLatestStream.combine3(
         _stateController.stateStream,
@@ -129,27 +129,78 @@ class DoudouAudioHandler extends BaseAudioHandler {
           double speed,
         ) => _createPlaybackState(state, position, speed),
       ).listen((playbackState) {
-        this.playbackState.add(playbackState);
+        _safeUpdatePlaybackState(playbackState);
       }),
     );
 
-    // Sync current track to MediaItem
+    // Sync current track to MediaItem (with foreground service error handling)
     _subscriptions.add(
       _stateController.currentTrackStream.listen((track) {
-        if (track != null) {
-          mediaItem.add(_trackToMediaItem(track));
-        } else {
-          mediaItem.add(null);
-        }
+        _safeUpdateMediaItem(track);
       }),
     );
 
-    // Sync queue to AudioService
+    // Sync queue to AudioService (with foreground service error handling)
     _subscriptions.add(
       _stateController.queueStream.listen((tracks) {
-        queue.add(tracks.map(_trackToMediaItem).toList());
+        _safeUpdateQueue(tracks);
       }),
     );
+  }
+
+  /// Safely update playback state without triggering foreground service errors
+  void _safeUpdatePlaybackState(PlaybackState state) {
+    if (_foregroundServiceIssues) {
+      // Skip updating AudioService state if we know foreground service has issues
+      return;
+    }
+
+    try {
+      playbackState.add(state);
+    } catch (e) {
+      _foregroundServiceIssues = true;
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Playback state update failed, marking foreground service issues: $e');
+      }
+    }
+  }
+
+  /// Safely update media item without triggering foreground service errors
+  void _safeUpdateMediaItem(Track? track) {
+    if (_foregroundServiceIssues) {
+      // Skip updating AudioService MediaItem if we know foreground service has issues
+      return;
+    }
+
+    try {
+      if (track != null) {
+        mediaItem.add(_trackToMediaItem(track));
+      } else {
+        mediaItem.add(null);
+      }
+    } catch (e) {
+      _foregroundServiceIssues = true;
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Media item update failed, marking foreground service issues: $e');
+      }
+    }
+  }
+
+  /// Safely update queue without triggering foreground service errors
+  void _safeUpdateQueue(List<Track> tracks) {
+    if (_foregroundServiceIssues) {
+      // Skip updating AudioService queue if we know foreground service has issues
+      return;
+    }
+
+    try {
+      queue.add(tracks.map(_trackToMediaItem).toList());
+    } catch (e) {
+      _foregroundServiceIssues = true;
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Queue update failed, marking foreground service issues: $e');
+      }
+    }
   }
 
   /// Force comprehensive UI synchronization for track changes
