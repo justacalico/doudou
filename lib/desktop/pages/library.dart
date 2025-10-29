@@ -304,6 +304,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildRecentContent(AppState appState) {
     final theme = Theme.of(context);
+    final recentTracks = appState.recentTracks;
     
     return SingleChildScrollView(
       child: Column(
@@ -316,32 +317,127 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.history,
-                    size: 48,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Recent Activity',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Your recently played music will appear here',
-                    style: theme.textTheme.bodyMedium?.copyWith(
+          
+          if (recentTracks.isEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.history,
+                      size: 48,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Recent Activity',
+                      style: theme.textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Your recently played music will appear here',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            )
+          else
+            // Grid view of recent tracks
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.75,
+              ),
+              itemCount: recentTracks.length,
+              itemBuilder: (context, index) {
+                final track = recentTracks[index];
+                final album = appState.albums.firstWhere(
+                  (album) => album.id == track.albumId,
+                  orElse: () => null,
+                );
+                
+                return Card(
+                  child: InkWell(
+                    onTap: () {
+                      // Play the track
+                      appState.playTrack(track);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceVariant,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12),
+                              ),
+                            ),
+                            child: album?.imageUrl != null
+                                ? ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      _getImageUrl(appState, album!.imageUrl)!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(
+                                          Icons.music_note,
+                                          size: 32,
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.music_note,
+                                    size: 32,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                track.name,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                track.artistName ?? 'Unknown Artist',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
         ],
       ),
     );
