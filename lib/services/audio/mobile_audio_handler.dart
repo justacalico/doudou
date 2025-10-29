@@ -794,6 +794,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
         throw Exception('Invalid queue index: $index');
       }
 
+      // Reset foreground service issues flag for new tracks
+      // This allows retry in case the app came back to foreground
+      _foregroundServiceIssues = false;
+
       await _playTrackAtIndex(index);
     } catch (e) {
       if (kDebugMode) {
