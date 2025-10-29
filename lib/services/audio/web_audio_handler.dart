@@ -223,6 +223,69 @@ class WebAudioHandler {
   
   Stream<MediaItem?> get mediaItem => _createMediaItemStream();
 
+  /// Create a PlaybackState stream compatible with AudioService
+  Stream<PlaybackState> _createPlaybackStateStream() {
+    return _player.playerStateStream.map((playerState) {
+      return PlaybackState(
+        controls: [
+          MediaControl.skipToPrevious,
+          if (playerState.playing) MediaControl.pause else MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActions: const [0, 1, 2],
+        processingState: _mapProcessingState(playerState.processingState),
+        playing: playerState.playing,
+        updatePosition: _stateController.position,
+        bufferedPosition: _stateController.position,
+        speed: _stateController.speed,
+        queueIndex: _stateController.currentIndex,
+      );
+    });
+  }
+
+  /// Create a MediaItem stream from current track
+  Stream<MediaItem?> _createMediaItemStream() {
+    return _stateController.currentTrackStream.map((track) {
+      if (track == null) return null;
+      
+      return MediaItem(
+        id: track.id,
+        album: track.albumName,
+        title: track.name,
+        artist: track.artistName,
+        duration: Duration(seconds: track.duration),
+        artUri: track.imageUrl != null 
+            ? Uri.parse(_mediaServiceManager.getImageUrl(track.imageUrl!))
+            : null,
+        extras: {
+          'albumId': track.albumId,
+          'trackNumber': track.trackNumber,
+        },
+      );
+    });
+  }
+
+  /// Map just_audio ProcessingState to AudioService AudioProcessingState
+  AudioProcessingState _mapProcessingState(ProcessingState state) {
+    switch (state) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
+  }
+
   // Property getters
 
   AudioPlayerState get currentState => _stateController.currentState;
