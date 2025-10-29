@@ -195,7 +195,7 @@ build_release_macos:
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
-      - build/doudou-debug-macos.tar.gz
+      - build/doudou-release-macos.tar.gz
     expire_in: 1 hour
     # Don't fail the job if artifact upload fails
     when: on_success
