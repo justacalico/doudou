@@ -29,7 +29,6 @@ build_debug_apk:
       - api_failure
   variables:
     GIT_STRATEGY: none
-    # Use unique job workspace
     JOB_WORK_DIR: "$HOME/tmp/doudou-apk-$CI_JOB_ID"
   cache:
     key: "apk-$CI_COMMIT_REF_SLUG-v3"
@@ -37,22 +36,17 @@ build_debug_apk:
       - .pub-cache-build_debug_apk/
     policy: pull-push
   before_script:
-    # Create completely isolated workspace for this job
     - rm -rf "$JOB_WORK_DIR" || true
     - mkdir -p "$JOB_WORK_DIR"
     - cd "$JOB_WORK_DIR"
-    # Manually fetch the source code since GIT_STRATEGY is none
     - git clone --depth 1 --branch $CI_COMMIT_REF_NAME $CI_REPOSITORY_URL .
     - git checkout $CI_COMMIT_SHA
-    # Kill any processes that might be using old directories
     - pkill -f "gradle.*doudou" || true
     - pkill -f "dart.*doudou" || true  
     - sleep 2
-    # Set up Flutter if not in PATH
     - |
       if ! command -v flutter &> /dev/null; then
         echo "Flutter not found in PATH. Attempting to set up Flutter..."
-        # Common Flutter installation paths on macOS
         if [ -d "$HOME/flutter/bin" ]; then
           export PATH="$HOME/flutter/bin:$PATH"
         elif [ -d "/usr/local/flutter/bin" ]; then
@@ -64,30 +58,22 @@ build_debug_apk:
           exit 1
         fi
       fi
-    # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    # Clean more safely - avoid errors if files don't exist or are locked
     - rm -rf build/ .dart_tool/ android/.gradle android/.kotlin .flutter-plugins-dependencies || true
-    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
-    # Clean any job-specific Gradle directories from other jobs
+    - rm -rf "$PUB_CACHE" || true
     - rm -rf .gradle-*/ || true
     - flutter clean || true
   script:
     - flutter --version
     - flutter clean
-    # Kill only our job's Gradle daemons to avoid interfering with other jobs
     - pkill -f "gradle.*$CI_JOB_ID" || true
-    # Use job-specific Gradle user home to prevent conflicts
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle-$CI_JOB_NAME"
     - mkdir -p "$GRADLE_USER_HOME"
-    # Fetch dependencies safely
     - flutter pub get
     - flutter build apk --debug
   after_script:
     - pkill -f "gradle.*$CI_JOB_ID" || true
-    # Copy artifacts back to original workspace for GitLab to pick up
     - if [ -d "$JOB_WORK_DIR" ]; then cp -r "$JOB_WORK_DIR/build" . 2>/dev/null || true; fi
-    # Cleanup isolated workspace
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
@@ -108,14 +94,11 @@ build_debug_linux:
     - job: "build_debug_ios"
       optional: true
   before_script:
-    # Install Linux desktop development dependencies
     - apt-get update
     - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-    # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    # Clean more safely - avoid errors if files don't exist or are locked
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
+    - rm -rf "$PUB_CACHE" || true
     - flutter clean || true
   script:
     - flutter --version
@@ -140,26 +123,20 @@ build_debug_macos:
       - stuck_or_timeout_failure
   variables:
     GIT_STRATEGY: none
-    # Use unique job workspace
     JOB_WORK_DIR: "$HOME/tmp/doudou-macos-$CI_JOB_ID"
-  cache: {}  # Disable cache for this job to prevent conflicts
+  cache: {}
   before_script:
-    # Create completely isolated workspace for this job
     - rm -rf "$JOB_WORK_DIR" || true
     - mkdir -p "$JOB_WORK_DIR"
     - cd "$JOB_WORK_DIR"
-    # Manually fetch the source code since GIT_STRATEGY is none
     - git clone --depth 1 --branch $CI_COMMIT_REF_NAME $CI_REPOSITORY_URL .
     - git checkout $CI_COMMIT_SHA
-    # Kill any processes that might be using old directories
     - pkill -f "gradle.*doudou" || true
     - pkill -f "dart.*doudou" || true  
     - sleep 2
-    # Set up Flutter if not in PATH
     - |
       if ! command -v flutter &> /dev/null; then
         echo "Flutter not found in PATH. Attempting to set up Flutter..."
-        # Common Flutter installation paths on macOS
         if [ -d "$HOME/flutter/bin" ]; then
           export PATH="$HOME/flutter/bin:$PATH"
         elif [ -d "/usr/local/flutter/bin" ]; then
@@ -171,12 +148,9 @@ build_debug_macos:
           exit 1
         fi
       fi
-    # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    # Clean more safely - avoid errors if files don't exist or are locked
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
-    # Clean any job-specific Gradle directories from other jobs
+    - rm -rf "$PUB_CACHE" || true
     - rm -rf .gradle-*/ || true
     - flutter clean || true
   script:
@@ -184,23 +158,25 @@ build_debug_macos:
     - flutter config --enable-macos-desktop
     - flutter clean
     - flutter pub get
-    # If the Flutter SDK in this environment doesn't support `flutter build macos`,
-    # detect and skip the macOS build to avoid a failing job on non-macOS runners.
     - |
       if ! flutter help build | grep -q "macos"; then
         echo "macOS build not supported in this environment (skipping)."
         exit 0
       fi
-    # Build without caffeinate first (in case it's not available)
     - flutter build macos --debug
   after_script:
-    # Copy artifacts back to original workspace for GitLab to pick up
-    - if [ -d "$JOB_WORK_DIR" ]; then cp -r "$JOB_WORK_DIR/build" . 2>/dev/null || true; fi
-    # Cleanup isolated workspace
+    # Create a compressed archive of just the .app to reduce size
+    - |
+      if [ -d "$JOB_WORK_DIR/build/macos/Build/Products/Debug/doudou.app" ]; then
+        cd "$JOB_WORK_DIR/build/macos/Build/Products/Debug"
+        tar -czf doudou-debug-macos.tar.gz doudou.app
+        mkdir -p "$CI_PROJECT_DIR/build"
+        cp doudou-debug-macos.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
+      fi
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
-      - build/macos/Build/Products/Debug/
+      - build/doudou-debug-macos.tar.gz
     expire_in: 1 hour
 
 build_debug_ios:
@@ -215,26 +191,20 @@ build_debug_ios:
       - stuck_or_timeout_failure
   variables:
     GIT_STRATEGY: none
-    # Use unique job workspace
     JOB_WORK_DIR: "$HOME/tmp/doudou-ios-$CI_JOB_ID"
-  cache: {}  # Disable cache for this job to prevent conflicts
+  cache: {}
   before_script:
-    # Create completely isolated workspace for this job
     - rm -rf "$JOB_WORK_DIR" || true
     - mkdir -p "$JOB_WORK_DIR"
     - cd "$JOB_WORK_DIR"
-    # Manually fetch the source code since GIT_STRATEGY is none
     - git clone --depth 1 --branch $CI_COMMIT_REF_NAME $CI_REPOSITORY_URL .
     - git checkout $CI_COMMIT_SHA
-    # Kill any processes that might be using old directories
     - pkill -f "gradle.*doudou" || true
     - pkill -f "dart.*doudou" || true  
     - sleep 2
-    # Set up Flutter if not in PATH
     - |
       if ! command -v flutter &> /dev/null; then
         echo "Flutter not found in PATH. Attempting to set up Flutter..."
-        # Common Flutter installation paths on macOS
         if [ -d "$HOME/flutter/bin" ]; then
           export PATH="$HOME/flutter/bin:$PATH"
         elif [ -d "/usr/local/flutter/bin" ]; then
@@ -246,34 +216,35 @@ build_debug_ios:
           exit 1
         fi
       fi
-    # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    # Clean more safely - avoid errors if files don't exist or are locked
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
-    # Clean any job-specific Gradle directories from other jobs
+    - rm -rf "$PUB_CACHE" || true
     - rm -rf .gradle-*/ || true
     - flutter clean || true
   script:
     - flutter --version
     - flutter clean
     - flutter pub get
-    # Build iOS without codesigning (debug mode)
     - flutter build ios --no-codesign --debug
   after_script:
-    # Copy artifacts back to original workspace for GitLab to pick up
-    - if [ -d "$JOB_WORK_DIR" ]; then cp -r "$JOB_WORK_DIR/build" . 2>/dev/null || true; fi
-    # Cleanup isolated workspace
+    # Create a compressed archive to reduce size
+    - |
+      if [ -d "$JOB_WORK_DIR/build/ios/iphoneos" ]; then
+        cd "$JOB_WORK_DIR/build/ios"
+        tar -czf doudou-debug-ios.tar.gz iphoneos/
+        mkdir -p "$CI_PROJECT_DIR/build"
+        cp doudou-debug-ios.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
+      fi
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
-      - build/ios/iphoneos/
+      - build/doudou-debug-ios.tar.gz
     expire_in: 1 hour
 
 publish_release:
   stage: release
   tags:
-    - apple # Use the same macOS runner that ran the builds
+    - apple
   retry:
     max: 2
     when:
@@ -287,13 +258,10 @@ publish_release:
       optional: true
     - job: "build_debug_ios"
       optional: true
-  # allow_failure: false # Change to false once permissions are confirmed, but left as true for safety.
   
   before_script:
-    # Skip release-cli installation and use GitLab API directly
     - echo "Using GitLab API for release creation (more reliable than release-cli on shell executors)"
     - export USE_RELEASE_CLI=false
-    # Install jq for better JSON parsing if not available
     - |
       if ! command -v jq &> /dev/null; then
         echo "Installing jq for JSON parsing..."
@@ -306,14 +274,9 @@ publish_release:
   
   script:
     - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
-
-    # Define release tag and notes variables
     - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
     - RELEASE_NOTES="Automated debug release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
-
-    # Create release using GitLab API with proper job IDs and authentication
     - |
-      # Check if release already exists and delete it if necessary
       echo "Checking if release $RELEASE_TAG already exists..."
       EXISTING_RELEASE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$RELEASE_TAG")
@@ -327,7 +290,6 @@ publish_release:
     
     - echo "Creating release using GitLab API..."
     - |
-      # Get the complete pipeline jobs data and parse it properly with retry logic
       for i in {1..3}; do
         echo "Attempt $i: Fetching pipeline jobs data..."
         JOBS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
@@ -342,15 +304,12 @@ publish_release:
       echo "Jobs data response:"
       echo "$JOBS_DATA" | head -5
       
-      # Extract job IDs more reliably using a different approach
-      # Use jq if available, otherwise use sed with better parsing
       if command -v jq &> /dev/null; then
         APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .id')
         LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .id')
         IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .id')
         MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .id')
       else
-        # More robust sed parsing - look for the job object and get the first "id" field
         APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
         LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
         IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
@@ -362,7 +321,6 @@ publish_release:
       echo "iOS Job ID: $IOS_JOB_ID"
       echo "macOS Job ID: $MACOS_JOB_ID"
       
-      # Check job statuses to determine which artifacts are available
       if command -v jq &> /dev/null; then
         APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .status')
         LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .status')
@@ -377,7 +335,6 @@ publish_release:
       
       echo "Job statuses - APK: $APK_STATUS, Linux: $LINUX_STATUS, iOS: $IOS_STATUS, macOS: $MACOS_STATUS"
       
-      # Build artifact URLs only for successful jobs with valid IDs
       ASSET_LINKS=""
       
       if [ -n "$APK_JOB_ID" ] && [ "$APK_STATUS" = "success" ]; then
@@ -391,16 +348,15 @@ publish_release:
       fi
       
       if [ -n "$IOS_JOB_ID" ] && [ "$IOS_STATUS" = "success" ]; then
-        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/download"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Debug Build Archive\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
+        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-debug-ios.tar.gz"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Debug Build\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
       fi
       
       if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
-        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/download"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Debug Build Archive\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
+        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/raw/build/doudou-debug-macos.tar.gz"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Debug Build\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
       fi
       
-      # Remove trailing comma
       ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
       
       if [ -z "$ASSET_LINKS" ]; then
@@ -410,10 +366,9 @@ publish_release:
       
       echo "Available artifact links: $ASSET_LINKS"
       
-      # Create the release using JOB-TOKEN with retry logic and rate limiting
       for i in {1..3}; do
         echo "Attempt $i: Creating release..."
-        sleep 2 # Brief delay to avoid rate limiting
+        sleep 2
         RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
              --header "JOB-TOKEN: $CI_JOB_TOKEN" \
              --data '{
@@ -442,7 +397,6 @@ publish_release:
         fi
       done
       
-      # Check response
       HTTP_CODE=${RESPONSE: -3}
       RESPONSE_BODY=${RESPONSE%???}
       
@@ -457,27 +411,22 @@ publish_release:
         exit 1
       fi
 
-# Cleanup jobs to remove build artifacts and caches after pipeline completion
 cleanup_apple_runner:
   stage: cleanup
   tags:
     - apple
-  when: always  # Run cleanup even if previous jobs failed
+  when: always
   allow_failure: true
   variables:
-    GIT_STRATEGY: none  # Don't checkout code for cleanup
+    GIT_STRATEGY: none
   script:
     - echo "🧹 Cleaning up Apple runner build artifacts and caches..."
-    # Remove temporary job directories
     - rm -rf $HOME/tmp/doudou-* || true
-    # Remove any remaining gradle directories from the workspace
     - rm -rf .gradle-* || true
     - rm -rf .pub-cache-* || true
-    # Clean up any Flutter/Gradle processes that might still be running
     - pkill -f "gradle.*doudou" || true
     - pkill -f "dart.*doudou" || true
     - pkill -f "flutter.*doudou" || true
-    # Remove build artifacts from workspace
     - rm -rf build/ || true
     - rm -rf .dart_tool/ || true
     - rm -rf android/.gradle || true
@@ -501,18 +450,16 @@ cleanup_linux_runner:
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - linux
-  when: always  # Run cleanup even if previous jobs failed
+  when: always
   allow_failure: true
   variables:
-    GIT_STRATEGY: none  # Don't checkout code for cleanup
+    GIT_STRATEGY: none
   script:
     - echo "🧹 Cleaning up Linux runner build artifacts and caches..."
-    # Remove build artifacts
     - rm -rf build/ || true
     - rm -rf .dart_tool/ || true
     - rm -rf .pub-cache-* || true
     - rm -rf .flutter-plugins-dependencies || true
-    # Clean up any lingering processes
     - pkill -f "dart.*doudou" || true
     - pkill -f "flutter.*doudou" || true
     - echo "✅ Linux runner cleanup completed"
