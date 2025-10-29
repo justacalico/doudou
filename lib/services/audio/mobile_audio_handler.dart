@@ -283,13 +283,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
       final track = queue[index];
       
-      // Update state immediately for UI responsiveness
+      // Update ONLY internal state - no UI synchronization to avoid foreground service
       _stateController.updateCurrentIndex(index);
       _stateController.updateCurrentTrack(track);
       _stateController.updateState(base_handler.AudioPlayerState.loading);
 
-      // Force UI synchronization
-      _forceUISynchronization(track, index);
+      // Skip _forceUISynchronization to avoid triggering foreground service
+      // The UI will update through the state streams when ready
 
       // Load the new track
       final streamUrl = _getStreamUrl(track);
