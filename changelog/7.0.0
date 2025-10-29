@@ -35,6 +35,7 @@
 - Fixed mobile login screen black screen issue by adding proper MaterialApp wrapper and fixing layout constraints with appropriate scrolling behavior.
 - Added minimal mobile login header with "Doudou - Welcome" text and slide-in animation for better branding while maintaining clean, focused mobile experience.
 - Mobile login screen now respects phone's system theme (light/dark mode) while desktop maintains custom MaterialApp theming.
+- Build realse rather the debug.
 
 ## Removed
 - Removed crossfades
