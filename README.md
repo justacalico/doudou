@@ -77,6 +77,32 @@ brew install --cask doudou
 **Windows & Linux**
 - Download from [GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)
 
+#### 🌐 **Web Version (Docker)**
+
+For easy web deployment, use our pre-built Docker image:
+
+```bash
+# Quick start - run on port 34273
+docker run -d -p 34273:34273 --name doudou-web httpanimations/doudou:latest
+
+# Access at http://localhost:34273
+```
+
+**With Docker Compose:**
+```bash
+# Download docker-compose.yml from the repository
+curl -O https://raw.githubusercontent.com/HttpAnimations/doudou/main/docker-compose.yml
+docker-compose up -d
+```
+
+**Benefits of the web version:**
+- ✅ No installation needed - runs in any modern browser
+- ✅ Works on any device with a web browser
+- ✅ Easy to deploy on your server alongside Jellyfin/Plex
+- ✅ Automatic updates by pulling the latest Docker image
+
+See [DOCKER.md](DOCKER.md) for detailed deployment instructions.
+
 ### Connect to Your Server
 
 1. **Open Doudou** and tap "Add Server"
