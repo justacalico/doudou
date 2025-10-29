@@ -54,6 +54,37 @@ class PlexService implements BaseMediaService {
     return 0;
   }
 
+  /// Get track's part key for direct streaming (Method 1 from bash script)
+  Future<String?> _getTrackPartKey(String trackId) async {
+    try {
+      final response = await _dio.get(
+        '$_serverUrl/library/metadata/$trackId',
+        queryParameters: {'X-Plex-Token': _token},
+      );
+
+      final metadata = response.data['MediaContainer']['Metadata'];
+      if (metadata != null && metadata.isNotEmpty) {
+        final media = metadata[0]['Media'];
+        if (media != null && media.isNotEmpty) {
+          final part = media[0]['Part'];
+          if (part != null && part.isNotEmpty) {
+            final partKey = part[0]['key'];
+            if (kDebugMode) {
+              print('Found part key: $partKey for track: $trackId');
+            }
+            return partKey?.toString();
+          }
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting track part key: $e');
+      }
+      return null;
+    }
+  }
+
   /// Get track's part ID for direct streaming (most reliable method)
   Future<String?> _getTrackPartId(String trackId) async {
     try {
