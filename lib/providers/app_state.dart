@@ -1135,6 +1135,9 @@ class AppState extends ChangeNotifier {
       
       await Future.wait(cacheFutures);
       
+      // Load recent tracks now that we have fresh track data
+      await _loadRecentTracks();
+      
       _setLoading(false);
       
       if (kDebugMode) {
