@@ -602,6 +602,12 @@ class PlexService implements BaseMediaService {
     return getDirectPartUrl(partId);
   }
 
+  /// Direct stream URL for MediaServiceManager compatibility
+  /// For Plex, this returns download URL since it's most reliable for sync calls
+  String getDirectStreamUrl(String trackId) {
+    return getDownloadUrl(trackId);
+  }
+
   /// Get transcoded stream URL with specific format and bitrate (deprecated approach)
   String getTranscodedStreamUrl(
     String trackId, {
