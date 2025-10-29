@@ -173,22 +173,22 @@ build_release_macos:
   after_script:
     # Create a highly compressed archive with only essential files
     - |
-      if [ -d "$JOB_WORK_DIR/build/macos/Build/Products/Debug/doudou.app" ]; then
+      if [ -d "$JOB_WORK_DIR/build/macos/Build/Products/Release/doudou.app" ]; then
         echo "Creating compressed macOS artifact..."
-        cd "$JOB_WORK_DIR/build/macos/Build/Products/Debug"
+        cd "$JOB_WORK_DIR/build/macos/Build/Products/Release"
         
         # Use maximum compression with gzip (faster than bzip2)
         # Exclude unnecessary files to reduce size
         tar --exclude="*.dSYM" \
             --exclude="*.framework/Versions/*/Headers" \
             --exclude="*.framework/Versions/*/Resources/DWARF" \
-            -czf doudou-debug-macos.tar.gz doudou.app
+            -czf doudou-release-macos.tar.gz doudou.app
         
-        FILE_SIZE=$(du -h doudou-debug-macos.tar.gz | cut -f1)
+        FILE_SIZE=$(du -h doudou-release-macos.tar.gz | cut -f1)
         echo "Compressed artifact size: $FILE_SIZE"
         
         mkdir -p "$CI_PROJECT_DIR/build"
-        cp doudou-debug-macos.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
+        cp doudou-release-macos.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
       else
         echo "Build directory not found, skipping artifact creation"
       fi
