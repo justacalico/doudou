@@ -237,7 +237,6 @@ class WebAudioHandler {
           MediaAction.seekForward,
           MediaAction.seekBackward,
         },
-        androidCompactActions: const [0, 1, 2],
         processingState: _mapProcessingState(playerState.processingState),
         playing: playerState.playing,
         updatePosition: _stateController.position,
@@ -258,7 +257,7 @@ class WebAudioHandler {
         album: track.albumName,
         title: track.name,
         artist: track.artistName,
-        duration: Duration(seconds: track.duration),
+        duration: Duration(seconds: track.duration ?? 0),
         artUri: track.imageUrl != null 
             ? Uri.parse(_mediaServiceManager.getImageUrl(track.imageUrl!))
             : null,
