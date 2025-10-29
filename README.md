@@ -20,10 +20,10 @@ Stream your music collection from your own media server with a beautiful, modern
 ## 📱 Works with Your Media Server
 
 - **🟢 Jellyfin** - Full support (recommended)
-- **🟡 Plex** - Working with limitations*
+- **🟢 Plex** - Working with limitations*
 - **🟢 Navidrome** - Full SubSonic compatibility
 
-*Plex support is functional but cannot create direct stream URLs
+*Plex support is functional, but some API calls are not implemented or are bugged.
 
 ## ✨ Why Choose Doudou?
 
