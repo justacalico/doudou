@@ -671,6 +671,11 @@ class PlexService implements BaseMediaService {
         '&X-Plex-Token=$_token';
   }
 
+  /// Get direct stream URL using part key (Method 1 from bash script)
+  String getDirectStreamWithPartKey(String partKey) {
+    return '$_serverUrl$partKey?X-Plex-Token=$_token';
+  }
+
   /// Get direct part file URL (requires part ID from track metadata)
   /// THIS IS METHOD 3 FROM YOUR BASH SCRIPT - THE ONE THAT WORKS!
   String getDirectPartUrl(String partId) {
