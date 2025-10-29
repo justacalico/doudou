@@ -692,16 +692,28 @@ class DesktopAudioHandler implements BaseAudioHandler {
         }
         
         // Try fallback URL if direct stream failed
-        if (url.contains('Download?')) {
+        if (url.contains('download') || url.contains('Download')) {
           if (kDebugMode) {
-            print('DesktopAudioHandler: Direct stream failed, trying transcoded stream');
+            print('DesktopAudioHandler: Direct stream failed, trying alternative URLs');
           }
           final currentTrack = _stateController.currentTrack;
           if (currentTrack != null) {
-            final transcodedUrl = _mediaServiceManager.getStreamUrl(currentTrack.id);
-            if (transcodedUrl != url) {
-              // Recursive call with transcoded URL
-              return await _loadAndPlayTrack(transcodedUrl);
+            // Try alternative stream URLs for better Plex support
+            final alternativeUrls = _mediaServiceManager.getAlternativeStreamUrls(currentTrack.id);
+            for (final alternativeUrl in alternativeUrls) {
+              if (alternativeUrl != url) {
+                if (kDebugMode) {
+                  print('DesktopAudioHandler: Trying alternative URL: $alternativeUrl');
+                }
+                try {
+                  return await _loadAndPlayTrack(alternativeUrl);
+                } catch (alternativeError) {
+                  if (kDebugMode) {
+                    print('DesktopAudioHandler: Alternative URL failed: $alternativeError');
+                  }
+                  // Continue to next alternative URL
+                }
+              }
             }
           }
         }
