@@ -659,8 +659,8 @@ class PlexService implements BaseMediaService {
       // Method 4 - Download URL (most reliable for synchronous calls)
       getDownloadUrl(trackId),
       // Method 2 - Universal transcode fallbacks
-      getImprovedUniversalStreamUrl(trackId, bitrate: 192),
-      getImprovedUniversalStreamUrl(trackId, bitrate: 128),
+      getUniversalStreamUrl(trackId, bitrate: 192),
+      getUniversalStreamUrl(trackId, bitrate: 128),
     ];
   }
 
