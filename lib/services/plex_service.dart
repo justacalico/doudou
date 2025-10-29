@@ -574,10 +574,9 @@ class PlexService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    // Try direct file method first (most reliable)
-    // Note: This is synchronous so we can't fetch part ID here
-    // Use the improved universal transcode method as fallback
-    return getImprovedUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
+    // For synchronous calls, use the direct download URL as it's most reliable
+    // This bypasses Plex's complex transcoding endpoints
+    return getDownloadUrl(trackId);
   }
 
   /// Get the best stream URL (async version that fetches part ID)
