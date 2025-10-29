@@ -545,22 +545,41 @@ class WebAudioHandler {
   }
 
   Future<void> skipToQueueItem(int index) async {
-    return _stateController.queueCommand(() async {
-      try {
-        final queue = _stateController.queue;
-        if (index < 0 || index >= queue.length) {
-          throw Exception('Invalid queue index: $index');
-        }
+    if (kDebugMode) {
+      print('WebAudioHandler: Skip to queue item $index requested');
+    }
 
-        await _playTrackAtIndex(index);
-      } catch (e) {
-        if (kDebugMode) {
-          print('WebAudioHandler: Skip to index failed: $e');
-        }
-        _stateController.updateError('Skip failed: $e');
-        rethrow;
+    // Update UI immediately with comprehensive synchronization
+    final queue = _stateController.queue;
+    if (index >= 0 && index < queue.length) {
+      final track = queue[index];
+      _stateController.updateCurrentIndex(index);
+      _stateController.updateCurrentTrack(track);
+      _stateController.updateState(AudioPlayerState.loading);
+
+      // Force UI synchronization to prevent desync
+      _stateController.notifyListeners();
+    }
+
+    // Run actual skip operation asynchronously
+    _performSkipToQueueItem(index);
+  }
+
+  Future<void> _performSkipToQueueItem(int index) async {
+    try {
+      final queue = _stateController.queue;
+      if (index < 0 || index >= queue.length) {
+        throw Exception('Invalid queue index: $index');
       }
-    });
+
+      await _playTrackAtIndex(index);
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Skip to index failed: $e');
+      }
+      _stateController.updateError('Skip failed: $e');
+      _stateController.updateState(AudioPlayerState.error);
+    }
   }
 
   /// Play track at specific queue index
