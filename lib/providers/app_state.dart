@@ -1392,6 +1392,7 @@ class AppState extends ChangeNotifier {
     
     if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
+      _addToRecentTracks(track);
       notifyListeners();
     } else {
       if (kDebugMode) {
@@ -1925,6 +1926,60 @@ class AppState extends ChangeNotifier {
     _useDynamicIsle = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('use_dynamic_isle', enabled);
+    notifyListeners();
+  }
+
+  // Recent tracks management
+  void _addToRecentTracks(Track track) {
+    // Remove if already exists to avoid duplicates
+    _recentTracks.removeWhere((t) => t.id == track.id);
+    
+    // Add to beginning of list
+    _recentTracks.insert(0, track);
+    
+    // Keep only last 50 tracks
+    if (_recentTracks.length > 50) {
+      _recentTracks = _recentTracks.take(50).toList();
+    }
+    
+    // Save to preferences
+    _saveRecentTracks();
+  }
+
+  Future<void> _saveRecentTracks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final recentIds = _recentTracks.map((track) => track.id).toList();
+      await prefs.setStringList('recent_track_ids', recentIds);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving recent tracks: $e');
+      }
+    }
+  }
+
+  Future<void> _loadRecentTracks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final recentIds = prefs.getStringList('recent_track_ids') ?? [];
+      
+      _recentTracks = [];
+      for (final id in recentIds) {
+        final track = findTrackById(id);
+        if (track != null) {
+          _recentTracks.add(track);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading recent tracks: $e');
+      }
+    }
+  }
+
+  void clearRecentTracks() {
+    _recentTracks.clear();
+    _saveRecentTracks();
     notifyListeners();
   }
 
