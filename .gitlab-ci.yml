@@ -259,13 +259,13 @@ build_release_ios:
         # Exclude debug symbols and other large unnecessary files
         tar --exclude="*.dSYM" \
             --exclude="*.framework/Headers" \
-            -czf doudou-debug-ios.tar.gz iphoneos/
+            -czf doudou-release-ios.tar.gz iphoneos/
         
-        FILE_SIZE=$(du -h doudou-debug-ios.tar.gz | cut -f1)
+        FILE_SIZE=$(du -h doudou-release-ios.tar.gz | cut -f1)
         echo "Compressed artifact size: $FILE_SIZE"
         
         mkdir -p "$CI_PROJECT_DIR/build"
-        cp doudou-debug-ios.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
+        cp doudou-release-ios.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
       else
         echo "Build directory not found, skipping artifact creation"
       fi
