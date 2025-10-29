@@ -169,9 +169,8 @@ class MediaServiceManager {
     
     if (_currentService is PlexService) {
       final plexService = _currentService as PlexService;
-      // For Plex, try to get the best available stream URL
-      // Since this is synchronous, we can't fetch part ID, so use improved universal transcode
-      return plexService.getImprovedUniversalStreamUrl(trackId);
+      // For Plex, use direct download URL as it's most reliable
+      return plexService.getDownloadUrl(trackId);
     }
     
     // For other services, fallback to regular stream URL
