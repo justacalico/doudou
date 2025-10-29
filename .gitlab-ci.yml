@@ -25,6 +25,14 @@ build_debug_apk:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+  variables:
+    GIT_STRATEGY: clone
+    GIT_CLEAN_FLAGS: -ffdx
+  cache:
+    key: "apk-$CI_COMMIT_REF_SLUG-v3"
+    paths:
+      - .pub-cache-build_debug_apk/
+    policy: pull-push
   before_script:
     # Force cleanup any problematic cached directories from previous jobs
     - pkill -f gradle || true
