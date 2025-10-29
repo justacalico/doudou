@@ -597,15 +597,15 @@ class PlexService implements BaseMediaService {
     return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
   }
 
-  /// Direct stream fallback (if you happen to have partId)
-  String getDirectStreamUrl(String partId) {
-    return getDirectPartUrl(partId);
-  }
-
   /// Direct stream URL for MediaServiceManager compatibility
   /// For Plex, this returns download URL since it's most reliable for sync calls
   String getDirectStreamUrl(String trackId) {
     return getDownloadUrl(trackId);
+  }
+
+  /// Direct stream fallback using part ID (if you happen to have partId)
+  String getDirectPartStreamUrl(String partId) {
+    return getDirectPartUrl(partId);
   }
 
   /// Get transcoded stream URL with specific format and bitrate (deprecated approach)
