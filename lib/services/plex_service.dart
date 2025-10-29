@@ -626,7 +626,7 @@ class PlexService implements BaseMediaService {
     return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
-  /// Get universal stream URL using Plex's universal transcode endpoint
+  /// Get universal stream URL using Plex's universal transcode endpoint (Method 2 from bash)
   String getUniversalStreamUrl(String trackId, {int? bitrate}) {
     final audioBitrate = bitrate ?? 192;
     return '$_serverUrl/audio/:/transcode/universal/start.mp3'
@@ -636,19 +636,6 @@ class PlexService implements BaseMediaService {
         '&protocol=http'
         '&directPlay=0'
         '&directStream=0'
-        '&audioBitrate=$audioBitrate'
-        '&X-Plex-Token=$_token';
-  }
-
-  /// Get improved universal stream URL with better parameter formatting
-  String getImprovedUniversalStreamUrl(String trackId, {int? bitrate}) {
-    final audioBitrate = bitrate ?? 192;
-    // Use the music transcoding endpoint instead of generic audio endpoint
-    return '$_serverUrl/music/:/transcode/universal/start.mp3'
-        '?path=${Uri.encodeComponent('/library/metadata/$trackId')}'
-        '&mediaIndex=0'
-        '&partIndex=0'
-        '&protocol=http'
         '&audioBitrate=$audioBitrate'
         '&X-Plex-Token=$_token';
   }
