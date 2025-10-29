@@ -340,25 +340,25 @@ publish_release:
       echo "$JOBS_DATA" | head -5
       
       if command -v jq &> /dev/null; then
-        APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .id')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .id')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .id')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .id')
+        APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .id')
+        LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .id')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_ios") | .id')
+        MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .id')
         
-        APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .status')
-        LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .status')
-        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .status')
-        MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .status')
+        APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .status')
+        LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .status')
+        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_ios") | .status')
+        MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .status')
       else
-        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
         
-        APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_ios"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
       fi
       
       echo "Job IDs - APK: $APK_JOB_ID, Linux: $LINUX_JOB_ID, iOS: $IOS_JOB_ID, macOS: $MACOS_JOB_ID"
