@@ -493,6 +493,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Future<void> _performPlayOperation() async {
     try {
+      // Reset foreground service issues when user explicitly plays
+      // (they might have brought app to foreground)
+      _foregroundServiceIssues = false;
+      
       // Try to start foreground service, but continue if it fails
       await _attemptForegroundService();
       
