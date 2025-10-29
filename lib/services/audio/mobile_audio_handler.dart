@@ -205,19 +205,19 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Force comprehensive UI synchronization for track changes
   void _forceUISynchronization(Track track, int index) {
-    // Update MediaItem for AudioService notifications and lock screen
-    mediaItem.add(_trackToMediaItem(track));
+    // Ensure state controller has the latest information first
+    _stateController.updateCurrentIndex(index);
+    _stateController.updateCurrentTrack(track);
 
-    // Update PlaybackState with correct queue index
+    // Safely update MediaItem for AudioService notifications and lock screen
+    _safeUpdateMediaItem(track);
+
+    // Safely update PlaybackState with correct queue index
     final currentPlaybackState = playbackState.valueOrNull ?? PlaybackState();
     final updatedPlaybackState = currentPlaybackState.copyWith(
       queueIndex: index,
     );
-    playbackState.add(updatedPlaybackState);
-
-    // Ensure state controller has the latest information
-    _stateController.updateCurrentIndex(index);
-    _stateController.updateCurrentTrack(track);
+    _safeUpdatePlaybackState(updatedPlaybackState);
 
     if (kDebugMode) {
       print(
