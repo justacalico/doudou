@@ -300,12 +300,13 @@ class AudioServiceIntegration {
   Stream<audio_service.MediaItem?>? get mediaItem {
     if (!_initialized || _audioHandler == null) return null;
     
-    if (_audioHandler is DesktopAudioHandler) {
+    if (_audioHandler is WebAudioHandler) {
+      return (_audioHandler as WebAudioHandler).mediaItem;
+    } else if (_audioHandler is DesktopAudioHandler) {
       return (_audioHandler as DesktopAudioHandler).mediaItem;
     } else if (_audioHandler is DoudouAudioHandler) {
       return (_audioHandler as DoudouAudioHandler).mediaItem.stream;
     }
-    // Web handler doesn't have mediaItem stream yet
     return null;
   }
 
