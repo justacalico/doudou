@@ -454,3 +454,66 @@ publish_release:
         echo "Response: $RESPONSE_BODY"
         exit 1
       fi
+
+# Cleanup jobs to remove build artifacts and caches after pipeline completion
+cleanup_apple_runner:
+  stage: cleanup
+  tags:
+    - apple
+  when: always  # Run cleanup even if previous jobs failed
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none  # Don't checkout code for cleanup
+  script:
+    - echo "🧹 Cleaning up Apple runner build artifacts and caches..."
+    # Remove temporary job directories
+    - rm -rf $HOME/tmp/doudou-* || true
+    # Remove any remaining gradle directories from the workspace
+    - rm -rf .gradle-* || true
+    - rm -rf .pub-cache-* || true
+    # Clean up any Flutter/Gradle processes that might still be running
+    - pkill -f "gradle.*doudou" || true
+    - pkill -f "dart.*doudou" || true
+    - pkill -f "flutter.*doudou" || true
+    # Remove build artifacts from workspace
+    - rm -rf build/ || true
+    - rm -rf .dart_tool/ || true
+    - rm -rf android/.gradle || true
+    - rm -rf android/.kotlin || true
+    - rm -rf ios/Flutter/ephemeral || true
+    - rm -rf macos/Flutter/ephemeral || true
+    - rm -rf .flutter-plugins-dependencies || true
+    - echo "✅ Apple runner cleanup completed"
+  needs:
+    - job: "publish_release"
+      optional: true
+    - job: "build_debug_apk"
+      optional: true
+    - job: "build_debug_macos"
+      optional: true
+    - job: "build_debug_ios"
+      optional: true
+
+cleanup_linux_runner:
+  stage: cleanup
+  image: ghcr.io/cirruslabs/flutter:stable
+  tags:
+    - linux
+  when: always  # Run cleanup even if previous jobs failed
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none  # Don't checkout code for cleanup
+  script:
+    - echo "🧹 Cleaning up Linux runner build artifacts and caches..."
+    # Remove build artifacts
+    - rm -rf build/ || true
+    - rm -rf .dart_tool/ || true
+    - rm -rf .pub-cache-* || true
+    - rm -rf .flutter-plugins-dependencies || true
+    # Clean up any lingering processes
+    - pkill -f "dart.*doudou" || true
+    - pkill -f "flutter.*doudou" || true
+    - echo "✅ Linux runner cleanup completed"
+  needs:
+    - job: "build_debug_linux"
+      optional: true
