@@ -688,7 +688,7 @@ class WebAudioHandler {
   /// Get stream URL for track
   String _getStreamUrl(Track track) {
     if (kIsWeb) {
-      // For web, try to get a direct download URL which might work better with CORS
+      // For web, get all possible URLs and we'll try them in order
       final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
       if (directUrl.isNotEmpty) {
         if (kDebugMode) {
@@ -699,6 +699,13 @@ class WebAudioHandler {
     }
 
     return _mediaServiceManager.getStreamUrl(track.id);
+  }
+
+  /// Get fallback URLs for CORS issues on web
+  List<String> _getFallbackUrls(Track track) {
+    if (!kIsWeb) return [];
+    
+    return _mediaServiceManager.getAlternativeStreamUrls(track.id);
   }
 
   // Queue management
