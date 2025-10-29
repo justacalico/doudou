@@ -185,6 +185,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
       case ProcessingState.ready:
         if (playerState.playing) {
           _stateController.updateState(base_handler.AudioPlayerState.playing);
+          // Ensure foreground service is running when playing
+          _attemptForegroundService();
         } else {
           // Check if we should auto-continue playback (important for background track transitions)
           if (_stateController.userIntendedPlaying &&
@@ -196,7 +198,25 @@ class DoudouAudioHandler extends BaseAudioHandler {
               );
             }
             // Resume playback without blocking
-            Future.microtask(() => _player.play());
+            Future.microtask(() async {
+              try {
+                await _attemptForegroundService();
+                await _player.play();
+              } catch (e) {
+                if (kDebugMode) {
+                  print('DoudouAudioHandler: Auto-continue failed: $e');
+                }
+                // Continue anyway - foreground service failure shouldn't stop playback
+                try {
+                  await _player.play();
+                } catch (playError) {
+                  if (kDebugMode) {
+                    print('DoudouAudioHandler: Player.play() also failed: $playError');
+                  }
+                  _stateController.updateError('Failed to continue playback: $playError');
+                }
+              }
+            });
           }
           _stateController.updateState(base_handler.AudioPlayerState.paused);
         }
