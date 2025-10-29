@@ -71,6 +71,13 @@ netstat -tlnp | grep 34273
 - For Jellyfin, ensure CORS is configured if needed
 - For Plex, ensure you have Plex Pass for streaming
 
+### Audio playback fails with CORS errors
+The web version includes automatic fallback handling for CORS issues:
+- First tries direct stream URL from media server
+- Falls back to alternative URLs if CORS blocks the request
+- Uses relaxed CORS headers in nginx configuration
+- If issues persist, try accessing Jellyfin/Plex directly in browser first to verify connectivity
+
 ### Performance issues
 - The web version uses browser-based audio, which may have different performance characteristics than native apps
 - Consider using the desktop or mobile versions for better performance
