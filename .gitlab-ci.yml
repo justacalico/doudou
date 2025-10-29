@@ -115,9 +115,12 @@ build_debug_macos:
       fi
     # Use job-specific directories to prevent race conditions
     - mkdir -p "$PUB_CACHE"
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
-    - rm -rf "$PUB_CACHE" # Use job-specific pub cache
-    - flutter clean
+    # Clean more safely - avoid errors if files don't exist or are locked
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
+    - rm -rf "$PUB_CACHE" || true # Use job-specific pub cache
+    # Clean any job-specific Gradle directories from other jobs
+    - rm -rf .gradle-*/ || true
+    - flutter clean || true
   script:
     - flutter --version
     - flutter config --enable-macos-desktop
@@ -130,11 +133,11 @@ build_debug_macos:
         echo "macOS build not supported in this environment (skipping)."
         exit 0
       fi
-    # Prevent system sleep during build
-    - caffeinate -i flutter build macos
+    # Build without caffeinate first (in case it's not available)
+    - flutter build macos --debug
   artifacts:
     paths:
-      - build/macos/Build/Products/Release/
+      - build/macos/Build/Products/Debug/
     expire_in: 1 hour
 
 build_debug_ios:
