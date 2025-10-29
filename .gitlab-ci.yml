@@ -321,7 +321,7 @@ publish_release:
       
       if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
         MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/download"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Build Archive\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Debug Build Archive\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
       fi
       
       # Remove trailing comma
