@@ -22,7 +22,7 @@ build_debug_apk:
     - apple
   allow_failure: true
   retry:
-    max: 3
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
