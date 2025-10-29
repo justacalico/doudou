@@ -359,7 +359,7 @@ class _LibraryPageState extends State<LibraryPage> {
               itemCount: recentTracks.length,
               itemBuilder: (context, index) {
                 final track = recentTracks[index];
-                final album = appState.albums.firstWhere(
+                final album = appState.albums.cast<dynamic>().firstWhere(
                   (album) => album.id == track.albumId,
                   orElse: () => null,
                 );
@@ -383,13 +383,13 @@ class _LibraryPageState extends State<LibraryPage> {
                                 top: Radius.circular(12),
                               ),
                             ),
-                            child: album?.imageUrl != null
+                            child: album != null && album.imageUrl != null
                                 ? ClipRRect(
                                     borderRadius: const BorderRadius.vertical(
                                       top: Radius.circular(12),
                                     ),
                                     child: Image.network(
-                                      _getImageUrl(appState, album!.imageUrl)!,
+                                      _getImageUrl(appState, album.imageUrl)!,
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) {
                                         return Icon(
