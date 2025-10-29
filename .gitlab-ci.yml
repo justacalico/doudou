@@ -136,8 +136,7 @@ build_debug_macos:
       - runner_system_failure
       - stuck_or_timeout_failure
   variables:
-    GIT_STRATEGY: fetch
-    GIT_CLEAN_FLAGS: -f
+    GIT_STRATEGY: none
     # Use unique job workspace
     JOB_WORK_DIR: "$HOME/tmp/doudou-macos-$CI_JOB_ID"
   cache: {}  # Disable cache for this job to prevent conflicts
