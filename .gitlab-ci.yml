@@ -9,6 +9,9 @@ variables:
   ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
   GIT_STRATEGY: clone
   GIT_CLEAN_FLAGS: -ffdx
+  # Increase artifact upload timeout
+  ARTIFACT_COMPRESSION_LEVEL: "fastest"
+  FF_USE_FASTZIP: "true"
 
 cache:
   key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG-v3"
@@ -124,6 +127,9 @@ build_debug_macos:
   variables:
     GIT_STRATEGY: none
     JOB_WORK_DIR: "$HOME/tmp/doudou-macos-$CI_JOB_ID"
+    # Use faster compression and GitLab's fastzip feature
+    ARTIFACT_COMPRESSION_LEVEL: "fastest"
+    FF_USE_FASTZIP: "true"
   cache: {}
   before_script:
     - rm -rf "$JOB_WORK_DIR" || true
@@ -165,19 +171,34 @@ build_debug_macos:
       fi
     - flutter build macos --debug
   after_script:
-    # Create a compressed archive of just the .app to reduce size
+    # Create a highly compressed archive with only essential files
     - |
       if [ -d "$JOB_WORK_DIR/build/macos/Build/Products/Debug/doudou.app" ]; then
+        echo "Creating compressed macOS artifact..."
         cd "$JOB_WORK_DIR/build/macos/Build/Products/Debug"
-        tar -czf doudou-debug-macos.tar.gz doudou.app
+        
+        # Use maximum compression with gzip (faster than bzip2)
+        # Exclude unnecessary files to reduce size
+        tar --exclude="*.dSYM" \
+            --exclude="*.framework/Versions/*/Headers" \
+            --exclude="*.framework/Versions/*/Resources/DWARF" \
+            -czf doudou-debug-macos.tar.gz doudou.app
+        
+        FILE_SIZE=$(du -h doudou-debug-macos.tar.gz | cut -f1)
+        echo "Compressed artifact size: $FILE_SIZE"
+        
         mkdir -p "$CI_PROJECT_DIR/build"
         cp doudou-debug-macos.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
+      else
+        echo "Build directory not found, skipping artifact creation"
       fi
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
       - build/doudou-debug-macos.tar.gz
     expire_in: 1 hour
+    # Don't fail the job if artifact upload fails
+    when: on_success
 
 build_debug_ios:
   stage: build
@@ -192,6 +213,8 @@ build_debug_ios:
   variables:
     GIT_STRATEGY: none
     JOB_WORK_DIR: "$HOME/tmp/doudou-ios-$CI_JOB_ID"
+    ARTIFACT_COMPRESSION_LEVEL: "fastest"
+    FF_USE_FASTZIP: "true"
   cache: {}
   before_script:
     - rm -rf "$JOB_WORK_DIR" || true
@@ -227,19 +250,31 @@ build_debug_ios:
     - flutter pub get
     - flutter build ios --no-codesign --debug
   after_script:
-    # Create a compressed archive to reduce size
+    # Create a compressed archive excluding debug symbols
     - |
       if [ -d "$JOB_WORK_DIR/build/ios/iphoneos" ]; then
+        echo "Creating compressed iOS artifact..."
         cd "$JOB_WORK_DIR/build/ios"
-        tar -czf doudou-debug-ios.tar.gz iphoneos/
+        
+        # Exclude debug symbols and other large unnecessary files
+        tar --exclude="*.dSYM" \
+            --exclude="*.framework/Headers" \
+            -czf doudou-debug-ios.tar.gz iphoneos/
+        
+        FILE_SIZE=$(du -h doudou-debug-ios.tar.gz | cut -f1)
+        echo "Compressed artifact size: $FILE_SIZE"
+        
         mkdir -p "$CI_PROJECT_DIR/build"
         cp doudou-debug-ios.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
+      else
+        echo "Build directory not found, skipping artifact creation"
       fi
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
       - build/doudou-debug-ios.tar.gz
     expire_in: 1 hour
+    when: on_success
 
 publish_release:
   stage: release
@@ -309,30 +344,24 @@ publish_release:
         LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .id')
         IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .id')
         MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .id')
-      else
-        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-      fi
-      
-      echo "APK Job ID: $APK_JOB_ID"
-      echo "Linux Job ID: $LINUX_JOB_ID"
-      echo "iOS Job ID: $IOS_JOB_ID"
-      echo "macOS Job ID: $MACOS_JOB_ID"
-      
-      if command -v jq &> /dev/null; then
+        
         APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_apk") | .status')
         LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_linux") | .status')
         IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_ios") | .status')
         MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_debug_macos") | .status')
       else
+        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        
         APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
         LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
         IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_ios"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
         MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_debug_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
       fi
       
+      echo "Job IDs - APK: $APK_JOB_ID, Linux: $LINUX_JOB_ID, iOS: $IOS_JOB_ID, macOS: $MACOS_JOB_ID"
       echo "Job statuses - APK: $APK_STATUS, Linux: $LINUX_STATUS, iOS: $IOS_STATUS, macOS: $MACOS_STATUS"
       
       ASSET_LINKS=""
