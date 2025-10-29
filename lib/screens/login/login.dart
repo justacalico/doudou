@@ -826,7 +826,9 @@ class _LoginScreenState extends State<LoginScreen>
         credential = _passwordController.text;
       }
       
-      final success = await context.read<AppState>().loginWithServerType(
+      if (!mounted) return;
+      final appState = context.read<AppState>();
+      final success = await appState.loginWithServerType(
         _selectedServerType,
         _serverController.text.trim(),
         identifier,
