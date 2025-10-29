@@ -507,16 +507,40 @@ class WebAudioHandler {
   }
 
   Future<void> skipToNext() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Skip to next requested');
+    }
+
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
-      await skipToQueueItem(nextIndex);
+      // Update UI immediately
+      final queue = _stateController.queue;
+      if (nextIndex < queue.length) {
+        _stateController.updateCurrentIndex(nextIndex);
+        _stateController.updateCurrentTrack(queue[nextIndex]);
+        _stateController.updateState(AudioPlayerState.loading);
+      }
+      // Run actual skip operation asynchronously
+      _performSkipToQueueItem(nextIndex);
     }
   }
 
   Future<void> skipToPrevious() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Skip to previous requested');
+    }
+    
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
-      await skipToQueueItem(previousIndex);
+      // Update UI immediately
+      final queue = _stateController.queue;
+      if (previousIndex >= 0 && previousIndex < queue.length) {
+        _stateController.updateCurrentIndex(previousIndex);
+        _stateController.updateCurrentTrack(queue[previousIndex]);
+        _stateController.updateState(AudioPlayerState.loading);
+      }
+      // Run actual skip operation asynchronously
+      _performSkipToQueueItem(previousIndex);
     }
   }
 
