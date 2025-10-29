@@ -248,7 +248,7 @@ build_release_ios:
     - flutter --version
     - flutter clean
     - flutter pub get
-    - flutter build ios --no-codesign --debug
+    - flutter build ios --no-codesign --release
   after_script:
     # Create a compressed archive excluding debug symbols
     - |
