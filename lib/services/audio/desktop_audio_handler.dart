@@ -793,6 +793,54 @@ class DesktopAudioHandler implements BaseAudioHandler {
     return transcodedUrl;
   }
 
+  /// Get best stream URL for track with async support for Plex
+  Future<String> _getBestStreamUrl(Track track) async {
+    final currentIndex = _stateController.currentIndex;
+    final queue = _stateController.queue;
+    
+    // Check if we can use preloaded URLs for faster access
+    if (currentIndex != null) {
+      // Check if this is the next track and we have it preloaded
+      if (currentIndex + 1 < queue.length && 
+          queue[currentIndex + 1].id == track.id && 
+          _preloadedNextUrl != null) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Using preloaded next URL');
+        }
+        return _preloadedNextUrl!;
+      }
+      
+      // Check if this is the previous track and we have it preloaded
+      if (currentIndex - 1 >= 0 && 
+          queue[currentIndex - 1].id == track.id && 
+          _preloadedPreviousUrl != null) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Using preloaded previous URL');
+        }
+        return _preloadedPreviousUrl!;
+      }
+    }
+    
+    // For Plex, try the async best URL method
+    if (_mediaServiceManager.currentService is PlexService) {
+      final plexService = _mediaServiceManager.currentService as PlexService;
+      try {
+        final bestUrl = await plexService.getBestStreamUrl(track.id);
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Using Plex best stream URL: $bestUrl');
+        }
+        return bestUrl;
+      } catch (e) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Failed to get Plex best URL, falling back: $e');
+        }
+      }
+    }
+    
+    // Fallback to regular sync method
+    return _getStreamUrl(track);
+  }
+
   /// Convert Track to MediaItem for compatibility
   audio_service.MediaItem _trackToMediaItem(Track track) {
     return audio_service.MediaItem(
