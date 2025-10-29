@@ -537,24 +537,68 @@ class WebAudioHandler {
     final queue = _stateController.queue;
     final track = queue[index];
 
+    if (kDebugMode) {
+      print('WebAudioHandler: Playing track at index $index: ${track.name}');
+    }
+
+    // Update state before starting playback
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
 
     final streamUrl = _getStreamUrl(track);
+    
+    if (kDebugMode) {
+      print('WebAudioHandler: Stream URL for ${track.name}: $streamUrl');
+    }
+    
     await _loadAndPlayTrack(streamUrl);
   }
 
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     try {
+      if (kDebugMode) {
+        print('WebAudioHandler: Loading track from URL: $url');
+      }
+
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
 
-      // For web, we need to handle CORS issues by creating a blob URL
+      // CRITICAL: Stop current audio completely before loading new track
+      // This prevents multiple audio streams playing simultaneously on web
+      try {
+        await _player.stop();
+        if (kDebugMode) {
+          print('WebAudioHandler: Stopped previous audio stream');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Warning - failed to stop previous audio: $e');
+        }
+      }
+
+      // Create and load new audio source
       final audioSource = await _createWebAudioSource(url);
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: Setting new audio source');
+      }
+      
       await _player.setAudioSource(audioSource);
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: Starting playback of new track');
+      }
+      
       await _player.play();
+      
+      if (kDebugMode) {
+        print('WebAudioHandler: New track playback started successfully');
+      }
     } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Failed to load and play track: $e');
+      }
       _stateController.updateState(AudioPlayerState.error);
       _stateController.updateUserIntent(false);
       rethrow;
