@@ -685,8 +685,8 @@ class PlexService implements BaseMediaService {
     
     // Method 2 - Universal transcode fallbacks
     urls.addAll([
-      getImprovedUniversalStreamUrl(trackId, bitrate: 192),
-      getImprovedUniversalStreamUrl(trackId, bitrate: 128),
+      getUniversalStreamUrl(trackId, bitrate: 192),
+      getUniversalStreamUrl(trackId, bitrate: 128),
     ]);
     
     return urls;
