@@ -114,7 +114,7 @@ build_release_linux:
       - build/linux/x64/release/bundle/
     expire_in: 1 hour
 
-build_debug_macos:
+build_release_macos:
   stage: build
   tags:
     - apple
