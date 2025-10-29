@@ -52,40 +52,40 @@ class WebAudioHandler {
   void _setupPlayerListeners() {
     // Position stream
     _subscriptions.add(
-      _player.positionStream.listen(_stateController.updatePosition)
+      _player.positionStream.listen(_stateController.updatePosition),
     );
 
     // Duration stream
     _subscriptions.add(
       _player.durationStream.listen((duration) {
         _stateController.updateDuration(duration ?? Duration.zero);
-      })
+      }),
     );
 
     // Player state stream
     _subscriptions.add(
-      _player.playerStateStream.listen(_handlePlayerStateChange)
+      _player.playerStateStream.listen(_handlePlayerStateChange),
     );
 
     // Processing state for loading detection
     _subscriptions.add(
-      _player.processingStateStream.listen(_handleProcessingStateChange)
+      _player.processingStateStream.listen(_handleProcessingStateChange),
     );
 
     // Player completion
     _subscriptions.add(
       _player.playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
-          .listen((_) => _handleTrackCompletion())
+          .listen((_) => _handleTrackCompletion()),
     );
 
     // Volume and speed synchronization
     _subscriptions.add(
-      _player.volumeStream.listen(_stateController.updateVolume)
+      _player.volumeStream.listen(_stateController.updateVolume),
     );
 
     _subscriptions.add(
-      _player.speedStream.listen(_stateController.updateSpeed)
+      _player.speedStream.listen(_stateController.updateSpeed),
     );
 
     // Update media session when track changes (if using web media session API)
@@ -94,7 +94,7 @@ class WebAudioHandler {
         if (track != null) {
           _updateMediaSessionMetadata(track);
         }
-      })
+      }),
     );
   }
 
@@ -207,75 +207,54 @@ class WebAudioHandler {
 
   // BaseAudioHandler implementation - Stream getters
 
-  
   Stream<AudioPlayerState> get stateStream => _stateController.stateStream;
 
-  
   Stream<Duration> get positionStream => _stateController.positionStream;
 
-  
   Stream<Duration?> get durationStream => _stateController.durationStream;
 
   Stream<double> get volumeStream => _player.volumeStream;
-  
+
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
 
   // Property getters
 
-  
   AudioPlayerState get currentState => _stateController.currentState;
 
-  
   Duration get position => _stateController.position;
 
-  
   Duration get duration => _stateController.duration;
 
-  
   Track? get currentTrack => _stateController.currentTrack;
 
-  
   List<Track> get queueTracks => _stateController.queue;
 
-  
   List<Track> get upNext => _queueManager.getUpNext();
 
-  
   double get volume => _stateController.volume;
 
-  
   double get speed => _stateController.speed;
 
-  
   bool get userIntendedPlaying => _stateController.userIntendedPlaying;
 
-  
   PlayerState get playerState => _player.playerState;
 
-  
   int? get currentIndex => _stateController.currentIndex;
 
-  
   bool get hasNext => _queueManager.hasNext;
 
-  
   bool get hasPrevious => _queueManager.hasPrevious;
 
-  
   RepeatMode get repeatMode => _stateController.repeatMode;
 
-  
   bool get shuffleEnabled => _stateController.shuffleEnabled;
 
-  
   bool get gaplessPlaybackEnabled => _stateController.gaplessPlaybackEnabled;
 
-  
   bool get radioModeEnabled => _radioModeEnabled;
 
   // Playback control methods
 
-  
   Future<void> play() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -300,7 +279,6 @@ class WebAudioHandler {
     });
   }
 
-  
   Future<void> pause() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -324,7 +302,6 @@ class WebAudioHandler {
     });
   }
 
-  
   Future<void> stop() async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -349,7 +326,6 @@ class WebAudioHandler {
     });
   }
 
-  
   Future<void> seek(Duration position) async {
     return _stateController.queueCommand(() async {
       try {
@@ -366,7 +342,6 @@ class WebAudioHandler {
     });
   }
 
-  
   Future<void> setSpeed(double speed) async {
     try {
       await _player.setSpeed(speed);
@@ -380,7 +355,6 @@ class WebAudioHandler {
     }
   }
 
-  
   Future<void> setVolume(double volume) async {
     try {
       await _player.setVolume(volume);
@@ -393,7 +367,6 @@ class WebAudioHandler {
     }
   }
 
-  
   Future<void> playTrack(Track track) async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
@@ -424,11 +397,12 @@ class WebAudioHandler {
     });
   }
 
-  
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     return _stateController.queueCommand(() async {
       if (kDebugMode) {
-        print('WebAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
+        print(
+          'WebAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex',
+        );
       }
 
       try {
@@ -457,7 +431,6 @@ class WebAudioHandler {
     });
   }
 
-  
   Future<void> skipToNext() async {
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
@@ -465,7 +438,6 @@ class WebAudioHandler {
     }
   }
 
-  
   Future<void> skipToPrevious() async {
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
@@ -473,7 +445,6 @@ class WebAudioHandler {
     }
   }
 
-  
   Future<void> skipToQueueItem(int index) async {
     return _stateController.queueCommand(() async {
       try {
@@ -513,7 +484,6 @@ class WebAudioHandler {
 
       await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
       await _player.play();
-
     } catch (e) {
       _stateController.updateState(AudioPlayerState.error);
       _stateController.updateUserIntent(false);
@@ -526,65 +496,52 @@ class WebAudioHandler {
     return _mediaServiceManager.getStreamUrl(track.id);
   }
 
-
-
   // Queue management
 
-  
   void addToQueue(Track track) {
     _queueManager.addToQueue(track);
   }
 
-  
   void addNext(Track track) {
     _queueManager.addNext(track);
   }
 
-  
   void removeFromQueue(int index) {
     _queueManager.removeFromQueue(index);
   }
 
-  
   void reorderQueue(int oldIndex, int newIndex) {
     _queueManager.reorderQueue(oldIndex, newIndex);
   }
 
-  
   void clearQueue() {
     _queueManager.clearQueue();
   }
 
   // Playback modes
 
-  
   void setRepeatMode(RepeatMode mode) {
     _stateController.updateRepeatMode(mode);
   }
 
-  
   void toggleShuffle() {
     _queueManager.toggleShuffle();
   }
 
-  
   void setGaplessPlayback(bool enabled) {
     _stateController.updateGaplessPlayback(enabled);
   }
 
-  
   void toggleRadioMode() {
     _radioModeEnabled = !_radioModeEnabled;
     _stateController.updateRadioMode(_radioModeEnabled);
   }
 
-  
   void enableRadioMode() {
     _radioModeEnabled = true;
     _stateController.updateRadioMode(true);
   }
 
-  
   void disableRadioMode() {
     _radioModeEnabled = false;
     _stateController.updateRadioMode(false);
@@ -592,7 +549,6 @@ class WebAudioHandler {
 
   // Lifecycle management
 
-  
   Future<void> dispose() async {
     if (kDebugMode) {
       print('WebAudioHandler: Disposing...');
@@ -627,4 +583,3 @@ class WebAudioHandler {
 }
 
 // Web-specific types for compatibility
-
