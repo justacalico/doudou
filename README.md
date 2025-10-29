@@ -1,6 +1,8 @@
 # 🎵 Doudou
 
-A beautiful, privacy-focused music player for your personal media server. Stream your music collection from Jellyfin, Plex, or Navidrome with a modern interface designed for all your devices.
+**Your personal music player that puts privacy first.**
+
+Stream your music collection from your own media server with a beautiful, modern interface that works on all your devices. No tracking, no ads, no cloud services - just your music.
 
 <div align="center">
 
@@ -13,177 +15,136 @@ A beautiful, privacy-focused music player for your personal media server. Stream
 
 </div>
 
-## 🎵 Supported Media Servers
+> **Quick Start**: Download for your platform → Connect to your server → Start listening to your music!
 
-- **🟢 Jellyfin** - Complete feature support, recommended
-- **🟡 Plex** - Wokring* (Cant create stream urls)
-- **🟢 Navidrome** - Full SubSonic API compatibility
+## 📱 Works with Your Media Server
 
-## ✨ Features
+- **🟢 Jellyfin** - Full support (recommended)
+- **🟡 Plex** - Working with limitations*
+- **🟢 Navidrome** - Full SubSonic compatibility
 
-### 🎵 Music Experience
-- Beautiful, intuitive interface
-- Gapless playback and crossfade
-- Queue management with drag-and-drop
-- Radio mode for music discovery
-- Smart preloading for seamless playback
+*Plex support is functional but cannot create direct stream URLs
 
-### 🔒 Privacy First
-- Zero data collection or tracking
-- Self-hosted - your music stays private
-- Offline downloads available
-- No external dependencies
+## ✨ Why Choose Doudou?
 
-### 📱 Cross-Platform
-- **Desktop**: Adaptive UI for macOS, Linux, Windows
-- **Mobile**: Android and iOS support
-- **Car Integration**: Android Auto ready
-- **Background Playback**: Continue music while multitasking
+### 🔒 **Privacy Focused**
+- **Zero tracking** - No data collection, analytics, or ads
+- **Your music stays yours** - Everything runs on your own server
+- **No cloud services** - Direct connection to your media server only
 
-### 🎧 Audio Quality
-- Multiple formats: MP3, FLAC, AAC, OGG, M4A
-- Automatic transcoding when needed
-- Volume normalization
-- Professional audio transitions
+### 🎵 **Great Music Experience**
+- **Beautiful interface** - Modern design that adapts to your device
+- **Seamless playback** - Gapless audio with smooth crossfades
+- **Smart features** - Drag-and-drop queue management and radio mode
+- **High quality audio** - Supports MP3, FLAC, AAC, OGG, M4A with automatic transcoding
 
-## 🚀 Getting Started
+### 📱 **Works Everywhere**
+- **All platforms** - Android, iOS, macOS, Linux, Windows
+- **Car integration** - Android Auto support
+- **Background playback** - Music continues while you use other apps
+- **Offline listening** - Download your favorites for offline playback
 
-### Requirements
-- **Media Server**: Jellyfin 10.8+, Plex (with Plex Pass), or Navidrome 0.48+
-- **Platform**: Android 5.0+, iOS 12.0+, macOS 10.15+, Linux, or Windows 10+
-- Network access to your media server
+## 🚀 Get Started in Minutes
 
-### Installation
+### What You Need
+- A media server running **Jellyfin 10.8+**, **Plex** (with Plex Pass), or **Navidrome 0.48+**
+- A device running **Android 5.0+**, **iOS 12.0+**, **macOS 10.15+**, **Linux**, or **Windows 10+**
+- Network connection to your media server
 
-#### Package Managers
+### Download Doudou
 
-**Android - RepStore**
-1. Install [RepStore](https://gitlab.com/HttpAnimations/repstore)
-2. Search for "Doudou" and install
+Choose the easiest option for your platform:
 
-**macOS - Homebrew**
+#### 📱 **Mobile & Tablets**
+
+**Android**
+- Install [RepStore](https://gitlab.com/HttpAnimations/repstore) → Search "Doudou" → Install
+- Or download APK from [releases](releases.md)
+
+**iPhone & iPad**
+- Install [AltStore](https://altstore.io/)
+- Add repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json`
+- Install Doudou from AltStore
+
+#### 💻 **Desktop**
+
+**macOS**
 ```bash
 brew tap Openlyst/macos https://gitlab.com/Openlyst/repos/homebrew/macos.git
 brew install --cask doudou
 ```
 
-**iOS - AltStore**
-1. Install [AltStore](https://altstore.io/)
-2. Add repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json`
-3. Install Doudou
+**Windows & Linux**
+- Download from [GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)
 
-#### Direct Downloads
-- **Stable releases**: See [releases](releases.md)
-- **Latest builds**: [GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)
+### Connect to Your Server
 
-#### Build from Source
-```bash
-git clone https://gitlab.com/Openlyst/doudou.git
-cd doudou
-flutter pub get
-flutter run
+1. **Open Doudou** and tap "Add Server"
+2. **Select your server type** (Jellyfin, Plex, or Navidrome)
+3. **Enter your server address** (like `http://192.168.1.100:8096`)
+4. **Sign in** with your username and password
+5. **Start enjoying your music!**
 
-# Build for specific platforms
-make android    # Android APK
-make ios        # iOS app  
-make macos      # macOS app
-make linux      # Linux app
-make windows    # Windows app
-```
+That's it! Doudou will sync your library and you can start streaming immediately.
 
-### Setup
-1. Install Doudou on your device
-2. Launch and tap "Add Server"
-3. Choose your server type (Jellyfin/Plex/Navidrome)
-4. Enter server URL (e.g., `http://192.168.1.100:8096`)
-5. Login with your credentials
-6. Start streaming your music!
+## 🔒 Your Privacy Matters
 
-## 🔒 Privacy
+**We don't collect ANY data:**
+- ❌ No personal information
+- ❌ No listening habits or analytics  
+- ❌ No crash reports or telemetry
+- ❌ No ads or third-party trackers
+- ❌ No cloud services or external connections
 
-**Zero Data Collection**
-- No personal information collected
-- No usage analytics or tracking
-- No crash reports or telemetry
-- No advertising or third-party trackers
-- No cloud dependencies
+**Everything stays on your devices:**
+- ✅ Server connection settings
+- ✅ Your music preferences
+- ✅ Downloaded songs
+- ✅ Listening history and favorites
+- ✅ App settings and cache
 
-**What Stays Local**
-- Server connection details
-- User preferences
-- Downloaded music files
-- Playback history and favorites
-- All cache and temporary files
+**Simple promise:** Doudou only talks to your media server. That's it.
 
-Doudou only communicates with your media server - no external services.
+## ❓ Frequently Asked Questions
 
-## 🛠️ Development
+**Q: Do I need my own server?**  
+A: Yes, Doudou connects to your self-hosted Jellyfin, Plex, or Navidrome server.
 
-### Setup
-```bash
-# Prerequisites: Flutter 3.8.0+, Dart 3.0.0+
-git clone https://gitlab.com/Openlyst/doudou.git
-cd doudou
-flutter pub get
-flutter run
-```
+**Q: Can I use this away from home?**  
+A: Absolutely! As long as your server is accessible over the internet. Consider using a VPN for security.
 
-### Project Structure
-```
-lib/
-├── models/      # Data models
-├── providers/   # State management  
-├── screens/     # UI screens
-├── services/    # Business logic
-└── widgets/     # Reusable components
-```
+**Q: What about offline listening?**  
+A: Long-press any song, album, or playlist and select "Download for offline listening."
 
-### Building
-```bash
-# Development
-make android        # Android APK
-make ios           # iOS app
-make macos         # macOS app
-make linux         # Linux app
-make windows       # Windows app
+**Q: Is the desktop version different?**  
+A: Yes! Desktop platforms get an enhanced interface optimized for larger screens and keyboard/mouse.
 
-# Production (Android)
-make generate-keystore  # One-time setup
-make setup-signing     # Configure signing
-source setup-signing.sh
-make android-signed    # Signed APK
-```
+**Q: Which server works best?**  
+A: Jellyfin offers the best experience with full feature support and it's completely free.
 
-## 📱 Permissions
+## 📱 App Permissions
 
-### Android
-- **Internet** - Connect to media server
-- **Network State** - Check connectivity 
-- **Wake Lock** - Background playback
-- **Foreground Service** - Media controls
+**Android**
+- Internet & network access (connect to your server)
+- Background audio & wake lock (music continues playing)
+- Foreground service (media controls in notification)
 
-### iOS/macOS
-- **Network Access** - Server connection
-- **Background Audio** - Continue playback
-- **Media Controls** - Lock screen/control center
+**iPhone & iPad**
+- Network access (connect to your server)  
+- Background audio (music continues playing)
+- Media controls (lock screen & control center)
 
-## 🤝 Contributing
+## 🤝 Help Make Doudou Better
 
-Contributions welcome! Help improve Doudou with:
-- 🐛 Bug reports and feature requests
-- 💻 Code improvements and new features
-- 🌍 Translations to your language
-- 📚 Documentation improvements
-- 🧪 Testing on different platforms
+Love using Doudou? Here's how you can help:
 
-### Workflow
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes with clear commits
-4. Test thoroughly
-5. Submit merge request
+- 🐛 **Report bugs** or suggest features
+- 🌍 **Translate** the app to your language
+- ⭐ **Star the project** on GitLab
+- 💬 **Share** with other self-hosted music fans
+- 💻 **Contribute code** if you're a developer
 
-Follow [Dart style guide](https://dart.dev/guides/language/effective-dart/style) and ensure cross-platform compatibility.
+[Report Issues](https://gitlab.com/Openlyst/doudou/issues) • [Join Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
 
 ## 📞 Support
 
