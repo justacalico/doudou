@@ -144,8 +144,10 @@ build_debug_macos:
     # Create completely isolated workspace for this job
     - rm -rf "$JOB_WORK_DIR" || true
     - mkdir -p "$JOB_WORK_DIR"
-    - cp -r . "$JOB_WORK_DIR/" 2>/dev/null || true
     - cd "$JOB_WORK_DIR"
+    # Manually fetch the source code since GIT_STRATEGY is none
+    - git clone --depth 1 --branch $CI_COMMIT_REF_NAME $CI_REPOSITORY_URL .
+    - git checkout $CI_COMMIT_SHA
     # Kill any processes that might be using old directories
     - pkill -f "gradle.*doudou" || true
     - pkill -f "dart.*doudou" || true  
@@ -209,8 +211,7 @@ build_debug_ios:
       - runner_system_failure
       - stuck_or_timeout_failure
   variables:
-    GIT_STRATEGY: fetch
-    GIT_CLEAN_FLAGS: -f
+    GIT_STRATEGY: none
     # Use unique job workspace
     JOB_WORK_DIR: "$HOME/tmp/doudou-ios-$CI_JOB_ID"
   cache: {}  # Disable cache for this job to prevent conflicts
