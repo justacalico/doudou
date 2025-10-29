@@ -189,6 +189,11 @@ build_debug_macos:
       fi
     # Build without caffeinate first (in case it's not available)
     - flutter build macos --debug
+  after_script:
+    # Copy artifacts back to original workspace for GitLab to pick up
+    - if [ -d "$JOB_WORK_DIR" ]; then cp -r "$JOB_WORK_DIR/build" . 2>/dev/null || true; fi
+    # Cleanup isolated workspace
+    - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
       - build/macos/Build/Products/Debug/
