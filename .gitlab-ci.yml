@@ -112,8 +112,13 @@ build_debug_macos:
   allow_failure: true
   before_script:
     # Force cleanup any problematic cached directories from previous jobs
+    - pkill -f gradle || true
+    - pkill -f dart || true  
+    - sleep 2
     - find . -name ".gradle-*" -type d -exec rm -rf {} + 2>/dev/null || true
     - find . -name ".pub-cache-*" -type d -exec rm -rf {} + 2>/dev/null || true
+    - rm -rf .gradle-* || true
+    - rm -rf .pub-cache-* || true
     # Set up Flutter if not in PATH
     - |
       if ! command -v flutter &> /dev/null; then
