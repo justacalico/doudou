@@ -160,7 +160,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
     } catch (e) {
       _foregroundServiceIssues = true;
       if (kDebugMode) {
-        print('DoudouAudioHandler: Playback state update failed, marking foreground service issues: $e');
+        print(
+          'DoudouAudioHandler: Playback state update failed, marking foreground service issues: $e',
+        );
       }
     }
   }
@@ -181,7 +183,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
     } catch (e) {
       _foregroundServiceIssues = true;
       if (kDebugMode) {
-        print('DoudouAudioHandler: Media item update failed, marking foreground service issues: $e');
+        print(
+          'DoudouAudioHandler: Media item update failed, marking foreground service issues: $e',
+        );
       }
     }
   }
@@ -198,7 +202,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
     } catch (e) {
       _foregroundServiceIssues = true;
       if (kDebugMode) {
-        print('DoudouAudioHandler: Queue update failed, marking foreground service issues: $e');
+        print(
+          'DoudouAudioHandler: Queue update failed, marking foreground service issues: $e',
+        );
       }
     }
   }
@@ -265,9 +271,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
                   await _player.play();
                 } catch (playError) {
                   if (kDebugMode) {
-                    print('DoudouAudioHandler: Player.play() also failed: $playError');
+                    print(
+                      'DoudouAudioHandler: Player.play() also failed: $playError',
+                    );
                   }
-                  _stateController.updateError('Failed to continue playback: $playError');
+                  _stateController.updateError(
+                    'Failed to continue playback: $playError',
+                  );
                 }
               }
             });
@@ -309,8 +319,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
         );
       }
 
-
-
       // For auto-advance, assume foreground service might have issues
       // This prevents the loop issue when app is backgrounded
       _foregroundServiceIssues = true;
@@ -333,7 +341,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       }
 
       final track = queue[index];
-      
+
       // Update ONLY internal state - no UI synchronization to avoid foreground service
       _stateController.updateCurrentIndex(index);
       _stateController.updateCurrentTrack(track);
@@ -345,11 +353,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Load the new track
       final streamUrl = _getStreamUrl(track);
       if (kDebugMode) {
-        print('DoudouAudioHandler: Loading audio source for background play: $streamUrl');
+        print(
+          'DoudouAudioHandler: Loading audio source for background play: $streamUrl',
+        );
       }
 
       await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
-      
+
       // Start playback immediately without waiting for foreground service
       if (_stateController.userIntendedPlaying) {
         await _player.play();
@@ -573,10 +583,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Reset foreground service issues when user explicitly plays
       // (they might have brought app to foreground)
       _foregroundServiceIssues = false;
-      
+
       // Try to start foreground service, but continue if it fails
       await _attemptForegroundService();
-      
+
       await _player.play();
       if (kDebugMode) {
         print('DoudouAudioHandler: Play command completed');
@@ -603,23 +613,25 @@ class DoudouAudioHandler extends BaseAudioHandler {
       final currentState = _stateController.currentState;
       final position = _stateController.position;
       final speed = _stateController.speed;
-      
-      final playbackState = _createPlaybackState(currentState, position, speed).copyWith(
-        playing: true,
-        processingState: AudioProcessingState.ready,
-      );
-      
+
+      final playbackState = _createPlaybackState(
+        currentState,
+        position,
+        speed,
+      ).copyWith(playing: true, processingState: AudioProcessingState.ready);
+
       _safeUpdatePlaybackState(playbackState);
-      
+
       // Small delay to allow the service to process the state change
       await Future.delayed(const Duration(milliseconds: 50));
-      
     } catch (e) {
       // Mark that we have foreground service issues to avoid repeated attempts
       _foregroundServiceIssues = true;
-      
+
       if (kDebugMode) {
-        print('DoudouAudioHandler: Foreground service start failed (continuing anyway): $e');
+        print(
+          'DoudouAudioHandler: Foreground service start failed (continuing anyway): $e',
+        );
       }
       // Continue without foreground service - audio will still work in background
       // but without the persistent notification when app is backgrounded
@@ -925,7 +937,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       if (_stateController.userIntendedPlaying) {
         // Try to handle foreground service before starting playback
         await _attemptForegroundService();
-        
+
         await _player.play();
         if (kDebugMode) {
           print('DoudouAudioHandler: Playback started successfully');
