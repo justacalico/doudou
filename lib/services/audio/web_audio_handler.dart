@@ -217,6 +217,11 @@ class WebAudioHandler {
 
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
 
+  // Web-specific streams for AudioService compatibility
+  Stream<PlaybackState> get playbackState => _createPlaybackStateStream();
+  
+  Stream<MediaItem?> get mediaItem => _createMediaItemStream();
+
   // Property getters
 
   AudioPlayerState get currentState => _stateController.currentState;
