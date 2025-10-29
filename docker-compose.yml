@@ -15,7 +15,7 @@ services:
       start_period: 40s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.doudou.rule=Host(\`doudou.local\`)"
+      - "traefik.http.routers.doudou.rule=Host(`doudou.local`)"
       - "traefik.http.services.doudou.loadbalancer.server.port=34273"
 
   # Optional: If you want to run Jellyfin alongside Doudou
