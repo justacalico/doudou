@@ -108,7 +108,7 @@ build_release_linux:
     - flutter config --enable-linux-desktop
     - flutter clean
     - flutter pub get
-    - flutter build linux --debug
+    - flutter build linux --release
   artifacts:
     paths:
       - build/linux/x64/debug/bundle/
