@@ -864,6 +864,7 @@ class _LoginScreenState extends State<LoginScreen>
       // Error vibration for no offline content
       await _triggerHapticFeedback(isSuccess: false);
       
+      if (!mounted) return;
       showCupertinoDialog(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
