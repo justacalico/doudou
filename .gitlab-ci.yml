@@ -80,7 +80,7 @@ build_release_apk:
     - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
-      - build/app/outputs/flutter-apk/app-debug.apk
+      - build/app/outputs/flutter-apk/app-release.apk
     expire_in: 1 hour
 
 build_debug_linux:
