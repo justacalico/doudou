@@ -467,11 +467,11 @@ cleanup_apple_runner:
   needs:
     - job: "publish_release"
       optional: true
-    - job: "build_debug_apk"
+    - job: "build_release_apk"
       optional: true
-    - job: "build_debug_macos"
+    - job: "build_release_macos"
       optional: true
-    - job: "build_debug_ios"
+    - job: "build_release_ios"
       optional: true
 
 cleanup_linux_runner:
