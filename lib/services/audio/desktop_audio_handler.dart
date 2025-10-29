@@ -528,8 +528,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
         // Set up single track queue
         _queueManager.setQueue([track], startIndex: 0);
         
-        // Get stream URL
-        final streamUrl = _getStreamUrl(track);
+        // Get stream URL (try async method for better Plex support)
+        final streamUrl = await _getBestStreamUrl(track);
         
         // Load and play the track
         await _loadAndPlayTrack(streamUrl);
