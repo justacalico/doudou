@@ -7,7 +7,14 @@ set -e  # Exit on any error
 IMAGE_NAME="doudou"
 DOCKER_USERNAME="httpanimations"
 DOCKER_REPO="$DOCKER_USERNAME/$IMAGE_NAME"
-VERSION="7.0.0"
+
+# Extract version from pubspec.yaml
+VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//g' | cut -d'+' -f1)
+if [ -z "$VERSION" ]; then
+    echo -e "${RED}❌ Error: Could not extract version from pubspec.yaml${NC}"
+    exit 1
+fi
+echo -e "${BLUE}📦 Building version: $VERSION${NC}"
 
 # Colors for output
 RED='\033[0;31m'
