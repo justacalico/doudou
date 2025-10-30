@@ -957,61 +957,119 @@ class _SettingsPageState extends State<SettingsPage> {
       {'name': 'Teal', 'color': Colors.teal},
     ];
 
+    // Check if current color is one of the presets
+    final isCustomColor = !colors.any((colorData) => 
+        (colorData['color'] as Color).value == appState.accentColor.value);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Choose Accent Color'),
-        content: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: colors.map((colorData) {
-            final color = colorData['color'] as Color;
-            final isSelected = color.value == appState.accentColor.value;
-            
-            return InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                appState.setAccentColor(color);
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isSelected 
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.outline,
-                    width: isSelected ? 3 : 1,
-                  ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isSelected)
-                        const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 16,
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Preset colors
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: colors.map((colorData) {
+                  final color = colorData['color'] as Color;
+                  final isSelected = color.value == appState.accentColor.value;
+                  
+                  return InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      appState.setAccentColor(color);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected 
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.outline,
+                          width: isSelected ? 3 : 1,
                         ),
-                      Text(
-                        colorData['name'] as String,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
                       ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isSelected)
+                              const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            Text(
+                              colorData['name'] as String,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              
+              // Custom color option
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCustomColorPicker(appState);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isCustomColor 
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outline,
+                      width: isCustomColor ? 2 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: isCustomColor ? appState.accentColor : Colors.grey,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Custom Color'),
+                      const Spacer(),
+                      const Icon(Icons.arrow_forward_ios, size: 16),
                     ],
                   ),
                 ),
               ),
-            );
-          }).toList(),
+            ],
+          ),
         ),
         actions: [
           TextButton(
