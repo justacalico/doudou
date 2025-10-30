@@ -88,6 +88,92 @@ build_debug_apk:
     expire_in: 30m
   timeout: 25m
 
+build_release_apk:
+  stage: build
+  image: ghcr.io/cirruslabs/flutter:stable
+  tags:
+    - linux
+  allow_failure: true
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 1
+    FLUTTER_BUILD_MODE: "release"
+    ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
+    ANDROID_HOME: "/opt/android-sdk-linux"
+  cache:
+    key: "apk-deps-$CI_COMMIT_REF_SLUG-v4"
+    paths:
+      - .pub-cache/
+      - android/.gradle/
+    policy: pull-push
+  before_script:
+    # Install Android SDK and tools
+    - apt-get update -qq
+    - apt-get install -y -qq wget unzip openjdk-17-jdk
+    - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    # Setup Android SDK
+    - mkdir -p $ANDROID_SDK_ROOT
+    - cd $ANDROID_SDK_ROOT
+    - wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    - unzip -q commandlinetools-linux-9477386_latest.zip
+    - mkdir -p cmdline-tools/latest
+    - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+    - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+    # Accept licenses and install required components
+    - yes | sdkmanager --licenses >/dev/null 2>&1 || true
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null 2>&1
+    - cd $CI_PROJECT_DIR
+    # Flutter setup
+    - flutter --version
+    - flutter config --android-sdk $ANDROID_SDK_ROOT
+    # Clean only what's necessary
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
+    # Create a debug keystore for development builds
+    - |
+      if [[ -z "$KEYSTORE_PASSWORD" ]]; then
+        echo "No keystore password provided, creating debug keystore..."
+        mkdir -p android/keystore
+        keytool -genkey -v -keystore android/keystore/debug.keystore \
+          -alias debug -keyalg RSA -keysize 2048 -validity 10000 \
+          -storepass android -keypass android \
+          -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
+        # Create key.properties for debug keystore
+        cat > android/key.properties << EOF
+      storePassword=android
+      keyPassword=android
+      keyAlias=debug
+      storeFile=keystore/debug.keystore
+      EOF
+      else
+        echo "Using provided keystore configuration..."
+        # Use environment variables to create key.properties
+        cat > android/key.properties << EOF
+      storePassword=${KEYSTORE_PASSWORD}
+      keyPassword=${KEY_PASSWORD}
+      keyAlias=${KEY_ALIAS}
+      storeFile=${KEYSTORE_PATH}
+      EOF
+      fi
+  script:
+    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
+    - flutter pub get --no-precompile
+    # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
+    - BUILD_NUMBER=$(date +%s)
+    - echo "Using build number:" $BUILD_NUMBER
+    # Build signed release APK
+    - flutter build apk --release --build-number=$BUILD_NUMBER
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+      - android/key.properties
+    expire_in: 30m
+  timeout: 25m
+
 build_release_linux:
   stage: build-linux
   image: ghcr.io/cirruslabs/flutter:stable
