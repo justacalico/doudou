@@ -29,7 +29,7 @@ cache:
     - .pub-cache-$CI_JOB_NAME/
   policy: pull-push
 
-build_release_apk:
+build_debug_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
@@ -43,7 +43,7 @@ build_release_apk:
   variables:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 1
-    FLUTTER_BUILD_MODE: "release"
+    FLUTTER_BUILD_MODE: "debug"
     ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
     ANDROID_HOME: "/opt/android-sdk-linux"
   cache:
@@ -77,10 +77,14 @@ build_release_apk:
   script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
     - flutter pub get --no-precompile
-    - flutter build apk --release
+    # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
+    - BUILD_NUMBER=$(date +%s)
+    - echo "Using build number:" $BUILD_NUMBER
+    # Build debug APK (automatically signed with debug key)
+    - flutter build apk --debug --build-number=$BUILD_NUMBER
   artifacts:
     paths:
-      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/flutter-apk/app-debug.apk
     expire_in: 30m
   timeout: 25m
 
