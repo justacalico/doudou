@@ -209,9 +209,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Don't set _foregroundServiceIssues here since this is specifically for UI updates
     }
   }
-
-
-
+  
   /// Safely update queue without triggering foreground service errors
   void _safeUpdateQueue(List<Track> tracks) {
     if (_foregroundServiceIssues) {
