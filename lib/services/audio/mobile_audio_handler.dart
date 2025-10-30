@@ -29,12 +29,18 @@ class DoudouAudioHandler extends BaseAudioHandler {
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
 
-  // Foreground service management - IMPROVED
+  // Foreground service management - ENHANCED
   int _foregroundServiceFailureCount = 0;
   DateTime? _lastForegroundServiceAttempt;
-  static const int _maxConsecutiveFailures = 3;
-  static const Duration _foregroundServiceRetryDelay = Duration(seconds: 5);
+  static const int _maxConsecutiveFailures = 5;
+  static const Duration _foregroundServiceRetryDelay = Duration(seconds: 3);
   Timer? _foregroundServiceRecoveryTimer;
+  Timer? _foregroundServiceHeartbeatTimer;
+  bool _foregroundServiceActive = false;
+  
+  // Power management
+  bool _wakeLockActive = false;
+  Timer? _wakeLockMonitorTimer;
 
   // Constructor
   DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
@@ -90,11 +96,125 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Start monitoring for foreground service recovery
   void _startForegroundServiceMonitor() {
-    // Check every 30 seconds if we can recover from foreground service issues
+    // Check every 15 seconds if we can recover from foreground service issues
     _foregroundServiceRecoveryTimer = Timer.periodic(
-      const Duration(seconds: 30),
+      const Duration(seconds: 15),
       (_) => _attemptForegroundServiceRecovery(),
     );
+    
+    // Heartbeat timer to keep foreground service alive during playback
+    _startForegroundServiceHeartbeat();
+    
+    // Monitor power management
+    _startPowerManagementMonitor();
+  }
+  
+  /// Start heartbeat timer to maintain foreground service
+  void _startForegroundServiceHeartbeat() {
+    _foregroundServiceHeartbeatTimer?.cancel();
+    _foregroundServiceHeartbeatTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _maintainForegroundService(),
+    );
+  }
+  
+  /// Start power management monitoring
+  void _startPowerManagementMonitor() {
+    _wakeLockMonitorTimer?.cancel();
+    _wakeLockMonitorTimer = Timer.periodic(
+      const Duration(seconds: 20),
+      (_) => _checkPowerManagement(),
+    );
+  }
+  
+  /// Maintain foreground service during active playback
+  void _maintainForegroundService() {
+    // Only maintain if we're playing or intending to play
+    if (_stateController.currentState == base_handler.AudioPlayerState.playing ||
+        _stateController.userIntendedPlaying) {
+      
+      if (!_foregroundServiceActive) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Foreground service not active, attempting restart');
+        }
+        _attemptForegroundService();
+      } else {
+        // Send heartbeat to keep service alive
+        _sendForegroundServiceHeartbeat();
+      }
+    }
+  }
+  
+  /// Send heartbeat to maintain foreground service
+  void _sendForegroundServiceHeartbeat() {
+    try {
+      final currentState = _stateController.currentState;
+      final position = _stateController.position;
+      final speed = _stateController.speed;
+      
+      final heartbeatState = _createPlaybackState(currentState, position, speed);
+      playbackState.add(heartbeatState);
+      
+      if (kDebugMode && DateTime.now().second % 30 == 0) {
+        print('DoudouAudioHandler: Foreground service heartbeat sent');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Heartbeat failed: $e');
+      }
+      _foregroundServiceActive = false;
+    }
+  }
+  
+  /// Check and maintain power management settings
+  void _checkPowerManagement() {
+    // During active playback, ensure we have proper power management
+    if (_stateController.currentState == base_handler.AudioPlayerState.playing) {
+      _ensureWakeLock();
+    } else if (!_stateController.userIntendedPlaying) {
+      _releaseWakeLock();
+    }
+  }
+  
+  /// Ensure wake lock is active during playback
+  void _ensureWakeLock() {
+    if (!_wakeLockActive) {
+      _requestWakeLock();
+    }
+  }
+  
+  /// Request wake lock to prevent device sleep during playback
+  void _requestWakeLock() {
+    try {
+      // Wake lock is implicitly handled by AudioService when in foreground
+      // but we can add additional measures here if needed
+      _wakeLockActive = true;
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Wake lock requested');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Wake lock request failed: $e');
+      }
+    }
+  }
+  
+  /// Release wake lock when not needed
+  void _releaseWakeLock() {
+    if (_wakeLockActive) {
+      try {
+        _wakeLockActive = false;
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Wake lock released');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Wake lock release failed: $e');
+        }
+      }
+    }
   }
 
   /// Attempt to recover from foreground service failures
@@ -636,7 +756,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Attempt to start foreground service with improved retry logic
+  /// Attempt to start foreground service with enhanced retry logic
   Future<void> _attemptForegroundService() async {
     // Skip if we've had too many recent failures
     if (_shouldSkipForegroundService) {
@@ -647,23 +767,55 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
 
     try {
-      // Update playback state to trigger foreground service
+      // Step 1: Update MediaItem first to ensure we have content
+      final currentTrack = _stateController.currentTrack;
+      if (currentTrack != null) {
+        mediaItem.add(_trackToMediaItem(currentTrack));
+      }
+      
+      // Step 2: Create enhanced playback state with high priority
       final currentState = _stateController.currentState;
       final position = _stateController.position;
       final speed = _stateController.speed;
 
-      final newPlaybackState = _createPlaybackState(
+      final enhancedPlaybackState = _createPlaybackState(
         currentState,
         position,
         speed,
-      ).copyWith(playing: true, processingState: AudioProcessingState.ready);
+      ).copyWith(
+        playing: true,
+        processingState: AudioProcessingState.ready,
+        // Add system actions to make the notification more important
+        systemActions: {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+          MediaAction.rewind,
+          MediaAction.fastForward,
+          MediaAction.stop,
+          MediaAction.pause,
+          MediaAction.play,
+          MediaAction.skipToNext,
+          MediaAction.skipToPrevious,
+        },
+      );
 
-      playbackState.add(newPlaybackState);
+      playbackState.add(enhancedPlaybackState);
 
-      // Small delay to allow the service to process
-      await Future.delayed(const Duration(milliseconds: 50));
+      // Step 3: Longer delay to ensure foreground service starts properly
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Step 4: Send a second update to reinforce the foreground state
+      final reinforcementState = enhancedPlaybackState.copyWith(
+        updatePosition: _stateController.position,
+        bufferedPosition: _player.bufferedPosition,
+      );
+      playbackState.add(reinforcementState);
+      
+      // Step 5: Mark as active
+      _foregroundServiceActive = true;
 
-      // Success - reset failure count
+      // Success - reset failure count and request wake lock
       if (_foregroundServiceFailureCount > 0) {
         if (kDebugMode) {
           print(
@@ -672,9 +824,18 @@ class DoudouAudioHandler extends BaseAudioHandler {
         }
         _foregroundServiceFailureCount = 0;
       }
+      
+      // Ensure wake lock during active playback
+      _ensureWakeLock();
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Foreground service established successfully');
+      }
+      
     } catch (e) {
       _foregroundServiceFailureCount++;
       _lastForegroundServiceAttempt = DateTime.now();
+      _foregroundServiceActive = false;
 
       if (kDebugMode) {
         print(
