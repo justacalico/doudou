@@ -382,16 +382,13 @@ cleanup_apple_runner:
     - find . -name ".gradle-*" -type d -exec rm -rf {} + 2>/dev/null || true
     - find . -name ".pub-cache-*" -type d -exec rm -rf {} + 2>/dev/null || true
     # Use sudo if available for stubborn directories
-    - sudo rm -rf build/ .dart_tool/ android/.gradle android/.kotlin 2>/dev/null || rm -rf build/ .dart_tool/ android/.gradle android/.kotlin || true
-    - sudo rm -rf ios/Flutter/ephemeral macos/Flutter/ephemeral .flutter-plugins-dependencies 2>/dev/null || rm -rf ios/Flutter/ephemeral macos/Flutter/ephemeral .flutter-plugins-dependencies || true
+    - sudo rm -rf build/ .dart_tool/ ios/Flutter/ephemeral macos/Flutter/ephemeral .flutter-plugins-dependencies 2>/dev/null || rm -rf build/ .dart_tool/ ios/Flutter/ephemeral macos/Flutter/ephemeral .flutter-plugins-dependencies || true
     # Clear system caches
     - df -h || true
     - echo "✅ Apple runner cleanup completed"
   timeout: 5m
   needs:
     - job: "publish_release"
-      optional: true
-    - job: "build_release_apk"
       optional: true
     - job: "build_release_macos"
       optional: true
