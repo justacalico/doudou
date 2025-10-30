@@ -22,21 +22,26 @@ class MiniPlayer extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // Listen to current track changes in real-time using MediaItem stream
+        // Use both MediaItem stream and direct access for maximum reliability
+        // The periodic stream ensures we catch updates even when MediaItem stream fails
         return StreamBuilder<MediaItem?>(
           stream: appState.mediaItem,
           builder: (context, mediaItemSnapshot) {
-            final mediaItem = mediaItemSnapshot.data;
-            
-            // Convert MediaItem to Track or use currentTrack as fallback
-            final currentTrack = mediaItem != null 
-                ? appState.findTrackById(mediaItem.id) ?? audioHandler?.currentTrack
-                : audioHandler?.currentTrack;
-            
-            // Return empty widget if no track is playing
-            if (currentTrack == null) {
-              return const SizedBox.shrink();
-            }
+            return StreamBuilder<dynamic>(
+              stream: Stream.periodic(const Duration(milliseconds: 500)),
+              builder: (context, _) {
+                // Get current track from multiple sources for maximum reliability
+                final directTrack = audioHandler?.currentTrack;
+                final mediaItem = mediaItemSnapshot.data;
+                
+                // Prefer direct track access for most reliable updates
+                final currentTrack = directTrack ?? 
+                    (mediaItem != null ? appState.findTrackById(mediaItem.id) : null);
+                
+                // Return empty widget if no track is playing
+                if (currentTrack == null) {
+                  return const SizedBox.shrink();
+                }
 
         // Determine if we're on a desktop platform
         final isDesktop = !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
@@ -221,8 +226,10 @@ class MiniPlayer extends StatelessWidget {
         ), // BackdropFilter
         ), // ClipRRect
         ); // Container - the main container
-          }, // StreamBuilder builder
-        ); // StreamBuilder
+              }, // Periodic StreamBuilder builder
+            ); // Periodic StreamBuilder
+          }, // MediaItem StreamBuilder builder
+        ); // MediaItem StreamBuilder
       }, // Consumer builder
     ); // Consumer
   } // build method
