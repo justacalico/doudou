@@ -89,10 +89,29 @@ class DoudouAudioHandler extends BaseAudioHandler {
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio session configured with interruption handling');
       }
+      
+      // Enable audio session to ensure it stays active during playback
+      await _session!.setActive(true);
+      
     } catch (e) {
       if (kDebugMode) {
         print('DoudouAudioHandler: Failed to configure audio session: $e');
       }
+      // Try to continue without full audio session support
+    }
+  }
+
+  /// Ensure audio session is active before important playback operations
+  Future<void> _ensureAudioSessionActive() async {
+    try {
+      if (_session != null) {
+        await _session!.setActive(true);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to activate audio session: $e');
+      }
+      // Continue anyway - this is just an optimization
     }
   }
 
