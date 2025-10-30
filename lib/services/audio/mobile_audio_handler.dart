@@ -71,13 +71,84 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _session = await AudioSession.instance;
       await _session!.configure(const AudioSessionConfiguration.music());
 
+      // Handle audio session interruptions (phone calls, notifications, etc.)
+      _subscriptions.add(
+        _session!.interruptionEventStream.listen(_handleAudioInterruption),
+      );
+
+      // Handle becoming noisy events (headphones unplugged, etc.)
+      _subscriptions.add(
+        _session!.becomingNoisyEventStream.listen(_handleBecomingNoisy),
+      );
+
       if (kDebugMode) {
-        print('DoudouAudioHandler: Audio session configured');
+        print('DoudouAudioHandler: Audio session configured with interruption handling');
       }
     } catch (e) {
       if (kDebugMode) {
         print('DoudouAudioHandler: Failed to configure audio session: $e');
       }
+    }
+  }
+
+  /// Handle audio interruptions (phone calls, notifications, etc.)
+  void _handleAudioInterruption(AudioInterruptionEvent event) {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Audio interruption: ${event.type}');
+    }
+
+    if (event.begin) {
+      // Audio interruption began (phone call, notification, etc.)
+      if (_player.playing) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Pausing due to audio interruption');
+        }
+        // Don't update user intent - they didn't choose to pause
+        _player.pause();
+        _stateController.updateState(base_handler.AudioPlayerState.paused);
+      }
+    } else {
+      // Audio interruption ended
+      if (_stateController.userIntendedPlaying && !_player.playing) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Resuming after audio interruption ended');
+        }
+        // Resume playback since user originally intended to play
+        Future.microtask(() async {
+          try {
+            await _attemptForegroundService();
+            await _player.play();
+          } catch (e) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Failed to resume after interruption: $e');
+            }
+            // Try to resume without foreground service
+            try {
+              await _player.play();
+            } catch (playError) {
+              if (kDebugMode) {
+                print('DoudouAudioHandler: Player resume also failed: $playError');
+              }
+              _stateController.updateError('Failed to resume after interruption: $playError');
+            }
+          }
+        });
+      }
+    }
+  }
+
+  /// Handle becoming noisy events (headphones unplugged, etc.)
+  void _handleBecomingNoisy(dynamic event) {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Audio becoming noisy - pausing playbook');
+    }
+
+    // Pause playbook when audio becomes noisy (e.g., headphones unplugged)
+    if (_player.playing) {
+      // Update user intent since this is a user-affecting event
+      _stateController.updateUserIntent(false);
+      _player.pause();
+      _stateController.updateState(base_handler.AudioPlayerState.paused);
     }
   }
 
