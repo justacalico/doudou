@@ -29,8 +29,12 @@ class DoudouAudioHandler extends BaseAudioHandler {
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
 
-  // Foreground service management
-  bool _foregroundServiceIssues = false;
+  // Foreground service management - IMPROVED
+  int _foregroundServiceFailureCount = 0;
+  DateTime? _lastForegroundServiceAttempt;
+  static const int _maxConsecutiveFailures = 3;
+  static const Duration _foregroundServiceRetryDelay = Duration(seconds: 5);
+  Timer? _foregroundServiceRecoveryTimer;
 
   // Constructor
   DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
@@ -53,6 +57,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
       // Set up state synchronization
       _setupStateSynchronization();
+
+      // Start foreground service recovery monitor
+      _startForegroundServiceMonitor();
 
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio system initialized successfully');
@@ -77,6 +84,43 @@ class DoudouAudioHandler extends BaseAudioHandler {
     } catch (e) {
       if (kDebugMode) {
         print('DoudouAudioHandler: Failed to configure audio session: $e');
+      }
+    }
+  }
+
+  /// Start monitoring for foreground service recovery
+  void _startForegroundServiceMonitor() {
+    // Check every 30 seconds if we can recover from foreground service issues
+    _foregroundServiceRecoveryTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _attemptForegroundServiceRecovery(),
+    );
+  }
+
+  /// Attempt to recover from foreground service failures
+  void _attemptForegroundServiceRecovery() {
+    // Only attempt recovery if we had failures and enough time has passed
+    if (_foregroundServiceFailureCount > 0 &&
+        _lastForegroundServiceAttempt != null) {
+      final timeSinceLastAttempt = DateTime.now().difference(
+        _lastForegroundServiceAttempt!,
+      );
+
+      if (timeSinceLastAttempt > _foregroundServiceRetryDelay) {
+        if (kDebugMode) {
+          print(
+            'DoudouAudioHandler: Attempting foreground service recovery...',
+          );
+        }
+
+        // Reset failure count to allow retry
+        _foregroundServiceFailureCount = 0;
+
+        // If we're currently playing, try to re-establish foreground service
+        if (_stateController.currentState ==
+            base_handler.AudioPlayerState.playing) {
+          _attemptForegroundService();
+        }
       }
     }
   }
@@ -117,7 +161,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Set up state synchronization with AudioService
   void _setupStateSynchronization() {
-    // Sync playback state to AudioService (with foreground service error handling)
+    // Sync playback state to AudioService
     _subscriptions.add(
       CombineLatestStream.combine3(
         _stateController.stateStream,
@@ -133,14 +177,14 @@ class DoudouAudioHandler extends BaseAudioHandler {
       }),
     );
 
-    // Sync current track to MediaItem (with foreground service error handling)
+    // Sync current track to MediaItem
     _subscriptions.add(
       _stateController.currentTrackStream.listen((track) {
         _safeUpdateMediaItem(track);
       }),
     );
 
-    // Sync queue to AudioService (with foreground service error handling)
+    // Sync queue to AudioService
     _subscriptions.add(
       _stateController.queueStream.listen((tracks) {
         _safeUpdateQueue(tracks);
@@ -148,29 +192,44 @@ class DoudouAudioHandler extends BaseAudioHandler {
     );
   }
 
-  /// Safely update playback state without triggering foreground service errors
+  /// Check if we should skip foreground service attempts
+  bool get _shouldSkipForegroundService {
+    return _foregroundServiceFailureCount >= _maxConsecutiveFailures &&
+        _lastForegroundServiceAttempt != null &&
+        DateTime.now().difference(_lastForegroundServiceAttempt!) <
+            _foregroundServiceRetryDelay;
+  }
+
+  /// Safely update playback state with improved error handling
   void _safeUpdatePlaybackState(PlaybackState state) {
-    if (_foregroundServiceIssues) {
-      // Skip updating AudioService state if we know foreground service has issues
+    if (_shouldSkipForegroundService) {
       return;
     }
 
     try {
       playbackState.add(state);
+      // Success - reset failure count
+      if (_foregroundServiceFailureCount > 0) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Foreground service recovered');
+        }
+        _foregroundServiceFailureCount = 0;
+      }
     } catch (e) {
-      _foregroundServiceIssues = true;
+      _foregroundServiceFailureCount++;
+      _lastForegroundServiceAttempt = DateTime.now();
+
       if (kDebugMode) {
         print(
-          'DoudouAudioHandler: Playback state update failed, marking foreground service issues: $e',
+          'DoudouAudioHandler: Playback state update failed (attempt $_foregroundServiceFailureCount/$_maxConsecutiveFailures): $e',
         );
       }
     }
   }
 
-  /// Safely update media item without triggering foreground service errors
+  /// Safely update media item with improved error handling
   void _safeUpdateMediaItem(Track? track) {
-    if (_foregroundServiceIssues) {
-      // Skip updating AudioService MediaItem if we know foreground service has issues
+    if (_shouldSkipForegroundService) {
       return;
     }
 
@@ -180,17 +239,23 @@ class DoudouAudioHandler extends BaseAudioHandler {
       } else {
         mediaItem.add(null);
       }
+      // Success - reset failure count
+      if (_foregroundServiceFailureCount > 0) {
+        _foregroundServiceFailureCount = 0;
+      }
     } catch (e) {
-      _foregroundServiceIssues = true;
+      _foregroundServiceFailureCount++;
+      _lastForegroundServiceAttempt = DateTime.now();
+
       if (kDebugMode) {
         print(
-          'DoudouAudioHandler: Media item update failed, marking foreground service issues: $e',
+          'DoudouAudioHandler: Media item update failed (attempt $_foregroundServiceFailureCount/$_maxConsecutiveFailures): $e',
         );
       }
     }
   }
 
-  /// Force MediaItem update for UI synchronization, ignoring foreground service issues
+  /// Force MediaItem update for UI synchronization
   void _forceMediaItemUpdate(Track? track) {
     try {
       if (track != null) {
@@ -206,28 +271,30 @@ class DoudouAudioHandler extends BaseAudioHandler {
       }
     } catch (e) {
       if (kDebugMode) {
-        print(
-          'DoudouAudioHandler: Forced MediaItem update failed (continuing anyway): $e',
-        );
+        print('DoudouAudioHandler: Forced MediaItem update failed: $e');
       }
-      // Don't set _foregroundServiceIssues here since this is specifically for UI updates
     }
   }
 
-  /// Safely update queue without triggering foreground service errors
+  /// Safely update queue with improved error handling
   void _safeUpdateQueue(List<Track> tracks) {
-    if (_foregroundServiceIssues) {
-      // Skip updating AudioService queue if we know foreground service has issues
+    if (_shouldSkipForegroundService) {
       return;
     }
 
     try {
       queue.add(tracks.map(_trackToMediaItem).toList());
+      // Success - reset failure count
+      if (_foregroundServiceFailureCount > 0) {
+        _foregroundServiceFailureCount = 0;
+      }
     } catch (e) {
-      _foregroundServiceIssues = true;
+      _foregroundServiceFailureCount++;
+      _lastForegroundServiceAttempt = DateTime.now();
+
       if (kDebugMode) {
         print(
-          'DoudouAudioHandler: Queue update failed, marking foreground service issues: $e',
+          'DoudouAudioHandler: Queue update failed (attempt $_foregroundServiceFailureCount/$_maxConsecutiveFailures): $e',
         );
       }
     }
@@ -239,7 +306,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
 
-    // Force MediaItem update for UI purposes (ignore foreground service issues for UI)
+    // Force MediaItem update for UI purposes
     _forceMediaItemUpdate(track);
 
     // Safely update PlaybackState with correct queue index
@@ -272,13 +339,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
           // Ensure foreground service is running when playing
           _attemptForegroundService();
         } else {
-          // Check if we should auto-continue playback (important for background track transitions)
+          // Check if we should auto-continue playback
           if (_stateController.userIntendedPlaying &&
               _stateController.currentState ==
                   base_handler.AudioPlayerState.loading) {
             if (kDebugMode) {
               print(
-                'DoudouAudioHandler: Track ready, auto-continuing playback in background',
+                'DoudouAudioHandler: Track ready, auto-continuing playback',
               );
             }
             // Resume playback without blocking
@@ -343,20 +410,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         );
       }
 
-      // Use normal skip for better UI responsiveness during auto-advance
-      // Reset foreground service issues flag for auto-advance to ensure UI updates
-      final hadForegroundIssues = _foregroundServiceIssues;
-      _foregroundServiceIssues = false;
-
-      try {
-        await _performSkipToQueueItem(nextIndex);
-      } finally {
-        // Restore the original foreground service issues state after a short delay
-        // This allows UI to update but prevents repeated foreground service attempts
-        Future.delayed(const Duration(milliseconds: 100), () {
-          _foregroundServiceIssues = hadForegroundIssues;
-        });
-      }
+      await _performSkipToQueueItem(nextIndex);
     } else {
       // End of queue
       _stateController.updateState(base_handler.AudioPlayerState.completed);
@@ -371,7 +425,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
       if (currentTrack == null) return;
 
       // Fetch similar tracks from the media service
-      // This is a placeholder - implement based on your media service capabilities
       final similarTracks = await _fetchSimilarTracks(currentTrack);
 
       if (similarTracks.isNotEmpty) {
@@ -392,16 +445,12 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Fetch similar tracks for radio mode
   Future<List<Track>> _fetchSimilarTracks(Track track) async {
-    // Implement similar track fetching based on your media service
-    // This could use genre, artist, or other metadata
     try {
-      // Example: Get tracks from the same artist
       final artistTracks = await _mediaServiceManager.getTracks(
         parentId: track.artistName,
         limit: 20,
       );
 
-      // Filter out current track and already queued tracks
       final currentQueue = _stateController.queue;
       final queueIds = currentQueue.map((t) => t.id).toSet();
 
@@ -502,7 +551,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
 
-  // Additional streams for AudioService integration
   Stream<Track?> get currentTrackStream => _stateController.currentTrackStream;
 
   Stream<base_handler.RepeatMode> get repeatModeStream =>
@@ -550,7 +598,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   bool get radioModeEnabled => _radioModeEnabled;
 
-  // Playbook control methods
+  // Playback control methods
 
   @override
   Future<void> play() async {
@@ -568,9 +616,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Future<void> _performPlayOperation() async {
     try {
-      // Reset foreground service issues when user explicitly plays
-      // (they might have brought app to foreground)
-      _foregroundServiceIssues = false;
+      // Reset failure count when user explicitly plays
+      _foregroundServiceFailureCount = 0;
 
       // Try to start foreground service, but continue if it fails
       await _attemptForegroundService();
@@ -589,10 +636,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Attempt to start foreground service, gracefully handle failure
+  /// Attempt to start foreground service with improved retry logic
   Future<void> _attemptForegroundService() async {
-    // Skip if we know foreground service has issues
-    if (_foregroundServiceIssues) {
+    // Skip if we've had too many recent failures
+    if (_shouldSkipForegroundService) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Skipping foreground service (cooling down)');
+      }
       return;
     }
 
@@ -602,27 +652,37 @@ class DoudouAudioHandler extends BaseAudioHandler {
       final position = _stateController.position;
       final speed = _stateController.speed;
 
-      final playbackState = _createPlaybackState(
+      final newPlaybackState = _createPlaybackState(
         currentState,
         position,
         speed,
       ).copyWith(playing: true, processingState: AudioProcessingState.ready);
 
-      _safeUpdatePlaybackState(playbackState);
+      playbackState.add(newPlaybackState);
 
-      // Small delay to allow the service to process the state change
+      // Small delay to allow the service to process
       await Future.delayed(const Duration(milliseconds: 50));
+
+      // Success - reset failure count
+      if (_foregroundServiceFailureCount > 0) {
+        if (kDebugMode) {
+          print(
+            'DoudouAudioHandler: Foreground service recovered after failures',
+          );
+        }
+        _foregroundServiceFailureCount = 0;
+      }
     } catch (e) {
-      // Mark that we have foreground service issues to avoid repeated attempts
-      _foregroundServiceIssues = true;
+      _foregroundServiceFailureCount++;
+      _lastForegroundServiceAttempt = DateTime.now();
 
       if (kDebugMode) {
         print(
-          'DoudouAudioHandler: Foreground service start failed (continuing anyway): $e',
+          'DoudouAudioHandler: Foreground service attempt failed ($_foregroundServiceFailureCount/$_maxConsecutiveFailures): $e',
         );
       }
-      // Continue without foreground service - audio will still work in background
-      // but without the persistent notification when app is backgrounded
+
+      // Don't throw - audio should continue even if foreground service fails
     }
   }
 
@@ -636,7 +696,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateUserIntent(false);
     _stateController.updateState(base_handler.AudioPlayerState.paused);
 
-    // Run the actual audio operation asynchronously without blocking UI
+    // Run the actual audio operation asynchronously
     _performPauseOperation();
   }
 
@@ -686,10 +746,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
       print('DoudouAudioHandler: Seek to ${position.inSeconds}s requested');
     }
 
-    // Update UI position immediately for responsiveness
+    // Update UI position immediately
     _stateController.updatePosition(position);
 
-    // Run the actual seek operation asynchronously without blocking UI
+    // Run the actual seek operation asynchronously
     _performSeekOperation(position);
   }
 
@@ -707,7 +767,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  @override
   @override
   Future<void> setSpeed(double speed) async {
     try {
@@ -743,7 +802,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentTrack(track);
     _stateController.updateState(base_handler.AudioPlayerState.loading);
 
-    // Force UI synchronization for reliable track updates
+    // Force UI synchronization
     _forceMediaItemUpdate(track);
 
     // Run actual playback asynchronously
@@ -752,10 +811,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Future<void> _performPlayTrack(Track track) async {
     try {
-      // Get stream URL
       final streamUrl = _getStreamUrl(track);
-
-      // Load and play the track
       await _loadAndPlayTrack(streamUrl);
 
       if (kDebugMode) {
@@ -776,7 +832,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
       );
     }
 
-    // Update UI immediately
     if (tracks.isEmpty) {
       _stateController.updateError('Cannot play empty playlist');
       return;
@@ -795,7 +850,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   Future<void> _performPlayPlaylist(List<Track> tracks, int startIndex) async {
     try {
-      // Play the starting track
       await _playTrackAtIndex(startIndex);
 
       if (kDebugMode) {
@@ -817,7 +871,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
-      // Update UI immediately
       final queue = _stateController.queue;
       if (nextIndex < queue.length) {
         final nextTrack = queue[nextIndex];
@@ -825,7 +878,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         _stateController.updateCurrentTrack(nextTrack);
         _stateController.updateState(base_handler.AudioPlayerState.loading);
 
-        // Force UI synchronization for reliable track updates
+        // Force UI synchronization
         _forceMediaItemUpdate(nextTrack);
       }
       // Run actual skip operation asynchronously
@@ -841,7 +894,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
-      // Update UI immediately
       final queue = _stateController.queue;
       if (previousIndex >= 0 && previousIndex < queue.length) {
         final previousTrack = queue[previousIndex];
@@ -849,7 +901,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         _stateController.updateCurrentTrack(previousTrack);
         _stateController.updateState(base_handler.AudioPlayerState.loading);
 
-        // Force UI synchronization for reliable track updates
+        // Force UI synchronization
         _forceMediaItemUpdate(previousTrack);
       }
       // Run actual skip operation asynchronously
@@ -863,7 +915,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
       print('DoudouAudioHandler: Skip to queue item $index requested');
     }
 
-    // Update UI immediately with comprehensive synchronization
     final queue = _stateController.queue;
     if (index >= 0 && index < queue.length) {
       final track = queue[index];
@@ -871,7 +922,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _stateController.updateCurrentTrack(track);
       _stateController.updateState(base_handler.AudioPlayerState.loading);
 
-      // Force UI synchronization to prevent desync
+      // Force UI synchronization
       _forceUISynchronization(track, index);
     }
 
@@ -886,9 +937,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
         throw Exception('Invalid queue index: $index');
       }
 
-      // Reset foreground service issues flag for manual skips
-      // (user is likely interacting with the app)
-      _foregroundServiceIssues = false;
+      // Reset failure count on manual skips (user interaction)
+      _foregroundServiceFailureCount = 0;
 
       await _playTrackAtIndex(index);
     } catch (e) {
@@ -911,7 +961,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     await _loadAndPlayTrack(streamUrl);
   }
 
-  /// Load and play track from URL (non-blocking)
+  /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     if (kDebugMode) {
       print('DoudouAudioHandler: Loading audio source: $url');
@@ -920,19 +970,19 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateState(base_handler.AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
 
-    // Run loading operation asynchronously to prevent UI blocking
+    // Run loading operation asynchronously
     _performLoadAndPlayTrack(url);
   }
 
   Future<void> _performLoadAndPlayTrack(String url) async {
     try {
-      // Set audio source without blocking UI
+      // Set audio source
       await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio source set successfully');
       }
 
-      // Only start playback if user intended to play (important for background transitions)
+      // Only start playback if user intended to play
       if (_stateController.userIntendedPlaying) {
         // Try to handle foreground service before starting playback
         await _attemptForegroundService();
@@ -961,7 +1011,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   /// Get stream URL for track
   String _getStreamUrl(Track track) {
-    // Try direct stream first (no transcoding) for better compatibility
+    // Try direct stream first (no transcoding)
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
       if (kDebugMode) {
@@ -1002,7 +1052,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
   // Playback modes
 
-  @override
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
     // Convert AudioService repeat mode to our repeat mode
@@ -1060,8 +1109,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
     _subscriptions.clear();
 
-    // Cancel radio mode timer
+    // Cancel timers
     _radioModeTimer?.cancel();
+    _foregroundServiceRecoveryTimer?.cancel();
 
     // Stop and dispose player
     try {
