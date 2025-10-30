@@ -139,8 +139,8 @@ build_release_macos:
     paths:
       - build/doudou-release-macos.tar.gz
     expire_in: 30m
-  timeout: 25m
     when: on_success
+  timeout: 25m
 
 build_release_ios:
   stage: build
