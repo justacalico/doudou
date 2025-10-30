@@ -1,5 +1,92 @@
 # Releases
 
+## Version 7.0.0
+
+### Download Links
+
+| Platform | Download |
+|----------|----------|
+| **Android** | [Download APK](https://github.com/HttpAnimation/awdawd/releases/download/6.0.0/doudou-flutter-7.0.0-apk.apk) |
+| **Linux** | [Download](https://gitlab.com/Openlyst/doudou/-/jobs/11902858422/artifacts/download) |
+| **Web** | [Download Web App](https://gitlab.com/Openlyst/doudou/-/blob/main/docs/DOCKER.md?ref_type=heads) |
+| **Windows** | [Source Code](https://gitlab.com/Openlyst/doudou/-/archive/pipeline-2128734644/doudou-pipeline-2128734644.tar.gz) |
+| **macOS** | [Download Universal](https://gitlab.com/Openlyst/doudou/-/jobs/11902791895/artifacts/raw/build/doudou-release-macos.tar.gz) |
+| **iOS** | [Download IPA](https://github.com/HttpAnimation/awdawd/releases/download/6.0.0/doudou-flutter-7.0.0-ios.ipa) |
+
+### Release Notes
+
+# 7.0.0
+
+## Added
+- Comprehensive logging system with file rotation and export capabilities
+- Mobile and desktop log viewer in settings
+- Detailed playback logging for troubleshooting music playback issues
+- Queue operation logging for debugging playlist management
+- User-configurable logging toggle (disabled by default for performance)
+- New desktop UI
+- Show the number of times songs have been played
+- Plex service
+- Navidrome service
+- Added the ability to favorite songs
+- Added debugging info for favorites
+- Ability to download songs on desktop
+- Use real history for the mobile search page
+- Redesigned the mobile search page
+- Allow custom colours for desktop accents
+
+## Changed
+
+- New description
+- Logging is disabled by default and can be enabled in settings
+- Centralized logic for API requests
+- Rewrote the Jellyfin service
+- Refactored most of the backend for desktop/mobile network connections
+- Refactored the Jellyfin favorite song functionality
+- Refactored `now_playing` to use `app_state` for favorites
+- Refactored Plex service for generated URLs
+- Fixed race issues when pausing music
+- Redesigned mobile home page
+- Redesigned mobile library page
+- Complete rewrite of EVERY audio service file
+- Added smooth scaling animation to desktop now playing screen opening and closing with elastic curve and opacity effects for enhanced user experience.
+- Completely redesigned login screen with elegant responsive design supporting both desktop and mobile layouts. Features animated gradient backgrounds, smooth transitions, modern Material Design elements, and improved visual hierarchy for better user experience.
+- Fixed mobile login screen black screen issue by adding proper MaterialApp wrapper and fixing layout constraints with appropriate scrolling behavior.
+- Added minimal mobile login header with "Doudou - Welcome" text and slide-in animation for better branding while maintaining clean, focused mobile experience.
+- Mobile login screen now respects phone's system theme (light/dark mode) while desktop maintains custom MaterialApp theming.
+- Build realse rather the debug.
+- Movies player services to thier own folder. 
+
+## Removed
+- Removed crossfades
+- Removed debugging for images
+- Removed debugging for audio states
+
+## Fixed
+- Fixed skipping on Linux
+- Improved playback diagnostics with comprehensive logging throughout the audio system
+- Fixed a bug that often caused the audio player to not work when using local addresses
+- Fixed local addresses often failing
+- Fixed clutter in the debugging terminal
+- Fixed main album art using old Jellyfin code
+- Fixed switching queues breaking the audio stream
+- Fixed Custom Spinlock System: Replaced 9 custom spinlock implementations with proper async Mutex system to eliminate busy-wait loops causing CPU spikes and deadlocks
+- Fixed Concurrent Player Operations: Implemented AudioOperationQueue to prevent "Loading interrupted" errors from concurrent _resetPlayerStateCompletely and _tryGaplessPlayback operations
+- Fixed User Intent vs Player State Desynchronization: Implemented AudioStateMachine to prevent UI showing play button while audio is paused, ensuring synchronized user intent tracking
+- Fixed Concatenation Race Conditions: Added operation cancellation tokens to gapless playback operations to prevent conflicts when new audio source changes interrupt ongoing concatenating transitions
+- Fixed Android Bypass Mode Race: Replaced mutable boolean flags with immutable AndroidServiceManager state machine to prevent inconsistent platform-specific behavior during AudioService errors
+- Fixed Preloader Race Conditions: Implemented reference counting system in AudioPreloader to prevent cleanup of audio sources while they're being prepared or used by the player
+- Fixed Queue Modification Race: Added proper mutex synchronization to all AudioQueueManager operations to prevent concurrent queue modifications during shuffle, add, remove operations
+- Fixed Player Position Race: Implemented atomic position updates with debouncing and seek protection to prevent position jumps during seek operations and buffering events
+- Fixed State Persistence Race: Added debouncing to state persistence calls with StatePersistenceManager to prevent file corruption during rapid state transitions
+- Fixed Radio Mode Race Conditions: Implemented synchronized RadioModeStateManager to prevent radio mode UI state from becoming inconsistent with actual streaming behavior during mode transitions
+- Fixed Touch Bar Race Conditions: Added synchronized TouchBarUpdateManager to prevent concurrent Touch Bar updates during rapid track changes from causing visual glitches on macOS
+- Fixed Download Service Race: Implemented DownloadServiceCoordinator to prevent download operations from interfering with active audio streaming by protecting tracks during playback
+- Fixed bug for forground services audio_ui's may not update causing ui state on mobile to break until tick update.
+- Fixed desktop automatic track advancement failing when network timeouts occur. Added retry logic with fallback to transcoded streams and skip to next track on persistent failures to prevent silent playback stops.
+- Fixed web version audio playback failing due to CORS restrictions by implementing direct download URL fallback for better browser compatibility with Jellyfin media servers.
+- Fixed web version track switching playing multiple audio streams simultaneously by ensuring previous audio source is properly stopped before loading new tracks.
+- Fixed web version audio controls being unresponsive by implementing immediate UI state updates with asynchronous audio operations, matching mobile and desktop handler behavior patterns.
+
 ## Version 6.0.0
 
 ### Download Links
