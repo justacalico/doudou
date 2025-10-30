@@ -1096,41 +1096,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildColorSlider(
-    String label,
-    double value,
-    ValueChanged<double> onChanged,
-    Color sliderColor,
-  ) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$label: ${value.round()}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            Slider(
-              value: value,
-              min: 0,
-              max: 255,
-              divisions: 255,
-              activeColor: sliderColor,
-              onChanged: (newValue) {
-                setState(() {
-                  onChanged(newValue);
-                });
-                // Force dialog to rebuild with new color
-                (context as Element).markNeedsBuild();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+
 
   void _testConnection(AppState appState) {
     // This would test the Jellyfin connection
