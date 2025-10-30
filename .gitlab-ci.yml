@@ -162,9 +162,10 @@ build_release_ios:
     - apple
   allow_failure: true
   retry:
-    max: 1
+    max: 2
     when:
       - runner_system_failure
+      - api_failure
   variables:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 1
@@ -183,19 +184,127 @@ build_release_ios:
   script:
     - flutter pub get --no-precompile
     - flutter build ios --no-codesign --release --build-number=$CI_PIPELINE_ID
-    # Create compressed artifact inline
+    # Create compressed artifact with chunking for reliable upload
     - |
       if [ -d "build/ios/iphoneos" ]; then
+        echo "Creating iOS artifact..."
         cd build/ios
-        tar --exclude="*.dSYM" --exclude="*.framework/Headers" \
-            -czf "$CI_PROJECT_DIR/build/doudou-release-ios.tar.gz" iphoneos/
-        echo "iOS artifact created: $(du -h "$CI_PROJECT_DIR/build/doudou-release-ios.tar.gz" | cut -f1)"
+        
+        # More aggressive exclusions to reduce size
+        tar --exclude="*.dSYM" \
+            --exclude="*.framework/Headers" \
+            --exclude="*.framework/Modules" \
+            --exclude="*.framework/Versions/*/Headers" \
+            --exclude="*.framework/Versions/*/Modules" \
+            -czf "$CI_PROJECT_DIR/build/doudou-release-ios.tar.gz" \
+            iphoneos/Runner.app
+        
+        cd "$CI_PROJECT_DIR/build"
+        ARTIFACT_SIZE=$(du -sh "doudou-release-ios.tar.gz" | cut -f1)
+        echo "iOS artifact created: $ARTIFACT_SIZE"
+        
+        # Get file size in bytes (macOS compatible)
+        if command -v stat &> /dev/null; then
+          FILE_SIZE=$(stat -f%z "doudou-release-ios.tar.gz" 2>/dev/null || stat -c%s "doudou-release-ios.tar.gz" 2>/dev/null)
+        else
+          FILE_SIZE=$(wc -c < "doudou-release-ios.tar.gz")
+        fi
+        
+        echo "File size: $FILE_SIZE bytes"
+        
+        # Split into 4MB chunks if larger than 4MB for more reliable upload
+        if [ "$FILE_SIZE" -gt 4194304 ]; then
+          echo "Splitting artifact into 4MB chunks for reliable upload..."
+          split -b 4m doudou-release-ios.tar.gz ios-chunk-
+          rm doudou-release-ios.tar.gz
+          echo "Split into chunks:"
+          ls -lh ios-chunk-* || true
+          
+          # Create manifest file
+          echo "Creating chunk manifest..."
+          ls ios-chunk-* | sort > ios-chunks.manifest
+          echo "Chunks manifest:"
+          cat ios-chunks.manifest
+        else
+          echo "Artifact size acceptable, no splitting needed"
+        fi
+        
+        # Verify at least one artifact exists
+        if ls ios-chunk-* 1> /dev/null 2>&1 || [ -f "doudou-release-ios.tar.gz" ]; then
+          echo "✅ iOS artifacts ready for upload"
+        else
+          echo "❌ No artifacts created"
+          exit 1
+        fi
+      fi
+  artifacts:
+    paths:
+      - build/ios-chunk-*
+      - build/ios-chunks.manifest
+      - build/doudou-release-ios.tar.gz
+    expire_in: 30m
+    when: on_success
+  timeout: 25m
+
+# Reassemble iOS artifact chunks if they were split
+reassemble_ios_artifact:
+  stage: release
+  tags:
+    - apple
+  allow_failure: true
+  needs:
+    - job: "build_release_ios"
+      optional: true
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    # Only run if iOS build succeeded and created chunks
+    - if: '$CI_JOB_NAME == "reassemble_ios_artifact"'
+      exists:
+        - build/ios-chunk-*
+  script:
+    - |
+      echo "Checking for iOS artifact chunks..."
+      if [ -f "build/ios-chunks.manifest" ]; then
+        echo "Found chunk manifest, reassembling iOS artifact..."
+        cd build
+        
+        # Verify all chunks exist
+        while IFS= read -r chunk; do
+          if [ ! -f "$chunk" ]; then
+            echo "❌ Missing chunk: $chunk"
+            exit 1
+          fi
+          echo "✓ Found chunk: $chunk"
+        done < ios-chunks.manifest
+        
+        # Reassemble
+        cat ios-chunk-* > doudou-release-ios.tar.gz
+        
+        REASSEMBLED_SIZE=$(du -sh doudou-release-ios.tar.gz | cut -f1)
+        echo "Reassembled artifact size: $REASSEMBLED_SIZE"
+        
+        # Verify integrity
+        if tar -tzf doudou-release-ios.tar.gz > /dev/null 2>&1; then
+          echo "✅ iOS artifact reassembled and verified successfully"
+        else
+          echo "❌ Reassembled artifact is corrupted"
+          exit 1
+        fi
+        
+        # Clean up chunks
+        rm -f ios-chunk-* ios-chunks.manifest
+      elif [ -f "build/doudou-release-ios.tar.gz" ]; then
+        echo "iOS artifact was not split, already complete"
+      else
+        echo "No iOS artifacts found"
+        exit 1
       fi
   artifacts:
     paths:
       - build/doudou-release-ios.tar.gz
     expire_in: 30m
-  timeout: 20m
+  timeout: 5m
 
 publish_release:
   stage: release
@@ -212,7 +321,7 @@ publish_release:
     - job: "build_release_linux"
     - job: "build_release_macos"
       optional: true
-    - job: "build_release_ios"
+    - job: "reassemble_ios_artifact"
       optional: true
   timeout: 10m
   
@@ -264,22 +373,22 @@ publish_release:
       if command -v jq &> /dev/null; then
         APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .id')
         LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .id')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_ios") | .id')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="reassemble_ios_artifact") | .id')
         MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .id')
         
         APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .status')
         LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .status')
-        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_ios") | .status')
+        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="reassemble_ios_artifact") | .status')
         MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .status')
       else
         APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
         LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_ios"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"reassemble_ios_artifact"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
         MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
         
         APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
         LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_ios"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"reassemble_ios_artifact"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
         MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
       fi
       
@@ -392,7 +501,7 @@ cleanup_apple_runner:
       optional: true
     - job: "build_release_macos"
       optional: true
-    - job: "build_release_ios"
+    - job: "reassemble_ios_artifact"
       optional: true
 
 cleanup_linux_runner:
