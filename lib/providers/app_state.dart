@@ -77,6 +77,7 @@ class AppState extends ChangeNotifier {
   Stream<PlaybackState>? get playbackState => _audioHandler?.playbackState;
   Stream<Duration>? get positionStream => _audioHandler?.positionStream;
   Stream<MediaItem?>? get mediaItem => _audioHandler?.mediaItem;
+  Stream<Track?>? get currentTrackStream => _audioHandler?.currentTrackStream;
 
   // Helper method to find a track by ID
   Track? findTrackById(String? trackId) {
