@@ -436,12 +436,16 @@ class DoudouAudioHandler extends BaseAudioHandler {
       case ProcessingState.loading:
       case ProcessingState.buffering:
         _stateController.updateState(base_handler.AudioPlayerState.loading);
+        // Handle extended buffering as potential network issue
+        _handleExtendedBuffering();
         break;
       case ProcessingState.ready:
         if (playerState.playing) {
           _stateController.updateState(base_handler.AudioPlayerState.playing);
           // Ensure foreground service is running when playing
           _attemptForegroundService();
+          // Clear any buffering recovery timer since we're playing now
+          _cancelBufferingRecovery();
         } else {
           // Check if we should auto-continue playback (important for background track transitions)
           if (_stateController.userIntendedPlaying &&
@@ -483,6 +487,102 @@ class DoudouAudioHandler extends BaseAudioHandler {
       case ProcessingState.completed:
         _stateController.updateState(base_handler.AudioPlayerState.completed);
         break;
+    }
+  }
+
+  Timer? _bufferingRecoveryTimer;
+
+  /// Handle extended buffering situations
+  void _handleExtendedBuffering() {
+    // Cancel existing timer
+    _bufferingRecoveryTimer?.cancel();
+    
+    // Set a timer to detect extended buffering (network issues)
+    _bufferingRecoveryTimer = Timer(const Duration(seconds: 15), () {
+      _handleBufferingTimeout();
+    });
+  }
+
+  /// Cancel buffering recovery timer
+  void _cancelBufferingRecovery() {
+    _bufferingRecoveryTimer?.cancel();
+    _bufferingRecoveryTimer = null;
+  }
+
+  /// Handle buffering timeout (potential network issue)
+  void _handleBufferingTimeout() async {
+    if (!_stateController.userIntendedPlaying) {
+      return; // User paused, no need to recover
+    }
+
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Extended buffering detected, attempting recovery...');
+    }
+
+    try {
+      // Try to restart the current track
+      final currentTrack = _stateController.currentTrack;
+      if (currentTrack != null) {
+        final currentPosition = _player.position;
+        
+        // Try a different stream URL (maybe direct vs transcoded)
+        final streamUrl = _getAlternativeStreamUrl(currentTrack);
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Reloading track from position ${currentPosition.inSeconds}s');
+        }
+        
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+        
+        // Seek to current position (with small offset to avoid exactly where it got stuck)
+        if (currentPosition.inSeconds > 2) {
+          await _player.seek(Duration(seconds: currentPosition.inSeconds - 1));
+        }
+        
+        await _player.play();
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Successfully recovered from buffering timeout');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to recover from buffering timeout: $e');
+      }
+      // Don't show error to user unless this is a persistent issue
+      // Network issues are often temporary
+    }
+  }
+
+  /// Get alternative stream URL for recovery
+  String _getAlternativeStreamUrl(Track track) {
+    // First try the opposite of what we tried before
+    final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+    final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
+    
+    // If we last used direct, try transcoded, and vice versa
+    final currentUrl = _player.audioSource?.toString() ?? '';
+    
+    if (currentUrl.contains('stream') && directUrl.isNotEmpty) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Switching to direct stream for recovery');
+      }
+      return directUrl;
+    } else if (transcodedUrl.isNotEmpty) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Switching to transcoded stream for recovery');
+      }
+      return transcodedUrl;
+    }
+    
+    // Fallback to the same URL with cache buster
+    final fallbackUrl = directUrl.isNotEmpty ? directUrl : transcodedUrl;
+    final cacheBuster = DateTime.now().millisecondsSinceEpoch;
+    
+    if (fallbackUrl.contains('?')) {
+      return '$fallbackUrl&cb=$cacheBuster';
+    } else {
+      return '$fallbackUrl?cb=$cacheBuster';
     }
   }
 
