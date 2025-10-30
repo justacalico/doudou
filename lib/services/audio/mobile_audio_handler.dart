@@ -339,20 +339,20 @@ class DoudouAudioHandler extends BaseAudioHandler {
         );
       }
 
-      // Update UI immediately for better responsiveness
-      final queue = _stateController.queue;
-      if (nextIndex < queue.length) {
-        final nextTrack = queue[nextIndex];
-        _stateController.updateCurrentIndex(nextIndex);
-        _stateController.updateCurrentTrack(nextTrack);
-        _stateController.updateState(base_handler.AudioPlayerState.loading);
-        
-        // Force UI synchronization for track changes
-        _forceMediaItemUpdate(nextTrack);
+      // Use normal skip for better UI responsiveness during auto-advance
+      // Reset foreground service issues flag for auto-advance to ensure UI updates
+      final hadForegroundIssues = _foregroundServiceIssues;
+      _foregroundServiceIssues = false;
+      
+      try {
+        await _performSkipToQueueItem(nextIndex);
+      } finally {
+        // Restore the original foreground service issues state after a short delay
+        // This allows UI to update but prevents repeated foreground service attempts
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _foregroundServiceIssues = hadForegroundIssues;
+        });
       }
-
-      // Skip to next track with background-safe approach
-      await _performBackgroundSafeSkip(nextIndex);
     } else {
       // End of queue
       _stateController.updateState(base_handler.AudioPlayerState.completed);
