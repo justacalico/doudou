@@ -32,6 +32,11 @@ class DoudouAudioHandler extends BaseAudioHandler {
   // Foreground service management
   bool _foregroundServiceIssues = false;
 
+  // Playback watchdog for detecting stuck states
+  Timer? _playbackWatchdog;
+  Duration _lastKnownPosition = Duration.zero;
+  int _playbackStuckCount = 0;
+
   // Constructor
   DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
     : _mediaServiceManager = mediaServiceManager {
