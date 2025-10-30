@@ -943,7 +943,10 @@ class _SettingsPageState extends State<SettingsPage> {
     if (color == Colors.orange) return 'Orange';
     if (color == Colors.red) return 'Red';
     if (color == Colors.teal) return 'Teal';
-    return 'Custom';
+    
+    // Show hex value for custom colors
+    final hex = color.value.toRadixString(16).substring(2).toUpperCase();
+    return 'Custom (#$hex)';
   }
 
   void _showColorDialog() {
