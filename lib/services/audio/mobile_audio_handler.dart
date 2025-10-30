@@ -32,11 +32,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
   // Foreground service management
   bool _foregroundServiceIssues = false;
 
-  // Playback watchdog for detecting stuck states
-  Timer? _playbackWatchdog;
-  Duration _lastKnownPosition = Duration.zero;
-  int _playbackStuckCount = 0;
-
   // Constructor
   DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
     : _mediaServiceManager = mediaServiceManager {
@@ -76,103 +71,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _session = await AudioSession.instance;
       await _session!.configure(const AudioSessionConfiguration.music());
 
-      // Handle audio session interruptions (phone calls, notifications, etc.)
-      _subscriptions.add(
-        _session!.interruptionEventStream.listen(_handleAudioInterruption),
-      );
-
-      // Handle becoming noisy events (headphones unplugged, etc.)
-      _subscriptions.add(
-        _session!.becomingNoisyEventStream.listen(_handleBecomingNoisy),
-      );
-
       if (kDebugMode) {
-        print('DoudouAudioHandler: Audio session configured with interruption handling');
+        print('DoudouAudioHandler: Audio session configured');
       }
-      
-      // Enable audio session to ensure it stays active during playback
-      await _session!.setActive(true);
-      
     } catch (e) {
       if (kDebugMode) {
         print('DoudouAudioHandler: Failed to configure audio session: $e');
       }
-      // Try to continue without full audio session support
-    }
-  }
-
-  /// Ensure audio session is active before important playback operations
-  Future<void> _ensureAudioSessionActive() async {
-    try {
-      if (_session != null) {
-        await _session!.setActive(true);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Failed to activate audio session: $e');
-      }
-      // Continue anyway - this is just an optimization
-    }
-  }
-
-  /// Handle audio interruptions (phone calls, notifications, etc.)
-  void _handleAudioInterruption(AudioInterruptionEvent event) {
-    if (kDebugMode) {
-      print('DoudouAudioHandler: Audio interruption: ${event.type}');
-    }
-
-    if (event.begin) {
-      // Audio interruption began (phone call, notification, etc.)
-      if (_player.playing) {
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Pausing due to audio interruption');
-        }
-        // Don't update user intent - they didn't choose to pause
-        _player.pause();
-        _stateController.updateState(base_handler.AudioPlayerState.paused);
-      }
-    } else {
-      // Audio interruption ended
-      if (_stateController.userIntendedPlaying && !_player.playing) {
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Resuming after audio interruption ended');
-        }
-        // Resume playback since user originally intended to play
-        Future.microtask(() async {
-          try {
-            await _attemptForegroundService();
-            await _player.play();
-          } catch (e) {
-            if (kDebugMode) {
-              print('DoudouAudioHandler: Failed to resume after interruption: $e');
-            }
-            // Try to resume without foreground service
-            try {
-              await _player.play();
-            } catch (playError) {
-              if (kDebugMode) {
-                print('DoudouAudioHandler: Player resume also failed: $playError');
-              }
-              _stateController.updateError('Failed to resume after interruption: $playError');
-            }
-          }
-        });
-      }
-    }
-  }
-
-  /// Handle becoming noisy events (headphones unplugged, etc.)
-  void _handleBecomingNoisy(dynamic event) {
-    if (kDebugMode) {
-      print('DoudouAudioHandler: Audio becoming noisy - pausing playbook');
-    }
-
-    // Pause playbook when audio becomes noisy (e.g., headphones unplugged)
-    if (_player.playing) {
-      // Update user intent since this is a user-affecting event
-      _stateController.updateUserIntent(false);
-      _player.pause();
-      _stateController.updateState(base_handler.AudioPlayerState.paused);
     }
   }
 
@@ -182,7 +87,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _subscriptions.add(
       _player.positionStream.listen((position) {
         _stateController.updatePosition(position);
-        _updatePlaybackWatchdog(position);
       }),
     );
 
@@ -209,100 +113,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
           .where((event) => event.processingState == ProcessingState.completed)
           .listen((_) => _handleTrackCompletion()),
     );
-
-    // Start playback watchdog
-    _startPlaybackWatchdog();
-  }
-
-  /// Update playback watchdog with current position
-  void _updatePlaybackWatchdog(Duration position) {
-    _lastKnownPosition = position;
-    _playbackStuckCount = 0; // Reset stuck counter when position advances
-  }
-
-  /// Start playback watchdog to detect stuck states
-  void _startPlaybackWatchdog() {
-    _playbackWatchdog?.cancel();
-    _playbackWatchdog = Timer.periodic(const Duration(seconds: 5), (timer) {
-      _checkPlaybackHealth();
-    });
-  }
-
-  /// Check playback health and recover from stuck states
-  void _checkPlaybackHealth() {
-    // Only check if user intends to play and we think we're playing
-    if (!_stateController.userIntendedPlaying || 
-        _stateController.currentState != base_handler.AudioPlayerState.playing) {
-      return;
-    }
-
-    final currentPosition = _player.position;
-    
-    // Check if position has been stuck (allowing small tolerance for network buffering)
-    if ((currentPosition - _lastKnownPosition).inMilliseconds.abs() < 100) {
-      _playbackStuckCount++;
-      
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Playback might be stuck (count: $_playbackStuckCount)');
-      }
-
-      // If stuck for too long, attempt recovery
-      if (_playbackStuckCount >= 3) { // 15 seconds of no movement
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Playback appears stuck, attempting recovery...');
-        }
-        _recoverStuckPlayback();
-      }
-    } else {
-      // Position is advancing normally
-      _lastKnownPosition = currentPosition;
-      _playbackStuckCount = 0;
-    }
-  }
-
-  /// Recover from stuck playback state
-  void _recoverStuckPlayback() async {
-    try {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Recovering stuck playback...');
-      }
-
-      // Reset stuck counter
-      _playbackStuckCount = 0;
-
-      // Try to restart playback from current position
-      final currentPosition = _player.position;
-      
-      // Stop and restart player
-      await _player.stop();
-      
-      // Small delay to allow cleanup
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      // Reload current track
-      final currentTrack = _stateController.currentTrack;
-      if (currentTrack != null) {
-        final streamUrl = _getStreamUrl(currentTrack);
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
-        
-        // Seek to where we were (with small offset to avoid the exact stuck position)
-        if (currentPosition.inSeconds > 5) {
-          await _player.seek(Duration(seconds: currentPosition.inSeconds - 2));
-        }
-        
-        // Resume playback
-        await _player.play();
-        
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Successfully recovered stuck playback');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Failed to recover stuck playback: $e');
-      }
-      _stateController.updateError('Playback recovery failed: $e');
-    }
   }
 
   /// Set up state synchronization with AudioService
@@ -455,16 +265,12 @@ class DoudouAudioHandler extends BaseAudioHandler {
       case ProcessingState.loading:
       case ProcessingState.buffering:
         _stateController.updateState(base_handler.AudioPlayerState.loading);
-        // Handle extended buffering as potential network issue
-        _handleExtendedBuffering();
         break;
       case ProcessingState.ready:
         if (playerState.playing) {
           _stateController.updateState(base_handler.AudioPlayerState.playing);
           // Ensure foreground service is running when playing
           _attemptForegroundService();
-          // Clear any buffering recovery timer since we're playing now
-          _cancelBufferingRecovery();
         } else {
           // Check if we should auto-continue playback (important for background track transitions)
           if (_stateController.userIntendedPlaying &&
@@ -506,102 +312,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
       case ProcessingState.completed:
         _stateController.updateState(base_handler.AudioPlayerState.completed);
         break;
-    }
-  }
-
-  Timer? _bufferingRecoveryTimer;
-
-  /// Handle extended buffering situations
-  void _handleExtendedBuffering() {
-    // Cancel existing timer
-    _bufferingRecoveryTimer?.cancel();
-    
-    // Set a timer to detect extended buffering (network issues)
-    _bufferingRecoveryTimer = Timer(const Duration(seconds: 15), () {
-      _handleBufferingTimeout();
-    });
-  }
-
-  /// Cancel buffering recovery timer
-  void _cancelBufferingRecovery() {
-    _bufferingRecoveryTimer?.cancel();
-    _bufferingRecoveryTimer = null;
-  }
-
-  /// Handle buffering timeout (potential network issue)
-  void _handleBufferingTimeout() async {
-    if (!_stateController.userIntendedPlaying) {
-      return; // User paused, no need to recover
-    }
-
-    if (kDebugMode) {
-      print('DoudouAudioHandler: Extended buffering detected, attempting recovery...');
-    }
-
-    try {
-      // Try to restart the current track
-      final currentTrack = _stateController.currentTrack;
-      if (currentTrack != null) {
-        final currentPosition = _player.position;
-        
-        // Try a different stream URL (maybe direct vs transcoded)
-        final streamUrl = _getAlternativeStreamUrl(currentTrack);
-        
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Reloading track from position ${currentPosition.inSeconds}s');
-        }
-        
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
-        
-        // Seek to current position (with small offset to avoid exactly where it got stuck)
-        if (currentPosition.inSeconds > 2) {
-          await _player.seek(Duration(seconds: currentPosition.inSeconds - 1));
-        }
-        
-        await _player.play();
-        
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Successfully recovered from buffering timeout');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Failed to recover from buffering timeout: $e');
-      }
-      // Don't show error to user unless this is a persistent issue
-      // Network issues are often temporary
-    }
-  }
-
-  /// Get alternative stream URL for recovery
-  String _getAlternativeStreamUrl(Track track) {
-    // First try the opposite of what we tried before
-    final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
-    final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
-    
-    // If we last used direct, try transcoded, and vice versa
-    final currentUrl = _player.audioSource?.toString() ?? '';
-    
-    if (currentUrl.contains('stream') && directUrl.isNotEmpty) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Switching to direct stream for recovery');
-      }
-      return directUrl;
-    } else if (transcodedUrl.isNotEmpty) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Switching to transcoded stream for recovery');
-      }
-      return transcodedUrl;
-    }
-    
-    // Fallback to the same URL with cache buster
-    final fallbackUrl = directUrl.isNotEmpty ? directUrl : transcodedUrl;
-    final cacheBuster = DateTime.now().millisecondsSinceEpoch;
-    
-    if (fallbackUrl.contains('?')) {
-      return '$fallbackUrl&cb=$cacheBuster';
-    } else {
-      return '$fallbackUrl?cb=$cacheBuster';
     }
   }
 
@@ -861,9 +571,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Reset foreground service issues when user explicitly plays
       // (they might have brought app to foreground)
       _foregroundServiceIssues = false;
-
-      // Ensure audio session is active for reliable playback
-      await _ensureAudioSessionActive();
 
       // Try to start foreground service, but continue if it fails
       await _attemptForegroundService();
@@ -1218,84 +925,38 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> _performLoadAndPlayTrack(String url) async {
-    await _performLoadAndPlayTrackWithRetry(url, maxRetries: 3);
-  }
-
-  /// Load and play track with automatic retry for network resilience
-  Future<void> _performLoadAndPlayTrackWithRetry(String url, {int maxRetries = 3}) async {
-    int attempts = 0;
-    Exception? lastException;
-
-    while (attempts < maxRetries) {
-      attempts++;
-      
-      try {
-        if (kDebugMode && attempts > 1) {
-          if (kDebugMode) {
-            print('DoudouAudioHandler: Retry attempt $attempts/$maxRetries for: $url');
-          }
-        }
-
-        // Set audio source without blocking UI
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Audio source set successfully on attempt $attempts');
-        }
-
-        // Only start playback if user intended to play (important for background transitions)
-        if (_stateController.userIntendedPlaying) {
-          // Try to handle foreground service before starting playback
-          await _attemptForegroundService();
-
-          await _player.play();
-          if (kDebugMode) {
-            print('DoudouAudioHandler: Playback started successfully on attempt $attempts');
-          }
-        } else {
-          if (kDebugMode) {
-            print(
-              'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
-            );
-          }
-          _stateController.updateState(base_handler.AudioPlayerState.paused);
-        }
-
-        // Success - break out of retry loop
-        return;
-
-      } catch (e) {
-        lastException = e is Exception ? e : Exception(e.toString());
-        
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Load attempt $attempts failed: $e');
-        }
-
-        if (attempts < maxRetries) {
-          // Wait before retrying (exponential backoff)
-          final delayMs = 1000 * attempts; // 1s, 2s, 3s delays
-          if (kDebugMode) {
-            print('DoudouAudioHandler: Waiting ${delayMs}ms before retry...');
-          }
-          await Future.delayed(Duration(milliseconds: delayMs));
-          
-          // Check if user still wants to play before retrying
-          if (!_stateController.userIntendedPlaying) {
-            if (kDebugMode) {
-              print('DoudouAudioHandler: User no longer wants to play, aborting retry');
-            }
-            return;
-          }
-        }
+    try {
+      // Set audio source without blocking UI
+      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Audio source set successfully');
       }
-    }
 
-    // All retries failed
-    if (kDebugMode) {
-      print('DoudouAudioHandler: All $maxRetries attempts failed: $lastException');
+      // Only start playback if user intended to play (important for background transitions)
+      if (_stateController.userIntendedPlaying) {
+        // Try to handle foreground service before starting playback
+        await _attemptForegroundService();
+
+        await _player.play();
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Playback started successfully');
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+            'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
+          );
+        }
+        _stateController.updateState(base_handler.AudioPlayerState.paused);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Load and play failed: $e');
+      }
+      _stateController.updateState(base_handler.AudioPlayerState.error);
+      _stateController.updateUserIntent(false);
+      _stateController.updateError('Failed to load track: $e');
     }
-    _stateController.updateState(base_handler.AudioPlayerState.error);
-    _stateController.updateUserIntent(false);
-    _stateController.updateError('Failed to load track after $maxRetries attempts: $lastException');
   }
 
   /// Get stream URL for track
@@ -1399,10 +1060,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
     _subscriptions.clear();
 
-    // Cancel all timers
+    // Cancel radio mode timer
     _radioModeTimer?.cancel();
-    _playbackWatchdog?.cancel();
-    _bufferingRecoveryTimer?.cancel();
 
     // Stop and dispose player
     try {
