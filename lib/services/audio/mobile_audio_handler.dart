@@ -775,6 +775,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentTrack(track);
     _stateController.updateState(base_handler.AudioPlayerState.loading);
 
+    // Force UI synchronization for reliable track updates
+    _forceMediaItemUpdate(track);
+
     // Run actual playback asynchronously
     _performPlayTrack(track);
   }
