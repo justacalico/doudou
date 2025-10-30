@@ -156,10 +156,18 @@ build_release_apk:
       fi
   script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
+    # Set keystore environment variables if not already set
+    - |
+      if [[ -z "$KEYSTORE_PASSWORD" ]]; then
+        export KEYSTORE_PASSWORD=android
+        export KEY_PASSWORD=android
+        export KEY_ALIAS=doudou
+      fi
     - flutter pub get --no-precompile
     # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
     - BUILD_NUMBER=$(date +%s)
     - echo "Using build number:" $BUILD_NUMBER
+    - echo "Keystore file exists:" $(ls -la android/app/key.jks 2>/dev/null || echo "NOT FOUND")
     # Build signed release APK
     - flutter build apk --release --build-number=$BUILD_NUMBER
   artifacts:
