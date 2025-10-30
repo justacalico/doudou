@@ -113,19 +113,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           );
         }
 
-        // Use both MediaItem stream and direct access for maximum reliability
-        return StreamBuilder<MediaItem?>(
-          stream: appState.mediaItem,
-          builder: (context, mediaItemSnapshot) {
-            return StreamBuilder<dynamic>(
-              stream: Stream.periodic(const Duration(milliseconds: 500)),
-              builder: (context, _) {
-                final mediaItem = mediaItemSnapshot.data;
-                final directTrack = audioHandler?.currentTrack;
-                
-                // Prefer direct track access for most reliable updates
-                final currentTrack = directTrack ?? 
-                    (mediaItem != null ? appState.findTrackById(mediaItem.id) : null);
+        // Use the currentTrackStream for reliable real-time updates
+        return StreamBuilder<Track?>(
+          stream: appState.currentTrackStream,
+          builder: (context, currentTrackSnapshot) {
+            // Get current track from the stream or fallback to direct access
+            final currentTrack = currentTrackSnapshot.data ?? audioHandler?.currentTrack;
 
             // Check lyrics availability when track changes
             if (currentTrack != null && currentTrack.artistName != null) {
