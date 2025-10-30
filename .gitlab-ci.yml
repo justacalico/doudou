@@ -66,30 +66,28 @@ build_release_linux:
   tags:
     - linux
   allow_failure: true
-  needs:
-    - job: "build_release_apk"
-      optional: true
-    - job: "build_release_macos"
-      optional: true
-    - job: "build_release_ios"
-      optional: true
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 1
+  cache:
+    key: "linux-deps-$CI_COMMIT_REF_SLUG-v2"
+    paths:
+      - .pub-cache/
+    policy: pull-push
   before_script:
-    - apt-get update
-    - apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-    - mkdir -p "$PUB_CACHE"
+    # Install dependencies more efficiently
+    - apt-get update -qq
+    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    - rm -rf "$PUB_CACHE" || true
-    - flutter clean || true
   script:
-    - flutter --version
     - flutter config --enable-linux-desktop
-    - flutter clean
-    - flutter pub get
-    - flutter build linux --release
+    - flutter pub get --no-precompile
+    - flutter build linux --release --build-number=$CI_PIPELINE_ID
   artifacts:
     paths:
       - build/linux/x64/release/bundle/
-    expire_in: 1 hour
+    expire_in: 30m
+  timeout: 15m
 
 build_release_macos:
   stage: build
