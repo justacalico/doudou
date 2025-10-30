@@ -862,6 +862,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // (they might have brought app to foreground)
       _foregroundServiceIssues = false;
 
+      // Ensure audio session is active for reliable playback
+      await _ensureAudioSessionActive();
+
       // Try to start foreground service, but continue if it fails
       await _attemptForegroundService();
 
