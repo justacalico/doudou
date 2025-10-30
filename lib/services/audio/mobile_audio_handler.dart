@@ -362,49 +362,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Perform a background-safe skip that doesn't rely on foreground service
-  Future<void> _performBackgroundSafeSkip(int index) async {
-    try {
-      final queue = _stateController.queue;
-      if (index < 0 || index >= queue.length) {
-        throw Exception('Invalid queue index: $index');
-      }
 
-      final track = queue[index];
-
-      // Update ONLY internal state - no UI synchronization to avoid foreground service
-      _stateController.updateCurrentIndex(index);
-      _stateController.updateCurrentTrack(track);
-      _stateController.updateState(base_handler.AudioPlayerState.loading);
-
-      // Skip _forceUISynchronization to avoid triggering foreground service
-      // The UI will update through the state streams when ready
-
-      // Load the new track
-      final streamUrl = _getStreamUrl(track);
-      if (kDebugMode) {
-        print(
-          'DoudouAudioHandler: Loading audio source for background play: $streamUrl',
-        );
-      }
-
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
-
-      // Start playback immediately without waiting for foreground service
-      if (_stateController.userIntendedPlaying) {
-        await _player.play();
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Background auto-advance playback started');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Background-safe skip failed: $e');
-      }
-      _stateController.updateError('Auto-advance failed: $e');
-      _stateController.updateState(base_handler.AudioPlayerState.error);
-    }
-  }
 
   /// Handle radio mode - fetch similar tracks
   Future<void> _handleRadioModeNext() async {
