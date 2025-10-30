@@ -1659,153 +1659,169 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxHeight = screenHeight * 0.8; // Use 80% of screen height max
 
     return AlertDialog(
       title: const Text('Custom Accent Color'),
-      content: SizedBox(
-        width: 350,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Color preview
-            Container(
-              width: double.infinity,
-              height: 80,
-              decoration: BoxDecoration(
-                color: _currentColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.colorScheme.outline),
-              ),
-              child: Center(
-                child: Text(
-                  'Preview',
-                  style: TextStyle(
-                    color: _currentColor.computeLuminance() > 0.5
-                        ? Colors.black
-                        : Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 350,
+          maxHeight: maxHeight,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Color preview
+              Container(
+                width: double.infinity,
+                height: 60, // Reduced height
+                decoration: BoxDecoration(
+                  color: _currentColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: theme.colorScheme.outline),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // RGB Sliders
-            _buildColorSlider(
-              'Red',
-              _currentColor.red.toDouble(),
-              (value) => _updateColor(
-                Color.fromARGB(
-                  255,
-                  value.round(),
-                  _currentColor.green,
-                  _currentColor.blue,
-                ),
-              ),
-              Colors.red,
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildColorSlider(
-              'Green',
-              _currentColor.green.toDouble(),
-              (value) => _updateColor(
-                Color.fromARGB(
-                  255,
-                  _currentColor.red,
-                  value.round(),
-                  _currentColor.blue,
-                ),
-              ),
-              Colors.green,
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildColorSlider(
-              'Blue',
-              _currentColor.blue.toDouble(),
-              (value) => _updateColor(
-                Color.fromARGB(
-                  255,
-                  _currentColor.red,
-                  _currentColor.green,
-                  value.round(),
-                ),
-              ),
-              Colors.blue,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Hex input
-            Row(
-              children: [
-                const Text('Hex: #'),
-                Expanded(
-                  child: TextField(
-                    controller: _hexController,
-                    maxLength: 6,
-                    decoration: const InputDecoration(
-                      counterText: '',
-                      hintText: 'RRGGBB',
+                child: Center(
+                  child: Text(
+                    'Preview',
+                    style: TextStyle(
+                      color: _currentColor.computeLuminance() > 0.5
+                          ? Colors.black
+                          : Colors.white,
+                      fontSize: 16, // Reduced font size
+                      fontWeight: FontWeight.w600,
                     ),
-                    onChanged: _updateFromHex,
                   ),
                 ),
-              ],
-            ),
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16), // Reduced spacing
 
-            // Preset colors for quick selection
-            const Text('Quick Colors:'),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  [
-                        Colors.red,
-                        Colors.pink,
-                        Colors.purple,
-                        Colors.deepPurple,
-                        Colors.indigo,
-                        Colors.blue,
-                        Colors.lightBlue,
-                        Colors.cyan,
-                        Colors.teal,
-                        Colors.green,
-                        Colors.lightGreen,
-                        Colors.lime,
-                        Colors.yellow,
-                        Colors.amber,
-                        Colors.orange,
-                        Colors.deepOrange,
-                      ]
-                      .map(
-                        (color) => InkWell(
-                          onTap: () => _updateColor(color),
-                          borderRadius: BorderRadius.circular(4),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: theme.colorScheme.outline,
+              // RGB Sliders (more compact)
+              _buildColorSlider(
+                'Red',
+                _currentColor.red.toDouble(),
+                (value) => _updateColor(
+                  Color.fromARGB(
+                    255,
+                    value.round(),
+                    _currentColor.green,
+                    _currentColor.blue,
+                  ),
+                ),
+                Colors.red,
+              ),
+
+              const SizedBox(height: 12), // Reduced spacing
+
+              _buildColorSlider(
+                'Green',
+                _currentColor.green.toDouble(),
+                (value) => _updateColor(
+                  Color.fromARGB(
+                    255,
+                    _currentColor.red,
+                    value.round(),
+                    _currentColor.blue,
+                  ),
+                ),
+                Colors.green,
+              ),
+
+              const SizedBox(height: 12), // Reduced spacing
+
+              _buildColorSlider(
+                'Blue',
+                _currentColor.blue.toDouble(),
+                (value) => _updateColor(
+                  Color.fromARGB(
+                    255,
+                    _currentColor.red,
+                    _currentColor.green,
+                    value.round(),
+                  ),
+                ),
+                Colors.blue,
+              ),
+
+              const SizedBox(height: 16), // Reduced spacing
+
+              // Hex input
+              Row(
+                children: [
+                  const Text('Hex: #'),
+                  Expanded(
+                    child: TextField(
+                      controller: _hexController,
+                      maxLength: 6,
+                      style: const TextStyle(fontSize: 14), // Smaller text
+                      decoration: const InputDecoration(
+                        counterText: '',
+                        hintText: 'RRGGBB',
+                        isDense: true, // More compact
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                      ),
+                      onChanged: _updateFromHex,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12), // Reduced spacing
+
+              // Preset colors for quick selection
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Quick Colors:'),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6, // Reduced spacing
+                runSpacing: 6, // Reduced spacing
+                children:
+                    [
+                          Colors.red,
+                          Colors.pink,
+                          Colors.purple,
+                          Colors.deepPurple,
+                          Colors.indigo,
+                          Colors.blue,
+                          Colors.lightBlue,
+                          Colors.cyan,
+                          Colors.teal,
+                          Colors.green,
+                          Colors.lightGreen,
+                          Colors.lime,
+                          Colors.yellow,
+                          Colors.amber,
+                          Colors.orange,
+                          Colors.deepOrange,
+                        ]
+                        .map(
+                          (color) => InkWell(
+                            onTap: () => _updateColor(color),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              width: 28, // Smaller size
+                              height: 28, // Smaller size
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: theme.colorScheme.outline,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      )
-                      .toList(),
-            ),
-          ],
+                        )
+                        .toList(),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
