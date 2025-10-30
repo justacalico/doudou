@@ -343,6 +343,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
   @override
   Track? get currentTrack => _stateController.currentTrack;
 
+  Stream<Track?> get currentTrackStream => _stateController.currentTrackStream;
+
   @override
   List<Track> get queueTracks => _stateController.queue;
 
