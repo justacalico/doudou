@@ -339,9 +339,17 @@ class DoudouAudioHandler extends BaseAudioHandler {
         );
       }
 
-      // For auto-advance, assume foreground service might have issues
-      // This prevents the loop issue when app is backgrounded
-      _foregroundServiceIssues = true;
+      // Update UI immediately for better responsiveness
+      final queue = _stateController.queue;
+      if (nextIndex < queue.length) {
+        final nextTrack = queue[nextIndex];
+        _stateController.updateCurrentIndex(nextIndex);
+        _stateController.updateCurrentTrack(nextTrack);
+        _stateController.updateState(base_handler.AudioPlayerState.loading);
+        
+        // Force UI synchronization for track changes
+        _forceMediaItemUpdate(nextTrack);
+      }
 
       // Skip to next track with background-safe approach
       await _performBackgroundSafeSkip(nextIndex);
