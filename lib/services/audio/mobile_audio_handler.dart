@@ -852,9 +852,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Update UI immediately
       final queue = _stateController.queue;
       if (nextIndex < queue.length) {
+        final nextTrack = queue[nextIndex];
         _stateController.updateCurrentIndex(nextIndex);
-        _stateController.updateCurrentTrack(queue[nextIndex]);
+        _stateController.updateCurrentTrack(nextTrack);
         _stateController.updateState(base_handler.AudioPlayerState.loading);
+        
+        // Force UI synchronization for reliable track updates
+        _forceMediaItemUpdate(nextTrack);
       }
       // Run actual skip operation asynchronously
       _performSkipToQueueItem(nextIndex);
