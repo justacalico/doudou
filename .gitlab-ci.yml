@@ -487,13 +487,20 @@ cleanup_linux_runner:
     GIT_STRATEGY: none
   script:
     - echo "🧹 Cleaning up Linux runner build artifacts and caches..."
-    - rm -rf build/ || true
-    - rm -rf .dart_tool/ || true
-    - rm -rf .pub-cache-* || true
-    - rm -rf .flutter-plugins-dependencies || true
-    - pkill -f "dart.*doudou" || true
-    - pkill -f "flutter.*doudou" || true
+    # Kill processes first
+    - pkill -9 -f "dart.*doudou" || true
+    - pkill -9 -f "flutter.*doudou" || true
+    - sleep 2
+    # Force remove with find for better handling of nested directories
+    - find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
+    - find . -name ".dart_tool" -type d -exec rm -rf {} + 2>/dev/null || true
+    - find . -name ".pub-cache-*" -type d -exec rm -rf {} + 2>/dev/null || true
+    - find . -name ".flutter-plugins-dependencies" -type f -delete 2>/dev/null || true
+    # Clean up any remaining directories
+    - rm -rf /tmp/flutter_* || true
+    - df -h || true
     - echo "✅ Linux runner cleanup completed"
+  timeout: 3m
   needs:
     - job: "build_release_linux"
       optional: true
