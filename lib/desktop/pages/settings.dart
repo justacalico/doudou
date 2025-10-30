@@ -1081,6 +1081,178 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  void _showCustomColorPicker(AppState appState) {
+    Color currentColor = appState.accentColor;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Custom Accent Color'),
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Color preview
+              Container(
+                width: double.infinity,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: currentColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    'Preview',
+                    style: TextStyle(
+                      color: currentColor.computeLuminance() > 0.5 
+                          ? Colors.black 
+                          : Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // RGB Sliders
+              _buildColorSlider(
+                'Red',
+                currentColor.red.toDouble(),
+                (value) {
+                  currentColor = Color.fromARGB(
+                    255,
+                    value.round(),
+                    currentColor.green,
+                    currentColor.blue,
+                  );
+                },
+                Colors.red,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              _buildColorSlider(
+                'Green',
+                currentColor.green.toDouble(),
+                (value) {
+                  currentColor = Color.fromARGB(
+                    255,
+                    currentColor.red,
+                    value.round(),
+                    currentColor.blue,
+                  );
+                },
+                Colors.green,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              _buildColorSlider(
+                'Blue',
+                currentColor.blue.toDouble(),
+                (value) {
+                  currentColor = Color.fromARGB(
+                    255,
+                    currentColor.red,
+                    currentColor.green,
+                    value.round(),
+                  );
+                },
+                Colors.blue,
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Hex input
+              Row(
+                children: [
+                  const Text('Hex: #'),
+                  Expanded(
+                    child: TextField(
+                      controller: TextEditingController(
+                        text: currentColor.value.toRadixString(16).substring(2).toUpperCase(),
+                      ),
+                      maxLength: 6,
+                      decoration: const InputDecoration(
+                        counterText: '',
+                        hintText: 'RRGGBB',
+                      ),
+                      onChanged: (value) {
+                        if (value.length == 6) {
+                          try {
+                            final hexColor = int.parse('FF$value', radix: 16);
+                            currentColor = Color(hexColor);
+                          } catch (e) {
+                            // Invalid hex, ignore
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              appState.setAccentColor(currentColor);
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorSlider(
+    String label,
+    double value,
+    ValueChanged<double> onChanged,
+    Color sliderColor,
+  ) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$label: ${value.round()}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            Slider(
+              value: value,
+              min: 0,
+              max: 255,
+              divisions: 255,
+              activeColor: sliderColor,
+              onChanged: (newValue) {
+                setState(() {
+                  onChanged(newValue);
+                });
+                // Force dialog to rebuild with new color
+                (context as Element).markNeedsBuild();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _testConnection(AppState appState) {
     // This would test the Jellyfin connection
     ScaffoldMessenger.of(context).showSnackBar(
