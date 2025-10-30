@@ -14,7 +14,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _selectedCategory = 'general'; // general, audio, appearance, server, about
+  String _selectedCategory =
+      'general'; // general, audio, appearance, server, about
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
               _buildCategoriesSidebar(),
               const SizedBox(width: 24),
               // Settings content
-              Expanded(
-                child: _buildSettingsContent(appState),
-              ),
+              Expanded(child: _buildSettingsContent(appState)),
             ],
           ),
         );
@@ -41,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildCategoriesSidebar() {
     final theme = Theme.of(context);
-    
+
     final categories = [
       {'id': 'general', 'title': 'General', 'icon': Icons.settings},
       {'id': 'audio', 'title': 'Audio', 'icon': Icons.volume_up},
@@ -67,18 +66,18 @@ class _SettingsPageState extends State<SettingsPage> {
                   selectedTileColor: theme.colorScheme.primaryContainer,
                   leading: Icon(
                     category['icon'] as IconData,
-                    color: isSelected 
+                    color: isSelected
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurfaceVariant,
                   ),
                   title: Text(
                     category['title'] as String,
                     style: TextStyle(
-                      color: isSelected 
+                      color: isSelected
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurfaceVariant,
-                      fontWeight: isSelected 
-                          ? FontWeight.w600 
+                      fontWeight: isSelected
+                          ? FontWeight.w600
                           : FontWeight.normal,
                     ),
                   ),
@@ -120,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildGeneralSettings(AppState appState) {
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +131,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Startup section
           Card(
             child: Padding(
@@ -149,7 +148,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   SwitchListTile(
                     title: const Text('Start with system'),
-                    subtitle: const Text('Launch Doudou when your computer starts'),
+                    subtitle: const Text(
+                      'Launch Doudou when your computer starts',
+                    ),
                     value: false, // This would come from preferences
                     onChanged: (value) {
                       // Handle startup setting
@@ -157,7 +158,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   SwitchListTile(
                     title: const Text('Start minimized'),
-                    subtitle: const Text('Launch in system tray instead of window'),
+                    subtitle: const Text(
+                      'Launch in system tray instead of window',
+                    ),
                     value: false,
                     onChanged: (value) {
                       // Handle minimize setting
@@ -167,9 +170,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Library section
           Card(
             child: Padding(
@@ -204,9 +207,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Downloads section
           Card(
             child: Padding(
@@ -248,7 +251,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildAudioSettings(AppState appState) {
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,7 +263,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Playback section
           Card(
             child: Padding(
@@ -283,14 +286,13 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Show quality options
                     },
                   ),
-
                 ],
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Volume section
           Card(
             child: Padding(
@@ -307,7 +309,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   SwitchListTile(
                     title: const Text('Volume normalization'),
-                    subtitle: const Text('Keep consistent volume across tracks'),
+                    subtitle: const Text(
+                      'Keep consistent volume across tracks',
+                    ),
                     value: true,
                     onChanged: (value) {
                       // Handle volume normalization
@@ -325,9 +329,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Audio device section
           Card(
             child: Padding(
@@ -369,7 +373,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildAppearanceSettings(AppState appState) {
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,8 +385,8 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
-          // Theme section  
+
+          // Theme section
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -423,9 +427,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Layout section
           Card(
             child: Padding(
@@ -468,9 +472,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Window section
           Card(
             child: Padding(
@@ -512,7 +516,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildServerSettings(AppState appState) {
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +528,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Connection section
           Card(
             child: Padding(
@@ -542,9 +546,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: appState.isLoggedIn ? Colors.green : Colors.red,
+                          color: appState.isLoggedIn
+                              ? Colors.green
+                              : Colors.red,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -561,7 +570,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: const Text('Server URL'),
-                    subtitle: Text(appState.jellyfinService.serverUrl ?? 'Not set'),
+                    subtitle: Text(
+                      appState.jellyfinService.serverUrl ?? 'Not set',
+                    ),
                     trailing: const Icon(Icons.edit),
                     onTap: () {
                       // Edit server URL
@@ -569,7 +580,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     title: const Text('Username'),
-                    subtitle: Text(appState.jellyfinService.username ?? 'Not logged in'),
+                    subtitle: Text(
+                      appState.jellyfinService.username ?? 'Not logged in',
+                    ),
                     trailing: const Icon(Icons.person),
                     onTap: () {
                       // Show user info
@@ -596,9 +609,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Cache section
           Card(
             child: Padding(
@@ -649,7 +662,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildLogsSettings() {
     final theme = Theme.of(context);
     final appState = context.watch<AppState>();
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,24 +674,26 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Logging toggle
           Card(
             child: SwitchListTile(
               title: const Text('Enable Logging'),
-              subtitle: const Text('Record app activity for troubleshooting. Disabled by default to improve performance.'),
+              subtitle: const Text(
+                'Record app activity for troubleshooting. Disabled by default to improve performance.',
+              ),
               value: appState.loggingEnabled,
               onChanged: (value) => appState.toggleLogging(value),
               secondary: Icon(
                 Icons.bug_report,
-                color: appState.loggingEnabled 
-                    ? theme.colorScheme.primary 
+                color: appState.loggingEnabled
+                    ? theme.colorScheme.primary
                     : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Logs viewer
           _DesktopLogsViewer(theme: theme),
         ],
@@ -688,7 +703,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildAboutSettings(AppState appState) {
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -700,7 +715,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // App info section
           Card(
             child: Padding(
@@ -737,7 +752,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       builder: (context, snapshot) {
                         final version = snapshot.data?.version ?? '6.0.0';
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(20),
@@ -769,9 +787,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Links section
           Card(
             child: Padding(
@@ -817,9 +835,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // System info section
           Card(
             child: Padding(
@@ -861,7 +879,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showThemeDialog() {
     final appState = context.read<AppState>();
     final currentTheme = _themeModeToString(appState.themeMode);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -943,7 +961,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (color == Colors.orange) return 'Orange';
     if (color == Colors.red) return 'Red';
     if (color == Colors.teal) return 'Teal';
-    
+
     // Show hex value for custom colors
     final hex = color.value.toRadixString(16).substring(2).toUpperCase();
     return 'Custom (#$hex)';
@@ -961,8 +979,10 @@ class _SettingsPageState extends State<SettingsPage> {
     ];
 
     // Check if current color is one of the presets
-    final isCustomColor = !colors.any((colorData) => 
-        (colorData['color'] as Color).value == appState.accentColor.value);
+    final isCustomColor = !colors.any(
+      (colorData) =>
+          (colorData['color'] as Color).value == appState.accentColor.value,
+    );
 
     showDialog(
       context: context,
@@ -980,7 +1000,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: colors.map((colorData) {
                   final color = colorData['color'] as Color;
                   final isSelected = color.value == appState.accentColor.value;
-                  
+
                   return InkWell(
                     onTap: () {
                       Navigator.pop(context);
@@ -994,7 +1014,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: color,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isSelected 
+                          color: isSelected
                               ? Colors.white
                               : Theme.of(context).colorScheme.outline,
                           width: isSelected ? 3 : 1,
@@ -1026,11 +1046,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 }).toList(),
               ),
-              
+
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
-              
+
               // Custom color option
               InkWell(
                 onTap: () {
@@ -1043,7 +1063,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: isCustomColor 
+                      color: isCustomColor
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.outline,
                       width: isCustomColor ? 2 : 1,
@@ -1056,7 +1076,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         width: 24,
                         height: 24,
                         decoration: BoxDecoration(
-                          color: isCustomColor ? appState.accentColor : Colors.grey,
+                          color: isCustomColor
+                              ? appState.accentColor
+                              : Colors.grey,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: Theme.of(context).colorScheme.outline,
@@ -1096,15 +1118,13 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-
-
   void _testConnection(AppState appState) {
     // This would test the Jellyfin connection
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          appState.isLoggedIn 
-              ? 'Connection successful!' 
+          appState.isLoggedIn
+              ? 'Connection successful!'
               : 'Connection failed. Please check your settings.',
         ),
         backgroundColor: appState.isLoggedIn ? Colors.green : Colors.red,
@@ -1117,7 +1137,9 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out? You\'ll need to log in again to access your music.'),
+        content: const Text(
+          'Are you sure you want to sign out? You\'ll need to log in again to access your music.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1142,7 +1164,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) => AlertDialog(
         title: Text('Clear ${cacheType == 'all' ? 'All' : 'Image'} Cache'),
         content: Text(
-          'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?'
+          'This will remove ${cacheType == 'all' ? 'all cached data' : 'cached images'} and may slow down the app temporarily. Continue?',
         ),
         actions: [
           TextButton(
@@ -1155,7 +1177,9 @@ class _SettingsPageState extends State<SettingsPage> {
               // Handle cache clearing
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${cacheType == 'all' ? 'All cache' : 'Image cache'} cleared successfully'),
+                  content: Text(
+                    '${cacheType == 'all' ? 'All cache' : 'Image cache'} cleared successfully',
+                  ),
                 ),
               );
             },
@@ -1170,7 +1194,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _getPlatformInfo() {
     final platform = Platform.operatingSystem;
     final architecture = _getArchitecture();
-    
+
     switch (platform) {
       case 'linux':
         return 'Linux Desktop ($architecture)';
@@ -1191,7 +1215,12 @@ class _SettingsPageState extends State<SettingsPage> {
           return result.stdout.toString().trim();
         }
       } else if (Platform.isWindows) {
-        final result = Process.runSync('wmic', ['computersystem', 'get', 'systemtype', '/value']);
+        final result = Process.runSync('wmic', [
+          'computersystem',
+          'get',
+          'systemtype',
+          '/value',
+        ]);
         if (result.exitCode == 0) {
           final output = result.stdout.toString();
           if (output.contains('x64')) return 'x64';
@@ -1224,7 +1253,12 @@ class _SettingsPageState extends State<SettingsPage> {
           return 'Linux ${kernelResult.stdout.toString().trim()}';
         }
       } else if (Platform.isWindows) {
-        final result = Process.runSync('wmic', ['os', 'get', 'Caption', '/value']);
+        final result = Process.runSync('wmic', [
+          'os',
+          'get',
+          'Caption',
+          '/value',
+        ]);
         if (result.exitCode == 0) {
           final output = result.stdout.toString();
           final match = RegExp(r'Caption=(.+)').firstMatch(output);
@@ -1248,7 +1282,7 @@ class _SettingsPageState extends State<SettingsPage> {
 // Desktop Logs Viewer Widget
 class _DesktopLogsViewer extends StatefulWidget {
   final ThemeData theme;
-  
+
   const _DesktopLogsViewer({required this.theme});
 
   @override
@@ -1269,11 +1303,11 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
 
   Future<void> _loadLogs() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final logs = _loggingService.getMemoryLogs();
       final stats = await _loggingService.getLogStats();
-      
+
       setState(() {
         _logs = logs;
         _logStats = stats;
@@ -1300,17 +1334,16 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
   Future<void> _exportLogs() async {
     try {
       final logs = await _loggingService.exportLogs();
-      final file = File('${Platform.environment['HOME']}/doudou_logs_export.txt');
+      final file = File(
+        '${Platform.environment['HOME']}/doudou_logs_export.txt',
+      );
       await file.writeAsString(logs);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logs exported to: ${file.path}'),
-            action: SnackBarAction(
-              label: 'OK',
-              onPressed: () {},
-            ),
+            action: SnackBarAction(label: 'OK', onPressed: () {}),
           ),
         );
       }
@@ -1331,7 +1364,9 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Logs'),
-        content: const Text('Are you sure you want to clear all logs? This action cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to clear all logs? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             child: const Text('Cancel'),
@@ -1347,7 +1382,7 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
         ],
       ),
     );
-    
+
     if (confirm == true) {
       await _loggingService.clearLogs();
       await _loadLogs();
@@ -1367,7 +1402,7 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Stats Card
           Card(
             child: Padding(
@@ -1411,9 +1446,9 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Action Buttons
           Card(
             child: Padding(
@@ -1445,9 +1480,9 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Logs Viewer
           Card(
             child: Container(
@@ -1467,55 +1502,63 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _logs.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'No logs available',
-                                  style: TextStyle(
-                                    color: widget.theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              )
-                            : Container(
-                                decoration: BoxDecoration(
-                                  color: widget.theme.colorScheme.surfaceVariant.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: widget.theme.colorScheme.outline.withOpacity(0.2),
-                                  ),
-                                ),
-                                child: ListView.builder(
-                                  itemCount: _logs.length,
-                                  itemBuilder: (context, index) {
-                                    final log = _logs[_logs.length - 1 - index]; // Reverse order
-                                    Color logColor = widget.theme.colorScheme.onSurface;
-                                    
-                                    if (log.contains('[ERROR]')) {
-                                      logColor = widget.theme.colorScheme.error;
-                                    } else if (log.contains('[WARN]')) {
-                                      logColor = Colors.orange;
-                                    } else if (log.contains('[INFO]')) {
-                                      logColor = widget.theme.colorScheme.primary;
-                                    } else if (log.contains('[DEBUG]')) {
-                                      logColor = widget.theme.colorScheme.onSurfaceVariant;
-                                    }
-                                    
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 2,
-                                      ),
-                                      child: SelectableText(
-                                        log,
-                                        style: TextStyle(
-                                          fontFamily: 'monospace',
-                                          fontSize: 12,
-                                          color: logColor,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                        ? Center(
+                            child: Text(
+                              'No logs available',
+                              style: TextStyle(
+                                color:
+                                    widget.theme.colorScheme.onSurfaceVariant,
                               ),
+                            ),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: widget.theme.colorScheme.surfaceVariant
+                                  .withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: widget.theme.colorScheme.outline
+                                    .withOpacity(0.2),
+                              ),
+                            ),
+                            child: ListView.builder(
+                              itemCount: _logs.length,
+                              itemBuilder: (context, index) {
+                                final log =
+                                    _logs[_logs.length -
+                                        1 -
+                                        index]; // Reverse order
+                                Color logColor =
+                                    widget.theme.colorScheme.onSurface;
+
+                                if (log.contains('[ERROR]')) {
+                                  logColor = widget.theme.colorScheme.error;
+                                } else if (log.contains('[WARN]')) {
+                                  logColor = Colors.orange;
+                                } else if (log.contains('[INFO]')) {
+                                  logColor = widget.theme.colorScheme.primary;
+                                } else if (log.contains('[DEBUG]')) {
+                                  logColor =
+                                      widget.theme.colorScheme.onSurfaceVariant;
+                                }
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 2,
+                                  ),
+                                  child: SelectableText(
+                                    log,
+                                    style: TextStyle(
+                                      fontFamily: 'monospace',
+                                      fontSize: 12,
+                                      color: logColor,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -1567,7 +1610,8 @@ class _CustomColorPickerDialog extends StatefulWidget {
   });
 
   @override
-  State<_CustomColorPickerDialog> createState() => _CustomColorPickerDialogState();
+  State<_CustomColorPickerDialog> createState() =>
+      _CustomColorPickerDialogState();
 }
 
 class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
@@ -1592,7 +1636,10 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   void _updateColor(Color newColor) {
     setState(() {
       _currentColor = newColor;
-      _hexController.text = newColor.value.toRadixString(16).substring(2).toUpperCase();
+      _hexController.text = newColor.value
+          .toRadixString(16)
+          .substring(2)
+          .toUpperCase();
     });
   }
 
@@ -1612,7 +1659,7 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AlertDialog(
       title: const Text('Custom Accent Color'),
       content: SizedBox(
@@ -1627,16 +1674,14 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
               decoration: BoxDecoration(
                 color: _currentColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: theme.colorScheme.outline,
-                ),
+                border: Border.all(color: theme.colorScheme.outline),
               ),
               child: Center(
                 child: Text(
                   'Preview',
                   style: TextStyle(
-                    color: _currentColor.computeLuminance() > 0.5 
-                        ? Colors.black 
+                    color: _currentColor.computeLuminance() > 0.5
+                        ? Colors.black
                         : Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -1644,52 +1689,58 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // RGB Sliders
             _buildColorSlider(
               'Red',
               _currentColor.red.toDouble(),
-              (value) => _updateColor(Color.fromARGB(
-                255,
-                value.round(),
-                _currentColor.green,
-                _currentColor.blue,
-              )),
+              (value) => _updateColor(
+                Color.fromARGB(
+                  255,
+                  value.round(),
+                  _currentColor.green,
+                  _currentColor.blue,
+                ),
+              ),
               Colors.red,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             _buildColorSlider(
               'Green',
               _currentColor.green.toDouble(),
-              (value) => _updateColor(Color.fromARGB(
-                255,
-                _currentColor.red,
-                value.round(),
-                _currentColor.blue,
-              )),
+              (value) => _updateColor(
+                Color.fromARGB(
+                  255,
+                  _currentColor.red,
+                  value.round(),
+                  _currentColor.blue,
+                ),
+              ),
               Colors.green,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             _buildColorSlider(
               'Blue',
               _currentColor.blue.toDouble(),
-              (value) => _updateColor(Color.fromARGB(
-                255,
-                _currentColor.red,
-                _currentColor.green,
-                value.round(),
-              )),
+              (value) => _updateColor(
+                Color.fromARGB(
+                  255,
+                  _currentColor.red,
+                  _currentColor.green,
+                  value.round(),
+                ),
+              ),
               Colors.blue,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Hex input
             Row(
               children: [
@@ -1707,47 +1758,52 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Preset colors for quick selection
             const Text('Quick Colors:'),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: [
-                Colors.red,
-                Colors.pink,
-                Colors.purple,
-                Colors.deepPurple,
-                Colors.indigo,
-                Colors.blue,
-                Colors.lightBlue,
-                Colors.cyan,
-                Colors.teal,
-                Colors.green,
-                Colors.lightGreen,
-                Colors.lime,
-                Colors.yellow,
-                Colors.amber,
-                Colors.orange,
-                Colors.deepOrange,
-              ].map((color) => InkWell(
-                onTap: () => _updateColor(color),
-                borderRadius: BorderRadius.circular(4),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                ),
-              )).toList(),
+              children:
+                  [
+                        Colors.red,
+                        Colors.pink,
+                        Colors.purple,
+                        Colors.deepPurple,
+                        Colors.indigo,
+                        Colors.blue,
+                        Colors.lightBlue,
+                        Colors.cyan,
+                        Colors.teal,
+                        Colors.green,
+                        Colors.lightGreen,
+                        Colors.lime,
+                        Colors.yellow,
+                        Colors.amber,
+                        Colors.orange,
+                        Colors.deepOrange,
+                      ]
+                      .map(
+                        (color) => InkWell(
+                          onTap: () => _updateColor(color),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
             ),
           ],
         ),
