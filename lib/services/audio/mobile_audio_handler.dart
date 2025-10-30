@@ -1231,7 +1231,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
       
       try {
         if (kDebugMode && attempts > 1) {
-          print('DoudouAudioHandler: Retry attempt $attempts/$maxRetries for: $url');
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Retry attempt $attempts/$maxRetries for: $url');
+          }
         }
 
         // Set audio source without blocking UI
