@@ -1556,3 +1556,241 @@ class _DesktopLogsViewerState extends State<_DesktopLogsViewer> {
     );
   }
 }
+
+class _CustomColorPickerDialog extends StatefulWidget {
+  final Color initialColor;
+  final ValueChanged<Color> onColorSelected;
+
+  const _CustomColorPickerDialog({
+    required this.initialColor,
+    required this.onColorSelected,
+  });
+
+  @override
+  State<_CustomColorPickerDialog> createState() => _CustomColorPickerDialogState();
+}
+
+class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
+  late Color _currentColor;
+  late TextEditingController _hexController;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentColor = widget.initialColor;
+    _hexController = TextEditingController(
+      text: _currentColor.value.toRadixString(16).substring(2).toUpperCase(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _hexController.dispose();
+    super.dispose();
+  }
+
+  void _updateColor(Color newColor) {
+    setState(() {
+      _currentColor = newColor;
+      _hexController.text = newColor.value.toRadixString(16).substring(2).toUpperCase();
+    });
+  }
+
+  void _updateFromHex(String hex) {
+    if (hex.length == 6) {
+      try {
+        final hexColor = int.parse('FF$hex', radix: 16);
+        setState(() {
+          _currentColor = Color(hexColor);
+        });
+      } catch (e) {
+        // Invalid hex, ignore
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return AlertDialog(
+      title: const Text('Custom Accent Color'),
+      content: SizedBox(
+        width: 350,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Color preview
+            Container(
+              width: double.infinity,
+              height: 80,
+              decoration: BoxDecoration(
+                color: _currentColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'Preview',
+                  style: TextStyle(
+                    color: _currentColor.computeLuminance() > 0.5 
+                        ? Colors.black 
+                        : Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // RGB Sliders
+            _buildColorSlider(
+              'Red',
+              _currentColor.red.toDouble(),
+              (value) => _updateColor(Color.fromARGB(
+                255,
+                value.round(),
+                _currentColor.green,
+                _currentColor.blue,
+              )),
+              Colors.red,
+            ),
+            
+            const SizedBox(height: 16),
+            
+            _buildColorSlider(
+              'Green',
+              _currentColor.green.toDouble(),
+              (value) => _updateColor(Color.fromARGB(
+                255,
+                _currentColor.red,
+                value.round(),
+                _currentColor.blue,
+              )),
+              Colors.green,
+            ),
+            
+            const SizedBox(height: 16),
+            
+            _buildColorSlider(
+              'Blue',
+              _currentColor.blue.toDouble(),
+              (value) => _updateColor(Color.fromARGB(
+                255,
+                _currentColor.red,
+                _currentColor.green,
+                value.round(),
+              )),
+              Colors.blue,
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Hex input
+            Row(
+              children: [
+                const Text('Hex: #'),
+                Expanded(
+                  child: TextField(
+                    controller: _hexController,
+                    maxLength: 6,
+                    decoration: const InputDecoration(
+                      counterText: '',
+                      hintText: 'RRGGBB',
+                    ),
+                    onChanged: _updateFromHex,
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Preset colors for quick selection
+            const Text('Quick Colors:'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Colors.red,
+                Colors.pink,
+                Colors.purple,
+                Colors.deepPurple,
+                Colors.indigo,
+                Colors.blue,
+                Colors.lightBlue,
+                Colors.cyan,
+                Colors.teal,
+                Colors.green,
+                Colors.lightGreen,
+                Colors.lime,
+                Colors.yellow,
+                Colors.amber,
+                Colors.orange,
+                Colors.deepOrange,
+              ].map((color) => InkWell(
+                onTap: () => _updateColor(color),
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              )).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onColorSelected(_currentColor);
+          },
+          child: const Text('Apply'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorSlider(
+    String label,
+    double value,
+    ValueChanged<double> onChanged,
+    Color sliderColor,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$label: ${value.round()}',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+        Slider(
+          value: value,
+          min: 0,
+          max: 255,
+          divisions: 255,
+          activeColor: sliderColor,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
