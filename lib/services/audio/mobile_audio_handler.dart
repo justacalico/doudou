@@ -198,18 +198,22 @@ class DoudouAudioHandler extends BaseAudioHandler {
       } else {
         mediaItem.add(null);
       }
-      
+
       if (kDebugMode) {
-        print('DoudouAudioHandler: Forced MediaItem update for UI synchronization: ${track?.name}');
+        print(
+          'DoudouAudioHandler: Forced MediaItem update for UI synchronization: ${track?.name}',
+        );
       }
     } catch (e) {
       if (kDebugMode) {
-        print('DoudouAudioHandler: Forced MediaItem update failed (continuing anyway): $e');
+        print(
+          'DoudouAudioHandler: Forced MediaItem update failed (continuing anyway): $e',
+        );
       }
       // Don't set _foregroundServiceIssues here since this is specifically for UI updates
     }
   }
-  
+
   /// Safely update queue without triggering foreground service errors
   void _safeUpdateQueue(List<Track> tracks) {
     if (_foregroundServiceIssues) {
@@ -343,7 +347,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Reset foreground service issues flag for auto-advance to ensure UI updates
       final hadForegroundIssues = _foregroundServiceIssues;
       _foregroundServiceIssues = false;
-      
+
       try {
         await _performSkipToQueueItem(nextIndex);
       } finally {
@@ -359,8 +363,6 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _stateController.updateUserIntent(false);
     }
   }
-
-
 
   /// Handle radio mode - fetch similar tracks
   Future<void> _handleRadioModeNext() async {
@@ -822,7 +824,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         _stateController.updateCurrentIndex(nextIndex);
         _stateController.updateCurrentTrack(nextTrack);
         _stateController.updateState(base_handler.AudioPlayerState.loading);
-        
+
         // Force UI synchronization for reliable track updates
         _forceMediaItemUpdate(nextTrack);
       }
@@ -846,7 +848,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         _stateController.updateCurrentIndex(previousIndex);
         _stateController.updateCurrentTrack(previousTrack);
         _stateController.updateState(base_handler.AudioPlayerState.loading);
-        
+
         // Force UI synchronization for reliable track updates
         _forceMediaItemUpdate(previousTrack);
       }
