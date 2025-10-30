@@ -190,6 +190,26 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// Force MediaItem update for UI synchronization, ignoring foreground service issues
+  void _forceMediaItemUpdate(Track? track) {
+    try {
+      if (track != null) {
+        mediaItem.add(_trackToMediaItem(track));
+      } else {
+        mediaItem.add(null);
+      }
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Forced MediaItem update for UI synchronization: ${track?.name}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Forced MediaItem update failed (continuing anyway): $e');
+      }
+      // Don't set _foregroundServiceIssues here since this is specifically for UI updates
+    }
+  }
+
   /// Safely update queue without triggering foreground service errors
   void _safeUpdateQueue(List<Track> tracks) {
     if (_foregroundServiceIssues) {
