@@ -292,6 +292,8 @@ class WebAudioHandler {
 
   Track? get currentTrack => _stateController.currentTrack;
 
+  Stream<Track?> get currentTrackStream => _stateController.currentTrackStream;
+
   List<Track> get queueTracks => _stateController.queue;
 
   List<Track> get upNext => _queueManager.getUpNext();
