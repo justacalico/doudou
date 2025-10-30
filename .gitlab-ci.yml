@@ -173,7 +173,6 @@ build_release_apk:
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-release.apk
-      - android/key.properties
     expire_in: 30m
   timeout: 25m
 
