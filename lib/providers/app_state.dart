@@ -146,6 +146,12 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       });
       
+      // Listen to current track stream changes (more reliable)
+      _audioHandler!.currentTrackStream?.listen((track) {
+        // Notify listeners when the current track changes directly
+        notifyListeners();
+      });
+      
       // Listen to playback state changes (for playing/paused status)
       _audioHandler!.playbackState?.listen((playbackState) {
         // Notify listeners when playback state changes
