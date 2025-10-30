@@ -22,26 +22,17 @@ class MiniPlayer extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // Use both MediaItem stream and direct access for maximum reliability
-        // The periodic stream ensures we catch updates even when MediaItem stream fails
-        return StreamBuilder<MediaItem?>(
-          stream: appState.mediaItem,
-          builder: (context, mediaItemSnapshot) {
-            return StreamBuilder<dynamic>(
-              stream: Stream.periodic(const Duration(milliseconds: 500)),
-              builder: (context, _) {
-                // Get current track from multiple sources for maximum reliability
-                final directTrack = audioHandler?.currentTrack;
-                final mediaItem = mediaItemSnapshot.data;
-                
-                // Prefer direct track access for most reliable updates
-                final currentTrack = directTrack ?? 
-                    (mediaItem != null ? appState.findTrackById(mediaItem.id) : null);
-                
-                // Return empty widget if no track is playing
-                if (currentTrack == null) {
-                  return const SizedBox.shrink();
-                }
+        // Use the currentTrackStream for reliable real-time updates
+        return StreamBuilder<Track?>(
+          stream: appState.currentTrackStream,
+          builder: (context, currentTrackSnapshot) {
+            // Get current track from the stream or fallback to direct access
+            final currentTrack = currentTrackSnapshot.data ?? audioHandler?.currentTrack;
+            
+            // Return empty widget if no track is playing
+            if (currentTrack == null) {
+              return const SizedBox.shrink();
+            }
 
         // Determine if we're on a desktop platform
         final isDesktop = !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
