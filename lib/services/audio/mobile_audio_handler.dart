@@ -177,7 +177,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
       playbackState.add(heartbeatState);
       
       if (kDebugMode && DateTime.now().second % 30 == 0) {
-        print('DoudouAudioHandler: Foreground service heartbeat sent');
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Foreground service heartbeat sent');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
