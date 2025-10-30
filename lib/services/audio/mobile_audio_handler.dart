@@ -585,35 +585,84 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Create PlaybackState for AudioService
+  /// Create PlaybackState for AudioService with enhanced notification priority
   PlaybackState _createPlaybackState(
     base_handler.AudioPlayerState state,
     Duration position,
     double speed,
   ) {
+    // Enhanced controls for better foreground service priority
+    final controls = <MediaControl>[
+      MediaControl.skipToPrevious,
+      if (state == base_handler.AudioPlayerState.playing)
+        MediaControl.pause
+      else
+        MediaControl.play,
+      MediaControl.skipToNext,
+      MediaControl.stop,
+    ];
+    
+    // Add rewind/fast forward if track is long enough
+    final duration = _stateController.duration;
+    if (duration.inSeconds > 30) {
+      controls.insert(0, MediaControl.rewind);
+      controls.add(MediaControl.fastForward);
+    }
+    
     return PlaybackState(
-      controls: [
-        MediaControl.skipToPrevious,
-        if (state == base_handler.AudioPlayerState.playing)
-          MediaControl.pause
-        else
-          MediaControl.play,
-        MediaControl.skipToNext,
-        MediaControl.stop,
-      ],
+      controls: controls,
       systemActions: const {
+        // Core playback actions
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
+        MediaAction.rewind,
+        MediaAction.fastForward,
+        
+        // Transport controls
+        MediaAction.stop,
+        MediaAction.pause,
+        MediaAction.play,
+        MediaAction.skipToNext,
+        MediaAction.skipToPrevious,
+        
+        // Queue management
+        MediaAction.skipToQueueItem,
+        MediaAction.setRepeatMode,
+        MediaAction.setShuffleMode,
+        
+        // Additional actions to increase notification importance
+        MediaAction.playFromMediaId,
+        MediaAction.playFromSearch,
+        MediaAction.playFromUri,
       },
-      androidCompactActionIndices: const [0, 1, 2],
+      androidCompactActionIndices: controls.length >= 5 
+          ? const [1, 2, 3] // Skip rewind/FF in compact view if present
+          : const [0, 1, 2],
       processingState: _mapToAudioServiceProcessingState(state),
       playing: state == base_handler.AudioPlayerState.playing,
       updatePosition: position,
       bufferedPosition: _player.bufferedPosition,
       speed: speed,
       queueIndex: _stateController.currentIndex,
+      // Additional properties to make notification more persistent
+      repeatMode: _mapToAudioServiceRepeatMode(_stateController.repeatMode),
+      shuffleMode: _stateController.shuffleEnabled 
+          ? AudioServiceShuffleMode.all 
+          : AudioServiceShuffleMode.none,
     );
+  }
+  
+  /// Map our repeat mode to AudioService repeat mode
+  AudioServiceRepeatMode _mapToAudioServiceRepeatMode(base_handler.RepeatMode mode) {
+    switch (mode) {
+      case base_handler.RepeatMode.none:
+        return AudioServiceRepeatMode.none;
+      case base_handler.RepeatMode.one:
+        return AudioServiceRepeatMode.one;
+      case base_handler.RepeatMode.all:
+        return AudioServiceRepeatMode.all;
+    }
   }
 
   /// Map internal state to AudioService ProcessingState
