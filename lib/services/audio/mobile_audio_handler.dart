@@ -996,38 +996,82 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> _performLoadAndPlayTrack(String url) async {
-    try {
-      // Set audio source without blocking UI
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Audio source set successfully');
-      }
+    await _performLoadAndPlayTrackWithRetry(url, maxRetries: 3);
+  }
 
-      // Only start playback if user intended to play (important for background transitions)
-      if (_stateController.userIntendedPlaying) {
-        // Try to handle foreground service before starting playback
-        await _attemptForegroundService();
+  /// Load and play track with automatic retry for network resilience
+  Future<void> _performLoadAndPlayTrackWithRetry(String url, {int maxRetries = 3}) async {
+    int attempts = 0;
+    Exception? lastException;
 
-        await _player.play();
-        if (kDebugMode) {
-          print('DoudouAudioHandler: Playback started successfully');
+    while (attempts < maxRetries) {
+      attempts++;
+      
+      try {
+        if (kDebugMode && attempts > 1) {
+          print('DoudouAudioHandler: Retry attempt $attempts/$maxRetries for: $url');
         }
-      } else {
+
+        // Set audio source without blocking UI
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
         if (kDebugMode) {
-          print(
-            'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
-          );
+          print('DoudouAudioHandler: Audio source set successfully on attempt $attempts');
         }
-        _stateController.updateState(base_handler.AudioPlayerState.paused);
+
+        // Only start playback if user intended to play (important for background transitions)
+        if (_stateController.userIntendedPlaying) {
+          // Try to handle foreground service before starting playback
+          await _attemptForegroundService();
+
+          await _player.play();
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Playback started successfully on attempt $attempts');
+          }
+        } else {
+          if (kDebugMode) {
+            print(
+              'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
+            );
+          }
+          _stateController.updateState(base_handler.AudioPlayerState.paused);
+        }
+
+        // Success - break out of retry loop
+        return;
+
+      } catch (e) {
+        lastException = e is Exception ? e : Exception(e.toString());
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Load attempt $attempts failed: $e');
+        }
+
+        if (attempts < maxRetries) {
+          // Wait before retrying (exponential backoff)
+          final delayMs = 1000 * attempts; // 1s, 2s, 3s delays
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Waiting ${delayMs}ms before retry...');
+          }
+          await Future.delayed(Duration(milliseconds: delayMs));
+          
+          // Check if user still wants to play before retrying
+          if (!_stateController.userIntendedPlaying) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: User no longer wants to play, aborting retry');
+            }
+            return;
+          }
+        }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Load and play failed: $e');
-      }
-      _stateController.updateState(base_handler.AudioPlayerState.error);
-      _stateController.updateUserIntent(false);
-      _stateController.updateError('Failed to load track: $e');
     }
+
+    // All retries failed
+    if (kDebugMode) {
+      print('DoudouAudioHandler: All $maxRetries attempts failed: $lastException');
+    }
+    _stateController.updateState(base_handler.AudioPlayerState.error);
+    _stateController.updateUserIntent(false);
+    _stateController.updateError('Failed to load track after $maxRetries attempts: $lastException');
   }
 
   /// Get stream URL for track
