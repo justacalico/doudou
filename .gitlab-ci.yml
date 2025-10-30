@@ -178,11 +178,11 @@ publish_release:
   tags:
     - apple
   retry:
-    max: 2
+    max: 1
     when:
       - api_failure
-      - runner_system_failure
-      - unknown_failure
+  variables:
+    GIT_STRATEGY: none
   needs:
     - job: "build_release_apk"
     - job: "build_release_linux"
@@ -190,6 +190,7 @@ publish_release:
       optional: true
     - job: "build_release_ios"
       optional: true
+  timeout: 10m
   
   before_script:
     - echo "Using GitLab API for release creation (more reliable than release-cli on shell executors)"
