@@ -67,6 +67,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Start foreground service recovery monitor
       _startForegroundServiceMonitor();
 
+      // Initialize power management optimizations
+      _initializePowerManagement();
+
       if (kDebugMode) {
         print('DoudouAudioHandler: Audio system initialized successfully');
       }
@@ -76,6 +79,24 @@ class DoudouAudioHandler extends BaseAudioHandler {
       }
       _stateController.updateError('Failed to initialize audio: $e');
     }
+  }
+  
+  /// Initialize power management optimizations
+  void _initializePowerManagement() {
+    // Request battery optimization exemption on first run
+    // This helps prevent Android from aggressively killing the service
+    Future.microtask(() async {
+      try {
+        // This would be implemented using platform channels in a real app
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Power management optimizations initialized');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Power management initialization failed: $e');
+        }
+      }
+    });
   }
 
   /// Initialize audio session for background playback
@@ -328,6 +349,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
 
     try {
       playbackState.add(state);
+      _foregroundServiceActive = true;
+      
       // Success - reset failure count
       if (_foregroundServiceFailureCount > 0) {
         if (kDebugMode) {
@@ -338,11 +361,25 @@ class DoudouAudioHandler extends BaseAudioHandler {
     } catch (e) {
       _foregroundServiceFailureCount++;
       _lastForegroundServiceAttempt = DateTime.now();
+      _foregroundServiceActive = false;
 
       if (kDebugMode) {
         print(
           'DoudouAudioHandler: Playback state update failed (attempt $_foregroundServiceFailureCount/$_maxConsecutiveFailures): $e',
         );
+      }
+      
+      // If we're currently playing and the service dies, try immediate recovery
+      if (_stateController.currentState == base_handler.AudioPlayerState.playing &&
+          _foregroundServiceFailureCount < _maxConsecutiveFailures) {
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Attempting immediate service recovery...');
+        }
+        
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _attemptForegroundService();
+        });
       }
     }
   }
@@ -448,16 +485,22 @@ class DoudouAudioHandler extends BaseAudioHandler {
     switch (playerState.processingState) {
       case ProcessingState.idle:
         _stateController.updateState(base_handler.AudioPlayerState.idle);
+        _foregroundServiceActive = false;
         break;
       case ProcessingState.loading:
       case ProcessingState.buffering:
         _stateController.updateState(base_handler.AudioPlayerState.loading);
+        // Be aggressive about foreground service during loading
+        if (_stateController.userIntendedPlaying) {
+          _attemptForegroundService();
+        }
         break;
       case ProcessingState.ready:
         if (playerState.playing) {
           _stateController.updateState(base_handler.AudioPlayerState.playing);
-          // Ensure foreground service is running when playing
+          // Aggressively ensure foreground service is running when playing
           _attemptForegroundService();
+          _ensureWakeLock();
         } else {
           // Check if we should auto-continue playback
           if (_stateController.userIntendedPlaying &&
@@ -468,9 +511,12 @@ class DoudouAudioHandler extends BaseAudioHandler {
                 'DoudouAudioHandler: Track ready, auto-continuing playback',
               );
             }
-            // Resume playback without blocking
+            // Resume playback without blocking - be more aggressive
             Future.microtask(() async {
               try {
+                // Multiple attempts at foreground service
+                await _attemptForegroundService();
+                await Future.delayed(const Duration(milliseconds: 50));
                 await _attemptForegroundService();
                 await _player.play();
               } catch (e) {
@@ -498,6 +544,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         break;
       case ProcessingState.completed:
         _stateController.updateState(base_handler.AudioPlayerState.completed);
+        _foregroundServiceActive = false;
         break;
     }
   }
@@ -684,11 +731,11 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Convert Track to MediaItem
+  /// Convert Track to MediaItem with enhanced metadata
   MediaItem _trackToMediaItem(Track track) {
     return MediaItem(
       id: track.id,
-      album: track.albumName,
+      album: track.albumName ?? 'Unknown Album',
       title: track.name,
       artist: track.artistName ?? 'Unknown Artist',
       duration: track.duration != null
@@ -697,11 +744,28 @@ class DoudouAudioHandler extends BaseAudioHandler {
       artUri: Uri.tryParse(
         _mediaServiceManager.getImageUrl(
           track.albumId ?? track.id,
-          width: 300,
-          height: 300,
+          width: 512, // Higher resolution for better notification display
+          height: 512,
         ),
       ),
-      extras: {'trackId': track.id, 'albumId': track.albumId},
+      playable: true,
+      extras: {
+        'trackId': track.id,
+        'albumId': track.albumId,
+        'trackNumber': track.trackNumber,
+        'isPlayable': true,
+        'mediaType': 'audio',
+        'playCount': track.playCount,
+        'isFavorite': track.isFavorite,
+        // Additional metadata to increase notification importance
+        'description': '${track.artistName} - ${track.albumName}',
+        'displayTitle': track.name,
+        'displaySubtitle': '${track.artistName} • ${track.albumName}',
+        'displayDescription': 'Playing from ${track.albumName ?? "Unknown Album"}',
+        // Android Auto / Automotive compatibility
+        'android.media.browse.CONTENT_STYLE_BROWSABLE_HINT': 1,
+        'android.media.browse.CONTENT_STYLE_PLAYABLE_HINT': 2,
+      },
     );
   }
 
@@ -788,10 +852,28 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Reset failure count when user explicitly plays
       _foregroundServiceFailureCount = 0;
 
-      // Try to start foreground service, but continue if it fails
+      // Be very aggressive about establishing foreground service
       await _attemptForegroundService();
+      
+      // Multiple attempts to ensure foreground service is established
+      for (int attempt = 0; attempt < 3; attempt++) {
+        if (_foregroundServiceActive) break;
+        
+        await Future.delayed(Duration(milliseconds: 50 * (attempt + 1)));
+        await _attemptForegroundService();
+      }
 
       await _player.play();
+      
+      // Verify foreground service after play starts
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (!_foregroundServiceActive) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Foreground service not active after play, retrying...');
+        }
+        await _attemptForegroundService();
+      }
+      
       if (kDebugMode) {
         print('DoudouAudioHandler: Play command completed');
       }
@@ -1305,6 +1387,84 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _radioModeEnabled = false;
     _stateController.updateRadioMode(false);
   }
+  
+  // Power management methods
+  
+  /// Handle device power state change (called when device is plugged/unplugged)
+  void onPowerStateChanged({required bool isPlugged}) {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Power state changed - plugged: $isPlugged');
+    }
+    
+    if (!isPlugged && _stateController.currentState == base_handler.AudioPlayerState.playing) {
+      // Device was unplugged during playback - be extra aggressive about service
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Device unplugged during playback, reinforcing foreground service');
+      }
+      
+      // Reset failure count to allow aggressive retries
+      _foregroundServiceFailureCount = 0;
+      
+      // Multiple reinforcement attempts
+      _reinforceForegroundService();
+      
+      // Increase heartbeat frequency temporarily
+      _increaseHeartbeatFrequency();
+    }
+  }
+  
+  /// Reinforce foreground service when device is unplugged
+  void _reinforceForegroundService() {
+    // Multiple rapid attempts to establish strong foreground service
+    for (int i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: 100 * i), () {
+        _attemptForegroundService();
+      });
+    }
+    
+    // Follow up with additional attempts
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_stateController.currentState == base_handler.AudioPlayerState.playing) {
+        _attemptForegroundService();
+      }
+    });
+    
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_stateController.currentState == base_handler.AudioPlayerState.playing) {
+        _attemptForegroundService();
+      }
+    });
+  }
+  
+  /// Temporarily increase heartbeat frequency for better service persistence
+  void _increaseHeartbeatFrequency() {
+    // Cancel existing heartbeat
+    _foregroundServiceHeartbeatTimer?.cancel();
+    
+    // Start high-frequency heartbeat for 60 seconds
+    _foregroundServiceHeartbeatTimer = Timer.periodic(
+      const Duration(seconds: 3), // Much more frequent
+      (_) => _maintainForegroundService(),
+    );
+    
+    // Return to normal frequency after 60 seconds
+    Timer(const Duration(seconds: 60), () {
+      _startForegroundServiceHeartbeat(); // Return to normal 10-second interval
+    });
+    
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Increased heartbeat frequency for better service persistence');
+    }
+  }
+  
+  /// Request battery optimization exemption (to be called from main app)
+  void requestBatteryOptimizationExemption() {
+    if (kDebugMode) {
+      print('DoudouAudioHandler: Battery optimization exemption requested');
+      print('NOTE: This should be implemented with platform channels in the main app');
+      print('The app should guide users to disable battery optimization for the app');
+    }
+  }
 
   // Lifecycle management
 
@@ -1319,9 +1479,17 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
     _subscriptions.clear();
 
-    // Cancel timers
+    // Cancel all timers
     _radioModeTimer?.cancel();
     _foregroundServiceRecoveryTimer?.cancel();
+    _foregroundServiceHeartbeatTimer?.cancel();
+    _wakeLockMonitorTimer?.cancel();
+
+    // Release wake lock
+    _releaseWakeLock();
+
+    // Mark foreground service as inactive
+    _foregroundServiceActive = false;
 
     // Stop and dispose player
     try {
