@@ -113,16 +113,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           );
         }
 
-        // Listen to current track changes in real-time using MediaItem stream
+        // Use both MediaItem stream and direct access for maximum reliability
         return StreamBuilder<MediaItem?>(
           stream: appState.mediaItem,
           builder: (context, mediaItemSnapshot) {
-            final mediaItem = mediaItemSnapshot.data;
-            
-            // Convert MediaItem to Track or use currentTrack as fallback
-            final currentTrack = mediaItem != null 
-                ? appState.findTrackById(mediaItem.id) ?? audioHandler?.currentTrack
-                : audioHandler?.currentTrack;
+            return StreamBuilder<dynamic>(
+              stream: Stream.periodic(const Duration(milliseconds: 500)),
+              builder: (context, _) {
+                final mediaItem = mediaItemSnapshot.data;
+                final directTrack = audioHandler?.currentTrack;
+                
+                // Prefer direct track access for most reliable updates
+                final currentTrack = directTrack ?? 
+                    (mediaItem != null ? appState.findTrackById(mediaItem.id) : null);
 
             // Check lyrics availability when track changes
             if (currentTrack != null && currentTrack.artistName != null) {
@@ -733,8 +736,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
             ],
           ),
         );
-          }, // StreamBuilder builder
-        ); // StreamBuilder
+              }, // Periodic StreamBuilder builder
+            ); // Periodic StreamBuilder  
+          }, // MediaItem StreamBuilder builder
+        ); // MediaItem StreamBuilder
       }, // Consumer builder
     ); // Consumer
   } // build method
