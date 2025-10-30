@@ -1375,8 +1375,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
     _subscriptions.clear();
 
-    // Cancel radio mode timer
+    // Cancel all timers
     _radioModeTimer?.cancel();
+    _playbackWatchdog?.cancel();
+    _bufferingRecoveryTimer?.cancel();
 
     // Stop and dispose player
     try {
