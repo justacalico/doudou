@@ -163,6 +163,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _subscriptions.add(
       _player.positionStream.listen((position) {
         _stateController.updatePosition(position);
+        _updatePlaybackWatchdog(position);
       }),
     );
 
@@ -189,6 +190,100 @@ class DoudouAudioHandler extends BaseAudioHandler {
           .where((event) => event.processingState == ProcessingState.completed)
           .listen((_) => _handleTrackCompletion()),
     );
+
+    // Start playback watchdog
+    _startPlaybackWatchdog();
+  }
+
+  /// Update playback watchdog with current position
+  void _updatePlaybackWatchdog(Duration position) {
+    _lastKnownPosition = position;
+    _playbackStuckCount = 0; // Reset stuck counter when position advances
+  }
+
+  /// Start playback watchdog to detect stuck states
+  void _startPlaybackWatchdog() {
+    _playbackWatchdog?.cancel();
+    _playbackWatchdog = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _checkPlaybackHealth();
+    });
+  }
+
+  /// Check playback health and recover from stuck states
+  void _checkPlaybackHealth() {
+    // Only check if user intends to play and we think we're playing
+    if (!_stateController.userIntendedPlaying || 
+        _stateController.currentState != base_handler.AudioPlayerState.playing) {
+      return;
+    }
+
+    final currentPosition = _player.position;
+    
+    // Check if position has been stuck (allowing small tolerance for network buffering)
+    if ((currentPosition - _lastKnownPosition).inMilliseconds.abs() < 100) {
+      _playbackStuckCount++;
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Playback might be stuck (count: $_playbackStuckCount)');
+      }
+
+      // If stuck for too long, attempt recovery
+      if (_playbackStuckCount >= 3) { // 15 seconds of no movement
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Playback appears stuck, attempting recovery...');
+        }
+        _recoverStuckPlayback();
+      }
+    } else {
+      // Position is advancing normally
+      _lastKnownPosition = currentPosition;
+      _playbackStuckCount = 0;
+    }
+  }
+
+  /// Recover from stuck playback state
+  void _recoverStuckPlayback() async {
+    try {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Recovering stuck playback...');
+      }
+
+      // Reset stuck counter
+      _playbackStuckCount = 0;
+
+      // Try to restart playback from current position
+      final currentPosition = _player.position;
+      
+      // Stop and restart player
+      await _player.stop();
+      
+      // Small delay to allow cleanup
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Reload current track
+      final currentTrack = _stateController.currentTrack;
+      if (currentTrack != null) {
+        final streamUrl = _getStreamUrl(currentTrack);
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(streamUrl)));
+        
+        // Seek to where we were (with small offset to avoid the exact stuck position)
+        if (currentPosition.inSeconds > 5) {
+          await _player.seek(Duration(seconds: currentPosition.inSeconds - 2));
+        }
+        
+        // Resume playback
+        await _player.play();
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Successfully recovered stuck playback');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to recover stuck playback: $e');
+      }
+      _stateController.updateError('Playback recovery failed: $e');
+    }
   }
 
   /// Set up state synchronization with AudioService
