@@ -210,16 +210,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     }
   }
 
-  /// Smart UI update that tries both safe and forced approaches
-  void _smartUIUpdate(Track? track) {
-    // First try the safe method
-    _safeUpdateMediaItem(track);
-    
-    // If that failed due to foreground service issues, force the update for UI
-    if (_foregroundServiceIssues) {
-      _forceMediaItemUpdate(track);
-    }
-  }
+
 
   /// Safely update queue without triggering foreground service errors
   void _safeUpdateQueue(List<Track> tracks) {
