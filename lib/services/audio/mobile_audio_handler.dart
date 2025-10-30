@@ -215,8 +215,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
 
-    // Safely update MediaItem for AudioService notifications and lock screen
-    _safeUpdateMediaItem(track);
+    // Force MediaItem update for UI purposes (ignore foreground service issues for UI)
+    _forceMediaItemUpdate(track);
 
     // Safely update PlaybackState with correct queue index
     final currentPlaybackState = playbackState.valueOrNull ?? PlaybackState();
