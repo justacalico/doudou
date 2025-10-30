@@ -310,6 +310,19 @@ class AudioServiceIntegration {
     return null;
   }
 
+  Stream<Track?>? get currentTrackStream {
+    if (!_initialized || _audioHandler == null) return null;
+    
+    if (_audioHandler is WebAudioHandler) {
+      return (_audioHandler as WebAudioHandler).currentTrackStream;
+    } else if (_audioHandler is DesktopAudioHandler) {
+      return (_audioHandler as DesktopAudioHandler).currentTrackStream;
+    } else if (_audioHandler is DoudouAudioHandler) {
+      return (_audioHandler as DoudouAudioHandler).currentTrackStream;
+    }
+    return null;
+  }
+
   /// Additional methods that AppState expects
 
   Future<void> setGaplessPlayback(bool enabled) async {
