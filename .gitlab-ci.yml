@@ -407,6 +407,7 @@ cleanup_linux_runner:
   script:
     - echo "🧹 Cleaning up Linux runner build artifacts and caches..."
     # Kill processes first
+    - pkill -9 -f "gradle.*doudou" || true
     - pkill -9 -f "dart.*doudou" || true
     - pkill -9 -f "flutter.*doudou" || true
     - sleep 2
@@ -414,12 +415,18 @@ cleanup_linux_runner:
     - find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
     - find . -name ".dart_tool" -type d -exec rm -rf {} + 2>/dev/null || true
     - find . -name ".pub-cache-*" -type d -exec rm -rf {} + 2>/dev/null || true
+    - find . -name ".gradle-*" -type d -exec rm -rf {} + 2>/dev/null || true
     - find . -name ".flutter-plugins-dependencies" -type f -delete 2>/dev/null || true
+    # Clean up Android SDK and related artifacts
+    - rm -rf /opt/android-sdk-linux || true
+    - rm -rf android/.gradle android/.kotlin || true
     # Clean up any remaining directories
     - rm -rf /tmp/flutter_* || true
     - df -h || true
     - echo "✅ Linux runner cleanup completed"
-  timeout: 3m
+  timeout: 5m
   needs:
+    - job: "build_release_apk"
+      optional: true
     - job: "build_release_linux"
       optional: true
