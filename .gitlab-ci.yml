@@ -95,84 +95,41 @@ build_release_macos:
     - apple
   allow_failure: true
   retry:
-    max: 2
+    max: 1
     when:
       - runner_system_failure
-      - stuck_or_timeout_failure
   variables:
-    GIT_STRATEGY: none
-    JOB_WORK_DIR: "$HOME/tmp/doudou-macos-$CI_JOB_ID"
-    # Use faster compression and GitLab's fastzip feature
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 1
     ARTIFACT_COMPRESSION_LEVEL: "fastest"
     FF_USE_FASTZIP: "true"
-  cache: {}
+  cache:
+    key: "macos-deps-$CI_COMMIT_REF_SLUG-v2"
+    paths:
+      - .pub-cache/
+    policy: pull-push
   before_script:
-    - rm -rf "$JOB_WORK_DIR" || true
-    - mkdir -p "$JOB_WORK_DIR"
-    - cd "$JOB_WORK_DIR"
-    - git clone --depth 1 --branch $CI_COMMIT_REF_NAME $CI_REPOSITORY_URL .
-    - git checkout $CI_COMMIT_SHA
-    - pkill -f "gradle.*doudou" || true
-    - pkill -f "dart.*doudou" || true  
-    - sleep 2
-    - |
-      if ! command -v flutter &> /dev/null; then
-        echo "Flutter not found in PATH. Attempting to set up Flutter..."
-        if [ -d "$HOME/flutter/bin" ]; then
-          export PATH="$HOME/flutter/bin:$PATH"
-        elif [ -d "/usr/local/flutter/bin" ]; then
-          export PATH="/usr/local/flutter/bin:$PATH"
-        elif [ -d "/opt/flutter/bin" ]; then
-          export PATH="/opt/flutter/bin:$PATH"
-        else
-          echo "Flutter installation not found. Please install Flutter or update PATH."
-          exit 1
-        fi
-      fi
-    - mkdir -p "$PUB_CACHE"
+    - pkill -9 -f "gradle.*doudou" || true
+    - pkill -9 -f "dart.*doudou" || true
+    - export PATH="$HOME/flutter/bin:/usr/local/flutter/bin:/opt/flutter/bin:$PATH"
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    - rm -rf "$PUB_CACHE" || true
-    - rm -rf .gradle-*/ || true
-    - flutter clean || true
   script:
-    - flutter --version
     - flutter config --enable-macos-desktop
-    - flutter clean
-    - flutter pub get
+    - flutter pub get --no-precompile
+    - flutter build macos --release --build-number=$CI_PIPELINE_ID
+    # Create compressed artifact inline
     - |
-      if ! flutter help build | grep -q "macos"; then
-        echo "macOS build not supported in this environment (skipping)."
-        exit 0
+      if [ -d "build/macos/Build/Products/Release/doudou.app" ]; then
+        cd build/macos/Build/Products/Release
+        tar --exclude="*.dSYM" --exclude="*.framework/Versions/*/Headers" \
+            -czf "$CI_PROJECT_DIR/build/doudou-release-macos.tar.gz" doudou.app
+        echo "macOS artifact created: $(du -h "$CI_PROJECT_DIR/build/doudou-release-macos.tar.gz" | cut -f1)"
       fi
-    - flutter build macos --release
-  after_script:
-    # Create a highly compressed archive with only essential files
-    - |
-      if [ -d "$JOB_WORK_DIR/build/macos/Build/Products/Release/doudou.app" ]; then
-        echo "Creating compressed macOS artifact..."
-        cd "$JOB_WORK_DIR/build/macos/Build/Products/Release"
-        
-        # Use maximum compression with gzip (faster than bzip2)
-        # Exclude unnecessary files to reduce size
-        tar --exclude="*.dSYM" \
-            --exclude="*.framework/Versions/*/Headers" \
-            --exclude="*.framework/Versions/*/Resources/DWARF" \
-            -czf doudou-release-macos.tar.gz doudou.app
-        
-        FILE_SIZE=$(du -h doudou-release-macos.tar.gz | cut -f1)
-        echo "Compressed artifact size: $FILE_SIZE"
-        
-        mkdir -p "$CI_PROJECT_DIR/build"
-        cp doudou-release-macos.tar.gz "$CI_PROJECT_DIR/build/" 2>/dev/null || true
-      else
-        echo "Build directory not found, skipping artifact creation"
-      fi
-    - rm -rf "$JOB_WORK_DIR" || true
   artifacts:
     paths:
       - build/doudou-release-macos.tar.gz
-    expire_in: 1 hour
-    # Don't fail the job if artifact upload fails
+    expire_in: 30m
+  timeout: 25m
     when: on_success
 
 build_release_ios:
