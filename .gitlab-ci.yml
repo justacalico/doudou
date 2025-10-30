@@ -137,27 +137,22 @@ build_release_apk:
     - |
       if [[ -z "$KEYSTORE_PASSWORD" ]]; then
         echo "No keystore password provided, creating debug keystore..."
-        mkdir -p android/keystore
-        keytool -genkey -v -keystore android/keystore/debug.keystore \
-          -alias debug -keyalg RSA -keysize 2048 -validity 10000 \
+        # Create keystore in expected location (android/app/key.jks)
+        keytool -genkey -v -keystore android/app/key.jks \
+          -alias doudou -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass android -keypass android \
-          -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
-        # Create key.properties for debug keystore
-        cat > android/key.properties << EOF
-      storePassword=android
-      keyPassword=android
-      keyAlias=debug
-      storeFile=keystore/debug.keystore
-      EOF
+          -dname "CN=Doudou Debug, OU=Debug, O=OpenLyst, L=Debug, S=Debug, C=US"
+        # Set environment variables for build.gradle.kts
+        export KEYSTORE_PASSWORD=android
+        export KEY_PASSWORD=android
+        export KEY_ALIAS=doudou
       else
         echo "Using provided keystore configuration..."
-        # Use environment variables to create key.properties
-        cat > android/key.properties << EOF
-      storePassword=${KEYSTORE_PASSWORD}
-      keyPassword=${KEY_PASSWORD}
-      keyAlias=${KEY_ALIAS}
-      storeFile=${KEYSTORE_PATH}
-      EOF
+        # Copy provided keystore to expected location
+        cp "$KEYSTORE_PATH" android/app/key.jks
+        export KEYSTORE_PASSWORD="$KEYSTORE_PASSWORD"
+        export KEY_PASSWORD="$KEY_PASSWORD" 
+        export KEY_ALIAS="$KEY_ALIAS"
       fi
   script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
