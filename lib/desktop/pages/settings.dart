@@ -1851,16 +1851,19 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
       children: [
         Text(
           '$label: ${value.round()}',
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: Theme.of(context).textTheme.bodySmall, // Smaller text
         ),
-        const SizedBox(height: 8),
-        Slider(
-          value: value,
-          min: 0,
-          max: 255,
-          divisions: 255,
-          activeColor: sliderColor,
-          onChanged: onChanged,
+        const SizedBox(height: 4), // Reduced spacing
+        SizedBox(
+          height: 30, // Constrain slider height
+          child: Slider(
+            value: value,
+            min: 0,
+            max: 255,
+            divisions: 255,
+            activeColor: sliderColor,
+            onChanged: onChanged,
+          ),
         ),
       ],
     );
