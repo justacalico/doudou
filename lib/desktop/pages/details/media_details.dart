@@ -665,7 +665,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     return InkWell(
       onTap: () async {
         if (widget.mediaType == MediaType.album && kDebugMode) {
-          print('=== TRACK CLICKED ===');
+          if (kDebugMode) {
+            print('=== TRACK CLICKED ===');
+          }
           print('Track: ${track.name}');
           print('Track ID: ${track.id}');
           print('Track number: ${index + 1}');
