@@ -1,7 +1,12 @@
-# Only run pipelines on main branch and tags to conserve compute minutes
+# Run pipelines based on branch and final variable
 workflow:
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # If final is true, only run on main branch and tags
+    - if: $final == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $final == "true" && $CI_COMMIT_TAG
+    # If final is not true, run on development branch
+    - if: $final != "true" && $CI_COMMIT_BRANCH == "development"
+    # Always run on tags regardless of final variable
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
