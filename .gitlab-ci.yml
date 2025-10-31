@@ -381,7 +381,7 @@ reassemble_ios_artifact:
     # Only run if iOS build succeeded and created chunks
     - if: '$CI_JOB_NAME == "reassemble_ios_artifact"'
       exists:
-        - build/ios-chunk-*
+        - ios-chunk-*
   script:
     - |
       echo "Checking for iOS artifact chunks..."
