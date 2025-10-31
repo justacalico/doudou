@@ -182,7 +182,7 @@ class _LibraryPageState extends State<LibraryPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AlbumDetailsPage(album: album),
+                            builder: (context) => MediaDetailsPage.album(album: album),
                           ),
                         );
                       },
