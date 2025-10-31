@@ -802,162 +802,207 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                 ),
                               ),
                   
-                  // Main content area
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final currentTrack = mediaItemSnapshot.data;
-                        
-                        return Row(
-                          children: [
-                            // Left side - Album art
-                            Expanded(
-                              flex: 1,
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        // Album art
-                                        Flexible(
-                                          flex: 3,
-                                          child: LayoutBuilder(
-                                            builder: (context, artConstraints) {
-                                              final availableHeight = artConstraints.maxHeight;
-                                              final availableWidth = artConstraints.maxWidth;
-                                              final maxSize = availableHeight * 0.9;
-                                              final size = (availableWidth * 0.8).clamp(120.0, maxSize.clamp(150.0, 250.0));
-                                          return Container(
-                                            width: size,
-                                            height: size,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.surfaceVariant,
-                                            borderRadius: BorderRadius.circular(16),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.1),
-                                                blurRadius: 20,
-                                                spreadRadius: 2,
-                                              ),
-                                            ],
-                                          ),
-                                          child: currentTrack?.artUri != null
-                                              ? ClipRRect(
-                                                  borderRadius: BorderRadius.circular(16),
-                                                  child: Image.network(
-                                                    currentTrack!.artUri.toString(),
-                                                    width: size,
-                                                    height: size,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder: (context, error, stackTrace) {
-                                                      return Icon(
-                                                        Icons.music_note,
-                                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                                        size: size * 0.3,
-                                                      );
-                                                    },
-                                                  ),
-                                                )
-                                              : Icon(
-                                                  Icons.music_note,
-                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                                  size: size * 0.3,
+                              // Main content area
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      // Left side - Album art and track info
+                                      Expanded(
+                                        flex: 2,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            // Album art with enhanced design
+                                            Hero(
+                                              tag: 'album_art_${currentTrack?.id ?? 'none'}',
+                                              child: Container(
+                                                constraints: const BoxConstraints(
+                                                  maxWidth: 400,
+                                                  maxHeight: 400,
                                                 ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        
-                                        const SizedBox(height: 12),
-                                        
-                                        // Track info
-                                        Flexible(
-                                          flex: 1,
-                                          child: SingleChildScrollView(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                          Text(
-                                            currentTrack?.title ?? 'No track playing',
-                                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          
-                                          const SizedBox(height: 4),
-                                          
-                                          Text(
-                                            currentTrack?.artist ?? 'Unknown Artist',
-                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          
-                                          if (currentTrack?.album != null) ...[
-                                            const SizedBox(height: 1),
-                                            Text(
-                                              currentTrack!.album!,
-                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                child: AspectRatio(
+                                                  aspectRatio: 1.0,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(24),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
+                                                          blurRadius: 40,
+                                                          spreadRadius: 4,
+                                                          offset: const Offset(0, 16),
+                                                        ),
+                                                        BoxShadow(
+                                                          color: Colors.black.withOpacity(0.1),
+                                                          blurRadius: 20,
+                                                          spreadRadius: 0,
+                                                          offset: const Offset(0, 8),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: ClipRRect(
+                                                      borderRadius: BorderRadius.circular(24),
+                                                      child: currentTrack?.artUri != null
+                                                          ? Image.network(
+                                                              currentTrack!.artUri.toString(),
+                                                              fit: BoxFit.cover,
+                                                              errorBuilder: (context, error, stackTrace) {
+                                                                return _buildDefaultAlbumArt(context);
+                                                              },
+                                                            )
+                                                          : _buildDefaultAlbumArt(context),
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                              textAlign: TextAlign.center,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                          ],
-                                          
-                                          // Show play count if available
-                                          Consumer<AppState>(
-                                            builder: (context, appState, child) {
-                                              final track = appState.findTrackById(currentTrack?.id);
-                                              final playCount = track?.playCount;
-                                              
-                                              if (playCount != null && playCount > 0) {
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(top: 2),
-                                                  child: Text(
-                                                    '$playCount plays',
-                                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                      color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                            
+                                            const SizedBox(height: 32),
+                                            
+                                            // Track info with beautiful typography
+                                            Container(
+                                              constraints: const BoxConstraints(maxWidth: 400),
+                                              child: Column(
+                                                children: [
+                                                  // Track title
+                                                  Text(
+                                                    currentTrack?.title ?? 'No track playing',
+                                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                                      fontWeight: FontWeight.bold,
+                                                      height: 1.2,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  
+                                                  const SizedBox(height: 8),
+                                                  
+                                                  // Artist name
+                                                  Text(
+                                                    currentTrack?.artist ?? 'Unknown Artist',
+                                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                                      color: Theme.of(context).colorScheme.primary,
+                                                      fontWeight: FontWeight.w600,
                                                     ),
                                                     textAlign: TextAlign.center,
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
-                                                );
-                                              }
-                                              return const SizedBox.shrink();
-                                            },
-                                          ),
-                                              ],
+                                                  
+                                                  if (currentTrack?.album != null) ...[
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      currentTrack!.album!,
+                                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                      textAlign: TextAlign.center,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                  
+                                                  // Additional metadata
+                                                  const SizedBox(height: 12),
+                                                  Consumer<AppState>(
+                                                    builder: (context, appState, child) {
+                                                      final track = appState.findTrackById(currentTrack?.id);
+                                                      final playCount = track?.playCount;
+                                                      
+                                                      return Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          if (playCount != null && playCount > 0) ...[
+                                                            Container(
+                                                              padding: const EdgeInsets.symmetric(
+                                                                horizontal: 12,
+                                                                vertical: 4,
+                                                              ),
+                                                              decoration: BoxDecoration(
+                                                                color: Theme.of(context).colorScheme.surfaceVariant,
+                                                                borderRadius: BorderRadius.circular(16),
+                                                              ),
+                                                              child: Text(
+                                                                '$playCount plays',
+                                                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                                  fontWeight: FontWeight.w500,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(width: 8),
+                                                          ],
+                                                          // Favorite indicator
+                                                          if (track?.isFavorite == true)
+                                                            Container(
+                                                              padding: const EdgeInsets.symmetric(
+                                                                horizontal: 12,
+                                                                vertical: 4,
+                                                              ),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.red.withOpacity(0.1),
+                                                                borderRadius: BorderRadius.circular(16),
+                                                              ),
+                                                              child: Row(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  Icon(
+                                                                    Icons.favorite,
+                                                                    size: 14,
+                                                                    color: Colors.red,
+                                                                  ),
+                                                                  const SizedBox(width: 4),
+                                                                  Text(
+                                                                    'Favorite',
+                                                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                                                      color: Colors.red,
+                                                                      fontWeight: FontWeight.w500,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
+                                          ],
                                         ),
-                                      ],
-                                    );
-                                  },
+                                      ),
+                                      
+                                      const SizedBox(width: 48),
+                                      
+                                      // Right side - Tabs (Lyrics & Queue) with better styling
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          height: 500,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                                            borderRadius: BorderRadius.circular(20),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 20,
+                                                offset: const Offset(0, 8),
+                                              ),
+                                            ],
+                                          ),
+                                          child: _NowPlayingTabs(audioHandler: audioHandler),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            
-                            // Right side - Tabs (Lyrics & Queue)
-                            Expanded(
-                              flex: 1,
-                              child: _NowPlayingTabs(audioHandler: audioHandler),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
                   
                   // Bottom player controls
                   _buildNowPlayingControls(context, audioHandler),
