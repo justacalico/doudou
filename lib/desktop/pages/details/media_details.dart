@@ -512,49 +512,47 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   Widget _buildTrackList(ThemeData theme, AppState appState) {
     if (_tracks.isEmpty && !_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_note,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+      return Column(
+        children: [
+          const SizedBox(height: 64), // Add some spacing from the header
+          Icon(
+            Icons.music_note,
+            size: 64,
+            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.mediaType == MediaType.playlist ? 'No tracks in this playlist' : 'No tracks found',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.mediaType == MediaType.playlist ? 'No tracks in this playlist' : 'No tracks found',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.mediaType == MediaType.playlist 
+                ? 'Add some songs to get started'
+                : 'This album appears to be empty or the tracks couldn\'t be loaded.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
-            const SizedBox(height: 8),
-            Text(
-              widget.mediaType == MediaType.playlist 
-                  ? 'Add some songs to get started'
-                  : 'This album appears to be empty or the tracks couldn\'t be loaded.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          if (widget.mediaType == MediaType.playlist)
+            ElevatedButton.icon(
+              onPressed: () {
+                // Add tracks to playlist
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Songs'),
+            )
+          else
+            ElevatedButton.icon(
+              onPressed: _refreshTracks,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
-            const SizedBox(height: 24),
-            if (widget.mediaType == MediaType.playlist)
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Add tracks to playlist
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Add Songs'),
-              )
-            else
-              ElevatedButton.icon(
-                onPressed: _refreshTracks,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-          ],
-        ),
+        ],
       );
     }
 
@@ -577,6 +575,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       showArtist: widget.mediaType == MediaType.playlist,
       showAlbum: widget.mediaType == MediaType.playlist,
       showArtwork: widget.mediaType == MediaType.playlist,
+      shrinkWrap: true, // Important: Let the parent handle scrolling
+      physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
       onTrackTap: (track, index) async {
         if (widget.mediaType == MediaType.album && kDebugMode) {
           print('=== TRACK CLICKED ===');
