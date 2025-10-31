@@ -358,9 +358,10 @@ build_release_ios:
       fi
   artifacts:
     paths:
-      - build/ios-chunk-*
-      - build/ios-chunks.manifest
-      - build/doudou-release-ios.tar.gz
+      - ios-chunk-*
+      - ios-chunks.manifest
+      - doudou-release.ipa
+      - build/doudou-release-ios-app.tar.gz
     expire_in: 30m
     when: on_success
   timeout: 25m
