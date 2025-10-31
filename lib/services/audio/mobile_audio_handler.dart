@@ -1330,8 +1330,14 @@ class DoudouAudioHandler extends BaseAudioHandler {
           if (kDebugMode) {
             print('DoudouAudioHandler: Failed to get stream URL after $maxUrlRetries attempts');
           }
+          
+          // Cancel loading timeout on failure
+          _cancelLoadingTimeout();
+          
           _stateController.updateState(base_handler.AudioPlayerState.error);
-          _stateController.updateError('Unable to load track: ${track.name}. Please ensure the app is connected to your media server.');
+          _stateController.updateError(
+            'Unable to load "${track.name}". This may happen when using controls from the notification. Please open the app and try again.'
+          );
           return;
         }
         
