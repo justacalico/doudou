@@ -710,42 +710,28 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   body: Container(
                     width: double.infinity,
                     height: double.infinity,
-              child: Column(
-                children: [
-                  // Header with close button
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                    ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Text(
-                          'Now Playing',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        // Header with close button
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.arrow_back),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                'Now Playing',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        IconButton(
-                          onPressed: () {
-                            // Find the AnimatedDialog in the widget tree and trigger close animation
-                            final animatedDialog = context.findAncestorStateOfType<_AnimatedDialogState>();
-                            if (animatedDialog != null) {
-                              animatedDialog.closeDialog();
-                            } else {
-                              Navigator.pop(context);
-                            }
-                          },
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                  ),
                   
                   // Main content area
                   Expanded(
