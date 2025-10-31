@@ -1048,7 +1048,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           child: _NowPlayingTabs(audioHandler: audioHandler),
                                         ),
                                       ),
-                                    ],
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
