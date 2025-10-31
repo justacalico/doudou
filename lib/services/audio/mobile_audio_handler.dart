@@ -573,6 +573,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
       print('DoudouAudioHandler: Track completed');
     }
 
+    // Cancel any loading timeout
+    _cancelLoadingTimeout();
+
     // In radio mode, fetch and play similar tracks
     if (_radioModeEnabled) {
       await _handleRadioModeNext();
