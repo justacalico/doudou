@@ -1078,7 +1078,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               builder: (context, positionSnapshot) {
                 final position = positionSnapshot.data ?? Duration.zero;
                 
-                return StreamBuilder<Duration?>(
+                return StreamBuilder<Duration>(
                   stream: audioHandler?.durationStream,
                   builder: (context, durationSnapshot) {
                     final duration = durationSnapshot.data ?? Duration.zero;
