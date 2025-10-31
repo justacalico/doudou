@@ -530,8 +530,10 @@ publish_release:
       fi
       
       if [ -n "$IOS_JOB_ID" ] && [ "$IOS_STATUS" = "success" ]; then
-        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-release-ios.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Release Build\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
+        IOS_IPA_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/doudou-release.ipa"
+        IOS_APP_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-release-ios-app.tar.gz"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS IPA Release\", \"url\": \"$IOS_IPA_URL\", \"link_type\": \"package\"},"
+        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS App Bundle\", \"url\": \"$IOS_APP_URL\", \"link_type\": \"package\"},"
       fi
       
       if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
