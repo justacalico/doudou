@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import 'details/album_details.dart';
+import 'details/media_details.dart';
 import 'details/artist_details.dart';
-import 'details/playlist_details.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
