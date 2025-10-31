@@ -1235,9 +1235,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               Container(
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: IconButton(
+                                  padding: const EdgeInsets.all(8),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 44,
+                                    minHeight: 44,
+                                  ),
                                   onPressed: audioHandler != null && audioHandler.hasPrevious
                                       ? () => Provider.of<AppState>(context, listen: false).skipToPrevious()
                                       : null,
@@ -1247,11 +1252,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                         ? theme.colorScheme.onSurfaceVariant
                                         : theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
                                   ),
-                                  iconSize: 32,
+                                  iconSize: 24,
                                 ),
                               ),
                               
-                              const SizedBox(width: 20),
+                              const SizedBox(width: 16),
                               
                               // Enhanced play/pause button
                               Consumer<AppState>(
