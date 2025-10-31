@@ -216,7 +216,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                         if (kDebugMode) {
                           print('First track ID: ${_tracks[0].id}');
                         }
-                        print('First track duration: ${_tracks[0].duration}');
+                        if (kDebugMode) {
+                          print('First track duration: ${_tracks[0].duration}');
+                        }
                       }
                     }
                     await appState.playPlaylist(_tracks, 0);
