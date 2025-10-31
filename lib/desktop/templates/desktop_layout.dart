@@ -695,32 +695,21 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   }
 
   void _showNowPlayingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Consumer<AppState>(
-        builder: (context, appState, child) {
-          final audioHandler = appState.audioHandler;
-          
-          return StreamBuilder<MediaItem?>(
-            stream: audioHandler?.mediaItem,
-            builder: (context, mediaItemSnapshot) {
-              return AnimatedDialog(
-                child: Dialog(
-                  insetPadding: const EdgeInsets.all(16),
-                  child: Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: MediaQuery.of(context).size.height * 0.85,
-              constraints: const BoxConstraints(
-                minWidth: 700,
-                minHeight: 500,
-                maxWidth: 1200,
-                maxHeight: 900,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-              ),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        fullscreenDialog: true,
+        pageBuilder: (context, animation, secondaryAnimation) => Consumer<AppState>(
+          builder: (context, appState, child) {
+            final audioHandler = appState.audioHandler;
+            
+            return StreamBuilder<MediaItem?>(
+              stream: audioHandler?.mediaItem,
+              builder: (context, mediaItemSnapshot) {
+                return Scaffold(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  body: Container(
+                    width: double.infinity,
+                    height: double.infinity,
               child: Column(
                 children: [
                   // Header with close button
