@@ -705,33 +705,102 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             return StreamBuilder<MediaItem?>(
               stream: audioHandler?.mediaItem,
               builder: (context, mediaItemSnapshot) {
+                final currentTrack = mediaItemSnapshot.data;
+                
                 return Scaffold(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  body: SizedBox(
+                  body: Container(
                     width: double.infinity,
                     height: double.infinity,
-                    child: Column(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).colorScheme.surface,
+                          Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.8),
+                          Theme.of(context).colorScheme.surface,
+                        ],
+                      ),
+                    ),
+                    child: Stack(
                       children: [
-                        // Header with close button
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.arrow_back),
-                              ),
-                              const SizedBox(width: 16),
-                              Text(
-                                'Now Playing',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                        // Dynamic background blur effect
+                        if (currentTrack?.artUri != null)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: NetworkImage(currentTrack!.artUri.toString()),
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                              const Spacer(),
-                            ],
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Theme.of(context).colorScheme.surface.withOpacity(0.95),
+                                      Theme.of(context).colorScheme.surface.withOpacity(0.85),
+                                      Theme.of(context).colorScheme.surface.withOpacity(0.95),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        
+                        // Main content
+                        SafeArea(
+                          child: Column(
+                            children: [
+                              // Header with close button
+                              Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: IconButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        icon: const Icon(Icons.arrow_back_rounded),
+                                        iconSize: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Now Playing',
+                                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (currentTrack != null)
+                                            Text(
+                                              'from ${currentTrack.album ?? 'Unknown Album'}',
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                   
                   // Main content area
                   Expanded(
