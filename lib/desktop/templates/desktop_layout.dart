@@ -1326,12 +1326,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: StreamBuilder<AudioServiceRepeatMode>(
-                                  stream: audioHandler?.playbackState
-                                      .map((state) => state.repeatMode)
-                                      .cast<AudioServiceRepeatMode>(),
-                                  builder: (context, repeatSnapshot) {
-                                    final repeatMode = repeatSnapshot.data ?? AudioServiceRepeatMode.none;
+                                child: StreamBuilder<PlaybackState>(
+                                  stream: audioHandler?.playbackState,
+                                  builder: (context, playbackSnapshot) {
+                                    final playbackState = playbackSnapshot.data;
+                                    final repeatMode = playbackState?.repeatMode ?? AudioServiceRepeatMode.none;
                                     return IconButton(
                                       onPressed: audioHandler != null 
                                           ? () async {
