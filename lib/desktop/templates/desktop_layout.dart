@@ -1037,7 +1037,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               ),
                   
                               // Enhanced bottom controls
-                              _buildEnhancedNowPlayingControls(context, audioHandler),
+                              _buildNowPlayingControls(context, audioHandler),
                             ],
                           ),
                         ),
