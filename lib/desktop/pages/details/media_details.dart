@@ -556,41 +556,22 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       );
     }
 
-    return TrackListTemplate(
-      tracks: _tracks,
-      emptyStateTitle: widget.mediaType == MediaType.playlist ? 'No tracks in this playlist' : 'No tracks found',
-      emptyStateMessage: widget.mediaType == MediaType.playlist 
-          ? 'Add some songs to get started'
-          : 'This album appears to be empty or the tracks couldn\'t be loaded',
-      emptyStateAction: widget.mediaType == MediaType.playlist
-          ? ElevatedButton.icon(
-              onPressed: () {
-                // Add tracks to playlist
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Songs'),
-            )
-          : null,
-      showTrackNumber: true,
-      showArtist: widget.mediaType == MediaType.playlist,
-      showAlbum: widget.mediaType == MediaType.playlist,
-      showArtwork: widget.mediaType == MediaType.playlist,
-      onTrackTap: (track, index) async {
-        if (widget.mediaType == MediaType.album && kDebugMode) {
-          print('=== TRACK CLICKED ===');
-          print('Track: ${track.name}');
-          print('Track ID: ${track.id}');
-          print('Track number: ${index + 1}');
-          print('Album: ${widget.album!.name}');
-        }
-        await appState.playPlaylist(_tracks, index);
-        if (widget.mediaType == MediaType.album && kDebugMode) {
-          print('=== TRACK CLICK COMPLETED ===');
-        }
-      },
-      onRemoveTrack: widget.mediaType == MediaType.playlist ? (track) {
-        _removeTrackFromPlaylist(track);
-      } : null,
+    return Card(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Track list header
+          _buildTrackListHeader(theme),
+          
+          const Divider(height: 1),
+          
+          // Track list items (using Column instead of ListView for scrollable parent)
+          ...List.generate(_tracks.length, (index) {
+            final track = _tracks[index];
+            return _buildTrackItem(theme, appState, track, index);
+          }),
+        ],
+      ),
     );
   }
 
