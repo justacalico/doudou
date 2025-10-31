@@ -184,8 +184,11 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       
                       // Track list section (now part of the scrollable content)
                       _buildTrackList(theme, appState),
-                    ],
-                  ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
         );
       },
