@@ -380,7 +380,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PlaylistDetailsPage(playlist: playlist),
+              builder: (context) => MediaDetailsPage.playlist(playlist: playlist),
             ),
           );
         },
