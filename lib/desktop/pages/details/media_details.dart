@@ -668,7 +668,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           if (kDebugMode) {
             print('=== TRACK CLICKED ===');
           }
-          print('Track: ${track.name}');
+          if (kDebugMode) {
+            print('Track: ${track.name}');
+          }
           print('Track ID: ${track.id}');
           print('Track number: ${index + 1}');
           print('Album: ${widget.album!.name}');
