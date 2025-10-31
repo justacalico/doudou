@@ -1449,7 +1449,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                       color: isFavorite
                                           ? theme.colorScheme.primaryContainer.withOpacity(0.8)
                                           : theme.colorScheme.surfaceVariant.withOpacity(0.7),
-                                      borderRadius: BorderRadius.circular(20),
+                                      borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
                                         color: isFavorite
                                             ? theme.colorScheme.primary.withOpacity(0.3)
@@ -1460,12 +1460,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     child: Material(
                                       color: Colors.transparent,
                                       child: InkWell(
-                                        borderRadius: BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(16),
                                         onTap: () => appState.toggleFavorite(trackInState),
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal: 20,
-                                            vertical: 12,
+                                            horizontal: 16,
+                                            vertical: 8,
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -1477,12 +1477,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                 color: isFavorite
                                                     ? Colors.red.shade400
                                                     : theme.colorScheme.onSurfaceVariant,
-                                                size: 20,
+                                                size: 18,
                                               ),
-                                              const SizedBox(width: 8),
+                                              const SizedBox(width: 6),
                                               Text(
-                                                isFavorite ? 'Favorited' : 'Add to Favorites',
-                                                style: theme.textTheme.labelMedium?.copyWith(
+                                                isFavorite ? 'Favorited' : 'Favorite',
+                                                style: theme.textTheme.labelSmall?.copyWith(
                                                   color: isFavorite
                                                       ? theme.colorScheme.onPrimaryContainer
                                                       : theme.colorScheme.onSurfaceVariant,
