@@ -1310,8 +1310,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                             child: Center(
                                               child: isBuffering
                                                   ? SizedBox(
-                                                      width: 28,
-                                                      height: 28,
+                                                      width: 24,
+                                                      height: 24,
                                                       child: CircularProgressIndicator(
                                                         strokeWidth: 2,
                                                         valueColor: AlwaysStoppedAnimation<Color>(
@@ -1322,7 +1322,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   : Icon(
                                                       isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                                                       color: theme.colorScheme.onPrimary,
-                                                      size: 32,
+                                                      size: 28,
                                                     ),
                                             ),
                                           ),
