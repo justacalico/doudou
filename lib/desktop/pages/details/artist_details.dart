@@ -483,7 +483,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AlbumDetailsPage(album: album),
+            builder: (context) => MediaDetailsPage.album(album: album),
           ),
         );
       },
