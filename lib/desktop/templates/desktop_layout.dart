@@ -869,7 +869,23 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                               );
                                                               },
                                                             )
-                                                          : _buildDefaultAlbumArt(context),
+                                                          : Container(
+                                                              decoration: BoxDecoration(
+                                                                gradient: LinearGradient(
+                                                                  begin: Alignment.topLeft,
+                                                                  end: Alignment.bottomRight,
+                                                                  colors: [
+                                                                    Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                                                    Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              child: Icon(
+                                                                Icons.music_note_rounded,
+                                                                size: 120,
+                                                                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                                              ),
+                                                            ),
                                                     ),
                                                   ),
                                                 ),
