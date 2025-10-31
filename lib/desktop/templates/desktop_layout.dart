@@ -1162,18 +1162,65 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           
                           const SizedBox(height: 24),
                           
-                          // Player controls
+                          // Enhanced player controls
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              IconButton(
-                                onPressed: audioHandler != null && audioHandler.hasPrevious
-                                    ? () => Provider.of<AppState>(context, listen: false).skipToPrevious()
-                                    : null,
-                                icon: const Icon(Icons.skip_previous),
-                                iconSize: 36,
+                              // Shuffle button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: StreamBuilder<bool>(
+                                  stream: audioHandler?.shuffleModeEnabledStream,
+                                  builder: (context, shuffleSnapshot) {
+                                    final isShuffled = shuffleSnapshot.data ?? false;
+                                    return IconButton(
+                                      onPressed: audioHandler != null 
+                                          ? () => audioHandler.setShuffleMode(
+                                              isShuffled 
+                                                  ? AudioServiceShuffleMode.none 
+                                                  : AudioServiceShuffleMode.all
+                                            )
+                                          : null,
+                                      icon: Icon(
+                                        Icons.shuffle_rounded,
+                                        color: isShuffled 
+                                            ? theme.colorScheme.primary 
+                                            : theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                      iconSize: 24,
+                                    );
+                                  },
+                                ),
                               ),
+                              
                               const SizedBox(width: 16),
+                              
+                              // Previous button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: IconButton(
+                                  onPressed: audioHandler != null && audioHandler.hasPrevious
+                                      ? () => Provider.of<AppState>(context, listen: false).skipToPrevious()
+                                      : null,
+                                  icon: Icon(
+                                    Icons.skip_previous_rounded,
+                                    color: audioHandler != null && audioHandler.hasPrevious
+                                        ? theme.colorScheme.onSurfaceVariant
+                                        : theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                  ),
+                                  iconSize: 32,
+                                ),
+                              ),
+                              
+                              const SizedBox(width: 20),
+                              
+                              // Enhanced play/pause button
                               Consumer<AppState>(
                                 builder: (context, appState, child) {
                                   return StreamBuilder<PlaybackState>(
@@ -1183,70 +1230,138 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                       final isPlaying = playbackState?.playing == true;
                                       final isBuffering = playbackState?.processingState == AudioProcessingState.buffering;
                                       
-                                      // Debug the button conditions every time the widget rebuilds
-                                      if (kDebugMode) {
-                                        print('=== DESKTOP BUTTON REBUILD ===');
-                                        print('DateTime: ${DateTime.now()}');
-                                        print('audioHandler != null: ${audioHandler != null}');
-                                        print('currentTrack != null: ${currentTrack != null}');
-                                        print('isPlaying: $isPlaying');
-                                        print('isBuffering: $isBuffering');
-                                        print('Button should be enabled: ${audioHandler != null && currentTrack != null}');
-                                      }
-                                      
-                                      return IconButton(
-                                        onPressed: audioHandler != null && currentTrack != null
-                                            ? () {
-                                                if (kDebugMode) {
-                                                  print('=== DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
-                                                  print('DateTime: ${DateTime.now()}');
-                                                  print('isPlaying: $isPlaying');
-                                                  print('isBuffering: $isBuffering');
-                                                  print('currentTrack: ${currentTrack.displayTitle}');
-                                                  print('audioHandler: ${audioHandler != null}');
-                                                  print('userIntendedPlaying: ${audioHandler?.userIntendedPlaying}');
-                                                  print('audioHandler.playerState: ${audioHandler?.playerState}');
-                                                  print('Button conditions met - about to call playPause');
-                                                  print('About to call playPause()...');
-                                                }
-                                                try {
-                                                  appState.playPause();
-                                                  if (kDebugMode) {
-                                                    print('playPause() call completed successfully');
-                                                  }
-                                                } catch (e) {
-                                                  if (kDebugMode) {
-                                                    print('ERROR calling playPause(): $e');
-                                                  }
-                                                }
-                                              }
-                                            : () {
-                                                if (kDebugMode) {
-                                                  print('=== DESKTOP PLAY/PAUSE BUTTON DISABLED ===');
-                                                  print('DateTime: ${DateTime.now()}');
-                                                  print('audioHandler: ${audioHandler != null}');
-                                                  print('currentTrack: ${currentTrack != null}');
-                                                  print('isBuffering: $isBuffering');
-                                                  print('Button is disabled because conditions not met');
-                                                }
-                                              },
-                                        icon: Icon(
-                                          isPlaying ? Icons.pause : Icons.play_arrow,
-                                          color: theme.colorScheme.primary,
+                                      return Container(
+                                        width: 64,
+                                        height: 64,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              theme.colorScheme.primary,
+                                              theme.colorScheme.primary.withOpacity(0.8),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(32),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: theme.colorScheme.primary.withOpacity(0.4),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
                                         ),
-                                        iconSize: 36,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(32),
+                                            onTap: audioHandler != null && currentTrack != null
+                                                ? () {
+                                                    if (kDebugMode) {
+                                                      print('=== ENHANCED DESKTOP PLAY/PAUSE BUTTON CLICKED ===');
+                                                    }
+                                                    try {
+                                                      appState.playPause();
+                                                    } catch (e) {
+                                                      if (kDebugMode) {
+                                                        print('ERROR calling playPause(): $e');
+                                                      }
+                                                    }
+                                                  }
+                                                : null,
+                                            child: Center(
+                                              child: isBuffering
+                                                  ? SizedBox(
+                                                      width: 28,
+                                                      height: 28,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                                          theme.colorScheme.onPrimary,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : Icon(
+                                                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                      color: theme.colorScheme.onPrimary,
+                                                      size: 32,
+                                                    ),
+                                            ),
+                                          ),
+                                        ),
                                       );
                                     },
                                   );
                                 },
                               ),
+                              
+                              const SizedBox(width: 20),
+                              
+                              // Next button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: IconButton(
+                                  onPressed: audioHandler != null && audioHandler.hasNext
+                                      ? () => Provider.of<AppState>(context, listen: false).skipToNext()
+                                      : null,
+                                  icon: Icon(
+                                    Icons.skip_next_rounded,
+                                    color: audioHandler != null && audioHandler.hasNext
+                                        ? theme.colorScheme.onSurfaceVariant
+                                        : theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                  ),
+                                  iconSize: 32,
+                                ),
+                              ),
+                              
                               const SizedBox(width: 16),
-                              IconButton(
-                                onPressed: audioHandler != null && audioHandler.hasNext
-                                    ? () => Provider.of<AppState>(context, listen: false).skipToNext()
-                                    : null,
-                                icon: const Icon(Icons.skip_next),
-                                iconSize: 36,
+                              
+                              // Repeat button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: StreamBuilder<AudioServiceRepeatMode>(
+                                  stream: audioHandler?.playbackState
+                                      .map((state) => state.repeatMode)
+                                      .cast<AudioServiceRepeatMode>(),
+                                  builder: (context, repeatSnapshot) {
+                                    final repeatMode = repeatSnapshot.data ?? AudioServiceRepeatMode.none;
+                                    return IconButton(
+                                      onPressed: audioHandler != null 
+                                          ? () async {
+                                              switch (repeatMode) {
+                                                case AudioServiceRepeatMode.none:
+                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                                  break;
+                                                case AudioServiceRepeatMode.all:
+                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                                  break;
+                                                case AudioServiceRepeatMode.one:
+                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                                  break;
+                                                case AudioServiceRepeatMode.group:
+                                                  await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                                  break;
+                                              }
+                                            }
+                                          : null,
+                                      icon: Icon(
+                                        repeatMode == AudioServiceRepeatMode.one
+                                            ? Icons.repeat_one_rounded
+                                            : Icons.repeat_rounded,
+                                        color: repeatMode == AudioServiceRepeatMode.none
+                                            ? theme.colorScheme.onSurfaceVariant.withOpacity(0.5)
+                                            : theme.colorScheme.primary,
+                                      ),
+                                      iconSize: 24,
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
