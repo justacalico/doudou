@@ -814,9 +814,18 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minWidth: constraints.maxWidth,
+                                          ),
+                                          child: IntrinsicWidth(
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
                                       // Left side - Album art and track info
                                       Expanded(
                                         flex: 2,
