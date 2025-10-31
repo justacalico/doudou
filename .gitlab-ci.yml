@@ -385,9 +385,8 @@ reassemble_ios_artifact:
   script:
     - |
       echo "Checking for iOS artifact chunks..."
-      if [ -f "build/ios-chunks.manifest" ]; then
-        echo "Found chunk manifest, reassembling iOS artifact..."
-        cd build
+      if [ -f "ios-chunks.manifest" ]; then
+        echo "Found chunk manifest, reassembling iOS IPA..."
         
         # Verify all chunks exist
         while IFS= read -r chunk; do
@@ -398,31 +397,34 @@ reassemble_ios_artifact:
           echo "✓ Found chunk: $chunk"
         done < ios-chunks.manifest
         
-        # Reassemble
-        cat ios-chunk-* > doudou-release-ios.tar.gz
+        # Reassemble IPA
+        cat ios-chunk-* > doudou-release.ipa
         
-        REASSEMBLED_SIZE=$(du -sh doudou-release-ios.tar.gz | cut -f1)
-        echo "Reassembled artifact size: $REASSEMBLED_SIZE"
+        REASSEMBLED_SIZE=$(du -sh doudou-release.ipa | cut -f1)
+        echo "Reassembled IPA size: $REASSEMBLED_SIZE"
         
-        # Verify integrity
-        if tar -tzf doudou-release-ios.tar.gz > /dev/null 2>&1; then
-          echo "✅ iOS artifact reassembled and verified successfully"
+        # Verify IPA integrity (it's a ZIP file)
+        if unzip -t doudou-release.ipa > /dev/null 2>&1; then
+          echo "✅ iOS IPA reassembled and verified successfully"
         else
-          echo "❌ Reassembled artifact is corrupted"
+          echo "❌ Reassembled IPA is corrupted"
           exit 1
         fi
         
         # Clean up chunks
         rm -f ios-chunk-* ios-chunks.manifest
-      elif [ -f "build/doudou-release-ios.tar.gz" ]; then
-        echo "iOS artifact was not split, already complete"
+      elif [ -f "doudou-release.ipa" ]; then
+        echo "iOS IPA was not split, already complete"
+      elif [ -f "build/doudou-release-ios-app.tar.gz" ]; then
+        echo "iOS app bundle archive found as backup"
       else
         echo "No iOS artifacts found"
         exit 1
       fi
   artifacts:
     paths:
-      - build/doudou-release-ios.tar.gz
+      - doudou-release.ipa
+      - build/doudou-release-ios-app.tar.gz
     expire_in: 30m
   timeout: 5m
 
