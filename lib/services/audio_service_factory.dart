@@ -48,8 +48,14 @@ class AudioServiceFactory {
           config: audio_service.AudioServiceConfig(
             androidNotificationChannelId: 'com.doudoubox.audio',
             androidNotificationChannelName: 'Doudou Audio',
-            androidNotificationOngoing: true,
-            androidStopForegroundOnPause: true,
+            androidNotificationChannelDescription: 'Playing audio',
+            androidShowNotificationBadge: true,
+            androidNotificationClickStartsActivity: true,
+            androidStopForegroundOnPause: false, // CRITICAL - don't stop foreground on pause
+            androidNotificationIcon: 'mipmap/launcher_icon', // Use app icon
+            preloadArtwork: true,
+            fastForwardInterval: const Duration(seconds: 10),
+            rewindInterval: const Duration(seconds: 10),
           ),
         );
         if (kDebugMode) {

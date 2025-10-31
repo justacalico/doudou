@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
@@ -89,6 +90,14 @@ class DoudouApp extends StatelessWidget {
             primaryColor: CupertinoColors.systemPurple,
             scaffoldBackgroundColor: CupertinoColors.systemBackground,
           ),
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', 'US'),
+          ],
           home: Consumer<AppState>(
             builder: (context, appState, child) {
               // Show loading screen while initializing

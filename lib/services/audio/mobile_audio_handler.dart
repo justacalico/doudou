@@ -3,7 +3,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../models/jellyfin_models.dart';
 
 import '../media_service_manager.dart';
@@ -45,6 +47,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
   // Power management
   bool _wakeLockActive = false;
   Timer? _wakeLockMonitorTimer;
+  
+  // Platform channel for battery optimization
+  static const MethodChannel _batteryChannel = MethodChannel('app.channel/battery');
 
   // Constructor
   DoudouAudioHandler({required MediaServiceManager mediaServiceManager})
@@ -91,7 +96,20 @@ class DoudouAudioHandler extends BaseAudioHandler {
     // This helps prevent Android from aggressively killing the service
     Future.microtask(() async {
       try {
-        // This would be implemented using platform channels in a real app
+        // Check if battery optimization is already ignored
+        final isIgnored = await isBatteryOptimizationIgnored();
+        
+        if (!isIgnored) {
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Battery optimization is not ignored, requesting exemption...');
+          }
+          await requestBatteryOptimizationExemption();
+        } else {
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Battery optimization is already ignored');
+          }
+        }
+        
         if (kDebugMode) {
           print('DoudouAudioHandler: Power management optimizations initialized');
         }
@@ -192,6 +210,29 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _foregroundServiceActive = false;
     }
   }
+
+  /// Ultra-aggressive foreground service maintenance
+  void _ultraAggressiveForegroundMaintenance() {
+    if (_stateController.currentState == base_handler.AudioPlayerState.playing) {
+      // Rapid-fire multiple playback state updates
+      for (int i = 0; i < 5; i++) {
+        Future.delayed(Duration(milliseconds: 50 * i), () {
+          try {
+            final state = _createPlaybackState(
+              base_handler.AudioPlayerState.playing,
+              _stateController.position,
+              _stateController.speed,
+            );
+            playbackState.add(state);
+          } catch (e) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Ultra-aggressive update $i failed: $e');
+            }
+          }
+        });
+      }
+    }
+  }
   
   /// Check and maintain power management settings
   void _checkPowerManagement() {
@@ -211,14 +252,13 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
   
   /// Request wake lock to prevent device sleep during playback
-  void _requestWakeLock() {
+  void _requestWakeLock() async {
     try {
-      // Wake lock is implicitly handled by AudioService when in foreground
-      // but we can add additional measures here if needed
+      await WakelockPlus.enable();
       _wakeLockActive = true;
       
       if (kDebugMode) {
-        print('DoudouAudioHandler: Wake lock requested');
+        print('DoudouAudioHandler: Wake lock enabled');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -228,9 +268,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
   
   /// Release wake lock when not needed
-  void _releaseWakeLock() {
+  void _releaseWakeLock() async {
     if (_wakeLockActive) {
       try {
+        await WakelockPlus.disable();
         _wakeLockActive = false;
         
         if (kDebugMode) {
@@ -507,6 +548,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
           // Aggressively ensure foreground service is running when playing
           _attemptForegroundService();
           _ensureWakeLock();
+          _ultraAggressiveForegroundMaintenance();
         } else {
           // Check if we should auto-continue playback
           if (_stateController.userIntendedPlaying &&
@@ -686,6 +728,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
         MediaAction.play,
         MediaAction.skipToNext,
         MediaAction.skipToPrevious,
+        MediaAction.playPause,
         
         // Queue management
         MediaAction.skipToQueueItem,
@@ -696,6 +739,8 @@ class DoudouAudioHandler extends BaseAudioHandler {
         MediaAction.playFromMediaId,
         MediaAction.playFromSearch,
         MediaAction.playFromUri,
+        MediaAction.setRating,
+        MediaAction.setCaptioningEnabled,
       },
       androidCompactActionIndices: controls.length >= 5 
           ? const [1, 2, 3] // Skip rewind/FF in compact view if present
@@ -1664,11 +1709,40 @@ class DoudouAudioHandler extends BaseAudioHandler {
   }
   
   /// Request battery optimization exemption (to be called from main app)
-  void requestBatteryOptimizationExemption() {
-    if (kDebugMode) {
-      print('DoudouAudioHandler: Battery optimization exemption requested');
-      print('NOTE: This should be implemented with platform channels in the main app');
-      print('The app should guide users to disable battery optimization for the app');
+  Future<void> requestBatteryOptimizationExemption() async {
+    try {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Requesting battery optimization exemption...');
+      }
+      
+      await _batteryChannel.invokeMethod('requestBatteryOptimizationExemption');
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Battery optimization exemption request sent');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to request battery optimization exemption: $e');
+        print('The app should guide users to manually disable battery optimization');
+      }
+    }
+  }
+  
+  /// Check if battery optimization is ignored
+  Future<bool> isBatteryOptimizationIgnored() async {
+    try {
+      final bool isIgnored = await _batteryChannel.invokeMethod('isBatteryOptimizationIgnored');
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Battery optimization ignored: $isIgnored');
+      }
+      
+      return isIgnored;
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Failed to check battery optimization status: $e');
+      }
+      return false;
     }
   }
 
