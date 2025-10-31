@@ -200,7 +200,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 ElevatedButton.icon(
                   onPressed: _tracks.isNotEmpty ? () async {
                     if (widget.mediaType == MediaType.album && kDebugMode) {
-                      print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON CLICKED ===');
+                      if (kDebugMode) {
+                        print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON CLICKED ===');
+                      }
                       print('${widget.mediaType.name}: $_title');
                       print('Track count: ${_tracks.length}');
                       print('First track: ${_tracks.isNotEmpty ? _tracks[0].name : "None"}');
