@@ -896,8 +896,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                     ),
                   ),
                 );
-            },
-          ),
+              },
+            );
+          },
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
