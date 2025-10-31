@@ -745,7 +745,7 @@ class _SearchPageState extends State<SearchPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AlbumDetailsPage(album: item),
+            builder: (context) => MediaDetailsPage.album(album: item),
           ),
         );
         break;
