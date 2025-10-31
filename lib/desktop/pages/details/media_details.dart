@@ -223,7 +223,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     }
                     await appState.playPlaylist(_tracks, 0);
                     if (widget.mediaType == MediaType.album && kDebugMode) {
-                      print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON COMPLETED ===');
+                      if (kDebugMode) {
+                        print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON COMPLETED ===');
+                      }
                     }
                   } : null,
                   icon: const Icon(Icons.play_arrow),
