@@ -619,7 +619,7 @@ class _TracksPageState extends State<TracksPage> {
     // Navigate to album details page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => AlbumDetailsPage(album: album),
+        builder: (context) => MediaDetailsPage.album(album: album),
       ),
     );
   }
