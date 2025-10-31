@@ -28,6 +28,10 @@ class DoudouAudioHandler extends BaseAudioHandler {
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
+  
+  // Loading timeout management
+  Timer? _loadingTimeoutTimer;
+  static const Duration _loadingTimeout = Duration(seconds: 30);
 
   // Foreground service management - ENHANCED
   int _foregroundServiceFailureCount = 0;
@@ -555,6 +559,11 @@ class DoudouAudioHandler extends BaseAudioHandler {
   void _handleProcessingStateChange(ProcessingState state) {
     if (state == ProcessingState.ready) {
       _stateController.clearError();
+      // Cancel loading timeout when track is ready
+      _cancelLoadingTimeout();
+    } else if (state == ProcessingState.completed) {
+      // Cancel loading timeout when track completes
+      _cancelLoadingTimeout();
     }
   }
 
@@ -1234,6 +1243,9 @@ class DoudouAudioHandler extends BaseAudioHandler {
       // Reset failure count on manual skips (user interaction)
       _foregroundServiceFailureCount = 0;
 
+      // Ensure media service is ready before attempting to play
+      await _ensureMediaServiceReady();
+
       await _playTrackAtIndex(index);
     } catch (e) {
       if (kDebugMode) {
@@ -1242,8 +1254,48 @@ class DoudouAudioHandler extends BaseAudioHandler {
       _stateController.updateError('Skip failed: $e');
     }
   }
+  
+  /// Ensure media service manager is ready for background operations
+  Future<void> _ensureMediaServiceReady() async {
+    try {
+      // Add a small delay to ensure the service has time to respond
+      // This is especially important when called from background/notification context
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Test the media service manager by trying to get a simple value
+      final currentTrack = _stateController.currentTrack;
+      if (currentTrack != null) {
+        try {
+          // Test if we can generate URLs - this will fail if service is not ready
+          final testUrl = _mediaServiceManager.getStreamUrl(currentTrack.id);
+          if (testUrl.isEmpty) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Media service returned empty URL - may not be ready');
+            }
+            // Add additional delay for service to become ready
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Media service test failed: $e');
+          }
+          // Add additional delay for service to become ready
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      }
+      
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Media service readiness check completed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Media service readiness check failed: $e');
+      }
+      // Don't throw - this is just a precaution
+    }
+  }
 
-  /// Play track at specific queue index
+  /// Play track at specific queue index with enhanced error handling
   Future<void> _playTrackAtIndex(int index) async {
     final queue = _stateController.queue;
     final track = queue[index];
@@ -1251,8 +1303,45 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateCurrentIndex(index);
     _stateController.updateCurrentTrack(track);
 
-    final streamUrl = _getStreamUrl(track);
-    await _loadAndPlayTrack(streamUrl);
+    int urlRetryCount = 0;
+    const maxUrlRetries = 3;
+    const urlRetryDelay = Duration(milliseconds: 300);
+    
+    while (urlRetryCount <= maxUrlRetries) {
+      try {
+        final streamUrl = _getStreamUrl(track);
+        
+        if (streamUrl.isEmpty) {
+          throw Exception('Stream URL is empty');
+        }
+        
+        await _loadAndPlayTrack(streamUrl);
+        return; // Success
+        
+      } catch (e) {
+        urlRetryCount++;
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: URL generation attempt $urlRetryCount failed for ${track.name}: $e');
+        }
+        
+        if (urlRetryCount > maxUrlRetries) {
+          // All retries exhausted
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Failed to get stream URL after $maxUrlRetries attempts');
+          }
+          _stateController.updateState(base_handler.AudioPlayerState.error);
+          _stateController.updateError('Unable to load track: ${track.name}. Please ensure the app is connected to your media server.');
+          return;
+        }
+        
+        // Wait before retrying URL generation
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Retrying URL generation in ${urlRetryDelay.inMilliseconds}ms...');
+        }
+        await Future.delayed(urlRetryDelay);
+      }
+    }
   }
 
   /// Load and play track from URL
@@ -1264,62 +1353,168 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _stateController.updateState(base_handler.AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
 
+    // Start loading timeout timer
+    _startLoadingTimeout();
+
     // Run loading operation asynchronously
     _performLoadAndPlayTrack(url);
   }
-
-  Future<void> _performLoadAndPlayTrack(String url) async {
-    try {
-      // Set audio source
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Audio source set successfully');
-      }
-
-      // Only start playback if user intended to play
-      if (_stateController.userIntendedPlaying) {
-        // Try to handle foreground service before starting playback
-        await _attemptForegroundService();
-
-        await _player.play();
+  
+  /// Start loading timeout to prevent indefinite loading states
+  void _startLoadingTimeout() {
+    _loadingTimeoutTimer?.cancel();
+    _loadingTimeoutTimer = Timer(_loadingTimeout, () {
+      if (_stateController.currentState == base_handler.AudioPlayerState.loading) {
         if (kDebugMode) {
-          print('DoudouAudioHandler: Playback started successfully');
+          print('DoudouAudioHandler: Loading timeout reached - attempting recovery');
         }
-      } else {
-        if (kDebugMode) {
-          print(
-            'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
-          );
-        }
-        _stateController.updateState(base_handler.AudioPlayerState.paused);
+        
+        _stateController.updateState(base_handler.AudioPlayerState.error);
+        _stateController.updateError('Track loading timed out. Please try again or check your connection.');
+        
+        // Try to recover by attempting to play again
+        _attemptLoadingRecovery();
       }
-    } catch (e) {
+    });
+  }
+  
+  /// Cancel loading timeout when loading succeeds or fails
+  void _cancelLoadingTimeout() {
+    _loadingTimeoutTimer?.cancel();
+    _loadingTimeoutTimer = null;
+  }
+  
+  /// Attempt to recover from loading timeout by retrying current track
+  void _attemptLoadingRecovery() {
+    final currentTrack = _stateController.currentTrack;
+    if (currentTrack != null && _stateController.userIntendedPlaying) {
       if (kDebugMode) {
-        print('DoudouAudioHandler: Load and play failed: $e');
+        print('DoudouAudioHandler: Attempting loading recovery for: ${currentTrack.name}');
       }
-      _stateController.updateState(base_handler.AudioPlayerState.error);
-      _stateController.updateUserIntent(false);
-      _stateController.updateError('Failed to load track: $e');
+      
+      Future.delayed(const Duration(seconds: 2), () {
+        if (_stateController.currentState == base_handler.AudioPlayerState.error) {
+          try {
+            final streamUrl = _getStreamUrl(currentTrack);
+            _loadAndPlayTrack(streamUrl);
+          } catch (e) {
+            if (kDebugMode) {
+              print('DoudouAudioHandler: Loading recovery failed: $e');
+            }
+          }
+        }
+      });
     }
   }
 
-  /// Get stream URL for track
-  String _getStreamUrl(Track track) {
-    // Try direct stream first (no transcoding)
-    final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
-    if (directUrl.isNotEmpty) {
-      if (kDebugMode) {
-        print('DoudouAudioHandler: Using direct stream URL: $directUrl');
-      }
-      return directUrl;
-    }
+  Future<void> _performLoadAndPlayTrack(String url) async {
+    int retryCount = 0;
+    const maxRetries = 2;
+    const retryDelay = Duration(milliseconds: 500);
+    
+    while (retryCount <= maxRetries) {
+      try {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Setting audio source (attempt ${retryCount + 1}): $url');
+        }
+        
+        // Set audio source
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Audio source set successfully');
+        }
 
-    // Fallback to transcoded stream
-    final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
-    if (kDebugMode) {
-      print('DoudouAudioHandler: Using transcoded stream URL: $transcodedUrl');
+        // Only start playback if user intended to play
+        if (_stateController.userIntendedPlaying) {
+          // Try to handle foreground service before starting playback
+          await _attemptForegroundService();
+
+          await _player.play();
+          if (kDebugMode) {
+            print('DoudouAudioHandler: Playback started successfully');
+          }
+        } else {
+          if (kDebugMode) {
+            print(
+              'DoudouAudioHandler: Audio loaded but not playing (user did not intend to play)',
+            );
+          }
+          _stateController.updateState(base_handler.AudioPlayerState.paused);
+        }
+        
+        // Cancel loading timeout on success
+        _cancelLoadingTimeout();
+        
+        // Success - break out of retry loop
+        return;
+        
+      } catch (e) {
+        retryCount++;
+        
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Load and play attempt $retryCount failed: $e');
+        }
+        
+        if (retryCount > maxRetries) {
+          // All retries exhausted
+          if (kDebugMode) {
+            print('DoudouAudioHandler: All retry attempts exhausted');
+          }
+          
+          // Cancel loading timeout on failure
+          _cancelLoadingTimeout();
+          
+          _stateController.updateState(base_handler.AudioPlayerState.error);
+          _stateController.updateUserIntent(false);
+          _stateController.updateError('Failed to load track after $maxRetries retries: $e');
+          return;
+        }
+        
+        // Wait before retrying
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Retrying in ${retryDelay.inMilliseconds}ms...');
+        }
+        await Future.delayed(retryDelay);
+      }
     }
-    return transcodedUrl;
+  }
+
+  /// Get stream URL for track with enhanced error handling
+  String _getStreamUrl(Track track) {
+    try {
+      // Try direct stream first (no transcoding)
+      final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+      if (directUrl.isNotEmpty) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Using direct stream URL: $directUrl');
+        }
+        return directUrl;
+      }
+
+      // Fallback to transcoded stream
+      final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
+      if (transcodedUrl.isNotEmpty) {
+        if (kDebugMode) {
+          print('DoudouAudioHandler: Using transcoded stream URL: $transcodedUrl');
+        }
+        return transcodedUrl;
+      }
+      
+      // If both methods return empty, this is likely a background service issue
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Both stream URL methods returned empty - possible background service issue');
+      }
+      
+      throw Exception('Unable to generate stream URL for track: ${track.name}');
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('DoudouAudioHandler: Error getting stream URL for ${track.name}: $e');
+      }
+      
+      // Re-throw to be handled by the calling method
+      throw Exception('Failed to get stream URL: $e');
+    }
   }
 
   // Queue management
@@ -1486,6 +1681,7 @@ class DoudouAudioHandler extends BaseAudioHandler {
     _foregroundServiceRecoveryTimer?.cancel();
     _foregroundServiceHeartbeatTimer?.cancel();
     _wakeLockMonitorTimer?.cancel();
+    _loadingTimeoutTimer?.cancel();
 
     // Release wake lock
     _releaseWakeLock();
