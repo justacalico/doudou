@@ -1365,6 +1365,168 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               ),
                             ],
                           ),
+                          
+                          const SizedBox(height: 32),
+                          
+                          // Additional controls row with favorites
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Favorites button
+                              Consumer<AppState>(
+                                builder: (context, appState, child) {
+                                  if (currentTrack == null) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  
+                                  return StreamBuilder<bool>(
+                                    stream: appState.isFavorite(currentTrack.jellyfinId),
+                                    builder: (context, favoriteSnapshot) {
+                                      final isFavorite = favoriteSnapshot.data ?? false;
+                                      
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: isFavorite
+                                              ? theme.colorScheme.primaryContainer.withOpacity(0.8)
+                                              : theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: isFavorite
+                                                ? theme.colorScheme.primary.withOpacity(0.3)
+                                                : Colors.transparent,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(20),
+                                            onTap: () => appState.toggleFavorite(currentTrack.jellyfinId),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 20,
+                                                vertical: 12,
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    isFavorite 
+                                                        ? Icons.favorite_rounded
+                                                        : Icons.favorite_border_rounded,
+                                                    color: isFavorite
+                                                        ? Colors.red.shade400
+                                                        : theme.colorScheme.onSurfaceVariant,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    isFavorite ? 'Favorited' : 'Add to Favorites',
+                                                    style: theme.textTheme.labelMedium?.copyWith(
+                                                      color: isFavorite
+                                                          ? theme.colorScheme.onPrimaryContainer
+                                                          : theme.colorScheme.onSurfaceVariant,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              
+                              const SizedBox(width: 16),
+                              
+                              // Queue button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(20),
+                                    onTap: () {
+                                      // TODO: Show queue
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.queue_music_rounded,
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Queue',
+                                            style: theme.textTheme.labelMedium?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              
+                              const SizedBox(width: 16),
+                              
+                              // Lyrics button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(20),
+                                    onTap: () {
+                                      // TODO: Show lyrics
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.lyrics_rounded,
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Lyrics',
+                                            style: theme.textTheme.labelMedium?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     );
