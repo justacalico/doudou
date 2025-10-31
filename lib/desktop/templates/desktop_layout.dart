@@ -752,16 +752,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                         
                         // Main content
                         SafeArea(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return SingleChildScrollView(
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight,
-                                  ),
-                                  child: IntrinsicHeight(
-                                    child: Column(
-                                      children: [
+                          child: Column(
+                            children: [
                               // Header with close button
                               Padding(
                                 padding: const EdgeInsets.all(24),
