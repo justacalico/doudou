@@ -1172,10 +1172,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: StreamBuilder<bool>(
-                                  stream: audioHandler?.shuffleModeEnabledStream,
-                                  builder: (context, shuffleSnapshot) {
-                                    final isShuffled = shuffleSnapshot.data ?? false;
+                                child: StreamBuilder<PlaybackState>(
+                                  stream: audioHandler?.playbackState,
+                                  builder: (context, playbackSnapshot) {
+                                    final playbackState = playbackSnapshot.data;
+                                    final isShuffled = playbackState?.shuffleMode == AudioServiceShuffleMode.all;
                                     return IconButton(
                                       onPressed: audioHandler != null 
                                           ? () => audioHandler.setShuffleMode(
