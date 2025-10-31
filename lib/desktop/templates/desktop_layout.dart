@@ -1114,32 +1114,32 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                         : 0.0;
                     
                     return Container(
-                      margin: const EdgeInsets.all(32),
-                      padding: const EdgeInsets.all(24),
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surface.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
-                          // Enhanced progress bar with time labels
+                          // Compact progress bar with time labels
                           Container(
-                            constraints: const BoxConstraints(maxWidth: 600),
+                            constraints: const BoxConstraints(maxWidth: 500),
                             child: Column(
                               children: [
                                 // Progress slider
                                 SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 8,
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+                                    trackHeight: 6,
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
                                     activeTrackColor: theme.colorScheme.primary,
                                     inactiveTrackColor: theme.colorScheme.surfaceVariant,
                                     thumbColor: theme.colorScheme.primary,
@@ -1160,13 +1160,13 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                 
                                 // Time labels
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         _formatDuration(position),
-                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                        style: theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurfaceVariant,
                                           fontFamily: 'monospace',
                                           fontWeight: FontWeight.w500,
@@ -1174,7 +1174,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                       ),
                                       Text(
                                         _formatDuration(duration),
-                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                        style: theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurfaceVariant,
                                           fontFamily: 'monospace',
                                           fontWeight: FontWeight.w500,
@@ -1187,9 +1187,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             ),
                           ),
                           
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           
-                          // Enhanced player controls
+                          // Compact player controls
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
