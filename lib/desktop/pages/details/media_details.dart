@@ -158,38 +158,28 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           showBackButton: true,
           title: _title,
           selectedIndex: _selectedIndex,
-          child: Column(
-            children: [
-              // Fixed header section
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Action buttons row
-                    _buildActionButtons(theme),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Media header
-                    _buildMediaHeader(theme, appState),
-                  ],
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Action buttons row
+                      _buildActionButtons(theme),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Media header
+                      _buildMediaHeader(theme, appState),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Track list section (now part of the scrollable content)
+                      _buildTrackList(theme, appState),
+                    ],
+                  ),
                 ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Scrollable track list section
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildTrackList(theme, appState),
-                      ),
-              ),
-            ],
-          ),
         );
       },
     );
