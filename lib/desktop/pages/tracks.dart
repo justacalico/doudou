@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../templates/desktop_layout.dart';
-import 'import 'details/media_details.dart';';
+import 'details/media_details.dart';
 import '../pages/details/artist_details.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
