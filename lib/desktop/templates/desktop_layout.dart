@@ -707,7 +707,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               builder: (context, mediaItemSnapshot) {
                 return Scaffold(
                   backgroundColor: Theme.of(context).colorScheme.surface,
-                  body: Container(
+                  body: SizedBox(
                     width: double.infinity,
                     height: double.infinity,
                     child: Column(
