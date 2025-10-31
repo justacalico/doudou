@@ -575,8 +575,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       showArtist: widget.mediaType == MediaType.playlist,
       showAlbum: widget.mediaType == MediaType.playlist,
       showArtwork: widget.mediaType == MediaType.playlist,
-      shrinkWrap: true, // Important: Let the parent handle scrolling
-      physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
       onTrackTap: (track, index) async {
         if (widget.mediaType == MediaType.album && kDebugMode) {
           print('=== TRACK CLICKED ===');
