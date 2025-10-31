@@ -575,6 +575,268 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
+  Widget _buildTrackListHeader(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          if (widget.mediaType == MediaType.playlist) ...[
+            const SizedBox(width: 60), // Space for artwork
+            const SizedBox(width: 16),
+          ],
+          SizedBox(
+            width: 40,
+            child: Text(
+              '#',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Title',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (widget.mediaType == MediaType.playlist) ...[
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'Artist',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'Album',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 60,
+            child: Text(
+              'Duration',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          const SizedBox(width: 48), // Space for menu button
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackItem(ThemeData theme, AppState appState, Track track, int index) {
+    return InkWell(
+      onTap: () async {
+        if (widget.mediaType == MediaType.album && kDebugMode) {
+          print('=== TRACK CLICKED ===');
+          print('Track: ${track.name}');
+          print('Track ID: ${track.id}');
+          print('Track number: ${index + 1}');
+          print('Album: ${widget.album!.name}');
+        }
+        await appState.playPlaylist(_tracks, index);
+        if (widget.mediaType == MediaType.album && kDebugMode) {
+          print('=== TRACK CLICK COMPLETED ===');
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            // Track artwork (only for playlists)
+            if (widget.mediaType == MediaType.playlist) ...[
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: track.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          _getImageUrl(appState, track.imageUrl)!,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.music_note,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            );
+                          },
+                        ),
+                      )
+                    : Icon(
+                        Icons.music_note,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+              ),
+              const SizedBox(width: 16),
+            ],
+            
+            // Track number
+            SizedBox(
+              width: 40,
+              child: Text(
+                track.trackNumber?.toString() ?? (index + 1).toString(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            
+            // Track title
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    track.name,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (widget.mediaType == MediaType.album && track.artistName != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      track.artistName!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            
+            // Artist (only for playlists)
+            if (widget.mediaType == MediaType.playlist) ...[
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  track.artistName ?? 'Unknown Artist',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              
+              // Album (only for playlists)
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  track.albumName ?? 'Unknown Album',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            
+            const SizedBox(width: 16),
+            
+            // Duration
+            SizedBox(
+              width: 60,
+              child: Text(
+                _formatDuration(track.duration ?? 0),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+            
+            // Menu button
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'remove':
+                    if (widget.mediaType == MediaType.playlist) {
+                      _removeTrackFromPlaylist(track);
+                    }
+                    break;
+                  case 'download':
+                    // Download track
+                    break;
+                }
+              },
+              itemBuilder: (context) {
+                List<PopupMenuEntry<String>> items = [];
+                
+                if (widget.mediaType == MediaType.playlist) {
+                  items.add(const PopupMenuItem(
+                    value: 'remove',
+                    child: ListTile(
+                      leading: Icon(Icons.remove),
+                      title: Text('Remove from playlist'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ));
+                }
+                
+                items.add(const PopupMenuItem(
+                  value: 'download',
+                  child: ListTile(
+                    leading: Icon(Icons.download),
+                    title: Text('Download'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ));
+                
+                return items;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDuration(int milliseconds) {
+    final duration = Duration(milliseconds: milliseconds);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   String _getTotalDuration() {
     final totalMs = _tracks.fold<int>(
       0,
