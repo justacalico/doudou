@@ -1498,25 +1498,25 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                 },
                               ),
                               
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 12),
                               
                               // Queue button
                               Container(
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(16),
                                     onTap: () {
                                       // TODO: Show queue
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 12,
+                                        horizontal: 16,
+                                        vertical: 8,
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -1524,12 +1524,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           Icon(
                                             Icons.queue_music_rounded,
                                             color: theme.colorScheme.onSurfaceVariant,
-                                            size: 20,
+                                            size: 18,
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 6),
                                           Text(
                                             'Queue',
-                                            style: theme.textTheme.labelMedium?.copyWith(
+                                            style: theme.textTheme.labelSmall?.copyWith(
                                               color: theme.colorScheme.onSurfaceVariant,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -1541,7 +1541,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                 ),
                               ),
                               
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 12),
                               
                               // Lyrics button
                               Container(
