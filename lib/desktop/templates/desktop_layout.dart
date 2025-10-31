@@ -1269,8 +1269,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                       final isBuffering = playbackState?.processingState == AudioProcessingState.buffering;
                                       
                                       return Container(
-                                        width: 64,
-                                        height: 64,
+                                        width: 56,
+                                        height: 56,
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             begin: Alignment.topLeft,
@@ -1280,19 +1280,19 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               theme.colorScheme.primary.withOpacity(0.8),
                                             ],
                                           ),
-                                          borderRadius: BorderRadius.circular(32),
+                                          borderRadius: BorderRadius.circular(28),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: theme.colorScheme.primary.withOpacity(0.4),
-                                              blurRadius: 16,
-                                              offset: const Offset(0, 8),
+                                              color: theme.colorScheme.primary.withOpacity(0.3),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 6),
                                             ),
                                           ],
                                         ),
                                         child: Material(
                                           color: Colors.transparent,
                                           child: InkWell(
-                                            borderRadius: BorderRadius.circular(32),
+                                            borderRadius: BorderRadius.circular(28),
                                             onTap: audioHandler != null && currentTrack != null
                                                 ? () {
                                                     if (kDebugMode) {
