@@ -203,7 +203,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       if (kDebugMode) {
                         print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON CLICKED ===');
                       }
-                      print('${widget.mediaType.name}: $_title');
+                      if (kDebugMode) {
+                        print('${widget.mediaType.name}: $_title');
+                      }
                       print('Track count: ${_tracks.length}');
                       print('First track: ${_tracks.isNotEmpty ? _tracks[0].name : "None"}');
                       if (_tracks.isNotEmpty) {
