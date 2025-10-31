@@ -209,7 +209,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       if (kDebugMode) {
                         print('Track count: ${_tracks.length}');
                       }
-                      print('First track: ${_tracks.isNotEmpty ? _tracks[0].name : "None"}');
+                      if (kDebugMode) {
+                        print('First track: ${_tracks.isNotEmpty ? _tracks[0].name : "None"}');
+                      }
                       if (_tracks.isNotEmpty) {
                         print('First track ID: ${_tracks[0].id}');
                         print('First track duration: ${_tracks[0].duration}');
