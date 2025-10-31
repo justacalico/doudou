@@ -1366,7 +1366,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               Container(
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: StreamBuilder<PlaybackState>(
                                   stream: audioHandler?.playbackState,
@@ -1374,6 +1374,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     final playbackState = playbackSnapshot.data;
                                     final repeatMode = playbackState?.repeatMode ?? AudioServiceRepeatMode.none;
                                     return IconButton(
+                                      padding: const EdgeInsets.all(8),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 40,
+                                        minHeight: 40,
+                                      ),
                                       onPressed: audioHandler != null 
                                           ? () async {
                                               switch (repeatMode) {
@@ -1400,7 +1405,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                             ? theme.colorScheme.onSurfaceVariant.withOpacity(0.5)
                                             : theme.colorScheme.primary,
                                       ),
-                                      iconSize: 24,
+                                      iconSize: 20,
                                     );
                                   },
                                 ),
@@ -1408,9 +1413,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             ],
                           ),
                           
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 20),
                           
-                          // Additional controls row with favorites
+                          // Compact additional controls row with favorites
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
