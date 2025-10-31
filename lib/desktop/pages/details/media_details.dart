@@ -164,6 +164,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       // Action buttons row
                       _buildActionButtons(theme),
