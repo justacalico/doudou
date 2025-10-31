@@ -1197,7 +1197,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               Container(
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surfaceVariant.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: StreamBuilder<PlaybackState>(
                                   stream: audioHandler?.playbackState,
@@ -1205,6 +1205,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     final playbackState = playbackSnapshot.data;
                                     final isShuffled = playbackState?.shuffleMode == AudioServiceShuffleMode.all;
                                     return IconButton(
+                                      padding: const EdgeInsets.all(8),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 40,
+                                        minHeight: 40,
+                                      ),
                                       onPressed: audioHandler != null 
                                           ? () => audioHandler.setShuffleMode(
                                               isShuffled 
@@ -1218,13 +1223,13 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                             ? theme.colorScheme.primary 
                                             : theme.colorScheme.onSurfaceVariant,
                                       ),
-                                      iconSize: 24,
+                                      iconSize: 20,
                                     );
                                   },
                                 ),
                               ),
                               
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 12),
                               
                               // Previous button
                               Container(
