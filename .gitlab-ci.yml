@@ -282,58 +282,79 @@ build_release_ios:
   script:
     - flutter pub get --no-precompile
     - flutter build ios --no-codesign --release --build-number=$CI_PIPELINE_ID
-    # Create compressed artifact with chunking for reliable upload
+    # Create IPA file from the built app
     - |
-      if [ -d "build/ios/iphoneos" ]; then
-        echo "Creating iOS artifact..."
-        cd build/ios
+      if [ -d "build/ios/iphoneos/Runner.app" ]; then
+        echo "Creating IPA file from iOS app..."
+        cd build/ios/iphoneos
         
-        # More aggressive exclusions to reduce size
+        # Create Payload directory structure for IPA
+        mkdir -p Payload
+        cp -R Runner.app Payload/
+        
+        # Create IPA file (which is just a ZIP with .ipa extension)
+        zip -r "../../../doudou-release.ipa" Payload/
+        
+        cd "$CI_PROJECT_DIR"
+        
+        # Verify IPA was created
+        if [ -f "doudou-release.ipa" ]; then
+          IPA_SIZE=$(du -sh "doudou-release.ipa" | cut -f1)
+          echo "✅ IPA file created: $IPA_SIZE"
+          
+          # Get file size in bytes for chunking decision
+          if command -v stat &> /dev/null; then
+            FILE_SIZE=$(stat -f%z "doudou-release.ipa" 2>/dev/null || stat -c%s "doudou-release.ipa" 2>/dev/null)
+          else
+            FILE_SIZE=$(wc -c < "doudou-release.ipa")
+          fi
+          
+          echo "IPA file size: $FILE_SIZE bytes"
+          
+          # Split into 8MB chunks if larger than 8MB for more reliable upload
+          if [ "$FILE_SIZE" -gt 8388608 ]; then
+            echo "Splitting IPA into 8MB chunks for reliable upload..."
+            split -b 8m doudou-release.ipa ios-chunk-
+            rm doudou-release.ipa
+            echo "Split into chunks:"
+            ls -lh ios-chunk-* || true
+            
+            # Create manifest file
+            echo "Creating chunk manifest..."
+            ls ios-chunk-* | sort > ios-chunks.manifest
+            echo "Chunks manifest:"
+            cat ios-chunks.manifest
+          else
+            echo "IPA size acceptable, no splitting needed"
+          fi
+        else
+          echo "❌ Failed to create IPA file"
+          exit 1
+        fi
+        
+        # Also create compressed app bundle as backup
+        echo "Creating compressed app bundle as backup..."
+        cd build/ios
         tar --exclude="*.dSYM" \
             --exclude="*.framework/Headers" \
             --exclude="*.framework/Modules" \
             --exclude="*.framework/Versions/*/Headers" \
             --exclude="*.framework/Versions/*/Modules" \
-            -czf "$CI_PROJECT_DIR/build/doudou-release-ios.tar.gz" \
+            -czf "$CI_PROJECT_DIR/build/doudou-release-ios-app.tar.gz" \
             iphoneos/Runner.app
         
-        cd "$CI_PROJECT_DIR/build"
-        ARTIFACT_SIZE=$(du -sh "doudou-release-ios.tar.gz" | cut -f1)
-        echo "iOS artifact created: $ARTIFACT_SIZE"
-        
-        # Get file size in bytes (macOS compatible)
-        if command -v stat &> /dev/null; then
-          FILE_SIZE=$(stat -f%z "doudou-release-ios.tar.gz" 2>/dev/null || stat -c%s "doudou-release-ios.tar.gz" 2>/dev/null)
-        else
-          FILE_SIZE=$(wc -c < "doudou-release-ios.tar.gz")
-        fi
-        
-        echo "File size: $FILE_SIZE bytes"
-        
-        # Split into 4MB chunks if larger than 4MB for more reliable upload
-        if [ "$FILE_SIZE" -gt 4194304 ]; then
-          echo "Splitting artifact into 4MB chunks for reliable upload..."
-          split -b 4m doudou-release-ios.tar.gz ios-chunk-
-          rm doudou-release-ios.tar.gz
-          echo "Split into chunks:"
-          ls -lh ios-chunk-* || true
-          
-          # Create manifest file
-          echo "Creating chunk manifest..."
-          ls ios-chunk-* | sort > ios-chunks.manifest
-          echo "Chunks manifest:"
-          cat ios-chunks.manifest
-        else
-          echo "Artifact size acceptable, no splitting needed"
-        fi
+        cd "$CI_PROJECT_DIR"
         
         # Verify at least one artifact exists
-        if ls ios-chunk-* 1> /dev/null 2>&1 || [ -f "doudou-release-ios.tar.gz" ]; then
+        if ls ios-chunk-* 1> /dev/null 2>&1 || [ -f "doudou-release.ipa" ] || [ -f "build/doudou-release-ios-app.tar.gz" ]; then
           echo "✅ iOS artifacts ready for upload"
         else
           echo "❌ No artifacts created"
           exit 1
         fi
+      else
+        echo "❌ iOS app build not found"
+        exit 1
       fi
   artifacts:
     paths:
