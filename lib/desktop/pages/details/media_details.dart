@@ -671,13 +671,21 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           if (kDebugMode) {
             print('Track: ${track.name}');
           }
-          print('Track ID: ${track.id}');
-          print('Track number: ${index + 1}');
-          print('Album: ${widget.album!.name}');
+          if (kDebugMode) {
+            print('Track ID: ${track.id}');
+          }
+          if (kDebugMode) {
+            print('Track number: ${index + 1}');
+          }
+          if (kDebugMode) {
+            print('Album: ${widget.album!.name}');
+          }
         }
         await appState.playPlaylist(_tracks, index);
         if (widget.mediaType == MediaType.album && kDebugMode) {
-          print('=== TRACK CLICK COMPLETED ===');
+          if (kDebugMode) {
+            print('=== TRACK CLICK COMPLETED ===');
+          }
         }
       },
       child: Container(
