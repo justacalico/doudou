@@ -1102,54 +1102,65 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       ),
                       child: Column(
                         children: [
-                          // Progress bar with time labels
-                          Row(
-                            children: [
-                              Text(
-                                _formatDuration(position),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 6,
-                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                                      activeTrackColor: theme.colorScheme.primary,
-                                      inactiveTrackColor: theme.colorScheme.outline.withOpacity(0.2),
-                                      thumbColor: theme.colorScheme.primary,
-                                      overlayColor: theme.colorScheme.primary.withOpacity(0.2),
-                                    ),
-                                    child: Slider(
-                                      value: progress.clamp(0.0, 1.0),
-                                      onChanged: currentTrack != null && audioHandler != null ? (value) {
-                                        final newPosition = Duration(
-                                          milliseconds: (value * duration.inMilliseconds).round(),
-                                        );
-                                        audioHandler.seek(newPosition);
-                                      } : null,
-                                      min: 0.0,
-                                      max: 1.0,
-                                    ),
+                          // Enhanced progress bar with time labels
+                          Container(
+                            constraints: const BoxConstraints(maxWidth: 600),
+                            child: Column(
+                              children: [
+                                // Progress slider
+                                SliderTheme(
+                                  data: SliderTheme.of(context).copyWith(
+                                    trackHeight: 8,
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+                                    activeTrackColor: theme.colorScheme.primary,
+                                    inactiveTrackColor: theme.colorScheme.surfaceVariant,
+                                    thumbColor: theme.colorScheme.primary,
+                                    overlayColor: theme.colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                  child: Slider(
+                                    value: progress.clamp(0.0, 1.0),
+                                    onChanged: currentTrack != null && audioHandler != null ? (value) {
+                                      final newPosition = Duration(
+                                        milliseconds: (value * duration.inMilliseconds).round(),
+                                      );
+                                      audioHandler.seek(newPosition);
+                                    } : null,
+                                    min: 0.0,
+                                    max: 1.0,
                                   ),
                                 ),
-                              ),
-                              Text(
-                                _formatDuration(duration),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontFamily: 'monospace',
+                                
+                                // Time labels
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        _formatDuration(position),
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatDuration(duration),
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           
                           // Player controls
                           Row(
