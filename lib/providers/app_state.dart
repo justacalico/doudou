@@ -316,6 +316,22 @@ class AppState extends ChangeNotifier {
               if (kDebugMode) {
                 print('Audio system initialized successfully for offline mode, platform: ${audioService.platformType}');
               }
+
+              // Initialize WearOS service on Android (even in offline mode)
+              if (_isAndroid) {
+                try {
+                  final wearOSService = WearOSService.instance;
+                  await wearOSService.initialize();
+                  if (kDebugMode) {
+                    print('WearOS service initialized successfully in offline mode');
+                  }
+                } catch (wearError) {
+                  if (kDebugMode) {
+                    print('Failed to initialize WearOS service in offline mode: $wearError');
+                  }
+                  // Continue without WearOS service - it's not critical
+                }
+              }
             } catch (audioError) {
               if (kDebugMode) {
                 print('Failed to initialize audio system in offline mode: $audioError');
