@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_wear_os_connectivity/flutter_wear_os_connectivity.dart';
 import '../models/jellyfin_models.dart';
 import 'audio_service_integration.dart';
 import 'dart:convert';
@@ -10,20 +11,26 @@ class WearOSService {
   static WearOSService get instance => _instance ??= WearOSService._();
   WearOSService._();
 
-  static const MethodChannel _channel = MethodChannel('doudou/wearos');
+  WearOSConnectivity? _wearOSConnectivity;
   bool _initialized = false;
-    
+      
   /// Initialize the wearOS service
   Future<void> initialize() async {
     if (_initialized) return;
         
     try {
+      // Initialize the FlutterSmartWatch wearOS connectivity
       _wearOSConnectivity = FlutterSmartWatch().wearOS;
       await _wearOSConnectivity!.configureWearableAPI();
+      
+      // Setup listeners for incoming messages
       await _setupListeners();
+      
+      // Sync current state with wearOS devices
       await _syncCurrentState();
+      
       _initialized = true;
-            
+          
       if (kDebugMode) {
         print('WearOSService: Initialized successfully');
       }
@@ -61,7 +68,7 @@ class WearOSService {
   }
 
   /// Handle incoming messages from wearOS
-  Future<void> _handleWearOSMessage(dynamic message) async {
+  Future<void> _handleWearOSMessage(WearOSMessage message) async {
     try {
       // Decode the message data
       final String messageStr = utf8.decode(message.data);
@@ -72,6 +79,10 @@ class WearOSService {
 
       final audioService = AudioServiceIntegration.instance;
       if (!audioService.isInitialized) return;
+
+      if (kDebugMode) {
+        print('WearOSService: Received action from wearOS: $action');
+      }
 
       switch (action) {
         case 'play':
@@ -129,9 +140,9 @@ class WearOSService {
       final Map<String, dynamic> state = {
         'type': 'state_update',
         'is_playing': audioService.userIntendedPlaying,
-        'position': 0, // We'll get this from streams later
+        'position': 0, // Position updates will be handled separately
         'duration': audioService.duration.inMilliseconds,
-        'volume': 1.0, // We'll get this from streams later
+        'volume': 1.0, // Volume updates will be handled separately
       };
 
       if (currentTrack != null) {
