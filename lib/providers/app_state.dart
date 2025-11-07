@@ -1581,6 +1581,22 @@ class AppState extends ChangeNotifier {
   Future<void> skipToNext() async {
     if (_audioHandler != null) {
       await _audioHandler!.skipToNext();
+      
+      // Send track update to WearOS if available
+      if (_isAndroid) {
+        try {
+          final wearOSService = WearOSService.instance;
+          if (wearOSService.isInitialized) {
+            final currentTrack = _audioHandler!.currentTrack;
+            await wearOSService.sendTrackUpdate(currentTrack);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to send track update to WearOS after skip next: $e');
+          }
+        }
+      }
+      
       notifyListeners();
     }
   }
@@ -1588,6 +1604,22 @@ class AppState extends ChangeNotifier {
   Future<void> skipToPrevious() async {
     if (_audioHandler != null) {
       await _audioHandler!.skipToPrevious();
+      
+      // Send track update to WearOS if available
+      if (_isAndroid) {
+        try {
+          final wearOSService = WearOSService.instance;
+          if (wearOSService.isInitialized) {
+            final currentTrack = _audioHandler!.currentTrack;
+            await wearOSService.sendTrackUpdate(currentTrack);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to send track update to WearOS after skip previous: $e');
+          }
+        }
+      }
+      
       notifyListeners();
     }
   }
