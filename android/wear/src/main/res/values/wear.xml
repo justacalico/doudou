@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+           tools:keep="@array/android_wear_capabilities">
+    <string-array name="android_wear_capabilities">
+        <item>music_control</item>
+        <item>media_remote</item>
+        <item>audio_playback_control</item>
+    </string-array>
+</resources>
