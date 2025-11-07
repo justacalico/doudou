@@ -34,7 +34,7 @@ class WatchConnectivityService {
       _watchOsConnectivity = FlutterSmartWatch().watchOS;
       
       // Check if Watch Connectivity is supported
-      final supported = await _watchOsConnectivity?.isSupported;
+      final supported = await _watchOsConnectivity?.isSupported();
       _isSupported = supported == true;
       
       if (!_isSupported) {
@@ -42,8 +42,11 @@ class WatchConnectivityService {
         return;
       }
 
-      // Initialize session
-      await _watchOsConnectivity?.activateSession();
+      // Initialize and activate session
+      await _watchOsConnectivity?.configureAndActivateSession();
+      
+      // Check initial reachability
+      _isReachable = await _watchOsConnectivity?.getReachability() ?? false;
       
       // Listen to reachability changes
       _watchOsConnectivity?.reachabilityChanged.listen((reachable) {
@@ -87,7 +90,7 @@ class WatchConnectivityService {
           _messageController.add({'type': 'playback_control', 'action': 'pause'});
           break;
         case 'next':
-          _messageController.add({'type': 'playbook_control', 'action': 'next'});
+          _messageController.add({'type': 'playback_control', 'action': 'next'});
           break;
         case 'previous':
           _messageController.add({'type': 'playback_control', 'action': 'previous'});
