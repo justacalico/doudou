@@ -14,6 +14,8 @@ class WatchConnectivityService {
   bool _isSupported = false;
   bool _isReachable = false;
   
+  final LoggingService _logger = LoggingService();
+  
   final _reachabilityController = StreamController<bool>.broadcast();
   Stream<bool> get reachabilityStream => _reachabilityController.stream;
   
@@ -25,7 +27,7 @@ class WatchConnectivityService {
 
   Future<void> initialize() async {
     if (!Platform.isIOS) {
-      AppLogger.info('Watch connectivity is only supported on iOS');
+      _logger.log('INFO', 'Watch connectivity is only supported on iOS', 'WatchConnectivity');
       return;
     }
 
@@ -33,31 +35,32 @@ class WatchConnectivityService {
       _watchOsConnectivity = FlutterSmartWatch().watchOS;
       
       // Check if Watch Connectivity is supported
-      _isSupported = await _watchOsConnectivity?.isSupported ?? false;
+      final supported = await _watchOsConnectivity?.isSupported;
+      _isSupported = supported == true;
       
       if (!_isSupported) {
-        AppLogger.warning('Apple Watch connectivity is not supported on this device');
+        _logger.log('WARNING', 'Apple Watch connectivity is not supported on this device', 'WatchConnectivity');
         return;
       }
 
-      // Check initial reachability
-      _isReachable = await _watchOsConnectivity?.isReachable ?? false;
+      // Initialize session
+      await _watchOsConnectivity?.activateSession();
       
       // Listen to reachability changes
-      _watchOsConnectivity?.reachabilityStream.listen((reachable) {
+      _watchOsConnectivity?.reachabilityChanged.listen((reachable) {
         _isReachable = reachable;
         _reachabilityController.add(reachable);
-        AppLogger.info('Apple Watch reachability changed: $reachable');
+        _logger.log('INFO', 'Apple Watch reachability changed: $reachable', 'WatchConnectivity');
       });
 
       // Listen to messages from watch
-      _watchOsConnectivity?.messageStream.listen((message) {
+      _watchOsConnectivity?.messageReceived.listen((message) {
         _handleMessageFromWatch(message);
       });
 
-      AppLogger.info('Watch connectivity service initialized successfully');
+      _logger.log('INFO', 'Watch connectivity service initialized successfully', 'WatchConnectivity');
     } catch (e) {
-      AppLogger.error('Failed to initialize watch connectivity: $e');
+      _logger.log('ERROR', 'Failed to initialize watch connectivity: $e', 'WatchConnectivity');
     }
   }
 
