@@ -20,6 +20,7 @@ class WearOSService {
     
     try {
       _wearOSConnectivity = FlutterSmartWatch().wearOS;
+      await _wearOSConnectivity!.configureWearableAPI();
       await _setupListeners();
       await _syncCurrentState();
       _initialized = true;
@@ -43,18 +44,18 @@ class WearOSService {
     if (_wearOSConnectivity == null) return;
 
     // Listen for messages from wearOS companion app
-    _wearOSConnectivity!.messageReceived.listen((message) async {
+    _wearOSConnectivity!.messageReceived().listen((message) async {
       if (kDebugMode) {
-        print('WearOSService: Received message from wearOS: $message');
+        print('WearOSService: Received message from wearOS: ${message.path}');
       }
       
       await _handleWearOSMessage(message);
     });
 
     // Listen for capability changes
-    _wearOSConnectivity!.capabilityChanged.listen((capability) {
+    _wearOSConnectivity!.capabilityChanged().listen((capability) {
       if (kDebugMode) {
-        print('WearOSService: Capability changed: $capability');
+        print('WearOSService: Capability changed: ${capability.name}');
       }
     });
   }
