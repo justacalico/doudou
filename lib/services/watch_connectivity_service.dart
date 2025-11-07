@@ -107,27 +107,27 @@ class WatchConnectivityService {
     }
   }
 
-  Future<void> sendCurrentSong(Song? song) async {
+  Future<void> sendCurrentTrack(Track? track) async {
     if (!_isSupported || !_isReachable) return;
 
     try {
-      final songData = song != null ? {
-        'id': song.id,
-        'title': song.title,
-        'artist': song.artist,
-        'album': song.album,
-        'duration': song.duration?.inSeconds,
-        'artwork_url': song.artworkUrl,
+      final trackData = track != null ? {
+        'id': track.id,
+        'title': track.name,
+        'artist': track.artistName,
+        'album': track.albumName,
+        'duration': track.duration != null ? (track.duration! / 1000).round() : null, // Convert ms to seconds
+        'artwork_url': track.imageUrl,
       } : null;
 
       await _watchOsConnectivity?.sendMessage({
-        'type': 'current_song',
-        'data': songData,
+        'type': 'current_track',
+        'data': trackData,
       });
 
-      AppLogger.info('Sent current song to Apple Watch: ${song?.title ?? 'None'}');
+      _logger.log('INFO', 'Sent current track to Apple Watch: ${track?.name ?? 'None'}', 'WatchConnectivity');
     } catch (e) {
-      AppLogger.error('Failed to send current song to Apple Watch: $e');
+      _logger.log('ERROR', 'Failed to send current track to Apple Watch: $e', 'WatchConnectivity');
     }
   }
 
