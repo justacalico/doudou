@@ -56,6 +56,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     
+    // Media session support
+    implementation("androidx.media:media:1.7.0")
+    
     // Communication with phone app
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
 }
