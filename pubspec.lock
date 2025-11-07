@@ -262,6 +262,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.0"
+  flutter_smart_watch:
+    dependency: "direct main"
+    description:
+      name: flutter_smart_watch
+      sha256: d669823702740369246bb268a0ccc8236120841b9c43e29bb8d8c32c7406ce28
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  flutter_smart_watch_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_smart_watch_platform_interface
+      sha256: "66e49a77764294a5d9816be548ffab33acac54bc51292d8d01e9e07455571a2b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -275,6 +291,22 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_watch_os_connectivity:
+    dependency: transitive
+    description:
+      name: flutter_watch_os_connectivity
+      sha256: fc6b49c0cdcdab07c5b93f23230184fd6adb212d6feb6de0d7dd1d64f0c5ffc2
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  flutter_wear_os_connectivity:
+    dependency: transitive
+    description:
+      name: flutter_wear_os_connectivity
+      sha256: e94b7c2b2ade5b5abbda8137adab48d98b418660bf292f5e729797130364a9c9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
