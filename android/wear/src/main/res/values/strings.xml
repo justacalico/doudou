@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Doudou</string>
+    <string name="music_player">Music Player</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="connecting">Connecting to phone...</string>
+    <string name="connected">Connected to phone</string>
+    <string name="not_connected">Phone not connected</string>
+    <string name="no_track">No track playing</string>
+</resources>
