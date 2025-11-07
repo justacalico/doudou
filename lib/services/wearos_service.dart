@@ -43,8 +43,9 @@ class WearOSService {
   Future<void> _setupListeners() async {
     if (_wearOSConnectivity == null) return;
 
-    // Listen for messages from wearOS companion app
-    _wearOSConnectivity!.messageReceived().listen((message) async {
+    // Listen for messages from wearOS companion app on /music-control path
+    _wearOSConnectivity!.messageReceived(pathURI: Uri(scheme: "wear", host: "*", path: "/music-control"))
+        .listen((message) async {
       if (kDebugMode) {
         print('WearOSService: Received message from wearOS: ${message.path}');
       }
@@ -61,9 +62,13 @@ class WearOSService {
   }
 
   /// Handle incoming messages from wearOS
-  Future<void> _handleWearOSMessage(Map<String, dynamic> message) async {
+  Future<void> _handleWearOSMessage(dynamic message) async {
     try {
-      final String? action = message['action'];
+      // Decode the message data
+      final String messageStr = utf8.decode(message.data);
+      final Map<String, dynamic> messageData = json.decode(messageStr);
+      
+      final String? action = messageData['action'];
       if (action == null) return;
 
       final audioService = AudioServiceIntegration.instance;
@@ -86,13 +91,13 @@ class WearOSService {
           await audioService.skipToPrevious();
           break;
         case 'seek':
-          final double? position = message['position']?.toDouble();
+          final double? position = messageData['position']?.toDouble();
           if (position != null) {
             await audioService.seek(Duration(milliseconds: (position * 1000).round()));
           }
           break;
         case 'set_volume':
-          final double? volume = message['volume']?.toDouble();
+          final double? volume = messageData['volume']?.toDouble();
           if (volume != null && volume >= 0.0 && volume <= 1.0) {
             await audioService.setVolume(volume);
           }
@@ -124,25 +129,35 @@ class WearOSService {
       
       final Map<String, dynamic> state = {
         'type': 'state_update',
-        'is_playing': audioService.isPlaying,
-        'position': audioService.position?.inMilliseconds ?? 0,
-        'duration': audioService.duration?.inMilliseconds ?? 0,
-        'volume': audioService.volume ?? 1.0,
+        'is_playing': audioService.userIntendedPlaying,
+        'position': 0, // We'll get this from streams later
+        'duration': audioService.duration.inMilliseconds,
+        'volume': 1.0, // We'll get this from streams later
       };
 
       if (currentTrack != null) {
         state['current_track'] = {
           'id': currentTrack.id,
           'title': currentTrack.name,
-          'artist': currentTrack.artistItems?.isNotEmpty == true 
-              ? currentTrack.artistItems!.first.name 
-              : 'Unknown Artist',
-          'album': currentTrack.album,
+          'artist': currentTrack.artistName ?? 'Unknown Artist',
+          'album': currentTrack.albumName,
           'image_url': currentTrack.imageUrl,
         };
       }
 
-      await _wearOSConnectivity!.sendMessage(state);
+      // Convert to bytes for sending
+      final String jsonString = json.encode(state);
+      final Uint8List bytes = Uint8List.fromList(utf8.encode(jsonString));
+      
+      // Get connected devices and send to each
+      final devices = await _wearOSConnectivity!.getConnectedDevices();
+      for (final device in devices) {
+        await _wearOSConnectivity!.sendMessage(
+          bytes,
+          deviceId: device.id,
+          path: "/music-state",
+        );
+      }
       
       if (kDebugMode) {
         print('WearOSService: Synced state to wearOS');
@@ -173,7 +188,19 @@ class WearOSService {
       if (duration != null) update['duration'] = duration.inMilliseconds;
       if (volume != null) update['volume'] = volume;
 
-      await _wearOSConnectivity!.sendMessage(update);
+      // Convert to bytes for sending
+      final String jsonString = json.encode(update);
+      final Uint8List bytes = Uint8List.fromList(utf8.encode(jsonString));
+      
+      // Get connected devices and send to each
+      final devices = await _wearOSConnectivity!.getConnectedDevices();
+      for (final device in devices) {
+        await _wearOSConnectivity!.sendMessage(
+          bytes,
+          deviceId: device.id,
+          path: "/music-state",
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
         print('WearOSService: Error sending playback state update: $e');
@@ -194,17 +221,27 @@ class WearOSService {
         update['track'] = {
           'id': track.id,
           'title': track.name,
-          'artist': track.artistItems?.isNotEmpty == true 
-              ? track.artistItems!.first.name 
-              : 'Unknown Artist',
-          'album': track.album,
+          'artist': track.artistName ?? 'Unknown Artist',
+          'album': track.albumName,
           'image_url': track.imageUrl,
         };
       } else {
         update['track'] = null;
       }
 
-      await _wearOSConnectivity!.sendMessage(update);
+      // Convert to bytes for sending
+      final String jsonString = json.encode(update);
+      final Uint8List bytes = Uint8List.fromList(utf8.encode(jsonString));
+      
+      // Get connected devices and send to each
+      final devices = await _wearOSConnectivity!.getConnectedDevices();
+      for (final device in devices) {
+        await _wearOSConnectivity!.sendMessage(
+          bytes,
+          deviceId: device.id,
+          path: "/music-state",
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
         print('WearOSService: Error sending track update: $e');
@@ -220,10 +257,8 @@ class WearOSService {
       final List<Map<String, dynamic>> queueData = queue.map((track) => {
         'id': track.id,
         'title': track.name,
-        'artist': track.artistItems?.isNotEmpty == true 
-            ? track.artistItems!.first.name 
-            : 'Unknown Artist',
-        'album': track.album,
+        'artist': track.artistName ?? 'Unknown Artist',
+        'album': track.albumName,
         'image_url': track.imageUrl,
       }).toList();
 
@@ -233,7 +268,19 @@ class WearOSService {
         'current_index': currentIndex,
       };
 
-      await _wearOSConnectivity!.sendMessage(update);
+      // Convert to bytes for sending
+      final String jsonString = json.encode(update);
+      final Uint8List bytes = Uint8List.fromList(utf8.encode(jsonString));
+      
+      // Get connected devices and send to each
+      final devices = await _wearOSConnectivity!.getConnectedDevices();
+      for (final device in devices) {
+        await _wearOSConnectivity!.sendMessage(
+          bytes,
+          deviceId: device.id,
+          path: "/music-state",
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
         print('WearOSService: Error sending queue update: $e');
@@ -246,7 +293,8 @@ class WearOSService {
     if (_wearOSConnectivity == null || !_initialized) return false;
     
     try {
-      return await _wearOSConnectivity!.getReachableDevices().then((devices) => devices.isNotEmpty);
+      final devices = await _wearOSConnectivity!.getConnectedDevices();
+      return devices.isNotEmpty;
     } catch (e) {
       if (kDebugMode) {
         print('WearOSService: Error checking reachability: $e');
@@ -256,11 +304,11 @@ class WearOSService {
   }
 
   /// Get connected wearOS devices
-  Future<List<Map<String, dynamic>>> getConnectedDevices() async {
+  Future<List<dynamic>> getConnectedDevices() async {
     if (_wearOSConnectivity == null || !_initialized) return [];
     
     try {
-      return await _wearOSConnectivity!.getReachableDevices();
+      return await _wearOSConnectivity!.getConnectedDevices();
     } catch (e) {
       if (kDebugMode) {
         print('WearOSService: Error getting connected devices: $e');
