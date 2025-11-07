@@ -15,7 +15,6 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
-import '../services/wearos_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -218,22 +217,6 @@ class AppState extends ChangeNotifier {
               if (kDebugMode) {
                 print('New audio system initialized successfully for platform: ${audioService.platformType}');
               }
-
-              // Initialize WearOS service on Android
-              if (_isAndroid) {
-                try {
-                  final wearOSService = WearOSService.instance;
-                  await wearOSService.initialize();
-                  if (kDebugMode) {
-                    print('WearOS service initialized successfully');
-                  }
-                } catch (wearError) {
-                  if (kDebugMode) {
-                    print('Failed to initialize WearOS service: $wearError');
-                  }
-                  // Continue without WearOS service - it's not critical
-                }
-              }
             } catch (audioError) {
               if (kDebugMode) {
                 print('Failed to initialize new audio system: $audioError');
@@ -315,22 +298,6 @@ class AppState extends ChangeNotifier {
               
               if (kDebugMode) {
                 print('Audio system initialized successfully for offline mode, platform: ${audioService.platformType}');
-              }
-
-              // Initialize WearOS service on Android (even in offline mode)
-              if (_isAndroid) {
-                try {
-                  final wearOSService = WearOSService.instance;
-                  await wearOSService.initialize();
-                  if (kDebugMode) {
-                    print('WearOS service initialized successfully in offline mode');
-                  }
-                } catch (wearError) {
-                  if (kDebugMode) {
-                    print('Failed to initialize WearOS service in offline mode: $wearError');
-                  }
-                  // Continue without WearOS service - it's not critical
-                }
               }
             } catch (audioError) {
               if (kDebugMode) {
@@ -1439,21 +1406,6 @@ class AppState extends ChangeNotifier {
     if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
       _addToRecentTracks(track);
-      
-      // Send track update to WearOS if available
-      if (_isAndroid) {
-        try {
-          final wearOSService = WearOSService.instance;
-          if (wearOSService.isInitialized) {
-            await wearOSService.sendTrackUpdate(track);
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to send track update to WearOS: $e');
-          }
-        }
-      }
-      
       notifyListeners();
     } else {
       if (kDebugMode) {
@@ -1476,21 +1428,6 @@ class AppState extends ChangeNotifier {
     
     if (_audioHandler != null) {
       await _audioHandler!.playPlaylist(tracks, startIndex);
-      
-      // Send queue update to WearOS if available
-      if (_isAndroid && tracks.isNotEmpty) {
-        try {
-          final wearOSService = WearOSService.instance;
-          if (wearOSService.isInitialized) {
-            await wearOSService.sendQueueUpdate(tracks, startIndex);
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to send queue update to WearOS: $e');
-          }
-        }
-      }
-      
       notifyListeners();
       
       if (kDebugMode) {
@@ -1550,22 +1487,6 @@ class AppState extends ChangeNotifier {
         // Try to recover by notifying listeners anyway
       }
       
-      // Send playback state update to WearOS if available
-      if (_isAndroid) {
-        try {
-          final wearOSService = WearOSService.instance;
-          if (wearOSService.isInitialized) {
-            await wearOSService.sendPlaybackStateUpdate(
-              isPlaying: !userIntendedPlaying, // State after the toggle
-            );
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to send playback state update to WearOS: $e');
-          }
-        }
-      }
-      
       notifyListeners();
       
       if (kDebugMode) {
@@ -1581,22 +1502,6 @@ class AppState extends ChangeNotifier {
   Future<void> skipToNext() async {
     if (_audioHandler != null) {
       await _audioHandler!.skipToNext();
-      
-      // Send track update to WearOS if available
-      if (_isAndroid) {
-        try {
-          final wearOSService = WearOSService.instance;
-          if (wearOSService.isInitialized) {
-            final currentTrack = _audioHandler!.currentTrack;
-            await wearOSService.sendTrackUpdate(currentTrack);
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to send track update to WearOS after skip next: $e');
-          }
-        }
-      }
-      
       notifyListeners();
     }
   }
@@ -1604,22 +1509,6 @@ class AppState extends ChangeNotifier {
   Future<void> skipToPrevious() async {
     if (_audioHandler != null) {
       await _audioHandler!.skipToPrevious();
-      
-      // Send track update to WearOS if available
-      if (_isAndroid) {
-        try {
-          final wearOSService = WearOSService.instance;
-          if (wearOSService.isInitialized) {
-            final currentTrack = _audioHandler!.currentTrack;
-            await wearOSService.sendTrackUpdate(currentTrack);
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Failed to send track update to WearOS after skip previous: $e');
-          }
-        }
-      }
-      
       notifyListeners();
     }
   }
