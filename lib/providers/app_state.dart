@@ -1550,6 +1550,22 @@ class AppState extends ChangeNotifier {
         // Try to recover by notifying listeners anyway
       }
       
+      // Send playback state update to WearOS if available
+      if (_isAndroid) {
+        try {
+          final wearOSService = WearOSService.instance;
+          if (wearOSService.isInitialized) {
+            await wearOSService.sendPlaybackStateUpdate(
+              isPlaying: !userIntendedPlaying, // State after the toggle
+            );
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to send playback state update to WearOS: $e');
+          }
+        }
+      }
+      
       notifyListeners();
       
       if (kDebugMode) {
