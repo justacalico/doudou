@@ -1476,6 +1476,21 @@ class AppState extends ChangeNotifier {
     
     if (_audioHandler != null) {
       await _audioHandler!.playPlaylist(tracks, startIndex);
+      
+      // Send queue update to WearOS if available
+      if (_isAndroid && tracks.isNotEmpty) {
+        try {
+          final wearOSService = WearOSService.instance;
+          if (wearOSService.isInitialized) {
+            await wearOSService.sendQueueUpdate(tracks, startIndex);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to send queue update to WearOS: $e');
+          }
+        }
+      }
+      
       notifyListeners();
       
       if (kDebugMode) {
