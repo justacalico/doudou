@@ -44,8 +44,12 @@ dependencies {
     implementation("com.google.android.support:wearable:2.9.0")
     compileOnly("com.google.android.wearable:wearable:2.9.0")
     
-    // Compose for Wear OS
-    implementation("androidx.compose.ui:ui:1.5.8")
+    // Compose BOM for version alignment
+    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    
+    // Compose for Wear OS - using BOM versions
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.wear.compose:compose-material:1.2.1")
     implementation("androidx.wear.compose:compose-foundation:1.2.1")
     implementation("androidx.wear.compose:compose-navigation:1.2.1")
