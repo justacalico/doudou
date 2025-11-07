@@ -67,7 +67,6 @@ dependencies:
   
   # Haptic feedback
   vibration: ^2.0.0
-  flutter_smart_watch: ^1.0.0
 
 dev_dependencies:
   flutter_test:
