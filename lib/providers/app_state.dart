@@ -15,6 +15,7 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
+import '../services/wearos_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
