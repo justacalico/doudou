@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_watch/flutter_smart_watch.dart';
 import '../models/jellyfin_models.dart';
 import 'logging_service.dart';
