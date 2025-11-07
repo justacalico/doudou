@@ -1439,6 +1439,21 @@ class AppState extends ChangeNotifier {
     if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
       _addToRecentTracks(track);
+      
+      // Send track update to WearOS if available
+      if (_isAndroid) {
+        try {
+          final wearOSService = WearOSService.instance;
+          if (wearOSService.isInitialized) {
+            await wearOSService.sendTrackUpdate(track);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to send track update to WearOS: $e');
+          }
+        }
+      }
+      
       notifyListeners();
     } else {
       if (kDebugMode) {
