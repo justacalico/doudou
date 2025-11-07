@@ -64,11 +64,21 @@ class WatchConnectivityService {
     }
   }
 
-  void _handleMessageFromWatch(Map<String, dynamic> message) {
-    AppLogger.info('Received message from Apple Watch: $message');
+  void _handleMessageFromWatch(dynamic message) {
+    _logger.log('INFO', 'Received message from Apple Watch: $message', 'WatchConnectivity');
     
     try {
-      final action = message['action'] as String?;
+      Map<String, dynamic> messageData;
+      
+      // Handle different message types from flutter_smart_watch
+      if (message is Map<String, dynamic>) {
+        messageData = message;
+      } else {
+        // Try to extract data from WatchOSMessage object
+        messageData = message?.data ?? {};
+      }
+      
+      final action = messageData['action'] as String?;
       
       switch (action) {
         case 'play':
@@ -78,7 +88,7 @@ class WatchConnectivityService {
           _messageController.add({'type': 'playback_control', 'action': 'pause'});
           break;
         case 'next':
-          _messageController.add({'type': 'playback_control', 'action': 'next'});
+          _messageController.add({'type': 'playbook_control', 'action': 'next'});
           break;
         case 'previous':
           _messageController.add({'type': 'playback_control', 'action': 'previous'});
@@ -90,10 +100,10 @@ class WatchConnectivityService {
           _messageController.add({'type': 'request', 'data': 'playlists'});
           break;
         default:
-          AppLogger.warning('Unknown action received from Apple Watch: $action');
+          _logger.log('WARNING', 'Unknown action received from Apple Watch: $action', 'WatchConnectivity');
       }
     } catch (e) {
-      AppLogger.error('Error handling message from Apple Watch: $e');
+      _logger.log('ERROR', 'Error handling message from Apple Watch: $e', 'WatchConnectivity');
     }
   }
 
