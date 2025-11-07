@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "gitlab.openlyst.doudou"
-        minSdk = 26  // Wear OS 2.0+ minimum
+        minSdk = 30  // Required for health services, Wear OS 3.0+
         targetSdk = 35
         versionCode = 8
         versionName = "8.0.0"
