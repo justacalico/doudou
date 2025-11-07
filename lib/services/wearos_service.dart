@@ -3,6 +3,7 @@ import 'package:flutter_smart_watch/flutter_smart_watch.dart';
 import '../models/jellyfin_models.dart';
 import 'audio_service_integration.dart';
 import 'dart:convert';
+import 'dart:typed_data';
 
 /// Service to handle communication with wearOS companion app
 class WearOSService {
