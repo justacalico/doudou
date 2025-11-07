@@ -27,6 +27,9 @@
     
     <!-- Notification permissions for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- Wear OS communication permissions -->
+    <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND" />
 
     <application
         android:label="doudou"
@@ -39,6 +42,11 @@
         <meta-data 
             android:name="com.google.android.gms.car.application" 
             android:resource="@xml/automotive_app_desc"/>
+            
+        <!-- Wear OS capability -->
+        <meta-data 
+            android:name="com.google.android.wearable.beta.app" 
+            android:value="true" />
             
         <activity
             android:name=".MainActivity"
