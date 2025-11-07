@@ -217,6 +217,22 @@ class AppState extends ChangeNotifier {
               if (kDebugMode) {
                 print('New audio system initialized successfully for platform: ${audioService.platformType}');
               }
+
+              // Initialize WearOS service on Android
+              if (_isAndroid) {
+                try {
+                  final wearOSService = WearOSService.instance;
+                  await wearOSService.initialize();
+                  if (kDebugMode) {
+                    print('WearOS service initialized successfully');
+                  }
+                } catch (wearError) {
+                  if (kDebugMode) {
+                    print('Failed to initialize WearOS service: $wearError');
+                  }
+                  // Continue without WearOS service - it's not critical
+                }
+              }
             } catch (audioError) {
               if (kDebugMode) {
                 print('Failed to initialize new audio system: $audioError');
