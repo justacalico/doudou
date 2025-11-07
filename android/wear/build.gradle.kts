@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "gitlab.openlyst.doudou"
-        minSdk = 30  // Required for health services, Wear OS 3.0+
+        minSdk = 26  // Wear OS 2.0+ minimum
         targetSdk = 35
         versionCode = 8
         versionName = "8.0.0"
@@ -58,7 +58,4 @@ dependencies {
     
     // Communication with phone app
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    
-    // Health Services (for fitness tracking if needed)
-    implementation("androidx.health:health-services-client:1.0.0-beta03")
 }
