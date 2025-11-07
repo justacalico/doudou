@@ -10,14 +10,12 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : AudioServiceActivity() {
-    private val BATTERY_CHANNEL = "app.channel/battery"
-    private val WEAR_CHANNEL = "app.channel/wear"
+    private val CHANNEL = "app.channel/battery"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        // Battery optimization channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BATTERY_CHANNEL)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "requestBatteryOptimizationExemption" -> {
@@ -33,23 +31,6 @@ class MainActivity : AudioServiceActivity() {
                     "isBatteryOptimizationIgnored" -> {
                         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
                         result.success(powerManager.isIgnoringBatteryOptimizations(packageName))
-                    }
-                    else -> result.notImplemented()
-                }
-            }
-
-        // Wear OS communication channel  
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "handleWearCommand" -> {
-                        val command = call.argument<String>("command")
-                        // Forward command to Flutter app
-                        result.success(null)
-                    }
-                    "getPlaybackState" -> {
-                        // Return current playback state
-                        result.success(null)  
                     }
                     else -> result.notImplemented()
                 }

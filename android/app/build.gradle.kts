@@ -53,11 +53,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    // Wear OS communication
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    
-    // Wear OS companion app support
-    wearApp(project(":wear"))
-}

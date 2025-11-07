@@ -15,7 +15,6 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
-import '../services/wear_os_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -224,20 +223,6 @@ class AppState extends ChangeNotifier {
               }
               // Continue without audio service
               _audioHandler = null;
-            }
-            
-            // Initialize Wear OS service on Android
-            if (_isAndroid) {
-              try {
-                await WearOSService.instance.initialize(this);
-                if (kDebugMode) {
-                  print('Wear OS service initialized successfully');
-                }
-              } catch (wearError) {
-                if (kDebugMode) {
-                  print('Failed to initialize Wear OS service: $wearError');
-                }
-              }
             }
             
             notifyListeners();
