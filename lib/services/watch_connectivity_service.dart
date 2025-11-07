@@ -148,9 +148,9 @@ class WatchConnectivityService {
         },
       });
 
-      AppLogger.info('Sent playback state to Apple Watch: playing=$isPlaying');
+      _logger.log('INFO', 'Sent playback state to Apple Watch: playing=$isPlaying', 'WatchConnectivity');
     } catch (e) {
-      AppLogger.error('Failed to send playback state to Apple Watch: $e');
+      _logger.log('ERROR', 'Failed to send playback state to Apple Watch: $e', 'WatchConnectivity');
     }
   }
 
@@ -161,7 +161,7 @@ class WatchConnectivityService {
       final playlistsData = playlists.map((playlist) => {
         'id': playlist.id,
         'name': playlist.name,
-        'song_count': playlist.songs.length,
+        'track_count': playlist.trackCount,
       }).toList();
 
       await _watchOsConnectivity?.sendMessage({
@@ -169,9 +169,9 @@ class WatchConnectivityService {
         'data': playlistsData,
       });
 
-      AppLogger.info('Sent ${playlists.length} playlists to Apple Watch');
+      _logger.log('INFO', 'Sent ${playlists.length} playlists to Apple Watch', 'WatchConnectivity');
     } catch (e) {
-      AppLogger.error('Failed to send playlists to Apple Watch: $e');
+      _logger.log('ERROR', 'Failed to send playlists to Apple Watch: $e', 'WatchConnectivity');
     }
   }
 
@@ -186,7 +186,7 @@ class WatchConnectivityService {
         },
       });
     } catch (e) {
-      AppLogger.error('Failed to send volume to Apple Watch: $e');
+      _logger.log('ERROR', 'Failed to send volume to Apple Watch: $e', 'WatchConnectivity');
     }
   }
 
