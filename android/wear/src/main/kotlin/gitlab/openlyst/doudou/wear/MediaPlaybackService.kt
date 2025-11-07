@@ -3,7 +3,7 @@ package gitlab.openlyst.doudou.wear
 import android.app.*
 import android.content.Intent
 import android.os.IBinder
-import android.support.v4.media.session.MediaSessionCompat
+import androidx.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 
 class MediaPlaybackService : Service() {
