@@ -1,39 +1,42 @@
-# Run pipelines based on branch and final variable
+# Optimized CI/CD pipeline for Linux-only builds
 workflow:
   rules:
-    # If final is true, only run on main branch and tags
-    - if: $final == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $final == "true" && $CI_COMMIT_TAG
-    # If final is not true, run on development branch
-    - if: $final != "true" && $CI_COMMIT_BRANCH == "development"
-    # Always run on tags regardless of final variable
+    # Run on main branch
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # Run on development branch
+    - if: $CI_COMMIT_BRANCH == "development"
+    # Run on tags
     - if: $CI_COMMIT_TAG
+    # Skip merge request pipelines
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - when: never
 
 stages:
   - build
-  - build-linux
-  - release
   - cleanup
 
 variables:
+  ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
+  ANDROID_HOME: "/opt/android-sdk-linux"
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
-  ANDROID_KEYSTORE_PATH: "$CI_PROJECT_DIR/android/app/key.jks"
   GIT_STRATEGY: fetch
   GIT_DEPTH: 1
   GIT_CLEAN_FLAGS: -ffdx
-  # Optimize artifact handling
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
   FF_USE_FASTZIP: "true"
 
 cache:
-  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG-v3"
+  key: "${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}-v1"
   paths:
-    - .pub-cache-$CI_JOB_NAME/
+    - .pub-cache/
+    - .gradle/
   policy: pull-push
 
+# ===========================
+# Android Debug Build
+# ===========================
 build_debug_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
@@ -41,594 +44,169 @@ build_debug_apk:
     - linux
   allow_failure: true
   retry:
-    max: 1
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
-  variables:
-    GIT_STRATEGY: fetch
-    GIT_DEPTH: 1
-    FLUTTER_BUILD_MODE: "debug"
-    ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
-    ANDROID_HOME: "/opt/android-sdk-linux"
-  cache:
-    key: "apk-deps-$CI_COMMIT_REF_SLUG-v4"
-    paths:
-      - .pub-cache/
-      - android/.gradle/
-    policy: pull-push
   before_script:
-    # Install Android SDK and tools
+    - echo "🚀 Starting Android debug build..."
+    # Install required dependencies
     - apt-get update -qq
     - apt-get install -y -qq wget unzip openjdk-17-jdk
     - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    
     # Setup Android SDK
-    - mkdir -p $ANDROID_SDK_ROOT
+    - mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
     - cd $ANDROID_SDK_ROOT
     - wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
     - unzip -q commandlinetools-linux-9477386_latest.zip
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+    
     # Accept licenses and install required components
     - yes | sdkmanager --licenses >/dev/null 2>&1 || true
-    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null 2>&1
+    - sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null
+    
     - cd $CI_PROJECT_DIR
-    # Flutter setup
     - flutter --version
     - flutter config --android-sdk $ANDROID_SDK_ROOT
-    # Clean only what's necessary
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
+    
+    # Clean build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
   script:
-    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
-    - flutter pub get --no-precompile
-    # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
+    - flutter pub get
     - BUILD_NUMBER=$(date +%s)
-    - echo "Using build number:" $BUILD_NUMBER
-    # Build debug APK (automatically signed with debug key)
+    - echo "Building with build number: $BUILD_NUMBER"
     - flutter build apk --debug --build-number=$BUILD_NUMBER
+    - ls -lh build/app/outputs/flutter-apk/
   artifacts:
+    name: "android-debug-${CI_COMMIT_SHORT_SHA}"
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
-    expire_in: 30m
-  timeout: 25m
+    expire_in: 7 days
+  timeout: 20m
 
+# ===========================
+# Android Release Build
+# ===========================
 build_release_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - linux
-  allow_failure: true
   retry:
-    max: 1
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
-  variables:
-    GIT_STRATEGY: fetch
-    GIT_DEPTH: 1
-    FLUTTER_BUILD_MODE: "release"
-    ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
-    ANDROID_HOME: "/opt/android-sdk-linux"
-  cache:
-    key: "apk-deps-$CI_COMMIT_REF_SLUG-v4"
-    paths:
-      - .pub-cache/
-      - android/.gradle/
-    policy: pull-push
   before_script:
-    # Install Android SDK and tools
+    - echo "🚀 Starting Android release build..."
+    # Install required dependencies
     - apt-get update -qq
     - apt-get install -y -qq wget unzip openjdk-17-jdk openjdk-17-jre-headless
     - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
     - export PATH=$JAVA_HOME/bin:$PATH
+    
     # Setup Android SDK
-    - mkdir -p $ANDROID_SDK_ROOT
+    - mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
     - cd $ANDROID_SDK_ROOT
     - wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
     - unzip -q commandlinetools-linux-9477386_latest.zip
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+    
     # Accept licenses and install required components
     - yes | sdkmanager --licenses >/dev/null 2>&1 || true
-    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null 2>&1
+    - sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null
+    
     - cd $CI_PROJECT_DIR
-    # Flutter setup
     - flutter --version
     - flutter config --android-sdk $ANDROID_SDK_ROOT
-    # Clean only what's necessary
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    # Create a debug keystore for development builds
+    
+    # Clean build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
+    
+    # Setup keystore
     - |
       if [[ -z "$KEYSTORE_PASSWORD" ]]; then
-        echo "No keystore password provided, creating debug keystore..."
-        # Create keystore in expected location (android/app/key.jks)
+        echo "Creating debug keystore for development..."
+        mkdir -p android/app
         keytool -genkey -v -keystore android/app/key.jks \
           -alias doudou -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass android -keypass android \
-          -dname "CN=Doudou Debug, OU=Debug, O=OpenLyst, L=Debug, S=Debug, C=US"
-        # Set environment variables for build.gradle.kts
+          -dname "CN=Doudou Debug, OU=Development, O=Doudou, L=Dev, S=Dev, C=US"
         export KEYSTORE_PASSWORD=android
         export KEY_PASSWORD=android
         export KEY_ALIAS=doudou
       else
-        echo "Using provided keystore configuration..."
-        # Copy provided keystore to expected location
-        cp "$KEYSTORE_PATH" android/app/key.jks
+        echo "Using production keystore..."
+        echo "$KEYSTORE_FILE" | base64 -d > android/app/key.jks
         export KEYSTORE_PASSWORD="$KEYSTORE_PASSWORD"
-        export KEY_PASSWORD="$KEY_PASSWORD" 
+        export KEY_PASSWORD="$KEY_PASSWORD"
         export KEY_ALIAS="$KEY_ALIAS"
       fi
   script:
-    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
-    # Set keystore environment variables if not already set
-    - |
-      if [[ -z "$KEYSTORE_PASSWORD" ]]; then
-        export KEYSTORE_PASSWORD=android
-        export KEY_PASSWORD=android
-        export KEY_ALIAS=doudou
-      fi
-    - flutter pub get --no-precompile
-    # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
+    - flutter pub get
     - BUILD_NUMBER=$(date +%s)
-    - echo "Using build number:" $BUILD_NUMBER
-    - echo "Keystore file exists:" $(ls -la android/app/key.jks 2>/dev/null || echo "NOT FOUND")
-    # Build signed release APK
+    - echo "Building with build number: $BUILD_NUMBER"
     - flutter build apk --release --build-number=$BUILD_NUMBER
+    - ls -lh build/app/outputs/flutter-apk/
   artifacts:
+    name: "android-release-${CI_COMMIT_SHORT_SHA}"
     paths:
       - build/app/outputs/flutter-apk/app-release.apk
-    expire_in: 30m
-  timeout: 25m
+    expire_in: 30 days
+  timeout: 20m
 
+# ===========================
+# Linux Desktop Build
+# ===========================
 build_release_linux:
-  stage: build-linux
+  stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - linux
-  allow_failure: true
-  variables:
-    GIT_STRATEGY: fetch
-    GIT_DEPTH: 1
-  cache:
-    key: "linux-deps-$CI_COMMIT_REF_SLUG-v2"
-    paths:
-      - .pub-cache/
-    policy: pull-push
-  before_script:
-    # Install dependencies more efficiently
-    - apt-get update -qq
-    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-  script:
-    - flutter config --enable-linux-desktop
-    - flutter pub get --no-precompile
-    - flutter build linux --release --build-number=$CI_PIPELINE_ID
-  artifacts:
-    paths:
-      - build/linux/x64/release/bundle/
-    expire_in: 30m
-  timeout: 15m
-
-build_release_macos:
-  stage: build
-  tags:
-    - apple
-  allow_failure: true
-  retry:
-    max: 1
-    when:
-      - runner_system_failure
-  variables:
-    GIT_STRATEGY: fetch
-    GIT_DEPTH: 1
-    ARTIFACT_COMPRESSION_LEVEL: "fastest"
-    FF_USE_FASTZIP: "true"
-  cache:
-    key: "macos-deps-$CI_COMMIT_REF_SLUG-v2"
-    paths:
-      - .pub-cache/
-    policy: pull-push
-  before_script:
-    - pkill -9 -f "gradle.*doudou" || true
-    - pkill -9 -f "dart.*doudou" || true
-    - export PATH="$HOME/flutter/bin:/usr/local/flutter/bin:/opt/flutter/bin:$PATH"
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-  script:
-    - flutter config --enable-macos-desktop
-    - flutter pub get --no-precompile
-    - flutter build macos --release --build-number=$CI_PIPELINE_ID
-    # Create compressed artifact inline
-    - |
-      if [ -d "build/macos/Build/Products/Release/doudou.app" ]; then
-        cd build/macos/Build/Products/Release
-        tar --exclude="*.dSYM" --exclude="*.framework/Versions/*/Headers" \
-            -czf "$CI_PROJECT_DIR/build/doudou-release-macos.tar.gz" doudou.app
-        echo "macOS artifact created: $(du -h "$CI_PROJECT_DIR/build/doudou-release-macos.tar.gz" | cut -f1)"
-      fi
-  artifacts:
-    paths:
-      - build/doudou-release-macos.tar.gz
-    expire_in: 30m
-    when: on_success
-  timeout: 25m
-
-build_release_ios:
-  stage: build
-  tags:
-    - apple
-  allow_failure: true
   retry:
     max: 2
     when:
       - runner_system_failure
-      - api_failure
-  variables:
-    GIT_STRATEGY: fetch
-    GIT_DEPTH: 1
-    ARTIFACT_COMPRESSION_LEVEL: "fastest"
-    FF_USE_FASTZIP: "true"
-  cache:
-    key: "ios-deps-$CI_COMMIT_REF_SLUG-v2"
-    paths:
-      - .pub-cache/
-    policy: pull-push
+      - stuck_or_timeout_failure
   before_script:
-    - pkill -9 -f "gradle.*doudou" || true
-    - pkill -9 -f "dart.*doudou" || true
-    - export PATH="$HOME/flutter/bin:/usr/local/flutter/bin:/opt/flutter/bin:$PATH"
-    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-  script:
-    - flutter pub get --no-precompile
-    - flutter build ios --no-codesign --release --build-number=$CI_PIPELINE_ID
-    # Create IPA file from the built app
-    - |
-      if [ -d "build/ios/iphoneos/Runner.app" ]; then
-        echo "Creating IPA file from iOS app..."
-        cd build/ios/iphoneos
-        
-        # Create Payload directory structure for IPA
-        mkdir -p Payload
-        cp -R Runner.app Payload/
-        
-        # Create IPA file (which is just a ZIP with .ipa extension)
-        zip -r "../../../doudou-release.ipa" Payload/
-        
-        cd "$CI_PROJECT_DIR"
-        
-        # Verify IPA was created
-        if [ -f "doudou-release.ipa" ]; then
-          IPA_SIZE=$(du -sh "doudou-release.ipa" | cut -f1)
-          echo "✅ IPA file created: $IPA_SIZE"
-          
-          # Get file size in bytes for chunking decision
-          if command -v stat &> /dev/null; then
-            FILE_SIZE=$(stat -f%z "doudou-release.ipa" 2>/dev/null || stat -c%s "doudou-release.ipa" 2>/dev/null)
-          else
-            FILE_SIZE=$(wc -c < "doudou-release.ipa")
-          fi
-          
-          echo "IPA file size: $FILE_SIZE bytes"
-          
-          # Split into 8MB chunks if larger than 8MB for more reliable upload
-          if [ "$FILE_SIZE" -gt 8388608 ]; then
-            echo "Splitting IPA into 8MB chunks for reliable upload..."
-            split -b 8m doudou-release.ipa ios-chunk-
-            rm doudou-release.ipa
-            echo "Split into chunks:"
-            ls -lh ios-chunk-* || true
-            
-            # Create manifest file
-            echo "Creating chunk manifest..."
-            ls ios-chunk-* | sort > ios-chunks.manifest
-            echo "Chunks manifest:"
-            cat ios-chunks.manifest
-          else
-            echo "IPA size acceptable, no splitting needed"
-          fi
-        else
-          echo "❌ Failed to create IPA file"
-          exit 1
-        fi
-        
-        # Also create compressed app bundle as backup
-        echo "Creating compressed app bundle as backup..."
-        cd build/ios
-        tar --exclude="*.dSYM" \
-            --exclude="*.framework/Headers" \
-            --exclude="*.framework/Modules" \
-            --exclude="*.framework/Versions/*/Headers" \
-            --exclude="*.framework/Versions/*/Modules" \
-            -czf "$CI_PROJECT_DIR/build/doudou-release-ios-app.tar.gz" \
-            iphoneos/Runner.app
-        
-        cd "$CI_PROJECT_DIR"
-        
-        # Verify at least one artifact exists
-        if ls ios-chunk-* 1> /dev/null 2>&1 || [ -f "doudou-release.ipa" ] || [ -f "build/doudou-release-ios-app.tar.gz" ]; then
-          echo "✅ iOS artifacts ready for upload"
-        else
-          echo "❌ No artifacts created"
-          exit 1
-        fi
-      else
-        echo "❌ iOS app build not found"
-        exit 1
-      fi
-  artifacts:
-    paths:
-      - ios-chunk-*
-      - ios-chunks.manifest
-      - doudou-release.ipa
-      - build/doudou-release-ios-app.tar.gz
-    expire_in: 30m
-    when: on_success
-  timeout: 25m
-
-# Reassemble iOS artifact chunks if they were split
-reassemble_ios_artifact:
-  stage: release
-  tags:
-    - apple
-  allow_failure: true
-  needs:
-    - job: "build_release_ios"
-      optional: true
-  variables:
-    GIT_STRATEGY: none
-  rules:
-    # Only run if iOS build succeeded and created chunks
-    - if: '$CI_JOB_NAME == "reassemble_ios_artifact"'
-      exists:
-        - ios-chunk-*
-  script:
-    - |
-      echo "Checking for iOS artifact chunks..."
-      if [ -f "ios-chunks.manifest" ]; then
-        echo "Found chunk manifest, reassembling iOS IPA..."
-        
-        # Verify all chunks exist
-        while IFS= read -r chunk; do
-          if [ ! -f "$chunk" ]; then
-            echo "❌ Missing chunk: $chunk"
-            exit 1
-          fi
-          echo "✓ Found chunk: $chunk"
-        done < ios-chunks.manifest
-        
-        # Reassemble IPA
-        cat ios-chunk-* > doudou-release.ipa
-        
-        REASSEMBLED_SIZE=$(du -sh doudou-release.ipa | cut -f1)
-        echo "Reassembled IPA size: $REASSEMBLED_SIZE"
-        
-        # Verify IPA integrity (it's a ZIP file)
-        if unzip -t doudou-release.ipa > /dev/null 2>&1; then
-          echo "✅ iOS IPA reassembled and verified successfully"
-        else
-          echo "❌ Reassembled IPA is corrupted"
-          exit 1
-        fi
-        
-        # Clean up chunks
-        rm -f ios-chunk-* ios-chunks.manifest
-      elif [ -f "doudou-release.ipa" ]; then
-        echo "iOS IPA was not split, already complete"
-      elif [ -f "build/doudou-release-ios-app.tar.gz" ]; then
-        echo "iOS app bundle archive found as backup"
-      else
-        echo "No iOS artifacts found"
-        exit 1
-      fi
-  artifacts:
-    paths:
-      - doudou-release.ipa
-      - build/doudou-release-ios-app.tar.gz
-    expire_in: 30m
-  timeout: 5m
-
-publish_release:
-  stage: release
-  tags:
-    - apple
-  retry:
-    max: 1
-    when:
-      - api_failure
-  variables:
-    GIT_STRATEGY: none
-  needs:
-    - job: "build_release_apk"
-    - job: "build_release_linux"
-    - job: "build_release_macos"
-      optional: true
-    - job: "reassemble_ios_artifact"
-      optional: true
-  timeout: 10m
-  
-  before_script:
-    - echo "Using GitLab API for release creation (more reliable than release-cli on shell executors)"
-    - export USE_RELEASE_CLI=false
-    - |
-      if ! command -v jq &> /dev/null; then
-        echo "Installing jq for JSON parsing..."
-        if command -v brew &> /dev/null; then
-          brew install jq
-        else
-          echo "jq not available, will use sed fallback"
-        fi
-      fi
-  
-  script:
-    - echo "Creating release for pipeline $CI_PIPELINE_ID with artifacts..."
-    - RELEASE_TAG="pipeline-$CI_PIPELINE_ID"
-    - RELEASE_NOTES="Automated release for pipeline $CI_PIPELINE_ID from commit $CI_COMMIT_SHORT_SHA"
-    - |
-      echo "Checking if release $RELEASE_TAG already exists..."
-      EXISTING_RELEASE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$RELEASE_TAG")
-      
-      if echo "$EXISTING_RELEASE" | grep -q '"tag_name"'; then
-        echo "Release $RELEASE_TAG already exists, deleting it..."
-        curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          --request DELETE "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$RELEASE_TAG"
-        sleep 2
-      fi
+    - echo "🚀 Starting Linux desktop build..."
+    # Install Linux desktop dependencies
+    - apt-get update -qq
+    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
     
-    - echo "Creating release using GitLab API..."
-    - |
-      for i in {1..3}; do
-        echo "Attempt $i: Fetching pipeline jobs data..."
-        JOBS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
-        if [ $? -eq 0 ] && [ -n "$JOBS_DATA" ]; then
-          break
-        fi
-        echo "API call failed, retrying in 5 seconds..."
-        sleep 5
-      done
-      
-      echo "Jobs data response:"
-      echo "$JOBS_DATA" | head -5
-      
-      if command -v jq &> /dev/null; then
-        APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .id')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .id')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="reassemble_ios_artifact") | .id')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .id')
-        
-        APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .status')
-        LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .status')
-        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="reassemble_ios_artifact") | .status')
-        MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .status')
-      else
-        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"reassemble_ios_artifact"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        
-        APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"reassemble_ios_artifact"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-      fi
-      
-      echo "Job IDs - APK: $APK_JOB_ID, Linux: $LINUX_JOB_ID, iOS: $IOS_JOB_ID, macOS: $MACOS_JOB_ID"
-      echo "Job statuses - APK: $APK_STATUS, Linux: $LINUX_STATUS, iOS: $IOS_STATUS, macOS: $MACOS_STATUS"
-      
-      ASSET_LINKS=""
-      
-      if [ -n "$APK_JOB_ID" ] && [ "$APK_STATUS" = "success" ]; then
-        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-release.apk"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Android APK\", \"url\": \"$APK_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      if [ -n "$LINUX_JOB_ID" ] && [ "$LINUX_STATUS" = "success" ]; then
-        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Linux Build Archive\", \"url\": \"$LINUX_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      if [ -n "$IOS_JOB_ID" ] && [ "$IOS_STATUS" = "success" ]; then
-        IOS_IPA_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/doudou-release.ipa"
-        IOS_APP_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-release-ios-app.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS IPA Release\", \"url\": \"$IOS_IPA_URL\", \"link_type\": \"package\"},"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS App Bundle\", \"url\": \"$IOS_APP_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
-        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/raw/build/doudou-release-macos.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Release Build\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
-      
-      if [ -z "$ASSET_LINKS" ]; then
-        echo "No successful builds with artifacts found. Cannot create release."
-        exit 1
-      fi
-      
-      echo "Available artifact links: $ASSET_LINKS"
-      
-      for i in {1..3}; do
-        echo "Attempt $i: Creating release..."
-        sleep 2
-        RESPONSE=$(curl -w "%{http_code}" -s --header "Content-Type: application/json" \
-             --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-             --data '{
-               "name": "Release Pipeline '"$CI_PIPELINE_ID"'",
-               "tag_name": "'"$RELEASE_TAG"'",
-               "description": "'"$RELEASE_NOTES"'",
-               "ref": "'"$CI_COMMIT_SHA"'",
-               "assets": {
-                 "links": ['"$ASSET_LINKS"']
-               }
-             }' \
-             --request POST "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases")
-        
-        HTTP_CODE=${RESPONSE: -3}
-        if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
-          break
-        elif [ "$HTTP_CODE" -eq 429 ]; then
-          echo "Rate limited, waiting 10 seconds before retry..."
-          sleep 10
-        else
-          echo "Release creation failed with HTTP $HTTP_CODE on attempt $i"
-          if [ $i -eq 3 ]; then
-            break
-          fi
-          sleep 5
-        fi
-      done
-      
-      HTTP_CODE=${RESPONSE: -3}
-      RESPONSE_BODY=${RESPONSE%???}
-      
-      echo "HTTP Response Code: $HTTP_CODE"
-      echo "Response Body: $RESPONSE_BODY"
-      
-      if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
-        echo "✅ Release created successfully!"
-      else
-        echo "❌ Release creation failed with HTTP $HTTP_CODE"
-        echo "Response: $RESPONSE_BODY"
-        exit 1
-      fi
-
-cleanup_apple_runner:
-  stage: cleanup
-  tags:
-    - apple
-  when: always
-  allow_failure: true
-  variables:
-    GIT_STRATEGY: none
+    - flutter --version
+    - flutter config --enable-linux-desktop
+    
+    # Clean build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
   script:
-    - echo "🧹 Cleaning up Apple runner build artifacts and caches..."
-    # Kill all processes first to free up file handles
-    - pkill -9 -f "gradle.*doudou" || true
-    - pkill -9 -f "dart.*doudou" || true
-    - pkill -9 -f "flutter.*doudou" || true
-    - sleep 3
-    # Force remove directories with more aggressive options
-    - find $HOME/tmp -name "doudou-*" -type d -exec rm -rf {} + 2>/dev/null || true
-    - find . -name ".gradle-*" -type d -exec rm -rf {} + 2>/dev/null || true
-    - find . -name ".pub-cache-*" -type d -exec rm -rf {} + 2>/dev/null || true
-    # Use sudo if available for stubborn directories
-    - sudo rm -rf build/ .dart_tool/ ios/Flutter/ephemeral macos/Flutter/ephemeral .flutter-plugins-dependencies 2>/dev/null || rm -rf build/ .dart_tool/ ios/Flutter/ephemeral macos/Flutter/ephemeral .flutter-plugins-dependencies || true
-    # Clear system caches
-    - df -h || true
-    - echo "✅ Apple runner cleanup completed"
-  timeout: 5m
-  needs:
-    - job: "publish_release"
-      optional: true
-    - job: "build_release_macos"
-      optional: true
-    - job: "reassemble_ios_artifact"
-      optional: true
+    - flutter pub get
+    - BUILD_NUMBER=$(date +%s)
+    - echo "Building with build number: $BUILD_NUMBER"
+    - flutter build linux --release --build-number=$BUILD_NUMBER
+    
+    # Create compressed archive
+    - cd build/linux/x64/release
+    - tar -czf $CI_PROJECT_DIR/doudou-linux-x64.tar.gz bundle/
+    - cd $CI_PROJECT_DIR
+    - ls -lh doudou-linux-x64.tar.gz
+  artifacts:
+    name: "linux-release-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - doudou-linux-x64.tar.gz
+    expire_in: 30 days
+  timeout: 15m
 
-cleanup_linux_runner:
+# ===========================
+# Cleanup Job
+# ===========================
+cleanup_artifacts:
   stage: cleanup
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
@@ -638,28 +216,33 @@ cleanup_linux_runner:
   variables:
     GIT_STRATEGY: none
   script:
-    - echo "🧹 Cleaning up Linux runner build artifacts and caches..."
-    # Kill processes first
+    - echo "🧹 Cleaning up build artifacts and caches..."
+    
+    # Kill any hanging processes
     - pkill -9 -f "gradle.*doudou" || true
     - pkill -9 -f "dart.*doudou" || true
     - pkill -9 -f "flutter.*doudou" || true
     - sleep 2
-    # Force remove with find for better handling of nested directories
-    - find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
-    - find . -name ".dart_tool" -type d -exec rm -rf {} + 2>/dev/null || true
-    - find . -name ".pub-cache-*" -type d -exec rm -rf {} + 2>/dev/null || true
-    - find . -name ".gradle-*" -type d -exec rm -rf {} + 2>/dev/null || true
-    - find . -name ".flutter-plugins-dependencies" -type f -delete 2>/dev/null || true
-    # Clean up Android SDK and related artifacts
-    - rm -rf /opt/android-sdk-linux || true
-    - rm -rf android/.gradle android/.kotlin || true
-    # Clean up any remaining directories
-    - rm -rf /tmp/flutter_* || true
-    - df -h || true
-    - echo "✅ Linux runner cleanup completed"
+    
+    # Remove build artifacts
+    - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
+    - rm -rf .gradle/ .pub-cache/
+    - rm -rf android/.gradle android/.kotlin
+    
+    # Clean up Android SDK
+    - rm -rf $ANDROID_SDK_ROOT || true
+    
+    # Clean up temp files
+    - rm -rf /tmp/flutter_* /tmp/gradle* || true
+    
+    # Show disk usage
+    - df -h
+    - echo "✅ Cleanup completed"
   timeout: 5m
   needs:
-    - job: "build_release_apk"
+    - job: build_debug_apk
       optional: true
-    - job: "build_release_linux"
+    - job: build_release_apk
+      optional: true
+    - job: build_release_linux
       optional: true
