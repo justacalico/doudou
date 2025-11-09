@@ -187,11 +187,9 @@ build_release_linux:
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
   script:
     - flutter pub get
-    - BUILD_NUMBER=$(date +%s)
+    - export BUILD_NUMBER=$(date +%s)
     - echo "Building with build number: $BUILD_NUMBER"
     - flutter build linux --release --build-number=$BUILD_NUMBER
-    
-    # Create compressed archive
     - cd build/linux/x64/release
     - tar -czf $CI_PROJECT_DIR/doudou-linux-x64.tar.gz bundle/
     - cd $CI_PROJECT_DIR
