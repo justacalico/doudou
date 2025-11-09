@@ -188,6 +188,18 @@ class DesktopDoudouApp extends StatelessWidget {
           builder: (context, appState, child) {
             return MaterialApp(
               title: 'Doudou - Music Player',
+              locale: appState.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('zh'),
+                Locale('ru'),
+              ],
               theme: ThemeData(
                 useMaterial3: true,
                 colorScheme: ColorScheme.fromSeed(
