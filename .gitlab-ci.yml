@@ -77,7 +77,7 @@ build_debug_apk:
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
   script:
     - flutter pub get
-    - BUILD_NUMBER=$(date +%s)
+    - export BUILD_NUMBER=$(date +%s)
     - echo "Building with build number: $BUILD_NUMBER"
     - flutter build apk --debug --build-number=$BUILD_NUMBER
     - ls -lh build/app/outputs/flutter-apk/
