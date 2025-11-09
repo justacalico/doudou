@@ -743,7 +743,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     FutureBuilder<PackageInfo>(
                       future: PackageInfo.fromPlatform(),
                       builder: (context, snapshot) {
-                        final version = snapshot.data?.version ?? '6.0.0';
+                        final version = snapshot.data?.version ?? 'Error: Unknown';
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
