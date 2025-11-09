@@ -10,8 +10,6 @@ workflow:
 stages:
   - build
   - build-linux
-  - release
-  - cleanup
 
 variables:
   PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
