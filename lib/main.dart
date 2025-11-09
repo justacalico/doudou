@@ -106,39 +106,41 @@ class DoudouApp extends StatelessWidget {
                 Locale('zh'),
                 Locale('ru'),
               ],
-          home: Consumer<AppState>(
-            builder: (context, appState, child) {
-              // Show loading screen while initializing
-              if (!appState.isInitialized) {
-                return const CupertinoPageScaffold(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CupertinoActivityIndicator(radius: 20),
-                        SizedBox(height: 16),
-                        Text(
-                          'Loading...',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: CupertinoColors.secondaryLabel,
-                          ),
+              home: Consumer<AppState>(
+                builder: (context, appState2, child) {
+                  // Show loading screen while initializing
+                  if (!appState2.isInitialized) {
+                    return const CupertinoPageScaffold(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CupertinoActivityIndicator(radius: 20),
+                            SizedBox(height: 16),
+                            Text(
+                              'Loading...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: CupertinoColors.secondaryLabel,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }
+                      ),
+                    );
+                  }
 
-              if (appState.isLoggedIn) {
-                return const HomeScreen();
-              } else {
-                return const LoginScreen();
-              }
-            },
-          ),
-          debugShowCheckedModeBanner: false,
-        ),
+                  if (appState2.isLoggedIn) {
+                    return const HomeScreen();
+                  } else {
+                    return const LoginScreen();
+                  }
+                },
+              ),
+              debugShowCheckedModeBanner: false,
+            ),
+          );
+        },
       ),
     );
   }
