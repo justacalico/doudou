@@ -774,7 +774,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Text(
-                        'A beautiful music player for your Jellyfin server',
+                        'A beautiful music player for anyone anywhere.',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           height: 1.5,
