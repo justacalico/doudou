@@ -54,6 +54,9 @@ class AppState extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = Colors.purple;
   
+  // Localization settings
+  Locale _locale = const Locale('en');
+  
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
