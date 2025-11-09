@@ -2,12 +2,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../screens/login/login.dart';
@@ -188,18 +186,6 @@ class DesktopDoudouApp extends StatelessWidget {
           builder: (context, appState, child) {
             return MaterialApp(
               title: 'Doudou - Music Player',
-              locale: appState.locale,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en'),
-                Locale('zh'),
-                Locale('ru'),
-              ],
               theme: ThemeData(
                 useMaterial3: true,
                 colorScheme: ColorScheme.fromSeed(

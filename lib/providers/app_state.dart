@@ -54,9 +54,6 @@ class AppState extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = Colors.purple;
   
-  // Localization settings
-  Locale _locale = const Locale('en');
-  
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
@@ -114,9 +111,6 @@ class AppState extends ChangeNotifier {
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
-  
-  // Localization getter
-  Locale get locale => _locale;
 
   AppState() {
     _mediaServiceManager = MediaServiceManager.withJellyfinService(_jellyfinService);
@@ -2019,10 +2013,6 @@ class AppState extends ChangeNotifier {
     final accentColorValue = prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
     
-    // Load locale settings
-    final localeCode = prefs.getString('locale') ?? 'en';
-    _locale = Locale(localeCode);
-    
     // Load recent tracks (only after tracks are loaded)
     if (_tracks.isNotEmpty) {
       await _loadRecentTracks();
@@ -2067,15 +2057,6 @@ class AppState extends ChangeNotifier {
       _accentColor = color;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('accent_color', color.value);
-      notifyListeners();
-    }
-  }
-
-  Future<void> setLocale(Locale locale) async {
-    if (_locale != locale) {
-      _locale = locale;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('locale', locale.languageCode);
       notifyListeners();
     }
   }

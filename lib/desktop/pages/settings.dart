@@ -475,35 +475,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 16),
 
-          // Language section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Language',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    title: const Text('App language'),
-                    subtitle: Text(_getLanguageDisplayName(appState.locale)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      _showLanguageDialog();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
           // Window section
           Card(
             child: Padding(
@@ -987,75 +958,6 @@ class _SettingsPageState extends State<SettingsPage> {
     // Show hex value for custom colors
     final hex = color.value.toRadixString(16).substring(2).toUpperCase();
     return 'Custom (#$hex)';
-  }
-
-  String _getLanguageDisplayName(Locale locale) {
-    switch (locale.languageCode) {
-      case 'en':
-        return 'English';
-      case 'zh':
-        return '简体中文 (Chinese Simplified)';
-      case 'ru':
-        return 'Русский (Russian)';
-      default:
-        return 'English';
-    }
-  }
-
-  void _showLanguageDialog() {
-    final appState = context.read<AppState>();
-    final currentLocale = appState.locale;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Language'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('English'),
-              leading: Radio<String>(
-                value: 'en',
-                groupValue: currentLocale.languageCode,
-                onChanged: (value) {
-                  Navigator.pop(context);
-                  appState.setLocale(const Locale('en'));
-                },
-              ),
-            ),
-            ListTile(
-              title: const Text('简体中文 (Chinese Simplified)'),
-              leading: Radio<String>(
-                value: 'zh',
-                groupValue: currentLocale.languageCode,
-                onChanged: (value) {
-                  Navigator.pop(context);
-                  appState.setLocale(const Locale('zh'));
-                },
-              ),
-            ),
-            ListTile(
-              title: const Text('Русский (Russian)'),
-              leading: Radio<String>(
-                value: 'ru',
-                groupValue: currentLocale.languageCode,
-                onChanged: (value) {
-                  Navigator.pop(context);
-                  appState.setLocale(const Locale('ru'));
-                },
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showColorDialog() {

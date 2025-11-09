@@ -3,12 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'l10n/app_localizations.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'screens/login/login.dart';
@@ -85,62 +83,54 @@ class DoudouApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: Consumer<AppState>(
-        builder: (context, appState, child) {
-          return _buildAppWithPlatformServices(
-            CupertinoApp(
-              title: 'Doudou - Jellyfin Music Player',
-              locale: appState.locale,
-              theme: const CupertinoThemeData(
-                primaryColor: CupertinoColors.systemPurple,
-                scaffoldBackgroundColor: CupertinoColors.systemBackground,
-              ),
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en'),
-                Locale('zh'),
-                Locale('ru'),
-              ],
-              home: Consumer<AppState>(
-                builder: (context, appState2, child) {
-                  // Show loading screen while initializing
-                  if (!appState2.isInitialized) {
-                    return const CupertinoPageScaffold(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CupertinoActivityIndicator(radius: 20),
-                            SizedBox(height: 16),
-                            Text(
-                              'Loading...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: CupertinoColors.secondaryLabel,
-                              ),
-                            ),
-                          ],
+      child: _buildAppWithPlatformServices(
+        CupertinoApp(
+          title: 'Doudou - Jellyfin Music Player',
+          theme: const CupertinoThemeData(
+            primaryColor: CupertinoColors.systemPurple,
+            scaffoldBackgroundColor: CupertinoColors.systemBackground,
+          ),
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', 'US'),
+          ],
+          home: Consumer<AppState>(
+            builder: (context, appState, child) {
+              // Show loading screen while initializing
+              if (!appState.isInitialized) {
+                return const CupertinoPageScaffold(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CupertinoActivityIndicator(radius: 20),
+                        SizedBox(height: 16),
+                        Text(
+                          'Loading...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: CupertinoColors.secondaryLabel,
+                          ),
                         ),
-                      ),
-                    );
-                  }
+                      ],
+                    ),
+                  ),
+                );
+              }
 
-                  if (appState2.isLoggedIn) {
-                    return const HomeScreen();
-                  } else {
-                    return const LoginScreen();
-                  }
-                },
-              ),
-              debugShowCheckedModeBanner: false,
-            ),
-          );
-        },
+              if (appState.isLoggedIn) {
+                return const HomeScreen();
+              } else {
+                return const LoginScreen();
+              }
+            },
+          ),
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }
