@@ -209,7 +209,7 @@ build_release_linux:
 publish_release:
   stage: release
   tags:
-    - apple
+    - linux
   retry:
     max: 1
     when:
@@ -219,10 +219,6 @@ publish_release:
   needs:
     - job: "build_release_apk"
     - job: "build_release_linux"
-    - job: "build_release_macos"
-      optional: true
-    - job: "reassemble_ios_artifact"
-      optional: true
   timeout: 10m
   
   before_script:
