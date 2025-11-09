@@ -138,7 +138,21 @@
   "clearLogs": "Clear Logs",
   "clearLogsConfirm": "Are you sure you want to clear all logs? This action cannot be undone.",
   "logsExportedTo": "Logs exported to: {path}",
+  "@logsExportedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
   "failedToExportLogs": "Failed to export logs: {error}",
+  "@failedToExportLogs": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   
   "logStatistics": "Log Statistics",
   "logFiles": "Log Files",
