@@ -989,6 +989,75 @@ class _SettingsPageState extends State<SettingsPage> {
     return 'Custom (#$hex)';
   }
 
+  String _getLanguageDisplayName(Locale locale) {
+    switch (locale.languageCode) {
+      case 'en':
+        return 'English';
+      case 'zh':
+        return '简体中文 (Chinese Simplified)';
+      case 'ru':
+        return 'Русский (Russian)';
+      default:
+        return 'English';
+    }
+  }
+
+  void _showLanguageDialog() {
+    final appState = context.read<AppState>();
+    final currentLocale = appState.locale;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Language'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('English'),
+              leading: Radio<String>(
+                value: 'en',
+                groupValue: currentLocale.languageCode,
+                onChanged: (value) {
+                  Navigator.pop(context);
+                  appState.setLocale(const Locale('en'));
+                },
+              ),
+            ),
+            ListTile(
+              title: const Text('简体中文 (Chinese Simplified)'),
+              leading: Radio<String>(
+                value: 'zh',
+                groupValue: currentLocale.languageCode,
+                onChanged: (value) {
+                  Navigator.pop(context);
+                  appState.setLocale(const Locale('zh'));
+                },
+              ),
+            ),
+            ListTile(
+              title: const Text('Русский (Russian)'),
+              leading: Radio<String>(
+                value: 'ru',
+                groupValue: currentLocale.languageCode,
+                onChanged: (value) {
+                  Navigator.pop(context);
+                  appState.setLocale(const Locale('ru'));
+                },
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showColorDialog() {
     final appState = context.read<AppState>();
     final colors = [
