@@ -161,6 +161,13 @@
   
   "appDescription": "A beautiful music player for anyone anywhere.",
   "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   
   "links": "Links",
   "githubRepository": "GitHub Repository",
