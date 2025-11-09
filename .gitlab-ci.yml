@@ -55,7 +55,6 @@ build_debug_apk:
     - apt-get install -y -qq wget unzip openjdk-17-jdk
     - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
     - export PATH=$JAVA_HOME/bin:$PATH
-    
     # Setup Android SDK
     - mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
     - cd $ANDROID_SDK_ROOT
@@ -64,15 +63,12 @@ build_debug_apk:
     - mkdir -p cmdline-tools/latest
     - mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
-    
     # Accept licenses and install required components
     - yes | sdkmanager --licenses >/dev/null 2>&1 || true
     - sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null
-    
     - cd $CI_PROJECT_DIR
     - flutter --version
     - flutter config --android-sdk $ANDROID_SDK_ROOT
-    
     # Clean build artifacts
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies
   script:
