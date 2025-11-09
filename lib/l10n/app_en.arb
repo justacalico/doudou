@@ -109,9 +109,23 @@
   "clearAllCacheDesc": "Remove all cached data",
   "clearCache": "Clear Cache",
   "clearCacheConfirm": "This will remove {type} and may slow down the app temporarily. Continue?",
+  "@clearCacheConfirm": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "allCachedData": "all cached data",
   "cachedImages": "cached images",
   "cacheCleared": "{type} cleared successfully",
+  "@cacheCleared": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "allCache": "All cache",
   "imageCache": "Image cache",
   
