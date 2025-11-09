@@ -727,14 +727,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SvgPicture.asset(
-                      'assets/icons/doudou.svg',
+                    Image.asset(
+                      'assets/icons/icon.png',
                       width: 80,
                       height: 80,
-                      colorFilter: ColorFilter.mode(
-                        theme.colorScheme.primary,
-                        BlendMode.srcIn,
-                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
