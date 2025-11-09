@@ -150,7 +150,7 @@ build_release_apk:
       fi
   script:
     - flutter pub get
-    - BUILD_NUMBER=$(date +%s)
+    - export BUILD_NUMBER=$(date +%s)
     - echo "Building with build number: $BUILD_NUMBER"
     - flutter build apk --release --build-number=$BUILD_NUMBER
     - ls -lh build/app/outputs/flutter-apk/
