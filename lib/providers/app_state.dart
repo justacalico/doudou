@@ -2019,6 +2019,10 @@ class AppState extends ChangeNotifier {
     final accentColorValue = prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
     
+    // Load locale settings
+    final localeCode = prefs.getString('locale') ?? 'en';
+    _locale = Locale(localeCode);
+    
     // Load recent tracks (only after tracks are loaded)
     if (_tracks.isNotEmpty) {
       await _loadRecentTracks();
