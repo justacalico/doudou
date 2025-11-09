@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../services/logging_service.dart';
