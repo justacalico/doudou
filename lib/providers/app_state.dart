@@ -114,6 +114,9 @@ class AppState extends ChangeNotifier {
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
+  
+  // Localization getter
+  Locale get locale => _locale;
 
   AppState() {
     _mediaServiceManager = MediaServiceManager.withJellyfinService(_jellyfinService);
@@ -2060,6 +2063,15 @@ class AppState extends ChangeNotifier {
       _accentColor = color;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('accent_color', color.value);
+      notifyListeners();
+    }
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    if (_locale != locale) {
+      _locale = locale;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('locale', locale.languageCode);
       notifyListeners();
     }
   }
