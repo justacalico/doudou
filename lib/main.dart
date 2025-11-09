@@ -85,21 +85,27 @@ class DoudouApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: _buildAppWithPlatformServices(
-        CupertinoApp(
-          title: 'Doudou - Jellyfin Music Player',
-          theme: const CupertinoThemeData(
-            primaryColor: CupertinoColors.systemPurple,
-            scaffoldBackgroundColor: CupertinoColors.systemBackground,
-          ),
-          localizationsDelegates: const [
-            DefaultMaterialLocalizations.delegate,
-            DefaultCupertinoLocalizations.delegate,
-            DefaultWidgetsLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en', 'US'),
-          ],
+      child: Consumer<AppState>(
+        builder: (context, appState, child) {
+          return _buildAppWithPlatformServices(
+            CupertinoApp(
+              title: 'Doudou - Jellyfin Music Player',
+              locale: appState.locale,
+              theme: const CupertinoThemeData(
+                primaryColor: CupertinoColors.systemPurple,
+                scaffoldBackgroundColor: CupertinoColors.systemBackground,
+              ),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('zh'),
+                Locale('ru'),
+              ],
           home: Consumer<AppState>(
             builder: (context, appState, child) {
               // Show loading screen while initializing
