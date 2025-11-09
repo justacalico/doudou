@@ -1,14 +1,21 @@
-# Run pipelines on main and development branches
+# Run pipelines based on branch and final variable
 workflow:
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH == "development"
+    # If final is true, only run on main branch and tags
+    - if: $final == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $final == "true" && $CI_COMMIT_TAG
+    # If final is not true, run on development branch
+    - if: $final != "true" && $CI_COMMIT_BRANCH == "development"
+    # Always run on tags regardless of final variable
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - when: never
 
 stages:
   - build
+  - build-linux
+  - release
   - cleanup
 
 variables:
@@ -17,16 +24,14 @@ variables:
   GIT_STRATEGY: fetch
   GIT_DEPTH: 1
   GIT_CLEAN_FLAGS: -ffdx
+  # Optimize artifact handling
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
   FF_USE_FASTZIP: "true"
-  ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
-  ANDROID_HOME: "/opt/android-sdk-linux"
 
 cache:
-  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG-v5"
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG-v3"
   paths:
-    - .pub-cache/
-    - android/.gradle/
+    - .pub-cache-$CI_JOB_NAME/
   policy: pull-push
 
 build_debug_apk:
