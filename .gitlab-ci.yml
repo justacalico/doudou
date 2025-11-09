@@ -254,66 +254,46 @@ publish_release:
     - |
       for i in {1..3}; do
         echo "Attempt $i: Fetching pipeline jobs data..."
-        JOBS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
-        if [ $? -eq 0 ] && [ -n "$JOBS_DATA" ]; then
-          break
-        fi
-        echo "API call failed, retrying in 5 seconds..."
-        sleep 5
-      done
-      
-      echo "Jobs data response:"
-      echo "$JOBS_DATA" | head -5
-      
-      if command -v jq &> /dev/null; then
-        APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .id')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .id')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="reassemble_ios_artifact") | .id')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .id')
-        
-        APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .status')
-        LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .status')
-        IOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="reassemble_ios_artifact") | .status')
-        MACOS_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_macos") | .status')
-      else
-        APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        IOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"reassemble_ios_artifact"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        MACOS_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
-        
-        APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        IOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"reassemble_ios_artifact"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
-        MACOS_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_macos"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+      JOBS_DATA=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
+      if [ $? -eq 0 ] && [ -n "$JOBS_DATA" ]; then
+        break
       fi
+      echo "API call failed, retrying in 5 seconds..."
+      sleep 5
+    done
+    
+    echo "Jobs data response:"
+    echo "$JOBS_DATA" | head -5
+    
+    if command -v jq &> /dev/null; then
+      APK_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .id')
+      LINUX_JOB_ID=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .id')
       
-      echo "Job IDs - APK: $APK_JOB_ID, Linux: $LINUX_JOB_ID, iOS: $IOS_JOB_ID, macOS: $MACOS_JOB_ID"
-      echo "Job statuses - APK: $APK_STATUS, Linux: $LINUX_STATUS, iOS: $IOS_STATUS, macOS: $MACOS_STATUS"
+      APK_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_apk") | .status')
+      LINUX_STATUS=$(echo "$JOBS_DATA" | jq -r '.[] | select(.name=="build_release_linux") | .status')
+    else
+      APK_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
+      LINUX_JOB_ID=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"id":[0-9]/{s/.*"id":\([0-9]*\).*/\1/p; q} }')
       
-      ASSET_LINKS=""
-      
-      if [ -n "$APK_JOB_ID" ] && [ "$APK_STATUS" = "success" ]; then
-        APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-release.apk"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Android APK\", \"url\": \"$APK_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      if [ -n "$LINUX_JOB_ID" ] && [ "$LINUX_STATUS" = "success" ]; then
-        LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"Linux Build Archive\", \"url\": \"$LINUX_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      if [ -n "$IOS_JOB_ID" ] && [ "$IOS_STATUS" = "success" ]; then
-        IOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$IOS_JOB_ID/artifacts/raw/build/doudou-release-ios.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"iOS Release Build\", \"url\": \"$IOS_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      if [ -n "$MACOS_JOB_ID" ] && [ "$MACOS_STATUS" = "success" ]; then
-        MACOS_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$MACOS_JOB_ID/artifacts/raw/build/doudou-release-macos.tar.gz"
-        ASSET_LINKS="$ASSET_LINKS{\"name\": \"macOS Release Build\", \"url\": \"$MACOS_URL\", \"link_type\": \"package\"},"
-      fi
-      
-      ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
+      APK_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_apk"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+      LINUX_STATUS=$(echo "$JOBS_DATA" | sed -n '/"name":"build_release_linux"/,/}$/{ /"status":"[^"]*"/{s/.*"status":"\([^"]*\)".*/\1/p; q} }')
+    fi
+    
+    echo "Job IDs - APK: $APK_JOB_ID, Linux: $LINUX_JOB_ID"
+    echo "Job statuses - APK: $APK_STATUS, Linux: $LINUX_STATUS"
+    
+    ASSET_LINKS=""
+    
+    if [ -n "$APK_JOB_ID" ] && [ "$APK_STATUS" = "success" ]; then
+      APK_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$APK_JOB_ID/artifacts/raw/build/app/outputs/flutter-apk/app-release.apk"
+      ASSET_LINKS="$ASSET_LINKS{\"name\": \"Android APK\", \"url\": \"$APK_URL\", \"link_type\": \"package\"},"
+    fi
+    
+    if [ -n "$LINUX_JOB_ID" ] && [ "$LINUX_STATUS" = "success" ]; then
+      LINUX_URL="$CI_SERVER_URL/$CI_PROJECT_PATH/-/jobs/$LINUX_JOB_ID/artifacts/download"
+      ASSET_LINKS="$ASSET_LINKS{\"name\": \"Linux Build Archive\", \"url\": \"$LINUX_URL\", \"link_type\": \"package\"},"
+    fi      ASSET_LINKS=$(echo "$ASSET_LINKS" | sed 's/,$//')
       
       if [ -z "$ASSET_LINKS" ]; then
         echo "No successful builds with artifacts found. Cannot create release."
