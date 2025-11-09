@@ -739,13 +739,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: theme.colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Jellyfin Music Player',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
                     const SizedBox(height: 24),
                     FutureBuilder<PackageInfo>(
                       future: PackageInfo.fromPlatform(),
