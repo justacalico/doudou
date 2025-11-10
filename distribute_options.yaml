@@ -19,3 +19,11 @@ releases:
           target: deb
           build_args:
             release: true
+      
+      # Build RPM for Linux
+      - name: linux-rpm
+        package:
+          platform: linux
+          target: rpm
+          build_args:
+            release: true
