@@ -11,3 +11,11 @@ releases:
           target: appimage
           build_args:
             release: true
+      
+      # Build DEB for Linux
+      - name: linux-deb
+        package:
+          platform: linux
+          target: deb
+          build_args:
+            release: true

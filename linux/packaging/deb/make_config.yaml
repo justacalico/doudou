@@ -1,0 +1,28 @@
+display_name: Doudou
+package_name: doudou
+maintainer:
+  name: httpanimations
+  email: httpanimations@example.com
+priority: optional
+section: sound
+installed_size: 50000
+essential: false
+icon: assets/icons/icon.png
+
+keywords:
+  - Music
+  - Audio
+  - Streaming
+  - Jellyfin
+  - Media
+  - Player
+
+generic_name: Music Streaming Client
+
+categories:
+  - Audio
+  - Music
+  - Player
+  - AudioVideo
+
+startup_notify: true
