@@ -96,6 +96,11 @@ while [ $# -gt 0 ]; do
             PACKAGE_TYPE="${2:-ipa}"
             shift
             ;;
+        -ohos)
+            PLATFORM="ohos"
+            PACKAGE_TYPE="${2:-hap}"
+            shift
+            ;;
         -h|--help)
             usage
             ;;
