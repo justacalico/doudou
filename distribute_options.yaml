@@ -27,3 +27,11 @@ releases:
           target: rpm
           build_args:
             release: true
+      
+      # Build HAP for OpenHarmony
+      - name: ohos-hap
+        package:
+          platform: ohos
+          target: hap
+          build_args:
+            release: true
