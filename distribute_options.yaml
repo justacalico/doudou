@@ -1,0 +1,13 @@
+# FastForge Distribution Configuration
+output: dist/
+
+releases:
+  - name: production
+    jobs:
+      # Build AppImage for Linux
+      - name: linux-appimage
+        package:
+          platform: linux
+          target: appimage
+          build_args:
+            release: true
