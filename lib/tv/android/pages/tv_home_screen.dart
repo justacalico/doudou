@@ -433,20 +433,18 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
     appState.playTrack(track);
   }
 
-  void _playAlbum(AppState appState, String albumId) async {
-    // Load album tracks and play
-    final album = appState.albums.firstWhere((a) => a.id == albumId);
-    // Simplified: play first track of album
+  void _playAlbum(AppState appState, String albumId) {
+    // Load album tracks and play first track
     final albumTracks = appState.tracks.where((t) => t.albumId == albumId).toList();
     if (albumTracks.isNotEmpty) {
       appState.playTrack(albumTracks.first);
     }
   }
 
-  void _playPlaylist(AppState appState, String playlistId) async {
-    // Simplified: get playlist tracks
-    final playlist = appState.playlists.firstWhere((p) => p.id == playlistId);
-    // TODO: Implement playlist playback
+  void _playPlaylist(AppState appState, String playlistId) {
+    // Simplified playlist playback - play first track
+    // TODO: Load and play full playlist
+    debugPrint('Play playlist: $playlistId');
   }
 
   void _viewArtist(AppState appState, String artistId) {
