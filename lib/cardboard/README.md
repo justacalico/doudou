@@ -1,42 +1,65 @@
-# Google Cardboard VR Mode
+# Google Cardboard VR Mode - 360° 3D Experience
 
-This directory contains the VR mode implementation for Doudou, optimized for Google Cardboard headsets.
+This directory contains the full 360-degree 3D VR mode implementation for Doudou, optimized for Google Cardboard headsets with head tracking.
 
 ## Structure
 
 ```
 lib/cardboard/
 ├── pages/
-│   └── vr_player.dart          # Main VR player screen with stereoscopic view
+│   └── vr_player.dart              # Main VR player with 3D scene integration
+├── services/
+│   └── vr_scene_manager.dart       # 3D scene management and head tracking
 └── widgets/
-    ├── vr_album_art.dart        # Album artwork display for VR
-    ├── vr_player_controls.dart  # Playback controls optimized for VR
-    └── vr_track_info.dart       # Track information display for VR
+    ├── vr_3d_environment.dart      # 360° 3D environment renderer
+    ├── vr_album_art.dart           # Album artwork display for VR
+    ├── vr_player_controls.dart     # Playback controls optimized for VR
+    └── vr_track_info.dart          # Track information display for VR
 ```
 
 ## Features
 
-### Stereoscopic Display
-- Side-by-side eye views for Google Cardboard
-- Optimized spacing for comfortable VR viewing
-- Immersive full-screen experience
+### 360-Degree 3D Environment
+- **Full 360° panoramic view** with head tracking
+- **Gyroscope integration** for real-time head movement tracking
+- **Stereoscopic rendering** with proper left/right eye separation
+- **3D particle system** with floating particles in space
+- **Dynamic environment** that responds to head movement
+
+### Head Tracking
+- Real-time gyroscope-based head tracking
+- Yaw, pitch, and roll support for full 6DOF movement
+- Calibration system to recenter view
+- Smooth interpolation for comfortable viewing
+- Gimbal lock prevention for stable tracking
+
+### Immersive 3D Scene
+- **Space-like environment** with star field background
+- **Panoramic rings** that create depth perception
+- **Floating UI panels** positioned in 3D space
+- **Particle effects** that move with your head
+- **Dynamic lighting** with purple/cosmic theme
 
 ### Player Controls
+- Toggleable overlay controls (tap to show/hide)
+- Auto-hide after 5 seconds for immersion
 - Large, accessible touch targets
 - Play/pause, skip previous/next controls
 - Seekable progress bar with time display
-- Responsive to audio playback state
+- Recenter view button for calibration
 
 ### Visual Design
-- Dark theme optimized for OLED screens
-- Purple gradient accents matching Doudou's brand
-- Glowing effects around album art and buttons
-- Large, readable text for comfortable viewing distance
+- Deep space theme with purple accents
+- Dynamic star field with varying brightness
+- Glowing particle effects
+- 3D-projected UI elements
+- Optimized for OLED screens
 
 ### System Integration
 - Forces landscape orientation when in VR mode
 - Hides system UI for immersive experience
 - Restores normal orientation on exit
+- Real-time scene updates (60 FPS)
 - Integrates with app's audio service
 
 ## Usage
