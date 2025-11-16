@@ -30,23 +30,6 @@ android {
         versionName = flutter.versionName
     }
 
-    flavorDimensions += "platform"
-    productFlavors {
-        create("mobile") {
-            dimension = "platform"
-            applicationIdSuffix = ".mobile"
-            versionNameSuffix = "-mobile"
-        }
-        create("tv") {
-            dimension = "platform"
-            applicationIdSuffix = ".tv"
-            versionNameSuffix = "-tv"
-            minSdk = flutter.minSdkVersion  // Android TV requires min SDK 21
-            // Use TV-specific entry point
-            addManifestPlaceholders(mapOf("flutterTarget" to "lib/tv/android/tv_main.dart"))
-        }
-    }
-
     signingConfigs {
         create("release") {
             keyAlias = System.getenv("KEY_ALIAS") ?: "doudou"
