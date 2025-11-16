@@ -41,7 +41,7 @@ android {
             dimension = "platform"
             applicationIdSuffix = ".tv"
             versionNameSuffix = "-tv"
-            minSdk = 21  // Android TV requires min SDK 21
+            minSdk = flutter.minSdkVersion  // Android TV requires min SDK 21
         }
     }
 
