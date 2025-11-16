@@ -5,7 +5,7 @@ group: Applications/Multimedia
 vendor: httpanimations
 packager: httpanimations
 packagerEmail: httpanimations@gmail.com
-license: MIT
+license: GPL-3.0-or-later
 url: https://github.com/httpanimations/doudou
 
 keywords:
