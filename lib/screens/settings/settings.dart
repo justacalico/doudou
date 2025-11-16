@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -7,6 +8,7 @@ import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
 import 'logs_viewer.dart';
+import '../../cardboard/pages/vr_player.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -129,6 +131,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           value: appState.useDynamicIsle,
                           onChanged: (value) => appState.toggleDynamicIsle(value),
                         ),
+                        // VR Mode button (mobile only)
+                        if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || 
+                                       defaultTargetPlatform == TargetPlatform.iOS))
+                          _buildSettingTile(
+                            icon: CupertinoIcons.viewfinder,
+                            title: 'VR Mode',
+                            subtitle: 'Launch Google Cardboard VR player',
+                            onTap: () => _launchVRMode(context),
+                          ),
                       ],
                     ),
                   ),
@@ -575,6 +586,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trackColor: const Color(0xFF1C1C1E), // Dark track
           ),
         ],
+      ),
+    );
+  }
+
+  void _launchVRMode(BuildContext context) {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => const VRPlayerScreen(),
+        fullscreenDialog: true,
       ),
     );
   }
