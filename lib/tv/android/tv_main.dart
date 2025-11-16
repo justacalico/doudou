@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/app_state.dart';
-import 'screens/login/login.dart';
-import 'tv/android/pages/tv_home_screen.dart';
+import '../../providers/app_state.dart';
+import '../../screens/login/login.dart';
+import 'pages/tv_home_screen.dart';
 
 void main() {
   runApp(const DoudouApp());
