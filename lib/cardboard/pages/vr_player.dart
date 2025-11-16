@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import '../../providers/app_state.dart';
 import '../widgets/vr_player_controls.dart';
-import '../widgets/vr_album_art.dart';
+import '../widgets/vr_3d_environment.dart';
+import '../services/vr_scene_manager.dart';
+import 'dart:async';
 
 /// VR Player Screen for Google Cardboard
 /// 
-/// This screen provides a stereoscopic 3D view optimized for Google Cardboard.
-/// The UI is split into left and right eye views with appropriate spacing for VR headsets.
+/// This screen provides a full 360-degree 3D environment with stereoscopic viewing
+/// and head tracking support for an immersive music experience.
 class VRPlayerScreen extends StatefulWidget {
   const VRPlayerScreen({super.key});
 
@@ -18,20 +20,47 @@ class VRPlayerScreen extends StatefulWidget {
 }
 
 class _VRPlayerScreenState extends State<VRPlayerScreen> {
+  late VRSceneManager _sceneManager;
+  Timer? _updateTimer;
+  bool _showControls = true;
+  
   @override
   void initState() {
     super.initState();
+    
+    // Initialize 3D scene manager
+    _sceneManager = VRSceneManager();
+    _sceneManager.initialize();
+    
     // Set landscape orientation for VR mode
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    
     // Hide system UI for immersive experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    
+    // Start update loop for scene rendering
+    _updateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (mounted) {
+        setState(() {}); // Trigger rebuild for head tracking updates
+      }
+    });
+    
+    // Auto-hide controls after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() => _showControls = false);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _updateTimer?.cancel();
+    _sceneManager.dispose();
+    
     // Restore normal orientation
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -39,9 +68,25 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    
     // Restore system UI
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
+  }
+  
+  void _toggleControls() {
+    setState(() => _showControls = !_showControls);
+  }
+  
+  void _recenterView() {
+    _sceneManager.calibrate();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('View recentered'),
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.purple,
+      ),
+    );
   }
 
   @override
