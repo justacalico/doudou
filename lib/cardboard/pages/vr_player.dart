@@ -93,88 +93,174 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Consumer<AppState>(
-        builder: (context, appState, child) {
-          return StreamBuilder<MediaItem?>(
-            stream: appState.mediaItem,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data == null) {
-                return _buildNoTrackView();
-              }
+      body: GestureDetector(
+        onTap: _toggleControls,
+        child: Consumer<AppState>(
+          builder: (context, appState, child) {
+            return StreamBuilder<MediaItem?>(
+              stream: appState.mediaItem,
+              builder: (context, snapshot) {
+                final mediaItem = snapshot.data;
+                final albumArtUrl = mediaItem?.artUri?.toString();
+                
+                if (mediaItem == null) {
+                  return _buildNoTrackView();
+                }
 
-              return Row(
-                children: [
-                  // Left Eye View
-                  Expanded(
-                    child: _buildEyeView(context, appState, isLeftEye: true),
-                  ),
-                  // Right Eye View
-                  Expanded(
-                    child: _buildEyeView(context, appState, isLeftEye: false),
-                  ),
-                ],
-              );
-            },
-          );
-        },
+                return Row(
+                  children: [
+                    // Left Eye View - 360° 3D Environment
+                    Expanded(
+                      child: _build3DEnvironment(
+                        context, 
+                        appState, 
+                        albumArtUrl: albumArtUrl,
+                        mediaItem: mediaItem,
+                        isLeftEye: true,
+                      ),
+                    ),
+                    // Right Eye View - 360° 3D Environment
+                    Expanded(
+                      child: _build3DEnvironment(
+                        context, 
+                        appState, 
+                        albumArtUrl: albumArtUrl,
+                        mediaItem: mediaItem,
+                        isLeftEye: false,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildEyeView(BuildContext context, AppState appState, {required bool isLeftEye}) {
-    return StreamBuilder<MediaItem?>(
-      stream: appState.mediaItem,
-      builder: (context, snapshot) {
-        final mediaItem = snapshot.data;
-        if (mediaItem == null) {
-          return _buildNoTrackContent();
-        }
+  Widget _build3DEnvironment(
+    BuildContext context,
+    AppState appState, {
+    required String? albumArtUrl,
+    required MediaItem mediaItem,
+    required bool isLeftEye,
+  }) {
+    return Stack(
+      children: [
+        // 360-degree 3D environment with head tracking
+        VR3DEnvironment(
+          sceneManager: _sceneManager,
+          albumArtUrl: albumArtUrl,
+          isLeftEye: isLeftEye,
+        ),
+        
+        // Overlay controls (only show when toggled)
+        if (_showControls)
+          _buildControlsOverlay(context, appState, mediaItem),
+      ],
+    );
+  }
 
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Colors.purple.shade900.withOpacity(0.3),
-                Colors.black,
-              ],
+  Widget _buildControlsOverlay(
+    BuildContext context,
+    AppState appState,
+    MediaItem mediaItem,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.black.withOpacity(0.7),
+            Colors.transparent,
+            Colors.transparent,
+            Colors.black.withOpacity(0.7),
+          ],
+          stops: const [0.0, 0.2, 0.8, 1.0],
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Top bar with track info and recenter button
+          _buildTopBar(mediaItem),
+          
+          // Bottom bar with controls
+          _buildBottomBar(context, appState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopBar(MediaItem mediaItem) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Track info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    mediaItem.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (mediaItem.artist != null)
+                    Text(
+                      mediaItem.artist!,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(flex: 1),
-              
-              // Album Art
-              VRAlbumArt(
-                imageUrl: mediaItem.artUri?.toString(),
-                size: 200,
-              ),
-              
-              const SizedBox(height: 40),
-              
-              // Track Info from MediaItem
-              _buildMediaItemInfo(mediaItem),
-              
-              const Spacer(flex: 1),
-              
-              // Player Controls
-              VRPlayerControls(
-                appState: appState,
-              ),
-              
-              const SizedBox(height: 60),
-              
-              // Exit VR button at bottom
-              _buildExitButton(context),
-              
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
+            // Recenter button
+            IconButton(
+              onPressed: _recenterView,
+              icon: const Icon(Icons.center_focus_strong),
+              color: Colors.white,
+              iconSize: 28,
+              tooltip: 'Recenter View',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context, AppState appState) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Player controls
+            VRPlayerControls(appState: appState),
+            
+            const SizedBox(height: 16),
+            
+            // Exit button
+            _buildExitButton(context),
+          ],
+        ),
+      ),
     );
   }
 
