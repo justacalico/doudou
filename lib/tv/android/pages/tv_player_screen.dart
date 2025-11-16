@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -16,8 +17,6 @@ class TVPlayerScreen extends StatefulWidget {
 }
 
 class _TVPlayerScreenState extends State<TVPlayerScreen> {
-  bool _showControls = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
