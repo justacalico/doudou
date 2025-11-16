@@ -12,13 +12,6 @@ void main() {
 class DoudouApp extends StatelessWidget {
   const DoudouApp({super.key});
 
-  // Detect if running on Android TV
-  bool get _isAndroidTV {
-    // Check if running on Android TV by looking at product flavor or build config
-    // For now, we'll use a simple check based on screen size ratio
-    return !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
