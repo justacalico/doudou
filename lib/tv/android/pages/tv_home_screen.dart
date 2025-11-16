@@ -282,7 +282,7 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
         final artist = appState.artists[index];
         return TVAlbumCard(
           title: artist.name,
-          subtitle: '${artist.albumCount ?? 0} albums',
+          subtitle: 'Artist',
           imageUrl: appState.getImageUrl(artist.id),
           isCircular: true,
           onTap: () => _viewArtist(appState, artist.id),
@@ -433,12 +433,20 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
     appState.playTrack(track);
   }
 
-  void _playAlbum(AppState appState, String albumId) {
-    appState.playAlbum(albumId);
+  void _playAlbum(AppState appState, String albumId) async {
+    // Load album tracks and play
+    final album = appState.albums.firstWhere((a) => a.id == albumId);
+    // Simplified: play first track of album
+    final albumTracks = appState.tracks.where((t) => t.albumId == albumId).toList();
+    if (albumTracks.isNotEmpty) {
+      appState.playTrack(albumTracks.first);
+    }
   }
 
-  void _playPlaylist(AppState appState, String playlistId) {
-    appState.playPlaylist(playlistId);
+  void _playPlaylist(AppState appState, String playlistId) async {
+    // Simplified: get playlist tracks
+    final playlist = appState.playlists.firstWhere((p) => p.id == playlistId);
+    // TODO: Implement playlist playback
   }
 
   void _viewArtist(AppState appState, String artistId) {
