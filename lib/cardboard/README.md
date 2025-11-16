@@ -95,13 +95,62 @@ Navigator.of(context).push(
 
 ## Technical Implementation
 
-### Screen Layout
+### 3D Scene Architecture
 
-The VR player uses a `Row` widget to create side-by-side views:
-- Left eye view (left half of screen)
-- Right eye view (right half of screen)
+#### VRSceneManager
+- Manages camera orientation using quaternions
+- Integrates gyroscope data for head tracking
+- Provides view matrices for stereoscopic rendering
+- Handles scene object transformations
+- Supports calibration and reset functions
 
-Both views show identical content, as basic Cardboard doesn't require true 3D rendering.
+#### VR3DEnvironment Widget
+- Custom painter for 3D scene rendering
+- Draws multiple layers:
+  - Background gradient (space theme)
+  - Star field with random positions
+  - Panoramic rings for 360° effect
+  - 3D particle system
+  - Floating UI panels
+- Animation controller for smooth effects
+- Real-time rendering at 60 FPS
+
+### Stereoscopic Rendering
+
+The VR player creates true stereoscopic 3D:
+- Left eye view with -32mm offset
+- Right eye view with +32mm offset
+- Proper IPD (Interpupillary Distance) calculation
+- Separate view matrices for each eye
+- Realistic depth perception
+
+### Head Tracking System
+
+```dart
+// Gyroscope integration
+gyroscopeEventStream().listen((GyroscopeEvent event) {
+  yaw += event.z * dt * sensitivity;
+  pitch += event.x * dt * sensitivity;
+  roll += event.y * dt * sensitivity;
+});
+
+// View matrix generation
+Matrix4 getViewMatrix() {
+  matrix.rotateY(-yaw);
+  matrix.rotateX(-pitch);
+  matrix.rotateZ(roll);
+  return matrix;
+}
+```
+
+### 3D Projection
+
+Objects in 3D space are projected to 2D screen:
+1. Define object position in 3D (x, y, z)
+2. Apply view transformation (head rotation)
+3. Apply stereoscopic offset (left/right eye)
+4. Project to 2D screen coordinates
+5. Apply depth-based scaling
 
 ### Audio Integration
 
