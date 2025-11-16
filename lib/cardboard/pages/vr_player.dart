@@ -264,60 +264,7 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
     );
   }
 
-  Widget _buildMediaItemInfo(MediaItem mediaItem) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Track Title
-          Text(
-            mediaItem.title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // Artist Name
-          if (mediaItem.artist != null)
-            Text(
-              mediaItem.artist!,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 20,
-                fontWeight: FontWeight.w300,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          
-          const SizedBox(height: 8),
-          
-          // Album Name
-          if (mediaItem.album != null)
-            Text(
-              mediaItem.album!,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 16,
-                fontWeight: FontWeight.w300,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildNoTrackView() {
     return Center(
