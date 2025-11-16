@@ -30,6 +30,21 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "platform"
+    productFlavors {
+        create("mobile") {
+            dimension = "platform"
+            applicationIdSuffix = ".mobile"
+            versionNameSuffix = "-mobile"
+        }
+        create("tv") {
+            dimension = "platform"
+            applicationIdSuffix = ".tv"
+            versionNameSuffix = "-tv"
+            minSdk = 21  // Android TV requires min SDK 21
+        }
+    }
+
     signingConfigs {
         create("release") {
             keyAlias = System.getenv("KEY_ALIAS") ?: "doudou"
