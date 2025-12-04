@@ -1,14 +1,14 @@
 #!/bin/bash
-# Zed Dist (zddist) - Build script for Doudou using FastForge
-# Usage: ./zddist -platform [package_type]
+# Zed Dist (make) - Build script for Doudou using FastForge
+# Usage: ./make -platform [package_type]
 # Examples:
-#   ./zddist -linux appimage
-#   ./zddist -linux deb
-#   ./zddist -macos dmg
-#   ./zddist -windows msix
-#   ./zddist -android apk
-#   ./zddist -android aab
-#   ./zddist -ios ipa
+#   ./make -linux appimage
+#   ./make -linux deb
+#   ./make -macos dmg
+#   ./make -windows msix
+#   ./make -android apk
+#   ./make -android aab
+#   ./make -ios ipa
 
 set -e
 
