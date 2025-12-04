@@ -158,7 +158,13 @@ echo -e "${BLUE}Command:${NC} $BUILD_CMD"
 echo ""
 
 # Execute the build
-if eval $BUILD_CMD; then
+# Run the build but allow a fallback for RPM layout issues (FastForge/rpmbuild mismatch)
+set +e
+eval $BUILD_CMD
+BUILD_STATUS=$?
+set -e
+
+if [ $BUILD_STATUS -eq 0 ]; then
     echo ""
     echo -e "${GREEN}╔════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║      Build Successful! 🎉         ║${NC}"
@@ -166,16 +172,74 @@ if eval $BUILD_CMD; then
     echo ""
     echo -e "${GREEN}Output directory:${NC} dist/"
     echo ""
-    
+
     # Try to show the output files
     if [ -d "dist" ]; then
         echo -e "${GREEN}Built packages:${NC}"
         find dist -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.dmg" -o -name "*.pkg" -o -name "*.msix" -o -name "*.exe" -o -name "*.apk" -o -name "*.aab" -o -name "*.ipa" -o -name "*.zip" \) -exec ls -lh {} \; 2>/dev/null || echo "  (Run 'ls -lh dist/' to see output files)"
     fi
-else
-    echo ""
-    echo -e "${RED}╔════════════════════════════════════╗${NC}"
-    echo -e "${RED}║       Build Failed! ❌            ║${NC}"
-    echo -e "${RED}╚════════════════════════════════════╝${NC}"
-    exit 1
+    exit 0
 fi
+
+# If we get here, fastforge failed. Provide a helpful retry for RPM targets.
+if [ "$PLATFORM" = "linux" ] && [ "$PACKAGE_TYPE" = "rpm" ]; then
+    echo -e "${YELLOW}FastForge RPM packaging failed — attempting automatic rpmbuild layout fix...${NC}"
+
+    # Read package name/version from pubspec.yaml
+    if [ -f pubspec.yaml ]; then
+        NAME=$(grep '^name:' pubspec.yaml | head -n1 | sed 's/^name:[[:space:]]*//;s/["'"'"']//g')
+        VERSION=$(grep '^version:' pubspec.yaml | head -n1 | sed 's/^version:[[:space:]]*//;s/["'"'"']//g')
+    fi
+
+    # Fallbacks
+    NAME=${NAME:-doudou}
+    VERSION=${VERSION:-}
+
+    TOP="$(pwd)/dist/${VERSION}/${NAME}-${VERSION}-linux_rpm/rpmbuild"
+
+    echo "Looking for rpmbuild topdir: $TOP"
+
+    # Check if fastforge placed the bundle under BUILD/<name> instead of BUILD/<name>-<version>-build/<name>
+    if [ -d "$TOP/BUILD/$NAME" ]; then
+        echo "Detected build files in wrong location. Fixing spec file and retrying..."
+        
+        # Fix the spec file to reference parent directory where fastforge placed the files
+        # The spec runs from BUILD/<name>-<version>-build/ but files are in BUILD/
+        SPEC_FILE="$TOP/SPECS/${NAME}.spec"
+        if [ -f "$SPEC_FILE" ]; then
+            # Replace "cp -r %{name}/*" with "cp -r ../%{name}/*" to look in parent BUILD dir
+            sed -i 's|cp -r %{name}/|cp -r ../%{name}/|g' "$SPEC_FILE"
+            sed -i 's|cp -r %{name}\.|cp -r ../%{name}.|g' "$SPEC_FILE"
+            sed -i 's|cp -r %{name}\.desktop|cp -r ../%{name}.desktop|g' "$SPEC_FILE"
+            sed -i 's|cp -r %{name}\.png|cp -r ../%{name}.png|g' "$SPEC_FILE"
+            sed -i 's|cp -r %{name}\*\.xml|cp -r ../%{name}*.xml|g' "$SPEC_FILE"
+        fi
+
+        echo "Re-running rpmbuild to finish packaging..."
+        rpmbuild --define "_topdir $TOP" -bb "$SPEC_FILE"
+        RPM_STATUS=$?
+        if [ $RPM_STATUS -eq 0 ]; then
+            echo ""
+            echo -e "${GREEN}╔════════════════════════════════════╗${NC}"
+            echo -e "${GREEN}║      RPM Build Successful! 🎉     ║${NC}"
+            echo -e "${GREEN}╚════════════════════════════════════╝${NC}"
+            echo ""
+            echo -e "${GREEN}Output directory:${NC} dist/"
+            
+            # Show the built RPM
+            find "$TOP/RPMS" -name "*.rpm" -exec ls -lh {} \; 2>/dev/null
+            exit 0
+        else
+            echo -e "${RED}Automatic rpmbuild retry failed.${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}No build directory found at $TOP/BUILD/$NAME — cannot auto-fix.${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${RED}╔════════════════════════════════════╗${NC}"
+echo -e "${RED}║       Build Failed! ❌            ║${NC}"
+echo -e "${RED}╚════════════════════════════════════╝${NC}"
+exit 1
