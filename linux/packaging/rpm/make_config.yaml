@@ -1,0 +1,27 @@
+display_name: Doudou
+icon: assets/icons/icon.png
+summary: Stream your music with ease and style
+group: Applications/Multimedia
+vendor: httpanimations
+packager: httpanimations
+packagerEmail: httpanimations@gmail.com
+license: GPL-3.0-or-later
+url: https://github.com/httpanimations/doudou
+
+keywords:
+  - Music
+  - Audio
+  - Streaming
+  - Jellyfin
+  - Media
+  - Player
+
+generic_name: Music Streaming Client
+
+categories:
+  - Audio
+  - Music
+  - Player
+  - AudioVideo
+
+startup_notify: true

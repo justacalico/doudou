@@ -726,10 +726,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.music_note,
-                      size: 80,
-                      color: theme.colorScheme.primary,
+                    Image.asset(
+                      'assets/icons/icon.png',
+                      width: 80,
+                      height: 80,
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -739,18 +739,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: theme.colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Jellyfin Music Player',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
                     const SizedBox(height: 24),
                     FutureBuilder<PackageInfo>(
                       future: PackageInfo.fromPlatform(),
                       builder: (context, snapshot) {
-                        final version = snapshot.data?.version ?? '6.0.0';
+                        final version = snapshot.data?.version ?? 'Error: Unknown';
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -774,7 +767,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Text(
-                        'A beautiful music player for your Jellyfin server',
+                        'A beautiful music player for anyone anywhere.',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           height: 1.5,

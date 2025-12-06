@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import 'details/album_details.dart';
+import 'details/media_details.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -182,7 +182,7 @@ class _LibraryPageState extends State<LibraryPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AlbumDetailsPage(album: album),
+                            builder: (context) => MediaDetailsPage.album(album: album),
                           ),
                         );
                       },

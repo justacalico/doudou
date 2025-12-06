@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import 'details/album_details.dart';
+import 'details/media_details.dart';
 
 class AlbumsPage extends StatefulWidget {
   const AlbumsPage({super.key});
@@ -493,7 +493,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AlbumDetailsPage(album: album),
+              builder: (context) => MediaDetailsPage.album(album: album),
             ),
           );
         },

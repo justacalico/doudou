@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import 'details/album_details.dart';
+import 'details/media_details.dart';
 import 'details/artist_details.dart';
-import 'details/playlist_details.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -746,7 +745,7 @@ class _SearchPageState extends State<SearchPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AlbumDetailsPage(album: item),
+            builder: (context) => MediaDetailsPage.album(album: item),
           ),
         );
         break;
@@ -762,7 +761,7 @@ class _SearchPageState extends State<SearchPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PlaylistDetailsPage(playlist: item),
+            builder: (context) => MediaDetailsPage.playlist(playlist: item),
           ),
         );
         break;

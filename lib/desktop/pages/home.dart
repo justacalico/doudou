@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../templates/page_template.dart';
 import '../templates/music_cards.dart';
 import '../../providers/app_state.dart';
-import 'details/album_details.dart';
+import 'details/media_details.dart';
 import 'details/artist_details.dart';
 
 class HomePage extends StatefulWidget {
@@ -91,14 +91,14 @@ class _HomePageState extends State<HomePage> {
                                       title: album.name,
                                       subtitle: album.artistName ?? 'Unknown Artist',
                                       imageUrl: _getImageUrl(appState, album.imageUrl),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AlbumDetailsPage(album: album),
-                                          ),
-                                        );
-                                      },
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => MediaDetailsPage.album(album: album),
+                                              ),
+                                            );
+                                          },
                                     ),
                                   );
                                 },

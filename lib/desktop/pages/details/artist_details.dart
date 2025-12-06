@@ -4,7 +4,7 @@ import '../../templates/desktop_layout.dart';
 import '../../templates/track_list_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
-import 'album_details.dart';
+import 'media_details.dart';
 
 class ArtistDetailsPage extends StatefulWidget {
   final Artist artist;
@@ -483,7 +483,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AlbumDetailsPage(album: album),
+            builder: (context) => MediaDetailsPage.album(album: album),
           ),
         );
       },
