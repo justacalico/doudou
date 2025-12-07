@@ -364,6 +364,11 @@ class _LoginScreenState extends State<LoginScreen>
               // Offline mode button
               _buildOfflineModeButton(context, appState, isDesktop),
               
+              SizedBox(height: isDesktop ? 16 : 12),
+              
+              // Demo button
+              _buildDemoButton(context, appState, isDesktop),
+              
               SizedBox(height: isDesktop ? 40 : 60),
             ],
           ),
@@ -807,6 +812,69 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildDemoButton(BuildContext context, AppState appState, bool isDesktop) {
+    return SizedBox(
+      height: isDesktop ? 56 : 50,
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: appState.isLoading ? null : _loginDemo,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: CupertinoColors.systemGreen.color,
+          side: BorderSide(
+            color: CupertinoColors.systemGreen.color.withOpacity(0.5),
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 24 : 20,
+            vertical: isDesktop ? 16 : 14,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.play_circle,
+              size: 20,
+              color: CupertinoColors.systemGreen.color,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Try Demo',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Demo login method
+  Future<void> _loginDemo() async {
+    await _triggerButtonPress();
+    
+    if (!mounted) return;
+    final appState = context.read<AppState>();
+    
+    final success = await appState.loginWithServerType(
+      'jellyfin',
+      'https://demo.jellyfin.org',
+      'Demo',
+      '',
+    );
+
+    if (success && mounted) {
+      await _triggerHapticFeedback(isSuccess: true);
+    } else if (mounted) {
+      await _triggerHapticFeedback(isSuccess: false);
+    }
   }
 
   // Login and utility methods
