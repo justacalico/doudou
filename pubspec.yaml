@@ -1,7 +1,7 @@
 name: doudou
 description: "Stream your music with ease and style."
 publish_to: 'none'
-version: 8.0.0+1
+version: 8.0.0+2
 
 environment:
   sdk: '^3.8.0'
