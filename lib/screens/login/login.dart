@@ -866,7 +866,7 @@ class _LoginScreenState extends State<LoginScreen>
     final success = await appState.loginWithServerType(
       'jellyfin',
       'https://demo.jellyfin.org/stable',
-      'Demo',
+      'demo',
       '',
     );
 
