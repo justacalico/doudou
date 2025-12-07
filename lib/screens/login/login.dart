@@ -673,14 +673,8 @@ class _LoginScreenState extends State<LoginScreen>
           controller: _passwordController,
           label: 'Password',
           icon: CupertinoIcons.lock,
-          placeholder: 'Enter your password',
+          placeholder: 'Enter your password (optional)',
           obscureText: true,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter password';
-            }
-            return null;
-          },
           isDesktop: isDesktop,
         ),
       ];
@@ -865,7 +859,7 @@ class _LoginScreenState extends State<LoginScreen>
     
     final success = await appState.loginWithServerType(
       'jellyfin',
-      'https://demo.jellyfin.org/stable',
+      'https://demo.jellyfin.org/stable/web',
       'demo',
       '',
     );
