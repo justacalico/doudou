@@ -63,6 +63,7 @@ build/
 key.properties
 signing.properties
 setup-signing.sh
+android/keystore/
 
 /builds
 .notes
