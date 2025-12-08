@@ -1,0 +1,50 @@
+Your personal music player that puts privacy first.
+
+Stream your music collection from your own media server with a beautiful, modern interface that works on all your devices. No tracking, no ads, no cloud services - just your music.
+
+📱 WORKS WITH YOUR MEDIA SERVER
+• Jellyfin - Full support (recommended)
+• Plex - Working with limitations
+• Navidrome - Full SubSonic compatibility
+
+🔒 PRIVACY FOCUSED
+• Zero tracking - No data collection, analytics, or ads
+• Your music stays yours - Everything runs on your own server
+• No cloud services - Direct connection to your media server only
+
+🎵 GREAT MUSIC EXPERIENCE
+• Beautiful interface - Modern design that adapts to your device
+• Seamless playback - Gapless audio with smooth crossfades
+• Smart features - Drag-and-drop queue management and radio mode
+• High quality audio - Supports MP3, FLAC, AAC, OGG, M4A with automatic transcoding
+
+📱 WORKS EVERYWHERE
+• All platforms - Android, iOS, macOS, Linux, Windows
+• Car integration - Android Auto support
+• Background playback - Music continues while you use other apps
+• Offline listening - Download your favorites for offline playback
+
+🔒 YOUR PRIVACY MATTERS
+We don't collect ANY data:
+• No personal information
+• No listening habits or analytics
+• No crash reports or telemetry
+• No ads or third-party trackers
+• No cloud services or external connections
+
+Everything stays on your devices:
+• Server connection settings
+• Your music preferences
+• Downloaded songs
+• Listening history and favorites
+• App settings and cache
+
+Simple promise: Doudou only talks to your media server. That's it.
+
+❓ REQUIREMENTS
+• A media server running Jellyfin 10.8+, Plex (with Plex Pass), or Navidrome 0.48+
+• Android 5.0 or later
+• Network connection to your media server
+
+📄 LICENSE
+GPL-3.0 - Free and open source forever.

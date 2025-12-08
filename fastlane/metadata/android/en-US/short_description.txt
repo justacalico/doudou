@@ -1,0 +1,1 @@
+Privacy-focused music player for Jellyfin, Plex & Navidrome
