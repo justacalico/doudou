@@ -395,18 +395,18 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     );
   }
 
-  Widget _buildTabContent(ThemeData theme, AppState appState) {
+  Widget _buildTabContent(ThemeData theme, AppState appState, AppLocalizations l10n) {
     switch (_selectedTab) {
       case 'albums':
-        return _buildAlbumsTab(theme, appState);
+        return _buildAlbumsTab(theme, appState, l10n);
       case 'songs':
-        return _buildSongsTab(theme, appState);
+        return _buildSongsTab(theme, appState, l10n);
       default:
-        return _buildAlbumsTab(theme, appState);
+        return _buildAlbumsTab(theme, appState, l10n);
     }
   }
 
-  Widget _buildAlbumsTab(ThemeData theme, AppState appState) {
+  Widget _buildAlbumsTab(ThemeData theme, AppState appState, AppLocalizations l10n) {
     if (_artistAlbums.isEmpty) {
       return Card(
         child: Padding(
@@ -421,12 +421,12 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'No albums found',
+                l10n.noAlbumsFoundForArtist,
                 style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
               Text(
-                'This artist doesn\'t have any albums yet',
+                l10n.artistHasNoAlbumsYet,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
