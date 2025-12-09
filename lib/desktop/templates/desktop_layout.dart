@@ -2268,12 +2268,16 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
         if (_cachedTrackId != trackId) {
           _cachedTrackId = trackId;
           _previousCurrentLine = -1;
-          _cachedLyricsFuture = DesktopLyricsService.fetchLyrics(
+          // Use the global cache for lyrics
+          _cachedLyricsFuture = _LyricsCache.getLyrics(
+            trackId: trackId,
             trackName: currentTrack.title,
             artistName: currentTrack.artist ?? 'Unknown Artist',
             albumName: currentTrack.album,
             durationSeconds: currentTrack.duration?.inSeconds,
           );
+          // Preload next track's lyrics
+          _preloadNextTrackLyrics();
         }
 
         return FutureBuilder<DesktopLyrics?>(
