@@ -2667,5 +2667,345 @@
   "listView": "List View",
   "@listView": {
     "description": "List view toggle tooltip"
+  },
+
+  "artist": "Artist",
+  "@artist": {
+    "description": "Artist label"
+  },
+
+  "album": "Album",
+  "@album": {
+    "description": "Album label"
+  },
+
+  "playlist": "Playlist",
+  "@playlist": {
+    "description": "Playlist label"
+  },
+
+  "popularSongs": "Popular Songs",
+  "@popularSongs": {
+    "description": "Popular songs tab title"
+  },
+
+  "noAlbumsFoundForArtist": "No albums found",
+  "@noAlbumsFoundForArtist": {
+    "description": "No albums found message"
+  },
+
+  "artistHasNoAlbumsYet": "This artist doesn't have any albums yet",
+  "@artistHasNoAlbumsYet": {
+    "description": "Artist has no albums message"
+  },
+
+  "noSongsFound": "No songs found",
+  "@noSongsFound": {
+    "description": "No songs found message"
+  },
+
+  "artistHasNoSongsYet": "This artist doesn't have any songs yet",
+  "@artistHasNoSongsYet": {
+    "description": "Artist has no songs message"
+  },
+
+  "followArtist": "Follow Artist",
+  "@followArtist": {
+    "description": "Follow artist menu item"
+  },
+
+  "startRadio": "Start Radio",
+  "@startRadio": {
+    "description": "Start radio menu item"
+  },
+
+  "noTracksInPlaylist": "No tracks in this playlist",
+  "@noTracksInPlaylist": {
+    "description": "No tracks in playlist message"
+  },
+
+  "addSongsToGetStarted": "Add some songs to get started",
+  "@addSongsToGetStarted": {
+    "description": "Add songs prompt"
+  },
+
+  "noTracksFound": "No tracks found",
+  "@noTracksFound": {
+    "description": "No tracks found message"
+  },
+
+  "albumTracksEmptyMessage": "This album appears to be empty or the tracks couldn't be loaded.",
+  "@albumTracksEmptyMessage": {
+    "description": "Album tracks empty message"
+  },
+
+  "addSongs": "Add Songs",
+  "@addSongs": {
+    "description": "Add songs button"
+  },
+
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button"
+  },
+
+  "title": "Title",
+  "@title": {
+    "description": "Title column header"
+  },
+
+  "duration": "Duration",
+  "@duration": {
+    "description": "Duration column header"
+  },
+
+  "removeFromPlaylist": "Remove from playlist",
+  "@removeFromPlaylist": {
+    "description": "Remove from playlist menu item"
+  },
+
+  "albumFavoritesNotImplemented": "Album favorites not yet implemented",
+  "@albumFavoritesNotImplemented": {
+    "description": "Album favorites not implemented message"
+  },
+
+  "reloadTracks": "Reload tracks",
+  "@reloadTracks": {
+    "description": "Reload tracks tooltip"
+  },
+
+  "editPlaylist": "Edit Playlist",
+  "@editPlaylist": {
+    "description": "Edit playlist menu item"
+  },
+
+  "deletePlaylist": "Delete Playlist",
+  "@deletePlaylist": {
+    "description": "Delete playlist menu item"
+  },
+
+  "addAlbumToPlaylist": "Add Album to Playlist",
+  "@addAlbumToPlaylist": {
+    "description": "Add album to playlist dialog title"
+  },
+
+  "addTracksToPlaylist": "Add Tracks to Playlist",
+  "@addTracksToPlaylist": {
+    "description": "Add tracks to playlist dialog title"
+  },
+
+  "createNewPlaylist": "Create New Playlist",
+  "@createNewPlaylist": {
+    "description": "Create new playlist option"
+  },
+
+  "playlistName": "Playlist Name",
+  "@playlistName": {
+    "description": "Playlist name label"
+  },
+
+  "create": "Create",
+  "@create": {
+    "description": "Create button"
+  },
+
+  "descriptionOptional": "Description (Optional)",
+  "@descriptionOptional": {
+    "description": "Description optional label"
+  },
+
+  "save": "Save",
+  "@save": {
+    "description": "Save button"
+  },
+
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete button"
+  },
+
+  "deletePlaylistConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deletePlaylistConfirmation": {
+    "description": "Delete playlist confirmation message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "removedFromPlaylist": "Removed \"{track}\" from playlist",
+  "@removedFromPlaylist": {
+    "description": "Removed from playlist message",
+    "placeholders": {
+      "track": {
+        "type": "String",
+        "example": "Song Title"
+      }
+    }
+  },
+
+  "undo": "Undo",
+  "@undo": {
+    "description": "Undo action"
+  },
+
+  "downloadAlbum": "Download Album",
+  "@downloadAlbum": {
+    "description": "Download album dialog title"
+  },
+
+  "downloadAlbumConfirmation": "Open all {count} tracks from \"{name}\" in browser for download?",
+  "@downloadAlbumConfirmation": {
+    "description": "Download album confirmation",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "name": {
+        "type": "String",
+        "example": "Album Name"
+      }
+    }
+  },
+
+  "downloadAllTracks": "Download All",
+  "@downloadAllTracks": {
+    "description": "Download all button"
+  },
+
+  "noTracksToDownload": "No tracks to download",
+  "@noTracksToDownload": {
+    "description": "No tracks to download message"
+  },
+
+  "openedTracksInBrowser": "Opened all {count} tracks from \"{name}\" in browser",
+  "@openedTracksInBrowser": {
+    "description": "Opened tracks in browser success message",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "name": {
+        "type": "String",
+        "example": "Album Name"
+      }
+    }
+  },
+
+  "openedTracksPartialSuccess": "Opened {success} tracks, {failed} failed from \"{name}\"",
+  "@openedTracksPartialSuccess": {
+    "description": "Opened tracks partial success message",
+    "placeholders": {
+      "success": {
+        "type": "int",
+        "example": "10"
+      },
+      "failed": {
+        "type": "int",
+        "example": "2"
+      },
+      "name": {
+        "type": "String",
+        "example": "Album Name"
+      }
+    }
+  },
+
+  "artistNotFound": "Artist \"{name}\" not found",
+  "@artistNotFound": {
+    "description": "Artist not found message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Artist Name"
+      }
+    }
+  },
+
+  "addedToPlaylist": "Added {type} to \"{playlist}\"",
+  "@addedToPlaylist": {
+    "description": "Added to playlist message",
+    "placeholders": {
+      "type": {
+        "type": "String",
+        "example": "album"
+      },
+      "playlist": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "createdPlaylistWithTracks": "Created playlist \"{name}\" with {type} tracks",
+  "@createdPlaylistWithTracks": {
+    "description": "Created playlist with tracks message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "New Playlist"
+      },
+      "type": {
+        "type": "String",
+        "example": "album"
+      }
+    }
+  },
+
+  "countSongs": "{count} songs",
+  "@countSongs": {
+    "description": "Number of songs",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+
+  "added": "Added",
+  "@added": {
+    "description": "Added label prefix"
+  },
+
+  "today": "Today",
+  "@today": {
+    "description": "Today label"
+  },
+
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "description": "Days ago label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+
+  "weeksAgo": "{count} weeks ago",
+  "@weeksAgo": {
+    "description": "Weeks ago label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+
+  "byArtist": "By ",
+  "@byArtist": {
+    "description": "By artist prefix"
+  },
+
+  "fromAlbum": "From ",
+  "@fromAlbum": {
+    "description": "From album prefix"
   }
 }
