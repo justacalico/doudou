@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'dart:ui';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../home/home.dart';
@@ -226,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildTabContent(int index, AppState appState) {
+    final l10n = AppLocalizations.of(context);
     Widget content;
     String title;
     bool showNavBar = true;
@@ -233,32 +235,32 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (index) {
       case 0:
         content = const HomeContent();
-        title = 'Home';
+        title = l10n.navHome;
         showNavBar = false; // Home has custom header
         break;
       case 1:
         content = const LibraryContent();
-        title = 'Library';
+        title = l10n.navLibrary;
         showNavBar = false; // Library has custom header
         break;
       case 2:
         content = const DownloadsScreen();
-        title = 'Downloads';
+        title = l10n.navDownloads;
         showNavBar = false; // Downloads has custom header
         break;
       case 3:
         content = const SearchScreen();
-        title = 'Search';
+        title = l10n.navSearch;
         showNavBar = false; // Search has custom header
         break;
       case 4:
         content = const SettingsScreen();
-        title = 'Settings';
+        title = l10n.navSettings;
         showNavBar = false; // Settings has custom header
         break;
       default:
         content = const HomeContent();
-        title = 'Home';
+        title = l10n.navHome;
         showNavBar = false;
     }
 
@@ -274,9 +276,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(color: CupertinoColors.white),
                   ),
                   if (appState.isOfflineMode)
-                    const Text(
-                      'Offline Mode',
-                      style: TextStyle(
+                    Text(
+                      l10n.offlineMode,
+                      style: const TextStyle(
                         color: CupertinoColors.systemOrange,
                         fontSize: 12,
                       ),
