@@ -261,7 +261,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildInitialState(AppState appState) {
+  Widget _buildInitialState(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return SingleChildScrollView(
@@ -276,7 +276,7 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Quick Suggestions',
+                    l10n.quickSuggestions,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -309,14 +309,14 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Recent Searches',
+                    l10n.recentSearches,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Your recent searches will appear here',
+                    l10n.yourRecentSearches,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -336,7 +336,7 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Browse Your Library',
+                    l10n.browseYourLibrary,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -346,8 +346,8 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       Expanded(
                         child: _buildBrowseCard(
-                          'Albums',
-                          '${appState.albums.length} albums',
+                          l10n.albums,
+                          l10n.countAlbums(appState.albums.length),
                           Icons.album,
                           Colors.blue,
                         ),
@@ -355,8 +355,8 @@ class _SearchPageState extends State<SearchPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildBrowseCard(
-                          'Artists',
-                          '${appState.artists.length} artists',
+                          l10n.artists,
+                          l10n.countArtists(appState.artists.length),
                           Icons.person,
                           Colors.green,
                         ),
@@ -364,8 +364,8 @@ class _SearchPageState extends State<SearchPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildBrowseCard(
-                          'Playlists',
-                          '${appState.playlists.length} playlists',
+                          l10n.playlists,
+                          l10n.countPlaylists(appState.playlists.length),
                           Icons.playlist_play,
                           Colors.purple,
                         ),
