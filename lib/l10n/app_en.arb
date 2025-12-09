@@ -890,6 +890,16 @@
     }
   },
 
+  "addedTrackToPlaylist": "Added \"{track}\" to playlist",
+  "@addedTrackToPlaylist": {
+    "description": "Added track to playlist message (without playlist name)",
+    "placeholders": {
+      "track": {
+        "type": "String"
+      }
+    }
+  },
+
   "failedToAddToPlaylist": "Failed to add \"{track}\" to \"{playlist}\".",
   "@failedToAddToPlaylist": {
     "description": "Failed to add to playlist message",
@@ -901,6 +911,11 @@
         "type": "String"
       }
     }
+  },
+
+  "failedToAddTrackToPlaylist": "Failed to add track to playlist",
+  "@failedToAddTrackToPlaylist": {
+    "description": "Failed to add track to playlist message (simple)"
   },
 
   "createNewPlaylist": "Create New Playlist",
