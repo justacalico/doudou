@@ -87,14 +87,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   final NavigationService _navigationService = NavigationService();
 
   List<String> _getNavigationItems(AppLocalizations l10n) => [
-    l10n.home,
-    l10n.search,
-    l10n.library,
-    l10n.tracks,
-    l10n.playlists,
-    l10n.albums,
-    l10n.artists,
-    l10n.settings,
+    l10n.navHome,
+    l10n.navSearch,
+    l10n.navLibrary,
+    l10n.navTracks,
+    l10n.navPlaylists,
+    l10n.navAlbums,
+    l10n.navArtists,
+    l10n.navSettings,
   ];
 
   final List<IconData> _navigationIcons = [
