@@ -126,7 +126,7 @@
   "searchPlaylists": "搜索播放列表...",
   "discoverYourMusic": "发现您的音乐",
   "searchDescription": "搜索您的整个音乐库\n找到您想要的",
-  "noResultsFor": "没有找到"{query}"的结果",
+  "noResultsFor": "没有找到「{query}」的结果",
   "tryDifferentSearch": "尝试不同的搜索词或检查拼写",
   "topResult": "最佳结果",
   "all": "全部",
