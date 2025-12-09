@@ -20,10 +20,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return PageTemplate(
-          title: 'Settings',
+          title: l10n.settings,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -41,14 +42,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildCategoriesSidebar() {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     final categories = [
-      {'id': 'general', 'title': 'General', 'icon': Icons.settings},
-      {'id': 'audio', 'title': 'Audio', 'icon': Icons.volume_up},
-      {'id': 'appearance', 'title': 'Appearance', 'icon': Icons.palette},
-      {'id': 'server', 'title': 'Server', 'icon': Icons.dns},
-      {'id': 'logs', 'title': 'Logs', 'icon': Icons.description},
-      {'id': 'about', 'title': 'About', 'icon': Icons.info},
+      {'id': 'general', 'title': l10n.generalSettings.split(' ').first, 'icon': Icons.settings},
+      {'id': 'audio', 'title': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up},
+      {'id': 'appearance', 'title': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette},
+      {'id': 'server', 'title': l10n.server, 'icon': Icons.dns},
+      {'id': 'logs', 'title': l10n.logsAndDiagnostics.split(' ').first, 'icon': Icons.description},
+      {'id': 'about', 'title': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info},
     ];
 
     return SizedBox(
