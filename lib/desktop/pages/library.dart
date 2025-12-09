@@ -559,7 +559,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildYearsContent(AppState appState) {
+  Widget _buildYearsContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final years = _getYears(appState);
     
@@ -568,7 +568,7 @@ class _LibraryPageState extends State<LibraryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Browse by Year',
+            l10n.browseByYear,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -587,12 +587,12 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No Year Information',
+                      l10n.noYearInfo,
                       style: theme.textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Release year information will appear here when available',
+                      l10n.yearInfoAppear,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -636,7 +636,7 @@ class _LibraryPageState extends State<LibraryPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$albumCount album${albumCount != 1 ? 's' : ''}',
+                            albumCount != 1 ? l10n.albumCountMultiple(albumCount) : l10n.albumCountSingle(albumCount),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
