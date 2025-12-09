@@ -773,7 +773,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              '${album.artistName} • ${tracks.length} tracks',
+                              '${album.artistName} • ${l10n.tracksCount(tracks.length)}',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
@@ -791,7 +791,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                 
                 // Playlist selection
                 Text(
-                  'Select Playlist:',
+                  l10n.selectPlaylist,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
@@ -811,7 +811,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'No playlists available',
+                          l10n.noPlaylistsAvailable,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -836,10 +836,10 @@ class _AlbumsPageState extends State<AlbumsPage> {
                           dense: true,
                           leading: const Icon(Icons.playlist_play),
                           title: Text(playlist.name),
-                          subtitle: Text('${playlist.trackCount} tracks'),
+                          subtitle: Text(l10n.tracksCount(playlist.trackCount)),
                           onTap: () async {
                             Navigator.of(context).pop();
-                            await _addAlbumToPlaylist(appState, playlist.id, tracks, album.name);
+                            await _addAlbumToPlaylist(appState, playlist.id, tracks, album.name, l10n);
                           },
                         );
                       },
