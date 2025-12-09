@@ -424,7 +424,7 @@ class _LibraryPageState extends State<LibraryPage> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                track.artistName ?? 'Unknown Artist',
+                                track.artistName ?? l10n.unknownArtist,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
