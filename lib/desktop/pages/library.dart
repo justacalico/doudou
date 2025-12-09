@@ -101,7 +101,7 @@ class _LibraryPageState extends State<LibraryPage> {
       case 'years':
         return _buildYearsContent(appState, l10n);
       default:
-        return _buildOverviewContent(appState);
+        return _buildOverviewContent(appState, l10n);
     }
   }
 
