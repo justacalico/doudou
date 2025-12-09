@@ -389,7 +389,6 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           children: [
             // Playlist artwork
             Expanded(
-              flex: 3,
               child: Stack(
                 children: [
                   Container(
