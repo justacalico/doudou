@@ -1392,7 +1392,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   Container(
                     width: 350,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1D1D1D),
                       border: Border(
                         left: BorderSide(
                           color: Colors.white.withOpacity(0.1),
@@ -1400,52 +1399,102 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                         ),
                       ),
                     ),
-                    child: Column(
+                    child: Stack(
                       children: [
-                        // Tabs header
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              _buildSidebarTab('UP NEXT', 0),
-                              const SizedBox(width: 24),
-                              _buildSidebarTab('LYRICS', 1),
-                            ],
+                        // Background image fading from left
+                        if (currentTrack?.artUri != null)
+                          Positioned.fill(
+                            child: ShaderMask(
+                              shaderCallback: (Rect bounds) {
+                                return LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Colors.white.withOpacity(0.3),
+                                    Colors.white.withOpacity(0.1),
+                                    Colors.transparent,
+                                  ],
+                                  stops: const [0.0, 0.3, 0.7],
+                                ).createShader(bounds);
+                              },
+                              blendMode: BlendMode.dstIn,
+                              child: Image.network(
+                                currentTrack!.artUri.toString(),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                            ),
+                          ),
+
+                        // Dark overlay for readability
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  const Color(0xFF1D1D1D).withOpacity(0.7),
+                                  const Color(0xFF1D1D1D).withOpacity(0.95),
+                                  const Color(0xFF1D1D1D),
+                                ],
+                                stops: const [0.0, 0.4, 1.0],
+                              ),
+                            ),
                           ),
                         ),
 
-                        // Playing from indicator
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Playing from ',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 12,
-                                ),
+                        // Content
+                        Column(
+                          children: [
+                            // Tabs header
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  _buildSidebarTab('UP NEXT', 0),
+                                  const SizedBox(width: 24),
+                                  _buildSidebarTab('LYRICS', 1),
+                                ],
                               ),
-                              Expanded(
-                                child: Text(
-                                  currentTrack?.album ?? 'Unknown Album',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
+                            ),
+
+                            // Playing from indicator
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Playing from ',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                  Expanded(
+                                    child: Text(
+                                      currentTrack?.album ?? 'Unknown Album',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
 
-                        const SizedBox(height: 8),
+                            const SizedBox(height: 8),
 
-                        // Queue list
-                        Expanded(
-                          child: _buildQueueList(appState, audioHandler),
+                            // Queue list
+                            Expanded(
+                              child: _buildQueueList(appState, audioHandler),
+                            ),
+                          ],
                         ),
                       ],
                     ),
