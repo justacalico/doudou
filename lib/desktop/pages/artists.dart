@@ -266,7 +266,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -279,15 +279,15 @@ class _ArtistsPageState extends State<ArtistsPage> {
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty 
-                ? 'No artists found for "$_searchQuery"'
-                : 'No artists found',
+                ? l10n.noResultsFor(_searchQuery)
+                : l10n.noArtistsFound,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty
-                ? 'Try a different search term'
-                : 'Your music library appears to be empty',
+                ? l10n.tryDifferentSearch
+                : l10n.musicLibraryEmpty,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -301,7 +301,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   _searchQuery = '';
                 });
               },
-              child: const Text('Clear Search'),
+              child: Text(l10n.clearSearch),
             ),
           ],
         ],
