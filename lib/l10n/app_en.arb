@@ -96,6 +96,26 @@
     "description": "Shuffle favorites button label"
   },
 
+  "addToFavorites": "Add to favorites",
+  "@addToFavorites": {
+    "description": "Add to favorites button tooltip"
+  },
+
+  "removeFromFavorites": "Remove from favorites",
+  "@removeFromFavorites": {
+    "description": "Remove from favorites button tooltip"
+  },
+
+  "volumePercent": "Volume {percent}%",
+  "@volumePercent": {
+    "description": "Volume percentage tooltip",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
   "playNext": "Play Next",
   "@playNext": {
     "description": "Play next button label"
