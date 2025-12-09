@@ -3187,5 +3187,148 @@
   "notAvailable": "Not available",
   "@notAvailable": {
     "description": "Not available text"
+  },
+
+  "allSongsDownloaded": "All Songs Downloaded",
+  "@allSongsDownloaded": {
+    "description": "All songs downloaded title"
+  },
+
+  "allSongsAlreadyDownloaded": "All your songs are already downloaded.",
+  "@allSongsAlreadyDownloaded": {
+    "description": "All songs already downloaded message"
+  },
+
+  "downloadAllSongsConfirm": "Download all {count} songs in your library?",
+  "@downloadAllSongsConfirm": {
+    "description": "Download all songs confirmation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "alreadyDownloadedCount": "{count} already downloaded",
+  "@alreadyDownloadedCount": {
+    "description": "Already downloaded count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "songsWillBeDownloaded": "{count} songs will be downloaded.",
+  "@songsWillBeDownloaded": {
+    "description": "Songs will be downloaded message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "download": "Download",
+  "@download": {
+    "description": "Download button label"
+  },
+
+  "noFavoriteSongsYet": "You haven't marked any songs as favorites yet. Tap the heart icon on songs to add them to your favorites.",
+  "@noFavoriteSongsYet": {
+    "description": "No favorite songs yet message"
+  },
+
+  "allFavoritesDownloaded": "All Favorites Downloaded",
+  "@allFavoritesDownloaded": {
+    "description": "All favorites downloaded title"
+  },
+
+  "allFavoritesAlreadyDownloaded": "All your favorite songs are already downloaded.",
+  "@allFavoritesAlreadyDownloaded": {
+    "description": "All favorites already downloaded message"
+  },
+
+  "downloadAllFavoritesConfirm": "Download all {count} favorite songs?",
+  "@downloadAllFavoritesConfirm": {
+    "description": "Download all favorites confirmation",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "startingDownloads": "Starting Downloads",
+  "@startingDownloads": {
+    "description": "Starting downloads title"
+  },
+
+  "preparingDownloads": "Preparing downloads...",
+  "@preparingDownloads": {
+    "description": "Preparing downloads message"
+  },
+
+  "downloadsStarted": "Downloads Started",
+  "@downloadsStarted": {
+    "description": "Downloads started title"
+  },
+
+  "downloadStatus": "Download Status",
+  "@downloadStatus": {
+    "description": "Download status title"
+  },
+
+  "startedDownloading": "Started downloading {count} {songs}",
+  "@startedDownloading": {
+    "description": "Started downloading message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "songs": {
+        "type": "String"
+      }
+    }
+  },
+
+  "song": "song",
+  "@song": {
+    "description": "Song singular"
+  },
+
+  "songs": "songs",
+  "@songs": {
+    "description": "Songs plural"
+  },
+
+  "failedToStart": "{count} failed to start",
+  "@failedToStart": {
+    "description": "Failed to start message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "downloadsContinueInBackground": "Downloads will continue in the background. Check the Downloads tab to monitor progress.",
+  "@downloadsContinueInBackground": {
+    "description": "Downloads continue in background message"
+  },
+
+  "allAlreadyDownloaded": "All {description} are already downloaded",
+  "@allAlreadyDownloaded": {
+    "description": "All already downloaded message",
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToStartDownloads": "Failed to start downloads",
+  "@failedToStartDownloads": {
+    "description": "Failed to start downloads message"
   }
 }
