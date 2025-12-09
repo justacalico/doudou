@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import '../pages/home.dart';
@@ -1221,17 +1222,61 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _showLyrics = false;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Request focus after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _handleKeyEvent(KeyEvent event, AppState appState, MediaItem? currentTrack) {
+    if (event is! KeyDownEvent) return;
+
+    final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
+
+    // Shift+N - Skip to next song
+    if (isShiftPressed && event.logicalKey == LogicalKeyboardKey.keyN) {
+      appState.skipToNext();
+      return;
+    }
+
+    // Space - Play/Pause
+    if (event.logicalKey == LogicalKeyboardKey.space) {
+      appState.playPause();
+      return;
+    }
+
+    // F - Toggle favorite
+    if (event.logicalKey == LogicalKeyboardKey.keyF && currentTrack != null) {
+      final trackInState = appState.tracks.firstWhere(
+        (t) => t.id == currentTrack.id,
+        orElse: () => Track(
+          id: currentTrack.id,
+          name: currentTrack.title,
+          albumName: currentTrack.album,
+          artistName: currentTrack.artist,
+          albumId: currentTrack.extras?['albumId'] as String? ?? '',
+          duration: currentTrack.duration?.inSeconds ?? 0,
+          trackNumber: null,
+          imageUrl: null,
+          isFavorite: false,
+        ),
+      );
+      appState.toggleFavorite(trackInState);
+      return;
+    }
   }
 
   String _formatDuration(Duration duration) {
