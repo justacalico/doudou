@@ -15,12 +15,11 @@ class AudioSettingsSection extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E), // Dark gray background instead of pure black
+            color: const Color(
+              0xFF1C1C1E,
+            ), // Dark gray background instead of pure black
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF2C2C2E),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF2C2C2E), width: 1),
           ),
           child: Column(
             children: [
@@ -104,14 +103,15 @@ class AudioSettingsSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF3A3A3C),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
             ),
             child: Icon(
               icon,
-              color: value ? const Color(0xFF30D158) : const Color(0xFF007AFF), // Green when active, blue when inactive
+              color: value
+                  ? const Color(0xFF30D158)
+                  : const Color(
+                      0xFF007AFF,
+                    ), // Green when active, blue when inactive
               size: 20,
             ),
           ),
@@ -170,10 +170,7 @@ class AudioSettingsSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF1C1C1E),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF3A3A3C),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
               ),
               child: Icon(
                 icon,
@@ -224,15 +221,18 @@ class AudioSettingsSection extends StatelessWidget {
   }
 
   void _downloadAllSongs(BuildContext context, AppState appState) {
+    final l10n = AppLocalizations.of(context);
     final totalSongs = appState.tracks.length;
-    final downloadedCount = appState.tracks.where((track) => appState.downloadService.isTrackDownloaded(track.id)).length;
+    final downloadedCount = appState.tracks
+        .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+        .length;
     final remainingSongs = totalSongs - downloadedCount;
 
     if (remainingSongs == 0) {
       _showInfoDialog(
         context,
-        'All Songs Downloaded',
-        'All your songs are already downloaded.',
+        l10n.allSongsDownloaded,
+        l10n.allSongsAlreadyDownloaded,
       );
       return;
     }
@@ -240,24 +240,29 @@ class AudioSettingsSection extends StatelessWidget {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Download All Songs'),
+        title: Text(l10n.downloadAllSongs),
         content: Text(
-          'Download all $totalSongs songs in your library?\n\n'
-          '${downloadedCount > 0 ? '$downloadedCount already downloaded, ' : ''}'
-          '$remainingSongs songs will be downloaded.',
+          '${l10n.downloadAllSongsConfirm(totalSongs)}\n\n'
+          '${downloadedCount > 0 ? '${l10n.alreadyDownloadedCount(downloadedCount)}, ' : ''}'
+          '${l10n.songsWillBeDownloaded(remainingSongs)}',
         ),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () {
               Navigator.of(context).pop();
-              _startBulkDownload(context, appState, appState.tracks, 'all songs');
+              _startBulkDownload(
+                context,
+                appState,
+                appState.tracks,
+                l10n.songs,
+              );
             },
-            child: const Text('Download'),
+            child: Text(l10n.download),
           ),
         ],
       ),
@@ -265,25 +270,26 @@ class AudioSettingsSection extends StatelessWidget {
   }
 
   void _downloadAllFavorites(BuildContext context, AppState appState) {
-    final favoriteTracks = appState.tracks.where((track) => track.isFavorite).toList();
-    
+    final l10n = AppLocalizations.of(context);
+    final favoriteTracks = appState.tracks
+        .where((track) => track.isFavorite)
+        .toList();
+
     if (favoriteTracks.isEmpty) {
-      _showInfoDialog(
-        context,
-        'No Favorite Songs',
-        'You haven\'t marked any songs as favorites yet. Tap the heart icon on songs to add them to your favorites.',
-      );
+      _showInfoDialog(context, l10n.noFavoriteSongs, l10n.noFavoriteSongsYet);
       return;
     }
 
-    final downloadedCount = favoriteTracks.where((track) => appState.downloadService.isTrackDownloaded(track.id)).length;
+    final downloadedCount = favoriteTracks
+        .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+        .length;
     final remainingFavorites = favoriteTracks.length - downloadedCount;
 
     if (remainingFavorites == 0) {
       _showInfoDialog(
         context,
-        'All Favorites Downloaded',
-        'All your favorite songs are already downloaded.',
+        l10n.allFavoritesDownloaded,
+        l10n.allFavoritesAlreadyDownloaded,
       );
       return;
     }
@@ -291,31 +297,42 @@ class AudioSettingsSection extends StatelessWidget {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Download All Favorites'),
+        title: Text(l10n.downloadAllFavorites),
         content: Text(
-          'Download all ${favoriteTracks.length} favorite songs?\n\n'
-          '${downloadedCount > 0 ? '$downloadedCount already downloaded, ' : ''}'
-          '$remainingFavorites songs will be downloaded.',
+          '${l10n.downloadAllFavoritesConfirm(favoriteTracks.length)}\n\n'
+          '${downloadedCount > 0 ? '${l10n.alreadyDownloadedCount(downloadedCount)}, ' : ''}'
+          '${l10n.songsWillBeDownloaded(remainingFavorites)}',
         ),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () {
               Navigator.of(context).pop();
-              _startBulkDownload(context, appState, favoriteTracks, 'favorite songs');
+              _startBulkDownload(
+                context,
+                appState,
+                favoriteTracks,
+                l10n.favorites,
+              );
             },
-            child: const Text('Download'),
+            child: Text(l10n.download),
           ),
         ],
       ),
     );
   }
 
-  void _startBulkDownload(BuildContext context, AppState appState, List<dynamic> tracks, String description) async {
+  void _startBulkDownload(
+    BuildContext context,
+    AppState appState,
+    List<dynamic> tracks,
+    String description,
+  ) async {
+    final l10n = AppLocalizations.of(context);
     int downloadedCount = 0;
     int skippedCount = 0;
     int failedCount = 0;
@@ -325,14 +342,14 @@ class AudioSettingsSection extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) => CupertinoAlertDialog(
-        title: Text('Starting Downloads'),
-        content: const Column(
+        title: Text(l10n.startingDownloads),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(height: 16),
-            CupertinoActivityIndicator(),
-            SizedBox(height: 16),
-            Text('Preparing downloads...'),
+            const SizedBox(height: 16),
+            const CupertinoActivityIndicator(),
+            const SizedBox(height: 16),
+            Text(l10n.preparingDownloads),
           ],
         ),
       ),
@@ -363,31 +380,38 @@ class AudioSettingsSection extends StatelessWidget {
 
     // Show completion message
     if (context.mounted) {
+      final l10nAfter = AppLocalizations.of(context);
       String message = '';
       if (downloadedCount > 0) {
-        message = 'Started downloading $downloadedCount ${downloadedCount == 1 ? 'song' : 'songs'}';
+        message = l10nAfter.startedDownloading(
+          downloadedCount,
+          downloadedCount == 1 ? l10nAfter.song : l10nAfter.songs,
+        );
         if (skippedCount > 0) {
-          message += ', $skippedCount already downloaded';
+          message += ', ${l10nAfter.alreadyDownloadedCount(skippedCount)}';
         }
         if (failedCount > 0) {
-          message += ', $failedCount failed to start';
+          message += ', ${l10nAfter.failedToStart(failedCount)}';
         }
-        message += '\n\nDownloads will continue in the background. Check the Downloads tab to monitor progress.';
+        message += '\n\n${l10nAfter.downloadsContinueInBackground}';
       } else if (skippedCount > 0) {
-        message = 'All $description are already downloaded';
+        message = l10nAfter.allAlreadyDownloaded(description);
       } else {
-        message = 'Failed to start downloads';
+        message = l10nAfter.failedToStartDownloads;
       }
 
       _showInfoDialog(
         context,
-        downloadedCount > 0 ? 'Downloads Started' : 'Download Status',
+        downloadedCount > 0
+            ? l10nAfter.downloadsStarted
+            : l10nAfter.downloadStatus,
         message,
       );
     }
   }
 
   void _showInfoDialog(BuildContext context, String title, String message) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
@@ -395,7 +419,7 @@ class AudioSettingsSection extends StatelessWidget {
         content: Text(message),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
