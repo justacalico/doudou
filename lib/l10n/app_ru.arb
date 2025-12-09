@@ -593,5 +593,7 @@
   "failedToCleanExpiredCache": "Не удалось очистить устаревший кэш",
   "data": "данных",
   "image": "изображений",
-  "all": "Весь"
+  "all": "Весь",
+  "accountInformation": "Информация об аккаунте",
+  "notAvailable": "Недоступно"
 }
