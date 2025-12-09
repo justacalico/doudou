@@ -751,10 +751,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await appState.clearDataCache();
       await _loadCacheSize(); // Refresh cache size display
       if (!context.mounted) return;
-      _showCacheClearedDialog(context, 'Data');
+      _showCacheClearedDialog(context, AppLocalizations.of(context).data);
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, 'Failed to clear data cache: $e');
+      _showErrorDialog(context, '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).data)}: $e');
     }
   }
 
@@ -764,10 +764,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await appState.clearImageCache();
       await _loadCacheSize(); // Refresh cache size display
       if (!context.mounted) return;
-      _showCacheClearedDialog(context, 'Image');
+      _showCacheClearedDialog(context, AppLocalizations.of(context).image);
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, 'Failed to clear image cache: $e');
+      _showErrorDialog(context, '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).image)}: $e');
     }
   }
 
@@ -777,10 +777,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await appState.clearAllCache();
       await _loadCacheSize(); // Refresh cache size display
       if (!context.mounted) return;
-      _showCacheClearedDialog(context, 'All');
+      _showCacheClearedDialog(context, AppLocalizations.of(context).all);
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, 'Failed to clear cache: $e');
+      _showErrorDialog(context, '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).all)}: $e');
     }
   }
 
@@ -849,14 +849,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await Clipboard.setData(ClipboardData(text: url));
       if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context);
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
-          title: const Text('GitLab Repository'),
-          content: const Text('The GitLab URL has been copied to your clipboard!\n\nhttps://gitlab.com/Openlyst/doudou\n\nYou can now paste it into your browser to visit the repository.'),
+          title: Text(l10n.gitLabRepository),
+          content: Text('${l10n.gitlabUrlCopied}\n\nhttps://gitlab.com/Openlyst/doudou\n\n${l10n.gitlabUrlDescription}'),
           actions: [
             CupertinoDialogAction(
-              child: const Text('OK'),
+              child: Text(l10n.ok),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -864,14 +865,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context);
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
-          title: const Text('Error'),
-          content: Text('Failed to copy URL to clipboard. Please visit: $url'),
+          title: Text(l10n.error),
+          content: Text('${l10n.failedToCopyUrl} $url'),
           actions: [
             CupertinoDialogAction(
-              child: const Text('OK'),
+              child: Text(l10n.ok),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -881,14 +883,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showSupportDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Support Development'),
-        content: const Text('Thank you for using Doudou! This app is open source and free to use. If you\'d like to support development, consider starring the project on GitLab or contributing to the codebase.'),
+        title: Text(l10n.supportDevelopment),
+        content: Text(l10n.supportMessage),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -917,14 +920,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showRefreshSuccessDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Library Refreshed'),
-        content: const Text('Your music library has been successfully updated with the latest content from the server.'),
+        title: Text(l10n.libraryRefreshed),
+        content: Text(l10n.libraryRefreshedSuccess),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -933,14 +937,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showRefreshErrorDialog(BuildContext context, String error) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Refresh Failed'),
-        content: Text('Failed to refresh library data. Please check your connection and try again.\n\nError: $error'),
+        title: Text(l10n.refreshFailed),
+        content: Text('${l10n.failedToRefreshLibrary}\n\n${l10n.error}: $error'),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
