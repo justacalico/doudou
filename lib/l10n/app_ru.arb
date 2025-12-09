@@ -482,5 +482,22 @@
   "artistNotFound": "Исполнитель не найден",
 
   "showAlbum": "Показать альбом",
-  "showArtist": "Показать исполнителя"
+  "showArtist": "Показать исполнителя",
+
+  "allPlaylists": "Все плейлисты",
+  "refreshPlaylists": "Обновить плейлисты",
+  "editPlaylist": "Редактировать плейлист",
+  "deletePlaylist": "Удалить плейлист",
+  "deletePlaylistConfirm": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить.",
+  "playlistRenamed": "Плейлист переименован в \"{name}\"",
+  "playlistDeleted": "Плейлист \"{name}\" удалён",
+  "failedToDeletePlaylist": "Не удалось удалить плейлист",
+  "favoritesNotImplemented": "Избранное ещё не реализовано для плейлистов",
+  "noPlaylistsForQuery": "Плейлисты не найдены для \"{query}\"",
+  "createFirstPlaylist": "Создайте свой первый плейлист, чтобы начать",
+  "countSongsLabel": "{count} песен",
+  "playlistCreated": "Плейлист \"{name}\" успешно создан",
+  "errorCreatingPlaylist": "Не удалось создать плейлист \"{name}\"",
+  "errorRenamingPlaylist": "Ошибка переименования плейлиста: {error}",
+  "errorDeletingPlaylist": "Ошибка удаления плейлиста: {error}"
 }
