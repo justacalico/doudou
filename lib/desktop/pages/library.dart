@@ -24,7 +24,9 @@ class _LibraryPageState extends State<LibraryPage> {
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = context.read<AppState>();
-      if (appState.albums.isEmpty || appState.artists.isEmpty || appState.tracks.isEmpty) {
+      if (appState.albums.isEmpty ||
+          appState.artists.isEmpty ||
+          appState.tracks.isEmpty) {
         appState.loadLibraryData();
       }
     });
@@ -107,7 +109,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildOverviewContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,9 +158,9 @@ class _LibraryPageState extends State<LibraryPage> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // Recently played section
           if (appState.albums.isNotEmpty) ...[
             Text(
@@ -184,7 +186,8 @@ class _LibraryPageState extends State<LibraryPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => MediaDetailsPage.album(album: album),
+                            builder: (context) =>
+                                MediaDetailsPage.album(album: album),
                           ),
                         );
                       },
@@ -207,13 +210,16 @@ class _LibraryPageState extends State<LibraryPage> {
                                       width: 160,
                                       height: 160,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Icon(
-                                          Icons.album,
-                                          size: 48,
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.album,
+                                              size: 48,
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            );
+                                          },
                                     ),
                                   )
                                 : Icon(
@@ -246,10 +252,10 @@ class _LibraryPageState extends State<LibraryPage> {
                 },
               ),
             ),
-            
+
             const SizedBox(height: 32),
           ],
-          
+
           // Quick access section
           Text(
             l10n.quickAccess,
@@ -307,7 +313,7 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget _buildRecentContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final recentTracks = appState.recentTracks;
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +325,7 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           if (recentTracks.isEmpty)
             Card(
               child: Padding(
@@ -365,7 +371,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   (album) => album.id == track.albumId,
                   orElse: () => null,
                 );
-                
+
                 return Card(
                   child: InkWell(
                     onTap: () {
@@ -393,13 +399,16 @@ class _LibraryPageState extends State<LibraryPage> {
                                     child: Image.network(
                                       _getImageUrl(appState, album.imageUrl)!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Icon(
-                                          Icons.music_note,
-                                          size: 32,
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.music_note,
+                                              size: 32,
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            );
+                                          },
                                     ),
                                   )
                                 : Icon(
@@ -448,7 +457,7 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget _buildGenresContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final genres = _getGenres(appState);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,10 +481,7 @@ class _LibraryPageState extends State<LibraryPage> {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      l10n.noGenresFound,
-                      style: theme.textTheme.titleLarge,
-                    ),
+                    Text(l10n.noGenresFound, style: theme.textTheme.titleLarge),
                     const SizedBox(height: 8),
                     Text(
                       l10n.genresAppearHere,
@@ -509,7 +515,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   Colors.teal,
                 ];
                 final color = colors[index % colors.length];
-                
+
                 return Card(
                   child: InkWell(
                     onTap: () {
@@ -532,11 +538,7 @@ class _LibraryPageState extends State<LibraryPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.music_note,
-                            color: color,
-                            size: 24,
-                          ),
+                          Icon(Icons.music_note, color: color, size: 24),
                           const SizedBox(height: 8),
                           Text(
                             genre,
@@ -562,7 +564,7 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget _buildYearsContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final years = _getYears(appState);
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -586,10 +588,7 @@ class _LibraryPageState extends State<LibraryPage> {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      l10n.noYearInfo,
-                      style: theme.textTheme.titleLarge,
-                    ),
+                    Text(l10n.noYearInfo, style: theme.textTheme.titleLarge),
                     const SizedBox(height: 8),
                     Text(
                       l10n.yearInfoAppear,
@@ -615,7 +614,7 @@ class _LibraryPageState extends State<LibraryPage> {
               itemBuilder: (context, index) {
                 final year = years[index];
                 final albumCount = _getAlbumCountForYear(appState, year);
-                
+
                 return Card(
                   child: InkWell(
                     onTap: () {
@@ -636,7 +635,9 @@ class _LibraryPageState extends State<LibraryPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            albumCount != 1 ? l10n.albumCountMultiple(albumCount) : l10n.albumCountSingle(albumCount),
+                            albumCount != 1
+                                ? l10n.albumCountMultiple(albumCount)
+                                : l10n.albumCountSingle(albumCount),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -654,9 +655,15 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String subtitle,
+  ) {
     final theme = Theme.of(context);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -671,11 +678,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
-                  ),
+                  child: Icon(icon, color: color, size: 24),
                 ),
                 const Spacer(),
                 Text(
@@ -706,9 +709,15 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildQuickAccessCard(String title, String subtitle, IconData icon, Color color, {VoidCallback? onTap}) {
+  Widget _buildQuickAccessCard(
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -724,11 +733,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 28,
-                ),
+                child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(height: 16),
               Text(
@@ -752,7 +757,10 @@ class _LibraryPageState extends State<LibraryPage> {
 
   // Helper methods
   int _getTotalDuration(List tracks) {
-    return tracks.fold<int>(0, (sum, track) => sum + (track.duration as int? ?? 0));
+    return tracks.fold<int>(
+      0,
+      (sum, track) => sum + (track.duration as int? ?? 0),
+    );
   }
 
   Set<String> _getUniqueArtists(List albums) {
@@ -766,7 +774,7 @@ class _LibraryPageState extends State<LibraryPage> {
     final duration = Duration(milliseconds: milliseconds);
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else {
