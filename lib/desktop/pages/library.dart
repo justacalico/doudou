@@ -90,16 +90,16 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildContent(AppState appState) {
+  Widget _buildContent(AppState appState, AppLocalizations l10n) {
     switch (_selectedView) {
       case 'overview':
-        return _buildOverviewContent(appState);
+        return _buildOverviewContent(appState, l10n);
       case 'recent':
-        return _buildRecentContent(appState);
+        return _buildRecentContent(appState, l10n);
       case 'genres':
-        return _buildGenresContent(appState);
+        return _buildGenresContent(appState, l10n);
       case 'years':
-        return _buildYearsContent(appState);
+        return _buildYearsContent(appState, l10n);
       default:
         return _buildOverviewContent(appState);
     }
