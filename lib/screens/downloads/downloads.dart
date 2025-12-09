@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../models/download_models.dart';
@@ -17,6 +18,7 @@ class DownloadsScreen extends StatefulWidget {
 class _DownloadsScreenState extends State<DownloadsScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return CupertinoPageScaffold(
@@ -46,9 +48,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                       color: CupertinoColors.white,
                                     ),
                                   ),
-                                  const Text(
-                                    'Songs',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.songs,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: CupertinoColors.systemGrey,
                                     ),
@@ -65,9 +67,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                       color: CupertinoColors.systemBlue,
                                     ),
                                   ),
-                                  const Text(
-                                    'Downloading',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.downloading,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: CupertinoColors.systemGrey,
                                     ),
@@ -84,9 +86,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                       color: CupertinoColors.systemRed,
                                     ),
                                   ),
-                                  const Text(
-                                    'Failed',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.failed,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: CupertinoColors.systemGrey,
                                     ),
@@ -110,18 +112,18 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                     color: const Color(0xFFFF453A),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         CupertinoIcons.play_fill,
                                         color: Color(0xFFFFFFFF),
                                         size: 18,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'Play',
-                                        style: TextStyle(
+                                        l10n.play,
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                           color: Color(0xFFFFFFFF),
@@ -145,18 +147,18 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                     color: const Color(0xFFFF453A),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         CupertinoIcons.shuffle,
                                         color: Color(0xFFFFFFFF),
                                         size: 18,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'Shuffle',
-                                        style: TextStyle(
+                                        l10n.shuffle,
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                           color: Color(0xFFFFFFFF),
