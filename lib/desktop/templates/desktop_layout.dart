@@ -1528,9 +1528,9 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                               padding: const EdgeInsets.all(16),
                               child: Row(
                                 children: [
-                                  _buildSidebarTab('UP NEXT', 0),
+                                  _buildSidebarTab(AppLocalizations.of(context).upNext, 0),
                                   const SizedBox(width: 24),
-                                  _buildSidebarTab('LYRICS', 1),
+                                  _buildSidebarTab(AppLocalizations.of(context).lyrics, 1),
                                 ],
                               ),
                             ),
@@ -1541,7 +1541,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                               child: Row(
                                 children: [
                                   Text(
-                                    'Playing from ',
+                                    AppLocalizations.of(context).playingFrom,
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.5),
                                       fontSize: 12,
@@ -1549,7 +1549,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                   ),
                                   Expanded(
                                     child: Text(
-                                      currentTrack?.album ?? 'Unknown Album',
+                                      currentTrack?.album ?? AppLocalizations.of(context).unknownAlbum,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
