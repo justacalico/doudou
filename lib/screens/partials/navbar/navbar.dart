@@ -12,7 +12,6 @@ import '../../libary/library.dart';
 import '../../settings/settings.dart';
 import '../../search/search.dart';
 import '../../downloads/downloads.dart';
-import '../../shared/detail_track_view.dart';
 import '../player/mini_player.dart';
 import '../../../widgets/isle.dart';
 
