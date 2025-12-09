@@ -2418,5 +2418,15 @@
   "artistNotFound": "Artist not found",
   "@artistNotFound": {
     "description": "Artist not found error"
+  },
+
+  "showAlbum": "Show album",
+  "@showAlbum": {
+    "description": "Show album menu item"
+  },
+
+  "showArtist": "Show artist",
+  "@showArtist": {
+    "description": "Show artist menu item"
   }
 }
