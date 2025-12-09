@@ -47,11 +47,16 @@ class LibraryContent extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFFE91E63), Color(0xFFAD1457)],
+                                    colors: [
+                                      Color(0xFFE91E63),
+                                      Color(0xFFAD1457),
+                                    ],
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFFE91E63).withOpacity(0.3),
+                                      color: const Color(
+                                        0xFFE91E63,
+                                      ).withOpacity(0.3),
                                       offset: const Offset(0, 4),
                                       blurRadius: 12,
                                     ),
@@ -71,14 +76,17 @@ class LibraryContent extends StatelessWidget {
                                     Text(
                                       AppLocalizations.of(context).yourLibrary,
                                       style: TextStyle(
-                                        color: CupertinoColors.systemGrey.withOpacity(0.8),
+                                        color: CupertinoColors.systemGrey
+                                            .withOpacity(0.8),
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      AppLocalizations.of(context).musicCollection,
+                                      AppLocalizations.of(
+                                        context,
+                                      ).musicCollection,
                                       style: const TextStyle(
                                         color: CupertinoColors.white,
                                         fontSize: 24,
@@ -91,9 +99,9 @@ class LibraryContent extends StatelessWidget {
                               ),
                             ],
                           ),
-                          
+
                           const SizedBox(height: 24),
-                          
+
                           // Library stats card
                           Container(
                             padding: const EdgeInsets.all(20),
@@ -151,9 +159,9 @@ class LibraryContent extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                
+
                 // Quick access section
                 SliverToBoxAdapter(
                   child: Padding(
@@ -170,7 +178,7 @@ class LibraryContent extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Grid of quick access items
                         Row(
                           children: [
@@ -199,9 +207,9 @@ class LibraryContent extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         Row(
                           children: [
                             Expanded(
@@ -233,9 +241,9 @@ class LibraryContent extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                
+
                 // Browse categories section
                 SliverToBoxAdapter(
                   child: Padding(
@@ -252,48 +260,56 @@ class LibraryContent extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Enhanced library navigation items
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
                           icon: CupertinoIcons.music_albums_fill,
                           title: AppLocalizations.of(context).albums,
-                          subtitle: AppLocalizations.of(context).albumsCount(appState.albums.length),
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).albumsCount(appState.albums.length),
                           color: const Color(0xFFE91E63),
                           onTap: () => _navigateToSection(context, 'Albums'),
                         ),
-                        
+
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
                           icon: CupertinoIcons.person_2_fill,
                           title: AppLocalizations.of(context).artists,
-                          subtitle: AppLocalizations.of(context).artistsCount(appState.artists.length),
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).artistsCount(appState.artists.length),
                           color: const Color(0xFF007AFF),
                           onTap: () => _navigateToSection(context, 'Artists'),
                         ),
-                        
+
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
                           icon: CupertinoIcons.music_note,
                           title: AppLocalizations.of(context).songs,
-                          subtitle: AppLocalizations.of(context).tracksCount(appState.tracks.length),
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).tracksCount(appState.tracks.length),
                           color: const Color(0xFF32D74B),
                           onTap: () => _navigateToSection(context, 'Songs'),
                         ),
-                        
+
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
                           icon: CupertinoIcons.music_note_list,
                           title: AppLocalizations.of(context).playlists,
-                          subtitle: AppLocalizations.of(context).playlistsCount(appState.playlists.length),
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).playlistsCount(appState.playlists.length),
                           color: const Color(0xFFFF6B35),
                           onTap: () => _navigateToSection(context, 'Playlists'),
                         ),
-                        
+
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
@@ -301,9 +317,10 @@ class LibraryContent extends StatelessWidget {
                           title: AppLocalizations.of(context).collections,
                           subtitle: AppLocalizations.of(context).comingSoon,
                           color: const Color(0xFFAF52DE),
-                          onTap: () => _navigateToSection(context, 'Collections'),
+                          onTap: () =>
+                              _navigateToSection(context, 'Collections'),
                         ),
-                        
+
                         _buildEnhancedLibraryItem(
                           context,
                           appState,
@@ -317,7 +334,7 @@ class LibraryContent extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Bottom padding for mini player
                 const SliverToBoxAdapter(child: SizedBox(height: 120)),
               ],
@@ -327,15 +344,11 @@ class LibraryContent extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildStatItem(String value, String label, IconData icon) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFFE91E63),
-          size: 20,
-        ),
+        Icon(icon, color: const Color(0xFFE91E63), size: 20),
         const SizedBox(height: 8),
         Text(
           value,
@@ -357,7 +370,7 @@ class LibraryContent extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget _buildQuickAccessCard(
     BuildContext context,
     AppState appState,
@@ -375,25 +388,16 @@ class LibraryContent extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [
-              color.withOpacity(0.15),
-              color.withOpacity(0.05),
-            ],
+            colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
           ),
-          border: Border.all(
-            color: color.withOpacity(0.2),
-            width: 1,
-          ),
+          border: Border.all(color: color.withOpacity(0.2), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min, // Added to prevent unnecessary expansion
+          mainAxisSize:
+              MainAxisSize.min, // Added to prevent unnecessary expansion
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
+            Icon(icon, color: color, size: 20),
             const Spacer(),
             Text(
               title,
@@ -424,7 +428,7 @@ class LibraryContent extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildEnhancedLibraryItem(
     BuildContext context,
     AppState appState, {
@@ -457,16 +461,9 @@ class LibraryContent extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: color.withOpacity(0.3),
-                    width: 1,
-                  ),
+                  border: Border.all(color: color.withOpacity(0.3), width: 1),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 22,
-                ),
+                child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -503,7 +500,9 @@ class LibraryContent extends StatelessWidget {
         ),
       ),
     );
-  }  void _navigateToSection(BuildContext context, String sectionType) {
+  }
+
+  void _navigateToSection(BuildContext context, String sectionType) {
     final l10n = AppLocalizations.of(context);
     Widget page;
     String title;
@@ -729,7 +728,10 @@ class LibraryContent extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 l10n.collectionsComingSoon,
-                style: const TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: CupertinoColors.systemGrey,
+                ),
               ),
             ],
           ),
@@ -754,7 +756,10 @@ class LibraryContent extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 l10n.genresComingSoon,
-                style: const TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: CupertinoColors.systemGrey,
+                ),
               ),
             ],
           ),
