@@ -1401,7 +1401,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     ),
                     child: Stack(
                       children: [
-                        // Background image fading from left
+                        // Background image fading from left (flipped horizontally)
                         if (currentTrack?.artUri != null)
                           Positioned.fill(
                             child: ShaderMask(
@@ -1418,12 +1418,15 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                 ).createShader(bounds);
                               },
                               blendMode: BlendMode.dstIn,
-                              child: Image.network(
-                                currentTrack!.artUri.toString(),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const SizedBox.shrink();
-                                },
+                              child: Transform.flip(
+                                flipX: true,
+                                child: Image.network(
+                                  currentTrack!.artUri.toString(),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
                               ),
                             ),
                           ),
