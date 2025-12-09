@@ -50,13 +50,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           child: appState.isLoading
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading your music library...'),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(l10n.loadingYourMusicLibrary),
                     ],
                   ),
                 )
