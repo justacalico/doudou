@@ -186,9 +186,11 @@ build_release_aab:
   tags:
     - linux
   allow_failure: true
-  only:
-    - tags
-    - main
+  # Only run when keystore variables are set
+  rules:
+    - if: $ANDROID_KEYSTORE_BASE64
+      when: always
+    - when: never
   retry:
     max: 1
     when:
