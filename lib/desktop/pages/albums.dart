@@ -486,7 +486,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Widget _buildAlbumCard(AppState appState, dynamic album) {
+  Widget _buildAlbumCard(AppState appState, dynamic album, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Card(
@@ -575,32 +575,32 @@ class _AlbumsPageState extends State<AlbumsPage> {
                             ),
                             color: theme.colorScheme.surface,
                             itemBuilder: (context) => [
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'addToPlaylist',
                                 child: ListTile(
-                                  leading: Icon(Icons.playlist_add),
-                                  title: Text('Add to playlist'),
+                                  leading: const Icon(Icons.playlist_add),
+                                  title: Text(l10n.addToPlaylist),
                                   contentPadding: EdgeInsets.zero,
                                 ),
                               ),
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'play',
                                 child: ListTile(
-                                  leading: Icon(Icons.play_arrow),
-                                  title: Text('Play album'),
+                                  leading: const Icon(Icons.play_arrow),
+                                  title: Text(l10n.playAlbum),
                                   contentPadding: EdgeInsets.zero,
                                 ),
                               ),
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'addToQueue',
                                 child: ListTile(
-                                  leading: Icon(Icons.queue_music),
-                                  title: Text('Add to queue'),
+                                  leading: const Icon(Icons.queue_music),
+                                  title: Text(l10n.addToQueue),
                                   contentPadding: EdgeInsets.zero,
                                 ),
                               ),
                             ],
-                            onSelected: (value) => _handleAlbumAction(value, appState, album),
+                            onSelected: (value) => _handleAlbumAction(value, appState, album, l10n),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -656,7 +656,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                         if (isSmall) ...[
                           // Simplified layout for very small cards
                           Text(
-                            album.artistName ?? 'Unknown Artist',
+                            album.artistName ?? l10n.unknownArtist,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                               fontSize: 10,
@@ -670,7 +670,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  album.artistName ?? 'Unknown Artist',
+                                  album.artistName ?? l10n.unknownArtist,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
