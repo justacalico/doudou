@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
@@ -12,6 +13,7 @@ class PlaylistsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         if (appState.isLoading && appState.playlists.isEmpty) {
@@ -21,19 +23,19 @@ class PlaylistsView extends StatelessWidget {
         }
 
         if (appState.playlists.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   CupertinoIcons.music_note_list,
                   size: 64,
                   color: CupertinoColors.systemGrey,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'No playlists found',
-                  style: TextStyle(
+                  l10n.noPlaylistsFound,
+                  style: const TextStyle(
                     fontSize: 18,
                     color: CupertinoColors.systemGrey,
                   ),
@@ -58,12 +60,12 @@ class PlaylistsView extends StatelessWidget {
                       margin: const EdgeInsets.all(16),
                       child: CupertinoButton.filled(
                         onPressed: () => _showCreatePlaylistDialog(context, appState),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(CupertinoIcons.add, size: 18),
-                            SizedBox(width: 8),
-                            Text('Create Playlist'),
+                            const Icon(CupertinoIcons.add, size: 18),
+                            const SizedBox(width: 8),
+                            Text(l10n.createPlaylist),
                           ],
                         ),
                       ),
