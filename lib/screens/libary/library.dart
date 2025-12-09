@@ -714,42 +714,52 @@ class LibraryContent extends StatelessWidget {
   }
 
   Widget _buildCollectionsPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            CupertinoIcons.square_grid_2x2,
-            size: 64,
-            color: CupertinoColors.systemGrey,
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.square_grid_2x2,
+                size: 64,
+                color: CupertinoColors.systemGrey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.collectionsComingSoon,
+                style: const TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
+              ),
+            ],
           ),
-          SizedBox(height: 16),
-          Text(
-            'Collections Coming Soon',
-            style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildGenresPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            CupertinoIcons.music_albums,
-            size: 64,
-            color: CupertinoColors.systemGrey,
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.music_albums,
+                size: 64,
+                color: CupertinoColors.systemGrey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.genresComingSoon,
+                style: const TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
+              ),
+            ],
           ),
-          SizedBox(height: 16),
-          Text(
-            'Genres Coming Soon',
-            style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
