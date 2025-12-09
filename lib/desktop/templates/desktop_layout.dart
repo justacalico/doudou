@@ -1683,6 +1683,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
     AppState appState,
     dynamic audioHandler,
     MediaItem? currentTrack,
+    AppLocalizations l10n,
   ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -1697,7 +1698,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'You are listening to',
+                      l10n.youAreListeningTo,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.5),
                         fontSize: 12,
@@ -1706,7 +1707,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      currentTrack?.title ?? 'No track playing',
+                      currentTrack?.title ?? l10n.noTrackPlaying,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -1719,7 +1720,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     Row(
                       children: [
                         Text(
-                          'By ',
+                          l10n.byArtist,
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.5),
                             fontSize: 14,
@@ -1727,7 +1728,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                         ),
                         Flexible(
                           child: Text(
-                            currentTrack?.artist ?? 'Unknown Artist',
+                            currentTrack?.artist ?? l10n.unknownArtist,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -1742,7 +1743,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     Row(
                       children: [
                         Text(
-                          'From ',
+                          l10n.fromAlbum,
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.5),
                             fontSize: 14,
@@ -1750,7 +1751,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                         ),
                         Flexible(
                           child: Text(
-                            currentTrack?.album ?? 'unknown',
+                            currentTrack?.album ?? l10n.unknownAlbum,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
