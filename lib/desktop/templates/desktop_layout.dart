@@ -48,6 +48,7 @@ class DesktopLayout extends StatefulWidget {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
+        final l10n = AppLocalizations.of(context);
         return Consumer<AppState>(
           builder: (context, appState, child) {
             return _AddToPlaylistDialog(
@@ -62,13 +63,13 @@ class DesktopLayout extends StatefulWidget {
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Added "${track.name}" to playlist'),
+                        content: Text(l10n.addedToPlaylist(track.name)),
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Failed to add track to playlist'),
+                      SnackBar(
+                        content: Text(l10n.failedToAddToPlaylist),
                       ),
                     );
                   }
