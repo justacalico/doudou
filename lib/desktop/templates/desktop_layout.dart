@@ -1493,9 +1493,17 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
 
                             const SizedBox(height: 8),
 
-                            // Queue list
+                            // Content based on selected tab
                             Expanded(
-                              child: _buildQueueList(appState, audioHandler),
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  // UP NEXT tab - Queue list
+                                  _buildQueueList(appState, audioHandler),
+                                  // LYRICS tab
+                                  _buildSidebarLyrics(audioHandler),
+                                ],
+                              ),
                             ),
                           ],
                         ),
