@@ -188,6 +188,7 @@ Love using Doudou? Here's how you can help:
 git clone https://gitlab.com/Openlyst/doudou.git
 cd doudou
 flutter pub get
+flutter gen-l10n
 flutter run
 ```
 
