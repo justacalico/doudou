@@ -299,7 +299,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     }
   }
 
-  Widget _buildBottomPlayerBar(ThemeData theme) {
+  Widget _buildBottomPlayerBar(ThemeData theme, AppLocalizations l10n) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
