@@ -291,7 +291,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(l10n.filterLabel, style: theme.textTheme.bodyMedium),
+        Text(l10n.filter, style: theme.textTheme.bodyMedium),
         const SizedBox(width: 8),
         DropdownButton<String>(
           value: _filterBy,
