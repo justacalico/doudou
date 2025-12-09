@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/jellyfin_models.dart';
@@ -350,9 +351,11 @@ class _DetailTrackViewState extends State<DetailTrackView> {
         ),
         previousPageTitle: widget.viewType == DetailViewType.album ? 'Albums' : 'Playlists',
       ),
-      child: Stack(
-        children: [
-          CustomScrollView(
+      child: Material(
+        type: MaterialType.transparency,
+        child: Stack(
+          children: [
+            CustomScrollView(
             slivers: [
               // Pull to refresh
               CupertinoSliverRefreshControl(
@@ -425,14 +428,15 @@ class _DetailTrackViewState extends State<DetailTrackView> {
             ],
           ),
           
-          // Mini player at bottom
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: MiniPlayer(),
-          ),
-        ],
+            // Mini player at bottom
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MiniPlayer(),
+            ),
+          ],
+        ),
       ),
     );
   }
