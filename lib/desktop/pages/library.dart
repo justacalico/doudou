@@ -232,7 +232,7 @@ class _LibraryPageState extends State<LibraryPage> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            album.artistName ?? 'Unknown Artist',
+                            album.artistName ?? l10n.unknownArtist,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
