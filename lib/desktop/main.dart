@@ -308,13 +308,26 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: _navigationService.selectedPageIndex,
-      builder: (context, selectedIndex, child) {
-        return DesktopLayout(
-          selectedIndex: selectedIndex,
-          onNavigationChanged: () {
-            setState(() {});
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use responsive design: switch to mobile layout on smaller screens
+        final isDesktop = constraints.maxWidth >= ResponsiveService.desktopBreakpoint;
+        
+        if (!isDesktop) {
+          // Show mobile layout when window is too small
+          return const HomeScreen();
+        }
+        
+        // Show desktop layout for larger screens
+        return ValueListenableBuilder<int>(
+          valueListenable: _navigationService.selectedPageIndex,
+          builder: (context, selectedIndex, child) {
+            return DesktopLayout(
+              selectedIndex: selectedIndex,
+              onNavigationChanged: () {
+                setState(() {});
+              },
+            );
           },
         );
       },
