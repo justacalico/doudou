@@ -2206,7 +2206,7 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
         trackId: nextTrack.id,
         trackName: nextTrack.name,
         artistName: nextTrack.artistName ?? 'Unknown Artist',
-        albumName: nextTrack.album,
+        albumName: nextTrack.albumName,
         durationSeconds: nextTrack.duration,
       );
     }
