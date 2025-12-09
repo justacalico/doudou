@@ -287,11 +287,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Widget _buildFilterControls(ThemeData theme) {
+  Widget _buildFilterControls(ThemeData theme, AppLocalizations l10n) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Filter:', style: theme.textTheme.bodyMedium),
+        Text(l10n.filterLabel, style: theme.textTheme.bodyMedium),
         const SizedBox(width: 8),
         DropdownButton<String>(
           value: _filterBy,
@@ -302,10 +302,10 @@ class _AlbumsPageState extends State<AlbumsPage> {
               });
             }
           },
-          items: const [
-            DropdownMenuItem(value: 'all', child: Text('All Albums')),
-            DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
-            DropdownMenuItem(value: 'recent', child: Text('Recently Added')),
+          items: [
+            DropdownMenuItem(value: 'all', child: Text(l10n.allAlbums)),
+            DropdownMenuItem(value: 'favorites', child: Text(l10n.favorites)),
+            DropdownMenuItem(value: 'recent', child: Text(l10n.recentlyAdded)),
           ],
         ),
       ],
