@@ -177,6 +177,7 @@ class _HomeContentState extends State<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final allAlbums = List<Album>.from(appState.albums);
