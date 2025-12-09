@@ -498,13 +498,13 @@ class _SearchPageState extends State<SearchPage> {
             _buildSectionResults(appState, l10n.artists, results['artists']!, 'artist'),
           
           if (_selectedFilter == 'all' || _selectedFilter == 'playlists')
-            _buildSectionResults(appState, 'Playlists', results['playlists']!, 'playlist'),
+            _buildSectionResults(appState, l10n.playlists, results['playlists']!, 'playlist'),
         ],
       ),
     );
   }
 
-  Widget _buildTopResult(AppState appState, Map<String, List<dynamic>> results) {
+  Widget _buildTopResult(AppState appState, Map<String, List<dynamic>> results, AppLocalizations l10n) {
     // Find the first non-empty result as the top result
     dynamic topResult;
     String topResultType = '';
@@ -528,7 +528,7 @@ class _SearchPageState extends State<SearchPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Top Result',
+              l10n.topResult,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
