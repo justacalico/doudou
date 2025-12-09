@@ -438,7 +438,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildNoResults() {
+  Widget _buildNoResults(AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Center(
@@ -452,12 +452,12 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No results found for "$_searchQuery"',
+            l10n.noResultsFor(_searchQuery),
             style: theme.textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Try a different search term or check your spelling',
+            l10n.tryDifferentSearch,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -471,31 +471,31 @@ class _SearchPageState extends State<SearchPage> {
               });
               _searchFocusNode.requestFocus();
             },
-            child: const Text('Clear Search'),
+            child: Text(l10n.clearSearch),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchResults(AppState appState, Map<String, List<dynamic>> results) {
+  Widget _buildSearchResults(AppState appState, Map<String, List<dynamic>> results, AppLocalizations l10n) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Top result
           if (_selectedFilter == 'all' && _getTotalResults(results) > 0)
-            _buildTopResult(appState, results),
+            _buildTopResult(appState, results, l10n),
           
           // Filtered results
           if (_selectedFilter == 'all' || _selectedFilter == 'tracks')
-            _buildSectionResults(appState, 'Songs', results['tracks']!, 'track'),
+            _buildSectionResults(appState, l10n.songs, results['tracks']!, 'track'),
           
           if (_selectedFilter == 'all' || _selectedFilter == 'albums')
-            _buildSectionResults(appState, 'Albums', results['albums']!, 'album'),
+            _buildSectionResults(appState, l10n.albums, results['albums']!, 'album'),
           
           if (_selectedFilter == 'all' || _selectedFilter == 'artists')
-            _buildSectionResults(appState, 'Artists', results['artists']!, 'artist'),
+            _buildSectionResults(appState, l10n.artists, results['artists']!, 'artist'),
           
           if (_selectedFilter == 'all' || _selectedFilter == 'playlists')
             _buildSectionResults(appState, 'Playlists', results['playlists']!, 'playlist'),
