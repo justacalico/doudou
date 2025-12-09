@@ -1940,7 +1940,6 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildTabContent(1, appState), // Library
             _buildTabContent(2, appState), // Downloads
             _buildTabContent(3, appState), // Search
-            _buildTabContent(4, appState), // Settings
           ],
         ),
 
@@ -1990,7 +1989,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       _buildTabBarItem(1, CupertinoIcons.music_note_list, appState),
                       _buildTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
                       _buildTabBarItem(3, CupertinoIcons.search, appState),
-                      _buildTabBarItem(4, CupertinoIcons.settings, appState),
                     ],
                   ),
                 ),
