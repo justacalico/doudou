@@ -362,6 +362,8 @@ build_linux_appimage:
   variables:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 1
+    # Allow AppImage tools to run without FUSE in Docker
+    APPIMAGE_EXTRACT_AND_RUN: "1"
   cache:
     key: "linux-appimage-deps-$CI_COMMIT_REF_SLUG-v1"
     paths:
@@ -370,11 +372,16 @@ build_linux_appimage:
   before_script:
     # Install dependencies for Flutter Linux and AppImage packaging
     - apt-get update -qq
-    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev libmpv-dev wget fuse libfuse2
+    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev libmpv-dev wget file squashfs-tools
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies dist/ || true
-    # Install appimagetool
-    - wget -q -O /usr/local/bin/appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
-    - chmod +x /usr/local/bin/appimagetool
+    # Install appimagetool - download and extract since FUSE is not available in Docker
+    - wget -q -O /tmp/appimagetool.AppImage "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+    - chmod +x /tmp/appimagetool.AppImage
+    # Extract appimagetool to run without FUSE
+    - cd /tmp && ./appimagetool.AppImage --appimage-extract
+    - mv /tmp/squashfs-root /opt/appimagetool
+    - ln -sf /opt/appimagetool/AppRun /usr/local/bin/appimagetool
+    - cd $CI_PROJECT_DIR
     # Install fastforge globally using project's pub cache
     - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
     - dart pub global activate fastforge
