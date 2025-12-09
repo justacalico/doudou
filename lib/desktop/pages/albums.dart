@@ -194,26 +194,26 @@ class _AlbumsPageState extends State<AlbumsPage> {
           child: Column(
             children: [
               // Filter and sort controls
-              _buildFilterSortBar(appState, filteredAlbums.length),
+              _buildFilterSortBar(appState, filteredAlbums.length, l10n),
               
               const SizedBox(height: 16),
               
               // Content area
               Expanded(
                 child: appState.isLoading
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Loading albums...'),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(l10n.loadingAlbums),
                           ],
                         ),
                       )
                     : filteredAlbums.isEmpty
-                        ? _buildEmptyState()
-                        : _buildAlbumsGrid(appState, filteredAlbums),
+                        ? _buildEmptyState(l10n)
+                        : _buildAlbumsGrid(appState, filteredAlbums, l10n),
               ),
             ],
           ),
