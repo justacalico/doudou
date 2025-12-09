@@ -784,7 +784,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  track.artistName ?? 'Unknown Artist',
+                  track.artistName ?? l10n.unknownArtist,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -798,7 +798,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  track.albumName ?? 'Unknown Album',
+                  track.albumName ?? l10n.unknownAlbum,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -828,7 +828,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 switch (value) {
                   case 'remove':
                     if (widget.mediaType == MediaType.playlist) {
-                      _removeTrackFromPlaylist(track);
+                      _removeTrackFromPlaylist(track, l10n);
                     }
                     break;
                   case 'download':
@@ -840,21 +840,21 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 List<PopupMenuEntry<String>> items = [];
                 
                 if (widget.mediaType == MediaType.playlist) {
-                  items.add(const PopupMenuItem(
+                  items.add(PopupMenuItem(
                     value: 'remove',
                     child: ListTile(
-                      leading: Icon(Icons.remove),
-                      title: Text('Remove from playlist'),
+                      leading: const Icon(Icons.remove),
+                      title: Text(l10n.removeFromPlaylist),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ));
                 }
                 
-                items.add(const PopupMenuItem(
+                items.add(PopupMenuItem(
                   value: 'download',
                   child: ListTile(
-                    leading: Icon(Icons.download),
-                    title: Text('Download'),
+                    leading: const Icon(Icons.download),
+                    title: Text(l10n.download),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ));
