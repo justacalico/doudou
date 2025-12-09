@@ -2114,6 +2114,10 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
       },
     );
   }
+
+  Widget _buildSidebarLyrics(dynamic audioHandler) {
+    return _YouTubeMusicLyrics(audioHandler: audioHandler);
+  }
 }
 
 // YouTube Music-style Lyrics Widget
