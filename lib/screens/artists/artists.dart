@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
@@ -11,6 +12,7 @@ class ArtistsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         if (appState.isLoading && appState.artists.isEmpty) {
@@ -22,30 +24,30 @@ class ArtistsTab extends StatelessWidget {
         if (appState.artists.isEmpty) {
           return Container(
             color: const Color(0xFF000000), // Pure black for OLED
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.person_2,
                     size: 80,
                     color: Color(0xFF333333),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
-                    'No artists found',
-                    style: TextStyle(
+                    l10n.noArtistsFound,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFFFFFFFF),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Your music artists will appear here once they are loaded from your Jellyfin server.',
-                      style: TextStyle(
+                      l10n.artistsWillAppear,
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Color(0xFF8E8E93),
                         height: 1.4,
@@ -99,9 +101,9 @@ class ArtistsTab extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Artists',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.artists,
+                                      style: const TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFFFFFFFF),
@@ -109,7 +111,7 @@ class ArtistsTab extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${appState.artists.length} artist${appState.artists.length == 1 ? '' : 's'}',
+                                      l10n.artistsCount(appState.artists.length),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: Color(0xFF8E8E93),
