@@ -333,12 +333,12 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No Recent Activity',
+                      l10n.noRecentActivity,
                       style: theme.textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Your recently played music will appear here',
+                      l10n.recentPlaybackAppear,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
