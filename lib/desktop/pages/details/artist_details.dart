@@ -122,7 +122,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     );
   }
 
-  Widget _buildActionButtons(ThemeData theme) {
+  Widget _buildActionButtons(ThemeData theme, AppLocalizations l10n) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return LayoutBuilder(
@@ -139,7 +139,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                     await appState.playPlaylist(_popularTracks, 0);
                   } : null,
                   icon: const Icon(Icons.play_arrow),
-                  label: Text(isNarrow ? 'Play' : 'Play All'),
+                  label: Text(isNarrow ? l10n.play : l10n.playAll),
                 ),
                 // Shuffle button
                 OutlinedButton.icon(
@@ -148,7 +148,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                     await appState.playPlaylist(shuffledTracks, 0);
                   } : null,
                   icon: const Icon(Icons.shuffle),
-                  label: const Text('Shuffle'),
+                  label: Text(l10n.shuffle),
                 ),
                 // Favorite button
                 IconButton(
@@ -156,7 +156,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                     // Toggle favorite artist
                   },
                   icon: const Icon(Icons.favorite_border),
-                  tooltip: 'Add to favorites',
+                  tooltip: l10n.addToFavorites,
                 ),
                 // More options
                 PopupMenuButton<String>(
@@ -174,27 +174,27 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'follow',
                       child: ListTile(
-                        leading: Icon(Icons.person_add),
-                        title: Text('Follow Artist'),
+                        leading: const Icon(Icons.person_add),
+                        title: Text(l10n.followArtist),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'radio',
                       child: ListTile(
-                        leading: Icon(Icons.radio),
-                        title: Text('Start Radio'),
+                        leading: const Icon(Icons.radio),
+                        title: Text(l10n.startRadio),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'share',
                       child: ListTile(
-                        leading: Icon(Icons.share),
-                        title: Text('Share'),
+                        leading: const Icon(Icons.share),
+                        title: Text(l10n.share),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
