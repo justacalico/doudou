@@ -337,7 +337,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistCard(AppState appState, dynamic artist) {
+  Widget _buildArtistCard(AppState appState, dynamic artist, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final albumCount = _getArtistAlbumCount(appState, artist.name);
     final trackCount = _getArtistTrackCount(appState, artist.name);
@@ -432,7 +432,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$albumCount albums • $trackCount songs',
+                    l10n.artistAlbumsAndSongs(albumCount, trackCount),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
