@@ -391,6 +391,41 @@
     "description": "Quick access section header"
   },
 
+  "likedSongs": "Liked Songs",
+  "@likedSongs": {
+    "description": "Liked songs label"
+  },
+
+  "countSongs": "{count} songs",
+  "@countSongs": {
+    "description": "Number of songs",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "countAlbums": "{count} albums",
+  "@countAlbums": {
+    "description": "Number of albums",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "countArtists": "{count} artists",
+  "@countArtists": {
+    "description": "Number of artists",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
   "jumpBackIntoFavorites": "Jump back into your favorites",
   "@jumpBackIntoFavorites": {
     "description": "Favorites section subtitle"
