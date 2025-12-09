@@ -166,23 +166,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader('Storage & Cache'),
+                        _buildSectionHeader(AppLocalizations.of(context).storageAndCache),
                         _buildSettingTile(
                           icon: CupertinoIcons.folder,
-                          title: 'Cache Size',
+                          title: AppLocalizations.of(context).cacheSize,
                           subtitle: _cacheSize,
                           onTap: () => _showCacheDialog(context),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.trash,
-                          title: 'Clear Cache',
-                          subtitle: 'Free up storage space',
+                          title: AppLocalizations.of(context).clearCacheOptions,
+                          subtitle: AppLocalizations.of(context).freeUpStorage,
                           onTap: () => _showClearCacheDialog(context),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.refresh,
-                          title: 'Clean Expired Cache',
-                          subtitle: 'Remove old cached data',
+                          title: AppLocalizations.of(context).cleanExpiredCache,
+                          subtitle: AppLocalizations.of(context).removeOldCachedData,
                           onTap: () => _cleanExpiredCache(context),
                         ),
                       ],
@@ -206,18 +206,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader('Logs & Diagnostics'),
+                        _buildSectionHeader(AppLocalizations.of(context).logsAndDiagnostics),
                         _buildSwitchTile(
                           icon: CupertinoIcons.doc_text,
-                          title: 'Enable Logging',
-                          subtitle: 'Record app activity for troubleshooting',
+                          title: AppLocalizations.of(context).enableLogging,
+                          subtitle: AppLocalizations.of(context).recordAppActivity,
                           value: appState.loggingEnabled,
                           onChanged: (value) => appState.toggleLogging(value),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.doc_text_viewfinder,
-                          title: 'View Application Logs',
-                          subtitle: 'View and export debug logs',
+                          title: AppLocalizations.of(context).viewApplicationLogs,
+                          subtitle: AppLocalizations.of(context).viewExportLogs,
                           onTap: () => Navigator.push(
                             context,
                             CupertinoPageRoute(
@@ -246,28 +246,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader('About'),
+                        _buildSectionHeader(AppLocalizations.of(context).about),
                         _buildInfoTile(
                           icon: CupertinoIcons.info,
-                          title: 'App Version',
+                          title: AppLocalizations.of(context).appVersion,
                           subtitle: _appVersion,
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.doc_text,
-                          title: 'Licenses',
-                          subtitle: 'View open source licenses',
+                          title: AppLocalizations.of(context).licenses,
+                          subtitle: AppLocalizations.of(context).viewOpenSourceLicenses,
                           onTap: () => _showLicensesDialog(context),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.link,
-                          title: 'GitLab Repository',
-                          subtitle: 'View source code and contribute',
+                          title: AppLocalizations.of(context).gitLabRepository,
+                          subtitle: AppLocalizations.of(context).viewSourceAndContribute,
                           onTap: () => _openGitLabPage(context),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.heart,
-                          title: 'Support Development',
-                          subtitle: 'Help support this project',
+                          title: AppLocalizations.of(context).supportDevelopment,
+                          subtitle: AppLocalizations.of(context).helpSupportProject,
                           onTap: () => _showSupportDialog(context),
                         ),
                       ],
@@ -318,7 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           const SizedBox(width: 12),
                           Text(
-                            appState.isLoading ? 'Refreshing...' : 'Refresh Library',
+                            appState.isLoading ? AppLocalizations.of(context).refreshing : AppLocalizations.of(context).refreshLibrary,
                             style: TextStyle(
                               color: appState.isLoading ? const Color(0xFFFFFFFF).withOpacity(0.6) : const Color(0xFFFFFFFF),
                               fontWeight: FontWeight.w700,
@@ -359,18 +359,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: () => _showLogoutDialog(context, appState),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       borderRadius: BorderRadius.circular(16),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             CupertinoIcons.square_arrow_left, 
                             color: Color(0xFFFFFFFF),
                             size: 20,
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Text(
-                            'Logout',
-                            style: TextStyle(
+                            AppLocalizations.of(context).signOut,
+                            style: const TextStyle(
                               color: Color(0xFFFFFFFF),
                               fontWeight: FontWeight.w700,
                               fontSize: 17,
@@ -607,14 +607,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLogoutDialog(BuildContext context, AppState appState) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout? You will need to login again to access your music.'),
+        title: Text(l10n.signOut),
+        content: Text(l10n.confirmSignOut),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -631,7 +632,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }
             },
-            child: const Text('Logout'),
+            child: Text(l10n.signOut),
           ),
         ],
       ),
