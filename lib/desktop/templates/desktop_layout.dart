@@ -63,13 +63,13 @@ class DesktopLayout extends StatefulWidget {
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(l10n.addedToPlaylist(track.name)),
+                        content: Text(l10n.addedTrackToPlaylist(track.name)),
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(l10n.failedToAddToPlaylist),
+                        content: Text(l10n.failedToAddTrackToPlaylist),
                       ),
                     );
                   }
