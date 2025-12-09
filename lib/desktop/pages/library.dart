@@ -252,7 +252,7 @@ class _LibraryPageState extends State<LibraryPage> {
           
           // Quick access section
           Text(
-            'Quick Access',
+            l10n.quickAccess,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -262,8 +262,8 @@ class _LibraryPageState extends State<LibraryPage> {
             children: [
               Expanded(
                 child: _buildQuickAccessCard(
-                  'Liked Songs',
-                  'Your favorite tracks',
+                  l10n.likedSongs,
+                  l10n.yourLikedTracks,
                   Icons.favorite,
                   Colors.red,
                   onTap: () {
@@ -274,8 +274,8 @@ class _LibraryPageState extends State<LibraryPage> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildQuickAccessCard(
-                  'Recently Played',
-                  'Continue listening',
+                  l10n.recentlyPlayedSection,
+                  l10n.listenAgain,
                   Icons.history,
                   Colors.green,
                   onTap: () {
@@ -288,8 +288,8 @@ class _LibraryPageState extends State<LibraryPage> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildQuickAccessCard(
-                  'Downloaded',
-                  'Available offline',
+                  l10n.downloadedSection,
+                  l10n.availableOffline,
                   Icons.download_done,
                   Colors.blue,
                   onTap: () {
@@ -304,7 +304,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildRecentContent(AppState appState) {
+  Widget _buildRecentContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final recentTracks = appState.recentTracks;
     
@@ -313,7 +313,7 @@ class _LibraryPageState extends State<LibraryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recently Played',
+            l10n.recentlyPlayedSection,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
