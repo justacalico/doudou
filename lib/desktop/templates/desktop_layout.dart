@@ -1302,22 +1302,26 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
           builder: (context, mediaItemSnapshot) {
             final currentTrack = mediaItemSnapshot.data;
 
-            return Scaffold(
-              backgroundColor: const Color(0xFF0F0F0F),
-              body: Row(
-                children: [
-                  // Main content area (left side - like YouTube Music video area)
-                  Expanded(
-                    flex: 3,
-                    child: Stack(
-                      children: [
-                        // Background with album art blur
-                        if (currentTrack?.artUri != null)
-                          Positioned.fill(
-                            child: Image.network(
-                              currentTrack!.artUri.toString(),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
+            return KeyboardListener(
+              focusNode: _focusNode,
+              autofocus: true,
+              onKeyEvent: (event) => _handleKeyEvent(event, appState, currentTrack),
+              child: Scaffold(
+                backgroundColor: const Color(0xFF0F0F0F),
+                body: Row(
+                  children: [
+                    // Main content area (left side - like YouTube Music video area)
+                    Expanded(
+                      flex: 3,
+                      child: Stack(
+                        children: [
+                          // Background with album art blur
+                          if (currentTrack?.artUri != null)
+                            Positioned.fill(
+                              child: Image.network(
+                                currentTrack!.artUri.toString(),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
                                 return Container(
                                   color: const Color(0xFF0F0F0F),
                                 );
