@@ -949,10 +949,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 end: Offset.zero,
               ).chain(CurveTween(curve: Curves.easeOutCubic)),
             ),
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
+            child: FadeTransition(opacity: animation, child: child),
           );
         },
       ),
@@ -1215,7 +1212,8 @@ class _YouTubeMusicNowPlaying extends StatefulWidget {
   const _YouTubeMusicNowPlaying({required this.navigationService});
 
   @override
-  State<_YouTubeMusicNowPlaying> createState() => _YouTubeMusicNowPlayingState();
+  State<_YouTubeMusicNowPlaying> createState() =>
+      _YouTubeMusicNowPlayingState();
 }
 
 class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
@@ -1274,11 +1272,13 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                               currentTrack!.artUri.toString(),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return Container(color: const Color(0xFF0F0F0F));
+                                return Container(
+                                  color: const Color(0xFF0F0F0F),
+                                );
                               },
                             ),
                           ),
-                        
+
                         // Dark overlay gradient
                         Positioned.fill(
                           child: Container(
@@ -1317,13 +1317,15 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                       size: 32,
                                     ),
                                     style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white.withOpacity(0.1),
+                                      backgroundColor: Colors.white.withOpacity(
+                                        0.1,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),
-                                  
+
                                   const Spacer(),
 
                                   // Song/Video toggle (like YouTube Music)
@@ -1354,7 +1356,9 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                       color: Colors.white,
                                     ),
                                     style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white.withOpacity(0.1),
+                                      backgroundColor: Colors.white.withOpacity(
+                                        0.1,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1389,7 +1393,12 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                             ),
 
                             // Track info and controls at bottom
-                            _buildBottomSection(context, appState, audioHandler, currentTrack),
+                            _buildBottomSection(
+                              context,
+                              appState,
+                              audioHandler,
+                              currentTrack,
+                            ),
                           ],
                         ),
                       ],
@@ -1434,7 +1443,9 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                   style: TextStyle(color: Colors.white),
                                 ),
                                 style: TextButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.1),
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.1,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -1581,10 +1592,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
 
   Widget _buildAlbumArt(MediaItem? currentTrack) {
     return Container(
-      constraints: const BoxConstraints(
-        maxWidth: 400,
-        maxHeight: 400,
-      ),
+      constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
       margin: const EdgeInsets.all(32),
       child: AspectRatio(
         aspectRatio: 1.0,
@@ -1741,7 +1749,8 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                           name: currentTrack.title,
                           albumName: currentTrack.album,
                           artistName: currentTrack.artist,
-                          albumId: currentTrack.extras?['albumId'] as String? ?? '',
+                          albumId:
+                              currentTrack.extras?['albumId'] as String? ?? '',
                           duration: currentTrack.duration?.inSeconds ?? 0,
                           trackNumber: null,
                           imageUrl: null,
@@ -1755,7 +1764,9 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                         icon: Icon(
                           isFavorite ? Icons.thumb_up : Icons.thumb_up_outlined,
                         ),
-                        color: isFavorite ? Colors.white : Colors.white.withOpacity(0.7),
+                        color: isFavorite
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.7),
                         iconSize: 24,
                       );
                     },
@@ -1771,7 +1782,9 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     icon: Icon(
                       _showLyrics ? Icons.lyrics : Icons.lyrics_outlined,
                     ),
-                    color: _showLyrics ? Colors.white : Colors.white.withOpacity(0.7),
+                    color: _showLyrics
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.7),
                     iconSize: 24,
                   ),
                 ],
@@ -1814,11 +1827,13 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                         ),
                         child: Slider(
                           value: progress.clamp(0.0, 1.0),
-                          onChanged: currentTrack != null && audioHandler != null
+                          onChanged:
+                              currentTrack != null && audioHandler != null
                               ? (value) {
                                   final newPosition = Duration(
                                     milliseconds:
-                                        (value * duration.inMilliseconds).round(),
+                                        (value * duration.inMilliseconds)
+                                            .round(),
                                   );
                                   audioHandler.seek(newPosition);
                                 }
@@ -1869,9 +1884,12 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
               final playbackState = playbackSnapshot.data;
               final isPlaying = playbackState?.playing == true;
               final isBuffering =
-                  playbackState?.processingState == AudioProcessingState.buffering;
-              final shuffleMode = playbackState?.shuffleMode ?? AudioServiceShuffleMode.none;
-              final repeatMode = playbackState?.repeatMode ?? AudioServiceRepeatMode.none;
+                  playbackState?.processingState ==
+                  AudioProcessingState.buffering;
+              final shuffleMode =
+                  playbackState?.shuffleMode ?? AudioServiceShuffleMode.none;
+              final repeatMode =
+                  playbackState?.repeatMode ?? AudioServiceRepeatMode.none;
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1967,14 +1985,20 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                         ? () async {
                             switch (repeatMode) {
                               case AudioServiceRepeatMode.none:
-                                await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                await audioHandler.setRepeatMode(
+                                  AudioServiceRepeatMode.all,
+                                );
                                 break;
                               case AudioServiceRepeatMode.all:
-                                await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                await audioHandler.setRepeatMode(
+                                  AudioServiceRepeatMode.one,
+                                );
                                 break;
                               case AudioServiceRepeatMode.one:
                               case AudioServiceRepeatMode.group:
-                                await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                await audioHandler.setRepeatMode(
+                                  AudioServiceRepeatMode.none,
+                                );
                                 break;
                             }
                           }
@@ -2103,8 +2127,12 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                 title: Text(
                   track.name,
                   style: TextStyle(
-                    color: isCurrentTrack ? Colors.white : Colors.white.withOpacity(0.9),
-                    fontWeight: isCurrentTrack ? FontWeight.w600 : FontWeight.normal,
+                    color: isCurrentTrack
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.9),
+                    fontWeight: isCurrentTrack
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                     fontSize: 14,
                   ),
                   maxLines: 1,
@@ -2161,7 +2189,10 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
     super.dispose();
   }
 
-  int _getCurrentLyricLineIndex(List<DesktopLyricsLine> lines, Duration position) {
+  int _getCurrentLyricLineIndex(
+    List<DesktopLyricsLine> lines,
+    Duration position,
+  ) {
     if (lines.isEmpty) return -1;
 
     for (int i = lines.length - 1; i >= 0; i--) {
@@ -2328,10 +2359,12 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
                   color: isCurrentLine
                       ? Colors.white
                       : isPastLine
-                          ? Colors.white.withOpacity(0.4)
-                          : Colors.white.withOpacity(0.6),
+                      ? Colors.white.withOpacity(0.4)
+                      : Colors.white.withOpacity(0.6),
                   fontSize: isCurrentLine ? 28 : 22,
-                  fontWeight: isCurrentLine ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isCurrentLine
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
