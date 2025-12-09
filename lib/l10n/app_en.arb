@@ -3177,5 +3177,15 @@
   "all": "All",
   "@all": {
     "description": "All label"
+  },
+
+  "accountInformation": "Account Information",
+  "@accountInformation": {
+    "description": "Account information section header"
+  },
+
+  "notAvailable": "Not available",
+  "@notAvailable": {
+    "description": "Not available text"
   }
 }
