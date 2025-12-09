@@ -316,9 +316,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 16,
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Offline Mode - Downloads Only',
-                      style: TextStyle(
+                    Text(
+                      l10n.offlineModeDownloadsOnly,
+                      style: const TextStyle(
                         color: CupertinoColors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -328,9 +328,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     CupertinoButton(
                       padding: EdgeInsets.zero,
                       minSize: 0,
-                      child: const Text(
-                        'Retry',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.retry,
+                        style: const TextStyle(
                           color: CupertinoColors.white,
                           fontSize: 14,
                           decoration: TextDecoration.underline,
