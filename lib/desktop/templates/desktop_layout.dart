@@ -2120,11 +2120,67 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
   }
 }
 
+// Global lyrics cache for preloading
+class _LyricsCache {
+  static final Map<String, Future<DesktopLyrics?>> _cache = {};
+
+  static Future<DesktopLyrics?> getLyrics({
+    required String trackId,
+    required String trackName,
+    required String artistName,
+    String? albumName,
+    int? durationSeconds,
+  }) {
+    if (_cache.containsKey(trackId)) {
+      return _cache[trackId]!;
+    }
+
+    final future = DesktopLyricsService.fetchLyrics(
+      trackName: trackName,
+      artistName: artistName,
+      albumName: albumName,
+      durationSeconds: durationSeconds,
+    );
+    _cache[trackId] = future;
+
+    // Limit cache size to prevent memory issues
+    if (_cache.length > 10) {
+      final oldestKey = _cache.keys.first;
+      _cache.remove(oldestKey);
+    }
+
+    return future;
+  }
+
+  static void preloadLyrics({
+    required String trackId,
+    required String trackName,
+    required String artistName,
+    String? albumName,
+    int? durationSeconds,
+  }) {
+    if (!_cache.containsKey(trackId)) {
+      _cache[trackId] = DesktopLyricsService.fetchLyrics(
+        trackName: trackName,
+        artistName: artistName,
+        albumName: albumName,
+        durationSeconds: durationSeconds,
+      );
+    }
+  }
+}
+
 // YouTube Music-style Lyrics Widget
 class _YouTubeMusicLyrics extends StatefulWidget {
   final dynamic audioHandler;
+  final List<Track>? queue;
+  final int? currentIndex;
 
-  const _YouTubeMusicLyrics({required this.audioHandler});
+  const _YouTubeMusicLyrics({
+    required this.audioHandler,
+    this.queue,
+    this.currentIndex,
+  });
 
   @override
   State<_YouTubeMusicLyrics> createState() => _YouTubeMusicLyricsState();
@@ -2135,6 +2191,26 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
   Future<DesktopLyrics?>? _cachedLyricsFuture;
   final ScrollController _scrollController = ScrollController();
   int _previousCurrentLine = -1;
+
+  void _preloadNextTrackLyrics() {
+    final queue = widget.queue;
+    final currentIndex = widget.currentIndex;
+    
+    if (queue == null || currentIndex == null) return;
+    
+    // Preload next track's lyrics
+    final nextIndex = currentIndex + 1;
+    if (nextIndex < queue.length) {
+      final nextTrack = queue[nextIndex];
+      _LyricsCache.preloadLyrics(
+        trackId: nextTrack.id,
+        trackName: nextTrack.name,
+        artistName: nextTrack.artistName ?? 'Unknown Artist',
+        albumName: nextTrack.album,
+        durationSeconds: nextTrack.duration,
+      );
+    }
+  }
 
   @override
   void dispose() {
