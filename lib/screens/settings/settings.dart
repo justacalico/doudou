@@ -7,6 +7,7 @@ import '../../providers/app_state.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
+import 'partials/language_settings.dart';
 import 'logs_viewer.dart';
 import '../../cardboard/pages/vr_player.dart';
 
@@ -107,6 +108,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Audio Settings Section
                 const SliverToBoxAdapter(
                   child: AudioSettingsSection(),
+                ),
+
+                // Language Settings Section
+                const SliverToBoxAdapter(
+                  child: LanguageSettingsSection(),
                 ),
 
                 // Player Interface Section
