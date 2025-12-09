@@ -1922,16 +1922,10 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
 
-        // Check if we're on a desktop platform
-        final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-        
-        if (isDesktop) {
-          // Desktop layout with sidebar
-          return _buildDesktopLayout(appState);
-        } else {
-          // Mobile layout with bottom navigation
-          return _buildMobileLayout(appState);
-        }
+        // Always use mobile layout with bottom navigation
+        // Desktop layout is handled by the responsive app switcher in main.dart
+        // which loads DesktopLayout instead of HomeScreen for large screens
+        return _buildMobileLayout(appState);
       },
     );
   }
