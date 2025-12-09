@@ -197,7 +197,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildActionButtons(ThemeData theme) {
+  Widget _buildActionButtons(ThemeData theme, AppLocalizations l10n) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return LayoutBuilder(
@@ -241,7 +241,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     }
                   } : null,
                   icon: const Icon(Icons.play_arrow),
-                  label: Text(isNarrow ? 'Play' : 'Play ${widget.mediaType == MediaType.playlist ? 'All' : 'Album'}'),
+                  label: Text(isNarrow ? l10n.play : (widget.mediaType == MediaType.playlist ? l10n.playAll : l10n.playAlbum)),
                 ),
                 // Shuffle button
                 OutlinedButton.icon(
@@ -250,7 +250,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     await appState.playPlaylist(shuffledTracks, 0);
                   } : null,
                   icon: const Icon(Icons.shuffle),
-                  label: const Text('Shuffle'),
+                  label: Text(l10n.shuffle),
                 ),
                 // Conditional buttons based on media type
                 if (widget.mediaType == MediaType.album) ...[
