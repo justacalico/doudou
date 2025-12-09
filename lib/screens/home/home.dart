@@ -254,7 +254,7 @@ class _HomeContentState extends State<HomeContent> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  _getGreeting(),
+                                  _getGreeting(l10n),
                                   style: TextStyle(
                                     color: CupertinoColors.systemGrey.withOpacity(0.8),
                                     fontSize: 14,
@@ -266,7 +266,7 @@ class _HomeContentState extends State<HomeContent> {
                                 ),
                                 const SizedBox(height: 1),
                                 Text(
-                                  'What would you like to hear?',
+                                  l10n.whatWouldYouLikeToHear,
                                   style: const TextStyle(
                                     color: CupertinoColors.white,
                                     fontSize: 20,
