@@ -4,6 +4,7 @@ import '../../templates/desktop_layout.dart';
 import '../../templates/track_list_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
+import '../../../l10n/app_localizations.dart';
 import 'media_details.dart';
 
 class ArtistDetailsPage extends StatefulWidget {
