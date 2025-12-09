@@ -1,11 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../services/responsive_service.dart';
-import '../providers/app_state.dart';
-import '../screens/login/login.dart';
-import '../screens/partials/navbar/navbar.dart';
-import '../desktop/templates/desktop_layout.dart';
 
 /// A widget that automatically switches between mobile and desktop layouts
 /// based on the current screen size.
