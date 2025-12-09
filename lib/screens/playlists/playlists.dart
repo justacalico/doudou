@@ -59,7 +59,8 @@ class PlaylistsView extends StatelessWidget {
                     child: Container(
                       margin: const EdgeInsets.all(16),
                       child: CupertinoButton.filled(
-                        onPressed: () => _showCreatePlaylistDialog(context, appState),
+                        onPressed: () =>
+                            _showCreatePlaylistDialog(context, appState),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -73,38 +74,29 @@ class PlaylistsView extends StatelessWidget {
                   ),
                   // Playlists list
                   SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final playlist = appState.playlists[index];
-                        return PlaylistTile(
-                          playlist: playlist,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => DetailTrackView.playlist(playlist),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      childCount: appState.playlists.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final playlist = appState.playlists[index];
+                      return PlaylistTile(
+                        playlist: playlist,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) =>
+                                  DetailTrackView.playlist(playlist),
+                            ),
+                          );
+                        },
+                      );
+                    }, childCount: appState.playlists.length),
                   ),
                   // Add some bottom padding for mini player
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             ),
             // Mini player at bottom
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: MiniPlayer(),
-            ),
+            const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer()),
           ],
         );
       },
@@ -113,7 +105,7 @@ class PlaylistsView extends StatelessWidget {
 
   void _showCreatePlaylistDialog(BuildContext context, AppState appState) {
     final TextEditingController nameController = TextEditingController();
-    
+
     showCupertinoDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -155,10 +147,14 @@ class PlaylistsView extends StatelessWidget {
     );
   }
 
-  void _createPlaylist(BuildContext context, AppState appState, String name) async {
+  void _createPlaylist(
+    BuildContext context,
+    AppState appState,
+    String name,
+  ) async {
     // Close the dialog first
     Navigator.of(context).pop();
-    
+
     // Show loading indicator
     if (!context.mounted) return;
     showCupertinoDialog(
@@ -174,14 +170,14 @@ class PlaylistsView extends StatelessWidget {
         );
       },
     );
-    
+
     try {
       final success = await appState.createPlaylist(name);
-      
+
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       if (success) {
         // Show success message
         if (!context.mounted) return;
@@ -210,7 +206,9 @@ class PlaylistsView extends StatelessWidget {
           builder: (BuildContext context) {
             return CupertinoAlertDialog(
               title: const Text('Error'),
-              content: Text('Failed to create playlist "$name". Please try again.'),
+              content: Text(
+                'Failed to create playlist "$name". Please try again.',
+              ),
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
@@ -227,7 +225,7 @@ class PlaylistsView extends StatelessWidget {
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       // Show error message
       if (!context.mounted) return;
       showCupertinoDialog(
@@ -255,11 +253,7 @@ class PlaylistTile extends StatelessWidget {
   final Playlist playlist;
   final VoidCallback onTap;
 
-  const PlaylistTile({
-    super.key,
-    required this.playlist,
-    required this.onTap,
-  });
+  const PlaylistTile({super.key, required this.playlist, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -368,10 +362,7 @@ class PlaylistTile extends StatelessWidget {
     showCupertinoModalPopup<void>(
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
-        title: Text(
-          playlist.name,
-          style: const TextStyle(fontSize: 16),
-        ),
+        title: Text(playlist.name, style: const TextStyle(fontSize: 16)),
         actions: <CupertinoActionSheetAction>[
           CupertinoActionSheetAction(
             onPressed: () {
@@ -382,7 +373,7 @@ class PlaylistTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  CupertinoIcons.cloud_download, 
+                  CupertinoIcons.cloud_download,
                   size: 20,
                   color: CupertinoColors.systemBlue,
                 ),
@@ -454,15 +445,15 @@ class PlaylistTile extends StatelessWidget {
         );
       },
     );
-    
+
     try {
       // First, get all tracks in the playlist
       final tracks = await appState.getPlaylistTracks(playlist.id);
-      
+
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       if (tracks.isEmpty) {
         // Show empty playlist message
         if (!context.mounted) return;
@@ -485,7 +476,7 @@ class PlaylistTile extends StatelessWidget {
         );
         return;
       }
-      
+
       // Show confirmation dialog with track count
       if (!context.mounted) return;
       showCupertinoDialog(
@@ -494,7 +485,7 @@ class PlaylistTile extends StatelessWidget {
           return CupertinoAlertDialog(
             title: const Text('Download Playlist'),
             content: Text(
-              'Download "${playlist.name}" with ${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'}?'
+              'Download "${playlist.name}" with ${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'}?',
             ),
             actions: [
               CupertinoDialogAction(
@@ -515,12 +506,11 @@ class PlaylistTile extends StatelessWidget {
           );
         },
       );
-      
     } catch (e) {
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       // Show error message
       if (!context.mounted) return;
       showCupertinoDialog(
@@ -543,18 +533,22 @@ class PlaylistTile extends StatelessWidget {
     }
   }
 
-  void _startPlaylistDownload(BuildContext context, AppState appState, List<Track> tracks) async {
+  void _startPlaylistDownload(
+    BuildContext context,
+    AppState appState,
+    List<Track> tracks,
+  ) async {
     int downloadedCount = 0;
     int skippedCount = 0;
     int failedCount = 0;
-    
+
     // Count already downloaded tracks
     for (final track in tracks) {
       if (appState.downloadService.isTrackDownloaded(track.id)) {
         skippedCount++;
       }
     }
-    
+
     // Start downloading all tracks
     for (final track in tracks) {
       try {
@@ -569,12 +563,13 @@ class PlaylistTile extends StatelessWidget {
         }
       }
     }
-    
+
     // Show completion message
     if (!context.mounted) return;
     String message;
     if (downloadedCount > 0) {
-      message = 'Started downloading $downloadedCount ${downloadedCount == 1 ? 'song' : 'songs'}';
+      message =
+          'Started downloading $downloadedCount ${downloadedCount == 1 ? 'song' : 'songs'}';
       if (skippedCount > 0) {
         message += ', $skippedCount already downloaded';
       }
@@ -586,12 +581,16 @@ class PlaylistTile extends StatelessWidget {
     } else {
       message = 'Failed to start downloads';
     }
-    
+
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text(downloadedCount > 0 || skippedCount == tracks.length ? 'Download Started' : 'Download Failed'),
+          title: Text(
+            downloadedCount > 0 || skippedCount == tracks.length
+                ? 'Download Started'
+                : 'Download Failed',
+          ),
           content: Text(message),
           actions: [
             CupertinoDialogAction(
@@ -607,8 +606,10 @@ class PlaylistTile extends StatelessWidget {
   }
 
   void _showRenameDialog(BuildContext context, AppState appState) {
-    final TextEditingController nameController = TextEditingController(text: playlist.name);
-    
+    final TextEditingController nameController = TextEditingController(
+      text: playlist.name,
+    );
+
     showCupertinoDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -658,7 +659,9 @@ class PlaylistTile extends StatelessWidget {
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
           title: const Text('Remove Playlist'),
-          content: Text('Are you sure you want to remove "${playlist.name}"? This action cannot be undone.'),
+          content: Text(
+            'Are you sure you want to remove "${playlist.name}"? This action cannot be undone.',
+          ),
           actions: [
             CupertinoDialogAction(
               child: const Text('Cancel'),
@@ -679,10 +682,14 @@ class PlaylistTile extends StatelessWidget {
     );
   }
 
-  void _renamePlaylist(BuildContext context, AppState appState, String newName) async {
+  void _renamePlaylist(
+    BuildContext context,
+    AppState appState,
+    String newName,
+  ) async {
     // Close the dialog first
     Navigator.of(context).pop();
-    
+
     // Show loading indicator
     if (!context.mounted) return;
     showCupertinoDialog(
@@ -698,14 +705,14 @@ class PlaylistTile extends StatelessWidget {
         );
       },
     );
-    
+
     try {
       final success = await appState.renamePlaylist(playlist.id, newName);
-      
+
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       if (success) {
         // Show success message
         if (!context.mounted) return;
@@ -734,7 +741,9 @@ class PlaylistTile extends StatelessWidget {
           builder: (BuildContext context) {
             return CupertinoAlertDialog(
               title: const Text('Error'),
-              content: Text('Failed to rename playlist to "$newName". Please try again.'),
+              content: Text(
+                'Failed to rename playlist to "$newName". Please try again.',
+              ),
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
@@ -751,7 +760,7 @@ class PlaylistTile extends StatelessWidget {
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       // Show error message
       if (!context.mounted) return;
       showCupertinoDialog(
@@ -777,7 +786,7 @@ class PlaylistTile extends StatelessWidget {
   void _removePlaylist(BuildContext context, AppState appState) async {
     // Close the dialog first
     Navigator.of(context).pop();
-    
+
     // Show loading indicator
     if (!context.mounted) return;
     showCupertinoDialog(
@@ -793,14 +802,14 @@ class PlaylistTile extends StatelessWidget {
         );
       },
     );
-    
+
     try {
       final success = await appState.removePlaylist(playlist.id);
-      
+
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       if (success) {
         // Show success message
         if (!context.mounted) return;
@@ -809,7 +818,9 @@ class PlaylistTile extends StatelessWidget {
           builder: (BuildContext context) {
             return CupertinoAlertDialog(
               title: const Text('Success'),
-              content: Text('Playlist "${playlist.name}" removed successfully!'),
+              content: Text(
+                'Playlist "${playlist.name}" removed successfully!',
+              ),
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
@@ -829,7 +840,9 @@ class PlaylistTile extends StatelessWidget {
           builder: (BuildContext context) {
             return CupertinoAlertDialog(
               title: const Text('Error'),
-              content: Text('Failed to remove playlist "${playlist.name}". Please try again.'),
+              content: Text(
+                'Failed to remove playlist "${playlist.name}". Please try again.',
+              ),
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
@@ -846,7 +859,7 @@ class PlaylistTile extends StatelessWidget {
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      
+
       // Show error message
       if (!context.mounted) return;
       showCupertinoDialog(
@@ -891,18 +904,22 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   Future<void> _loadTracks() async {
     final appState = context.read<AppState>();
-    
+
     try {
       if (kDebugMode) {
         print('Loading tracks for playlist: ${widget.playlist.id}');
       }
-      
-      final playlistTracks = await appState.getPlaylistTracks(widget.playlist.id);
-      
+
+      final playlistTracks = await appState.getPlaylistTracks(
+        widget.playlist.id,
+      );
+
       if (kDebugMode) {
-        print('Loaded ${playlistTracks.length} tracks for playlist: ${widget.playlist.name}');
+        print(
+          'Loaded ${playlistTracks.length} tracks for playlist: ${widget.playlist.name}',
+        );
       }
-      
+
       setState(() {
         tracks = playlistTracks;
         isLoading = false;
@@ -911,7 +928,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       if (kDebugMode) {
         print('Error loading playlist tracks: $e');
       }
-      
+
       setState(() {
         tracks = [];
         isLoading = false;
@@ -923,7 +940,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     setState(() {
       isLoading = true;
     });
-    
+
     await _loadTracks();
   }
 
@@ -944,9 +961,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           children: [
             CustomScrollView(
               slivers: [
-                CupertinoSliverRefreshControl(
-                  onRefresh: _refreshTracks,
-                ),
+                CupertinoSliverRefreshControl(onRefresh: _refreshTracks),
                 // Playlist header
                 SliverToBoxAdapter(
                   child: Container(
@@ -969,22 +984,26 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                           height: 400,
                                         ),
                                         fit: BoxFit.cover,
-                                        placeholder: (context, url) => Container(
-                                          color: const Color(0xFF2C2C2E),
-                                          child: const Icon(
-                                            CupertinoIcons.music_note_list,
-                                            color: CupertinoColors.systemGrey,
-                                            size: 48,
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Container(
-                                          color: const Color(0xFF2C2C2E),
-                                          child: const Icon(
-                                            CupertinoIcons.music_note_list,
-                                            color: CupertinoColors.systemGrey,
-                                            size: 48,
-                                          ),
-                                        ),
+                                        placeholder: (context, url) =>
+                                            Container(
+                                              color: const Color(0xFF2C2C2E),
+                                              child: const Icon(
+                                                CupertinoIcons.music_note_list,
+                                                color:
+                                                    CupertinoColors.systemGrey,
+                                                size: 48,
+                                              ),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            Container(
+                                              color: const Color(0xFF2C2C2E),
+                                              child: const Icon(
+                                                CupertinoIcons.music_note_list,
+                                                color:
+                                                    CupertinoColors.systemGrey,
+                                                size: 48,
+                                              ),
+                                            ),
                                       );
                                     },
                                   )
@@ -1056,14 +1075,18 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                           // Check if all tracks are downloaded
                           Consumer<AppState>(
                             builder: (context, appState, child) {
-                              final bool allTracksDownloaded = tracks.isNotEmpty && 
-                                  tracks.every((track) => appState.downloadService.isTrackDownloaded(track.id));
-                              
+                              final bool allTracksDownloaded =
+                                  tracks.isNotEmpty &&
+                                  tracks.every(
+                                    (track) => appState.downloadService
+                                        .isTrackDownloaded(track.id),
+                                  );
+
                               // Don't show download button if all tracks are already downloaded
                               if (allTracksDownloaded) {
                                 return const SizedBox(height: 12);
                               }
-                              
+
                               return Column(
                                 children: [
                                   const SizedBox(height: 12),
@@ -1071,14 +1094,18 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                   SizedBox(
                                     width: double.infinity,
                                     child: CupertinoButton(
-                                      color: CupertinoColors.systemGrey6.darkColor,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      color:
+                                          CupertinoColors.systemGrey6.darkColor,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
-                                            CupertinoIcons.cloud_download, 
+                                            CupertinoIcons.cloud_download,
                                             size: 20,
                                             color: CupertinoColors.systemBlue,
                                           ),
@@ -1093,7 +1120,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                           ),
                                         ],
                                       ),
-                                      onPressed: () => _downloadPlaylistDetail(),
+                                      onPressed: () =>
+                                          _downloadPlaylistDetail(),
                                     ),
                                   ),
                                 ],
@@ -1109,7 +1137,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                 if (isLoading)
                   const SliverFillRemaining(
                     child: Center(
-                      child: CupertinoActivityIndicator(color: CupertinoColors.white),
+                      child: CupertinoActivityIndicator(
+                        color: CupertinoColors.white,
+                      ),
                     ),
                   )
                 else if (tracks.isEmpty)
@@ -1137,31 +1167,21 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                   )
                 else
                   SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final track = tracks[index];
-                        return PlaylistTrackItem(
-                          track: track,
-                          trackNumber: index + 1,
-                          onTap: () => _playTrack(track, index),
-                        );
-                      },
-                      childCount: tracks.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final track = tracks[index];
+                      return PlaylistTrackItem(
+                        track: track,
+                        trackNumber: index + 1,
+                        onTap: () => _playTrack(track, index),
+                      );
+                    }, childCount: tracks.length),
                   ),
                 // Add some bottom padding for mini player
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 100),
-                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
             // Mini player at bottom
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: MiniPlayer(),
-            ),
+            const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer()),
           ],
         ),
       ),
@@ -1170,7 +1190,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   void _downloadPlaylistDetail() async {
     final appState = context.read<AppState>();
-    
+
     if (tracks.isEmpty) {
       showCupertinoDialog(
         context: context,
@@ -1191,7 +1211,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       );
       return;
     }
-    
+
     // Show confirmation dialog
     showCupertinoDialog(
       context: context,
@@ -1199,7 +1219,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         return CupertinoAlertDialog(
           title: const Text('Download Playlist'),
           content: Text(
-            'Download "${widget.playlist.name}" with ${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'}?'
+            'Download "${widget.playlist.name}" with ${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'}?',
           ),
           actions: [
             CupertinoDialogAction(
@@ -1226,14 +1246,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     int downloadedCount = 0;
     int skippedCount = 0;
     int failedCount = 0;
-    
+
     // Count already downloaded tracks
     for (final track in tracks) {
       if (appState.downloadService.isTrackDownloaded(track.id)) {
         skippedCount++;
       }
     }
-    
+
     // Start downloading all tracks
     for (final track in tracks) {
       try {
@@ -1248,12 +1268,13 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         }
       }
     }
-    
+
     // Show completion message
     if (!mounted) return;
     String message;
     if (downloadedCount > 0) {
-      message = 'Started downloading $downloadedCount ${downloadedCount == 1 ? 'song' : 'songs'}';
+      message =
+          'Started downloading $downloadedCount ${downloadedCount == 1 ? 'song' : 'songs'}';
       if (skippedCount > 0) {
         message += ', $skippedCount already downloaded';
       }
@@ -1265,12 +1286,16 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     } else {
       message = 'Failed to start downloads';
     }
-    
+
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text(downloadedCount > 0 || skippedCount == tracks.length ? 'Download Started' : 'Download Failed'),
+          title: Text(
+            downloadedCount > 0 || skippedCount == tracks.length
+                ? 'Download Started'
+                : 'Download Failed',
+          ),
           content: Text(message),
           actions: [
             CupertinoDialogAction(
