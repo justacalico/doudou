@@ -1458,25 +1458,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
     );
   }
 
-  Widget _buildToggleButton(String label, bool isSong) {
-    final isActive = isSong; // Currently only Song mode is active
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isActive ? Colors.white : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isActive ? Colors.black : Colors.white.withOpacity(0.7),
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
-
   Widget _buildSidebarTab(String label, int index) {
     final isSelected = _tabController.index == index;
     return GestureDetector(
@@ -1507,24 +1488,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.white : Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.black : Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-        ),
       ),
     );
   }
