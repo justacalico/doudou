@@ -260,8 +260,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       // Note: Albums don't typically have favorites in most services
                       // This would need to be implemented based on your service's capabilities
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Album favorites not yet implemented'),
+                        SnackBar(
+                          content: Text(l10n.albumFavoritesNotImplemented),
                           backgroundColor: Colors.orange,
                         ),
                       );
@@ -270,7 +270,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                       widget.album!.isFavorite ? Icons.favorite : Icons.favorite_border,
                       color: widget.album!.isFavorite ? Colors.red : null,
                     ),
-                    tooltip: widget.album!.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                    tooltip: widget.album!.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
                   ),
                 ],
                 // Refresh button (for debugging when tracks are empty)
@@ -278,10 +278,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   IconButton(
                     onPressed: _refreshTracks,
                     icon: const Icon(Icons.refresh),
-                    tooltip: 'Reload tracks',
+                    tooltip: l10n.reloadTracks,
                   ),
                 // More options
-                _buildMoreOptionsMenu(),
+                _buildMoreOptionsMenu(l10n),
               ],
             );
           },
