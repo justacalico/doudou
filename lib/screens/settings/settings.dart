@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/app_state.dart';
+import '../../l10n/app_localizations.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
@@ -88,9 +89,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
                     child: Row(
                       children: [
-                        const Text(
-                          'Settings',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context).settings,
+                          style: const TextStyle(
                             color: Color(0xFFFFFFFF),
                             fontSize: 34,
                             fontWeight: FontWeight.bold,
@@ -129,11 +130,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader('Player Interface'),
+                        _buildSectionHeader(AppLocalizations.of(context).playerInterface),
                         _buildSwitchTile(
                           icon: CupertinoIcons.rectangle_3_offgrid,
-                          title: 'Dynamic Isle Player',
-                          subtitle: 'Use modern floating island-style player',
+                          title: AppLocalizations.of(context).dynamicIslePlayer,
+                          subtitle: AppLocalizations.of(context).useModernFloatingPlayer,
                           value: appState.useDynamicIsle,
                           onChanged: (value) => appState.toggleDynamicIsle(value),
                         ),
@@ -142,8 +143,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                        defaultTargetPlatform == TargetPlatform.iOS))
                           _buildSettingTile(
                             icon: CupertinoIcons.viewfinder,
-                            title: 'VR Mode',
-                            subtitle: 'Launch Google Cardboard VR player',
+                            title: AppLocalizations.of(context).vrMode,
+                            subtitle: AppLocalizations.of(context).launchVRPlayer,
                             onTap: () => _launchVRMode(context),
                           ),
                       ],
