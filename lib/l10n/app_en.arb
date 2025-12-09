@@ -2428,5 +2428,115 @@
   "showArtist": "Show artist",
   "@showArtist": {
     "description": "Show artist menu item"
+  },
+
+  "allPlaylists": "All Playlists",
+  "@allPlaylists": {
+    "description": "All playlists filter option"
+  },
+
+  "refreshPlaylists": "Refresh Playlists",
+  "@refreshPlaylists": {
+    "description": "Refresh playlists tooltip"
+  },
+
+  "editPlaylist": "Edit Playlist",
+  "@editPlaylist": {
+    "description": "Edit playlist dialog title"
+  },
+
+  "deletePlaylist": "Delete Playlist",
+  "@deletePlaylist": {
+    "description": "Delete playlist dialog title"
+  },
+
+  "deletePlaylistConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deletePlaylistConfirm": {
+    "description": "Delete playlist confirmation message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "playlistName": "Playlist Name",
+  "@playlistName": {
+    "description": "Playlist name input label"
+  },
+
+  "descriptionOptional": "Description (optional)",
+  "@descriptionOptional": {
+    "description": "Description optional input label"
+  },
+
+  "playlistRenamed": "Playlist renamed to \"{name}\"",
+  "@playlistRenamed": {
+    "description": "Playlist renamed success message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "failedToRenamePlaylist": "Failed to rename playlist",
+  "@failedToRenamePlaylist": {
+    "description": "Failed to rename playlist error"
+  },
+
+  "playlistDeleted": "Playlist \"{name}\" deleted",
+  "@playlistDeleted": {
+    "description": "Playlist deleted success message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "failedToDeletePlaylist": "Failed to delete playlist",
+  "@failedToDeletePlaylist": {
+    "description": "Failed to delete playlist error"
+  },
+
+  "favoritesNotImplemented": "Favorites not yet implemented for playlists",
+  "@favoritesNotImplemented": {
+    "description": "Favorites not implemented message"
+  },
+
+  "noPlaylistsForQuery": "No playlists found for \"{query}\"",
+  "@noPlaylistsForQuery": {
+    "description": "No playlists found for search query",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "rock"
+      }
+    }
+  },
+
+  "tryDifferentSearch": "Try a different search term",
+  "@tryDifferentSearch": {
+    "description": "Try different search suggestion"
+  },
+
+  "createFirstPlaylist": "Create your first playlist to get started",
+  "@createFirstPlaylist": {
+    "description": "Create first playlist suggestion"
+  },
+
+  "countSongsLabel": "{count} songs",
+  "@countSongsLabel": {
+    "description": "Song count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
   }
 }
