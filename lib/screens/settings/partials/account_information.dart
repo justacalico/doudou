@@ -1,12 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AccountInformationSection extends StatelessWidget {
   const AccountInformationSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final server = appState.jellyfinService.currentServer;
@@ -23,22 +25,22 @@ class AccountInformationSection extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _buildSectionHeader('Account Information'),
+              _buildSectionHeader(l10n.accountInformation),
               if (server != null) ...[
                 _buildInfoTile(
                   icon: CupertinoIcons.person_circle,
-                  title: 'User ID',
-                  subtitle: server.userId?.substring(0, 8) ?? 'Not available',
+                  title: l10n.userId,
+                  subtitle: server.userId?.substring(0, 8) ?? l10n.notAvailable,
                 ),
                 _buildInfoTile(
                   icon: CupertinoIcons.globe,
-                  title: 'Server',
-                  subtitle: 'Connected to Jellyfin',
+                  title: l10n.server,
+                  subtitle: l10n.connectedToJellyfin,
                 ),
                 _buildInfoTile(
                   icon: CupertinoIcons.checkmark_seal,
-                  title: 'Connection Status',
-                  subtitle: 'Authenticated',
+                  title: l10n.connectionStatus,
+                  subtitle: l10n.authenticated,
                 ),
               ],
             ],
