@@ -828,14 +828,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLicensesDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Open Source Licenses'),
-        content: const Text('This app uses the following open source libraries:\n\n• Flutter\n• just_audio\n• cached_network_image\n• provider\n• dio\n• shared_preferences'),
+        title: Text(l10n.openSourceLicenses),
+        content: Text(l10n.licensesDescription),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
