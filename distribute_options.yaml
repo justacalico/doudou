@@ -4,6 +4,15 @@ output: dist/
 releases:
   - name: production
     jobs:
+      # Build IPA for iOS
+      - name: ios-ipa
+        package:
+          platform: ios
+          target: ipa
+          build_args:
+            release: true
+            export-options-plist: ios/exportOptions.plist
+
       # Build AppImage for Linux
       - name: linux-appimage
         package:

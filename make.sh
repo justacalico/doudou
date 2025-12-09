@@ -138,12 +138,60 @@ BUILD_ARGS=""
 case $PLATFORM in
     ios)
         if [ "$PACKAGE_TYPE" = "ipa" ]; then
-            # Check if exportOptions.plist exists
-            if [ -f "ios/exportOptions.plist" ]; then
-                BUILD_ARGS="--build-export-options-plist ios/exportOptions.plist"
+            # Build iOS without code signing - creates .app bundle
+            echo -e "${YELLOW}Building iOS app without code signing...${NC}"
+            echo ""
+            
+            # Run flutter build ios with --no-codesign
+            flutter build ios --no-codesign --release
+            BUILD_STATUS=$?
+            
+            if [ $BUILD_STATUS -eq 0 ]; then
+                # Create dist directory
+                mkdir -p dist
+                
+                # Get version from pubspec
+                VERSION=$(grep '^version:' pubspec.yaml | head -n1 | sed 's/^version:[[:space:]]*//;s/["'"'"']//g' | cut -d'+' -f1)
+                
+                # Create an unsigned IPA from the .app bundle
+                APP_PATH="build/ios/iphoneos/Runner.app"
+                if [ -d "$APP_PATH" ]; then
+                    echo -e "${YELLOW}Creating unsigned IPA from .app bundle...${NC}"
+                    
+                    # Create Payload directory structure
+                    TEMP_DIR=$(mktemp -d)
+                    mkdir -p "$TEMP_DIR/Payload"
+                    cp -r "$APP_PATH" "$TEMP_DIR/Payload/"
+                    
+                    # Create the IPA (which is just a zip file)
+                    IPA_NAME="doudou-${VERSION}-unsigned.ipa"
+                    cd "$TEMP_DIR"
+                    zip -r -q "$IPA_NAME" Payload
+                    cd - > /dev/null
+                    mv "$TEMP_DIR/$IPA_NAME" "dist/$IPA_NAME"
+                    rm -rf "$TEMP_DIR"
+                    
+                    echo ""
+                    echo -e "${GREEN}╔════════════════════════════════════╗${NC}"
+                    echo -e "${GREEN}║      Build Successful! 🎉         ║${NC}"
+                    echo -e "${GREEN}╚════════════════════════════════════╝${NC}"
+                    echo ""
+                    echo -e "${GREEN}Output:${NC} dist/$IPA_NAME"
+                    echo ""
+                    echo -e "${YELLOW}Note: This is an unsigned IPA. To install on a device:${NC}"
+                    echo -e "  - Use AltStore, Sideloadly, or similar tools"
+                    echo -e "  - Or sign it with your own certificate"
+                    exit 0
+                else
+                    echo -e "${RED}Error: .app bundle not found at $APP_PATH${NC}"
+                    exit 1
+                fi
             else
-                echo -e "${YELLOW}Warning: ios/exportOptions.plist not found${NC}"
-                echo "You may need to create it for signing the IPA"
+                echo ""
+                echo -e "${RED}╔════════════════════════════════════╗${NC}"
+                echo -e "${RED}║       Build Failed! ❌            ║${NC}"
+                echo -e "${RED}╚════════════════════════════════════╝${NC}"
+                exit 1
             fi
         fi
         ;;
