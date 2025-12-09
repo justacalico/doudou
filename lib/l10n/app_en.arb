@@ -2372,8 +2372,8 @@
     "description": "Year info appear message"
   },
 
-  "albumCount": "{count} album",
-  "@albumCount": {
+  "albumCountSingle": "{count} album",
+  "@albumCountSingle": {
     "description": "Single album count",
     "placeholders": {
       "count": {
@@ -2383,8 +2383,8 @@
     }
   },
 
-  "albumCountPlural": "{count} albums",
-  "@albumCountPlural": {
+  "albumCountMultiple": "{count} albums",
+  "@albumCountMultiple": {
     "description": "Plural album count",
     "placeholders": {
       "count": {
