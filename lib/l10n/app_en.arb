@@ -2307,13 +2307,13 @@
     "description": "Recently added albums section header"
   },
 
-  "recentlyPlayed": "Recently Played",
-  "@recentlyPlayed": {
+  "recentlyPlayedSection": "Recently Played",
+  "@recentlyPlayedSection": {
     "description": "Recently played section header"
   },
 
-  "downloaded": "Downloaded",
-  "@downloaded": {
+  "downloadedSection": "Downloaded",
+  "@downloadedSection": {
     "description": "Downloaded section header"
   },
 

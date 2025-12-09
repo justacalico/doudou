@@ -439,5 +439,36 @@
 
   "language": "Язык",
   "selectLanguage": "Выберите язык",
-  "systemLanguage": "Системный язык"
+  "systemLanguage": "Системный язык",
+
+  "libraryOverview": "Обзор",
+  "libraryRecent": "Недавние",
+  "libraryGenres": "Жанры",
+  "libraryYears": "Годы",
+
+  "totalSongs": "Всего песен",
+  "inYourLibrary": "В вашей библиотеке",
+  "albumCollections": "Коллекции альбомов",
+  "uniqueArtists": "Уникальные исполнители",
+  "yourPlaylists": "Ваши плейлисты",
+
+  "recentlyPlayedSection": "Недавно прослушанное",
+  "downloadedSection": "Загруженное",
+  "yourLikedTracks": "Ваши любимые треки",
+  "listenAgain": "Слушать снова",
+  "availableOffline": "Доступно офлайн",
+
+  "noRecentActivity": "Нет недавней активности",
+  "recentPlaybackAppear": "Недавно прослушанная музыка появится здесь",
+
+  "browseByGenre": "Просмотр по жанру",
+  "noGenresFound": "Жанры не найдены",
+  "genresAppearHere": "Информация о жанрах появится здесь, когда будет доступна",
+
+  "browseByYear": "Просмотр по году",
+  "noYearInfo": "Нет информации о годе",
+  "yearInfoAppear": "Информация о годе выпуска появится здесь, когда будет доступна",
+
+  "albumCountSingle": "{count} альбом",
+  "albumCountMultiple": "{count} альбомов"
 }
