@@ -445,7 +445,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildGenresContent(AppState appState) {
+  Widget _buildGenresContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final genres = _getGenres(appState);
     
@@ -454,7 +454,7 @@ class _LibraryPageState extends State<LibraryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Browse by Genre',
+            l10n.browseByGenre,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -473,12 +473,12 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No Genres Found',
+                      l10n.noGenresFound,
                       style: theme.textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Genre information will appear here when available',
+                      l10n.genresAppearHere,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
