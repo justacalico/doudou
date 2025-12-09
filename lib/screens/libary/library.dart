@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
+import '../../l10n/app_localizations.dart';
 import '../artists/artists.dart';
 import '../shared/detail_track_view.dart';
 import '../songs/songs.dart';
@@ -68,7 +69,7 @@ class LibraryContent extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Your Library',
+                                      AppLocalizations.of(context).yourLibrary,
                                       style: TextStyle(
                                         color: CupertinoColors.systemGrey.withOpacity(0.8),
                                         fontSize: 14,
@@ -76,9 +77,9 @@ class LibraryContent extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    const Text(
-                                      'Music Collection',
-                                      style: TextStyle(
+                                    Text(
+                                      AppLocalizations.of(context).musicCollection,
+                                      style: const TextStyle(
                                         color: CupertinoColors.white,
                                         fontSize: 24,
                                         fontWeight: FontWeight.w700,
@@ -114,7 +115,7 @@ class LibraryContent extends StatelessWidget {
                                 Expanded(
                                   child: _buildStatItem(
                                     '${appState.albums.length}',
-                                    'Albums',
+                                    AppLocalizations.of(context).albums,
                                     CupertinoIcons.music_albums,
                                   ),
                                 ),
@@ -126,7 +127,7 @@ class LibraryContent extends StatelessWidget {
                                 Expanded(
                                   child: _buildStatItem(
                                     '${appState.artists.length}',
-                                    'Artists',
+                                    AppLocalizations.of(context).artists,
                                     CupertinoIcons.music_mic,
                                   ),
                                 ),
@@ -138,7 +139,7 @@ class LibraryContent extends StatelessWidget {
                                 Expanded(
                                   child: _buildStatItem(
                                     '${appState.tracks.length}',
-                                    'Songs',
+                                    AppLocalizations.of(context).songs,
                                     CupertinoIcons.music_note,
                                   ),
                                 ),
