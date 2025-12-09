@@ -673,7 +673,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildTrackItem(ThemeData theme, AppState appState, Track track, int index) {
+  Widget _buildTrackItem(ThemeData theme, AppState appState, Track track, int index, AppLocalizations l10n) {
     return InkWell(
       onTap: () async {
         if (widget.mediaType == MediaType.album && kDebugMode) {
