@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
@@ -12,6 +13,7 @@ class AlbumsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         if (appState.isLoading && appState.albums.isEmpty) {
@@ -23,30 +25,30 @@ class AlbumsTab extends StatelessWidget {
         if (appState.albums.isEmpty) {
           return Container(
             color: const Color(0xFF000000), // Pure black for OLED
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.music_albums,
                     size: 80,
                     color: Color(0xFF333333),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
-                    'No albums found',
-                    style: TextStyle(
+                    l10n.noAlbumsFound,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFFFFFFFF),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Your music albums will appear here once they are loaded from your Jellyfin server.',
-                      style: TextStyle(
+                      l10n.albumsWillAppear,
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Color(0xFF8E8E93),
                         height: 1.4,
@@ -100,9 +102,9 @@ class AlbumsTab extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Albums',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.albums,
+                                      style: const TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFFFFFFFF),
@@ -110,7 +112,7 @@ class AlbumsTab extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${appState.albums.length} album${appState.albums.length == 1 ? '' : 's'}',
+                                      l10n.albumsCount(appState.albums.length),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: Color(0xFF8E8E93),
