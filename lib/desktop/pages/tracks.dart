@@ -385,7 +385,7 @@ class _TracksPageState extends State<TracksPage> {
                 ),
               ),
               SizedBox(
-                width: 80,
+                width: 100,
                 child: InkWell(
                   onTap: () => _handleSort('duration'),
                   child: Row(
@@ -488,7 +488,7 @@ class _TracksPageState extends State<TracksPage> {
               ),
             ),
             SizedBox(
-              width: 80,
+              width: 100,
               child: Text(
                 _formatDuration(track.duration),
                 style: theme.textTheme.bodyMedium?.copyWith(
