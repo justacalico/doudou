@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../templates/music_cards.dart';
 import '../../providers/app_state.dart';
@@ -36,15 +37,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return PageTemplate(
-          title: 'Home',
+          title: l10n.navHome,
           actions: [
             IconButton(
               onPressed: () => appState.loadLibraryData(),
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh',
+              tooltip: l10n.refresh,
             ),
           ],
           child: appState.isLoading
@@ -64,18 +66,18 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       // Recently Added Albums section
                       SectionHeader(
-                        title: 'Recently Added Albums',
-                        subtitle: 'Your newest additions',
+                        title: l10n.recentlyAddedAlbums,
+                        subtitle: l10n.yourNewestAdditions,
                         trailing: TextButton(
                           onPressed: () {},
-                          child: const Text('View All'),
+                          child: Text(l10n.viewAll),
                         ),
                       ),
                       SizedBox(
                         height: 200,
                         child: appState.albums.isEmpty
-                            ? const Center(
-                                child: Text('No albums found'),
+                            ? Center(
+                                child: Text(l10n.noAlbumsFound),
                               )
                             : ListView.builder(
                                 scrollDirection: Axis.horizontal,
@@ -89,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                                     padding: const EdgeInsets.only(right: 16),
                                     child: MusicCard(
                                       title: album.name,
-                                      subtitle: album.artistName ?? 'Unknown Artist',
+                                      subtitle: album.artistName ?? l10n.unknownArtist,
                                       imageUrl: _getImageUrl(appState, album.imageUrl),
                                           onTap: () {
                                             Navigator.push(
@@ -109,8 +111,8 @@ class _HomePageState extends State<HomePage> {
 
                       // Quick Access section
                       SectionHeader(
-                        title: 'Quick Access',
-                        subtitle: 'Jump back into your favorites',
+                        title: l10n.quickAccess,
+                        subtitle: l10n.jumpBackIntoFavorites,
                       ),
                       
                       Row(
@@ -118,8 +120,8 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                             child: _buildQuickAccessCard(
                               context,
-                              'Liked Songs',
-                              '${appState.tracks.where((t) => t.isFavorite).length} songs',
+                              l10n.likedSongs,
+                              l10n.countSongs(appState.tracks.where((t) => t.isFavorite).length),
                               Icons.favorite,
                               Colors.purple,
                             ),
@@ -128,8 +130,8 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                             child: _buildQuickAccessCard(
                               context,
-                              'All Albums',
-                              '${appState.albums.length} albums',
+                              l10n.allAlbums,
+                              l10n.countAlbums(appState.albums.length),
                               Icons.album,
                               Colors.green,
                             ),
@@ -138,8 +140,8 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                             child: _buildQuickAccessCard(
                               context,
-                              'All Artists',
-                              '${appState.artists.length} artists',
+                              l10n.allArtists,
+                              l10n.countArtists(appState.artists.length),
                               Icons.person,
                               Colors.blue,
                             ),
@@ -151,18 +153,18 @@ class _HomePageState extends State<HomePage> {
 
                       // Your Artists section
                       SectionHeader(
-                        title: 'Your Artists',
-                        subtitle: 'Browse by artist',
+                        title: l10n.yourArtists,
+                        subtitle: l10n.browseByArtist,
                         trailing: TextButton(
                           onPressed: () {},
-                          child: const Text('View All'),
+                          child: Text(l10n.viewAll),
                         ),
                       ),
                       SizedBox(
                         height: 200,
                         child: appState.artists.isEmpty
-                            ? const Center(
-                                child: Text('No artists found'),
+                            ? Center(
+                                child: Text(l10n.noArtistsFound),
                               )
                             : ListView.builder(
                                 scrollDirection: Axis.horizontal,
@@ -176,7 +178,7 @@ class _HomePageState extends State<HomePage> {
                                     padding: const EdgeInsets.only(right: 16),
                                     child: MusicCard(
                                       title: artist.name,
-                                      subtitle: 'Artist',
+                                      subtitle: l10n.artist,
                                       imageUrl: _getImageUrl(appState, artist.imageUrl),
                                       onTap: () {
                                         Navigator.push(
@@ -197,8 +199,8 @@ class _HomePageState extends State<HomePage> {
                       // Recent Tracks section
                       if (appState.tracks.isNotEmpty) ...[
                         SectionHeader(
-                          title: 'Recent Tracks',
-                          subtitle: 'Your music collection',
+                          title: l10n.recentTracks,
+                          subtitle: l10n.yourMusicCollection,
                         ),
                         
                         Column(
@@ -206,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                               .take(5)
                               .map((track) => MusicListTile(
                                     title: track.name,
-                                    subtitle: '${track.artistName ?? 'Unknown Artist'} • ${track.albumName ?? 'Unknown Album'}',
+                                    subtitle: '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
                                     imageUrl: _getImageUrl(appState, track.imageUrl),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
