@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import 'details/media_details.dart';
@@ -118,18 +119,19 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final filteredPlaylists = _getFilteredAndSortedPlaylists(appState);
         
         return PageTemplate(
-          title: 'Playlists',
+          title: l10n.navPlaylists,
           actions: [
             // Create new playlist button
             ElevatedButton.icon(
-              onPressed: () => _showCreatePlaylistDialog(context),
+              onPressed: () => _showCreatePlaylistDialog(context, l10n),
               icon: const Icon(Icons.add),
-              label: const Text('Create Playlist'),
+              label: Text(l10n.createPlaylist),
             ),
             
             const SizedBox(width: 16),
@@ -140,7 +142,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search playlists...',
+                  hintText: l10n.searchPlaylists,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -172,32 +174,32 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             IconButton(
               onPressed: () => appState.loadLibraryData(),
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh Playlists',
+              tooltip: l10n.tooltipRefresh,
             ),
           ],
           child: Column(
             children: [
               // Filter and sort controls
-              _buildFilterSortBar(appState, filteredPlaylists.length),
+              _buildFilterSortBar(appState, filteredPlaylists.length, l10n),
               
               const SizedBox(height: 16),
               
               // Content area
               Expanded(
                 child: appState.isLoading
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Loading playlists...'),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(l10n.loadingPlaylists),
                           ],
                         ),
                       )
                     : filteredPlaylists.isEmpty
-                        ? _buildEmptyState()
-                        : _buildPlaylistsGrid(appState, filteredPlaylists),
+                        ? _buildEmptyState(l10n)
+                        : _buildPlaylistsGrid(appState, filteredPlaylists, l10n),
               ),
             ],
           ),
@@ -206,7 +208,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
-  Widget _buildFilterSortBar(AppState appState, int filteredCount) {
+  Widget _buildFilterSortBar(AppState appState, int filteredCount, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Card(
@@ -216,7 +218,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           children: [
             // Results count
             Text(
-              '$filteredCount playlists',
+              l10n.countPlaylists(filteredCount),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -225,7 +227,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             const SizedBox(width: 24),
             
             // Filter dropdown
-            Text('Filter:', style: theme.textTheme.bodyMedium),
+            Text('${l10n.filter}', style: theme.textTheme.bodyMedium),
             const SizedBox(width: 8),
             DropdownButton<String>(
               value: _filterBy,
@@ -236,8 +238,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   });
                 }
               },
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Playlists')),
+              items: [
+                DropdownMenuItem(value: 'all', child: Text(l10n.allPlaylists)),
                 // Remove favorites and created filters since they're not supported yet
                 // DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
                 // DropdownMenuItem(value: 'created', child: Text('Created by Me')),
@@ -247,7 +249,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             const SizedBox(width: 24),
             
             // Sort dropdown
-            Text('Sort by:', style: theme.textTheme.bodyMedium),
+            Text('${l10n.sortBy}:', style: theme.textTheme.bodyMedium),
             const SizedBox(width: 8),
             DropdownButton<String>(
               value: _sortBy,
@@ -258,9 +260,9 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   });
                 }
               },
-              items: const [
-                DropdownMenuItem(value: 'name', child: Text('Name')),
-                DropdownMenuItem(value: 'trackCount', child: Text('Track Count')),
+              items: [
+                DropdownMenuItem(value: 'name', child: Text(l10n.name)),
+                DropdownMenuItem(value: 'trackCount', child: Text(l10n.trackCount)),
                 // Remove dateCreated since Playlist model doesn't have this field
                 // DropdownMenuItem(value: 'dateCreated', child: Text('Date Created')),
               ],
@@ -276,7 +278,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                 });
               },
               icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-              tooltip: _isAscending ? 'Ascending' : 'Descending',
+              tooltip: _isAscending ? l10n.ascending : l10n.descending,
             ),
             
             const Spacer(),
@@ -287,7 +289,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                 // Play all playlists
               } : null,
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Play All'),
+              label: Text(l10n.playAll),
             ),
             
             const SizedBox(width: 8),
@@ -297,7 +299,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                 // Shuffle all playlists
               } : null,
               icon: const Icon(Icons.shuffle),
-              label: const Text('Shuffle All'),
+              label: Text(l10n.shuffleAll),
             ),
           ],
         ),
@@ -305,7 +307,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -318,15 +320,15 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty 
-                ? 'No playlists found for "$_searchQuery"'
-                : 'No playlists found',
+                ? l10n.noResultsFor(_searchQuery)
+                : l10n.noPlaylistsFound,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty
-                ? 'Try a different search term'
-                : 'Create your first playlist to get started',
+                ? l10n.tryDifferentSearch
+                : l10n.createFirstPlaylist,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -340,20 +342,20 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   _searchQuery = '';
                 });
               },
-              child: const Text('Clear Search'),
+              child: Text(l10n.clearSearch),
             )
           else
             ElevatedButton.icon(
-              onPressed: () => _showCreatePlaylistDialog(context),
+              onPressed: () => _showCreatePlaylistDialog(context, l10n),
               icon: const Icon(Icons.add),
-              label: const Text('Create Playlist'),
+              label: Text(l10n.createPlaylist),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildPlaylistsGrid(AppState appState, List<dynamic> playlists) {
+  Widget _buildPlaylistsGrid(AppState appState, List<dynamic> playlists, AppLocalizations l10n) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -365,12 +367,12 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       itemCount: playlists.length,
       itemBuilder: (context, index) {
         final playlist = playlists[index];
-        return _buildPlaylistCard(appState, playlist);
+        return _buildPlaylistCard(appState, playlist, l10n);
       },
     );
   }
 
-  Widget _buildPlaylistCard(AppState appState, dynamic playlist) {
+  Widget _buildPlaylistCard(AppState appState, dynamic playlist, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Card(
@@ -451,8 +453,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                         onPressed: () {
                           // Toggle favorite - not implemented yet
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Favorites not yet implemented for playlists'),
+                            SnackBar(
+                              content: Text(l10n.favoritesNotImplemented),
                             ),
                           );
                         },
@@ -472,37 +474,37 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                       ),
                       child: PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
-                        onSelected: (value) => _handlePlaylistAction(value, playlist),
+                        onSelected: (value) => _handlePlaylistAction(value, playlist, l10n),
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'play',
                             child: ListTile(
-                              leading: Icon(Icons.play_arrow),
-                              title: Text('Play'),
+                              leading: const Icon(Icons.play_arrow),
+                              title: Text(l10n.play),
                               dense: true,
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'shuffle',
                             child: ListTile(
-                              leading: Icon(Icons.shuffle),
-                              title: Text('Shuffle'),
+                              leading: const Icon(Icons.shuffle),
+                              title: Text(l10n.shuffle),
                               dense: true,
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'edit',
                             child: ListTile(
-                              leading: Icon(Icons.edit),
-                              title: Text('Edit'),
+                              leading: const Icon(Icons.edit),
+                              title: Text(l10n.editPlaylist),
                               dense: true,
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
                             child: ListTile(
-                              leading: Icon(Icons.delete, color: Colors.red),
-                              title: Text('Delete', style: TextStyle(color: Colors.red)),
+                              leading: const Icon(Icons.delete, color: Colors.red),
+                              title: Text(l10n.deletePlaylist, style: const TextStyle(color: Colors.red)),
                               dense: true,
                             ),
                           ),
@@ -531,7 +533,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${playlist.trackCount} songs',
+                    l10n.countSongs(playlist.trackCount),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -558,7 +560,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     );
   }
 
-  void _handlePlaylistAction(String action, dynamic playlist) {
+  void _handlePlaylistAction(String action, dynamic playlist, AppLocalizations l10n) {
     switch (action) {
       case 'play':
         // Play playlist
@@ -567,39 +569,39 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         // Shuffle playlist
         break;
       case 'edit':
-        _showEditPlaylistDialog(context, playlist);
+        _showEditPlaylistDialog(context, playlist, l10n);
         break;
       case 'delete':
-        _showDeletePlaylistDialog(context, playlist);
+        _showDeletePlaylistDialog(context, playlist, l10n);
         break;
     }
   }
 
-  void _showCreatePlaylistDialog(BuildContext context) {
+  void _showCreatePlaylistDialog(BuildContext context, AppLocalizations l10n) {
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create New Playlist'),
+        title: Text(l10n.createPlaylist),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Playlist Name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.playlistName,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.descriptionOptional,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -608,23 +610,23 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               if (nameController.text.isNotEmpty) {
                 Navigator.of(context).pop();
-                _createPlaylist(nameController.text.trim());
+                _createPlaylist(nameController.text.trim(), l10n);
               }
             },
-            child: const Text('Create'),
+            child: Text(l10n.create),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _createPlaylist(String name) async {
+  Future<void> _createPlaylist(String name, AppLocalizations l10n) async {
     final appState = context.read<AppState>();
     
     try {
@@ -634,7 +636,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Playlist "$name" created successfully'),
+              content: Text(l10n.playlistCreated(name)),
               backgroundColor: Colors.green,
             ),
           );
@@ -643,7 +645,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to create playlist "$name"'),
+              content: Text(l10n.errorCreatingPlaylist(name)),
               backgroundColor: Colors.red,
             ),
           );
@@ -653,7 +655,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating playlist: $e'),
+            content: Text(l10n.errorCreatingPlaylist(name)),
             backgroundColor: Colors.red,
           ),
         );
@@ -661,42 +663,42 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     }
   }
 
-  void _showEditPlaylistDialog(BuildContext context, dynamic playlist) {
+  void _showEditPlaylistDialog(BuildContext context, dynamic playlist, AppLocalizations l10n) {
     final nameController = TextEditingController(text: playlist.name);
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Playlist'),
+        title: Text(l10n.editPlaylist),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Playlist Name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.playlistName,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               if (nameController.text.isNotEmpty && nameController.text.trim() != playlist.name) {
                 Navigator.of(context).pop();
-                _updatePlaylist(playlist.id, nameController.text.trim());
+                _updatePlaylist(playlist.id, nameController.text.trim(), l10n);
               } else {
                 Navigator.of(context).pop();
               }
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _updatePlaylist(String playlistId, String newName) async {
+  Future<void> _updatePlaylist(String playlistId, String newName, AppLocalizations l10n) async {
     final appState = context.read<AppState>();
     
     try {
@@ -706,7 +708,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Playlist renamed to "$newName"'),
+              content: Text(l10n.playlistRenamed(newName)),
               backgroundColor: Colors.green,
             ),
           );
@@ -714,8 +716,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           appState.loadLibraryData();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to rename playlist'),
+            SnackBar(
+              content: Text(l10n.failedToRenamePlaylist(newName)),
               backgroundColor: Colors.red,
             ),
           );
@@ -725,7 +727,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error renaming playlist: $e'),
+            content: Text(l10n.errorRenamingPlaylist(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -733,34 +735,34 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     }
   }
 
-  void _showDeletePlaylistDialog(BuildContext context, dynamic playlist) {
+  void _showDeletePlaylistDialog(BuildContext context, dynamic playlist, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Playlist'),
-        content: Text('Are you sure you want to delete "${playlist.name}"? This action cannot be undone.'),
+        title: Text(l10n.deletePlaylist),
+        content: Text(l10n.deletePlaylistConfirm(playlist.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _deletePlaylist(playlist.id, playlist.name);
+              _deletePlaylist(playlist.id, playlist.name, l10n);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _deletePlaylist(String playlistId, String playlistName) async {
+  Future<void> _deletePlaylist(String playlistId, String playlistName, AppLocalizations l10n) async {
     final appState = context.read<AppState>();
     
     try {
@@ -770,7 +772,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Playlist "$playlistName" deleted'),
+              content: Text(l10n.playlistDeleted(playlistName)),
               backgroundColor: Colors.orange,
             ),
           );
@@ -778,8 +780,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
           appState.loadLibraryData();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to delete playlist'),
+            SnackBar(
+              content: Text(l10n.failedToDeletePlaylist),
               backgroundColor: Colors.red,
             ),
           );
@@ -789,7 +791,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error deleting playlist: $e'),
+            content: Text(l10n.errorDeletingPlaylist(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
