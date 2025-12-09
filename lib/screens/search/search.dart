@@ -244,9 +244,9 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Search',
-                                  style: TextStyle(
+                                Text(
+                                  AppLocalizations.of(context).search,
+                                  style: const TextStyle(
                                     fontSize: 32,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFFFFFFFF),
@@ -378,7 +378,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No results for "$_searchQuery"',
+              AppLocalizations.of(context).noResultsFor(_searchQuery),
               style: const TextStyle(
                 fontSize: 18,
                 color: CupertinoColors.systemGrey2,
@@ -427,9 +427,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
             const SizedBox(height: 24),
 
-            const Text(
-              'Discover Your Music',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).discoverYourMusic,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
                 color: CupertinoColors.white,
@@ -439,9 +439,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
             const SizedBox(height: 8),
 
-            const Text(
-              'Search through your entire music library\nto find exactly what you\'re looking for',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).searchDescription,
+              style: const TextStyle(
                 fontSize: 16,
                 color: CupertinoColors.systemGrey,
                 fontWeight: FontWeight.w500,
