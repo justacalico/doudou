@@ -601,7 +601,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildTrackListHeader(ThemeData theme) {
+  Widget _buildTrackListHeader(ThemeData theme, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -624,7 +624,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           Expanded(
             flex: 3,
             child: Text(
-              'Title',
+              l10n.title,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
@@ -636,7 +636,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             Expanded(
               flex: 2,
               child: Text(
-                'Artist',
+                l10n.artist,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -647,7 +647,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             Expanded(
               flex: 2,
               child: Text(
-                'Album',
+                l10n.album,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -659,7 +659,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           SizedBox(
             width: 60,
             child: Text(
-              'Duration',
+              l10n.duration,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
