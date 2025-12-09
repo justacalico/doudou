@@ -549,7 +549,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     );
   }
 
-  Widget _buildSongsTab(ThemeData theme, AppState appState) {
+  Widget _buildSongsTab(ThemeData theme, AppState appState, AppLocalizations l10n) {
     return Column(
       children: [
         // Header
@@ -559,7 +559,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
             child: Row(
               children: [
                 Text(
-                  'Popular Songs',
+                  l10n.popularSongs,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -569,7 +569,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   onPressed: () {
                     // Show all songs
                   },
-                  child: const Text('View All'),
+                  child: Text(l10n.viewAll),
                 ),
               ],
             ),
@@ -582,8 +582,8 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
         Expanded(
           child: TrackListTemplate(
             tracks: _popularTracks,
-            emptyStateTitle: 'No songs found',
-            emptyStateMessage: 'This artist doesn\'t have any songs yet',
+            emptyStateTitle: l10n.noSongsFound,
+            emptyStateMessage: l10n.artistHasNoSongsYet,
             showTrackNumber: true,
             showArtist: false,
             showAlbum: true,
