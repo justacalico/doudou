@@ -1882,6 +1882,16 @@
     "description": "No music playing message"
   },
 
+  "noTrackPlaying": "No track playing",
+  "@noTrackPlaying": {
+    "description": "No track playing message for player bar"
+  },
+
+  "selectSongToPlay": "Select a song to play",
+  "@selectSongToPlay": {
+    "description": "Prompt to select a song to play"
+  },
+
   "noDownloadedContent": "No Downloaded Content",
   "@noDownloadedContent": {
     "description": "No downloaded content message"
