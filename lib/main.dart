@@ -112,7 +112,7 @@ class DoudouApp extends StatelessWidget {
                   brightness: Brightness.dark,
                 ),
               ),
-              themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              themeMode: appState.themeMode,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
