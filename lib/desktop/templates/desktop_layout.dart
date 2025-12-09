@@ -474,7 +474,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                             children: [
                                               Text(
                                                 currentTrack?.title ??
-                                                    'No track playing',
+                                                    l10n.noTrackPlaying,
                                                 style: theme.textTheme.bodyLarge
                                                     ?.copyWith(
                                                       fontWeight:
@@ -492,7 +492,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   Flexible(
                                                     child: Text(
                                                       currentTrack?.artist ??
-                                                          'Select a song to play',
+                                                          l10n.selectSongToPlay,
                                                       style: theme
                                                           .textTheme
                                                           .bodyMedium
