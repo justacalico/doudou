@@ -2395,6 +2395,31 @@
     "description": "No favorite tracks message"
   },
 
+  "noFavoriteSongs": "No favorite songs",
+  "@noFavoriteSongs": {
+    "description": "No favorite songs message"
+  },
+
+  "noDownloadedFavorites": "No downloaded favorites",
+  "@noDownloadedFavorites": {
+    "description": "No downloaded favorites message"
+  },
+
+  "downloadedFavorites": "Downloaded Favorites",
+  "@downloadedFavorites": {
+    "description": "Downloaded favorites section header"
+  },
+
+  "downloadFavoritesSuggestion": "Download your favorite songs to see them here when offline.",
+  "@downloadFavoritesSuggestion": {
+    "description": "Suggestion to download favorite songs"
+  },
+
+  "favoriteSongsDescription": "Songs you love will appear here. Tap the heart icon to add songs to your favorites.",
+  "@favoriteSongsDescription": {
+    "description": "Favorites empty state description"
+  },
+
   "libraryAppearsEmpty": "Your music library appears to be empty",
   "@libraryAppearsEmpty": {
     "description": "Library appears empty message"
