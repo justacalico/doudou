@@ -594,7 +594,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildEnhancedListenNowCard(BuildContext context, AppState appState) {
+  Widget _buildEnhancedListenNowCard(BuildContext context, AppState appState, AppLocalizations l10n) {
     final currentTrack = appState.audioHandler?.currentTrack;
     if (currentTrack == null) return Container();
 
@@ -667,18 +667,18 @@ class _HomeContentState extends State<HomeContent> {
                     color: Colors.black.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         CupertinoIcons.waveform,
                         color: Color(0xFFE91E63),
                         size: 12,
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
-                        'Now playing',
-                        style: TextStyle(
+                        l10n.nowPlaying,
+                        style: const TextStyle(
                           color: CupertinoColors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -699,7 +699,7 @@ class _HomeContentState extends State<HomeContent> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    currentTrack.artistName ?? 'Unknown Artist',
+                    currentTrack.artistName ?? l10n.unknownArtist,
                     style: TextStyle(
                       color: CupertinoColors.systemGrey.withOpacity(0.8),
                       fontSize: 14,
