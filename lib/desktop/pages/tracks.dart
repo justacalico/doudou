@@ -602,8 +602,9 @@ class _TracksPageState extends State<TracksPage> {
   }
 
   void _navigateToAlbum(AppState appState, Track track) {
+    final l10n = AppLocalizations.of(context);
     if (track.albumId == null) {
-      NotificationService.showError(context, 'Album information not available');
+      NotificationService.showError(context, l10n.albumInfoNotAvailable);
       return;
     }
 
@@ -614,7 +615,7 @@ class _TracksPageState extends State<TracksPage> {
     );
 
     if (album == null) {
-      NotificationService.showError(context, 'Album not found');
+      NotificationService.showError(context, l10n.albumNotFound);
       return;
     }
 
@@ -627,8 +628,9 @@ class _TracksPageState extends State<TracksPage> {
   }
 
   void _navigateToArtist(AppState appState, Track track) {
+    final l10n = AppLocalizations.of(context);
     if (track.artistName == null) {
-      NotificationService.showError(context, 'Artist information not available');
+      NotificationService.showError(context, l10n.artistInfoNotAvailable);
       return;
     }
 
@@ -639,7 +641,7 @@ class _TracksPageState extends State<TracksPage> {
     );
 
     if (artist == null) {
-      NotificationService.showError(context, 'Artist not found');
+      NotificationService.showError(context, l10n.artistNotFound);
       return;
     }
 
