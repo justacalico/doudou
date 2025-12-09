@@ -449,7 +449,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistListTile(AppState appState, dynamic artist) {
+  Widget _buildArtistListTile(AppState appState, dynamic artist, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final albumCount = _getArtistAlbumCount(appState, artist.name);
     final trackCount = _getArtistTrackCount(appState, artist.name);
@@ -485,7 +485,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
           ),
         ),
         subtitle: Text(
-          '$albumCount albums • $trackCount songs',
+          l10n.artistAlbumsAndSongs(albumCount, trackCount),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -498,39 +498,39 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 // Play artist
               },
               icon: const Icon(Icons.play_arrow),
-              tooltip: 'Play All',
+              tooltip: l10n.playAll,
             ),
             IconButton(
               onPressed: () {
                 // Shuffle artist
               },
               icon: const Icon(Icons.shuffle),
-              tooltip: 'Shuffle',
+              tooltip: l10n.shuffle,
             ),
             PopupMenuButton<String>(
               onSelected: (value) => _handleArtistAction(value, artist),
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'play',
                   child: ListTile(
-                    leading: Icon(Icons.play_arrow),
-                    title: Text('Play All'),
+                    leading: const Icon(Icons.play_arrow),
+                    title: Text(l10n.playAll),
                     dense: true,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'shuffle',
                   child: ListTile(
-                    leading: Icon(Icons.shuffle),
-                    title: Text('Shuffle'),
+                    leading: const Icon(Icons.shuffle),
+                    title: Text(l10n.shuffle),
                     dense: true,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'albums',
                   child: ListTile(
-                    leading: Icon(Icons.album),
-                    title: Text('View Albums'),
+                    leading: const Icon(Icons.album),
+                    title: Text(l10n.viewAlbums),
                     dense: true,
                   ),
                 ),
