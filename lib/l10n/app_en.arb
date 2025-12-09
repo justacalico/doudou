@@ -2240,5 +2240,157 @@
   "systemLanguage": "System Language",
   "@systemLanguage": {
     "description": "System language option"
+  },
+
+  "libraryOverview": "Overview",
+  "@libraryOverview": {
+    "description": "Library overview tab"
+  },
+
+  "libraryRecent": "Recent",
+  "@libraryRecent": {
+    "description": "Library recent tab"
+  },
+
+  "libraryGenres": "Genres",
+  "@libraryGenres": {
+    "description": "Library genres tab"
+  },
+
+  "libraryYears": "Years",
+  "@libraryYears": {
+    "description": "Library years tab"
+  },
+
+  "totalSongs": "Total Songs",
+  "@totalSongs": {
+    "description": "Total songs label"
+  },
+
+  "inYourLibrary": "In your library",
+  "@inYourLibrary": {
+    "description": "In your library subtitle"
+  },
+
+  "albums": "Albums",
+  "@albums": {
+    "description": "Albums label"
+  },
+
+  "albumCollections": "Album collections",
+  "@albumCollections": {
+    "description": "Album collections subtitle"
+  },
+
+  "artists": "Artists",
+  "@artists": {
+    "description": "Artists label"
+  },
+
+  "uniqueArtists": "Unique artists",
+  "@uniqueArtists": {
+    "description": "Unique artists subtitle"
+  },
+
+  "playlists": "Playlists",
+  "@playlists": {
+    "description": "Playlists label"
+  },
+
+  "yourPlaylists": "Your playlists",
+  "@yourPlaylists": {
+    "description": "Your playlists subtitle"
+  },
+
+  "recentlyAddedAlbums": "Recently Added Albums",
+  "@recentlyAddedAlbums": {
+    "description": "Recently added albums section header"
+  },
+
+  "recentlyPlayed": "Recently Played",
+  "@recentlyPlayed": {
+    "description": "Recently played section header"
+  },
+
+  "downloaded": "Downloaded",
+  "@downloaded": {
+    "description": "Downloaded section header"
+  },
+
+  "yourLikedTracks": "Your liked tracks",
+  "@yourLikedTracks": {
+    "description": "Your liked tracks subtitle"
+  },
+
+  "listenAgain": "Listen again",
+  "@listenAgain": {
+    "description": "Listen again subtitle"
+  },
+
+  "availableOffline": "Available offline",
+  "@availableOffline": {
+    "description": "Available offline subtitle"
+  },
+
+  "noRecentActivity": "No Recent Activity",
+  "@noRecentActivity": {
+    "description": "No recent activity message"
+  },
+
+  "recentPlaybackAppear": "Your recently played music will appear here",
+  "@recentPlaybackAppear": {
+    "description": "Recent playback appear message"
+  },
+
+  "browseByGenre": "Browse by Genre",
+  "@browseByGenre": {
+    "description": "Browse by genre section header"
+  },
+
+  "noGenresFound": "No Genres Found",
+  "@noGenresFound": {
+    "description": "No genres found message"
+  },
+
+  "genresAppearHere": "Genre information will appear here when available",
+  "@genresAppearHere": {
+    "description": "Genres appear here message"
+  },
+
+  "browseByYear": "Browse by Year",
+  "@browseByYear": {
+    "description": "Browse by year section header"
+  },
+
+  "noYearInfo": "No Year Information",
+  "@noYearInfo": {
+    "description": "No year information message"
+  },
+
+  "yearInfoAppear": "Release year information will appear here when available",
+  "@yearInfoAppear": {
+    "description": "Year info appear message"
+  },
+
+  "albumCount": "{count} album",
+  "@albumCount": {
+    "description": "Single album count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+
+  "albumCountPlural": "{count} albums",
+  "@albumCountPlural": {
+    "description": "Plural album count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
   }
 }
