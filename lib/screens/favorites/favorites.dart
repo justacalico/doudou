@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/tracks/track_list_item.dart';
@@ -12,6 +13,7 @@ class FavoritesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         // Filter tracks to only show favorites
@@ -38,7 +40,7 @@ class FavoritesView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    showDownloadedOnly ? 'No downloaded favorites' : 'No favorite songs',
+                    showDownloadedOnly ? l10n.noDownloadedFavorites : l10n.noFavoriteSongs,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
@@ -50,8 +52,8 @@ class FavoritesView extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
                       showDownloadedOnly 
-                        ? 'Download your favorite songs to see them here when offline.'
-                        : 'Songs you love will appear here. Tap the heart icon to add songs to your favorites.',
+                        ? l10n.downloadFavoritesSuggestion
+                        : l10n.favoriteSongsDescription,
                       style: const TextStyle(
                         fontSize: 16,
                         color: Color(0xFF8E8E93),
@@ -107,7 +109,7 @@ class FavoritesView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      showDownloadedOnly ? 'Downloaded Favorites' : 'Favorites',
+                                      showDownloadedOnly ? l10n.downloadedFavorites : l10n.navFavorites,
                                       style: const TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
@@ -116,7 +118,7 @@ class FavoritesView extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${favoriteTracks.length} song${favoriteTracks.length == 1 ? '' : 's'}',
+                                      l10n.songsCount(favoriteTracks.length),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: Color(0xFF8E8E93),
@@ -151,18 +153,18 @@ class FavoritesView extends StatelessWidget {
                                   child: CupertinoButton(
                                     onPressed: () => _playAllFavorites(context),
                                     padding: const EdgeInsets.symmetric(vertical: 16),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           CupertinoIcons.play_fill,
                                           color: Color(0xFFFFFFFF),
                                           size: 18,
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                         Text(
-                                          'Play All',
-                                          style: TextStyle(
+                                          l10n.playAll,
+                                          style: const TextStyle(
                                             color: Color(0xFFFFFFFF),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
@@ -187,18 +189,18 @@ class FavoritesView extends StatelessWidget {
                                   child: CupertinoButton(
                                     onPressed: () => _shuffleFavorites(context),
                                     padding: const EdgeInsets.symmetric(vertical: 16),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           CupertinoIcons.shuffle,
                                           color: Color(0xFFFFFFFF),
                                           size: 18,
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                         Text(
-                                          'Shuffle',
-                                          style: TextStyle(
+                                          l10n.shuffle,
+                                          style: const TextStyle(
                                             color: Color(0xFFFFFFFF),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
