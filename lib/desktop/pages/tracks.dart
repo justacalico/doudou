@@ -641,7 +641,7 @@ class _TracksPageState extends State<TracksPage> {
     );
 
     if (artist == null) {
-      NotificationService.showError(context, l10n.artistNotFound);
+      NotificationService.showError(context, l10n.artistNotFound(track.artistName ?? l10n.unknownArtist));
       return;
     }
 
