@@ -2392,5 +2392,106 @@
         "example": "5"
       }
     }
+  },
+
+  "playFavoritesCount": "Play favorites ({count})",
+  "@playFavoritesCount": {
+    "description": "Play favorites with count tooltip",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+
+  "noFavoriteTracks": "No favorite tracks",
+  "@noFavoriteTracks": {
+    "description": "No favorite tracks message"
+  },
+
+  "errorLoadingTracks": "Error loading tracks",
+  "@errorLoadingTracks": {
+    "description": "Error loading tracks message"
+  },
+
+  "noTracksFound": "No tracks found",
+  "@noTracksFound": {
+    "description": "No tracks found message"
+  },
+
+  "libraryAppearsEmpty": "Your music library appears to be empty",
+  "@libraryAppearsEmpty": {
+    "description": "Library appears empty message"
+  },
+
+  "title": "Title",
+  "@title": {
+    "description": "Title column header"
+  },
+
+  "artist": "Artist",
+  "@artist": {
+    "description": "Artist column header"
+  },
+
+  "album": "Album",
+  "@album": {
+    "description": "Album column header"
+  },
+
+  "duration": "Duration",
+  "@duration": {
+    "description": "Duration column header"
+  },
+
+  "sortBy": "Sort by",
+  "@sortBy": {
+    "description": "Sort by tooltip"
+  },
+
+  "playTrack": "Play track",
+  "@playTrack": {
+    "description": "Play track tooltip"
+  },
+
+  "addToQueue": "Add to queue",
+  "@addToQueue": {
+    "description": "Add to queue menu item"
+  },
+
+  "addToPlaylist": "Add to playlist",
+  "@addToPlaylist": {
+    "description": "Add to playlist menu item"
+  },
+
+  "showAlbum": "Show album",
+  "@showAlbum": {
+    "description": "Show album menu item"
+  },
+
+  "showArtist": "Show artist",
+  "@showArtist": {
+    "description": "Show artist menu item"
+  },
+
+  "albumInfoNotAvailable": "Album information not available",
+  "@albumInfoNotAvailable": {
+    "description": "Album info not available error"
+  },
+
+  "albumNotFound": "Album not found",
+  "@albumNotFound": {
+    "description": "Album not found error"
+  },
+
+  "artistInfoNotAvailable": "Artist information not available",
+  "@artistInfoNotAvailable": {
+    "description": "Artist info not available error"
+  },
+
+  "artistNotFound": "Artist not found",
+  "@artistNotFound": {
+    "description": "Artist not found error"
   }
 }
