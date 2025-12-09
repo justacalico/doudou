@@ -161,28 +161,28 @@ class _ArtistsPageState extends State<ArtistsPage> {
           child: Column(
             children: [
               // Filter and sort controls
-              _buildFilterSortBar(appState, filteredArtists.length),
+              _buildFilterSortBar(appState, filteredArtists.length, l10n),
               
               const SizedBox(height: 16),
               
               // Content area
               Expanded(
                 child: appState.isLoading
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Loading artists...'),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(l10n.loadingArtists),
                           ],
                         ),
                       )
                     : filteredArtists.isEmpty
-                        ? _buildEmptyState()
+                        ? _buildEmptyState(l10n)
                         : _viewMode == 'grid'
-                            ? _buildArtistsGrid(appState, filteredArtists)
-                            : _buildArtistsList(appState, filteredArtists),
+                            ? _buildArtistsGrid(appState, filteredArtists, l10n)
+                            : _buildArtistsList(appState, filteredArtists, l10n),
               ),
             ],
           ),
