@@ -951,15 +951,15 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  void _downloadAlbum() async {
+  void _downloadAlbum(AppLocalizations l10n) async {
     if (widget.mediaType != MediaType.album) return;
     
     final appState = context.read<AppState>();
     
     if (_tracks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No tracks to download'),
+        SnackBar(
+          content: Text(l10n.noTracksToDownload),
           backgroundColor: Colors.orange,
         ),
       );
@@ -970,16 +970,16 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Download Album'),
-        content: Text('Open all ${_tracks.length} tracks from "${widget.album!.name}" in browser for download?'),
+        title: Text(l10n.downloadAlbum),
+        content: Text(l10n.downloadAlbumConfirmation(_tracks.length, widget.album!.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Download All'),
+            child: Text(l10n.downloadAllTracks),
           ),
         ],
       ),
@@ -1019,14 +1019,14 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       if (failCount == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Opened all $successCount tracks from "${widget.album!.name}" in browser'),
+            content: Text(l10n.openedTracksInBrowser(successCount, widget.album!.name)),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Opened $successCount tracks, $failCount failed from "${widget.album!.name}"'),
+            content: Text(l10n.openedTracksPartialSuccess(successCount, failCount, widget.album!.name)),
             backgroundColor: Colors.orange,
           ),
         );
