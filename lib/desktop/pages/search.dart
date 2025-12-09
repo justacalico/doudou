@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import 'details/media_details.dart';
@@ -104,13 +105,14 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final searchResults = _getSearchResults(appState);
         final totalResults = _getTotalResults(searchResults);
         
         return PageTemplate(
-          title: 'Search',
+          title: l10n.navSearch,
           actions: [
             // Clear search button
             if (_searchQuery.isNotEmpty)
@@ -124,28 +126,28 @@ class _SearchPageState extends State<SearchPage> {
                   _searchFocusNode.requestFocus();
                 },
                 icon: const Icon(Icons.clear),
-                label: const Text('Clear'),
+                label: Text(l10n.clear),
               ),
           ],
           child: Column(
             children: [
               // Search bar
-              _buildSearchBar(),
+              _buildSearchBar(l10n),
               
               const SizedBox(height: 16),
               
               // Filter chips
-              _buildFilterChips(searchResults),
+              _buildFilterChips(searchResults, l10n),
               
               const SizedBox(height: 16),
               
               // Results or initial state
               Expanded(
                 child: _searchQuery.isEmpty
-                    ? _buildInitialState(appState)
+                    ? _buildInitialState(appState, l10n)
                     : totalResults == 0
-                        ? _buildNoResults()
-                        : _buildSearchResults(appState, searchResults),
+                        ? _buildNoResults(l10n)
+                        : _buildSearchResults(appState, searchResults, l10n),
               ),
             ],
           ),
@@ -154,7 +156,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Card(
@@ -164,7 +166,7 @@ class _SearchPageState extends State<SearchPage> {
           controller: _searchController,
           focusNode: _searchFocusNode,
           decoration: InputDecoration(
-            hintText: 'Search for songs, albums, artists, or playlists...',
+            hintText: l10n.searchPlaceholder,
             prefixIcon: const Icon(Icons.search, size: 28),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
@@ -199,14 +201,14 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildFilterChips(Map<String, List<dynamic>> results) {
+  Widget _buildFilterChips(Map<String, List<dynamic>> results, AppLocalizations l10n) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
           FilterChip(
-            label: Text('All (${_getTotalResults(results)})'),
+            label: Text('${l10n.all} (${_getTotalResults(results)})'),
             selected: _selectedFilter == 'all',
             onSelected: (selected) {
               setState(() {
@@ -216,7 +218,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(width: 8),
           FilterChip(
-            label: Text('Songs (${results['tracks']!.length})'),
+            label: Text('${l10n.songs} (${results['tracks']!.length})'),
             selected: _selectedFilter == 'tracks',
             onSelected: (selected) {
               setState(() {
@@ -226,7 +228,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(width: 8),
           FilterChip(
-            label: Text('Albums (${results['albums']!.length})'),
+            label: Text('${l10n.albums} (${results['albums']!.length})'),
             selected: _selectedFilter == 'albums',
             onSelected: (selected) {
               setState(() {
@@ -236,7 +238,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(width: 8),
           FilterChip(
-            label: Text('Artists (${results['artists']!.length})'),
+            label: Text('${l10n.artists} (${results['artists']!.length})'),
             selected: _selectedFilter == 'artists',
             onSelected: (selected) {
               setState(() {
@@ -246,7 +248,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(width: 8),
           FilterChip(
-            label: Text('Playlists (${results['playlists']!.length})'),
+            label: Text('${l10n.playlists} (${results['playlists']!.length})'),
             selected: _selectedFilter == 'playlists',
             onSelected: (selected) {
               setState(() {
