@@ -514,23 +514,23 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Window',
+                    l10n.window,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Close to system tray'),
-                    subtitle: const Text('Keep running when window is closed'),
+                    title: Text(l10n.closeToTray),
+                    subtitle: Text(l10n.keepRunningWhenClosed),
                     value: true,
                     onChanged: (value) {
                       // Handle system tray setting
                     },
                   ),
                   SwitchListTile(
-                    title: const Text('Show in taskbar'),
-                    subtitle: const Text('Display app icon in taskbar'),
+                    title: Text(l10n.showInTaskbar),
+                    subtitle: Text(l10n.displayInTaskbar),
                     value: true,
                     onChanged: (value) {
                       // Handle taskbar setting
@@ -547,13 +547,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildServerSettings(AppState appState) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Server Settings',
+            l10n.serverSettings,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -570,7 +571,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Row(
                     children: [
                       Text(
-                        'Connection',
+                        l10n.connection,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -588,7 +589,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          appState.isLoggedIn ? 'Connected' : 'Disconnected',
+                          appState.isLoggedIn ? l10n.authenticated : 'Disconnected',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
