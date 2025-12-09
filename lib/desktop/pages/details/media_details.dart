@@ -388,7 +388,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildMediaHeader(ThemeData theme, AppState appState) {
+  Widget _buildMediaHeader(ThemeData theme, AppState appState, AppLocalizations l10n) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -461,7 +461,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.mediaType == MediaType.playlist ? 'Playlist' : 'Album',
+                    widget.mediaType == MediaType.playlist ? l10n.playlist : l10n.album,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -477,9 +477,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                   if (widget.mediaType == MediaType.album) ...[
                     const SizedBox(height: 8),
                     InkWell(
-                      onTap: _navigateToArtist,
+                      onTap: () => _navigateToArtist(l10n),
                       child: Text(
-                        widget.album!.artistName ?? 'Unknown Artist',
+                        widget.album!.artistName ?? l10n.unknownArtist,
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -501,7 +501,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                         const SizedBox(width: 16),
                       ],
                       Text(
-                        '${_tracks.length} songs',
+                        l10n.countSongs(_tracks.length),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
@@ -521,7 +521,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     const SizedBox(height: 8),
                     if (widget.album!.dateCreated != null)
                       Text(
-                        'Added ${_formatDate(widget.album!.dateCreated!)}',
+                        '${l10n.added} ${_formatDate(widget.album!.dateCreated!, l10n)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
