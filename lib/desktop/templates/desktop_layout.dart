@@ -2763,7 +2763,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: Text(
-                  _formatDuration(Duration(seconds: track.duration)),
+                  _formatDuration(Duration(seconds: track.duration ?? 0)),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.5),
                     fontSize: 12,
