@@ -78,3 +78,4 @@ backup_audio_20251026_105721
 /dist
 lib/l10n/app_localizations.dart
 lib/l10n/app_localizations_en.dart
+lib/l10n/app_localizations_ru.dart
