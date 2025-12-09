@@ -86,12 +86,14 @@ class _ArtistsPageState extends State<ArtistsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final filteredArtists = _getFilteredAndSortedArtists(appState);
         
         return PageTemplate(
-          title: 'Artists',
+          title: l10n.artists,
           actions: [
             // Search field
             SizedBox(
@@ -99,7 +101,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search artists...',
+                  hintText: l10n.searchArtists,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -135,14 +137,14 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 });
               },
               borderRadius: BorderRadius.circular(8),
-              children: const [
+              children: [
                 Tooltip(
-                  message: 'Grid View',
-                  child: Icon(Icons.grid_view),
+                  message: l10n.gridView,
+                  child: const Icon(Icons.grid_view),
                 ),
                 Tooltip(
-                  message: 'List View',
-                  child: Icon(Icons.list),
+                  message: l10n.listView,
+                  child: const Icon(Icons.list),
                 ),
               ],
             ),
@@ -153,7 +155,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
             IconButton(
               onPressed: () => appState.loadLibraryData(),
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh Artists',
+              tooltip: l10n.refreshArtists,
             ),
           ],
           child: Column(
