@@ -161,9 +161,9 @@ class LibraryContent extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Quick Access',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context).quickAccess,
+                          style: const TextStyle(
                             color: CupertinoColors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
@@ -178,8 +178,8 @@ class LibraryContent extends StatelessWidget {
                               child: _buildQuickAccessCard(
                                 context,
                                 appState,
-                                'Recently Added',
-                                'Latest albums',
+                                AppLocalizations.of(context).recentlyAdded,
+                                AppLocalizations.of(context).latestAlbums,
                                 CupertinoIcons.clock,
                                 const Color(0xFFE91E63),
                                 () => _navigateToSection(context, 'Albums'),
@@ -190,8 +190,8 @@ class LibraryContent extends StatelessWidget {
                               child: _buildQuickAccessCard(
                                 context,
                                 appState,
-                                'Favorites',
-                                'Liked songs',
+                                AppLocalizations.of(context).favorites,
+                                AppLocalizations.of(context).likedSongs,
                                 CupertinoIcons.heart_fill,
                                 const Color(0xFFFF6B35),
                                 () => _navigateToSection(context, 'Favorites'),
@@ -208,8 +208,8 @@ class LibraryContent extends StatelessWidget {
                               child: _buildQuickAccessCard(
                                 context,
                                 appState,
-                                'Top Artists',
-                                'Most played',
+                                AppLocalizations.of(context).topArtists,
+                                AppLocalizations.of(context).mostPlayed,
                                 CupertinoIcons.music_mic,
                                 const Color(0xFF007AFF),
                                 () => _navigateToSection(context, 'Artists'),
@@ -220,8 +220,8 @@ class LibraryContent extends StatelessWidget {
                               child: _buildQuickAccessCard(
                                 context,
                                 appState,
-                                'Playlists',
-                                'Custom mixes',
+                                AppLocalizations.of(context).playlists,
+                                AppLocalizations.of(context).customMixes,
                                 CupertinoIcons.music_note_list,
                                 const Color(0xFF32D74B),
                                 () => _navigateToSection(context, 'Playlists'),
