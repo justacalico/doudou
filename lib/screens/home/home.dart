@@ -431,9 +431,9 @@ class _HomeContentState extends State<HomeContent> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionHeader('Listen now', CupertinoIcons.speaker_3),
+                        _buildSectionHeader(l10n.listenNow, CupertinoIcons.speaker_3),
                         const SizedBox(height: 20),
-                        _buildEnhancedListenNowCard(context, appState),
+                        _buildEnhancedListenNowCard(context, appState, l10n),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -445,7 +445,7 @@ class _HomeContentState extends State<HomeContent> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: _buildSectionHeader('Continue listening', CupertinoIcons.clock),
+                    child: _buildSectionHeader(l10n.continueListening, CupertinoIcons.clock),
                   ),
                 ),
                 
@@ -474,7 +474,7 @@ class _HomeContentState extends State<HomeContent> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: _buildSectionHeader('Recently added', CupertinoIcons.plus_circle),
+                    child: _buildSectionHeader(l10n.recentlyAdded, CupertinoIcons.plus_circle),
                   ),
                 ),
                 
@@ -503,7 +503,7 @@ class _HomeContentState extends State<HomeContent> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: _buildSectionHeader('Made for you', CupertinoIcons.sparkles),
+                    child: _buildSectionHeader(l10n.madeForYou, CupertinoIcons.sparkles),
                   ),
                 ),
                 
@@ -532,7 +532,7 @@ class _HomeContentState extends State<HomeContent> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: _buildSectionHeader('Your favorites', CupertinoIcons.heart_fill),
+                    child: _buildSectionHeader(l10n.yourFavorites, CupertinoIcons.heart_fill),
                   ),
                 ),
                 
