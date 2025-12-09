@@ -49,12 +49,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final cacheStats = await appState.getCacheStats();
       final dataCache = cacheStats['data_cache'] as Map<String, int>? ?? {};
       final imageCacheSize = cacheStats['image_cache_size'] as int? ?? 0;
-      
+
       int totalDataEntries = 0;
       for (final count in dataCache.values) {
         totalDataEntries += count;
       }
-      
+
       String sizeText = '';
       if (imageCacheSize > 1024 * 1024) {
         sizeText = '${(imageCacheSize / (1024 * 1024)).toStringAsFixed(1)} MB';
@@ -63,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else {
         sizeText = '$imageCacheSize bytes';
       }
-      
+
       setState(() {
         _cacheSize = '$totalDataEntries items, $sizeText';
       });
@@ -102,24 +102,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 // Account Information Section
-                const SliverToBoxAdapter(
-                  child: AccountInformationSection(),
-                ),
+                const SliverToBoxAdapter(child: AccountInformationSection()),
 
                 // Audio Settings Section
-                const SliverToBoxAdapter(
-                  child: AudioSettingsSection(),
-                ),
+                const SliverToBoxAdapter(child: AudioSettingsSection()),
 
                 // Language Settings Section
-                const SliverToBoxAdapter(
-                  child: LanguageSettingsSection(),
-                ),
+                const SliverToBoxAdapter(child: LanguageSettingsSection()),
 
                 // Player Interface Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1C1C1E),
                       borderRadius: BorderRadius.circular(16),
@@ -130,21 +127,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader(AppLocalizations.of(context).playerInterface),
+                        _buildSectionHeader(
+                          AppLocalizations.of(context).playerInterface,
+                        ),
                         _buildSwitchTile(
                           icon: CupertinoIcons.rectangle_3_offgrid,
                           title: AppLocalizations.of(context).dynamicIslePlayer,
-                          subtitle: AppLocalizations.of(context).useModernFloatingPlayer,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).useModernFloatingPlayer,
                           value: appState.useDynamicIsle,
-                          onChanged: (value) => appState.toggleDynamicIsle(value),
+                          onChanged: (value) =>
+                              appState.toggleDynamicIsle(value),
                         ),
                         // VR Mode button (mobile only)
-                        if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || 
-                                       defaultTargetPlatform == TargetPlatform.iOS))
+                        if (!kIsWeb &&
+                            (defaultTargetPlatform == TargetPlatform.android ||
+                                defaultTargetPlatform == TargetPlatform.iOS))
                           _buildSettingTile(
                             icon: CupertinoIcons.viewfinder,
                             title: AppLocalizations.of(context).vrMode,
-                            subtitle: AppLocalizations.of(context).launchVRPlayer,
+                            subtitle: AppLocalizations.of(
+                              context,
+                            ).launchVRPlayer,
                             onTap: () => _launchVRMode(context),
                           ),
                       ],
@@ -155,9 +160,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Storage & Cache Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E), // Dark gray background instead of pure black
+                      color: const Color(
+                        0xFF1C1C1E,
+                      ), // Dark gray background instead of pure black
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: const Color(0xFF2C2C2E),
@@ -166,7 +176,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader(AppLocalizations.of(context).storageAndCache),
+                        _buildSectionHeader(
+                          AppLocalizations.of(context).storageAndCache,
+                        ),
                         _buildSettingTile(
                           icon: CupertinoIcons.folder,
                           title: AppLocalizations.of(context).cacheSize,
@@ -182,7 +194,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _buildSettingTile(
                           icon: CupertinoIcons.refresh,
                           title: AppLocalizations.of(context).cleanExpiredCache,
-                          subtitle: AppLocalizations.of(context).removeOldCachedData,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).removeOldCachedData,
                           onTap: () => _cleanExpiredCache(context),
                         ),
                       ],
@@ -195,7 +209,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Logs & Diagnostics Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1C1C1E),
                       borderRadius: BorderRadius.circular(16),
@@ -206,17 +223,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildSectionHeader(AppLocalizations.of(context).logsAndDiagnostics),
+                        _buildSectionHeader(
+                          AppLocalizations.of(context).logsAndDiagnostics,
+                        ),
                         _buildSwitchTile(
                           icon: CupertinoIcons.doc_text,
                           title: AppLocalizations.of(context).enableLogging,
-                          subtitle: AppLocalizations.of(context).recordAppActivity,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).recordAppActivity,
                           value: appState.loggingEnabled,
                           onChanged: (value) => appState.toggleLogging(value),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.doc_text_viewfinder,
-                          title: AppLocalizations.of(context).viewApplicationLogs,
+                          title: AppLocalizations.of(
+                            context,
+                          ).viewApplicationLogs,
                           subtitle: AppLocalizations.of(context).viewExportLogs,
                           onTap: () => Navigator.push(
                             context,
@@ -235,9 +258,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // About Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E), // Dark gray background instead of pure black
+                      color: const Color(
+                        0xFF1C1C1E,
+                      ), // Dark gray background instead of pure black
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: const Color(0xFF2C2C2E),
@@ -255,19 +283,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _buildSettingTile(
                           icon: CupertinoIcons.doc_text,
                           title: AppLocalizations.of(context).licenses,
-                          subtitle: AppLocalizations.of(context).viewOpenSourceLicenses,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).viewOpenSourceLicenses,
                           onTap: () => _showLicensesDialog(context),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.link,
                           title: AppLocalizations.of(context).gitLabRepository,
-                          subtitle: AppLocalizations.of(context).viewSourceAndContribute,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).viewSourceAndContribute,
                           onTap: () => _openGitLabPage(context),
                         ),
                         _buildSettingTile(
                           icon: CupertinoIcons.heart,
-                          title: AppLocalizations.of(context).supportDevelopment,
-                          subtitle: AppLocalizations.of(context).helpSupportProject,
+                          title: AppLocalizations.of(
+                            context,
+                          ).supportDevelopment,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).helpSupportProject,
                           onTap: () => _showSupportDialog(context),
                         ),
                       ],
@@ -280,14 +316,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Refresh Data Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF007AFF),
-                          Color(0xFF5856D6),
-                        ],
+                        colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -300,7 +336,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                     child: CupertinoButton(
-                      onPressed: appState.isLoading ? null : () => _refreshLibraryData(context, appState),
+                      onPressed: appState.isLoading
+                          ? null
+                          : () => _refreshLibraryData(context, appState),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       borderRadius: BorderRadius.circular(16),
                       child: Row(
@@ -318,9 +356,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           const SizedBox(width: 12),
                           Text(
-                            appState.isLoading ? AppLocalizations.of(context).refreshing : AppLocalizations.of(context).refreshLibrary,
+                            appState.isLoading
+                                ? AppLocalizations.of(context).refreshing
+                                : AppLocalizations.of(context).refreshLibrary,
                             style: TextStyle(
-                              color: appState.isLoading ? const Color(0xFFFFFFFF).withOpacity(0.6) : const Color(0xFFFFFFFF),
+                              color: appState.isLoading
+                                  ? const Color(0xFFFFFFFF).withOpacity(0.6)
+                                  : const Color(0xFFFFFFFF),
                               fontWeight: FontWeight.w700,
                               fontSize: 17,
                             ),
@@ -336,14 +378,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Logout Section
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFF453A),
-                          Color(0xFFFF2D92),
-                        ],
+                        colors: [Color(0xFFFF453A), Color(0xFFFF2D92)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -363,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(
-                            CupertinoIcons.square_arrow_left, 
+                            CupertinoIcons.square_arrow_left,
                             color: Color(0xFFFFFFFF),
                             size: 20,
                           ),
@@ -382,7 +424,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 20)), // Reduced spacing to prevent overlap with now playing
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 20),
+                ), // Reduced spacing to prevent overlap with now playing
               ],
             );
           },
@@ -422,10 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF3A3A3C),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
             ),
             child: Icon(
               icon,
@@ -450,7 +491,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFFAAAAAA), // Lighter gray for better readability
+                    color: Color(
+                      0xFFAAAAAA,
+                    ), // Lighter gray for better readability
                     fontSize: 15,
                   ),
                 ),
@@ -481,10 +524,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1C1C1E),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF3A3A3C),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
               ),
               child: Icon(
                 icon,
@@ -551,14 +591,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF3A3A3C),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
             ),
             child: Icon(
               icon,
-              color: value ? const Color(0xFF30D158) : const Color(0xFF007AFF), // Green when active, blue when inactive
+              color: value
+                  ? const Color(0xFF30D158)
+                  : const Color(
+                      0xFF007AFF,
+                    ), // Green when active, blue when inactive
               size: 20,
             ),
           ),
@@ -657,7 +698,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String imageSizeText = '';
     if (imageCacheSize > 0) {
       if (imageCacheSize > 1024 * 1024) {
-        imageSizeText = '${(imageCacheSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+        imageSizeText =
+            '${(imageCacheSize / (1024 * 1024)).toStringAsFixed(1)} MB';
       } else if (imageCacheSize > 1024) {
         imageSizeText = '${(imageCacheSize / 1024).toStringAsFixed(1)} KB';
       } else {
@@ -677,7 +719,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Text(
           '${l10n.cacheDescription}\n\n'
           '${l10n.dataCache}: $totalDataEntries entries\n'
-          '${l10n.imageCache}: $imageSizeText'
+          '${l10n.imageCache}: $imageSizeText',
         ),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
@@ -754,7 +796,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showCacheClearedDialog(context, AppLocalizations.of(context).data);
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).data)}: $e');
+      _showErrorDialog(
+        context,
+        '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).data)}: $e',
+      );
     }
   }
 
@@ -767,7 +812,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showCacheClearedDialog(context, AppLocalizations.of(context).image);
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).image)}: $e');
+      _showErrorDialog(
+        context,
+        '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).image)}: $e',
+      );
     }
   }
 
@@ -780,7 +828,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showCacheClearedDialog(context, AppLocalizations.of(context).all);
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).all)}: $e');
+      _showErrorDialog(
+        context,
+        '${AppLocalizations.of(context).failedToClearCache(AppLocalizations.of(context).all)}: $e',
+      );
     }
   }
 
@@ -806,7 +857,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, AppLocalizations.of(context).failedToCleanExpiredCache);
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context).failedToCleanExpiredCache,
+      );
     }
   }
 
@@ -854,7 +908,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         context: context,
         builder: (context) => CupertinoAlertDialog(
           title: Text(l10n.gitLabRepository),
-          content: Text('${l10n.gitlabUrlCopied}\n\nhttps://gitlab.com/Openlyst/doudou\n\n${l10n.gitlabUrlDescription}'),
+          content: Text(
+            '${l10n.gitlabUrlCopied}\n\nhttps://gitlab.com/Openlyst/doudou\n\n${l10n.gitlabUrlDescription}',
+          ),
           actions: [
             CupertinoDialogAction(
               child: Text(l10n.ok),
@@ -899,14 +955,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _refreshLibraryData(BuildContext context, AppState appState) async {
+  Future<void> _refreshLibraryData(
+    BuildContext context,
+    AppState appState,
+  ) async {
     try {
       // Show a brief feedback to user
       HapticFeedback.lightImpact();
-      
+
       // Force refresh the library data from the server (bypassing cache)
       await appState.refreshLibraryData();
-      
+
       // Show success feedback
       if (context.mounted) {
         _showRefreshSuccessDialog(context);
@@ -942,7 +1001,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: Text(l10n.refreshFailed),
-        content: Text('${l10n.failedToRefreshLibrary}\n\n${l10n.error}: $error'),
+        content: Text(
+          '${l10n.failedToRefreshLibrary}\n\n${l10n.error}: $error',
+        ),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             child: Text(l10n.ok),
