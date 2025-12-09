@@ -431,7 +431,7 @@ class _TracksPageState extends State<TracksPage> {
     );
   }
 
-  Widget _buildTrackItem(Track track, int index, AppState appState, ThemeData theme) {
+  Widget _buildTrackItem(Track track, int index, AppState appState, ThemeData theme, AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -449,7 +449,7 @@ class _TracksPageState extends State<TracksPage> {
               appState.playTrack(track);
             },
             icon: const Icon(Icons.play_arrow),
-            tooltip: 'Play track',
+            tooltip: l10n.playTrack,
           ),
         ),
         title: Row(
@@ -468,7 +468,7 @@ class _TracksPageState extends State<TracksPage> {
             Expanded(
               flex: 2,
               child: Text(
-                track.artistName ?? 'Unknown Artist',
+                track.artistName ?? l10n.unknownArtist,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -479,7 +479,7 @@ class _TracksPageState extends State<TracksPage> {
             Expanded(
               flex: 2,
               child: Text(
-                track.albumName ?? 'Unknown Album',
+                track.albumName ?? l10n.unknownAlbum,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -509,43 +509,43 @@ class _TracksPageState extends State<TracksPage> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'play',
               child: ListTile(
-                leading: Icon(Icons.play_arrow),
-                title: Text('Play'),
+                leading: const Icon(Icons.play_arrow),
+                title: Text(l10n.play),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'addToQueue',
               child: ListTile(
-                leading: Icon(Icons.queue_music),
-                title: Text('Add to queue'),
+                leading: const Icon(Icons.queue_music),
+                title: Text(l10n.addToQueue),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'addToPlaylist',
               child: ListTile(
-                leading: Icon(Icons.playlist_add),
-                title: Text('Add to playlist'),
+                leading: const Icon(Icons.playlist_add),
+                title: Text(l10n.addToPlaylist),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'showAlbum',
               child: ListTile(
-                leading: Icon(Icons.album),
-                title: Text('Show album'),
+                leading: const Icon(Icons.album),
+                title: Text(l10n.showAlbum),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'showArtist',
               child: ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Show artist'),
+                leading: const Icon(Icons.person),
+                title: Text(l10n.showArtist),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
