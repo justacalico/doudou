@@ -3330,5 +3330,75 @@
   "failedToStartDownloads": "Failed to start downloads",
   "@failedToStartDownloads": {
     "description": "Failed to start downloads message"
+  },
+
+  "topArtists": "Top Artists",
+  "@topArtists": {
+    "description": "Top artists section label"
+  },
+
+  "mostPlayed": "Most played",
+  "@mostPlayed": {
+    "description": "Most played subtitle"
+  },
+
+  "latestAlbums": "Latest albums",
+  "@latestAlbums": {
+    "description": "Latest albums subtitle"
+  },
+
+  "customMixes": "Custom mixes",
+  "@customMixes": {
+    "description": "Custom mixes subtitle"
+  },
+
+  "albumsCount": "{count} albums",
+  "@albumsCount": {
+    "description": "Albums count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "artistsCount": "{count} artists",
+  "@artistsCount": {
+    "description": "Artists count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "songsCount": "{count} songs",
+  "@songsCount": {
+    "description": "Songs count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "tracksCount": "{count} tracks",
+  "@tracksCount": {
+    "description": "Tracks count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistsCount": "{count} playlists",
+  "@playlistsCount": {
+    "description": "Playlists count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
