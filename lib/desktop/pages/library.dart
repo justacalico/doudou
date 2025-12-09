@@ -37,33 +37,34 @@ class _LibraryPageState extends State<LibraryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return PageTemplate(
-          title: 'Your Library',
+          title: l10n.navLibrary,
           actions: [
             // View selector
             SegmentedButton<String>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: 'overview',
-                  label: Text('Overview'),
-                  icon: Icon(Icons.dashboard_outlined),
+                  label: Text(l10n.libraryOverview),
+                  icon: const Icon(Icons.dashboard_outlined),
                 ),
                 ButtonSegment(
                   value: 'recent',
-                  label: Text('Recent'),
-                  icon: Icon(Icons.history),
+                  label: Text(l10n.libraryRecent),
+                  icon: const Icon(Icons.history),
                 ),
                 ButtonSegment(
                   value: 'genres',
-                  label: Text('Genres'),
-                  icon: Icon(Icons.category_outlined),
+                  label: Text(l10n.libraryGenres),
+                  icon: const Icon(Icons.category_outlined),
                 ),
                 ButtonSegment(
                   value: 'years',
-                  label: Text('Years'),
-                  icon: Icon(Icons.calendar_today_outlined),
+                  label: Text(l10n.libraryYears),
+                  icon: const Icon(Icons.calendar_today_outlined),
                 ),
               ],
               selected: {_selectedView},
@@ -80,10 +81,10 @@ class _LibraryPageState extends State<LibraryPage> {
                 appState.loadLibraryData();
               },
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh Library',
+              tooltip: l10n.tooltipRefresh,
             ),
           ],
-          child: _buildContent(appState),
+          child: _buildContent(appState, l10n),
         );
       },
     );
