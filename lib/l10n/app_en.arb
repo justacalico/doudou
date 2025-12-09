@@ -1987,6 +1987,11 @@
     "description": "Offline mode label"
   },
 
+  "offlineModeDownloadsOnly": "Offline Mode - Downloads Only",
+  "@offlineModeDownloadsOnly": {
+    "description": "Offline mode banner text"
+  },
+
   "shareTrack": "Share Track",
   "@shareTrack": {
     "description": "Share track button label"
