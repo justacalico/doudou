@@ -208,7 +208,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     );
   }
 
-  Widget _buildArtistHeader(ThemeData theme, AppState appState) {
+  Widget _buildArtistHeader(ThemeData theme, AppState appState, AppLocalizations l10n) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -224,7 +224,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   _buildArtistImage(theme, appState, constraints.maxWidth < 400 ? 120.0 : 150.0),
                   const SizedBox(height: 20),
                   // Artist info
-                  _buildArtistInfo(theme, isNarrow),
+                  _buildArtistInfo(theme, isNarrow, l10n),
                 ],
               );
             } else {
@@ -235,7 +235,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   _buildArtistImage(theme, appState, constraints.maxWidth < 800 ? 150.0 : 200.0),
                   const SizedBox(width: 24),
                   // Artist info
-                  Expanded(child: _buildArtistInfo(theme, isNarrow)),
+                  Expanded(child: _buildArtistInfo(theme, isNarrow, l10n)),
                 ],
               );
             }
@@ -286,12 +286,12 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     );
   }
 
-  Widget _buildArtistInfo(ThemeData theme, bool isNarrow) {
+  Widget _buildArtistInfo(ThemeData theme, bool isNarrow, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         Text(
-          'Artist',
+          l10n.artist,
           style: theme.textTheme.labelLarge?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w600,
