@@ -2564,50 +2564,14 @@
     }
   },
 
-  "searchAlbums": "Search albums...",
-  "@searchAlbums": {
-    "description": "Search albums placeholder"
-  },
-
   "refreshAlbums": "Refresh Albums",
   "@refreshAlbums": {
     "description": "Refresh albums tooltip"
   },
 
-  "loadingAlbums": "Loading albums...",
-  "@loadingAlbums": {
-    "description": "Loading albums message"
-  },
-
-  "albumsCount": "{count} albums",
-  "@albumsCount": {
-    "description": "Albums count label",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "63"
-      }
-    }
-  },
-
-  "allAlbums": "All Albums",
-  "@allAlbums": {
-    "description": "All albums filter option"
-  },
-
-  "recentlyAdded": "Recently Added",
-  "@recentlyAdded": {
-    "description": "Recently added filter option"
-  },
-
   "albumName": "Album Name",
   "@albumName": {
     "description": "Album name sort option"
-  },
-
-  "year": "Year",
-  "@year": {
-    "description": "Year sort option"
   },
 
   "dateAdded": "Date Added",
@@ -2716,19 +2680,9 @@
     }
   },
 
-  "searchArtists": "Search artists...",
-  "@searchArtists": {
-    "description": "Search artists placeholder"
-  },
-
   "refreshArtists": "Refresh Artists",
   "@refreshArtists": {
     "description": "Refresh artists tooltip"
-  },
-
-  "loadingArtists": "Loading artists...",
-  "@loadingArtists": {
-    "description": "Loading artists message"
   },
 
   "artistsCount": "{count} artists",
@@ -2742,8 +2696,8 @@
     }
   },
 
-  "albumCount": "Album Count",
-  "@albumCount": {
+  "albumCountSort": "Album Count",
+  "@albumCountSort": {
     "description": "Album count sort option"
   },
 
