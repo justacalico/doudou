@@ -426,6 +426,16 @@
     }
   },
 
+  "countPlaylists": "{count} playlists",
+  "@countPlaylists": {
+    "description": "Number of playlists",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
   "jumpBackIntoFavorites": "Jump back into your favorites",
   "@jumpBackIntoFavorites": {
     "description": "Favorites section subtitle"
