@@ -290,16 +290,16 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildMoreOptionsMenu() {
+  Widget _buildMoreOptionsMenu(AppLocalizations l10n) {
     return PopupMenuButton<String>(
       onSelected: (value) {
         switch (value) {
           case 'add_playlist':
-            _showAddToPlaylistDialog();
+            _showAddToPlaylistDialog(l10n);
             break;
           case 'download':
             if (widget.mediaType == MediaType.album) {
-              _downloadAlbum();
+              _downloadAlbum(l10n);
             }
             break;
           case 'share':
@@ -307,17 +307,17 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             break;
           case 'artist':
             if (widget.mediaType == MediaType.album) {
-              _navigateToArtist();
+              _navigateToArtist(l10n);
             }
             break;
           case 'edit':
             if (widget.mediaType == MediaType.playlist) {
-              _showEditPlaylistDialog();
+              _showEditPlaylistDialog(l10n);
             }
             break;
           case 'delete':
             if (widget.mediaType == MediaType.playlist) {
-              _showDeletePlaylistDialog();
+              _showDeletePlaylistDialog(l10n);
             }
             break;
         }
@@ -327,57 +327,57 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         
         // Common items
         if (widget.mediaType == MediaType.album) {
-          items.add(const PopupMenuItem(
+          items.add(PopupMenuItem(
             value: 'add_playlist',
             child: ListTile(
-              leading: Icon(Icons.playlist_add),
-              title: Text('Add to Playlist'),
+              leading: const Icon(Icons.playlist_add),
+              title: Text(l10n.addToPlaylist),
               contentPadding: EdgeInsets.zero,
             ),
           ));
-          items.add(const PopupMenuItem(
+          items.add(PopupMenuItem(
             value: 'download',
             child: ListTile(
-              leading: Icon(Icons.download),
-              title: Text('Download'),
+              leading: const Icon(Icons.download),
+              title: Text(l10n.download),
               contentPadding: EdgeInsets.zero,
             ),
           ));
         }
         
-        items.add(const PopupMenuItem(
+        items.add(PopupMenuItem(
           value: 'share',
           child: ListTile(
-            leading: Icon(Icons.share),
-            title: Text('Share'),
+            leading: const Icon(Icons.share),
+            title: Text(l10n.share),
             contentPadding: EdgeInsets.zero,
           ),
         ));
         
         // Media type specific items
         if (widget.mediaType == MediaType.album) {
-          items.add(const PopupMenuItem(
+          items.add(PopupMenuItem(
             value: 'artist',
             child: ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Go to Artist'),
+              leading: const Icon(Icons.person),
+              title: Text(l10n.goToArtist),
               contentPadding: EdgeInsets.zero,
             ),
           ));
         } else {
-          items.add(const PopupMenuItem(
+          items.add(PopupMenuItem(
             value: 'edit',
             child: ListTile(
-              leading: Icon(Icons.edit),
-              title: Text('Edit Playlist'),
+              leading: const Icon(Icons.edit),
+              title: Text(l10n.editPlaylist),
               contentPadding: EdgeInsets.zero,
             ),
           ));
-          items.add(const PopupMenuItem(
+          items.add(PopupMenuItem(
             value: 'delete',
             child: ListTile(
-              leading: Icon(Icons.delete, color: Colors.red),
-              title: Text('Delete Playlist', style: TextStyle(color: Colors.red)),
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(l10n.deletePlaylist, style: const TextStyle(color: Colors.red)),
               contentPadding: EdgeInsets.zero,
             ),
           ));
