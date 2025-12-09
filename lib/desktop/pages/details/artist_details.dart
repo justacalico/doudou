@@ -311,7 +311,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
             ? Column(
                 children: [
                   Text(
-                    '${_artistAlbums.length} albums',
+                    l10n.countAlbums(_artistAlbums.length),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -319,7 +319,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${_getTotalTracks()} songs',
+                    l10n.countSongs(_getTotalTracks()),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -330,7 +330,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
             : Row(
                 children: [
                   Text(
-                    '${_artistAlbums.length} albums',
+                    l10n.countAlbums(_artistAlbums.length),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -338,7 +338,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    '${_getTotalTracks()} songs',
+                    l10n.countSongs(_getTotalTracks()),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -350,15 +350,15 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
     );
   }
 
-  Widget _buildTabSelector(ThemeData theme) {
+  Widget _buildTabSelector(ThemeData theme, AppLocalizations l10n) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
-            _buildTabButton('albums', 'Albums', theme),
+            _buildTabButton('albums', l10n.albums, theme),
             const SizedBox(width: 8),
-            _buildTabButton('songs', 'Popular Songs', theme),
+            _buildTabButton('songs', l10n.popularSongs, theme),
           ],
         ),
       ),
