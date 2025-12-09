@@ -701,13 +701,13 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  void _handleAlbumAction(String action, AppState appState, dynamic album) async {
+  void _handleAlbumAction(String action, AppState appState, dynamic album, AppLocalizations l10n) async {
     switch (action) {
       case 'addToPlaylist':
         // Get all tracks from the album
         final tracks = await appState.getAlbumTracks(album.id);
         if (tracks.isNotEmpty) {
-          _showAddAlbumToPlaylistDialog(appState, album, tracks);
+          _showAddAlbumToPlaylistDialog(appState, album, tracks, l10n);
         }
         break;
       case 'play':
@@ -725,7 +725,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     }
   }
 
-  void _showAddAlbumToPlaylistDialog(AppState appState, dynamic album, List<Track> tracks) {
+  void _showAddAlbumToPlaylistDialog(AppState appState, dynamic album, List<Track> tracks, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -735,7 +735,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
               const Icon(Icons.playlist_add),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Add Album to Playlist'),
+                child: Text(l10n.addAlbumToPlaylist),
               ),
             ],
           ),
