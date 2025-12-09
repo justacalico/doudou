@@ -1441,6 +1441,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                               appState,
                               audioHandler,
                               currentTrack,
+                              AppLocalizations.of(context),
                             ),
                           ],
                         ),
