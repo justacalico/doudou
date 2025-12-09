@@ -2461,16 +2461,6 @@
     }
   },
 
-  "playlistName": "Playlist Name",
-  "@playlistName": {
-    "description": "Playlist name input label"
-  },
-
-  "descriptionOptional": "Description (optional)",
-  "@descriptionOptional": {
-    "description": "Description optional input label"
-  },
-
   "playlistRenamed": "Playlist renamed to \"{name}\"",
   "@playlistRenamed": {
     "description": "Playlist renamed success message",
@@ -2480,11 +2470,6 @@
         "example": "My Playlist"
       }
     }
-  },
-
-  "failedToRenamePlaylist": "Failed to rename playlist",
-  "@failedToRenamePlaylist": {
-    "description": "Failed to rename playlist error"
   },
 
   "playlistDeleted": "Playlist \"{name}\" deleted",
@@ -2519,11 +2504,6 @@
     }
   },
 
-  "tryDifferentSearch": "Try a different search term",
-  "@tryDifferentSearch": {
-    "description": "Try different search suggestion"
-  },
-
   "createFirstPlaylist": "Create your first playlist to get started",
   "@createFirstPlaylist": {
     "description": "Create first playlist suggestion"
@@ -2536,6 +2516,50 @@
       "count": {
         "type": "int",
         "example": "5"
+      }
+    }
+  },
+
+  "playlistCreated": "Playlist \"{name}\" created successfully",
+  "@playlistCreated": {
+    "description": "Playlist created success message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "errorCreatingPlaylist": "Failed to create playlist \"{name}\"",
+  "@errorCreatingPlaylist": {
+    "description": "Error creating playlist message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Playlist"
+      }
+    }
+  },
+
+  "errorRenamingPlaylist": "Error renaming playlist: {error}",
+  "@errorRenamingPlaylist": {
+    "description": "Error renaming playlist message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+
+  "errorDeletingPlaylist": "Error deleting playlist: {error}",
+  "@errorDeletingPlaylist": {
+    "description": "Error deleting playlist message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
       }
     }
   }
