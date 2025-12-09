@@ -309,7 +309,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistsGrid(AppState appState, List<dynamic> artists) {
+  Widget _buildArtistsGrid(AppState appState, List<dynamic> artists, AppLocalizations l10n) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -321,18 +321,18 @@ class _ArtistsPageState extends State<ArtistsPage> {
       itemCount: artists.length,
       itemBuilder: (context, index) {
         final artist = artists[index];
-        return _buildArtistCard(appState, artist);
+        return _buildArtistCard(appState, artist, l10n);
       },
     );
   }
 
-  Widget _buildArtistsList(AppState appState, List<dynamic> artists) {
+  Widget _buildArtistsList(AppState appState, List<dynamic> artists, AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: artists.length,
       itemBuilder: (context, index) {
         final artist = artists[index];
-        return _buildArtistListTile(appState, artist);
+        return _buildArtistListTile(appState, artist, l10n);
       },
     );
   }
