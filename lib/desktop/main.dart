@@ -294,7 +294,17 @@ class _ResponsiveHome extends StatelessWidget {
               return const DesktopHomeLayout();
             } else {
               // Use mobile UI (HomeScreen with bottom navigation)
-              return const HomeScreen();
+              // Wrap with Material to fix text styling (removes yellow underlines)
+              // that occur when Cupertino widgets are used in MaterialApp
+              return Material(
+                type: MaterialType.transparency,
+                child: DefaultTextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    decoration: TextDecoration.none,
+                  ),
+                  child: const HomeScreen(),
+                ),
+              );
             }
           },
         );
