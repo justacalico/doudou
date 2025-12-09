@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../services/logging_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -466,6 +467,36 @@ class _SettingsPageState extends State<SettingsPage> {
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       // Show grid size options
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Language section
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Language',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: const Text('App Language'),
+                    subtitle: Text(_getCurrentLanguageDisplayName(appState)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () {
+                      _showLanguageDialog(appState);
                     },
                   ),
                 ],
