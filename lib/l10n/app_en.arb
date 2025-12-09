@@ -346,6 +346,11 @@
     "description": "Evening greeting"
   },
 
+  "whatWouldYouLikeToHear": "What would you like to hear?",
+  "@whatWouldYouLikeToHear": {
+    "description": "Home screen subtitle question"
+  },
+
   "listenNow": "Listen now",
   "@listenNow": {
     "description": "Listen now section header"
