@@ -2569,21 +2569,6 @@
     "description": "Refresh albums tooltip"
   },
 
-  "albumName": "Album Name",
-  "@albumName": {
-    "description": "Album name sort option"
-  },
-
-  "dateAdded": "Date Added",
-  "@dateAdded": {
-    "description": "Date added sort option"
-  },
-
-  "noAlbumsFound": "No albums found",
-  "@noAlbumsFound": {
-    "description": "No albums found message"
-  },
-
   "noFavoriteAlbums": "No favorite albums yet",
   "@noFavoriteAlbums": {
     "description": "No favorite albums message"
@@ -2594,45 +2579,9 @@
     "description": "Add albums to favorites hint"
   },
 
-  "addToPlaylist": "Add to playlist",
-  "@addToPlaylist": {
-    "description": "Add to playlist menu item"
-  },
-
   "playAlbum": "Play album",
   "@playAlbum": {
     "description": "Play album menu item"
-  },
-
-  "addToQueue": "Add to queue",
-  "@addToQueue": {
-    "description": "Add to queue menu item"
-  },
-
-  "addAlbumToPlaylist": "Add Album to Playlist",
-  "@addAlbumToPlaylist": {
-    "description": "Add album to playlist dialog title"
-  },
-
-  "selectPlaylist": "Select Playlist:",
-  "@selectPlaylist": {
-    "description": "Select playlist label"
-  },
-
-  "noPlaylistsAvailable": "No playlists available",
-  "@noPlaylistsAvailable": {
-    "description": "No playlists available message"
-  },
-
-  "tracksCount": "{count} tracks",
-  "@tracksCount": {
-    "description": "Tracks count label",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
   },
 
   "addedAlbumToPlaylist": "Added \"{albumName}\" ({count} tracks) to playlist",
@@ -2669,9 +2618,9 @@
     }
   },
 
-  "errorAddingAlbumToPlaylist": "Error adding album to playlist: {error}",
-  "@errorAddingAlbumToPlaylist": {
-    "description": "Error adding album to playlist message",
+  "errorAddingToPlaylist": "Error adding to playlist: {error}",
+  "@errorAddingToPlaylist": {
+    "description": "Error adding to playlist message",
     "placeholders": {
       "error": {
         "type": "String",
@@ -2685,25 +2634,9 @@
     "description": "Refresh artists tooltip"
   },
 
-  "artistsCount": "{count} artists",
-  "@artistsCount": {
-    "description": "Artists count label",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "57"
-      }
-    }
-  },
-
   "albumCountSort": "Album Count",
   "@albumCountSort": {
     "description": "Album count sort option"
-  },
-
-  "noArtistsFound": "No artists found",
-  "@noArtistsFound": {
-    "description": "No artists found message"
   },
 
   "musicLibraryEmpty": "Your music library appears to be empty",
@@ -2726,11 +2659,6 @@
     }
   },
 
-  "viewAlbums": "View Albums",
-  "@viewAlbums": {
-    "description": "View albums menu item"
-  },
-
   "gridView": "Grid View",
   "@gridView": {
     "description": "Grid view toggle tooltip"
@@ -2739,10 +2667,5 @@
   "listView": "List View",
   "@listView": {
     "description": "List view toggle tooltip"
-  },
-
-  "unknownArtist": "Unknown Artist",
-  "@unknownArtist": {
-    "description": "Unknown artist placeholder"
   }
 }
