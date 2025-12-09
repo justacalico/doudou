@@ -543,7 +543,6 @@
   "noTracksToDownload": "没有可下载的曲目",
   "openedTracksInBrowser": "已在浏览器中打开“{name}”的全部{count}首曲目",
   "openedTracksPartialSuccess": "已打开{success}首曲目，{failed}首失败，来自“{name}”",
-  "artistNotFoundError": "未找到艺术家“{name}”",
   "createdPlaylistWithTracks": "已创建播放列表“{name}”并添加了{type}首曲目",
   "added": "已添加",
   "today": "今天",
