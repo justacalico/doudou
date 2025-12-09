@@ -8,6 +8,7 @@ import 'artist_details.dart';
 
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
+import '../../../l10n/app_localizations.dart';
 
 enum MediaType { playlist, album }
 
