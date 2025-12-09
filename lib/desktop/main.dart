@@ -10,7 +10,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../services/logging_service.dart';
+import '../services/responsive_service.dart';
 import '../screens/login/login.dart';
+import '../screens/partials/navbar/navbar.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
 
