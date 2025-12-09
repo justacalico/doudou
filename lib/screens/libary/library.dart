@@ -504,32 +504,42 @@ class LibraryContent extends StatelessWidget {
       ),
     );
   }  void _navigateToSection(BuildContext context, String sectionType) {
+    final l10n = AppLocalizations.of(context);
     Widget page;
+    String title;
 
     switch (sectionType) {
       case 'Artists':
         page = const ArtistsTab();
+        title = l10n.artists;
         break;
       case 'Albums':
         page = _buildAlbumsPage();
+        title = l10n.albums;
         break;
       case 'Songs':
         page = const SongsView();
+        title = l10n.songs;
         break;
       case 'Playlists':
         page = _buildPlaylistsPage();
+        title = l10n.playlists;
         break;
       case 'Collections':
         page = _buildCollectionsPage();
+        title = l10n.collections;
         break;
       case 'Genres':
         page = _buildGenresPage();
+        title = l10n.genres;
         break;
       case 'Favorites':
         page = _buildFavoritesPage();
+        title = l10n.favorites;
         break;
       default:
         page = _buildAlbumsPage();
+        title = l10n.albums;
     }
 
     Navigator.push(
@@ -539,7 +549,7 @@ class LibraryContent extends StatelessWidget {
           backgroundColor: const Color(0xFF000000),
           navigationBar: CupertinoNavigationBar(
             middle: Text(
-              sectionType,
+              title,
               style: const TextStyle(color: CupertinoColors.white),
             ),
             backgroundColor: const Color(0xFF1C1C1E),
