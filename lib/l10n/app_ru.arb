@@ -479,5 +479,8 @@
   "albumInfoNotAvailable": "Информация об альбоме недоступна",
   "albumNotFound": "Альбом не найден",
   "artistInfoNotAvailable": "Информация об исполнителе недоступна",
-  "artistNotFound": "Исполнитель не найден"
+  "artistNotFound": "Исполнитель не найден",
+
+  "showAlbum": "Показать альбом",
+  "showArtist": "Показать исполнителя"
 }
