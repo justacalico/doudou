@@ -389,7 +389,7 @@ class _HomeContentState extends State<HomeContent> {
                               flex: 3,
                               child: _buildEnhancedShuffleButton(
                                 icon: CupertinoIcons.shuffle,
-                                label: 'Shuffle all',
+                                label: l10n.shuffleAll,
                                 onPressed: () async {
                                   await appState.shuffleAllTracks();
                                 },
@@ -401,7 +401,7 @@ class _HomeContentState extends State<HomeContent> {
                               flex: 2,
                               child: _buildEnhancedShuffleButton(
                                 icon: CupertinoIcons.heart_fill,
-                                label: 'Favorites',
+                                label: l10n.navFavorites,
                                 onPressed: () async {
                                   final favoriteCount = appState.favoriteTracks.length;
                                   if (favoriteCount > 0) {
