@@ -246,12 +246,7 @@ build_release_aab:
       EOF
         echo "Release signing configured"
       else
-        echo "ERROR: No keystore provided for AAB build!"
-        echo "AAB builds require signing. Set these CI/CD variables:"
-        echo "  - ANDROID_KEYSTORE_BASE64 (base64 encoded .jks file)"
-        echo "  - ANDROID_KEYSTORE_PASSWORD"
-        echo "  - ANDROID_KEY_PASSWORD"
-        echo "  - ANDROID_KEY_ALIAS"
+        echo "Keystore not configured - this shouldn't happen with rules"
         exit 1
       fi
   script:
