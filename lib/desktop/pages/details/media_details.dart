@@ -1034,13 +1034,13 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     }
   }
 
-  void _showAddToPlaylistDialog() {
+  void _showAddToPlaylistDialog(AppLocalizations l10n) {
     final appState = context.read<AppState>();
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add ${widget.mediaType == MediaType.album ? 'Album' : 'Tracks'} to Playlist'),
+        title: Text(widget.mediaType == MediaType.album ? l10n.addAlbumToPlaylist : l10n.addTracksToPlaylist),
         content: SizedBox(
           width: 300,
           height: 400,
@@ -1048,10 +1048,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.add),
-                title: const Text('Create New Playlist'),
+                title: Text(l10n.createNewPlaylist),
                 onTap: () {
                   Navigator.pop(context);
-                  _showCreatePlaylistDialog();
+                  _showCreatePlaylistDialog(l10n);
                 },
               ),
               const Divider(),
@@ -1063,13 +1063,13 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     return ListTile(
                       leading: const Icon(Icons.playlist_play),
                       title: Text(playlist.name),
-                      subtitle: Text('${playlist.trackCount} songs'),
+                      subtitle: Text(l10n.countSongs(playlist.trackCount)),
                       onTap: () {
                         Navigator.pop(context);
                         // Add tracks to playlist
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Added ${widget.mediaType == MediaType.album ? 'album' : 'tracks'} to "${playlist.name}"'),
+                            content: Text(l10n.addedToPlaylist(widget.mediaType == MediaType.album ? l10n.album : 'tracks', playlist.name)),
                           ),
                         );
                       },
@@ -1083,32 +1083,32 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
     );
   }
 
-  void _showCreatePlaylistDialog() {
+  void _showCreatePlaylistDialog(AppLocalizations l10n) {
     final nameController = TextEditingController();
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Playlist'),
+        title: Text(l10n.createPlaylist),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Playlist Name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.playlistName,
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1117,7 +1117,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 // Create playlist with tracks
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Created playlist "${nameController.text}" with ${widget.mediaType == MediaType.album ? 'album' : ''} tracks'),
+                    content: Text(l10n.createdPlaylistWithTracks(nameController.text, widget.mediaType == MediaType.album ? l10n.album : '')),
                   ),
                 );
               }
