@@ -7,33 +7,40 @@ import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'l10n/app_localizations.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
-import 'services/responsive_service.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
-import 'desktop/templates/desktop_layout.dart';
+import 'desktop/main.dart' as desktop_main;
 
 void main() async {
   // Ensure Flutter bindings are initialized first
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Run the unified responsive app
-  await _runResponsiveApp();
+  // Check if we're on a desktop or web platform
+  if (_isDesktopOrWebPlatform()) {
+    // Delegate to desktop main, but don't reinitialize bindings
+    return desktop_main.runDesktopApp();
+  }
+
+  // Original mobile main logic
+  _runMobileApp();
 }
 
-/// Runs the unified app that adapts UI based on screen size, not platform.
-/// 
-/// This replaces the old platform-based detection with responsive design:
-/// - Screen width >= 768px: Complete Desktop UI (MaterialApp + Material Design)
-/// - Screen width < 768px: Complete Mobile UI (CupertinoApp + Cupertino Design)
-Future<void> _runResponsiveApp() async {
+bool _isDesktopOrWebPlatform() {
+  return kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.linux;
+}
+
+void _runMobileApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Initialize logging service
   try {
     await LoggingService().initialize();
-    await _logSystemInfo('Responsive');
+    await _logSystemInfo('Mobile');
   } catch (e) {
     if (kDebugMode) {
       print('Failed to initialize logging service: $e');
@@ -45,30 +52,19 @@ Future<void> _runResponsiveApp() async {
       (defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    try {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize database: $e');
-      }
-    }
+    // Initialize the ffi database factory for desktop platforms
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
   }
 
   // Initialize MediaKit for Linux audio support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-    try {
-      JustAudioMediaKit.ensureInitialized();
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize MediaKit: $e');
-      }
-    }
+    JustAudioMediaKit.ensureInitialized();
   }
 
-  // Allow all orientations for flexibility
-  // This enables tablets to rotate and trigger layout changes
-  if (!kIsWeb) {
+  // Allow both orientations for Android Auto compatibility
+  // Android Auto requires landscape orientation support
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -77,196 +73,78 @@ Future<void> _runResponsiveApp() async {
     ]);
   }
 
-  runApp(const DoudouResponsiveApp());
+  runApp(const DoudouApp());
 }
 
-/// The root widget that switches between complete Mobile and Desktop apps
-/// based on screen size.
-/// 
-/// This widget uses a WidgetsApp with a builder to detect screen size BEFORE
-/// creating the actual app, allowing us to switch between completely different
-/// app shells (CupertinoApp vs MaterialApp).
-class DoudouResponsiveApp extends StatelessWidget {
-  const DoudouResponsiveApp({super.key});
+class DoudouApp extends StatelessWidget {
+  const DoudouApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // We need to wrap everything in a widget that can detect screen size
-    // and then build the appropriate app (Cupertino or Material)
     return ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: const _ResponsiveAppSwitcher(),
-    );
-  }
-}
-
-/// Switches between complete CupertinoApp (mobile) and MaterialApp (desktop)
-/// based on screen width.
-class _ResponsiveAppSwitcher extends StatelessWidget {
-  const _ResponsiveAppSwitcher();
-
-  @override
-  Widget build(BuildContext context) {
-    // Use WidgetsApp as a minimal shell to get MediaQuery access
-    return WidgetsApp(
-      debugShowCheckedModeBanner: false,
-      color: Colors.purple,
-      builder: (context, child) {
-        // Now we have access to MediaQuery to check screen size
-        final screenWidth = MediaQuery.of(context).size.width;
-        final isDesktop = screenWidth >= ResponsiveService.desktopBreakpoint;
-        
-        if (isDesktop) {
-          return const _DesktopApp();
-        } else {
-          return const _MobileApp();
-        }
-      },
-    );
-  }
-}
-
-/// Complete Desktop App using MaterialApp with Material Design
-class _DesktopApp extends StatelessWidget {
-  const _DesktopApp();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return _buildAppWithPlatformServices(
-          MaterialApp(
-            title: 'Doudou - Music Player',
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: appState.accentColor,
-                brightness: Brightness.light,
-              ),
-            ),
-            darkTheme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: appState.accentColor,
-                brightness: Brightness.dark,
-              ),
-            ),
-            themeMode: appState.themeMode,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: appState.locale,
-            home: _buildDesktopHome(appState),
-            debugShowCheckedModeBanner: false,
+      child: _buildAppWithPlatformServices(
+        CupertinoApp(
+          title: 'Doudou - Jellyfin Music Player',
+          theme: const CupertinoThemeData(
+            primaryColor: CupertinoColors.systemPurple,
+            scaffoldBackgroundColor: CupertinoColors.systemBackground,
           ),
-        );
-      },
-    );
-  }
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', 'US'),
+          ],
+          home: Consumer<AppState>(
+            builder: (context, appState, child) {
+              // Show loading screen while initializing
+              if (!appState.isInitialized) {
+                return const CupertinoPageScaffold(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CupertinoActivityIndicator(radius: 20),
+                        SizedBox(height: 16),
+                        Text(
+                          'Loading...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: CupertinoColors.secondaryLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
 
-  Widget _buildDesktopHome(AppState appState) {
-    if (!appState.isInitialized) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text(
-                'Loading...',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ],
+              if (appState.isLoggedIn) {
+                return const HomeScreen();
+              } else {
+                return const LoginScreen();
+              }
+            },
           ),
+          debugShowCheckedModeBanner: false,
         ),
-      );
-    }
-
-    if (!appState.isLoggedIn) {
-      return const LoginScreen();
-    }
-
-    return const DesktopLayout();
+      ),
+    );
   }
 
+  /// Wraps the app with platform-specific services
   Widget _buildAppWithPlatformServices(Widget app) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
+    // On Android and macOS, use AudioServiceWidget for background audio support
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.macOS)) {
       return AudioServiceWidget(child: app);
     }
-    return app;
-  }
-}
 
-/// Complete Mobile App using CupertinoApp with Cupertino Design
-class _MobileApp extends StatelessWidget {
-  const _MobileApp();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return _buildAppWithPlatformServices(
-          CupertinoApp(
-            title: 'Doudou - Jellyfin Music Player',
-            theme: const CupertinoThemeData(
-              primaryColor: CupertinoColors.systemPurple,
-              scaffoldBackgroundColor: CupertinoColors.systemBackground,
-            ),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: appState.locale,
-            home: _buildMobileHome(appState),
-            debugShowCheckedModeBanner: false,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMobileHome(AppState appState) {
-    if (!appState.isInitialized) {
-      return const CupertinoPageScaffold(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CupertinoActivityIndicator(radius: 20),
-              SizedBox(height: 16),
-              Text(
-                'Loading...',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: CupertinoColors.secondaryLabel,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (!appState.isLoggedIn) {
-      return const LoginScreen();
-    }
-
-    // HomeScreen is the complete mobile UI with bottom navigation
-    return const HomeScreen();
-  }
-
-  Widget _buildAppWithPlatformServices(Widget app) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return AudioServiceWidget(child: app);
-    }
+    // On other platforms (including web), return the app directly
     return app;
   }
 }

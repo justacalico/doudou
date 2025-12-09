@@ -10,9 +10,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../services/logging_service.dart';
-import '../services/responsive_service.dart';
 import '../screens/login/login.dart';
-import '../screens/partials/navbar/navbar.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
 
@@ -308,26 +306,13 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Use responsive design: switch to mobile layout on smaller screens
-        final isDesktop = constraints.maxWidth >= ResponsiveService.desktopBreakpoint;
-        
-        if (!isDesktop) {
-          // Show mobile layout when window is too small
-          return const HomeScreen();
-        }
-        
-        // Show desktop layout for larger screens
-        return ValueListenableBuilder<int>(
-          valueListenable: _navigationService.selectedPageIndex,
-          builder: (context, selectedIndex, child) {
-            return DesktopLayout(
-              selectedIndex: selectedIndex,
-              onNavigationChanged: () {
-                setState(() {});
-              },
-            );
+    return ValueListenableBuilder<int>(
+      valueListenable: _navigationService.selectedPageIndex,
+      builder: (context, selectedIndex, child) {
+        return DesktopLayout(
+          selectedIndex: selectedIndex,
+          onNavigationChanged: () {
+            setState(() {});
           },
         );
       },
