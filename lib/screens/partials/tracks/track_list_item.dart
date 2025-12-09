@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/app_state.dart';
@@ -30,18 +31,21 @@ class TrackListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
-      decoration: BoxDecoration(
-        color: const Color(0xFF000000), // Pure black for OLED
-        borderRadius: BorderRadius.circular(showAlbumArt ? 16 : 12),
-        border: showAlbumArt
-            ? Border.all(color: const Color(0xFF1D1D1F), width: 0.5)
-            : null,
-      ),
-      child: GestureDetector(
-        onLongPress: () => _showTrackContextMenu(context, appState),
-        child: _buildContent(context, appState),
+    return Material(
+      type: MaterialType.transparency,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
+        decoration: BoxDecoration(
+          color: const Color(0xFF000000), // Pure black for OLED
+          borderRadius: BorderRadius.circular(showAlbumArt ? 16 : 12),
+          border: showAlbumArt
+              ? Border.all(color: const Color(0xFF1D1D1F), width: 0.5)
+              : null,
+        ),
+        child: GestureDetector(
+          onLongPress: () => _showTrackContextMenu(context, appState),
+          child: _buildContent(context, appState),
+        ),
       ),
     );
   }
