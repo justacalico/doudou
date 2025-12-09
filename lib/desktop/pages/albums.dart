@@ -312,11 +312,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Widget _buildSortControls(ThemeData theme) {
+  Widget _buildSortControls(ThemeData theme, AppLocalizations l10n) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Sort by:', style: theme.textTheme.bodyMedium),
+        Text(l10n.sortBy, style: theme.textTheme.bodyMedium),
         const SizedBox(width: 8),
         DropdownButton<String>(
           value: _sortBy,
@@ -327,11 +327,11 @@ class _AlbumsPageState extends State<AlbumsPage> {
               });
             }
           },
-          items: const [
-            DropdownMenuItem(value: 'name', child: Text('Album Name')),
-            DropdownMenuItem(value: 'artist', child: Text('Artist')),
-            DropdownMenuItem(value: 'year', child: Text('Year')),
-            DropdownMenuItem(value: 'dateAdded', child: Text('Date Added')),
+          items: [
+            DropdownMenuItem(value: 'name', child: Text(l10n.albumName)),
+            DropdownMenuItem(value: 'artist', child: Text(l10n.artist)),
+            DropdownMenuItem(value: 'year', child: Text(l10n.year)),
+            DropdownMenuItem(value: 'dateAdded', child: Text(l10n.dateAdded)),
           ],
         ),
         const SizedBox(width: 8),
@@ -342,7 +342,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
             });
           },
           icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-          tooltip: _isAscending ? 'Ascending' : 'Descending',
+          tooltip: _isAscending ? l10n.ascending : l10n.descending,
         ),
       ],
     );
