@@ -536,7 +536,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
   }
 
-  Widget _buildTrackList(ThemeData theme, AppState appState) {
+  Widget _buildTrackList(ThemeData theme, AppState appState, AppLocalizations l10n) {
     if (_tracks.isEmpty && !_isLoading) {
       return Column(
         children: [
@@ -548,7 +548,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            widget.mediaType == MediaType.playlist ? 'No tracks in this playlist' : 'No tracks found',
+            widget.mediaType == MediaType.playlist ? l10n.noTracksInPlaylist : l10n.noTracksFound,
             style: theme.textTheme.headlineSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -556,8 +556,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           const SizedBox(height: 8),
           Text(
             widget.mediaType == MediaType.playlist 
-                ? 'Add some songs to get started'
-                : 'This album appears to be empty or the tracks couldn\'t be loaded.',
+                ? l10n.addSongsToGetStarted
+                : l10n.albumTracksEmptyMessage,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
@@ -570,13 +570,13 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 // Add tracks to playlist
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Songs'),
+              label: Text(l10n.addSongs),
             )
           else
             ElevatedButton.icon(
               onPressed: _refreshTracks,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(l10n.retry),
             ),
         ],
       );
@@ -587,14 +587,14 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Track list header
-          _buildTrackListHeader(theme),
+          _buildTrackListHeader(theme, l10n),
           
           const Divider(height: 1),
           
           // Track list items (using Column instead of ListView for scrollable parent)
           ...List.generate(_tracks.length, (index) {
             final track = _tracks[index];
-            return _buildTrackItem(theme, appState, track, index);
+            return _buildTrackItem(theme, appState, track, index, l10n);
           }),
         ],
       ),
