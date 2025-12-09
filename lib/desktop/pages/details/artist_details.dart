@@ -71,6 +71,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final theme = Theme.of(context);
@@ -88,17 +89,17 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Action buttons row
-                    _buildActionButtons(theme),
+                    _buildActionButtons(theme, l10n),
                     
                     const SizedBox(height: 24),
                     
                     // Artist header
-                    _buildArtistHeader(theme, appState),
+                    _buildArtistHeader(theme, appState, l10n),
                     
                     const SizedBox(height: 24),
                     
                     // Tab selector
-                    _buildTabSelector(theme),
+                    _buildTabSelector(theme, l10n),
                   ],
                 ),
               ),
@@ -111,7 +112,7 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                     ? const Center(child: CircularProgressIndicator())
                     : Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildTabContent(theme, appState),
+                        child: _buildTabContent(theme, appState, l10n),
                       ),
               ),
             ],
