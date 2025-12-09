@@ -1656,10 +1656,10 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                       return IconButton(
                         onPressed: () => appState.toggleFavorite(trackInState),
                         icon: Icon(
-                          isFavorite ? Icons.thumb_up : Icons.thumb_up_outlined,
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                         ),
                         color: isFavorite
-                            ? Colors.white
+                            ? Colors.red
                             : Colors.white.withOpacity(0.7),
                         iconSize: 24,
                       );
