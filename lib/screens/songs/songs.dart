@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
@@ -10,6 +11,7 @@ class SongsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         if (appState.isLoading && appState.tracks.isEmpty) {
@@ -19,15 +21,15 @@ class SongsView extends StatelessWidget {
         }
 
         if (appState.tracks.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.music_note, size: 64, color: CupertinoColors.systemGrey),
-                SizedBox(height: 16),
+                const Icon(CupertinoIcons.music_note, size: 64, color: CupertinoColors.systemGrey),
+                const SizedBox(height: 16),
                 Text(
-                  'No songs found',
-                  style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
+                  l10n.noSongsFound,
+                  style: const TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
                 ),
               ],
             ),
@@ -59,7 +61,7 @@ class SongsView extends StatelessWidget {
                                   const Icon(CupertinoIcons.play_fill, size: 18),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Play All',
+                                    l10n.playAll,
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                                   ),
                                 ],
@@ -82,9 +84,9 @@ class SongsView extends StatelessWidget {
                                 children: [
                                   const Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 18),
                                   const SizedBox(width: 8),
-                                  const Text(
-                                    'Shuffle',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
+                                  Text(
+                                    l10n.shuffle,
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
                                   ),
                                 ],
                               ),
