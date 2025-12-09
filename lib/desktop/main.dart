@@ -11,8 +11,12 @@ import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../screens/login/login.dart';
+import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
+
+/// Breakpoint for switching between mobile and desktop UI
+const double kDesktopBreakpoint = 768.0;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -211,34 +215,7 @@ class DesktopDoudouApp extends StatelessWidget {
               ],
               supportedLocales: AppLocalizations.supportedLocales,
               locale: appState.locale,
-              home: Consumer<AppState>(
-                builder: (context, appState, child) {
-                  // Show loading screen while initializing
-                  if (!appState.isInitialized) {
-                    return const Scaffold(
-                      body: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text(
-                              'Loading Desktop App...',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                  
-                  if (appState.isLoggedIn) {
-                    return const DesktopHomeLayout();
-                  } else {
-                    return const LoginScreen();
-                  }
-                },
-              ),
+              home: const _ResponsiveHome(),
               debugShowCheckedModeBanner: false,
             );
           },
@@ -272,6 +249,57 @@ class DesktopDoudouApp extends StatelessWidget {
     
     // On other platforms (including web), return the app directly
     return app;
+  }
+}
+
+/// Responsive home widget that switches between mobile and desktop UI
+/// based on screen width
+class _ResponsiveHome extends StatelessWidget {
+  const _ResponsiveHome();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        // Show loading screen while initializing
+        if (!appState.isInitialized) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Show login screen if not logged in
+        if (!appState.isLoggedIn) {
+          return const LoginScreen();
+        }
+
+        // Use LayoutBuilder to switch between mobile and desktop UI
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= kDesktopBreakpoint;
+            
+            if (isDesktop) {
+              return const DesktopHomeLayout();
+            } else {
+              // Use mobile UI (HomeScreen with bottom navigation)
+              return const HomeScreen();
+            }
+          },
+        );
+      },
+    );
   }
 }
 
