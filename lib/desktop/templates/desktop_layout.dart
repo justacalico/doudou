@@ -1362,6 +1362,8 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                       Expanded(
                                         child: _YouTubeMusicLyrics(
                                           audioHandler: audioHandler,
+                                          queue: appState.queue,
+                                          currentIndex: audioHandler?.currentIndex,
                                         ),
                                       )
                                     else
@@ -2116,7 +2118,12 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
   }
 
   Widget _buildSidebarLyrics(dynamic audioHandler) {
-    return _YouTubeMusicLyrics(audioHandler: audioHandler);
+    final appState = Provider.of<AppState>(context, listen: false);
+    return _YouTubeMusicLyrics(
+      audioHandler: audioHandler,
+      queue: appState.queue,
+      currentIndex: audioHandler?.currentIndex,
+    );
   }
 }
 
