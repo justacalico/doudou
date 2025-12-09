@@ -892,23 +892,23 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, AppLocalizations l10n) {
     final now = DateTime.now();
     final difference = now.difference(date);
     
     if (difference.inDays < 1) {
-      return 'Today';
+      return l10n.today;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return l10n.daysAgo(difference.inDays);
     } else if (difference.inDays < 30) {
-      return '${(difference.inDays / 7).floor()} weeks ago';
+      return l10n.weeksAgo((difference.inDays / 7).floor());
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
   }
 
   // Album-specific methods
-  void _navigateToArtist() {
+  void _navigateToArtist(AppLocalizations l10n) {
     if (widget.mediaType != MediaType.album) return;
     
     if (widget.album!.artistName == null) {
@@ -936,7 +936,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       // Show a message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Artist "${widget.album!.artistName}" not found'),
+          content: Text(l10n.artistNotFound(widget.album!.artistName!)),
           duration: const Duration(seconds: 2),
         ),
       );
