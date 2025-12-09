@@ -1570,6 +1570,8 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   ),
                 ],
               ),
+              );
+                },
               ),
             );
           },
