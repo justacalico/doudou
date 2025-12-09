@@ -1782,7 +1782,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   playbackState?.processingState ==
                   AudioProcessingState.buffering;
               // Use the audioHandler's direct properties for shuffle/repeat state
-              final isShuffled = audioHandler?.shuffleEnabled ?? false;
+              final isShuffled = audioHandler?.isShuffled ?? false;
               final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
 
               return Row(
@@ -1791,7 +1791,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   // Shuffle
                   IconButton(
                     onPressed: audioHandler != null
-                        ? () => audioHandler.toggleShuffle()
+                        ? () => audioHandler.setShuffleMode(!isShuffled)
                         : null,
                     icon: const Icon(Icons.shuffle_rounded),
                     color: isShuffled
