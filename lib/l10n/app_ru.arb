@@ -499,5 +499,19 @@
   "playlistCreated": "Плейлист \"{name}\" успешно создан",
   "errorCreatingPlaylist": "Не удалось создать плейлист \"{name}\"",
   "errorRenamingPlaylist": "Ошибка переименования плейлиста: {error}",
-  "errorDeletingPlaylist": "Ошибка удаления плейлиста: {error}"
+  "errorDeletingPlaylist": "Ошибка удаления плейлиста: {error}",
+
+  "refreshAlbums": "Обновить альбомы",
+  "noFavoriteAlbums": "Нет избранных альбомов",
+  "addAlbumsToFavorites": "Добавляйте альбомы в избранное, нажимая на значок сердца",
+  "playAlbum": "Воспроизвести альбом",
+  "addedAlbumToPlaylist": "Альбом \"{albumName}\" ({count} треков) добавлен в плейлист",
+  "addedPartialAlbumToPlaylist": "Добавлено {successCount} из {totalCount} треков из \"{albumName}\" в плейлист",
+  "errorAddingToPlaylist": "Ошибка добавления в плейлист: {error}",
+  "refreshArtists": "Обновить исполнителей",
+  "albumCountSort": "Количество альбомов",
+  "musicLibraryEmpty": "Ваша музыкальная библиотека пуста",
+  "artistAlbumsAndSongs": "{albumCount} альбомов • {songCount} песен",
+  "gridView": "Сетка",
+  "listView": "Список"
 }
