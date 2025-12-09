@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../shared/detail_track_view.dart';
@@ -146,26 +147,27 @@ class _HomeContentState extends State<HomeContent> {
     return similarAlbums.take(6).toList();
   }
 
-  String _getGreeting() {
+  String _getGreeting(AppLocalizations l10n) {
     final hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Good morning';
+      return l10n.goodMorning;
     } else if (hour < 17) {
-      return 'Good afternoon';
+      return l10n.goodAfternoon;
     } else {
-      return 'Good evening';
+      return l10n.goodEvening;
     }
   }
 
   void _showNoFavoritesDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('No Favorites'),
-        content: const Text('You haven\'t marked any songs as favorites yet. Add some favorites to use this shuffle option.'),
+        title: Text(l10n.noFavorites),
+        content: Text(l10n.noFavoritesYet),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
