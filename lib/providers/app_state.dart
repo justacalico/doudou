@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,6 +54,9 @@ class AppState extends ChangeNotifier {
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = Colors.purple;
+  
+  // Locale settings
+  Locale? _locale; // null means use system locale
   
   // Getters
   bool get isLoggedIn => _isLoggedIn;
@@ -111,6 +115,9 @@ class AppState extends ChangeNotifier {
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
+  
+  // Locale getter
+  Locale? get locale => _locale;
 
   AppState() {
     _mediaServiceManager = MediaServiceManager.withJellyfinService(_jellyfinService);
@@ -2013,6 +2020,17 @@ class AppState extends ChangeNotifier {
     final accentColorValue = prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
     
+    // Load locale settings
+    final localeCode = prefs.getString('locale');
+    if (localeCode != null && localeCode.isNotEmpty) {
+      final parts = localeCode.split('_');
+      _locale = parts.length > 1 
+          ? Locale(parts[0], parts[1]) 
+          : Locale(parts[0]);
+    } else {
+      _locale = null; // Use system locale
+    }
+    
     // Load recent tracks (only after tracks are loaded)
     if (_tracks.isNotEmpty) {
       await _loadRecentTracks();
@@ -2059,6 +2077,28 @@ class AppState extends ChangeNotifier {
       await prefs.setInt('accent_color', color.value);
       notifyListeners();
     }
+  }
+
+  /// Set the app locale. Pass null to use system locale.
+  Future<void> setLocale(Locale? locale) async {
+    if (_locale != locale) {
+      _locale = locale;
+      final prefs = await SharedPreferences.getInstance();
+      if (locale != null) {
+        final localeCode = locale.countryCode != null 
+            ? '${locale.languageCode}_${locale.countryCode}' 
+            : locale.languageCode;
+        await prefs.setString('locale', localeCode);
+      } else {
+        await prefs.remove('locale');
+      }
+      notifyListeners();
+    }
+  }
+
+  /// Get the effective locale (user preference or system default)
+  Locale get effectiveLocale {
+    return _locale ?? ui.PlatformDispatcher.instance.locale;
   }
 
   // Cache management methods
