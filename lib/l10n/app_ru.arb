@@ -470,5 +470,14 @@
   "yearInfoAppear": "Информация о годе выпуска появится здесь, когда будет доступна",
 
   "albumCountSingle": "{count} альбом",
-  "albumCountMultiple": "{count} альбомов"
+  "albumCountMultiple": "{count} альбомов",
+
+  "playFavoritesCount": "Воспроизвести избранное ({count})",
+  "noFavoriteTracks": "Нет избранных треков",
+  "libraryAppearsEmpty": "Ваша музыкальная библиотека пуста",
+  "playTrack": "Воспроизвести трек",
+  "albumInfoNotAvailable": "Информация об альбоме недоступна",
+  "albumNotFound": "Альбом не найден",
+  "artistInfoNotAvailable": "Информация об исполнителе недоступна",
+  "artistNotFound": "Исполнитель не найден"
 }
