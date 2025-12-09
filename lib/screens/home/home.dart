@@ -332,7 +332,7 @@ class _HomeContentState extends State<HomeContent> {
                                 Expanded(
                                   child: _buildEnhancedShuffleButton(
                                     icon: CupertinoIcons.shuffle,
-                                    label: 'Shuffle all',
+                                    label: l10n.shuffleAll,
                                     onPressed: () async {
                                       // CRITICAL FIX: Add UI-level debouncing to prevent rapid taps
                                       final now = DateTime.now();
@@ -354,7 +354,7 @@ class _HomeContentState extends State<HomeContent> {
                                 Expanded(
                                   child: _buildEnhancedShuffleButton(
                                     icon: CupertinoIcons.heart_fill,
-                                    label: 'Shuffle favorites',
+                                    label: l10n.shuffleFavorites,
                                     onPressed: () async {
                                       // CRITICAL FIX: Add UI-level debouncing to prevent rapid taps
                                       final now = DateTime.now();
