@@ -227,7 +227,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             const SizedBox(width: 24),
             
             // Filter dropdown
-            Text('${l10n.filter}', style: theme.textTheme.bodyMedium),
+            Text(l10n.filter, style: theme.textTheme.bodyMedium),
             const SizedBox(width: 8),
             DropdownButton<String>(
               value: _filterBy,
