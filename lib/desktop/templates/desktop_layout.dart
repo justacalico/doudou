@@ -853,8 +853,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   ),
                                                 ),
                                                 tooltip: isFavorite
-                                                    ? 'Remove from favorites'
-                                                    : 'Add to favorites',
+                                                    ? l10n.removeFromFavorites
+                                                    : l10n.addToFavorites,
                                               );
                                             },
                                           ),
@@ -894,7 +894,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                   ),
                                                 ),
                                                 tooltip:
-                                                    'Volume ${(currentVolume * 100).round()}%',
+                                                    l10n.volumePercent((currentVolume * 100).round()),
                                               );
                                             },
                                           ),
@@ -918,7 +918,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                                     BorderRadius.circular(8),
                                               ),
                                             ),
-                                            tooltip: 'Show Now Playing',
+                                            tooltip: l10n.tooltipShowNowPlaying,
                                           ),
                                         ],
                                       ),
