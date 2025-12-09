@@ -2272,19 +2272,9 @@
     "description": "In your library subtitle"
   },
 
-  "albums": "Albums",
-  "@albums": {
-    "description": "Albums label"
-  },
-
   "albumCollections": "Album collections",
   "@albumCollections": {
     "description": "Album collections subtitle"
-  },
-
-  "artists": "Artists",
-  "@artists": {
-    "description": "Artists label"
   },
 
   "uniqueArtists": "Unique artists",
@@ -2292,19 +2282,9 @@
     "description": "Unique artists subtitle"
   },
 
-  "playlists": "Playlists",
-  "@playlists": {
-    "description": "Playlists label"
-  },
-
   "yourPlaylists": "Your playlists",
   "@yourPlaylists": {
     "description": "Your playlists subtitle"
-  },
-
-  "recentlyAddedAlbums": "Recently Added Albums",
-  "@recentlyAddedAlbums": {
-    "description": "Recently added albums section header"
   },
 
   "recentlyPlayedSection": "Recently Played",
