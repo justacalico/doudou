@@ -191,7 +191,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildFilterSortBar(AppState appState, int filteredCount) {
+  Widget _buildFilterSortBar(AppState appState, int filteredCount, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Card(
@@ -201,7 +201,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
           children: [
             // Results count
             Text(
-              '$filteredCount artists',
+              l10n.artistsCount(filteredCount),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -210,7 +210,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
             const SizedBox(width: 24),
             
             // Sort dropdown
-            Text('Sort by:', style: theme.textTheme.bodyMedium),
+            Text(l10n.sortBy, style: theme.textTheme.bodyMedium),
             const SizedBox(width: 8),
             DropdownButton<String>(
               value: _sortBy,
@@ -221,9 +221,9 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   });
                 }
               },
-              items: const [
-                DropdownMenuItem(value: 'name', child: Text('Name')),
-                DropdownMenuItem(value: 'albumCount', child: Text('Album Count')),
+              items: [
+                DropdownMenuItem(value: 'name', child: Text(l10n.name)),
+                DropdownMenuItem(value: 'albumCount', child: Text(l10n.albumCountSort)),
               ],
             ),
             
@@ -237,7 +237,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 });
               },
               icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-              tooltip: _isAscending ? 'Ascending' : 'Descending',
+              tooltip: _isAscending ? l10n.ascending : l10n.descending,
             ),
             
             const Spacer(),
@@ -248,7 +248,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 // Play all artists
               } : null,
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Play All'),
+              label: Text(l10n.playAll),
             ),
             
             const SizedBox(width: 8),
@@ -258,7 +258,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 // Shuffle all artists
               } : null,
               icon: const Icon(Icons.shuffle),
-              label: const Text('Shuffle All'),
+              label: Text(l10n.shuffleAll),
             ),
           ],
         ),
