@@ -348,7 +348,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Widget _buildQuickActions(AppState appState) {
+  Widget _buildQuickActions(AppState appState, AppLocalizations l10n) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -367,7 +367,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
             }
           },
           icon: const Icon(Icons.play_arrow),
-          label: const Text('Play All'),
+          label: Text(l10n.playAll),
         ),
         const SizedBox(width: 8),
         TextButton.icon(
@@ -386,13 +386,13 @@ class _AlbumsPageState extends State<AlbumsPage> {
             }
           },
           icon: const Icon(Icons.shuffle),
-          label: const Text('Shuffle All'),
+          label: Text(l10n.shuffleAll),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -405,19 +405,19 @@ class _AlbumsPageState extends State<AlbumsPage> {
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty 
-                ? 'No albums found for "$_searchQuery"'
+                ? l10n.noResultsFor(_searchQuery)
                 : _filterBy == 'favorites'
-                    ? 'No favorite albums yet'
-                    : 'No albums found',
+                    ? l10n.noFavoriteAlbums
+                    : l10n.noAlbumsFound,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty
-                ? 'Try a different search term'
+                ? l10n.tryDifferentSearch
                 : _filterBy == 'favorites'
-                    ? 'Add albums to favorites by clicking the heart icon'
-                    : 'Your music library appears to be empty',
+                    ? l10n.addAlbumsToFavorites
+                    : l10n.musicLibraryEmpty,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -431,7 +431,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   _searchQuery = '';
                 });
               },
-              child: const Text('Clear Search'),
+              child: Text(l10n.clearSearch),
             ),
           ],
         ],
@@ -439,7 +439,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Widget _buildAlbumsGrid(AppState appState, List<dynamic> albums) {
+  Widget _buildAlbumsGrid(AppState appState, List<dynamic> albums, AppLocalizations l10n) {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate responsive grid columns based on screen width
@@ -479,7 +479,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
           itemCount: albums.length,
           itemBuilder: (context, index) {
             final album = albums[index];
-            return _buildAlbumCard(appState, album);
+            return _buildAlbumCard(appState, album, l10n);
           },
         );
       },
