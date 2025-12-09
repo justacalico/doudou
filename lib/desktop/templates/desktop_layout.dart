@@ -128,6 +128,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final navigationItems = _getNavigationItems(l10n);
 
     return Scaffold(
       body: Column(
@@ -160,7 +162,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                               IconButton(
                                 onPressed: () => Navigator.pop(context),
                                 icon: const Icon(Icons.arrow_back),
-                                tooltip: 'Back',
+                                tooltip: l10n.back,
                               ),
                               const SizedBox(width: 8),
                             ],
@@ -191,7 +193,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: _navigationItems.length,
+                          itemCount: navigationItems.length,
                           itemBuilder: (context, index) {
                             final currentSelectedIndex =
                                 widget.selectedIndex ?? _selectedIndex;
@@ -212,7 +214,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                       : theme.colorScheme.onSurfaceVariant,
                                 ),
                                 title: Text(
-                                  _navigationItems[index],
+                                  navigationItems[index],
                                   style: TextStyle(
                                     color: isSelected
                                         ? theme.colorScheme.primary
