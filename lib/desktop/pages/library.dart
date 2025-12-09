@@ -105,7 +105,7 @@ class _LibraryPageState extends State<LibraryPage> {
     }
   }
 
-  Widget _buildOverviewContent(AppState appState) {
+  Widget _buildOverviewContent(AppState appState, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return SingleChildScrollView(
@@ -117,7 +117,7 @@ class _LibraryPageState extends State<LibraryPage> {
             children: [
               Expanded(
                 child: _buildStatCard(
-                  'Total Songs',
+                  l10n.totalSongs,
                   '${appState.tracks.length}',
                   Icons.music_note,
                   Colors.blue,
@@ -127,31 +127,31 @@ class _LibraryPageState extends State<LibraryPage> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildStatCard(
-                  'Albums',
+                  l10n.navAlbums,
                   '${appState.albums.length}',
                   Icons.album,
                   Colors.green,
-                  '${_getUniqueArtists(appState.albums).length} artists',
+                  l10n.countArtists(_getUniqueArtists(appState.albums).length),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildStatCard(
-                  'Artists',
+                  l10n.navArtists,
                   '${appState.artists.length}',
                   Icons.person,
                   Colors.orange,
-                  'In your library',
+                  l10n.inYourLibrary,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildStatCard(
-                  'Playlists',
+                  l10n.navPlaylists,
                   '${appState.playlists.length}',
                   Icons.playlist_play,
                   Colors.purple,
-                  'Created by you',
+                  l10n.yourPlaylists,
                 ),
               ),
             ],
@@ -162,7 +162,7 @@ class _LibraryPageState extends State<LibraryPage> {
           // Recently played section
           if (appState.albums.isNotEmpty) ...[
             Text(
-              'Recently Added Albums',
+              l10n.recentlyAddedAlbums,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
