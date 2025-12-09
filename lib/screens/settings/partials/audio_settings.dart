@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AudioSettingsSection extends StatelessWidget {
   const AudioSettingsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Container(
@@ -22,12 +24,12 @@ class AudioSettingsSection extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _buildSectionHeader('Audio Settings'),
+              _buildSectionHeader(l10n.audioSettings),
 
               _buildSwitchTile(
                 icon: CupertinoIcons.speaker_2,
-                title: 'Normalize Volume',
-                subtitle: 'Reduces volume differences between tracks',
+                title: l10n.normalizeVolume,
+                subtitle: l10n.reduceVolumeDifferences,
                 value: appState.normalizeVolumeEnabled,
                 onChanged: (value) {
                   appState.toggleNormalizeVolume(value);
@@ -35,8 +37,8 @@ class AudioSettingsSection extends StatelessWidget {
               ),
               _buildSwitchTile(
                 icon: CupertinoIcons.forward_end,
-                title: 'Gapless Playback',
-                subtitle: 'Seamless transitions between tracks in queue',
+                title: l10n.gaplessPlayback,
+                subtitle: l10n.seamlessTransitions,
                 value: appState.gaplessPlaybackEnabled,
                 onChanged: (value) {
                   appState.toggleGaplessPlayback(value);
@@ -51,15 +53,15 @@ class AudioSettingsSection extends StatelessWidget {
               _buildDownloadTile(
                 context: context,
                 icon: CupertinoIcons.cloud_download,
-                title: 'Download All Songs',
-                subtitle: 'Download your entire music library',
+                title: l10n.downloadAllSongs,
+                subtitle: l10n.downloadEntireLibrary,
                 onTap: () => _downloadAllSongs(context, appState),
               ),
               _buildDownloadTile(
                 context: context,
                 icon: CupertinoIcons.heart_circle,
-                title: 'Download All Favorites',
-                subtitle: 'Download all your liked songs',
+                title: l10n.downloadAllFavorites,
+                subtitle: l10n.downloadAllLikedSongs,
                 onTap: () => _downloadAllFavorites(context, appState),
               ),
             ],
