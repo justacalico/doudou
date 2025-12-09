@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../templates/desktop_layout.dart';
 import 'details/media_details.dart';
@@ -110,9 +111,10 @@ class _TracksPageState extends State<TracksPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     
     return PageTemplate(
-      title: 'Tracks',
+      title: l10n.navTracks,
       actions: [
         // Play All button
         Consumer<AppState>(
@@ -120,7 +122,7 @@ class _TracksPageState extends State<TracksPage> {
             return IconButton(
               onPressed: _tracks.isNotEmpty ? () => _playAllTracks(appState) : null,
               icon: const Icon(Icons.play_arrow),
-              tooltip: 'Play all tracks',
+              tooltip: l10n.playAll,
               iconSize: 28,
             );
           },
@@ -132,7 +134,7 @@ class _TracksPageState extends State<TracksPage> {
             return IconButton(
               onPressed: _tracks.isNotEmpty ? () => _shuffleAllTracks(appState) : null,
               icon: const Icon(Icons.shuffle),
-              tooltip: 'Shuffle all tracks',
+              tooltip: l10n.shuffleAll,
               iconSize: 28,
             );
           },
@@ -148,7 +150,7 @@ class _TracksPageState extends State<TracksPage> {
                 Icons.favorite,
                 color: favoriteCount > 0 ? Colors.red : null,
               ),
-              tooltip: favoriteCount > 0 ? 'Play favorites ($favoriteCount)' : 'No favorite tracks',
+              tooltip: favoriteCount > 0 ? l10n.playFavoritesCount(favoriteCount) : l10n.noFavoriteTracks,
               iconSize: 28,
             );
           },
@@ -156,7 +158,7 @@ class _TracksPageState extends State<TracksPage> {
         
         PopupMenuButton<String>(
           icon: const Icon(Icons.sort),
-          tooltip: 'Sort by',
+          tooltip: l10n.sortBy,
           onSelected: _handleSort,
           itemBuilder: (context) => [
             PopupMenuItem(
@@ -165,7 +167,7 @@ class _TracksPageState extends State<TracksPage> {
                 children: [
                   Icon(_sortBy == 'title' ? Icons.check : null),
                   const SizedBox(width: 8),
-                  const Text('Title'),
+                  Text(l10n.title),
                   if (_sortBy == 'title') ...[
                     const Spacer(),
                     Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
@@ -179,7 +181,7 @@ class _TracksPageState extends State<TracksPage> {
                 children: [
                   Icon(_sortBy == 'artist' ? Icons.check : null),
                   const SizedBox(width: 8),
-                  const Text('Artist'),
+                  Text(l10n.artist),
                   if (_sortBy == 'artist') ...[
                     const Spacer(),
                     Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
@@ -193,7 +195,7 @@ class _TracksPageState extends State<TracksPage> {
                 children: [
                   Icon(_sortBy == 'album' ? Icons.check : null),
                   const SizedBox(width: 8),
-                  const Text('Album'),
+                  Text(l10n.album),
                   if (_sortBy == 'album') ...[
                     const Spacer(),
                     Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
@@ -207,7 +209,7 @@ class _TracksPageState extends State<TracksPage> {
                 children: [
                   Icon(_sortBy == 'duration' ? Icons.check : null),
                   const SizedBox(width: 8),
-                  const Text('Duration'),
+                  Text(l10n.duration),
                   if (_sortBy == 'duration') ...[
                     const Spacer(),
                     Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
@@ -220,14 +222,14 @@ class _TracksPageState extends State<TracksPage> {
         IconButton(
           onPressed: _loadTracks,
           icon: const Icon(Icons.refresh),
-          tooltip: 'Refresh',
+          tooltip: l10n.tooltipRefresh,
         ),
       ],
-      child: _buildContent(theme),
+      child: _buildContent(theme, l10n),
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent(ThemeData theme, AppLocalizations l10n) {
     if (_isLoading && _tracks.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -246,7 +248,7 @@ class _TracksPageState extends State<TracksPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading tracks',
+              l10n.errorLoadingTracks,
               style: theme.textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -260,7 +262,7 @@ class _TracksPageState extends State<TracksPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadTracks,
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -279,14 +281,14 @@ class _TracksPageState extends State<TracksPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No tracks found',
+              l10n.noTracksFound,
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Your music library appears to be empty',
+              l10n.libraryAppearsEmpty,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
