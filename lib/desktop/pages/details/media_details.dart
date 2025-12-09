@@ -151,6 +151,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final theme = Theme.of(context);
@@ -174,17 +175,17 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                       // Action buttons row
-                      _buildActionButtons(theme),
+                      _buildActionButtons(theme, l10n),
                       
                       const SizedBox(height: 24),
                       
                       // Media header
-                      _buildMediaHeader(theme, appState),
+                      _buildMediaHeader(theme, appState, l10n),
                       
                       const SizedBox(height: 24),
                       
                       // Track list section (now part of the scrollable content)
-                      _buildTrackList(theme, appState),
+                      _buildTrackList(theme, appState, l10n),
                           ],
                         ),
                       ),
