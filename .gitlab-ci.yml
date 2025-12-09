@@ -83,7 +83,7 @@ build_debug_apk:
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
-    expire_in: 30m
+    expire_in: never
   timeout: 25m
 
 build_release_apk:
@@ -176,7 +176,7 @@ build_release_apk:
   artifacts:
     paths:
       - build/app/outputs/flutter-apk/app-release.apk
-    expire_in: 7 days
+    expire_in: never
   timeout: 25m
 
 # Build signed AAB for Google Play Store
@@ -271,7 +271,7 @@ build_release_aab:
   artifacts:
     paths:
       - build/app/outputs/bundle/release/app-release.aab
-    expire_in: 30 days
+    expire_in: never
   timeout: 30m
 
 build_release_linux:
@@ -313,7 +313,7 @@ build_release_linux:
     paths:
       - build/linux/x64/release/bundle/
       - doudou-*-linux-x64.zip
-    expire_in: 30m
+    expire_in: never
   timeout: 15m
 
 build_linux_deb:
@@ -350,7 +350,7 @@ build_linux_deb:
   artifacts:
     paths:
       - artifacts/klit-linux-amd64.deb
-    expire_in: 30m
+    expire_in: never
   timeout: 20m
 
 build_linux_appimage:
@@ -397,5 +397,5 @@ build_linux_appimage:
   artifacts:
     paths:
       - artifacts/klit-linux-x86_64.AppImage
-    expire_in: 30m
+    expire_in: never
   timeout: 25m
