@@ -1122,7 +1122,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 );
               }
             },
-            child: const Text('Create'),
+            child: Text(l10n.create),
           ),
         ],
       ),
@@ -1130,28 +1130,28 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   }
 
   // Playlist-specific methods
-  void _showEditPlaylistDialog() {
+  void _showEditPlaylistDialog(AppLocalizations l10n) {
     if (widget.mediaType != MediaType.playlist) return;
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Playlist'),
+        title: Text(l10n.editPlaylist),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Playlist Name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.playlistName,
+                border: const OutlineInputBorder(),
               ),
               controller: TextEditingController(text: widget.playlist!.name),
             ),
             const SizedBox(height: 16),
             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Description (Optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.descriptionOptional,
+                border: const OutlineInputBorder(),
               ),
               controller: TextEditingController(text: ''),
               maxLines: 3,
@@ -1161,32 +1161,32 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               // Save playlist changes
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
     );
   }
 
-  void _showDeletePlaylistDialog() {
+  void _showDeletePlaylistDialog(AppLocalizations l10n) {
     if (widget.mediaType != MediaType.playlist) return;
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Playlist'),
-        content: Text('Are you sure you want to delete "${widget.playlist!.name}"? This action cannot be undone.'),
+        title: Text(l10n.deletePlaylist),
+        content: Text(l10n.deletePlaylistConfirmation(widget.playlist!.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -1195,14 +1195,14 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
               // Delete playlist
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
     );
   }
 
-  void _removeTrackFromPlaylist(Track track) {
+  void _removeTrackFromPlaylist(Track track, AppLocalizations l10n) {
     if (widget.mediaType != MediaType.playlist) return;
     
     setState(() {
@@ -1211,9 +1211,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Removed "${track.name}" from playlist'),
+        content: Text(l10n.removedFromPlaylist(track.name)),
         action: SnackBarAction(
-          label: 'Undo',
+          label: l10n.undo,
           onPressed: () {
             // Undo remove track
           },
