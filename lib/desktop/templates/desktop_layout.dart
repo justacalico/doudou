@@ -1781,10 +1781,9 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
               final isBuffering =
                   playbackState?.processingState ==
                   AudioProcessingState.buffering;
-              final shuffleMode =
-                  playbackState?.shuffleMode ?? AudioServiceShuffleMode.none;
-              final repeatMode =
-                  playbackState?.repeatMode ?? AudioServiceRepeatMode.none;
+              // Use the audioHandler's direct properties for shuffle/repeat state
+              final isShuffled = audioHandler?.shuffleEnabled ?? false;
+              final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1792,14 +1791,10 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   // Shuffle
                   IconButton(
                     onPressed: audioHandler != null
-                        ? () => audioHandler.setShuffleMode(
-                            shuffleMode == AudioServiceShuffleMode.all
-                                ? AudioServiceShuffleMode.none
-                                : AudioServiceShuffleMode.all,
-                          )
+                        ? () => audioHandler.toggleShuffle()
                         : null,
                     icon: const Icon(Icons.shuffle_rounded),
-                    color: shuffleMode == AudioServiceShuffleMode.all
+                    color: isShuffled
                         ? Colors.white
                         : Colors.white.withOpacity(0.5),
                     iconSize: 24,
