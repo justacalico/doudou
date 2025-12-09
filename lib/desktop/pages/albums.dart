@@ -851,7 +851,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
           ],
         );
@@ -859,7 +859,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Future<void> _addAlbumToPlaylist(AppState appState, String playlistId, List<Track> tracks, String albumName) async {
+  Future<void> _addAlbumToPlaylist(AppState appState, String playlistId, List<Track> tracks, String albumName, AppLocalizations l10n) async {
     try {
       int successCount = 0;
       for (final track in tracks) {
@@ -872,8 +872,8 @@ class _AlbumsPageState extends State<AlbumsPage> {
           SnackBar(
             content: Text(
               successCount == tracks.length 
-                ? 'Added "$albumName" ($successCount tracks) to playlist'
-                : 'Added $successCount of ${tracks.length} tracks from "$albumName" to playlist',
+                ? l10n.addedAlbumToPlaylist(albumName, successCount)
+                : l10n.addedPartialAlbumToPlaylist(successCount, tracks.length, albumName),
             ),
           ),
         );
@@ -881,7 +881,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding album to playlist: $e')),
+          SnackBar(content: Text(l10n.errorAddingToPlaylist(e.toString()))),
         );
       }
     }
