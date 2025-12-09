@@ -475,6 +475,11 @@
 
   "playFavoritesCount": "Воспроизвести избранное ({count})",
   "noFavoriteTracks": "Нет избранных треков",
+  "noFavoriteSongs": "Нет избранных песен",
+  "noDownloadedFavorites": "Нет загруженных избранных",
+  "downloadedFavorites": "Загруженное избранное",
+  "downloadFavoritesSuggestion": "Загрузите избранные песни, чтобы слушать их офлайн.",
+  "favoriteSongsDescription": "Здесь появятся песни, которые вам нравятся. Нажмите на сердечко, чтобы добавить песни в избранное.",
   "libraryAppearsEmpty": "Ваша музыкальная библиотека пуста",
   "playTrack": "Воспроизвести трек",
   "albumInfoNotAvailable": "Информация об альбоме недоступна",
