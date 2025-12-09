@@ -12,16 +12,15 @@ class AccountInformationSection extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final server = appState.jellyfinService.currentServer;
-        
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E), // Dark gray background instead of pure black
+            color: const Color(
+              0xFF1C1C1E,
+            ), // Dark gray background instead of pure black
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF2C2C2E),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF2C2C2E), width: 1),
           ),
           child: Column(
             children: [
@@ -81,10 +80,7 @@ class AccountInformationSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1C1C1E),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF3A3A3C),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
             ),
             child: Icon(
               icon,
@@ -109,7 +105,9 @@ class AccountInformationSection extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFFAAAAAA), // Lighter gray for better readability
+                    color: Color(
+                      0xFFAAAAAA,
+                    ), // Lighter gray for better readability
                     fontSize: 15,
                   ),
                 ),
