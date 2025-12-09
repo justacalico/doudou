@@ -166,14 +166,14 @@ class _AlbumsPageState extends State<AlbumsPage> {
                           // Toggle between grid and list view
                         },
                         borderRadius: BorderRadius.circular(8),
-                        children: const [
+                        children: [
                           Tooltip(
-                            message: 'Grid View',
-                            child: Icon(Icons.grid_view),
+                            message: l10n.gridView,
+                            child: const Icon(Icons.grid_view),
                           ),
                           Tooltip(
-                            message: 'List View',
-                            child: Icon(Icons.list),
+                            message: l10n.listView,
+                            child: const Icon(Icons.list),
                           ),
                         ],
                       ),
@@ -184,7 +184,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                     IconButton(
                       onPressed: () => appState.loadLibraryData(),
                       icon: const Icon(Icons.refresh),
-                      tooltip: 'Refresh Albums',
+                      tooltip: l10n.refreshAlbums,
                     ),
                   ],
                 );
