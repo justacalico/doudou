@@ -373,13 +373,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildAppearanceSettings(AppState appState) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Appearance Settings',
+            l10n.appearanceSettings,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -394,14 +395,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Theme',
+                    l10n.theme,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   ListTile(
-                    title: const Text('App theme'),
+                    title: Text(l10n.appTheme),
                     subtitle: Text(_getThemeDisplayName(appState.themeMode)),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
@@ -409,7 +410,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   ListTile(
-                    title: const Text('Accent color'),
+                    title: Text(l10n.accentColor),
                     subtitle: Text(_getColorDisplayName(appState.accentColor)),
                     trailing: Container(
                       width: 24,
@@ -438,31 +439,31 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Layout',
+                    l10n.layout,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Compact mode'),
-                    subtitle: const Text('Reduce spacing and padding'),
+                    title: Text(l10n.compactMode),
+                    subtitle: Text(l10n.reduceSpacing),
                     value: false,
                     onChanged: (value) {
                       // Handle compact mode
                     },
                   ),
                   SwitchListTile(
-                    title: const Text('Show album art in sidebar'),
-                    subtitle: const Text('Display current track artwork'),
+                    title: Text(l10n.showAlbumArtSidebar),
+                    subtitle: Text(l10n.displayCurrentArtwork),
                     value: true,
                     onChanged: (value) {
                       // Handle sidebar artwork
                     },
                   ),
                   ListTile(
-                    title: const Text('Grid size'),
-                    subtitle: const Text('Medium'),
+                    title: Text(l10n.gridSize),
+                    subtitle: Text(l10n.medium),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       // Show grid size options
@@ -483,7 +484,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Language',
+                    l10n.language,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -491,7 +492,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     leading: const Icon(Icons.language),
-                    title: const Text('App Language'),
+                    title: Text(l10n.selectLanguage),
                     subtitle: Text(_getCurrentLanguageDisplayName(appState)),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
