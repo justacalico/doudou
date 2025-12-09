@@ -122,13 +122,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildGeneralSettings(AppState appState) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'General Settings',
+            l10n.generalSettings,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -143,27 +144,23 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Startup',
+                    l10n.startup,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Start with system'),
-                    subtitle: const Text(
-                      'Launch Doudou when your computer starts',
-                    ),
+                    title: Text(l10n.startWithSystem),
+                    subtitle: Text(l10n.launchOnStartup),
                     value: false, // This would come from preferences
                     onChanged: (value) {
                       // Handle startup setting
                     },
                   ),
                   SwitchListTile(
-                    title: const Text('Start minimized'),
-                    subtitle: const Text(
-                      'Launch in system tray instead of window',
-                    ),
+                    title: Text(l10n.startMinimized),
+                    subtitle: Text(l10n.launchInTray),
                     value: false,
                     onChanged: (value) {
                       // Handle minimize setting
@@ -184,22 +181,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Library',
+                    l10n.library,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Auto-refresh library'),
-                    subtitle: const Text('Automatically check for new music'),
+                    title: Text(l10n.autoRefreshLibrary),
+                    subtitle: Text(l10n.autoCheckForMusic),
                     value: true,
                     onChanged: (value) {
                       // Handle auto-refresh setting
                     },
                   ),
                   ListTile(
-                    title: const Text('Default library view'),
+                    title: Text(l10n.defaultLibraryView),
                     subtitle: const Text('Albums'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
