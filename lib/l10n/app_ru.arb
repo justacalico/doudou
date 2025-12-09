@@ -86,6 +86,7 @@
   "countSongs": "{count} песен",
   "countAlbums": "{count} альбомов",
   "countArtists": "{count} исполнителей",
+  "countPlaylists": "{count} плейлистов",
   "jumpBackIntoFavorites": "Вернитесь к избранному",
   "yourArtists": "Ваши исполнители",
   "browseByArtist": "Просмотр по исполнителям",
