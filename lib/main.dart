@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
@@ -10,38 +11,29 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
+import 'services/responsive_service.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
-import 'desktop/main.dart' as desktop_main;
+import 'desktop/templates/desktop_layout.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized first
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Check if we're on a desktop or web platform
-  if (_isDesktopOrWebPlatform()) {
-    // Delegate to desktop main, but don't reinitialize bindings
-    return desktop_main.runDesktopApp();
-  }
-
-  // Original mobile main logic
-  _runMobileApp();
+  // Run the unified responsive app
+  await _runResponsiveApp();
 }
 
-bool _isDesktopOrWebPlatform() {
-  return kIsWeb ||
-      defaultTargetPlatform == TargetPlatform.macOS ||
-      defaultTargetPlatform == TargetPlatform.windows ||
-      defaultTargetPlatform == TargetPlatform.linux;
-}
-
-void _runMobileApp() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
+/// Runs the unified app that adapts UI based on screen size, not platform.
+/// 
+/// This replaces the old platform-based detection with responsive design:
+/// - Screen width >= 768px: Desktop layout (Material Design)
+/// - Screen width < 768px: Mobile layout (Cupertino Design)
+Future<void> _runResponsiveApp() async {
   // Initialize logging service
   try {
     await LoggingService().initialize();
-    await _logSystemInfo('Mobile');
+    await _logSystemInfo('Responsive');
   } catch (e) {
     if (kDebugMode) {
       print('Failed to initialize logging service: $e');
@@ -53,19 +45,30 @@ void _runMobileApp() async {
       (defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    // Initialize the ffi database factory for desktop platforms
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
+    try {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize database: $e');
+      }
+    }
   }
 
   // Initialize MediaKit for Linux audio support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-    JustAudioMediaKit.ensureInitialized();
+    try {
+      JustAudioMediaKit.ensureInitialized();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to initialize MediaKit: $e');
+      }
+    }
   }
 
-  // Allow both orientations for Android Auto compatibility
-  // Android Auto requires landscape orientation support
-  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+  // Allow all orientations for flexibility
+  // This enables tablets to rotate and trigger layout changes
+  if (!kIsWeb) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -77,6 +80,10 @@ void _runMobileApp() async {
   runApp(const DoudouApp());
 }
 
+/// The main Doudou app widget that provides responsive UI based on screen size.
+/// 
+/// Uses LayoutBuilder to detect screen size changes and automatically switches
+/// between mobile (Cupertino) and desktop (Material) layouts.
 class DoudouApp extends StatelessWidget {
   const DoudouApp({super.key});
 
@@ -87,12 +94,25 @@ class DoudouApp extends StatelessWidget {
       child: Consumer<AppState>(
         builder: (context, appState, child) {
           return _buildAppWithPlatformServices(
-            CupertinoApp(
-              title: 'Doudou - Jellyfin Music Player',
-              theme: const CupertinoThemeData(
-                primaryColor: CupertinoColors.systemPurple,
-                scaffoldBackgroundColor: CupertinoColors.systemBackground,
+            // Use a MaterialApp as the root since it supports both Material and Cupertino widgets
+            // The actual UI style is determined by ResponsiveHomeScreen based on screen size
+            MaterialApp(
+              title: 'Doudou - Music Player',
+              theme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: appState.accentColor,
+                  brightness: Brightness.light,
+                ),
               ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: appState.accentColor,
+                  brightness: Brightness.dark,
+                ),
+              ),
+              themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
@@ -101,37 +121,7 @@ class DoudouApp extends StatelessWidget {
               ],
               supportedLocales: AppLocalizations.supportedLocales,
               locale: appState.locale,
-              home: Consumer<AppState>(
-                builder: (context, appState, child) {
-                  // Show loading screen while initializing
-                  if (!appState.isInitialized) {
-                    return const CupertinoPageScaffold(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CupertinoActivityIndicator(radius: 20),
-                            SizedBox(height: 16),
-                            Text(
-                              'Loading...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: CupertinoColors.secondaryLabel,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (appState.isLoggedIn) {
-                    return const HomeScreen();
-                  } else {
-                    return const LoginScreen();
-                  }
-                },
-              ),
+              home: const ResponsiveHomeScreen(),
               debugShowCheckedModeBanner: false,
             ),
           );
@@ -151,6 +141,102 @@ class DoudouApp extends StatelessWidget {
 
     // On other platforms (including web), return the app directly
     return app;
+  }
+}
+
+/// A responsive home screen that switches between mobile and desktop layouts
+/// based on screen width, not device platform.
+/// 
+/// Breakpoints:
+/// - < 768px: Mobile layout (optimized for phones and small screens)
+/// - >= 768px: Desktop layout (full sidebar and expanded content)
+class ResponsiveHomeScreen extends StatelessWidget {
+  const ResponsiveHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Determine layout based on screen width
+        final isDesktop = constraints.maxWidth >= ResponsiveService.desktopBreakpoint;
+        
+        return Consumer<AppState>(
+          builder: (context, appState, child) {
+            // Show loading screen while initializing
+            if (!appState.isInitialized) {
+              return _buildLoadingScreen(context, isDesktop);
+            }
+
+            // Show login screen if not logged in
+            if (!appState.isLoggedIn) {
+              return const LoginScreen();
+            }
+
+            // Show the appropriate main layout based on screen size
+            if (isDesktop) {
+              return const DesktopLayout();
+            } else {
+              return const MobileHomeScreen();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingScreen(BuildContext context, bool isDesktop) {
+    if (isDesktop) {
+      // Material design loading for desktop
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text(
+                'Loading...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // Cupertino-style loading for mobile (but using Material widgets since we're in MaterialApp)
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator.adaptive(),
+              const SizedBox(height: 16),
+              Text(
+                'Loading...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+}
+
+/// Mobile home screen wrapper that uses the existing HomeScreen
+class MobileHomeScreen extends StatelessWidget {
+  const MobileHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // HomeScreen is the existing mobile navbar-based layout
+    return const HomeScreen();
   }
 }
 
