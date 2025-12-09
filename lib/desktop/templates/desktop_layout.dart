@@ -1445,31 +1445,39 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   ),
 
                   // Right sidebar - Up Next queue (like YouTube Music)
-                  // Only show when window is wide enough
-                  if (showSidebar)
-                    Container(
-                      width: 350,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: Colors.white.withOpacity(0.1),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Background image fading from left (flipped horizontally)
-                          if (currentTrack?.artUri != null)
-                            Positioned.fill(
-                              child: ShaderMask(
-                                shaderCallback: (Rect bounds) {
-                                  return LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      Colors.white.withOpacity(0.3),
-                                      Colors.white.withOpacity(0.1),
+                  // Animated slide in/out based on window width
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: showSidebar ? Offset.zero : const Offset(1, 0),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      width: showSidebar ? 350 : 0,
+                      child: showSidebar
+                          ? Container(
+                              width: 350,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  left: BorderSide(
+                                    color: Colors.white.withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Stack(
+                                children: [
+                                  // Background image fading from left (flipped horizontally)
+                                  if (currentTrack?.artUri != null)
+                                    Positioned.fill(
+                                      child: ShaderMask(
+                                        shaderCallback: (Rect bounds) {
+                                          return LinearGradient(
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                            colors: [
+                                              Colors.white.withOpacity(0.3),
+                                              Colors.white.withOpacity(0.1),
                                     Colors.transparent,
                                   ],
                                   stops: const [0.0, 0.3, 0.7],
