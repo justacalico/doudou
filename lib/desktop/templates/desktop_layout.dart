@@ -15,6 +15,7 @@ import '../pages/tracks.dart';
 import '../pages/settings.dart';
 import '../../services/desktop_lyrics_service.dart';
 import '../../models/jellyfin_models.dart';
+import '../../services/audio/base_audio_handler.dart' as base_handler;
 
 class DesktopLayout extends StatefulWidget {
   final Widget? child;
