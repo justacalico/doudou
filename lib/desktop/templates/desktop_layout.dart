@@ -1872,33 +1872,32 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   // Repeat
                   IconButton(
                     onPressed: audioHandler != null
-                        ? () async {
+                        ? () {
                             switch (repeatMode) {
-                              case AudioServiceRepeatMode.none:
-                                await audioHandler.setRepeatMode(
-                                  AudioServiceRepeatMode.all,
+                              case base_handler.RepeatMode.none:
+                                audioHandler.setRepeatMode(
+                                  base_handler.RepeatMode.all,
                                 );
                                 break;
-                              case AudioServiceRepeatMode.all:
-                                await audioHandler.setRepeatMode(
-                                  AudioServiceRepeatMode.one,
+                              case base_handler.RepeatMode.all:
+                                audioHandler.setRepeatMode(
+                                  base_handler.RepeatMode.one,
                                 );
                                 break;
-                              case AudioServiceRepeatMode.one:
-                              case AudioServiceRepeatMode.group:
-                                await audioHandler.setRepeatMode(
-                                  AudioServiceRepeatMode.none,
+                              case base_handler.RepeatMode.one:
+                                audioHandler.setRepeatMode(
+                                  base_handler.RepeatMode.none,
                                 );
                                 break;
                             }
                           }
                         : null,
                     icon: Icon(
-                      repeatMode == AudioServiceRepeatMode.one
+                      repeatMode == base_handler.RepeatMode.one
                           ? Icons.repeat_one_rounded
                           : Icons.repeat_rounded,
                     ),
-                    color: repeatMode != AudioServiceRepeatMode.none
+                    color: repeatMode != base_handler.RepeatMode.none
                         ? Colors.white
                         : Colors.white.withOpacity(0.5),
                     iconSize: 24,
