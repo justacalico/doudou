@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
@@ -94,12 +95,14 @@ class _AlbumsPageState extends State<AlbumsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final filteredAlbums = _getFilteredAndSortedAlbums(appState);
         
         return PageTemplate(
-          title: 'Albums',
+          title: l10n.albums,
           actions: [
             // Search field - responsive width
             LayoutBuilder(
@@ -119,7 +122,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Search albums...',
+                      hintText: l10n.searchAlbums,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
