@@ -3037,5 +3037,145 @@
   "fromAlbum": "From ",
   "@fromAlbum": {
     "description": "From album prefix"
+  },
+
+  "playerInterface": "Player Interface",
+  "@playerInterface": {
+    "description": "Player interface settings section header"
+  },
+
+  "storageAndCache": "Storage & Cache",
+  "@storageAndCache": {
+    "description": "Storage and cache settings section header"
+  },
+
+  "about": "About",
+  "@about": {
+    "description": "About section header"
+  },
+
+  "cacheInfo": "Cache Information",
+  "@cacheInfo": {
+    "description": "Cache information dialog title"
+  },
+
+  "cacheDescription": "Cache helps the app load content faster by storing frequently accessed data locally.",
+  "@cacheDescription": {
+    "description": "Cache description text"
+  },
+
+  "dataCache": "Data Cache",
+  "@dataCache": {
+    "description": "Data cache label"
+  },
+
+  "imageCache": "Image Cache",
+  "@imageCache": {
+    "description": "Image cache label"
+  },
+
+  "clearCacheOptions": "Clear Cache",
+  "@clearCacheOptions": {
+    "description": "Clear cache dialog title"
+  },
+
+  "selectClearOption": "Select what to clear:",
+  "@selectClearOption": {
+    "description": "Select what to clear label"
+  },
+
+  "cacheCleanedTitle": "Cache Cleaned",
+  "@cacheCleanedTitle": {
+    "description": "Cache cleaned dialog title"
+  },
+
+  "expiredCacheRemoved": "Expired cache entries have been removed.",
+  "@expiredCacheRemoved": {
+    "description": "Expired cache removed message"
+  },
+
+  "openSourceLicenses": "Open Source Licenses",
+  "@openSourceLicenses": {
+    "description": "Open source licenses dialog title"
+  },
+
+  "licensesDescription": "This app uses the following open source libraries:\n\n• Flutter\n• just_audio\n• cached_network_image\n• provider\n• dio\n• shared_preferences",
+  "@licensesDescription": {
+    "description": "Open source licenses description"
+  },
+
+  "gitlabUrlCopied": "The GitLab URL has been copied to your clipboard!",
+  "@gitlabUrlCopied": {
+    "description": "GitLab URL copied message"
+  },
+
+  "gitlabUrlDescription": "You can now paste it into your browser to visit the repository.",
+  "@gitlabUrlDescription": {
+    "description": "GitLab URL description"
+  },
+
+  "failedToCopyUrl": "Failed to copy URL to clipboard. Please visit:",
+  "@failedToCopyUrl": {
+    "description": "Failed to copy URL message"
+  },
+
+  "supportMessage": "Thank you for using Doudou! This app is open source and free to use. If you'd like to support development, consider starring the project on GitLab or contributing to the codebase.",
+  "@supportMessage": {
+    "description": "Support development message"
+  },
+
+  "refreshFailed": "Refresh Failed",
+  "@refreshFailed": {
+    "description": "Refresh failed dialog title"
+  },
+
+  "cacheClearedTitle": "{type} Cache Cleared",
+  "@cacheClearedTitle": {
+    "description": "Cache cleared dialog title",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+
+  "cacheClearedMessage": "{type} cache has been successfully cleared.",
+  "@cacheClearedMessage": {
+    "description": "Cache cleared message",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToClearCache": "Failed to clear {type} cache",
+  "@failedToClearCache": {
+    "description": "Failed to clear cache message",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToCleanExpiredCache": "Failed to clean expired cache",
+  "@failedToCleanExpiredCache": {
+    "description": "Failed to clean expired cache message"
+  },
+
+  "data": "Data",
+  "@data": {
+    "description": "Data label"
+  },
+
+  "image": "Image",
+  "@image": {
+    "description": "Image label"
+  },
+
+  "all": "All",
+  "@all": {
+    "description": "All label"
   }
 }
