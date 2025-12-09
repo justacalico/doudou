@@ -270,7 +270,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           ),
 
           // Bottom Player Bar
-          _buildBottomPlayerBar(theme),
+          _buildBottomPlayerBar(theme, l10n),
         ],
       ),
     );
