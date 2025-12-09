@@ -322,7 +322,7 @@ class _TracksPageState extends State<TracksPage> {
                   child: Row(
                     children: [
                       Text(
-                        'Title',
+                        l10n.title,
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -345,7 +345,7 @@ class _TracksPageState extends State<TracksPage> {
                   child: Row(
                     children: [
                       Text(
-                        'Artist',
+                        l10n.artist,
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -368,7 +368,7 @@ class _TracksPageState extends State<TracksPage> {
                   child: Row(
                     children: [
                       Text(
-                        'Album',
+                        l10n.album,
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -392,7 +392,7 @@ class _TracksPageState extends State<TracksPage> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Text(
-                        'Duration',
+                        l10n.duration,
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -421,7 +421,7 @@ class _TracksPageState extends State<TracksPage> {
                 itemCount: _tracks.length,
                 itemBuilder: (context, index) {
                   final track = _tracks[index];
-                  return _buildTrackItem(track, index, appState, theme);
+                  return _buildTrackItem(track, index, appState, theme, l10n);
                 },
               );
             },
