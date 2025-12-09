@@ -565,21 +565,22 @@ class LibraryContent extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final albums = appState.albums;
+        final l10n = AppLocalizations.of(context);
 
         if (albums.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   CupertinoIcons.music_albums,
                   size: 64,
                   color: CupertinoColors.systemGrey,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'No albums found',
-                  style: TextStyle(
+                  l10n.noAlbumsFound,
+                  style: const TextStyle(
                     fontSize: 18,
                     color: CupertinoColors.systemGrey,
                   ),
