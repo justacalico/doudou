@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import 'details/artist_details.dart';
