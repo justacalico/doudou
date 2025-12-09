@@ -1069,7 +1069,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                         // Add tracks to playlist
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(l10n.addedToPlaylist(widget.mediaType == MediaType.album ? l10n.album : 'tracks', playlist.name)),
+                            content: Text(l10n.addedToPlaylist(widget.mediaType == MediaType.album ? l10n.album : 'tracks', playlist.name, _title)),
                           ),
                         );
                       },
