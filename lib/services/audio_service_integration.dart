@@ -574,6 +574,36 @@ class AudioServiceIntegration {
     return false;
   }
 
+  /// Get current repeat mode
+  RepeatMode get repeatMode {
+    if (!_initialized || _audioHandler == null) return RepeatMode.none;
+
+    try {
+      if (_audioHandler is WebAudioHandler) {
+        return (_audioHandler as WebAudioHandler).repeatMode;
+      } else if (_audioHandler is DesktopAudioHandler) {
+        return (_audioHandler as DesktopAudioHandler).repeatMode;
+      } else if (_audioHandler is DoudouAudioHandler) {
+        // Convert AudioServiceRepeatMode to RepeatMode
+        final audioServiceMode = (_audioHandler as DoudouAudioHandler).playbackState.value.repeatMode;
+        switch (audioServiceMode) {
+          case audio_service.AudioServiceRepeatMode.none:
+            return RepeatMode.none;
+          case audio_service.AudioServiceRepeatMode.one:
+            return RepeatMode.one;
+          case audio_service.AudioServiceRepeatMode.all:
+          case audio_service.AudioServiceRepeatMode.group:
+            return RepeatMode.all;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error getting repeat mode: $e');
+      }
+    }
+    return RepeatMode.none;
+  }
+
   /// Get current queue index
   int? get currentIndex {
     if (!_initialized || _audioHandler == null) return null;
