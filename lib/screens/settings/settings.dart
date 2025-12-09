@@ -669,19 +669,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (!context.mounted) return;
 
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Cache Information'),
+        title: Text(l10n.cacheInfo),
         content: Text(
-          'Cache stores downloaded music metadata and images for faster access.\n\n'
-          'Data Cache: $totalDataEntries entries\n'
-          'Image Cache: $imageSizeText\n\n'
-          'Cached data includes albums, artists, tracks, and playlists.'
+          '${l10n.cacheDescription}\n\n'
+          '${l10n.dataCache}: $totalDataEntries entries\n'
+          '${l10n.imageCache}: $imageSizeText'
         ),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -690,14 +690,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showClearCacheDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Clear Cache'),
-        content: const Text('Choose what type of cache to clear:\n\n• Data Cache: Albums, artists, tracks, playlists\n• Image Cache: Downloaded artwork\n• All Cache: Everything'),
+        title: Text(l10n.clearCacheOptions),
+        content: Text(l10n.selectClearOption),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CupertinoDialogAction(
@@ -705,14 +706,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.of(context).pop();
               _clearDataCache(context);
             },
-            child: const Text('Clear Data'),
+            child: Text(l10n.dataCache),
           ),
           CupertinoDialogAction(
             onPressed: () {
               Navigator.of(context).pop();
               _clearImageCache(context);
             },
-            child: const Text('Clear Images'),
+            child: Text(l10n.imageCache),
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
@@ -720,7 +721,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.of(context).pop();
               _clearAllCache(context);
             },
-            child: const Text('Clear All'),
+            child: Text(l10n.clearAllCache),
           ),
         ],
       ),
@@ -728,14 +729,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showCacheClearedDialog(BuildContext context, String type) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Cache Cleared'),
-        content: Text('$type cache has been successfully cleared.'),
+        title: Text(l10n.cacheClearedTitle(type)),
+        content: Text(l10n.cacheClearedMessage(type)),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -788,14 +790,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await appState.cleanupExpiredCache();
       await _loadCacheSize(); // Refresh cache size display
       if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context);
       showCupertinoDialog(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
-          title: const Text('Cache Cleaned'),
-          content: const Text('Expired cache entries have been removed.'),
+          title: Text(l10n.cacheCleanedTitle),
+          content: Text(l10n.expiredCacheRemoved),
           actions: <CupertinoDialogAction>[
             CupertinoDialogAction(
-              child: const Text('OK'),
+              child: Text(l10n.ok),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -803,19 +806,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
-      _showErrorDialog(context, 'Failed to clean expired cache: $e');
+      _showErrorDialog(context, AppLocalizations.of(context).failedToCleanExpiredCache);
     }
   }
 
   void _showErrorDialog(BuildContext context, String message) {
+    final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Error'),
+        title: Text(l10n.error),
         content: Text(message),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
-            child: const Text('OK'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
