@@ -1328,24 +1328,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
 
                                   const Spacer(),
 
-                                  // Song/Video toggle (like YouTube Music)
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    padding: const EdgeInsets.all(4),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        _buildToggleButton('Song', true),
-                                        _buildToggleButton('Video', false),
-                                      ],
-                                    ),
-                                  ),
-
-                                  const Spacer(),
-
                                   // More options button
                                   IconButton(
                                     onPressed: () {
@@ -1427,30 +1409,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                               _buildSidebarTab('UP NEXT', 0),
                               const SizedBox(width: 24),
                               _buildSidebarTab('LYRICS', 1),
-                              const SizedBox(width: 24),
-                              _buildSidebarTab('RELATED', 2),
-                              const Spacer(),
-                              // Save button
-                              TextButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.playlist_add,
-                                  size: 18,
-                                  color: Colors.white,
-                                ),
-                                label: const Text(
-                                  'Save',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(
-                                    0.1,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -1478,25 +1436,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // Filter chips
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              _buildFilterChip('All', true),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Familiar', false),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Upbeat', false),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Alternative', false),
                             ],
                           ),
                         ),
@@ -1728,14 +1667,6 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
               // Action buttons
               Row(
                 children: [
-                  // Thumbs down
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.thumb_down_outlined),
-                    color: Colors.white.withOpacity(0.7),
-                    iconSize: 24,
-                  ),
-                  const SizedBox(width: 8),
                   // Favorite/Like button
                   Consumer<AppState>(
                     builder: (context, appState, child) {
