@@ -1445,29 +1445,31 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   ),
 
                   // Right sidebar - Up Next queue (like YouTube Music)
-                  Container(
-                    width: 350,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(
-                          color: Colors.white.withOpacity(0.1),
-                          width: 1,
+                  // Only show when window is wide enough
+                  if (showSidebar)
+                    Container(
+                      width: 350,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
                         ),
                       ),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Background image fading from left (flipped horizontally)
-                        if (currentTrack?.artUri != null)
-                          Positioned.fill(
-                            child: ShaderMask(
-                              shaderCallback: (Rect bounds) {
-                                return LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Colors.white.withOpacity(0.3),
-                                    Colors.white.withOpacity(0.1),
+                      child: Stack(
+                        children: [
+                          // Background image fading from left (flipped horizontally)
+                          if (currentTrack?.artUri != null)
+                            Positioned.fill(
+                              child: ShaderMask(
+                                shaderCallback: (Rect bounds) {
+                                  return LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.3),
+                                      Colors.white.withOpacity(0.1),
                                     Colors.transparent,
                                   ],
                                   stops: const [0.0, 0.3, 0.7],
