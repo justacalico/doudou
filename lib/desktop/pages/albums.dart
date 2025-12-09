@@ -222,7 +222,7 @@ class _AlbumsPageState extends State<AlbumsPage> {
     );
   }
 
-  Widget _buildFilterSortBar(AppState appState, int filteredCount) {
+  Widget _buildFilterSortBar(AppState appState, int filteredCount, AppLocalizations l10n) {
     final theme = Theme.of(context);
     
     return Card(
@@ -241,22 +241,22 @@ class _AlbumsPageState extends State<AlbumsPage> {
                   Row(
                     children: [
                       Text(
-                        '$filteredCount albums',
+                        l10n.albumsCount(filteredCount),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       const Spacer(),
-                      _buildQuickActions(appState),
+                      _buildQuickActions(appState, l10n),
                     ],
                   ),
                   const SizedBox(height: 12),
                   // Second row: Filter and sort controls
                   Row(
                     children: [
-                      _buildFilterControls(theme),
+                      _buildFilterControls(theme, l10n),
                       const Spacer(),
-                      _buildSortControls(theme),
+                      _buildSortControls(theme, l10n),
                     ],
                   ),
                 ],
@@ -267,17 +267,17 @@ class _AlbumsPageState extends State<AlbumsPage> {
                 children: [
                   // Results count
                   Text(
-                    '$filteredCount albums',
+                    l10n.albumsCount(filteredCount),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(width: 24),
-                  _buildFilterControls(theme),
+                  _buildFilterControls(theme, l10n),
                   const SizedBox(width: 24),
-                  _buildSortControls(theme),
+                  _buildSortControls(theme, l10n),
                   const Spacer(),
-                  _buildQuickActions(appState),
+                  _buildQuickActions(appState, l10n),
                 ],
               );
             }
