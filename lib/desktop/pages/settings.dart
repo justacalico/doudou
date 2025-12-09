@@ -1301,6 +1301,112 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     return Platform.operatingSystem;
   }
+
+  String _getCurrentLanguageDisplayName(AppState appState) {
+    final locale = appState.locale;
+    if (locale == null) {
+      return 'System default';
+    }
+    return _getLanguageNameForLocale(locale);
+  }
+
+  String _getLanguageNameForLocale(Locale locale) {
+    const languageNames = {
+      'en': 'English',
+      'es': 'Español',
+      'fr': 'Français',
+      'de': 'Deutsch',
+      'it': 'Italiano',
+      'pt': 'Português',
+      'ru': 'Русский',
+      'zh': '中文',
+      'ja': '日本語',
+      'ko': '한국어',
+      'ar': 'العربية',
+      'hi': 'हिन्दी',
+      'nl': 'Nederlands',
+      'pl': 'Polski',
+      'tr': 'Türkçe',
+      'vi': 'Tiếng Việt',
+      'th': 'ไทย',
+      'id': 'Indonesia',
+      'ms': 'Melayu',
+      'uk': 'Українська',
+      'cs': 'Čeština',
+      'sv': 'Svenska',
+      'da': 'Dansk',
+      'fi': 'Suomi',
+      'no': 'Norsk',
+      'he': 'עברית',
+      'el': 'Ελληνικά',
+      'ro': 'Română',
+      'hu': 'Magyar',
+      'sk': 'Slovenčina',
+      'bg': 'Български',
+      'hr': 'Hrvatski',
+      'sr': 'Српски',
+      'sl': 'Slovenščina',
+      'et': 'Eesti',
+      'lv': 'Latviešu',
+      'lt': 'Lietuvių',
+    };
+    
+    final baseName = languageNames[locale.languageCode] ?? locale.languageCode;
+    
+    if (locale.countryCode != null && locale.countryCode!.isNotEmpty) {
+      return '$baseName (${locale.countryCode})';
+    }
+    
+    return baseName;
+  }
+
+  void _showLanguageDialog(AppState appState) {
+    final currentLocale = appState.locale;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Language'),
+        content: SizedBox(
+          width: 300,
+          height: 400,
+          child: ListView(
+            children: [
+              // System default option
+              RadioListTile<Locale?>(
+                title: const Text('System default'),
+                value: null,
+                groupValue: currentLocale,
+                onChanged: (value) {
+                  Navigator.pop(context);
+                  appState.setLocale(null);
+                },
+              ),
+              const Divider(),
+              // Supported locales
+              ...AppLocalizations.supportedLocales.map((locale) {
+                return RadioListTile<Locale?>(
+                  title: Text(_getLanguageNameForLocale(locale)),
+                  value: locale,
+                  groupValue: currentLocale,
+                  onChanged: (value) {
+                    Navigator.pop(context);
+                    appState.setLocale(locale);
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // Desktop Logs Viewer Widget
