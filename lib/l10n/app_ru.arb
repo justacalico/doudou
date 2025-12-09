@@ -616,5 +616,14 @@
   "failedToStart": "{count} не удалось запустить",
   "downloadsContinueInBackground": "Загрузки продолжатся в фоновом режиме. Проверьте вкладку Загрузки для отслеживания прогресса.",
   "allAlreadyDownloaded": "Все {description} уже скачаны",
-  "failedToStartDownloads": "Не удалось начать загрузки"
+  "failedToStartDownloads": "Не удалось начать загрузки",
+  "topArtists": "Топ исполнители",
+  "mostPlayed": "Самые популярные",
+  "latestAlbums": "Последние альбомы",
+  "customMixes": "Пользовательские миксы",
+  "albumsCount": "{count} альбомов",
+  "artistsCount": "{count} исполнителей",
+  "songsCount": "{count} песен",
+  "tracksCount": "{count} треков",
+  "playlistsCount": "{count} плейлистов"
 }
