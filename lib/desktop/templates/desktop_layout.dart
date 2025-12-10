@@ -3817,3 +3817,383 @@ class _AddToPlaylistDialogState extends State<_AddToPlaylistDialog> {
     );
   }
 }
+
+// ============================================
+// APPLE-STYLED HELPER WIDGETS
+// ============================================
+
+/// Apple-style sidebar navigation item with hover effects
+class _AppleSidebarNavigationItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final bool isDark;
+  final Color primaryColor;
+  final VoidCallback onTap;
+
+  const _AppleSidebarNavigationItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.isDark,
+    required this.primaryColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_AppleSidebarNavigationItem> createState() =>
+      _AppleSidebarNavigationItemState();
+}
+
+class _AppleSidebarNavigationItemState
+    extends State<_AppleSidebarNavigationItem> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppleDesignSystem.spacing12,
+            vertical: AppleDesignSystem.spacing8,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? widget.primaryColor.withOpacity(widget.isDark ? 0.24 : 0.12)
+                : _isHovering
+                    ? (widget.isDark
+                        ? AppleColors.fillPrimaryDark
+                        : AppleColors.fillPrimary)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                color: widget.isSelected
+                    ? widget.primaryColor
+                    : widget.isDark
+                        ? AppleColors.labelSecondaryDark
+                        : AppleColors.labelSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: AppleDesignSystem.spacing12),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: AppleTextStyles.subheadline(
+                    color: widget.isSelected
+                        ? widget.primaryColor
+                        : widget.isDark
+                            ? AppleColors.labelPrimaryDark
+                            : AppleColors.labelPrimary,
+                  ).copyWith(
+                    fontWeight: widget.isSelected
+                        ? AppleDesignSystem.weightSemiBold
+                        : AppleDesignSystem.weightRegular,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Apple-style icon button with hover and press effects
+class _AppleIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isDark;
+  final Color? color;
+  final String? tooltip;
+  final double size;
+
+  const _AppleIconButton({
+    required this.icon,
+    this.onPressed,
+    required this.isDark,
+    this.color,
+    this.tooltip,
+    this.size = 20,
+  });
+
+  @override
+  State<_AppleIconButton> createState() => _AppleIconButtonState();
+}
+
+class _AppleIconButtonState extends State<_AppleIconButton> {
+  bool _isHovering = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
+    final iconColor = widget.color ??
+        (isDisabled
+            ? (widget.isDark
+                ? AppleColors.labelTertiaryDark
+                : AppleColors.labelTertiary)
+            : (widget.isDark
+                ? AppleColors.labelSecondaryDark
+                : AppleColors.labelSecondary));
+
+    final button = MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          padding: const EdgeInsets.all(AppleDesignSystem.spacing8),
+          decoration: BoxDecoration(
+            color: _isPressed
+                ? (widget.isDark
+                    ? AppleColors.fillSecondaryDark
+                    : AppleColors.fillSecondary)
+                : _isHovering
+                    ? (widget.isDark
+                        ? AppleColors.fillTertiaryDark
+                        : AppleColors.fillTertiary)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+          ),
+          child: AnimatedScale(
+            scale: _isPressed ? AppleDesignSystem.pressScale : 1.0,
+            duration: AppleDesignSystem.durationFast,
+            curve: AppleDesignSystem.interactiveCurve,
+            child: Icon(
+              widget.icon,
+              color: iconColor,
+              size: widget.size,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (widget.tooltip != null) {
+      return Tooltip(
+        message: widget.tooltip!,
+        child: button,
+      );
+    }
+
+    return button;
+  }
+}
+
+/// Apple-style album art with hover effect
+class _AppleAlbumArt extends StatefulWidget {
+  final String? imageUrl;
+  final VoidCallback? onTap;
+  final bool isDark;
+  final double size;
+
+  const _AppleAlbumArt({
+    this.imageUrl,
+    this.onTap,
+    required this.isDark,
+    this.size = 64,
+  });
+
+  @override
+  State<_AppleAlbumArt> createState() => _AppleAlbumArtState();
+}
+
+class _AppleAlbumArtState extends State<_AppleAlbumArt> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          transform: Matrix4.identity()
+            ..scale(_isHovering ? 1.02 : 1.0),
+          transformAlignment: Alignment.center,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              color: widget.isDark
+                  ? AppleColors.elevatedSecondaryDark
+                  : AppleColors.systemGray6,
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              boxShadow: AppleDesignSystem.shadowMedium(Colors.black),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              child: widget.imageUrl != null
+                  ? Image.network(
+                      widget.imageUrl!,
+                      width: widget.size,
+                      height: widget.size,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildPlaceholder();
+                      },
+                    )
+                  : _buildPlaceholder(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Icon(
+      Icons.music_note_rounded,
+      color: widget.isDark
+          ? AppleColors.labelTertiaryDark
+          : AppleColors.labelTertiary,
+      size: widget.size * 0.5,
+    );
+  }
+}
+
+/// Apple-style play button with spring animation
+class _ApplePlayButton extends StatefulWidget {
+  final bool isPlaying;
+  final bool isBuffering;
+  final Color primaryColor;
+  final bool isDark;
+  final VoidCallback? onPressed;
+
+  const _ApplePlayButton({
+    required this.isPlaying,
+    required this.isBuffering,
+    required this.primaryColor,
+    required this.isDark,
+    this.onPressed,
+  });
+
+  @override
+  State<_ApplePlayButton> createState() => _ApplePlayButtonState();
+}
+
+class _ApplePlayButtonState extends State<_ApplePlayButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: AppleDesignSystem.durationFast,
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: AppleDesignSystem.pressScale,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: AppleDesignSystem.interactiveCurve,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    if (widget.onPressed == null) return;
+    setState(() => _isPressed = true);
+    _controller.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    if (widget.onPressed == null) return;
+    setState(() => _isPressed = false);
+    _controller.reverse();
+  }
+
+  void _handleTapCancel() {
+    if (widget.onPressed == null) return;
+    setState(() => _isPressed = false);
+    _controller.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onPressed,
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: AnimatedContainer(
+              duration: AppleDesignSystem.durationFast,
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: widget.onPressed == null
+                    ? (widget.isDark
+                        ? AppleColors.systemGray4Dark
+                        : AppleColors.systemGray4)
+                    : widget.primaryColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.primaryColor.withOpacity(
+                      widget.onPressed == null ? 0 : 0.3,
+                    ),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: widget.isBuffering
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : Icon(
+                      widget.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
