@@ -196,8 +196,8 @@ class _AppleBackButtonState extends State<_AppleBackButton> {
       child: GestureDetector(
         onTap: widget.onPressed ?? () => Navigator.of(context).pop(),
         child: AnimatedContainer(
-          duration: AppleDesignSystem.animationDurationFast,
-          curve: AppleDesignSystem.animationCurve,
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
           padding: const EdgeInsets.all(AppleDesignSystem.spacing8),
           decoration: BoxDecoration(
             color: _isHovered
@@ -206,7 +206,7 @@ class _AppleBackButtonState extends State<_AppleBackButton> {
                     : AppleColors.systemGray5)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(
-              AppleDesignSystem.radiusSm,
+              AppleDesignSystem.radiusSmall,
             ),
           ),
           child: Row(
