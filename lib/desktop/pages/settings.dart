@@ -2000,3 +2000,94 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
     );
   }
 }
+
+/// Apple-styled settings category button
+class _AppleSettingsCategory extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _AppleSettingsCategory({
+    required this.icon,
+    required this.title,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_AppleSettingsCategory> createState() => _AppleSettingsCategoryState();
+}
+
+class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppleDesignSystem.spacing2),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: AppleDesignSystem.durationFast,
+            curve: AppleDesignSystem.springCurve,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppleDesignSystem.spacing12,
+              vertical: AppleDesignSystem.spacing10,
+            ),
+            decoration: BoxDecoration(
+              color: widget.isSelected
+                  ? (isDark 
+                      ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                      : theme.colorScheme.primary.withValues(alpha: 0.1))
+                  : _isHovered
+                      ? (isDark 
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.03))
+                      : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  widget.icon,
+                  size: 20,
+                  color: widget.isSelected
+                      ? theme.colorScheme.primary
+                      : (isDark 
+                          ? AppleColors.labelSecondaryDark 
+                          : AppleColors.labelSecondary),
+                ),
+                const SizedBox(width: AppleDesignSystem.spacing12),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleSubheadline,
+                      fontWeight: widget.isSelected 
+                          ? AppleDesignSystem.weightSemiBold 
+                          : AppleDesignSystem.weightRegular,
+                      color: widget.isSelected
+                          ? theme.colorScheme.primary
+                          : (isDark 
+                              ? AppleColors.labelPrimaryDark 
+                              : AppleColors.labelPrimary),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
