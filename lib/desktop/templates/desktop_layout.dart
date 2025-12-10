@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -3325,7 +3324,7 @@ class _AppleAlbumArt extends StatefulWidget {
     this.imageUrl,
     this.onTap,
     required this.isDark,
-    this.size = 64,
+    this.size = 56,
   });
 
   @override
