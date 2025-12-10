@@ -121,48 +121,37 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final searchResults = _getSearchResults(appState);
         final totalResults = _getTotalResults(searchResults);
         
-        return PageTemplate(
-          title: l10n.navSearch,
-          actions: [
-            // Clear search button
-            if (_searchQuery.isNotEmpty)
-              TextButton.icon(
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {
-                    _searchQuery = '';
-                    _selectedFilter = 'all';
-                  });
-                  _searchFocusNode.requestFocus();
-                },
-                icon: const Icon(Icons.clear),
-                label: Text(l10n.clear),
-              ),
-          ],
+        return Container(
+          color: isDark ? AppleColors.backgroundPrimaryDark : AppleColors.backgroundPrimary,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search bar
-              _buildSearchBar(l10n),
+              // Hero Search Header
+              _buildSearchHeader(l10n, isDark, appState),
               
-              const SizedBox(height: 16),
+              // Filter Pills
+              _buildFilterPills(searchResults, l10n, isDark),
               
-              // Filter chips
-              _buildFilterChips(searchResults, l10n),
-              
-              const SizedBox(height: 16),
-              
-              // Results or initial state
+              // Content Area
               Expanded(
-                child: _searchQuery.isEmpty
-                    ? _buildInitialState(appState, l10n)
-                    : totalResults == 0
-                        ? _buildNoResults(l10n)
-                        : _buildSearchResults(appState, searchResults, l10n),
+                child: AnimatedSwitcher(
+                  duration: AppleDesignSystem.durationNormal,
+                  switchInCurve: AppleDesignSystem.springCurve,
+                  switchOutCurve: AppleDesignSystem.springCurve,
+                  child: _searchQuery.isEmpty
+                      ? _buildInitialState(appState, l10n, isDark)
+                      : totalResults == 0
+                          ? _buildNoResults(l10n, isDark)
+                          : _buildSearchResults(appState, searchResults, l10n, isDark),
+                ),
               ),
             ],
           ),
@@ -171,46 +160,165 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildSearchBar(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: TextField(
-          controller: _searchController,
-          focusNode: _searchFocusNode,
-          decoration: InputDecoration(
-            hintText: l10n.searchPlaceholder,
-            prefixIcon: const Icon(Icons.search, size: 28),
-            suffixIcon: _searchQuery.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                      });
-                    },
-                  )
-                : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+  // ============================================
+  // SECTION 1: Search Header with Glassmorphic Search Bar
+  // ============================================
+  
+  Widget _buildSearchHeader(AppLocalizations l10n, bool isDark, AppState appState) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppleDesignSystem.spacing32,
+        AppleDesignSystem.spacing24,
+        AppleDesignSystem.spacing32,
+        AppleDesignSystem.spacing16,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title Row
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.navSearch,
+                      style: AppleTextStyles.largeTitle(
+                        color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: AppleDesignSystem.spacing4),
+                    Text(
+                      '${appState.tracks.length} songs • ${appState.albums.length} albums • ${appState.artists.length} artists',
+                      style: AppleTextStyles.subheadline(
+                        color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Keyboard shortcut hint
+              _buildKeyboardHint('⌘K', isDark),
+            ],
           ),
-          style: theme.textTheme.titleMedium,
-          onChanged: (value) {
-            setState(() {
-              _searchQuery = value;
-            });
-          },
-          onSubmitted: (value) {
-            // Optional: Handle search submission
-          },
+          
+          const SizedBox(height: AppleDesignSystem.spacing20),
+          
+          // Glassmorphic Search Bar
+          _buildGlassSearchBar(l10n, isDark),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildKeyboardHint(String shortcut, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleDesignSystem.spacing12,
+        vertical: AppleDesignSystem.spacing8,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? AppleColors.fillTertiaryDark : AppleColors.fillTertiary,
+        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+        border: Border.all(
+          color: isDark ? AppleColors.separatorDark : AppleColors.separator,
+          width: 0.5,
+        ),
+      ),
+      child: Text(
+        shortcut,
+        style: AppleTextStyles.caption1(
+          color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+        ).copyWith(fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildGlassSearchBar(AppLocalizations l10n, bool isDark) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppleDesignSystem.blurThin,
+          sigmaY: AppleDesignSystem.blurThin,
+        ),
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          decoration: BoxDecoration(
+            color: isDark 
+                ? AppleColors.fillSecondaryDark 
+                : AppleColors.fillSecondary,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
+            border: Border.all(
+              color: _searchFocusNode.hasFocus
+                  ? (isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue)
+                  : (isDark ? AppleColors.separatorDark : AppleColors.separator),
+              width: _searchFocusNode.hasFocus ? 2 : 0.5,
+            ),
+            boxShadow: _searchFocusNode.hasFocus
+                ? [
+                    BoxShadow(
+                      color: (isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue)
+                          .withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : null,
+          ),
+          child: TextField(
+            controller: _searchController,
+            focusNode: _searchFocusNode,
+            style: AppleTextStyles.body(
+              color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: l10n.searchPlaceholder,
+              hintStyle: AppleTextStyles.body(
+                color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: AppleDesignSystem.spacing16, right: AppleDesignSystem.spacing12),
+                child: Icon(
+                  Icons.search_rounded,
+                  size: 24,
+                  color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                ),
+              ),
+              prefixIconConstraints: const BoxConstraints(minWidth: 48),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: AppleDesignSystem.spacing8),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                            _selectedFilter = 'all';
+                          });
+                        },
+                        splashRadius: 20,
+                      ),
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppleDesignSystem.spacing16,
+                vertical: AppleDesignSystem.spacing16,
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
         ),
       ),
     );
