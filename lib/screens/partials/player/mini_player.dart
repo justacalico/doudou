@@ -44,37 +44,29 @@ class MiniPlayer extends StatelessWidget {
         return Container(
           height: 70,
           margin: EdgeInsets.fromLTRB(
-            isDesktop ? 0 : 16, // Full width on desktop, margins on mobile
-            isDesktop ? 0 : 8,  // No top margin on desktop for full bar effect
-            isDesktop ? 0 : 16, // Full width on desktop, margins on mobile
-            0 // No bottom margin for full bar
+            isDesktop ? 0 : AppleDesignSystem.spacing16,
+            isDesktop ? 0 : AppleDesignSystem.spacing8,
+            isDesktop ? 0 : AppleDesignSystem.spacing16,
+            0
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(isDesktop ? 0 : 12), // No rounded corners on desktop
+            borderRadius: BorderRadius.circular(isDesktop ? 0 : AppleDesignSystem.radiusMedium),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              filter: ImageFilter.blur(
+                sigmaX: AppleDesignSystem.blurThin,
+                sigmaY: AppleDesignSystem.blurThin,
+              ),
               child: Container(
                 decoration: BoxDecoration(
-                  // Glassmorphism effect
-                  color: const Color(0xFF000000).withOpacity(isDesktop ? 0.8 : 0.3), // More opaque on desktop for full bar
-                  borderRadius: BorderRadius.circular(isDesktop ? 0 : 12), // No rounded corners on desktop
+                  // Apple glassmorphism effect
+                  color: AppleColors.glassDark,
+                  borderRadius: BorderRadius.circular(isDesktop ? 0 : AppleDesignSystem.radiusMedium),
                   border: isDesktop ? null : Border.all(
-                    color: const Color(0xFFFFFFFF).withOpacity(0.2), // No border on desktop
-                    width: 1,
+                    color: Colors.white.withOpacity(0.1),
+                    width: 0.5,
                   ),
                   // Shadow only on mobile for floating effect
-                  boxShadow: isDesktop ? null : const [
-                    BoxShadow(
-                      color: Color(0x40000000), // Strong shadow
-                      offset: Offset(0, 8), // More dramatic offset
-                      blurRadius: 16, // More blur for floating effect
-                    ),
-                    BoxShadow(
-                      color: Color(0x20000000), // Additional subtle shadow
-                      offset: Offset(0, 4),
-                      blurRadius: 8,
-                    ),
-                  ],
+                  boxShadow: isDesktop ? null : AppleDesignSystem.shadowLarge(Colors.black),
                 ),
                 child: GestureDetector(
             onTap: () {
@@ -131,11 +123,9 @@ class MiniPlayer extends StatelessWidget {
                       children: [
                         Text(
                           currentTrack.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: Color(0xFFFFFFFF), // Pure white for OLED
-                          ),
+                          style: AppleTextStyles.headline(
+                            color: AppleColors.labelPrimaryDark,
+                          ).copyWith(fontSize: 16),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -143,9 +133,8 @@ class MiniPlayer extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             currentTrack.artistName!,
-                            style: const TextStyle(
-                              color: CupertinoColors.systemGrey2,
-                              fontSize: 14,
+                            style: AppleTextStyles.footnote(
+                              color: AppleColors.labelSecondaryDark,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
