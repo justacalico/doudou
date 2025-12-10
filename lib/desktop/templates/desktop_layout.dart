@@ -651,52 +651,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           },
         ),
         const SizedBox(width: AppleDesignSystem.spacing8),
-        // Shuffle button
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            final shuffleEnabled = appState.isShuffleEnabled;
-            return _AppleIconButton(
-              icon: Icons.shuffle_rounded,
-              onPressed: () => appState.toggleShuffle(),
-              isDark: isDark,
-              color: shuffleEnabled ? theme.colorScheme.primary : null,
-              tooltip: l10n.shuffle,
-            );
-          },
-        ),
-        const SizedBox(width: AppleDesignSystem.spacing8),
-        // Repeat button
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            final repeatMode = appState.repeatMode;
-            IconData icon;
-            Color? color;
-            
-            switch (repeatMode) {
-              case RepeatMode.off:
-                icon = Icons.repeat_rounded;
-                color = null;
-                break;
-              case RepeatMode.all:
-                icon = Icons.repeat_rounded;
-                color = theme.colorScheme.primary;
-                break;
-              case RepeatMode.one:
-                icon = Icons.repeat_one_rounded;
-                color = theme.colorScheme.primary;
-                break;
-            }
-
-            return _AppleIconButton(
-              icon: icon,
-              onPressed: () => appState.cycleRepeatMode(),
-              isDark: isDark,
-              color: color,
-              tooltip: l10n.repeat,
-            );
-          },
-        ),
-        const SizedBox(width: AppleDesignSystem.spacing8),
         // Queue/Lyrics button
         _AppleIconButton(
           icon: Icons.queue_music_rounded,
@@ -706,6 +660,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         ),
       ],
     );
+  }
+
+  void _showQueueDialog(BuildContext context) {
+    // Delegate to existing queue dialog implementation
+    _showNowPlayingDialog(context);
   }
 
   Widget _buildMainContent() {
