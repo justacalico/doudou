@@ -1,8 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
+import '../../widgets/apple_design/apple_theme.dart';
 import 'details/media_details.dart';
 import 'details/artist_details.dart';
 
@@ -13,19 +14,31 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateMixin {
   String _searchQuery = '';
-  String _selectedFilter = 'all'; // all, tracks, albums, artists, playlists
+  String _selectedFilter = 'all';
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  
+  // Animation controller for staggered animations
+  late AnimationController _animationController;
+  
+  // Track hover states for interactive elements
+  int? _hoveredResultIndex;
+  String? _hoveredCategory;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _loadData();
-    // Auto-focus the search field when the page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
+      _animationController.forward();
     });
   }
 
@@ -33,6 +46,8 @@ class _SearchPageState extends State<SearchPage> {
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
