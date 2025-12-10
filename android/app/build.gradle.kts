@@ -63,9 +63,12 @@ android {
                 "proguard-rules.pro"
             )
             
-            // Use release signing config if keystore exists
+            // Use release signing config if keystore exists, otherwise fall back to debug signing
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
+            } else {
+                // Fall back to debug signing so the APK is installable
+                signingConfig = signingConfigs.getByName("debug")
             }
             
             // Optimize native libs
