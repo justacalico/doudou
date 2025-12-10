@@ -817,12 +817,648 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
     );
   }
 
-  // Old method - keeping for reference, will be replaced
-  Widget _buildFilterChips(Map<String, List<dynamic>> results, AppLocalizations l10n) {
+  // ============================================
+  // SECTION 5: Search Results with Modern Grid Layout
+  // ============================================
+
+  Widget _buildSearchResults(AppState appState, Map<String, List<dynamic>> results, AppLocalizations l10n, bool isDark) {
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleDesignSystem.spacing32,
+        vertical: AppleDesignSystem.spacing16,
+      ),
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Result (only in 'all' filter)
+          if (_selectedFilter == 'all' && _getTotalResults(results) > 0)
+            _buildTopResultCard(appState, results, l10n, isDark),
+          
+          // Artists Section
+          if ((_selectedFilter == 'all' || _selectedFilter == 'artists') && results['artists']!.isNotEmpty)
+            _buildResultsSection(
+              appState: appState,
+              title: l10n.artists,
+              items: results['artists']!,
+              type: 'artist',
+              isDark: isDark,
+              l10n: l10n,
+            ),
+          
+          // Albums Section
+          if ((_selectedFilter == 'all' || _selectedFilter == 'albums') && results['albums']!.isNotEmpty)
+            _buildResultsSection(
+              appState: appState,
+              title: l10n.albums,
+              items: results['albums']!,
+              type: 'album',
+              isDark: isDark,
+              l10n: l10n,
+            ),
+          
+          // Songs Section
+          if ((_selectedFilter == 'all' || _selectedFilter == 'tracks') && results['tracks']!.isNotEmpty)
+            _buildTracksSection(appState, results['tracks']!, l10n, isDark),
+          
+          // Playlists Section
+          if ((_selectedFilter == 'all' || _selectedFilter == 'playlists') && results['playlists']!.isNotEmpty)
+            _buildResultsSection(
+              appState: appState,
+              title: l10n.playlists,
+              items: results['playlists']!,
+              type: 'playlist',
+              isDark: isDark,
+              l10n: l10n,
+            ),
+          
+          const SizedBox(height: AppleDesignSystem.spacing48),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopResultCard(AppState appState, Map<String, List<dynamic>> results, AppLocalizations l10n, bool isDark) {
+    // Find best match
+    dynamic topResult;
+    String topResultType = '';
+    
+    for (final entry in results.entries) {
+      if (entry.value.isNotEmpty) {
+        topResult = entry.value.first;
+        topResultType = entry.key.substring(0, entry.key.length - 1);
+        break;
+      }
+    }
+    
+    if (topResult == null) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(l10n.topResult, isDark),
+        const SizedBox(height: AppleDesignSystem.spacing16),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hoveredResultIndex = -1),
+          onExit: (_) => setState(() => _hoveredResultIndex = null),
+          child: GestureDetector(
+            onTap: () => _handleItemTap(appState, topResult, topResultType),
+            child: AnimatedContainer(
+              duration: AppleDesignSystem.durationFast,
+              transform: Matrix4.identity()..scale(_hoveredResultIndex == -1 ? 1.01 : 1.0),
+              padding: const EdgeInsets.all(AppleDesignSystem.spacing20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [AppleColors.elevatedSecondaryDark, AppleColors.elevatedTertiaryDark]
+                      : [AppleColors.backgroundSecondary, AppleColors.backgroundTertiary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
+                border: Border.all(
+                  color: isDark ? AppleColors.separatorDark : AppleColors.separator,
+                  width: 0.5,
+                ),
+                boxShadow: _hoveredResultIndex == -1
+                    ? AppleDesignSystem.shadowMedium(Colors.black)
+                    : AppleDesignSystem.shadowSmall(Colors.black),
+              ),
+              child: Row(
+                children: [
+                  // Large artwork
+                  _buildResultArtwork(appState, topResult, topResultType, isDark, size: 140),
+                  const SizedBox(width: AppleDesignSystem.spacing24),
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppleDesignSystem.spacing8,
+                            vertical: AppleDesignSystem.spacing4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppleColors.systemBlueDark.withOpacity(0.2) : AppleColors.systemBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(AppleDesignSystem.spacing4),
+                          ),
+                          child: Text(
+                            _getTypeLabel(topResultType, l10n),
+                            style: AppleTextStyles.caption1(
+                              color: isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        const SizedBox(height: AppleDesignSystem.spacing12),
+                        Text(
+                          topResult.name,
+                          style: AppleTextStyles.title1(
+                            color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppleDesignSystem.spacing8),
+                        Text(
+                          _getItemSubtitle(topResult, topResultType),
+                          style: AppleTextStyles.body(
+                            color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: AppleDesignSystem.spacing16),
+                        // Play button
+                        _buildPlayButton(appState, topResult, topResultType, isDark),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppleDesignSystem.spacing32),
+      ],
+    );
+  }
+
+  Widget _buildResultsSection({
+    required AppState appState,
+    required String title,
+    required List<dynamic> items,
+    required String type,
+    required bool isDark,
+    required AppLocalizations l10n,
+  }) {
+    final displayItems = _selectedFilter == 'all' ? items.take(6).toList() : items;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(
+          title,
+          isDark,
+          showViewAll: _selectedFilter == 'all' && items.length > 6,
+          onViewAll: () => setState(() => _selectedFilter = '${type}s'),
+        ),
+        const SizedBox(height: AppleDesignSystem.spacing16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth > 1200 ? 6 : constraints.maxWidth > 900 ? 5 : constraints.maxWidth > 600 ? 4 : 3;
+            
+            return Wrap(
+              spacing: AppleDesignSystem.spacing16,
+              runSpacing: AppleDesignSystem.spacing20,
+              children: displayItems.asMap().entries.map((entry) {
+                return SizedBox(
+                  width: (constraints.maxWidth - (crossAxisCount - 1) * AppleDesignSystem.spacing16) / crossAxisCount,
+                  child: _buildResultCard(appState, entry.value, type, isDark, entry.key),
+                );
+              }).toList(),
+            );
+          },
+        ),
+        const SizedBox(height: AppleDesignSystem.spacing32),
+      ],
+    );
+  }
+
+  Widget _buildResultCard(AppState appState, dynamic item, String type, bool isDark, int index) {
+    final isHovered = _hoveredResultIndex == index;
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hoveredResultIndex = index),
+      onExit: (_) => setState(() => _hoveredResultIndex = null),
+      child: GestureDetector(
+        onTap: () => _handleItemTap(appState, item, type),
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          transform: Matrix4.identity()..scale(isHovered ? 1.03 : 1.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Artwork with play overlay
+              Stack(
+                children: [
+                  _buildResultArtwork(appState, item, type, isDark),
+                  // Play overlay on hover
+                  if (isHovered)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(
+                            type == 'artist' ? AppleDesignSystem.radiusRound : AppleDesignSystem.radiusMedium,
+                          ),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue,
+                              shape: BoxShape.circle,
+                              boxShadow: AppleDesignSystem.shadowMedium(AppleColors.systemBlue),
+                            ),
+                            child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppleDesignSystem.spacing12),
+              // Title
+              Text(
+                item.name,
+                style: AppleTextStyles.subheadline(
+                  color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                ).copyWith(fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppleDesignSystem.spacing4),
+              // Subtitle
+              Text(
+                _getItemSubtitle(item, type),
+                style: AppleTextStyles.caption1(
+                  color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultArtwork(AppState appState, dynamic item, String type, bool isDark, {double size = 0}) {
+    final actualSize = size > 0 ? size : double.infinity;
+    final isCircle = type == 'artist';
+    
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        width: actualSize,
+        height: actualSize,
+        decoration: BoxDecoration(
+          color: isDark ? AppleColors.fillSecondaryDark : AppleColors.fillSecondary,
+          borderRadius: isCircle ? null : BorderRadius.circular(AppleDesignSystem.radiusMedium),
+          shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+          boxShadow: AppleDesignSystem.shadowSmall(Colors.black),
+        ),
+        child: ClipRRect(
+          borderRadius: isCircle 
+              ? BorderRadius.circular(1000) 
+              : BorderRadius.circular(AppleDesignSystem.radiusMedium),
+          child: item.imageUrl != null
+              ? Image.network(
+                  _getImageUrl(appState, item.imageUrl)!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _buildPlaceholderIcon(type, isDark),
+                )
+              : _buildPlaceholderIcon(type, isDark),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderIcon(String type, bool isDark) {
+    IconData icon;
+    switch (type) {
+      case 'track':
+        icon = Icons.music_note_rounded;
+        break;
+      case 'album':
+        icon = Icons.album_rounded;
+        break;
+      case 'artist':
+        icon = Icons.person_rounded;
+        break;
+      case 'playlist':
+        icon = Icons.queue_music_rounded;
+        break;
+      default:
+        icon = Icons.music_note_rounded;
+    }
+    
+    return Center(
+      child: Icon(
+        icon,
+        size: 40,
+        color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
+      ),
+    );
+  }
+
+  Widget _buildTracksSection(AppState appState, List<dynamic> tracks, AppLocalizations l10n, bool isDark) {
+    final displayTracks = _selectedFilter == 'all' ? tracks.take(8).toList() : tracks;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(
+          l10n.songs,
+          isDark,
+          showViewAll: _selectedFilter == 'all' && tracks.length > 8,
+          onViewAll: () => setState(() => _selectedFilter = 'tracks'),
+        ),
+        const SizedBox(height: AppleDesignSystem.spacing16),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppleColors.elevatedSecondaryDark : AppleColors.backgroundSecondary,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+            border: Border.all(
+              color: isDark ? AppleColors.separatorDark : AppleColors.separator,
+              width: 0.5,
+            ),
+          ),
+          child: Column(
+            children: displayTracks.asMap().entries.map((entry) {
+              final track = entry.value;
+              final index = entry.key;
+              final isLast = index == displayTracks.length - 1;
+              
+              return _buildTrackRow(appState, track, index, isDark, isLast);
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: AppleDesignSystem.spacing32),
+      ],
+    );
+  }
+
+  Widget _buildTrackRow(AppState appState, dynamic track, int index, bool isDark, bool isLast) {
+    final isHovered = _hoveredResultIndex == index + 1000; // Offset to not conflict with other results
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hoveredResultIndex = index + 1000),
+      onExit: (_) => setState(() => _hoveredResultIndex = null),
+      child: GestureDetector(
+        onTap: () => _handlePlayTrack(appState, track),
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          decoration: BoxDecoration(
+            color: isHovered
+                ? (isDark ? AppleColors.fillTertiaryDark : AppleColors.fillTertiary)
+                : Colors.transparent,
+            border: isLast
+                ? null
+                : Border(
+                    bottom: BorderSide(
+                      color: isDark ? AppleColors.separatorDark : AppleColors.separator,
+                      width: 0.5,
+                    ),
+                  ),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppleDesignSystem.spacing16,
+            vertical: AppleDesignSystem.spacing12,
+          ),
+          child: Row(
+            children: [
+              // Play/Number indicator
+              SizedBox(
+                width: 32,
+                child: isHovered
+                    ? Icon(
+                        Icons.play_arrow_rounded,
+                        color: isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue,
+                        size: 20,
+                      )
+                    : Text(
+                        '${index + 1}',
+                        style: AppleTextStyles.body(
+                          color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+              ),
+              const SizedBox(width: AppleDesignSystem.spacing12),
+              // Artwork
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+                  color: isDark ? AppleColors.fillSecondaryDark : AppleColors.fillSecondary,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+                  child: track.imageUrl != null
+                      ? Image.network(
+                          _getImageUrl(appState, track.imageUrl)!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.music_note_rounded,
+                            color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
+                          ),
+                        )
+                      : Icon(
+                          Icons.music_note_rounded,
+                          color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
+                        ),
+                ),
+              ),
+              const SizedBox(width: AppleDesignSystem.spacing12),
+              // Track info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      track.name,
+                      style: AppleTextStyles.body(
+                        color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      track.artistName ?? 'Unknown Artist',
+                      style: AppleTextStyles.caption1(
+                        color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // Album name
+              Expanded(
+                child: Text(
+                  track.albumName ?? '',
+                  style: AppleTextStyles.caption1(
+                    color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // Duration
+              if (track.duration != null)
+                Text(
+                  _formatDuration(track.duration!),
+                  style: AppleTextStyles.caption1(
+                    color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
+                  ),
+                ),
+              const SizedBox(width: AppleDesignSystem.spacing8),
+              // More button
+              if (isHovered)
+                IconButton(
+                  onPressed: () {},
+                  icon: Icon(
+                    Icons.more_horiz_rounded,
+                    color: isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary,
+                    size: 20,
+                  ),
+                  splashRadius: 16,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayButton(AppState appState, dynamic item, String type, bool isDark) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          if (type == 'track') {
+            _handlePlayTrack(appState, item);
+          } else {
+            _handleItemTap(appState, item, type);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppleDesignSystem.spacing20,
+            vertical: AppleDesignSystem.spacing12,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusRound),
+            boxShadow: AppleDesignSystem.shadowSmall(AppleColors.systemBlue),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: AppleDesignSystem.spacing8),
+              Text(
+                'Play',
+                style: AppleTextStyles.subheadline(color: Colors.white).copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getTypeLabel(String type, AppLocalizations l10n) {
+    switch (type) {
+      case 'track':
+        return l10n.songs;
+      case 'album':
+        return l10n.albums;
+      case 'artist':
+        return l10n.artists;
+      case 'playlist':
+        return l10n.playlists;
+      default:
+        return type;
+    }
+  }
+
+  // ============================================
+  // Helper Methods
+  // ============================================
+
+  void _handleItemTap(AppState appState, dynamic item, String type) {
+    switch (type) {
+      case 'track':
+        _handlePlayTrack(appState, item);
+        break;
+      case 'album':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MediaDetailsPage.album(album: item)),
+        );
+        break;
+      case 'artist':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ArtistDetailsPage(artist: item)),
+        );
+        break;
+      case 'playlist':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MediaDetailsPage.playlist(playlist: item)),
+        );
+        break;
+    }
+  }
+
+  void _handlePlayTrack(AppState appState, dynamic track) {
+    appState.playTrack(track);
+  }
+
+  void _handleBrowseCardTap(String title) {
+    setState(() {
+      switch (title) {
+        case 'Albums':
+          _selectedFilter = 'albums';
+          break;
+        case 'Artists':
+          _selectedFilter = 'artists';
+          break;
+        case 'Playlists':
+          _selectedFilter = 'playlists';
+          break;
+      }
+      _searchQuery = '*';
+      _searchController.text = '';
+    });
+  }
+
+  String _getItemSubtitle(dynamic item, String type) {
+    switch (type) {
+      case 'track':
+        final parts = <String>[];
+        if (item.artistName != null) parts.add(item.artistName!);
+        if (item.albumName != null) parts.add(item.albumName!);
+        return parts.join(' • ');
+      case 'album':
+        return item.artistName ?? 'Unknown Artist';
+      case 'artist':
+        return 'Artist';
+      case 'playlist':
+        return '${item.trackCount ?? 0} songs';
+      default:
+        return '';
+    }
+  }
+
+  String _formatDuration(int milliseconds) {
+    final duration = Duration(milliseconds: milliseconds);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+}
         children: [
           FilterChip(
             label: Text('${l10n.all} (${_getTotalResults(results)})'),
