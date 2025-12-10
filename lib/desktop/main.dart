@@ -193,10 +193,10 @@ class DesktopDoudouApp extends StatelessWidget {
           builder: (context, appState, child) {
             return MaterialApp(
               title: 'Doudou - Music Player',
-              theme: AppleDesignSystem.lightTheme(
+              theme: AppleTheme.light(
                 accentColor: appState.accentColor,
               ),
-              darkTheme: AppleDesignSystem.darkTheme(
+              darkTheme: AppleTheme.dark(
                 accentColor: appState.accentColor,
               ),
               themeMode: appState.themeMode,
