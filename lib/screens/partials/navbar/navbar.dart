@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Colors;
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'dart:ui';
