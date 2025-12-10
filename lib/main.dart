@@ -105,19 +105,19 @@ class DoudouApp extends StatelessWidget {
                 textTheme: CupertinoTextThemeData(
                   primaryColor: appState.accentColor,
                   textStyle: TextStyle(
-                    fontFamily: AppleTypography.fontFamilySFPro,
-                    fontSize: AppleTypography.body,
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: AppleDesignSystem.typeScaleBody,
                     color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
                   ),
                   navTitleTextStyle: TextStyle(
-                    fontFamily: AppleTypography.fontFamilySFPro,
-                    fontSize: AppleTypography.headline,
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: AppleDesignSystem.typeScaleHeadline,
                     fontWeight: FontWeight.w600,
                     color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
                   ),
                   navLargeTitleTextStyle: TextStyle(
-                    fontFamily: AppleTypography.fontFamilySFPro,
-                    fontSize: AppleTypography.largeTitle,
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: AppleDesignSystem.typeScaleLargeTitle,
                     fontWeight: FontWeight.bold,
                     color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
                   ),
@@ -141,12 +141,12 @@ class DoudouApp extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const CupertinoActivityIndicator(radius: 20),
-                            const SizedBox(height: AppleSpacing.lg),
+                            const SizedBox(height: 16),
                             Text(
                               'Loading...',
                               style: TextStyle(
-                                fontFamily: AppleTypography.fontFamilySFPro,
-                                fontSize: AppleTypography.body,
+                                fontFamily: AppleDesignSystem.fontFamily,
+                                fontSize: AppleDesignSystem.typeScaleBody,
                                 color: isDark 
                                     ? AppleColors.labelSecondaryDark 
                                     : AppleColors.labelSecondary,
