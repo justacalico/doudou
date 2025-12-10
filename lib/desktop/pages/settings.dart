@@ -44,59 +44,57 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildCategoriesSidebar() {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
 
     final categories = [
-      {'id': 'general', 'title': l10n.generalSettings.split(' ').first, 'icon': Icons.settings},
-      {'id': 'audio', 'title': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up},
-      {'id': 'appearance', 'title': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette},
-      {'id': 'server', 'title': l10n.server, 'icon': Icons.dns},
-      {'id': 'logs', 'title': l10n.logsAndDiagnostics.split(' ').first, 'icon': Icons.description},
-      {'id': 'about', 'title': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info},
+      {'id': 'general', 'title': l10n.generalSettings.split(' ').first, 'icon': Icons.settings_rounded},
+      {'id': 'audio', 'title': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
+      {'id': 'appearance', 'title': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
+      {'id': 'server', 'title': l10n.server, 'icon': Icons.dns_rounded},
+      {'id': 'logs', 'title': l10n.logsAndDiagnostics.split(' ').first, 'icon': Icons.description_rounded},
+      {'id': 'about', 'title': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info_rounded},
     ];
 
     return SizedBox(
       width: 200,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: categories.map((category) {
-              final isSelected = _selectedCategory == category['id'];
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 2),
-                child: ListTile(
-                  selected: isSelected,
-                  selectedTileColor: theme.colorScheme.primaryContainer,
-                  leading: Icon(
-                    category['icon'] as IconData,
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
-                  ),
-                  title: Text(
-                    category['title'] as String,
-                    style: TextStyle(
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppleDesignSystem.blurThin,
+            sigmaY: AppleDesignSystem.blurThin,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
+                  : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.05),
+                width: 0.5,
+              ),
+            ),
+            padding: const EdgeInsets.all(AppleDesignSystem.spacing8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: categories.map((category) {
+                final isSelected = _selectedCategory == category['id'];
+                return _AppleSettingsCategory(
+                  icon: category['icon'] as IconData,
+                  title: category['title'] as String,
+                  isSelected: isSelected,
                   onTap: () {
                     setState(() {
                       _selectedCategory = category['id'] as String;
                     });
                   },
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
