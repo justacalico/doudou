@@ -466,7 +466,7 @@ class AppleTheme {
         onInverseSurface: AppleColors.backgroundPrimary,
       ),
       scaffoldBackgroundColor: AppleColors.backgroundPrimary,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
@@ -578,7 +578,7 @@ class AppleTheme {
         onInverseSurface: AppleColors.backgroundPrimaryDark,
       ),
       scaffoldBackgroundColor: AppleColors.backgroundPrimaryDark,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
