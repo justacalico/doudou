@@ -134,6 +134,10 @@ class _SearchScreenState extends State<SearchScreen> {
         _playlistResults = [];
         _isSearching = false;
         _searchQuery = '';
+        // Reset expanded states
+        _artistsExpanded = false;
+        _albumsExpanded = false;
+        _tracksExpanded = false;
       });
       return;
     }
