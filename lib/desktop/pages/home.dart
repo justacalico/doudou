@@ -261,43 +261,75 @@ class _HomePageState extends State<HomePage> {
     Color color,
   ) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
-    return Card(
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppleDesignSystem.blurThin,
+          sigmaY: AppleDesignSystem.blurThin,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {},
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+            child: Container(
+              padding: const EdgeInsets.all(AppleDesignSystem.spacing20),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
+                    : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.05),
+                  width: 0.5,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppleDesignSystem.spacing12),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(height: AppleDesignSystem.spacing16),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleBody,
+                      fontWeight: AppleDesignSystem.weightSemiBold,
+                      color: isDark 
+                          ? AppleColors.labelPrimaryDark 
+                          : AppleColors.labelPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppleDesignSystem.spacing4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleCaption1,
+                      color: isDark 
+                          ? AppleColors.labelSecondaryDark 
+                          : AppleColors.labelSecondary,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
