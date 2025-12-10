@@ -14,6 +14,7 @@ import '../../search/search.dart';
 import '../../downloads/downloads.dart';
 import '../player/mini_player.dart';
 import '../../../widgets/isle.dart';
+import '../../../widgets/apple_design/apple_theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
