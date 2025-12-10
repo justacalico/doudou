@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../widgets/apple_design/apple_theme.dart';
 import 'desktop_layout.dart';
 
+/// Apple-styled track list with glassmorphism effects and smooth animations
 class TrackListTemplate extends StatelessWidget {
   final List<Track> tracks;
   final String emptyStateTitle;
@@ -34,72 +37,176 @@ class TrackListTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (tracks.isEmpty) {
-      return _buildEmptyState(theme);
+      return _buildEmptyState(context, isDark);
     }
 
-    return Card(
-      child: Column(
-        children: [
-          // Track list header
-          _buildHeader(theme),
-          
-          const Divider(height: 1),
-          
-          // Track list
-          Expanded(
-            child: ListView.builder(
-              itemCount: tracks.length,
-              itemBuilder: (context, index) {
-                final track = tracks[index];
-                return _buildTrackItem(theme, track, index);
-              },
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppleDesignSystem.blurMedium,
+          sigmaY: AppleDesignSystem.blurMedium,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
+                : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
+              width: 0.5,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_note_outlined,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              emptyStateTitle,
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              emptyStateMessage,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+          child: Column(
+            children: [
+              // Track list header with Apple styling
+              _buildHeader(context, isDark),
+              
+              // Subtle gradient divider
+              Container(
+                height: 0.5,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      (isDark ? AppleColors.separatorDark : AppleColors.separator)
+                          .withValues(alpha: 0),
+                      isDark ? AppleColors.separatorDark : AppleColors.separator,
+                      (isDark ? AppleColors.separatorDark : AppleColors.separator)
+                          .withValues(alpha: 0),
+                    ],
+                  ),
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-            if (emptyStateAction != null) ...[
-              const SizedBox(height: 16),
-              emptyStateAction!,
+              
+              // Track list with custom scroll physics
+              Expanded(
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: tracks.length,
+                  itemBuilder: (context, index) {
+                    final track = tracks[index];
+                    return _AppleTrackListItem(
+                      track: track,
+                      index: index,
+                      totalTracks: tracks.length,
+                      showTrackNumber: showTrackNumber,
+                      showArtist: showArtist,
+                      showAlbum: showAlbum,
+                      showArtwork: showArtwork,
+                      onTap: () {
+                        if (onTrackTap != null) {
+                          onTrackTap!(track, index);
+                        } else {
+                          context.read<AppState>().playPlaylist(tracks, index);
+                        }
+                      },
+                      onRemove: onRemoveTrack != null 
+                          ? () => onRemoveTrack!(track) 
+                          : null,
+                    );
+                  },
+                ),
+              ),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildEmptyState(BuildContext context, bool isDark) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppleDesignSystem.blurMedium,
+          sigmaY: AppleDesignSystem.blurMedium,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
+                : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
+              width: 0.5,
+            ),
+          ),
+          padding: const EdgeInsets.all(AppleDesignSystem.spacing48),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      (isDark ? AppleColors.systemGray3Dark : AppleColors.systemGray3)
+                          .withValues(alpha: 0.5),
+                      (isDark ? AppleColors.systemGray4Dark : AppleColors.systemGray4)
+                          .withValues(alpha: 0.3),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.music_note_rounded,
+                  size: 40,
+                  color: isDark 
+                      ? AppleColors.labelSecondaryDark 
+                      : AppleColors.labelSecondary,
+                ),
+              ),
+              const SizedBox(height: AppleDesignSystem.spacing24),
+              Text(
+                emptyStateTitle,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleTitle3,
+                  fontWeight: AppleDesignSystem.weightSemiBold,
+                  color: isDark 
+                      ? AppleColors.labelPrimaryDark 
+                      : AppleColors.labelPrimary,
+                ),
+              ),
+              const SizedBox(height: AppleDesignSystem.spacing8),
+              Text(
+                emptyStateMessage,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleSubheadline,
+                  color: isDark 
+                      ? AppleColors.labelSecondaryDark 
+                      : AppleColors.labelSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (emptyStateAction != null) ...[
+                const SizedBox(height: AppleDesignSystem.spacing24),
+                emptyStateAction!,
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppleDesignSystem.spacing16),
       child: Row(
         children: [
           if (showTrackNumber)
@@ -107,24 +214,36 @@ class TrackListTemplate extends StatelessWidget {
               width: 40,
               child: Text(
                 '#',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleCaption1,
+                  fontWeight: AppleDesignSystem.weightMedium,
+                  letterSpacing: 0.5,
+                  color: isDark 
+                      ? AppleColors.labelTertiaryDark 
+                      : AppleColors.labelTertiary,
                 ),
               ),
             ),
           
-          if (showTrackNumber) const SizedBox(width: 16),
+          if (showTrackNumber) 
+            const SizedBox(width: AppleDesignSystem.spacing16),
           
-          if (showArtwork) const SizedBox(width: 52), // Space for artwork + margin
+          if (showArtwork) 
+            const SizedBox(width: 52), // Space for artwork + margin
           
           Expanded(
             flex: showArtist || showAlbum ? 3 : 1,
             child: Text(
-              'Title',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+              'TITLE',
+              style: TextStyle(
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: AppleDesignSystem.typeScaleCaption1,
+                fontWeight: AppleDesignSystem.weightMedium,
+                letterSpacing: 0.5,
+                color: isDark 
+                    ? AppleColors.labelTertiaryDark 
+                    : AppleColors.labelTertiary,
               ),
             ),
           ),
@@ -133,10 +252,15 @@ class TrackListTemplate extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                'Artist',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
+                'ARTIST',
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleCaption1,
+                  fontWeight: AppleDesignSystem.weightMedium,
+                  letterSpacing: 0.5,
+                  color: isDark 
+                      ? AppleColors.labelTertiaryDark 
+                      : AppleColors.labelTertiary,
                 ),
               ),
             ),
@@ -145,10 +269,15 @@ class TrackListTemplate extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                'Album',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
+                'ALBUM',
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: AppleDesignSystem.typeScaleCaption1,
+                  fontWeight: AppleDesignSystem.weightMedium,
+                  letterSpacing: 0.5,
+                  color: isDark 
+                      ? AppleColors.labelTertiaryDark 
+                      : AppleColors.labelTertiary,
                 ),
               ),
             ),
@@ -156,10 +285,15 @@ class TrackListTemplate extends StatelessWidget {
           SizedBox(
             width: 80,
             child: Text(
-              'Duration',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+              'TIME',
+              style: TextStyle(
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: AppleDesignSystem.typeScaleCaption1,
+                fontWeight: AppleDesignSystem.weightMedium,
+                letterSpacing: 0.5,
+                color: isDark 
+                    ? AppleColors.labelTertiaryDark 
+                    : AppleColors.labelTertiary,
               ),
               textAlign: TextAlign.right,
             ),
@@ -170,34 +304,7 @@ class TrackListTemplate extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildTrackItem(ThemeData theme, Track track, int index) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: showTrackNumber
-              ? SizedBox(
-                  width: 40,
-                  child: Text(
-                    (index + 1).toString(),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : null,
-          title: _buildTrackTitle(theme, appState, track),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                track.duration != null ? _formatDuration(track.duration!) : '--:--',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
+}
               const SizedBox(width: 8),
               _buildPopupMenu(context, appState, track, index),
             ],
