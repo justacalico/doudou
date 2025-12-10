@@ -2040,7 +2040,7 @@ class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
             curve: AppleDesignSystem.springCurve,
             padding: const EdgeInsets.symmetric(
               horizontal: AppleDesignSystem.spacing12,
-              vertical: AppleDesignSystem.spacing10,
+              vertical: AppleDesignSystem.spacing8,
             ),
             decoration: BoxDecoration(
               color: widget.isSelected
