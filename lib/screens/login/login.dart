@@ -109,8 +109,6 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
-    final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
-    
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Row(
