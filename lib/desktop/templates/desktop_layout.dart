@@ -3241,6 +3241,7 @@ class _AppleIconButton extends StatefulWidget {
     required this.isDark,
     this.color,
     this.tooltip,
+    // ignore: unused_element
     this.size = 20,
   });
 
@@ -3324,6 +3325,7 @@ class _AppleAlbumArt extends StatefulWidget {
     this.imageUrl,
     this.onTap,
     required this.isDark,
+    // ignore: unused_element
     this.size = 56,
   });
 
