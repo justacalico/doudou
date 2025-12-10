@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/apple_design/apple_theme.dart';
 import '../templates/page_template.dart';
 import '../templates/desktop_layout.dart';
 import 'details/media_details.dart';
