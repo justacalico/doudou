@@ -171,51 +171,52 @@ class _DynamicIsleState extends State<DynamicIsle>
                     onTap: _toggleExpanded,
                     onLongPress: () => _openNowPlaying(context),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
+                      duration: AppleDesignSystem.durationMedium,
+                      curve: AppleDesignSystem.springCurve,
                       width: _isExpanded ? 350 : 180,
                       height: _isExpanded ? 90 : 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1C1C1E),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isPlaying
-                              ? CupertinoColors.systemPurple.withOpacity(0.6)
-                              : CupertinoColors.systemGrey4.withOpacity(0.3),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 8),
-                          ),
-                          if (isPlaying)
-                            BoxShadow(
-                              color: CupertinoColors.systemPurple.withOpacity(
-                                0.2,
-                              ),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                        ],
-                      ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: _isExpanded
-                            ? _buildExpandedContent(
-                                context,
-                                appState,
-                                currentTrack,
-                                isPlaying,
-                              )
-                            : _buildCompactContent(
-                                context,
-                                appState,
-                                currentTrack,
-                                isPlaying,
+                        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: AppleDesignSystem.blurRegular,
+                            sigmaY: AppleDesignSystem.blurRegular,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppleColors.glassDark,
+                              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                              border: Border.all(
+                                color: isPlaying
+                                    ? CupertinoColors.systemPurple.withOpacity(0.6)
+                                    : Colors.white.withOpacity(0.15),
+                                width: isPlaying ? 1.5 : 0.5,
                               ),
+                              boxShadow: [
+                                ...AppleDesignSystem.shadowLarge(Colors.black),
+                                if (isPlaying)
+                                  BoxShadow(
+                                    color: CupertinoColors.systemPurple.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    spreadRadius: 4,
+                                  ),
+                              ],
+                            ),
+                            child: _isExpanded
+                                ? _buildExpandedContent(
+                                    context,
+                                    appState,
+                                    currentTrack,
+                                    isPlaying,
+                                  )
+                                : _buildCompactContent(
+                                    context,
+                                    appState,
+                                    currentTrack,
+                                    isPlaying,
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
