@@ -3412,7 +3412,6 @@ class _ApplePlayButtonState extends State<_ApplePlayButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -3438,19 +3437,16 @@ class _ApplePlayButtonState extends State<_ApplePlayButton>
 
   void _handleTapDown(TapDownDetails details) {
     if (widget.onPressed == null) return;
-    setState(() => _isPressed = true);
     _controller.forward();
   }
 
   void _handleTapUp(TapUpDetails details) {
     if (widget.onPressed == null) return;
-    setState(() => _isPressed = false);
     _controller.reverse();
   }
 
   void _handleTapCancel() {
     if (widget.onPressed == null) return;
-    setState(() => _isPressed = false);
     _controller.reverse();
   }
 
