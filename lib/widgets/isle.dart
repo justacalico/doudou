@@ -236,16 +236,19 @@ class _DynamicIsleState extends State<DynamicIsle>
     bool isPlaying,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleDesignSystem.spacing8,
+        vertical: AppleDesignSystem.spacing4 + 2,
+      ),
       child: Row(
         children: [
           // Album art (circular)
           Container(
             width: 28,
             height: 28,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFF2C2C2E),
+              color: AppleColors.elevatedSecondaryDark,
             ),
             child: ClipOval(
               child: currentTrack.imageUrl != null
@@ -256,81 +259,70 @@ class _DynamicIsleState extends State<DynamicIsle>
                         height: 56,
                       ),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         CupertinoIcons.music_note,
-                        color: CupertinoColors.systemGrey,
+                        color: AppleColors.labelTertiaryDark,
                         size: 14,
                       ),
                     )
-                  : const Icon(
+                  : Icon(
                       CupertinoIcons.music_note,
-                      color: CupertinoColors.systemGrey,
+                      color: AppleColors.labelTertiaryDark,
                       size: 14,
                     ),
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppleDesignSystem.spacing8),
 
           // Track title (truncated)
           Expanded(
             child: Text(
               currentTrack.name,
-              style: const TextStyle(
-                color: CupertinoColors.white,
+              style: AppleTextStyles.subheadline(
+                color: AppleColors.labelPrimaryDark,
+              ).copyWith(
+                fontWeight: AppleDesignSystem.weightSemiBold,
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppleDesignSystem.spacing8),
 
           // Play/pause button
-          GestureDetector(
+          _AppleIsleButton(
             onTap: () async {
               await _triggerButtonHaptic();
               appState.playPause();
             },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemPurple.withOpacity(0.9),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isPlaying
-                    ? CupertinoIcons.pause_fill
-                    : CupertinoIcons.play_fill,
-                color: CupertinoColors.white,
-                size: 12,
-              ),
+            isPrimary: true,
+            size: 24,
+            child: Icon(
+              isPlaying
+                  ? CupertinoIcons.pause_fill
+                  : CupertinoIcons.play_fill,
+              color: CupertinoColors.white,
+              size: 12,
             ),
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: AppleDesignSystem.spacing4 + 2),
 
           // Skip button
-          GestureDetector(
+          _AppleIsleButton(
             onTap: () async {
               await _triggerButtonHaptic();
               appState.skipToNext();
             },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemPurple.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                CupertinoIcons.forward_fill,
-                color: CupertinoColors.systemPurple,
-                size: 12,
-              ),
+            isPrimary: false,
+            size: 24,
+            child: const Icon(
+              CupertinoIcons.forward_fill,
+              color: CupertinoColors.systemPurple,
+              size: 12,
             ),
           ),
         ],
