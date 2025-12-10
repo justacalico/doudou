@@ -103,17 +103,19 @@ class _LoginScreenState extends State<LoginScreen>
   Color _getBackgroundColor(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     if (brightness == Brightness.dark) {
-      return const Color(0xFF0A0A0A);
+      return AppleColors.backgroundPrimaryDark;
     }
-    return const Color(0xFFF8F9FA);
+    return AppleColors.backgroundPrimary;
   }
 
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
+    final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Row(
         children: [
-          // Left side - Hero section
+          // Left side - Hero section with glassmorphism
           Expanded(
             flex: 5,
             child: Container(
@@ -122,9 +124,9 @@ class _LoginScreenState extends State<LoginScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    CupertinoColors.systemPurple.resolveFrom(context),
-                    CupertinoColors.systemIndigo.resolveFrom(context),
-                    CupertinoColors.systemBlue.resolveFrom(context),
+                    AppleColors.systemPurple,
+                    AppleColors.systemIndigo,
+                    AppleColors.systemBlue,
                   ],
                 ),
               ),
@@ -139,16 +141,16 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                   
-                  // Hero content
+                  // Hero content with glassmorphism card
                   Padding(
                     padding: const EdgeInsets.all(60),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // App icon with glow effect
+                        // App icon with glow effect and glassmorphism
                         TweenAnimationBuilder(
-                          duration: const Duration(milliseconds: 800),
+                          duration: AppleDesignSystem.durationMedium,
                           tween: Tween<double>(begin: 0.0, end: 1.0),
                           builder: (context, value, child) {
                             return Transform.scale(
