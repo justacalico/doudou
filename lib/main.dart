@@ -11,6 +11,7 @@ import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
+import 'widgets/apple_design/apple_theme.dart';
 import 'desktop/main.dart' as desktop_main;
 
 void main() async {
