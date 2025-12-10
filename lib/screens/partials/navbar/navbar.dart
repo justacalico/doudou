@@ -367,38 +367,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTabBarItem(int index, IconData icon, AppState appState) {
-    final isActive = _tabController.index == index;
-
-    return Expanded(
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: () {
-          setState(() {
-            if (_tabController.index == index) {
-              // Double tap - reload tab
-              _reloadCurrentTab(index);
-            } else {
-              _tabController.index = index;
-              _previousIndex = index;
-            }
-          });
-        },
-        child: Container(
-          height: 65,
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: 26,
-            color: isActive
-                ? CupertinoColors.systemRed
-                : CupertinoColors.systemGrey2,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAndroidAutoUI(AppState appState) {
     return Container(
       color: const Color(0xFF000000),
