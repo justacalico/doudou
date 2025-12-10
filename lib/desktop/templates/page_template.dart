@@ -257,7 +257,7 @@ class _AppleSeeAllButtonState extends State<_AppleSeeAllButton> {
       child: GestureDetector(
         onTap: widget.onPressed,
         child: AnimatedOpacity(
-          duration: AppleDesignSystem.animationDurationFast,
+          duration: AppleDesignSystem.durationFast,
           opacity: _isHovered ? 0.7 : 1.0,
           child: Row(
             mainAxisSize: MainAxisSize.min,
