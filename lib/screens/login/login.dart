@@ -155,31 +155,44 @@ class _LoginScreenState extends State<LoginScreen>
                           builder: (context, value, child) {
                             return Transform.scale(
                               scale: value,
-                              child: Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(0.3 * value),
-                                      blurRadius: 30 * value,
-                                      spreadRadius: 5 * value,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: AppleDesignSystem.blurThin,
+                                    sigmaY: AppleDesignSystem.blurThin,
+                                  ),
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.3),
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.white.withValues(alpha: 0.3 * value),
+                                          blurRadius: 30 * value,
+                                          spreadRadius: 5 * value,
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.music_note_2,
-                                  size: 60,
-                                  color: Colors.white,
+                                    child: const Icon(
+                                      CupertinoIcons.music_note_2,
+                                      size: 60,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ),
                             );
                           },
                         ),
                         
-                        const SizedBox(height: 40),
+                        const SizedBox(height: AppleDesignSystem.spacing48),
                         
                         // Welcome text with animation
                         SlideTransition(
@@ -193,13 +206,14 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Text(
                             'Welcome to\nDoudou',
                             style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
+                              fontFamily: AppleDesignSystem.fontFamily,
+                              fontSize: AppleDesignSystem.typeScaleLargeTitle + 14,
+                              fontWeight: AppleDesignSystem.weightBold,
                               color: Colors.white,
                               height: 1.2,
                               shadows: [
                                 Shadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -208,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                         
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppleDesignSystem.spacing20),
                         
                         SlideTransition(
                           position: Tween<Offset>(
@@ -221,8 +235,9 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Text(
                             'Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.',
                             style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white.withOpacity(0.9),
+                              fontFamily: AppleDesignSystem.fontFamily,
+                              fontSize: AppleDesignSystem.typeScaleBody,
+                              color: Colors.white.withValues(alpha: 0.9),
                               height: 1.6,
                             ),
                           ),
