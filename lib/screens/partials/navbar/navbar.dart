@@ -1950,49 +1950,46 @@ class _HomeScreenState extends State<HomeScreen> {
         if (appState.useDynamicIsle)
           const DynamicIsle(),
 
-        // Custom glassmorphism tab bar positioned at the bottom
+        // Apple-style glassmorphism tab bar positioned at the bottom
         Positioned(
           left: 0,
           right: 0,
           bottom: 0,
           child: Container(
-            height: 97, // 65px height + 32px margin (16px top + 16px bottom)
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.only(
+              left: AppleDesignSystem.spacing16,
+              right: AppleDesignSystem.spacing16,
+              bottom: MediaQuery.of(context).padding.bottom + AppleDesignSystem.spacing8,
+              top: AppleDesignSystem.spacing8,
+            ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(
+                  sigmaX: AppleDesignSystem.blurRegular,
+                  sigmaY: AppleDesignSystem.blurRegular,
+                ),
                 child: Container(
+                  height: 65,
                   decoration: BoxDecoration(
-                    // Glassmorphism effect
-                    color: const Color(0xFF000000).withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
+                    // Apple glassmorphism effect
+                    color: AppleColors.glassDark,
+                    borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
                     border: Border.all(
-                      color: const Color(0xFFFFFFFF).withOpacity(0.2),
-                      width: 1,
+                      color: Colors.white.withOpacity(0.1),
+                      width: 0.5,
                     ),
                     // Enhanced shadow for floating effect
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x40000000),
-                        offset: Offset(0, 8),
-                        blurRadius: 16,
-                      ),
-                      BoxShadow(
-                        color: Color(0x20000000),
-                        offset: Offset(0, 4),
-                        blurRadius: 8,
-                      ),
-                    ],
+                    boxShadow: AppleDesignSystem.shadowLarge(Colors.black),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildTabBarItem(0, CupertinoIcons.house_fill, appState),
-                      _buildTabBarItem(1, CupertinoIcons.music_note_list, appState),
-                      _buildTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
-                      _buildTabBarItem(3, CupertinoIcons.search, appState),
-                      _buildTabBarItem(4, CupertinoIcons.settings, appState),
+                      _buildAppleTabBarItem(0, CupertinoIcons.house_fill, appState),
+                      _buildAppleTabBarItem(1, CupertinoIcons.music_note_list, appState),
+                      _buildAppleTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
+                      _buildAppleTabBarItem(3, CupertinoIcons.search, appState),
+                      _buildAppleTabBarItem(4, CupertinoIcons.settings, appState),
                     ],
                   ),
                 ),
@@ -2001,6 +1998,62 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAppleTabBarItem(int index, IconData icon, AppState appState) {
+    final isActive = _tabController.index == index;
+    final primaryColor = CupertinoColors.systemPurple;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            if (_tabController.index == index) {
+              // Double tap - reload tab
+              _reloadCurrentTab(index);
+            } else {
+              _tabController.index = index;
+              _previousIndex = index;
+            }
+          });
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          height: 65,
+          alignment: Alignment.center,
+          child: AnimatedScale(
+            scale: isActive ? 1.0 : 0.9,
+            duration: AppleDesignSystem.durationFast,
+            curve: AppleDesignSystem.springCurve,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isActive 
+                      ? primaryColor 
+                      : AppleColors.labelSecondaryDark,
+                ),
+                const SizedBox(height: 4),
+                AnimatedContainer(
+                  duration: AppleDesignSystem.durationFast,
+                  width: isActive ? 5 : 0,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
