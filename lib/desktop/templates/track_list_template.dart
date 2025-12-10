@@ -47,8 +47,8 @@ class TrackListTemplate extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
       child: BackdropFilter(
         filter: ImageFilter.blur(
-          sigmaX: AppleDesignSystem.blurMedium,
-          sigmaY: AppleDesignSystem.blurMedium,
+          sigmaX: AppleDesignSystem.blurRegular,
+          sigmaY: AppleDesignSystem.blurRegular,
         ),
         child: Container(
           decoration: BoxDecoration(
@@ -126,8 +126,8 @@ class TrackListTemplate extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
       child: BackdropFilter(
         filter: ImageFilter.blur(
-          sigmaX: AppleDesignSystem.blurMedium,
-          sigmaY: AppleDesignSystem.blurMedium,
+          sigmaX: AppleDesignSystem.blurRegular,
+          sigmaY: AppleDesignSystem.blurRegular,
         ),
         child: Container(
           decoration: BoxDecoration(
