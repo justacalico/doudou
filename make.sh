@@ -139,11 +139,11 @@ case $PLATFORM in
     ios)
         if [ "$PACKAGE_TYPE" = "ipa" ]; then
             # Build iOS without code signing - creates .app bundle
-            echo -e "${YELLOW}Building iOS app without code signing...${NC}"
+            echo -e "${YELLOW}Building iOS app...${NC}"
             echo ""
             
-            # Run flutter build ios with --no-codesign
-            flutter build ios --no-codesign --release
+            # Run flutter build ios with 
+            flutter build ios  --release
             BUILD_STATUS=$?
             
             if [ $BUILD_STATUS -eq 0 ]; then
@@ -164,7 +164,7 @@ case $PLATFORM in
                     cp -r "$APP_PATH" "$TEMP_DIR/Payload/"
                     
                     # Create the IPA (which is just a zip file)
-                    IPA_NAME="doudou-${VERSION}-unsigned.ipa"
+                    IPA_NAME="doudou-${VERSION}.ipa"
                     cd "$TEMP_DIR"
                     zip -r -q "$IPA_NAME" Payload
                     cd - > /dev/null
