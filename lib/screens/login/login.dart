@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
+import 'dart:ui';
 import '../../providers/app_state.dart';
+import '../../widgets/apple_design/apple_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -101,9 +103,9 @@ class _LoginScreenState extends State<LoginScreen>
   Color _getBackgroundColor(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     if (brightness == Brightness.dark) {
-      return const Color(0xFF0A0A0A);
+      return AppleColors.backgroundPrimaryDark;
     }
-    return const Color(0xFFF8F9FA);
+    return AppleColors.backgroundPrimary;
   }
 
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
@@ -111,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen>
       opacity: _fadeAnimation,
       child: Row(
         children: [
-          // Left side - Hero section
+          // Left side - Hero section with glassmorphism
           Expanded(
             flex: 5,
             child: Container(
@@ -120,9 +122,9 @@ class _LoginScreenState extends State<LoginScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    CupertinoColors.systemPurple.resolveFrom(context),
-                    CupertinoColors.systemIndigo.resolveFrom(context),
-                    CupertinoColors.systemBlue.resolveFrom(context),
+                    AppleColors.systemPurple,
+                    AppleColors.systemIndigo,
+                    AppleColors.systemBlue,
                   ],
                 ),
               ),
@@ -137,45 +139,58 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                   
-                  // Hero content
+                  // Hero content with glassmorphism card
                   Padding(
                     padding: const EdgeInsets.all(60),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // App icon with glow effect
+                        // App icon with glow effect and glassmorphism
                         TweenAnimationBuilder(
-                          duration: const Duration(milliseconds: 800),
+                          duration: AppleDesignSystem.durationMedium,
                           tween: Tween<double>(begin: 0.0, end: 1.0),
                           builder: (context, value, child) {
                             return Transform.scale(
                               scale: value,
-                              child: Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(0.3 * value),
-                                      blurRadius: 30 * value,
-                                      spreadRadius: 5 * value,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: AppleDesignSystem.blurThin,
+                                    sigmaY: AppleDesignSystem.blurThin,
+                                  ),
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.3),
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.white.withValues(alpha: 0.3 * value),
+                                          blurRadius: 30 * value,
+                                          spreadRadius: 5 * value,
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.music_note_2,
-                                  size: 60,
-                                  color: Colors.white,
+                                    child: const Icon(
+                                      CupertinoIcons.music_note_2,
+                                      size: 60,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ),
                             );
                           },
                         ),
                         
-                        const SizedBox(height: 40),
+                        const SizedBox(height: AppleDesignSystem.spacing48),
                         
                         // Welcome text with animation
                         SlideTransition(
@@ -189,13 +204,14 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Text(
                             'Welcome to\nDoudou',
                             style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
+                              fontFamily: AppleDesignSystem.fontFamily,
+                              fontSize: AppleDesignSystem.typeScaleLargeTitle + 14,
+                              fontWeight: AppleDesignSystem.weightBold,
                               color: Colors.white,
                               height: 1.2,
                               shadows: [
                                 Shadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -204,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                         
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppleDesignSystem.spacing20),
                         
                         SlideTransition(
                           position: Tween<Offset>(
@@ -217,8 +233,9 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Text(
                             'Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.',
                             style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white.withOpacity(0.9),
+                              fontFamily: AppleDesignSystem.fontFamily,
+                              fontSize: AppleDesignSystem.typeScaleBody,
+                              color: Colors.white.withValues(alpha: 0.9),
                               height: 1.6,
                             ),
                           ),

@@ -1,5 +1,7 @@
+// ignore_for_file: unused_element_parameter
+
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +20,7 @@ import '../pages/settings.dart';
 import '../../services/desktop_lyrics_service.dart';
 import '../../models/jellyfin_models.dart';
 import '../../services/audio/base_audio_handler.dart' as base_handler;
+import '../../widgets/apple_design/apple_theme.dart';
 
 class DesktopLayout extends StatefulWidget {
   final Widget? child;
@@ -131,6 +134,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final navigationItems = _getNavigationItems(l10n);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: Column(
@@ -139,129 +143,142 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           Expanded(
             child: Row(
               children: [
-                // Left Sidebar
-                Container(
-                  width: 240,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    border: Border(
-                      right: BorderSide(
-                        color: theme.colorScheme.outline.withOpacity(0.2),
-                        width: 1,
-                      ),
+                // Left Sidebar with Apple vibrancy effect
+                ClipRRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: AppleDesignSystem.blurRegular,
+                      sigmaY: AppleDesignSystem.blurRegular,
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      // App title/logo area with optional back button
-                      Container(
-                        height: 64,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            if (widget.showBackButton) ...[
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.arrow_back),
-                                tooltip: l10n.back,
-                              ),
-                              const SizedBox(width: 8),
-                            ],
-                            Icon(
-                              Icons.music_note,
-                              size: 28,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                widget.title ?? 'Doudou',
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                    child: Container(
+                      width: 240,
+                      decoration: BoxDecoration(
+                        color: isDark 
+                            ? AppleColors.glassDark.withOpacity(0.6)
+                            : AppleColors.glassLight.withOpacity(0.8),
+                        border: Border(
+                          right: BorderSide(
+                            color: isDark 
+                                ? AppleColors.separatorDark 
+                                : AppleColors.separator,
+                            width: 0.5,
+                          ),
                         ),
                       ),
-
-                      const Divider(height: 1),
-
-                      // Navigation items
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: navigationItems.length,
-                          itemBuilder: (context, index) {
-                            final currentSelectedIndex =
-                                widget.selectedIndex ?? _selectedIndex;
-                            final isSelected = index == currentSelectedIndex;
-                            return Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              child: ListTile(
-                                selected: isSelected,
-                                selectedTileColor:
-                                    theme.colorScheme.primaryContainer,
-                                leading: Icon(
-                                  _navigationIcons[index],
-                                  color: isSelected
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.onSurfaceVariant,
-                                ),
-                                title: Text(
-                                  navigationItems[index],
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurfaceVariant,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
+                      child: Column(
+                        children: [
+                          // App title/logo area with optional back button
+                          Container(
+                            height: 64,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppleDesignSystem.spacing16,
+                            ),
+                            child: Row(
+                              children: [
+                                if (widget.showBackButton) ...[
+                                  _AppleIconButton(
+                                    icon: Icons.arrow_back,
+                                    onPressed: () => Navigator.pop(context),
+                                    tooltip: l10n.back,
+                                    isDark: isDark,
+                                  ),
+                                  const SizedBox(width: AppleDesignSystem.spacing8),
+                                ],
+                                Container(
+                                  padding: const EdgeInsets.all(
+                                    AppleDesignSystem.spacing8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withOpacity(
+                                      isDark ? 0.24 : 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      AppleDesignSystem.radiusMedium,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.music_note,
+                                    size: 20,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                const SizedBox(width: AppleDesignSystem.spacing12),
+                                Expanded(
+                                  child: Text(
+                                    widget.title ?? 'Doudou',
+                                    style: AppleTextStyles.headline(
+                                      color: isDark 
+                                          ? AppleColors.labelPrimaryDark 
+                                          : AppleColors.labelPrimary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                onTap: () {
-                                  if (widget.child != null &&
-                                      widget.showBackButton) {
-                                    // If we're on a detail page, navigate back to main app
-                                    Navigator.popUntil(
-                                      context,
-                                      (route) => route.isFirst,
-                                    );
-                                    // Update the navigation service to show correct page
-                                    _navigationService.navigateToMainPage(
-                                      index,
-                                    );
-                                  } else {
-                                    setState(() {
-                                      _selectedIndex = index;
-                                    });
-                                    // Also update the navigation service for consistency
-                                    _navigationService.selectPage(index);
-                                    widget.onNavigationChanged?.call();
-                                  }
-                                },
+                              ],
+                            ),
+                          ),
+
+                          Divider(
+                            height: 1,
+                            thickness: 0.5,
+                            color: isDark 
+                                ? AppleColors.separatorDark 
+                                : AppleColors.separator,
+                          ),
+
+                          // Navigation items with Apple-style hover
+                          Expanded(
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: AppleDesignSystem.spacing8,
+                                horizontal: AppleDesignSystem.spacing8,
                               ),
-                            );
-                          },
-                        ),
+                              itemCount: navigationItems.length,
+                              itemBuilder: (context, index) {
+                                final currentSelectedIndex =
+                                    widget.selectedIndex ?? _selectedIndex;
+                                final isSelected = index == currentSelectedIndex;
+                                return _AppleSidebarNavigationItem(
+                                  icon: _navigationIcons[index],
+                                  label: navigationItems[index],
+                                  isSelected: isSelected,
+                                  isDark: isDark,
+                                  primaryColor: theme.colorScheme.primary,
+                                  onTap: () {
+                                    if (widget.child != null &&
+                                        widget.showBackButton) {
+                                      Navigator.popUntil(
+                                        context,
+                                        (route) => route.isFirst,
+                                      );
+                                      _navigationService.navigateToMainPage(
+                                        index,
+                                      );
+                                    } else {
+                                      setState(() {
+                                        _selectedIndex = index;
+                                      });
+                                      _navigationService.selectPage(index);
+                                      widget.onNavigationChanged?.call();
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
 
                 // Main content area
                 Expanded(
                   child: Container(
-                    color: theme.colorScheme.background,
+                    color: isDark 
+                        ? AppleColors.backgroundPrimaryDark 
+                        : AppleColors.backgroundPrimary,
                     child: widget.child ?? _buildMainContent(),
                   ),
                 ),
@@ -269,37 +286,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             ),
           ),
 
-          // Bottom Player Bar
-          _buildBottomPlayerBar(theme, l10n),
+          // Bottom Player Bar with Apple glassmorphism
+          _buildAppleBottomPlayerBar(theme, l10n, isDark),
         ],
       ),
     );
   }
 
-  Widget _buildMainContent() {
-    switch (_selectedIndex) {
-      case 0:
-        return const HomePage();
-      case 1:
-        return const SearchPage();
-      case 2:
-        return const LibraryPage();
-      case 3:
-        return const TracksPage();
-      case 4:
-        return const PlaylistsPage();
-      case 5:
-        return const AlbumsPage();
-      case 6:
-        return const ArtistsPage();
-      case 7:
-        return const SettingsPage();
-      default:
-        return const HomePage();
-    }
-  }
-
-  Widget _buildBottomPlayerBar(ThemeData theme, AppLocalizations l10n) {
+  Widget _buildAppleBottomPlayerBar(ThemeData theme, AppLocalizations l10n, bool isDark) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
@@ -325,608 +319,200 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             ? position.inMilliseconds / duration.inMilliseconds
                             : 0.0;
 
-                        return Container(
-                          height: 88,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            boxShadow: [
-                              BoxShadow(
-                                color: theme.colorScheme.shadow.withOpacity(
-                                  0.1,
-                                ),
-                                offset: const Offset(0, -2),
-                                blurRadius: 8,
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              // Slim progress bar
-                              SizedBox(
-                                height: 4,
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 4,
-                                    thumbShape: const RoundSliderThumbShape(
-                                      enabledThumbRadius: 0,
-                                    ),
-                                    overlayShape: const RoundSliderOverlayShape(
-                                      overlayRadius: 0,
-                                    ),
-                                    activeTrackColor: theme.colorScheme.primary,
-                                    inactiveTrackColor: theme
-                                        .colorScheme
-                                        .outline
-                                        .withOpacity(0.1),
-                                  ),
-                                  child: Slider(
-                                    value: progress.clamp(0.0, 1.0),
-                                    onChanged:
-                                        currentTrack != null &&
-                                            audioHandler != null
-                                        ? (value) {
-                                            final newPosition = Duration(
-                                              milliseconds:
-                                                  (value *
-                                                          duration
-                                                              .inMilliseconds)
-                                                      .round(),
-                                            );
-                                            audioHandler.seek(newPosition);
-                                          }
-                                        : null,
-                                    min: 0.0,
-                                    max: 1.0,
+                        return ClipRRect(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(
+                              sigmaX: AppleDesignSystem.blurThin,
+                              sigmaY: AppleDesignSystem.blurThin,
+                            ),
+                            child: Container(
+                              height: 88,
+                              decoration: BoxDecoration(
+                                color: isDark 
+                                    ? AppleColors.glassDark 
+                                    : AppleColors.glassLight,
+                                border: Border(
+                                  top: BorderSide(
+                                    color: isDark 
+                                        ? AppleColors.separatorDark 
+                                        : AppleColors.separator,
+                                    width: 0.5,
                                   ),
                                 ),
-                              ),
-
-                              // Main player content
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    20,
-                                    12,
-                                    20,
-                                    12,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    offset: const Offset(0, -2),
+                                    blurRadius: 8,
+                                    spreadRadius: 0,
                                   ),
-                                  child: Row(
-                                    children: [
-                                      // Album art with hover effect
-                                      GestureDetector(
-                                        onTap: currentTrack != null
-                                            ? () =>
-                                                  _showNowPlayingDialog(context)
-                                            : null,
-                                        child: Container(
-                                          width: 64,
-                                          height: 64,
-                                          decoration: BoxDecoration(
-                                            color: theme
-                                                .colorScheme
-                                                .surfaceVariant,
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: theme.colorScheme.shadow
-                                                    .withOpacity(0.1),
-                                                offset: const Offset(0, 2),
-                                                blurRadius: 8,
-                                                spreadRadius: 0,
-                                              ),
-                                            ],
-                                          ),
-                                          child: currentTrack?.artUri != null
-                                              ? ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  child: Image.network(
-                                                    currentTrack!.artUri
-                                                        .toString(),
-                                                    width: 64,
-                                                    height: 64,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder:
-                                                        (
-                                                          context,
-                                                          error,
-                                                          stackTrace,
-                                                        ) {
-                                                          return Icon(
-                                                            Icons
-                                                                .music_note_rounded,
-                                                            color: theme
-                                                                .colorScheme
-                                                                .onSurfaceVariant,
-                                                            size: 32,
-                                                          );
-                                                        },
-                                                  ),
-                                                )
-                                              : Icon(
-                                                  Icons.music_note_rounded,
-                                                  color: theme
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                  size: 32,
-                                                ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  // Slim progress bar
+                                  SizedBox(
+                                    height: 4,
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        trackHeight: 4,
+                                        thumbShape: const RoundSliderThumbShape(
+                                          enabledThumbRadius: 0,
                                         ),
+                                        overlayShape: const RoundSliderOverlayShape(
+                                          overlayRadius: 0,
+                                        ),
+                                        activeTrackColor: theme.colorScheme.primary,
+                                        inactiveTrackColor: isDark 
+                                            ? AppleColors.systemGray4Dark
+                                            : AppleColors.systemGray5,
                                       ),
-
-                                      const SizedBox(width: 20),
-
-                                      // Track info - improved layout
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: currentTrack != null
-                                              ? () => _showNowPlayingDialog(
-                                                  context,
-                                                )
-                                              : null,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                currentTrack?.title ??
-                                                    l10n.noTrackPlaying,
-                                                style: theme.textTheme.bodyLarge
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: theme
-                                                          .colorScheme
-                                                          .onSurface,
-                                                    ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Row(
-                                                children: [
-                                                  Flexible(
-                                                    child: Text(
-                                                      currentTrack?.artist ??
-                                                          l10n.selectSongToPlay,
-                                                      style: theme
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                            color: theme
-                                                                .colorScheme
-                                                                .onSurfaceVariant,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                          ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                  if (currentTrack != null) ...[
-                                                    Container(
-                                                      margin:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 8,
-                                                          ),
-                                                      width: 4,
-                                                      height: 4,
-                                                      decoration: BoxDecoration(
-                                                        color: theme
-                                                            .colorScheme
-                                                            .onSurfaceVariant
-                                                            .withOpacity(0.6),
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                    ),
-                                                    Consumer<AppState>(
-                                                      builder: (context, appState, child) {
-                                                        final timeText =
-                                                            '${_formatDuration(position)} / ${_formatDuration(duration)}';
-
-                                                        return Text(
-                                                          timeText,
-                                                          style: theme
-                                                              .textTheme
-                                                              .bodySmall
-                                                              ?.copyWith(
-                                                                color: theme
-                                                                    .colorScheme
-                                                                    .onSurfaceVariant,
-                                                                fontFamily:
-                                                                    'monospace',
-                                                                fontSize: 12,
-                                                              ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-
-                                      const SizedBox(width: 24),
-
-                                      // Player controls - enhanced design
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              onPressed:
-                                                  audioHandler != null &&
-                                                      audioHandler.hasPrevious
-                                                  ? () => appState
-                                                        .skipToPrevious()
-                                                  : null,
-                                              icon: const Icon(
-                                                Icons.skip_previous_rounded,
-                                              ),
-                                              iconSize: 24,
-                                              style: IconButton.styleFrom(
-                                                foregroundColor: theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              width: 48,
-                                              height: 48,
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    theme.colorScheme.primary,
-                                                borderRadius:
-                                                    BorderRadius.circular(24),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: theme
-                                                        .colorScheme
-                                                        .primary
-                                                        .withOpacity(0.3),
-                                                    offset: const Offset(0, 4),
-                                                    blurRadius: 12,
-                                                    spreadRadius: 0,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Consumer<AppState>(
-                                                builder: (context, appState, child) {
-                                                  return StreamBuilder<
-                                                    PlaybackState
-                                                  >(
-                                                    stream: audioHandler
-                                                        ?.playbackState,
-                                                    builder: (context, playbackSnapshot) {
-                                                      final playbackState =
-                                                          playbackSnapshot.data;
-                                                      final currentIsPlaying =
-                                                          playbackState
-                                                              ?.playing ==
-                                                          true;
-                                                      final currentIsBuffering =
-                                                          playbackState
-                                                              ?.processingState ==
-                                                          AudioProcessingState
-                                                              .buffering;
-
-                                                      // Debug logs for main desktop button
-                                                      if (kDebugMode) {
-                                                        print(
-                                                          '=== MAIN DESKTOP BUTTON REBUILD ===',
-                                                        );
-                                                        print(
-                                                          'DateTime: ${DateTime.now()}',
-                                                        );
-                                                        print(
-                                                          'audioHandler != null: ${audioHandler != null}',
-                                                        );
-                                                        print(
-                                                          'currentTrack != null: ${currentTrack != null}',
-                                                        );
-                                                        print(
-                                                          'RAW playbackState: $playbackState',
-                                                        );
-                                                        print(
-                                                          'playbackState?.playing: ${playbackState?.playing}',
-                                                        );
-                                                        print(
-                                                          'playbackState?.processingState: ${playbackState?.processingState}',
-                                                        );
-                                                        print(
-                                                          'currentIsPlaying: $currentIsPlaying',
-                                                        );
-                                                        print(
-                                                          'currentIsBuffering: $currentIsBuffering',
-                                                        );
-                                                        print(
-                                                          'Button should be enabled: ${audioHandler != null && currentTrack != null && !currentIsBuffering}',
-                                                        );
-                                                      }
-
-                                                      return IconButton(
-                                                        onPressed:
-                                                            audioHandler !=
-                                                                    null &&
-                                                                currentTrack !=
-                                                                    null &&
-                                                                !currentIsBuffering
-                                                            ? () {
-                                                                if (kDebugMode) {
-                                                                  print(
-                                                                    '=== MAIN DESKTOP PLAY/PAUSE BUTTON CLICKED ===',
-                                                                  );
-                                                                  print(
-                                                                    'DateTime: ${DateTime.now()}',
-                                                                  );
-                                                                  print(
-                                                                    'currentIsPlaying: $currentIsPlaying',
-                                                                  );
-                                                                  print(
-                                                                    'currentIsBuffering: $currentIsBuffering',
-                                                                  );
-                                                                  print(
-                                                                    'currentTrack: ${currentTrack.displayTitle}',
-                                                                  );
-                                                                  print(
-                                                                    'audioHandler: available',
-                                                                  );
-                                                                  print(
-                                                                    'About to call appState.playPause()...',
-                                                                  );
-                                                                }
-                                                                appState
-                                                                    .playPause();
-                                                              }
-                                                            : () {
-                                                                if (kDebugMode) {
-                                                                  print(
-                                                                    '=== MAIN DESKTOP BUTTON DISABLED ===',
-                                                                  );
-                                                                  print(
-                                                                    'Button disabled - audioHandler: ${audioHandler != null}, currentTrack: ${currentTrack != null}, isBuffering: $currentIsBuffering',
-                                                                  );
-                                                                }
-                                                              },
-                                                        icon: currentIsBuffering
-                                                            ? SizedBox(
-                                                                width: 24,
-                                                                height: 24,
-                                                                child: CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2,
-                                                                  color: theme
-                                                                      .colorScheme
-                                                                      .onPrimary,
-                                                                ),
-                                                              )
-                                                            : Icon(
-                                                                currentIsPlaying
-                                                                    ? Icons
-                                                                          .pause_rounded
-                                                                    : Icons
-                                                                          .play_arrow_rounded,
-                                                                size: 28,
-                                                              ),
-                                                        style: IconButton.styleFrom(
-                                                          foregroundColor: theme
-                                                              .colorScheme
-                                                              .onPrimary,
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  24,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            IconButton(
-                                              onPressed:
-                                                  audioHandler != null &&
-                                                      audioHandler.hasNext
-                                                  ? () => appState.skipToNext()
-                                                  : null,
-                                              icon: const Icon(
-                                                Icons.skip_next_rounded,
-                                              ),
-                                              iconSize: 24,
-                                              style: IconButton.styleFrom(
-                                                foregroundColor: theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      const SizedBox(width: 24),
-
-                                      // Right side controls - cleaner layout
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          // Favorite button
-                                          Consumer<AppState>(
-                                            builder: (context, appState, child) {
-                                              if (currentTrack == null) {
-                                                return const SizedBox.shrink();
-                                              }
-
-                                              // Find the track in the app state
-                                              final trackInState = appState
-                                                  .tracks
-                                                  .firstWhere(
-                                                    (t) =>
-                                                        t.id == currentTrack.id,
-                                                    orElse: () => Track(
-                                                      id: currentTrack.id,
-                                                      name: currentTrack.title,
-                                                      albumName:
-                                                          currentTrack.album,
-                                                      artistName:
-                                                          currentTrack.artist,
-                                                      albumId:
-                                                          currentTrack
-                                                                  .extras?['albumId']
-                                                              as String? ??
-                                                          '',
-                                                      duration:
-                                                          currentTrack
-                                                              .duration
-                                                              ?.inSeconds ??
-                                                          0,
-                                                      trackNumber: null,
-                                                      imageUrl: null,
-                                                      isFavorite:
-                                                          false, // Default to false, will be updated after server response
-                                                    ),
-                                                  );
-
-                                              final isFavorite =
-                                                  trackInState.isFavorite;
-                                              final trackFound = appState.tracks
-                                                  .any(
-                                                    (t) =>
-                                                        t.id == currentTrack.id,
-                                                  );
-
-                                              if (kDebugMode) {
-                                                print(
-                                                  'Desktop Heart UI: currentTrack=${currentTrack.title}, isFavorite=$isFavorite, trackFound=$trackFound, trackId=${currentTrack.id}',
+                                      child: Slider(
+                                        value: progress.clamp(0.0, 1.0),
+                                        onChanged:
+                                            currentTrack != null &&
+                                                audioHandler != null
+                                            ? (value) {
+                                                final newPosition = Duration(
+                                                  milliseconds:
+                                                      (value *
+                                                              duration
+                                                                  .inMilliseconds)
+                                                          .round(),
                                                 );
+                                                audioHandler.seek(newPosition);
                                               }
+                                            : null,
+                                        min: 0.0,
+                                        max: 1.0,
+                                      ),
+                                    ),
+                                  ),
 
-                                              return IconButton(
-                                                onPressed: () {
-                                                  if (kDebugMode) {
-                                                    print(
-                                                      'Desktop Heart Button Clicked: Track=${trackInState.name}, Current isFavorite=${trackInState.isFavorite}',
-                                                    );
-                                                  }
-                                                  appState.toggleFavorite(
-                                                    trackInState,
-                                                  );
-                                                },
-                                                icon: Icon(
-                                                  isFavorite
-                                                      ? Icons.favorite
-                                                      : Icons.favorite_border,
-                                                  size: 20,
-                                                ),
-                                                style: IconButton.styleFrom(
-                                                  foregroundColor: isFavorite
-                                                      ? Colors.red
-                                                      : theme
-                                                            .colorScheme
-                                                            .onSurfaceVariant,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                ),
-                                                tooltip: isFavorite
-                                                    ? l10n.removeFromFavorites
-                                                    : l10n.addToFavorites,
-                                              );
-                                            },
-                                          ),
-                                          const SizedBox(width: 8),
-                                          StreamBuilder<double>(
-                                            stream: audioHandler?.volumeStream,
-                                            builder: (context, volumeSnapshot) {
-                                              final currentVolume =
-                                                  volumeSnapshot.data ?? 1.0;
-
-                                              return IconButton(
-                                                onPressed: () =>
-                                                    _showVolumeDialog(context),
-                                                onLongPress:
-                                                    audioHandler != null
-                                                    ? () => audioHandler
-                                                          .toggleMute()
-                                                    : null,
-                                                icon: Icon(
-                                                  currentVolume == 0.0
-                                                      ? Icons.volume_off_rounded
-                                                      : currentVolume < 0.5
-                                                      ? Icons
-                                                            .volume_down_rounded
-                                                      : Icons.volume_up_rounded,
-                                                  size: 20,
-                                                ),
-                                                style: IconButton.styleFrom(
-                                                  foregroundColor: theme
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                ),
-                                                tooltip:
-                                                    l10n.volumePercent((currentVolume * 100).round()),
-                                              );
-                                            },
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            onPressed: currentTrack != null
-                                                ? () => _showNowPlayingDialog(
-                                                    context,
-                                                  )
+                                  // Main player content
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        AppleDesignSystem.spacing20,
+                                        AppleDesignSystem.spacing12,
+                                        AppleDesignSystem.spacing20,
+                                        AppleDesignSystem.spacing12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          // Album art with hover effect
+                                          _AppleAlbumArt(
+                                            imageUrl: currentTrack?.artUri?.toString(),
+                                            onTap: currentTrack != null
+                                                ? () => _showNowPlayingDialog(context)
                                                 : null,
-                                            icon: const Icon(
-                                              Icons.open_in_full_rounded,
-                                              size: 20,
-                                            ),
-                                            style: IconButton.styleFrom(
-                                              foregroundColor: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
+                                            isDark: isDark,
+                                          ),
+
+                                          const SizedBox(width: AppleDesignSystem.spacing20),
+
+                                          // Track info
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: currentTrack != null
+                                                  ? () => _showNowPlayingDialog(context)
+                                                  : null,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    currentTrack?.title ??
+                                                        l10n.noTrackPlaying,
+                                                    style: AppleTextStyles.headline(
+                                                      color: isDark 
+                                                          ? AppleColors.labelPrimaryDark 
+                                                          : AppleColors.labelPrimary,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    children: [
+                                                      Flexible(
+                                                        child: Text(
+                                                          currentTrack?.artist ??
+                                                              l10n.selectSongToPlay,
+                                                          style: AppleTextStyles.subheadline(
+                                                            color: isDark 
+                                                                ? AppleColors.labelSecondaryDark 
+                                                                : AppleColors.labelSecondary,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      ),
+                                                      if (currentTrack != null) ...[
+                                                        Container(
+                                                          margin: const EdgeInsets.symmetric(
+                                                            horizontal: AppleDesignSystem.spacing8,
+                                                          ),
+                                                          width: 4,
+                                                          height: 4,
+                                                          decoration: BoxDecoration(
+                                                            color: isDark 
+                                                                ? AppleColors.labelTertiaryDark 
+                                                                : AppleColors.labelTertiary,
+                                                            shape: BoxShape.circle,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          '${_formatDuration(position)} / ${_formatDuration(duration)}',
+                                                          style: AppleTextStyles.footnote(
+                                                            color: isDark 
+                                                                ? AppleColors.labelSecondaryDark 
+                                                                : AppleColors.labelSecondary,
+                                                          ).copyWith(
+                                                            fontFamily: 'monospace',
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            tooltip: l10n.tooltipShowNowPlaying,
+                                          ),
+
+                                          const SizedBox(width: AppleDesignSystem.spacing24),
+
+                                          // Player controls
+                                          _buildApplePlayerControls(
+                                            theme, 
+                                            l10n, 
+                                            isDark, 
+                                            appState, 
+                                            audioHandler, 
+                                            currentTrack,
+                                          ),
+
+                                          const SizedBox(width: AppleDesignSystem.spacing24),
+
+                                          // Right side controls
+                                          _buildAppleRightControls(
+                                            theme, 
+                                            l10n, 
+                                            isDark, 
+                                            appState, 
+                                            audioHandler, 
+                                            currentTrack,
                                           ),
                                         ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         );
                       },
@@ -939,6 +525,170 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         );
       },
     );
+  }
+
+  Widget _buildApplePlayerControls(
+    ThemeData theme,
+    AppLocalizations l10n,
+    bool isDark,
+    AppState appState,
+    dynamic audioHandler,
+    MediaItem? currentTrack,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleDesignSystem.spacing12,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _AppleIconButton(
+            icon: Icons.skip_previous_rounded,
+            onPressed: audioHandler != null && audioHandler.hasPrevious
+                ? () => appState.skipToPrevious()
+                : null,
+            isDark: isDark,
+          ),
+          const SizedBox(width: AppleDesignSystem.spacing8),
+          // Play/Pause Button with Apple styling
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              return StreamBuilder<PlaybackState>(
+                stream: audioHandler?.playbackState,
+                builder: (context, playbackSnapshot) {
+                  final playbackState = playbackSnapshot.data;
+                  final currentIsPlaying = playbackState?.playing == true;
+                  final currentIsBuffering = playbackState?.processingState ==
+                      AudioProcessingState.buffering;
+
+                  return _ApplePlayButton(
+                    isPlaying: currentIsPlaying,
+                    isBuffering: currentIsBuffering,
+                    primaryColor: theme.colorScheme.primary,
+                    isDark: isDark,
+                    onPressed: audioHandler != null &&
+                            currentTrack != null &&
+                            !currentIsBuffering
+                        ? () => appState.playPause()
+                        : null,
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(width: AppleDesignSystem.spacing8),
+          _AppleIconButton(
+            icon: Icons.skip_next_rounded,
+            onPressed: audioHandler != null && audioHandler.hasNext
+                ? () => appState.skipToNext()
+                : null,
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppleRightControls(
+    ThemeData theme,
+    AppLocalizations l10n,
+    bool isDark,
+    AppState appState,
+    dynamic audioHandler,
+    MediaItem? currentTrack,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Favorite button
+        if (currentTrack != null)
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              final trackInState = appState.tracks.firstWhere(
+                (t) => t.id == currentTrack.id,
+                orElse: () => Track(
+                  id: currentTrack.id,
+                  name: currentTrack.title,
+                  albumName: currentTrack.album,
+                  artistName: currentTrack.artist,
+                  albumId: currentTrack.extras?['albumId'] as String? ?? '',
+                  duration: currentTrack.duration?.inSeconds ?? 0,
+                  trackNumber: null,
+                  imageUrl: null,
+                  isFavorite: false,
+                ),
+              );
+
+              final isFavorite = trackInState.isFavorite;
+
+              return _AppleIconButton(
+                icon: isFavorite ? Icons.favorite : Icons.favorite_border,
+                onPressed: () => appState.toggleFavorite(trackInState),
+                isDark: isDark,
+                color: isFavorite 
+                    ? (isDark ? AppleColors.systemRedDark : AppleColors.systemRed) 
+                    : null,
+                tooltip: isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
+              );
+            },
+          ),
+        const SizedBox(width: AppleDesignSystem.spacing8),
+        // Volume button
+        StreamBuilder<double>(
+          stream: audioHandler?.volumeStream,
+          builder: (context, volumeSnapshot) {
+            final currentVolume = volumeSnapshot.data ?? 1.0;
+
+            return _AppleIconButton(
+              icon: currentVolume == 0.0
+                  ? Icons.volume_off_rounded
+                  : currentVolume < 0.5
+                      ? Icons.volume_down_rounded
+                      : Icons.volume_up_rounded,
+              onPressed: () => _showVolumeDialog(context),
+              isDark: isDark,
+              tooltip: l10n.volumePercent((currentVolume * 100).round()),
+            );
+          },
+        ),
+        const SizedBox(width: AppleDesignSystem.spacing8),
+        // Queue/Lyrics button
+        _AppleIconButton(
+          icon: Icons.queue_music_rounded,
+          onPressed: () => _showQueueDialog(context),
+          isDark: isDark,
+          tooltip: l10n.queue,
+        ),
+      ],
+    );
+  }
+
+  void _showQueueDialog(BuildContext context) {
+    // Delegate to existing queue dialog implementation
+    _showNowPlayingDialog(context);
+  }
+
+  Widget _buildMainContent() {
+    switch (_selectedIndex) {
+      case 0:
+        return const HomePage();
+      case 1:
+        return const SearchPage();
+      case 2:
+        return const LibraryPage();
+      case 3:
+        return const TracksPage();
+      case 4:
+        return const PlaylistsPage();
+      case 5:
+        return const AlbumsPage();
+      case 6:
+        return const ArtistsPage();
+      case 7:
+        return const SettingsPage();
+      default:
+        return const HomePage();
+    }
   }
 
   void _showNowPlayingDialog(BuildContext context) {
@@ -3382,6 +3132,382 @@ class _AddToPlaylistDialogState extends State<_AddToPlaylistDialog> {
               : const Text('Add to Playlist'),
         ),
       ],
+    );
+  }
+}
+
+// ============================================
+// APPLE-STYLED HELPER WIDGETS
+// ============================================
+
+/// Apple-style sidebar navigation item with hover effects
+class _AppleSidebarNavigationItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final bool isDark;
+  final Color primaryColor;
+  final VoidCallback onTap;
+
+  const _AppleSidebarNavigationItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.isDark,
+    required this.primaryColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_AppleSidebarNavigationItem> createState() =>
+      _AppleSidebarNavigationItemState();
+}
+
+class _AppleSidebarNavigationItemState
+    extends State<_AppleSidebarNavigationItem> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppleDesignSystem.spacing12,
+            vertical: AppleDesignSystem.spacing8,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? widget.primaryColor.withOpacity(widget.isDark ? 0.24 : 0.12)
+                : _isHovering
+                    ? (widget.isDark
+                        ? AppleColors.fillPrimaryDark
+                        : AppleColors.fillPrimary)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                color: widget.isSelected
+                    ? widget.primaryColor
+                    : widget.isDark
+                        ? AppleColors.labelSecondaryDark
+                        : AppleColors.labelSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: AppleDesignSystem.spacing12),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: AppleTextStyles.subheadline(
+                    color: widget.isSelected
+                        ? widget.primaryColor
+                        : widget.isDark
+                            ? AppleColors.labelPrimaryDark
+                            : AppleColors.labelPrimary,
+                  ).copyWith(
+                    fontWeight: widget.isSelected
+                        ? AppleDesignSystem.weightSemiBold
+                        : AppleDesignSystem.weightRegular,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Apple-style icon button with hover and press effects
+class _AppleIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isDark;
+  final Color? color;
+  final String? tooltip;
+  final double size;
+
+  const _AppleIconButton({
+    required this.icon,
+    this.onPressed,
+    required this.isDark,
+    this.color,
+    this.tooltip,
+    this.size = 20, // ignore: unused_element
+  });
+
+  @override
+  State<_AppleIconButton> createState() => _AppleIconButtonState();
+}
+
+class _AppleIconButtonState extends State<_AppleIconButton> {
+  bool _isHovering = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
+    final iconColor = widget.color ??
+        (isDisabled
+            ? (widget.isDark
+                ? AppleColors.labelTertiaryDark
+                : AppleColors.labelTertiary)
+            : (widget.isDark
+                ? AppleColors.labelSecondaryDark
+                : AppleColors.labelSecondary));
+
+    final button = MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          padding: const EdgeInsets.all(AppleDesignSystem.spacing8),
+          decoration: BoxDecoration(
+            color: _isPressed
+                ? (widget.isDark
+                    ? AppleColors.fillSecondaryDark
+                    : AppleColors.fillSecondary)
+                : _isHovering
+                    ? (widget.isDark
+                        ? AppleColors.fillTertiaryDark
+                        : AppleColors.fillTertiary)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+          ),
+          child: AnimatedScale(
+            scale: _isPressed ? AppleDesignSystem.pressScale : 1.0,
+            duration: AppleDesignSystem.durationFast,
+            curve: AppleDesignSystem.interactiveCurve,
+            child: Icon(
+              widget.icon,
+              color: iconColor,
+              size: widget.size,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (widget.tooltip != null) {
+      return Tooltip(
+        message: widget.tooltip!,
+        child: button,
+      );
+    }
+
+    return button;
+  }
+}
+
+/// Apple-style album art with hover effect
+class _AppleAlbumArt extends StatefulWidget {
+  final String? imageUrl;
+  final VoidCallback? onTap;
+  final bool isDark;
+  final double size;
+
+  const _AppleAlbumArt({
+    this.imageUrl,
+    this.onTap,
+    required this.isDark,
+    this.size = 56, // ignore: unused_element
+  });
+
+  @override
+  State<_AppleAlbumArt> createState() => _AppleAlbumArtState();
+}
+
+class _AppleAlbumArtState extends State<_AppleAlbumArt> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppleDesignSystem.durationFast,
+          curve: AppleDesignSystem.springCurve,
+          transform: Matrix4.identity()
+            ..scale(_isHovering ? 1.02 : 1.0),
+          transformAlignment: Alignment.center,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              color: widget.isDark
+                  ? AppleColors.elevatedSecondaryDark
+                  : AppleColors.systemGray6,
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              boxShadow: AppleDesignSystem.shadowMedium(Colors.black),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              child: widget.imageUrl != null
+                  ? Image.network(
+                      widget.imageUrl!,
+                      width: widget.size,
+                      height: widget.size,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildPlaceholder();
+                      },
+                    )
+                  : _buildPlaceholder(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Icon(
+      Icons.music_note_rounded,
+      color: widget.isDark
+          ? AppleColors.labelTertiaryDark
+          : AppleColors.labelTertiary,
+      size: widget.size * 0.5,
+    );
+  }
+}
+
+/// Apple-style play button with spring animation
+class _ApplePlayButton extends StatefulWidget {
+  final bool isPlaying;
+  final bool isBuffering;
+  final Color primaryColor;
+  final bool isDark;
+  final VoidCallback? onPressed;
+
+  const _ApplePlayButton({
+    required this.isPlaying,
+    required this.isBuffering,
+    required this.primaryColor,
+    required this.isDark,
+    this.onPressed,
+  });
+
+  @override
+  State<_ApplePlayButton> createState() => _ApplePlayButtonState();
+}
+
+class _ApplePlayButtonState extends State<_ApplePlayButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: AppleDesignSystem.durationFast,
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: AppleDesignSystem.pressScale,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: AppleDesignSystem.interactiveCurve,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    if (widget.onPressed == null) return;
+    _controller.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    if (widget.onPressed == null) return;
+    _controller.reverse();
+  }
+
+  void _handleTapCancel() {
+    if (widget.onPressed == null) return;
+    _controller.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onPressed,
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: AnimatedContainer(
+              duration: AppleDesignSystem.durationFast,
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: widget.onPressed == null
+                    ? (widget.isDark
+                        ? AppleColors.systemGray4Dark
+                        : AppleColors.systemGray4)
+                    : widget.primaryColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.primaryColor.withOpacity(
+                      widget.onPressed == null ? 0 : 0.3,
+                    ),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: widget.isBuffering
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : Icon(
+                      widget.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

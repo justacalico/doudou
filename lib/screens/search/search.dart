@@ -28,6 +28,11 @@ class _SearchScreenState extends State<SearchScreen> {
   // Recent searches
   List<String> _recentSearches = [];
 
+  // Expanded sections state
+  bool _artistsExpanded = false;
+  bool _albumsExpanded = false;
+  bool _tracksExpanded = false;
+
   bool _isSearching = false;
   String _searchQuery = '';
 
@@ -129,6 +134,10 @@ class _SearchScreenState extends State<SearchScreen> {
         _playlistResults = [];
         _isSearching = false;
         _searchQuery = '';
+        // Reset expanded states
+        _artistsExpanded = false;
+        _albumsExpanded = false;
+        _tracksExpanded = false;
       });
       return;
     }
@@ -709,13 +718,18 @@ class _SearchScreenState extends State<SearchScreen> {
           CupertinoIcons.person_2,
         ),
       );
-      for (final artist in _artistResults.take(5)) {
+      final artistsToShow = _artistsExpanded ? _artistResults : _artistResults.take(5).toList();
+      for (final artist in artistsToShow) {
         allResults.add(_buildUnifiedArtistItem(artist, appState));
       }
       if (_artistResults.length > 5) {
         allResults.add(
           _buildShowMoreButton(
-            'Show ${_artistResults.length - 5} more artists',
+            _artistsExpanded
+                ? 'Show less'
+                : 'Show ${_artistResults.length - 5} more artists',
+            isExpanded: _artistsExpanded,
+            onTap: () => setState(() => _artistsExpanded = !_artistsExpanded),
           ),
         );
       }
@@ -730,12 +744,19 @@ class _SearchScreenState extends State<SearchScreen> {
           CupertinoIcons.music_albums,
         ),
       );
-      for (final album in _albumResults.take(5)) {
+      final albumsToShow = _albumsExpanded ? _albumResults : _albumResults.take(5).toList();
+      for (final album in albumsToShow) {
         allResults.add(_buildUnifiedAlbumItem(album, appState));
       }
       if (_albumResults.length > 5) {
         allResults.add(
-          _buildShowMoreButton('Show ${_albumResults.length - 5} more albums'),
+          _buildShowMoreButton(
+            _albumsExpanded
+                ? 'Show less'
+                : 'Show ${_albumResults.length - 5} more albums',
+            isExpanded: _albumsExpanded,
+            onTap: () => setState(() => _albumsExpanded = !_albumsExpanded),
+          ),
         );
       }
     }
@@ -749,12 +770,19 @@ class _SearchScreenState extends State<SearchScreen> {
           CupertinoIcons.music_note,
         ),
       );
-      for (final track in _trackResults.take(8)) {
+      final tracksToShow = _tracksExpanded ? _trackResults : _trackResults.take(8).toList();
+      for (final track in tracksToShow) {
         allResults.add(_buildUnifiedTrackItem(track, appState));
       }
       if (_trackResults.length > 8) {
         allResults.add(
-          _buildShowMoreButton('Show ${_trackResults.length - 8} more songs'),
+          _buildShowMoreButton(
+            _tracksExpanded
+                ? 'Show less'
+                : 'Show ${_trackResults.length - 8} more songs',
+            isExpanded: _tracksExpanded,
+            onTap: () => setState(() => _tracksExpanded = !_tracksExpanded),
+          ),
         );
       }
     }
@@ -823,13 +851,11 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildShowMoreButton(String text) {
+  Widget _buildShowMoreButton(String text, {required VoidCallback onTap, bool isExpanded = false}) {
     return Container(
       margin: const EdgeInsets.only(top: 8, bottom: 16),
       child: GestureDetector(
-        onTap: () {
-          // TODO: Implement show more functionality
-        },
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
@@ -848,10 +874,14 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                CupertinoIcons.chevron_down,
-                color: Color(0xFF007AFF),
-                size: 16,
+              AnimatedRotation(
+                turns: isExpanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: const Icon(
+                  CupertinoIcons.chevron_down,
+                  color: Color(0xFF007AFF),
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 8),
               Text(

@@ -1,5 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
@@ -7,6 +8,7 @@ import '../providers/app_state.dart';
 import '../models/jellyfin_models.dart';
 import '../services/audio/base_audio_handler.dart';
 import '../screens/playing/now_playing.dart';
+import 'apple_design/apple_theme.dart';
 
 class DynamicIsle extends StatefulWidget {
   const DynamicIsle({super.key});
@@ -169,51 +171,52 @@ class _DynamicIsleState extends State<DynamicIsle>
                     onTap: _toggleExpanded,
                     onLongPress: () => _openNowPlaying(context),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
+                      duration: AppleDesignSystem.durationMedium,
+                      curve: AppleDesignSystem.springCurve,
                       width: _isExpanded ? 350 : 180,
                       height: _isExpanded ? 90 : 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1C1C1E),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isPlaying
-                              ? CupertinoColors.systemPurple.withOpacity(0.6)
-                              : CupertinoColors.systemGrey4.withOpacity(0.3),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 8),
-                          ),
-                          if (isPlaying)
-                            BoxShadow(
-                              color: CupertinoColors.systemPurple.withOpacity(
-                                0.2,
-                              ),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                        ],
-                      ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: _isExpanded
-                            ? _buildExpandedContent(
-                                context,
-                                appState,
-                                currentTrack,
-                                isPlaying,
-                              )
-                            : _buildCompactContent(
-                                context,
-                                appState,
-                                currentTrack,
-                                isPlaying,
+                        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: AppleDesignSystem.blurRegular,
+                            sigmaY: AppleDesignSystem.blurRegular,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppleColors.glassDark,
+                              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                              border: Border.all(
+                                color: isPlaying
+                                    ? CupertinoColors.systemPurple.withOpacity(0.6)
+                                    : Colors.white.withOpacity(0.15),
+                                width: isPlaying ? 1.5 : 0.5,
                               ),
+                              boxShadow: [
+                                ...AppleDesignSystem.shadowLarge(Colors.black),
+                                if (isPlaying)
+                                  BoxShadow(
+                                    color: CupertinoColors.systemPurple.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    spreadRadius: 4,
+                                  ),
+                              ],
+                            ),
+                            child: _isExpanded
+                                ? _buildExpandedContent(
+                                    context,
+                                    appState,
+                                    currentTrack,
+                                    isPlaying,
+                                  )
+                                : _buildCompactContent(
+                                    context,
+                                    appState,
+                                    currentTrack,
+                                    isPlaying,
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -233,16 +236,19 @@ class _DynamicIsleState extends State<DynamicIsle>
     bool isPlaying,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleDesignSystem.spacing8,
+        vertical: AppleDesignSystem.spacing4 + 2,
+      ),
       child: Row(
         children: [
           // Album art (circular)
           Container(
             width: 28,
             height: 28,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFF2C2C2E),
+              color: AppleColors.elevatedSecondaryDark,
             ),
             child: ClipOval(
               child: currentTrack.imageUrl != null
@@ -253,81 +259,70 @@ class _DynamicIsleState extends State<DynamicIsle>
                         height: 56,
                       ),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         CupertinoIcons.music_note,
-                        color: CupertinoColors.systemGrey,
+                        color: AppleColors.labelTertiaryDark,
                         size: 14,
                       ),
                     )
-                  : const Icon(
+                  : Icon(
                       CupertinoIcons.music_note,
-                      color: CupertinoColors.systemGrey,
+                      color: AppleColors.labelTertiaryDark,
                       size: 14,
                     ),
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppleDesignSystem.spacing8),
 
           // Track title (truncated)
           Expanded(
             child: Text(
               currentTrack.name,
-              style: const TextStyle(
-                color: CupertinoColors.white,
+              style: AppleTextStyles.subheadline(
+                color: AppleColors.labelPrimaryDark,
+              ).copyWith(
+                fontWeight: AppleDesignSystem.weightSemiBold,
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppleDesignSystem.spacing8),
 
           // Play/pause button
-          GestureDetector(
+          _AppleIsleButton(
             onTap: () async {
               await _triggerButtonHaptic();
               appState.playPause();
             },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemPurple.withOpacity(0.9),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isPlaying
-                    ? CupertinoIcons.pause_fill
-                    : CupertinoIcons.play_fill,
-                color: CupertinoColors.white,
-                size: 12,
-              ),
+            isPrimary: true,
+            size: 24,
+            child: Icon(
+              isPlaying
+                  ? CupertinoIcons.pause_fill
+                  : CupertinoIcons.play_fill,
+              color: CupertinoColors.white,
+              size: 12,
             ),
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: AppleDesignSystem.spacing4 + 2),
 
           // Skip button
-          GestureDetector(
+          _AppleIsleButton(
             onTap: () async {
               await _triggerButtonHaptic();
               appState.skipToNext();
             },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemPurple.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                CupertinoIcons.forward_fill,
-                color: CupertinoColors.systemPurple,
-                size: 12,
-              ),
+            isPrimary: false,
+            size: 24,
+            child: const Icon(
+              CupertinoIcons.forward_fill,
+              color: CupertinoColors.systemPurple,
+              size: 12,
             ),
           ),
         ],
@@ -342,7 +337,7 @@ class _DynamicIsleState extends State<DynamicIsle>
     bool isPlaying,
   ) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppleDesignSystem.spacing12),
       child: Row(
         children: [
           // Album art
@@ -350,11 +345,12 @@ class _DynamicIsleState extends State<DynamicIsle>
             width: 66,
             height: 66,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: const Color(0xFF2C2C2E),
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              color: AppleColors.elevatedSecondaryDark,
+              boxShadow: AppleDesignSystem.shadowSmall(Colors.black),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
               child: currentTrack.imageUrl != null
                   ? Image.network(
                       appState.getImageUrl(
@@ -363,21 +359,21 @@ class _DynamicIsleState extends State<DynamicIsle>
                         height: 132,
                       ),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         CupertinoIcons.music_note,
-                        color: CupertinoColors.systemGrey,
+                        color: AppleColors.labelTertiaryDark,
                         size: 24,
                       ),
                     )
-                  : const Icon(
+                  : Icon(
                       CupertinoIcons.music_note,
-                      color: CupertinoColors.systemGrey,
+                      color: AppleColors.labelTertiaryDark,
                       size: 24,
                     ),
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(width: AppleDesignSystem.spacing12),
 
           // Track info and controls
           Expanded(
@@ -388,10 +384,11 @@ class _DynamicIsleState extends State<DynamicIsle>
                 // Track name
                 Text(
                   currentTrack.name,
-                  style: const TextStyle(
-                    color: CupertinoColors.white,
+                  style: AppleTextStyles.subheadline(
+                    color: AppleColors.labelPrimaryDark,
+                  ).copyWith(
+                    fontWeight: AppleDesignSystem.weightSemiBold,
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -402,22 +399,21 @@ class _DynamicIsleState extends State<DynamicIsle>
                 // Artist name
                 Text(
                   currentTrack.artistName ?? 'Unknown Artist',
-                  style: const TextStyle(
-                    color: CupertinoColors.systemGrey,
-                    fontSize: 12,
+                  style: AppleTextStyles.footnote(
+                    color: AppleColors.labelSecondaryDark,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: AppleDesignSystem.spacing8),
 
                 // Mini progress bar
                 Container(
-                  height: 2,
+                  height: 3,
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey5,
-                    borderRadius: BorderRadius.circular(1),
+                    color: AppleColors.systemGray4Dark,
+                    borderRadius: BorderRadius.circular(1.5),
                   ),
                   child: StreamBuilder<Duration>(
                     stream: appState.positionStream,
@@ -435,7 +431,7 @@ class _DynamicIsleState extends State<DynamicIsle>
                         child: Container(
                           decoration: BoxDecoration(
                             color: CupertinoColors.systemPurple,
-                            borderRadius: BorderRadius.circular(1),
+                            borderRadius: BorderRadius.circular(1.5),
                           ),
                         ),
                       );
@@ -446,83 +442,126 @@ class _DynamicIsleState extends State<DynamicIsle>
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(width: AppleDesignSystem.spacing12),
 
           // Control buttons
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Previous button
-              GestureDetector(
+              _AppleIsleButton(
                 onTap: () async {
                   await _triggerButtonHaptic();
                   appState.skipToPrevious();
                 },
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2C2C2E),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    CupertinoIcons.backward_fill,
-                    color: CupertinoColors.white,
-                    size: 16,
-                  ),
+                isPrimary: false,
+                size: 32,
+                child: const Icon(
+                  CupertinoIcons.backward_fill,
+                  color: CupertinoColors.white,
+                  size: 16,
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: AppleDesignSystem.spacing8),
 
               // Play/pause button
-              GestureDetector(
+              _AppleIsleButton(
                 onTap: () async {
                   await _triggerButtonHaptic();
                   appState.playPause();
                 },
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: CupertinoColors.systemPurple,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isPlaying
-                        ? CupertinoIcons.pause_fill
-                        : CupertinoIcons.play_fill,
-                    color: CupertinoColors.white,
-                    size: 18,
-                  ),
+                isPrimary: true,
+                size: 36,
+                child: Icon(
+                  isPlaying
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_fill,
+                  color: CupertinoColors.white,
+                  size: 18,
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: AppleDesignSystem.spacing8),
 
               // Next button
-              GestureDetector(
+              _AppleIsleButton(
                 onTap: () async {
                   await _triggerButtonHaptic();
                   appState.skipToNext();
                 },
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2C2C2E),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    CupertinoIcons.forward_fill,
-                    color: CupertinoColors.white,
-                    size: 16,
-                  ),
+                isPrimary: false,
+                size: 32,
+                child: const Icon(
+                  CupertinoIcons.forward_fill,
+                  color: CupertinoColors.white,
+                  size: 16,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Apple-styled button for the Dynamic Isle
+class _AppleIsleButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final bool isPrimary;
+  final double size;
+  final Widget child;
+
+  const _AppleIsleButton({
+    required this.onTap,
+    required this.isPrimary,
+    required this.size,
+    required this.child,
+  });
+
+  @override
+  State<_AppleIsleButton> createState() => _AppleIsleButtonState();
+}
+
+class _AppleIsleButtonState extends State<_AppleIsleButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? AppleDesignSystem.pressScale : 1.0,
+        duration: AppleDesignSystem.durationFast,
+        curve: AppleDesignSystem.interactiveCurve,
+        child: AnimatedOpacity(
+          opacity: _isPressed ? AppleDesignSystem.pressOpacity : 1.0,
+          duration: AppleDesignSystem.durationFast,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              color: widget.isPrimary
+                  ? CupertinoColors.systemPurple
+                  : AppleColors.elevatedSecondaryDark,
+              shape: BoxShape.circle,
+              boxShadow: widget.isPrimary
+                  ? [
+                      BoxShadow(
+                        color: CupertinoColors.systemPurple.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Center(child: widget.child),
+          ),
+        ),
       ),
     );
   }

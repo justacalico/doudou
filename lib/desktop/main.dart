@@ -12,6 +12,7 @@ import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../screens/login/login.dart';
 import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
+import '../widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
 
@@ -192,19 +193,11 @@ class DesktopDoudouApp extends StatelessWidget {
           builder: (context, appState, child) {
             return MaterialApp(
               title: 'Doudou - Music Player',
-              theme: ThemeData(
-                useMaterial3: true,
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: appState.accentColor,
-                  brightness: Brightness.light,
-                ),
+              theme: AppleTheme.light(
+                accentColor: appState.accentColor,
               ),
-              darkTheme: ThemeData(
-                useMaterial3: true,
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: appState.accentColor,
-                  brightness: Brightness.dark,
-                ),
+              darkTheme: AppleTheme.dark(
+                accentColor: appState.accentColor,
               ),
               themeMode: appState.themeMode,
               localizationsDelegates: const [
