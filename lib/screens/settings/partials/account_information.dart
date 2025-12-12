@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../l10n/app_localizations.dart';
@@ -15,34 +18,48 @@ class AccountInformationSection extends StatelessWidget {
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(
-              0xFF1C1C1E,
-            ), // Dark gray background instead of pure black
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF2C2C2E), width: 1),
-          ),
-          child: Column(
-            children: [
-              _buildSectionHeader(l10n.accountInformation),
-              if (server != null) ...[
-                _buildInfoTile(
-                  icon: CupertinoIcons.person_circle,
-                  title: l10n.userId,
-                  subtitle: server.userId?.substring(0, 8) ?? l10n.notAvailable,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.12),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
-                _buildInfoTile(
-                  icon: CupertinoIcons.globe,
-                  title: l10n.server,
-                  subtitle: l10n.connectedToJellyfin,
+                child: Column(
+                  children: [
+                    _buildSectionHeader(l10n.accountInformation),
+                    if (server != null) ...[
+                      _buildInfoTile(
+                        icon: CupertinoIcons.person_circle,
+                        title: l10n.userId,
+                        subtitle: server.userId?.substring(0, 8) ?? l10n.notAvailable,
+                      ),
+                      _buildInfoTile(
+                        icon: CupertinoIcons.globe,
+                        title: l10n.server,
+                        subtitle: l10n.connectedToJellyfin,
+                      ),
+                      _buildInfoTile(
+                        icon: CupertinoIcons.checkmark_seal,
+                        title: l10n.connectionStatus,
+                        subtitle: l10n.authenticated,
+                      ),
+                    ],
+                  ],
                 ),
-                _buildInfoTile(
-                  icon: CupertinoIcons.checkmark_seal,
-                  title: l10n.connectionStatus,
-                  subtitle: l10n.authenticated,
-                ),
-              ],
-            ],
+              ),
+            ),
           ),
         );
       },
@@ -78,13 +95,13 @@ class AccountInformationSection extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
+              color: const Color(0xFF8B5CF6).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
+              border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.3), width: 1),
             ),
             child: Icon(
               icon,
-              color: const Color(0xFF007AFF), // Blue accent for better contrast
+              color: const Color(0xFF8B5CF6),
               size: 20,
             ),
           ),
