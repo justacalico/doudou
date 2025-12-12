@@ -78,16 +78,16 @@ class _HomeScreenState extends State<HomeScreen> {
       // Ensure proper data loading for Android Auto with multiple attempts
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final appState = Provider.of<AppState>(context, listen: false);
-        
+
         // Force reload library data for Android Auto to ensure fresh content
         if (appState.isLoggedIn) {
           if (kDebugMode) {
             print('Loading library data for Android Auto...');
           }
-          
+
           try {
             await appState.loadLibraryData();
-            
+
             // If still no data after first load, try again
             if (appState.albums.isEmpty || appState.tracks.isEmpty) {
               if (kDebugMode) {
@@ -96,9 +96,11 @@ class _HomeScreenState extends State<HomeScreen> {
               await Future.delayed(const Duration(seconds: 2));
               await appState.loadLibraryData();
             }
-            
+
             if (kDebugMode) {
-              print('Android Auto data loaded - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}');
+              print(
+                'Android Auto data loaded - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}',
+              );
             }
           } catch (e) {
             if (kDebugMode) {
@@ -169,10 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (kDebugMode) {
       print('Refreshing Android Auto data...');
     }
-    
+
     // Show that refresh is in progress
     setState(() {});
-    
+
     try {
       if (!appState.isLoggedIn) {
         if (kDebugMode) {
@@ -183,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       await appState.loadLibraryData();
-      
+
       // Update AudioHandler with fresh data for Android Auto MediaBrowser
       final audioHandler = appState.audioHandler;
       if (audioHandler != null) {
@@ -195,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
             tracks: appState.tracks,
             playlists: appState.playlists,
           );
-          
+
           if (kDebugMode) {
             print('Updated AudioHandler MediaBrowser with fresh library data');
           }
@@ -206,22 +208,23 @@ class _HomeScreenState extends State<HomeScreen> {
           // Don't throw - this is not critical for the UI
         }
       }
-      
+
       // If still no data after load, show debug info
       if (kDebugMode) {
-        print('After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Artists: ${appState.artists.length}, Playlists: ${appState.playlists.length}');
+        print(
+          'After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Artists: ${appState.artists.length}, Playlists: ${appState.playlists.length}',
+        );
       }
-      
     } catch (e) {
       if (kDebugMode) {
         print('Error refreshing Android Auto data: $e');
       }
-      
+
       // In a real app, you might want to show a user-visible error message
       // For Android Auto, we need to be more resilient and not crash
       // The UI will show the "No Content Available" message instead
     }
-    
+
     // Force rebuild to show updated state
     setState(() {});
   }
@@ -386,8 +389,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
           // Connection status indicator for Android Auto
-          if (!appState.isLoading && 
-              appState.albums.isEmpty && 
+          if (!appState.isLoading &&
+              appState.albums.isEmpty &&
               appState.tracks.isEmpty)
             Container(
               padding: const EdgeInsets.all(16),
@@ -395,7 +398,10 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1C1C1E),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemOrange, width: 2),
+                border: Border.all(
+                  color: CupertinoColors.systemOrange,
+                  width: 2,
+                ),
               ),
               child: const Row(
                 children: [
@@ -454,7 +460,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 GestureDetector(
                   onTap: () => _refreshAndroidAutoData(appState),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1C1C1E),
                       borderRadius: BorderRadius.circular(8),
@@ -648,9 +657,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  appState.tracks.isNotEmpty 
-                    ? 'Your music, everywhere you go - ${appState.tracks.length} tracks available'
-                    : 'Your music, everywhere you go',
+                  appState.tracks.isNotEmpty
+                      ? 'Your music, everywhere you go - ${appState.tracks.length} tracks available'
+                      : 'Your music, everywhere you go',
                   style: const TextStyle(
                     color: CupertinoColors.systemGrey2,
                     fontSize: 18,
@@ -690,7 +699,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           // Show message if no content is available
-          if (appState.albums.isEmpty && appState.tracks.isEmpty && !appState.isLoading)
+          if (appState.albums.isEmpty &&
+              appState.tracks.isEmpty &&
+              !appState.isLoading)
             Padding(
               padding: const EdgeInsets.all(20),
               child: Container(
@@ -730,7 +741,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     GestureDetector(
                       onTap: () => _refreshAndroidAutoData(appState),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: CupertinoColors.systemBlue,
                           borderRadius: BorderRadius.circular(8),
@@ -1062,7 +1076,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (kDebugMode) {
       print('Android Auto: Starting album playback - ${album.name}');
     }
-    
+
     try {
       final tracks = await appState.getAlbumTracks(album.id);
       if (tracks.isNotEmpty) {
@@ -1070,7 +1084,7 @@ class _HomeScreenState extends State<HomeScreen> {
           print('Android Auto: Playing album with ${tracks.length} tracks');
         }
         await appState.playPlaylist(tracks, 0);
-        
+
         if (kDebugMode) {
           print('Android Auto: Album playback initiated successfully');
         }
@@ -1900,9 +1914,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMobileLayout(AppState appState) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
+
+    // Return loading indicator if localization is not ready yet
+    if (l10n == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Stack(
       children: [
         // Main content - positioned to leave room for navbar
@@ -1924,8 +1943,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         // Dynamic Isle - only show on mobile and when enabled in settings
-        if (appState.useDynamicIsle)
-          const DynamicIsle(),
+        if (appState.useDynamicIsle) const DynamicIsle(),
 
         // iOS 26-style liquid glass tab bar positioned at the bottom
         Positioned(
