@@ -78,43 +78,150 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 768;
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
     
-    if (isDesktop) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: Theme.of(context),
-        home: Scaffold(
-          backgroundColor: _getBackgroundColor(context),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return _buildDesktopLayout(context, constraints);
-              },
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: Theme.of(context),
+      home: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            // Animated gradient background
+            _buildAnimatedBackground(isDark),
+            
+            // Main content
+            SafeArea(
+              child: isDesktop 
+                ? _buildDesktopLayout(context)
+                : _buildMobileLayout(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildAnimatedBackground(bool isDark) {
+    return AnimatedBuilder(
+      animation: _backgroundController,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [
+                    const Color(0xFF0D0D0D),
+                    const Color(0xFF1A1A2E),
+                    const Color(0xFF16213E),
+                    const Color(0xFF0F0F23),
+                  ]
+                : [
+                    const Color(0xFFF8F9FA),
+                    const Color(0xFFE8EAF6),
+                    const Color(0xFFE3F2FD),
+                    const Color(0xFFF3E5F5),
+                  ],
+              stops: const [0.0, 0.3, 0.6, 1.0],
             ),
           ),
-        ),
-      );
-    } else {
-      // Mobile: Provide MaterialLocalizations while using system theme
-      final brightness = MediaQuery.of(context).platformBrightness;
-      return Localizations(
-        locale: const Locale('en', 'US'),
-        delegates: const [
-          DefaultMaterialLocalizations.delegate,
-          DefaultWidgetsLocalizations.delegate,
-        ],
-        child: Material(
-          child: CupertinoPageScaffold(
-            backgroundColor: brightness == Brightness.light 
-              ? CupertinoColors.systemBackground 
-              : CupertinoColors.black,
-            child: SafeArea(
-              child: _buildMobileLayout(context),
-            ),
+          child: Stack(
+            children: [
+              // Floating orbs
+              ..._buildFloatingOrbs(isDark),
+              // Subtle grid pattern
+              if (isDark) _buildGridPattern(),
+            ],
           ),
+        );
+      },
+    );
+  }
+  
+  List<Widget> _buildFloatingOrbs(bool isDark) {
+    final size = MediaQuery.of(context).size;
+    return [
+      // Primary orb - purple
+      AnimatedBuilder(
+        animation: _backgroundController,
+        builder: (context, _) {
+          final progress = _backgroundController.value;
+          return Positioned(
+            left: size.width * 0.1 + math.sin(progress * math.pi * 2) * 50,
+            top: size.height * 0.2 + math.cos(progress * math.pi * 2) * 30,
+            child: _buildOrb(
+              200,
+              isDark 
+                ? AppleColors.systemPurple.withOpacity(0.3)
+                : AppleColors.systemPurple.withOpacity(0.15),
+            ),
+          );
+        },
+      ),
+      // Secondary orb - blue
+      AnimatedBuilder(
+        animation: _backgroundController,
+        builder: (context, _) {
+          final progress = _backgroundController.value;
+          return Positioned(
+            right: size.width * 0.05 + math.cos(progress * math.pi * 2) * 40,
+            top: size.height * 0.4 + math.sin(progress * math.pi * 2) * 50,
+            child: _buildOrb(
+              160,
+              isDark 
+                ? AppleColors.systemBlue.withOpacity(0.25)
+                : AppleColors.systemBlue.withOpacity(0.12),
+            ),
+          );
+        },
+      ),
+      // Tertiary orb - pink
+      AnimatedBuilder(
+        animation: _backgroundController,
+        builder: (context, _) {
+          final progress = _backgroundController.value;
+          return Positioned(
+            left: size.width * 0.3 + math.sin(progress * math.pi * 2 + 1) * 60,
+            bottom: size.height * 0.1 + math.cos(progress * math.pi * 2 + 1) * 40,
+            child: _buildOrb(
+              180,
+              isDark 
+                ? AppleColors.systemPink.withOpacity(0.2)
+                : AppleColors.systemPink.withOpacity(0.1),
+            ),
+          );
+        },
+      ),
+    ];
+  }
+  
+  Widget _buildOrb(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color,
+            color.withOpacity(0),
+          ],
         ),
-      );
-    }
+      ),
+    );
+  }
+  
+  Widget _buildGridPattern() {
+    return Opacity(
+      opacity: 0.03,
+      child: CustomPaint(
+        size: Size.infinite,
+        painter: _GridPainter(),
+      ),
+    );
   }
 
   Color _getBackgroundColor(BuildContext context) {
@@ -125,172 +232,237 @@ class _LoginScreenState extends State<LoginScreen>
     return AppleColors.backgroundPrimary;
   }
 
-  Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
+  Widget _buildDesktopLayout(BuildContext context) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
+    
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: Row(
-        children: [
-          // Left side - Hero section with glassmorphism
-          Expanded(
-            flex: 5,
-            child: Container(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: const EdgeInsets.all(48),
+            child: Row(
+              children: [
+                // Left side - Branding
+                Expanded(
+                  flex: 5,
+                  child: _buildBrandingSection(isDark),
+                ),
+                
+                const SizedBox(width: 64),
+                
+                // Right side - Login form with glassmorphism
+                Expanded(
+                  flex: 4,
+                  child: _buildGlassCard(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(40),
+                      child: _buildLoginForm(context, isDesktop: true),
+                    ),
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildBrandingSection(bool isDark) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // App icon with glow
+        AnimatedBuilder(
+          animation: _pulseController,
+          builder: (context, child) {
+            return Container(
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
                     AppleColors.systemPurple,
                     AppleColors.systemIndigo,
-                    AppleColors.systemBlue,
                   ],
                 ),
-              ),
-              child: Stack(
-                children: [
-                  // Animated background pattern
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _BackgroundPatternPainter(
-                        animation: _animationController,
-                      ),
-                    ),
-                  ),
-                  
-                  // Hero content with glassmorphism card
-                  Padding(
-                    padding: const EdgeInsets.all(60),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // App icon with glow effect and glassmorphism
-                        TweenAnimationBuilder(
-                          duration: AppleDesignSystem.durationMedium,
-                          tween: Tween<double>(begin: 0.0, end: 1.0),
-                          builder: (context, value, child) {
-                            return Transform.scale(
-                              scale: value,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: AppleDesignSystem.blurThin,
-                                    sigmaY: AppleDesignSystem.blurThin,
-                                  ),
-                                  child: Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.3),
-                                        width: 1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.white.withValues(alpha: 0.3 * value),
-                                          blurRadius: 30 * value,
-                                          spreadRadius: 5 * value,
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      CupertinoIcons.music_note_2,
-                                      size: 60,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        
-                        const SizedBox(height: AppleDesignSystem.spacing48),
-                        
-                        // Welcome text with animation
-                        SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(-0.5, 0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: _animationController,
-                            curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
-                          )),
-                          child: Text(
-                            'Welcome to\nDoudou',
-                            style: TextStyle(
-                              fontFamily: AppleDesignSystem.fontFamily,
-                              fontSize: AppleDesignSystem.typeScaleLargeTitle + 14,
-                              fontWeight: AppleDesignSystem.weightBold,
-                              color: Colors.white,
-                              height: 1.2,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withValues(alpha: 0.3),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        
-                        const SizedBox(height: AppleDesignSystem.spacing20),
-                        
-                        SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(-0.3, 0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: _animationController,
-                            curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
-                          )),
-                          child: Text(
-                            'Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.',
-                            style: TextStyle(
-                              fontFamily: AppleDesignSystem.fontFamily,
-                              fontSize: AppleDesignSystem.typeScaleBody,
-                              color: Colors.white.withValues(alpha: 0.9),
-                              height: 1.6,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppleColors.systemPurple.withOpacity(0.3 + _pulseController.value * 0.2),
+                    blurRadius: 30 + _pulseController.value * 20,
+                    spreadRadius: 5,
                   ),
                 ],
               ),
-            ),
-          ),
-          
-          // Right side - Login form
-          Expanded(
-            flex: 4,
-            child: Container(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(60),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.3, 0),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                        parent: _animationController,
-                        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
-                      )),
-                      child: _buildLoginForm(context, isDesktop: true),
-                    ),
+              child: const Icon(
+                CupertinoIcons.music_note_2,
+                size: 50,
+                color: Colors.white,
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: 40),
+        
+        // Welcome text
+        SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-0.3, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
+          )),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome to',
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                  color: isDark 
+                    ? Colors.white.withOpacity(0.7) 
+                    : Colors.black.withOpacity(0.6),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    AppleColors.systemPurple,
+                    AppleColors.systemPink,
+                    AppleColors.systemIndigo,
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'Doudou',
+                  style: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: 64,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.1,
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Tagline
+        SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-0.2, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.4, 0.9, curve: Curves.easeOut),
+          )),
+          child: Text(
+            'Your personal music companion.\nStream from your own media server with\nstyle and privacy.',
+            style: TextStyle(
+              fontFamily: AppleDesignSystem.fontFamily,
+              fontSize: 18,
+              height: 1.6,
+              color: isDark 
+                ? Colors.white.withOpacity(0.6) 
+                : Colors.black.withOpacity(0.5),
             ),
           ),
-        ],
+        ),
+        
+        const SizedBox(height: 48),
+        
+        // Feature pills
+        SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-0.1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+          )),
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _buildFeaturePill('🔒 Privacy First', isDark),
+              _buildFeaturePill('🎵 High Quality Audio', isDark),
+              _buildFeaturePill('📱 All Platforms', isDark),
+              _buildFeaturePill('☁️ No Cloud Required', isDark),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildFeaturePill(String text, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark 
+          ? Colors.white.withOpacity(0.08) 
+          : Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark 
+            ? Colors.white.withOpacity(0.1) 
+            : Colors.black.withOpacity(0.08),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: AppleDesignSystem.fontFamily,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: isDark ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.7),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildGlassCard({required Widget child, required bool isDark}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark 
+              ? Colors.white.withOpacity(0.08) 
+              : Colors.white.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark 
+                ? Colors.white.withOpacity(0.15) 
+                : Colors.white.withOpacity(0.8),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+                blurRadius: 40,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: child,
+        ),
       ),
     );
   }
