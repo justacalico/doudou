@@ -88,17 +88,19 @@ class DoudouApp extends StatelessWidget {
       child: _buildAppWithPlatformServices(
         Consumer<AppState>(
           builder: (context, appState, child) {
-            final isDark = appState.themeMode == ThemeMode.dark ||
+            final isDark =
+                appState.themeMode == ThemeMode.dark ||
                 (appState.themeMode == ThemeMode.system &&
-                    MediaQuery.platformBrightnessOf(context) == Brightness.dark);
-            
+                    MediaQuery.platformBrightnessOf(context) ==
+                        Brightness.dark);
+
             return CupertinoApp(
               title: 'Doudou - Jellyfin Music Player',
               theme: CupertinoThemeData(
                 primaryColor: appState.accentColor,
                 brightness: isDark ? Brightness.dark : Brightness.light,
-                scaffoldBackgroundColor: isDark 
-                    ? AppleColors.backgroundPrimaryDark 
+                scaffoldBackgroundColor: isDark
+                    ? AppleColors.backgroundPrimaryDark
                     : AppleColors.backgroundPrimary,
                 barBackgroundColor: isDark
                     ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.9)
@@ -108,19 +110,25 @@ class DoudouApp extends StatelessWidget {
                   textStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleBody,
-                    color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                    color: isDark
+                        ? AppleColors.labelPrimaryDark
+                        : AppleColors.labelPrimary,
                   ),
                   navTitleTextStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleHeadline,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                    color: isDark
+                        ? AppleColors.labelPrimaryDark
+                        : AppleColors.labelPrimary,
                   ),
                   navLargeTitleTextStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleLargeTitle,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary,
+                    color: isDark
+                        ? AppleColors.labelPrimaryDark
+                        : AppleColors.labelPrimary,
                   ),
                 ),
               ),
@@ -147,8 +155,8 @@ class DoudouApp extends StatelessWidget {
                               style: TextStyle(
                                 fontFamily: AppleDesignSystem.fontFamily,
                                 fontSize: AppleDesignSystem.typeScaleBody,
-                                color: isDark 
-                                    ? AppleColors.labelSecondaryDark 
+                                color: isDark
+                                    ? AppleColors.labelSecondaryDark
                                     : AppleColors.labelSecondary,
                               ),
                             ),
@@ -267,7 +275,10 @@ Future<void> _logSystemInfo(String context) async {
       }
     } else {
       logger.info('=== WEB ENVIRONMENT ===', 'SystemInfo');
-      logger.info('Running in web browser - environment variables not available', 'SystemInfo');
+      logger.info(
+        'Running in web browser - environment variables not available',
+        'SystemInfo',
+      );
     }
 
     // Check for media-related executables and libraries (not available on web)
@@ -284,7 +295,10 @@ Future<void> _logSystemInfo(String context) async {
         try {
           final result = await Process.run('which', [cmd]);
           if (result.exitCode == 0) {
-            logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
+            logger.info(
+              '$cmd: ${result.stdout.toString().trim()}',
+              'SystemInfo',
+            );
           } else {
             logger.info('$cmd: not found', 'SystemInfo');
           }
@@ -352,7 +366,10 @@ Future<void> _logSystemInfo(String context) async {
       }
     } else {
       logger.info('=== WEB MEDIA ===', 'SystemInfo');
-      logger.info('Web platform: Using HTML5 audio/video elements', 'SystemInfo');
+      logger.info(
+        'Web platform: Using HTML5 audio/video elements',
+        'SystemInfo',
+      );
     }
 
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
