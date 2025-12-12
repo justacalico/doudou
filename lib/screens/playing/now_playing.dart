@@ -160,7 +160,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           backgroundColor: const Color(0xFF000000),
           body: Stack(
             children: [
-              // Blurred background
+              // Blurred background with animated gradient
               if (currentTrack.imageUrl != null)
                 Positioned.fill(
                   child: Container(
@@ -181,16 +181,21 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                       builder: (context, snapshot) {
                         final isPlaying = snapshot.data?.playing == true;
                         return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 500),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(
-                              sigmaX: isPlaying ? 30 : 20,
-                              sigmaY: isPlaying ? 30 : 20,
+                              sigmaX: isPlaying ? 40 : 25,
+                              sigmaY: isPlaying ? 40 : 25,
                             ),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(
-                                  isPlaying ? 0.5 : 0.7,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(isPlaying ? 0.3 : 0.5),
+                                    Colors.black.withOpacity(isPlaying ? 0.6 : 0.8),
+                                  ],
                                 ),
                               ),
                             ),
@@ -206,7 +211,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 0),
                   child: Column(
                     children: [
-                      // Top bar with chevron down and playback source indicator
+                      // Top bar with liquid glass style
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -215,28 +220,63 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () => Navigator.pop(context),
-                              child: const Icon(
-                                CupertinoIcons.chevron_down,
-                                color: Color(0xFFFFFFFF),
-                                size: 28,
+                            // Liquid glass close button
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.white.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: CupertinoColors.white.withOpacity(0.2),
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      CupertinoIcons.chevron_down,
+                                      color: CupertinoColors.white,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                            // Playback source indicator
+                            // Playback source indicator with liquid glass
                             Consumer<AppState>(
                               builder: (context, appState, child) {
                                 final isDownloaded = appState.downloadService
                                     .isTrackDownloaded(currentTrack.id);
 
-                                return Icon(
-                                  isDownloaded
-                                      ? CupertinoIcons.floppy_disk
-                                      : CupertinoIcons
-                                            .antenna_radiowaves_left_right,
-                                  color: const Color(0xFFFFFFFF),
-                                  size: 28,
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: CupertinoColors.white.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: CupertinoColors.white.withOpacity(0.2),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        isDownloaded
+                                            ? CupertinoIcons.floppy_disk
+                                            : CupertinoIcons.antenna_radiowaves_left_right,
+                                        color: CupertinoColors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
                                 );
                               },
                             ),
@@ -250,7 +290,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                           children: [
                             const SizedBox(height: 20),
 
-                            // Album Art - responsive to available space
+                            // Album Art with liquid glass shadow
                             Expanded(
                               flex: 3,
                               child: StreamBuilder<PlayerState>(
@@ -261,7 +301,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
                                   return LayoutBuilder(
                                     builder: (context, constraints) {
-                                      // Calculate album art size based on available space
                                       final availableSize =
                                           constraints.maxHeight * 0.9;
                                       final screenWidth = MediaQuery.of(
@@ -274,11 +313,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
                                       return Center(
                                         child: AnimatedScale(
-                                          scale: isPlaying ? 1.0 : 0.85,
+                                          scale: isPlaying ? 1.0 : 0.88,
                                           duration: const Duration(
-                                            milliseconds: 300,
+                                            milliseconds: 400,
                                           ),
-                                          curve: Curves.easeInOut,
+                                          curve: Curves.easeOutCubic,
                                           child: Container(
                                             width: albumArtSize,
                                             height: albumArtSize,
@@ -287,30 +326,57 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               maxHeight: 350,
                                             ),
                                             decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
+                                              borderRadius: BorderRadius.circular(24),
                                               boxShadow: [
+                                                // Liquid glass shadow effect
                                                 BoxShadow(
-                                                  color: const Color(
-                                                    0xFF000000,
-                                                  ).withOpacity(0.6),
-                                                  blurRadius: 30,
-                                                  offset: const Offset(0, 15),
+                                                  color: const Color(0xFF8B5CF6).withOpacity(isPlaying ? 0.3 : 0.1),
+                                                  blurRadius: 40,
+                                                  offset: const Offset(0, 20),
+                                                  spreadRadius: isPlaying ? 5 : 0,
+                                                ),
+                                                BoxShadow(
+                                                  color: const Color(0xFFEC4899).withOpacity(isPlaying ? 0.2 : 0.05),
+                                                  blurRadius: 60,
+                                                  offset: const Offset(-10, 30),
                                                 ),
                                               ],
                                             ),
-                                            child: AlbumArtWidget(
-                                              imageUrl:
-                                                  currentTrack.imageUrl != null
-                                                  ? appState.getImageUrl(
-                                                      currentTrack.imageUrl!,
-                                                      width: 800,
-                                                      height: 800,
-                                                    )
-                                                  : null,
-                                              size: albumArtSize,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(24),
+                                              child: Stack(
+                                                children: [
+                                                  AlbumArtWidget(
+                                                    imageUrl:
+                                                        currentTrack.imageUrl != null
+                                                        ? appState.getImageUrl(
+                                                            currentTrack.imageUrl!,
+                                                            width: 800,
+                                                            height: 800,
+                                                          )
+                                                        : null,
+                                                    size: albumArtSize,
+                                                    borderRadius: BorderRadius.circular(24),
+                                                  ),
+                                                  // Subtle liquid glass overlay
+                                                  if (isPlaying)
+                                                    Positioned.fill(
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                          gradient: LinearGradient(
+                                                            begin: Alignment.topLeft,
+                                                            end: Alignment.bottomRight,
+                                                            colors: [
+                                                              CupertinoColors.white.withOpacity(0.1),
+                                                              Colors.transparent,
+                                                              CupertinoColors.white.withOpacity(0.05),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -321,7 +387,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                               ),
                             ),
 
-                            // Track info section - with proper overflow handling
+                            // Track info section with liquid glass card
                             Expanded(
                               flex: 1,
                               child: Padding(
@@ -331,23 +397,21 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    // Track name with flexible sizing
                                     Flexible(
                                       child: Text(
                                         currentTrack.name,
                                         style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFFFFFFF),
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.w700,
+                                          color: CupertinoColors.white,
+                                          letterSpacing: -0.5,
                                         ),
                                         textAlign: TextAlign.center,
-                                        maxLines:
-                                            3, // Allow more lines for large fonts
+                                        maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    // Artist name with flexible sizing
                                     Flexible(
                                       child: Text(
                                         currentTrack.artistName ??
