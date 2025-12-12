@@ -447,10 +447,11 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
   Widget _buildLiquidGlassSectionHeader(String title, IconData icon, Color accentColor) {
     return Row(
       children: [
-        LiquidGlassContainer(
-          width: 36,
-          height: 36,
+        LiquidGlassMaterial(
           borderRadius: 10,
+          tintColor: accentColor,
+          tintOpacity: 0.2,
+          padding: const EdgeInsets.all(9),
           child: Icon(icon, color: accentColor, size: 18),
         ),
         const SizedBox(width: 12),
