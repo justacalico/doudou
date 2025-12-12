@@ -924,70 +924,130 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
         ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF3C3C3E).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Text(
-                    'Clear',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF007AFF),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
 
-        // Enhanced recent searches list
+        // Liquid glass recent searches list
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             itemCount: _recentSearches.length,
             itemBuilder: (context, index) {
               final search = _recentSearches[index];
               return Container(
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.only(bottom: 10),
                 child: GestureDetector(
                   onTap: () {
                     _searchController.text = search;
                     _performSearch(search, appState);
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF1C1C1E).withOpacity(0.6),
-                          const Color(0xFF2C2C2E).withOpacity(0.4),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFF3C3C3E).withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF007AFF).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(18),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.08),
+                              Colors.white.withOpacity(0.03),
+                            ],
                           ),
-                          child: const Icon(
-                            CupertinoIcons.search,
-                            color: Color(0xFF007AFF),
-                            size: 16,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 0.5,
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFF8B5CF6).withOpacity(0.2),
+                                    const Color(0xFFEC4899).withOpacity(0.15),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ShaderMask(
+                                shaderCallback: (bounds) => const LinearGradient(
+                                  colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                ).createShader(bounds),
+                                child: const Icon(
+                                  CupertinoIcons.search,
+                                  color: Color(0xFFFFFFFF),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                search,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFFFFFFF),
+                                ),
+                              ),
+                            ),
+                            // Delete button with liquid glass
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _recentSearches.removeAt(index);
+                                });
+                                SharedPreferences.getInstance().then((prefs) {
+                                  prefs.setStringList(
+                                    'recent_searches',
+                                    _recentSearches,
+                                  );
+                                });
+                              },
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  CupertinoIcons.xmark,
+                                  color: Colors.white.withOpacity(0.5),
+                                  size: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getChipColor(int index) {
+    final colors = [
+      const Color(0xFF8B5CF6),
+      const Color(0xFFEC4899),
+      const Color(0xFF06B6D4),
+      const Color(0xFF10B981),
+      const Color(0xFFF59E0B),
+      const Color(0xFF6366F1),
+    ];
+    return colors[index % colors.length];
+  }
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
