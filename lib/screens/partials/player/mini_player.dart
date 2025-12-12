@@ -256,7 +256,7 @@ class _MiniPlayerState extends State<MiniPlayer>
     dynamic audioHandler, 
     Track currentTrack,
   ) {
-    return Container(
+    return SizedBox(
       height: 70,
       child: ClipRRect(
         child: BackdropFilter(
