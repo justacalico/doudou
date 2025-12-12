@@ -93,7 +93,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               CupertinoIcons.play_fill,
                                               color: Colors.white,
                                               size: 18,
@@ -101,7 +101,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                             const SizedBox(width: 8),
                                             Text(
                                               l10n.play,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w600,
                                                 color: Colors.white,
@@ -144,7 +144,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               CupertinoIcons.shuffle,
                                               color: Colors.white,
                                               size: 18,
@@ -152,7 +152,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                             const SizedBox(width: 8),
                                             Text(
                                               l10n.shuffle,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w600,
                                                 color: Colors.white,
