@@ -205,52 +205,49 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: widget.isSelected 
-                    ? widget.accent.withOpacity(0.2)
-                    : Colors.transparent,
-              ),
-              child: Icon(
-                widget.isSelected ? widget.item.activeIcon : widget.item.icon,
-                size: 24,
-                color: widget.isSelected 
-                    ? widget.accent 
-                    : (widget.isDark ? Colors.white.withOpacity(0.6) : Colors.black.withOpacity(0.5)),
-              ),
+    // Note: Animation is handled by parent GestureDetector
+    // This widget just displays the content
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) => Transform.scale(
+        scale: _scaleAnimation.value,
+        child: child,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: widget.isSelected 
+                  ? widget.accent.withOpacity(0.2)
+                  : Colors.transparent,
             ),
-            const SizedBox(height: 2),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                fontFamily: AppleDesignSystem.fontFamily,
-                fontSize: 10,
-                fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: widget.isSelected 
-                    ? widget.accent 
-                    : (widget.isDark ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.4)),
-              ),
-              child: Text(widget.item.label),
+            child: Icon(
+              widget.isSelected ? widget.item.activeIcon : widget.item.icon,
+              size: 24,
+              color: widget.isSelected 
+                  ? widget.accent 
+                  : (widget.isDark ? Colors.white.withOpacity(0.6) : Colors.black.withOpacity(0.5)),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: TextStyle(
+              fontFamily: AppleDesignSystem.fontFamily,
+              fontSize: 10,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: widget.isSelected 
+                  ? widget.accent 
+                  : (widget.isDark ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.4)),
+            ),
+            child: Text(widget.item.label),
+          ),
+        ],
       ),
     );
   }
