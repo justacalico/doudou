@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,56 +16,70 @@ class AudioSettingsSection extends StatelessWidget {
       builder: (context, appState, child) {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(
-              0xFF1C1C1E,
-            ), // Dark gray background instead of pure black
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF2C2C2E), width: 1),
-          ),
-          child: Column(
-            children: [
-              _buildSectionHeader(l10n.audioSettings),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.12),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildSectionHeader(l10n.audioSettings),
 
-              _buildSwitchTile(
-                icon: CupertinoIcons.speaker_2,
-                title: l10n.normalizeVolume,
-                subtitle: l10n.reduceVolumeDifferences,
-                value: appState.normalizeVolumeEnabled,
-                onChanged: (value) {
-                  appState.toggleNormalizeVolume(value);
-                },
+                    _buildSwitchTile(
+                      icon: CupertinoIcons.speaker_2,
+                      title: l10n.normalizeVolume,
+                      subtitle: l10n.reduceVolumeDifferences,
+                      value: appState.normalizeVolumeEnabled,
+                      onChanged: (value) {
+                        appState.toggleNormalizeVolume(value);
+                      },
+                    ),
+                    _buildSwitchTile(
+                      icon: CupertinoIcons.forward_end,
+                      title: l10n.gaplessPlayback,
+                      subtitle: l10n.seamlessTransitions,
+                      value: appState.gaplessPlaybackEnabled,
+                      onChanged: (value) {
+                        appState.toggleGaplessPlayback(value);
+                      },
+                    ),
+                    Divider(
+                      color: Colors.white.withOpacity(0.1),
+                      height: 1,
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                    _buildDownloadTile(
+                      context: context,
+                      icon: CupertinoIcons.cloud_download,
+                      title: l10n.downloadAllSongs,
+                      subtitle: l10n.downloadEntireLibrary,
+                      onTap: () => _downloadAllSongs(context, appState),
+                    ),
+                    _buildDownloadTile(
+                      context: context,
+                      icon: CupertinoIcons.heart_circle,
+                      title: l10n.downloadAllFavorites,
+                      subtitle: l10n.downloadAllLikedSongs,
+                      onTap: () => _downloadAllFavorites(context, appState),
+                    ),
+                  ],
+                ),
               ),
-              _buildSwitchTile(
-                icon: CupertinoIcons.forward_end,
-                title: l10n.gaplessPlayback,
-                subtitle: l10n.seamlessTransitions,
-                value: appState.gaplessPlaybackEnabled,
-                onChanged: (value) {
-                  appState.toggleGaplessPlayback(value);
-                },
-              ),
-              const Divider(
-                color: Color(0xFF2C2C2E),
-                height: 1,
-                indent: 20,
-                endIndent: 20,
-              ),
-              _buildDownloadTile(
-                context: context,
-                icon: CupertinoIcons.cloud_download,
-                title: l10n.downloadAllSongs,
-                subtitle: l10n.downloadEntireLibrary,
-                onTap: () => _downloadAllSongs(context, appState),
-              ),
-              _buildDownloadTile(
-                context: context,
-                icon: CupertinoIcons.heart_circle,
-                title: l10n.downloadAllFavorites,
-                subtitle: l10n.downloadAllLikedSongs,
-                onTap: () => _downloadAllFavorites(context, appState),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -101,17 +117,20 @@ class AudioSettingsSection extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
+              color: value
+                  ? const Color(0xFFEC4899).withOpacity(0.15)
+                  : const Color(0xFF8B5CF6).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
+              border: Border.all(
+                color: value
+                    ? const Color(0xFFEC4899).withOpacity(0.3)
+                    : const Color(0xFF8B5CF6).withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Icon(
               icon,
-              color: value
-                  ? const Color(0xFF30D158)
-                  : const Color(
-                      0xFF007AFF,
-                    ), // Green when active, blue when inactive
+              color: value ? const Color(0xFFEC4899) : const Color(0xFF8B5CF6),
               size: 20,
             ),
           ),
@@ -123,7 +142,7 @@ class AudioSettingsSection extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: Color(0xFFFFFFFF), // Pure white text
+                    color: Color(0xFFFFFFFF),
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -132,7 +151,7 @@ class AudioSettingsSection extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFFAAAAAA), // Lighter gray
+                    color: Color(0xFFAAAAAA),
                     fontSize: 15,
                   ),
                 ),
@@ -142,8 +161,8 @@ class AudioSettingsSection extends StatelessWidget {
           CupertinoSwitch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF30D158), // Green for OLED
-            trackColor: const Color(0xFF1C1C1E), // Dark track
+            activeColor: const Color(0xFFEC4899),
+            trackColor: Colors.white.withOpacity(0.1),
           ),
         ],
       ),
@@ -168,15 +187,14 @@ class AudioSettingsSection extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF1C1C1E),
+                color: const Color(0xFF06B6D4).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
+                border: Border.all(
+                  color: const Color(0xFF06B6D4).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF007AFF), // Blue accent
-                size: 20,
-              ),
+              child: Icon(icon, color: const Color(0xFF06B6D4), size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -186,7 +204,7 @@ class AudioSettingsSection extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Color(0xFFFFFFFF), // Pure white text
+                      color: Color(0xFFFFFFFF),
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
                     ),
@@ -195,7 +213,7 @@ class AudioSettingsSection extends StatelessWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      color: Color(0xFFAAAAAA), // Lighter gray
+                      color: Color(0xFFAAAAAA),
                       fontSize: 15,
                     ),
                   ),
@@ -205,12 +223,12 @@ class AudioSettingsSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1C1C1E),
+                color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.chevron_right,
-                color: Color(0xFF666666),
+                color: Colors.white.withOpacity(0.5),
                 size: 16,
               ),
             ),
