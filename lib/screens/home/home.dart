@@ -8,7 +8,6 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../widgets/apple_design/liquid_glass.dart';
 import '../shared/detail_track_view.dart';
-import '../settings/settings.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -27,28 +26,6 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
   // Add debouncing for shuffle buttons to prevent audio bleeding
   DateTime? _lastShuffleAllTap;
   DateTime? _lastShuffleFavoritesTap;
-  
-  late AnimationController _headerAnimationController;
-  late Animation<double> _headerFadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _headerAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _headerAnimationController, curve: Curves.easeOut),
-    );
-    _headerAnimationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _headerAnimationController.dispose();
-    super.dispose();
-  }
 
   void _initializeAlbumLists(List<Album> allAlbums, List<Track> favoriteTracks) {
     if (_shuffledAlbums == null || _shuffledAlbums!.isEmpty) {
@@ -168,17 +145,6 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
       ..shuffle();
 
     return similarAlbums.take(6).toList();
-  }
-
-  String _getGreeting(AppLocalizations l10n) {
-    final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return l10n.goodMorning;
-    } else if (hour < 17) {
-      return l10n.goodAfternoon;
-    } else {
-      return l10n.goodEvening;
-    }
   }
 
   void _showNoFavoritesDialog(BuildContext context) {
@@ -777,184 +743,5 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
         ),
       ),
     );
-  }
-}
-
-// Liquid Glass Header Delegate for iOS 26 style
-class _LiquidGlassHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double minHeight;
-  final double maxHeight;
-  final String greeting;
-  final String subtitle;
-  final Animation<double> fadeAnimation;
-  final VoidCallback onSettingsTap;
-
-  _LiquidGlassHeaderDelegate({
-    required this.minHeight,
-    required this.maxHeight,
-    required this.greeting,
-    required this.subtitle,
-    required this.fadeAnimation,
-    required this.onSettingsTap,
-  });
-
-  @override
-  double get minExtent => minHeight;
-
-  @override
-  double get maxExtent => maxHeight;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final progress = shrinkOffset / (maxExtent - minExtent);
-    final opacity = (1.0 - progress).clamp(0.0, 1.0);
-
-    return AnimatedBuilder(
-      animation: fadeAnimation,
-      builder: (context, child) {
-        return ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    CupertinoColors.black.withOpacity(0.5),
-                    CupertinoColors.black.withOpacity(0.3),
-                  ],
-                ),
-                border: Border(
-                  bottom: BorderSide(
-                    color: CupertinoColors.white.withOpacity(0.1),
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                  child: Row(
-                    children: [
-                      // Animated profile avatar with gradient border
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF8B5CF6).withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: CupertinoColors.black.withOpacity(0.3),
-                          ),
-                          child: ClipOval(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: const Icon(
-                                CupertinoIcons.person_fill,
-                                color: CupertinoColors.white,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      // Greeting text with fade animation
-                      Expanded(
-                        child: Opacity(
-                          opacity: fadeAnimation.value * opacity,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                greeting,
-                                style: TextStyle(
-                                  color: CupertinoColors.white.withOpacity(0.6),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                subtitle,
-                                style: const TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Liquid glass settings button
-                      GestureDetector(
-                        onTap: onSettingsTap,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: CupertinoColors.white.withOpacity(0.2),
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: Icon(
-                                CupertinoIcons.gear_alt,
-                                color: CupertinoColors.white.withOpacity(0.8),
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  bool shouldRebuild(_LiquidGlassHeaderDelegate oldDelegate) {
-    return maxHeight != oldDelegate.maxHeight ||
-        minHeight != oldDelegate.minHeight ||
-        greeting != oldDelegate.greeting ||
-        subtitle != oldDelegate.subtitle;
   }
 }
