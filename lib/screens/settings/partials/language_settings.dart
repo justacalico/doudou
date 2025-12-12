@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../l10n/app_localizations.dart';
@@ -11,22 +14,35 @@ class LanguageSettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1E),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF2C2C2E),
-          width: 1,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.12),
+                  Colors.white.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                _buildSectionHeader(l10n.language),
+                _buildLanguageTile(context),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          _buildSectionHeader(l10n.language),
-          _buildLanguageTile(context),
-        ],
       ),
     );
   }
@@ -53,13 +69,13 @@ class LanguageSettingsSection extends StatelessWidget {
   Widget _buildLanguageTile(BuildContext context) {
     final appState = context.watch<AppState>();
     final l10n = AppLocalizations.of(context);
-    
+
     // Get current language display name
     final currentLocale = appState.locale;
-    final currentLanguage = currentLocale != null 
-        ? _getLanguageName(currentLocale) 
+    final currentLanguage = currentLocale != null
+        ? _getLanguageName(currentLocale)
         : l10n.systemLanguage;
-    
+
     return CupertinoButton(
       padding: EdgeInsets.zero,
       onPressed: () => _showLanguageSelector(context),
@@ -71,12 +87,16 @@ class LanguageSettingsSection extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue.withOpacity(0.15),
+                color: const Color(0xFF8B5CF6).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
               child: const Icon(
                 CupertinoIcons.globe,
-                color: CupertinoColors.systemBlue,
+                color: Color(0xFF8B5CF6),
                 size: 18,
               ),
             ),
@@ -95,17 +115,17 @@ class LanguageSettingsSection extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     currentLanguage,
-                    style: const TextStyle(
-                      color: Color(0xFF8E8E93),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
                       fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               CupertinoIcons.chevron_right,
-              color: Color(0xFF8E8E93),
+              color: Colors.white.withOpacity(0.5),
               size: 20,
             ),
           ],
@@ -117,7 +137,7 @@ class LanguageSettingsSection extends StatelessWidget {
   void _showLanguageSelector(BuildContext context) {
     final appState = context.read<AppState>();
     final l10n = AppLocalizations.of(context);
-    
+
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -138,7 +158,7 @@ class LanguageSettingsSection extends StatelessWidget {
                     const SizedBox(width: 8),
                     const Icon(
                       CupertinoIcons.checkmark,
-                      color: CupertinoColors.systemBlue,
+                      color: Color(0xFFEC4899),
                       size: 20,
                     ),
                   ],
@@ -147,10 +167,12 @@ class LanguageSettingsSection extends StatelessWidget {
             ),
             // Supported languages from AppLocalizations
             ...AppLocalizations.supportedLocales.map((locale) {
-              final isSelected = appState.locale?.languageCode == locale.languageCode &&
-                  (appState.locale?.countryCode == locale.countryCode || 
-                   (appState.locale?.countryCode == null && locale.countryCode == null));
-              
+              final isSelected =
+                  appState.locale?.languageCode == locale.languageCode &&
+                  (appState.locale?.countryCode == locale.countryCode ||
+                      (appState.locale?.countryCode == null &&
+                          locale.countryCode == null));
+
               return CupertinoActionSheetAction(
                 onPressed: () {
                   appState.setLocale(locale);
@@ -164,7 +186,7 @@ class LanguageSettingsSection extends StatelessWidget {
                       const SizedBox(width: 8),
                       const Icon(
                         CupertinoIcons.checkmark,
-                        color: CupertinoColors.systemBlue,
+                        color: Color(0xFFEC4899),
                         size: 20,
                       ),
                     ],
@@ -225,14 +247,14 @@ class LanguageSettingsSection extends StatelessWidget {
       'lv': 'Latviešu',
       'lt': 'Lietuvių',
     };
-    
+
     final baseName = languageNames[locale.languageCode] ?? locale.languageCode;
-    
+
     // Add country code if present for disambiguation
     if (locale.countryCode != null && locale.countryCode!.isNotEmpty) {
       return '$baseName (${locale.countryCode})';
     }
-    
+
     return baseName;
   }
 }
