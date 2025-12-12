@@ -469,53 +469,111 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildMobileLayout(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
     
-    return SingleChildScrollView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // Small mobile header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, -0.5),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: _animationController,
-                curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
-              )),
-              child: Text(
-                'Doudou - Welcome',
-                style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: brightness == Brightness.light 
-                    ? CupertinoColors.black 
-                    : CupertinoColors.white,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              
+              // Mobile header with logo
+              _buildMobileHeader(isDark),
+              
+              const SizedBox(height: 32),
+              
+              // Login form card
+              _buildGlassCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: _buildLoginForm(context, isDesktop: false),
                 ),
-                textAlign: TextAlign.center,
+                isDark: isDark,
               ),
-            ),
+              
+              const SizedBox(height: 40),
+            ],
           ),
-          
-          // Form section
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.3),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: _animationController,
-                curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
-              )),
-              child: _buildLoginForm(context, isDesktop: false),
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+  
+  Widget _buildMobileHeader(bool isDark) {
+    return Column(
+      children: [
+        // Animated logo
+        AnimatedBuilder(
+          animation: _pulseController,
+          builder: (context, child) {
+            return Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppleColors.systemPurple,
+                    AppleColors.systemIndigo,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppleColors.systemPurple.withOpacity(0.25 + _pulseController.value * 0.15),
+                    blurRadius: 20 + _pulseController.value * 15,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                CupertinoIcons.music_note_2,
+                size: 40,
+                color: Colors.white,
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: 20),
+        
+        // App name with gradient
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [
+              AppleColors.systemPurple,
+              AppleColors.systemPink,
+            ],
+          ).createShader(bounds),
+          child: Text(
+            'Doudou',
+            style: TextStyle(
+              fontFamily: AppleDesignSystem.fontFamily,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        Text(
+          'Your personal music companion',
+          style: TextStyle(
+            fontFamily: AppleDesignSystem.fontFamily,
+            fontSize: 16,
+            color: isDark 
+              ? Colors.white.withOpacity(0.6) 
+              : Colors.black.withOpacity(0.5),
+          ),
+        ),
+      ],
     );
   }
 
