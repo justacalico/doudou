@@ -1,10 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Colors;
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../../models/download_models.dart';
 import '../../widgets/cached_image_widget.dart';
+import '../../widgets/apple_design/liquid_glass.dart';
 import '../shared/detail_track_view.dart';
 import '../favorites/favorites.dart';
 
@@ -21,169 +24,213 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        return CupertinoPageScaffold(
-          backgroundColor: const Color(0xFF000000),
-          child: SafeArea(
-            child: CustomScrollView(
-              slivers: [
-                // Header with Play and Shuffle  void _navigateToAlbum(Album album, AppState appState, BuildContext context) {buttons
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        // Download statistics
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+        return LiquidGradientBackground(
+          child: CupertinoPageScaffold(
+            backgroundColor: Colors.transparent,
+            child: SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  // Header with stats and buttons
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // Download statistics with glass cards
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: Row(
+                              children: [
+                                _buildStatCard(
+                                  '${appState.tracks.where((track) => appState.downloadService.isTrackDownloaded(track.id)).length}',
+                                  l10n.songs,
+                                  const Color(0xFF8B5CF6),
+                                ),
+                                const SizedBox(width: 12),
+                                _buildStatCard(
+                                  '${appState.downloadService.downloadTasks.where((task) => task.status == DownloadStatus.downloading).length}',
+                                  l10n.downloading,
+                                  const Color(0xFF06B6D4),
+                                ),
+                                const SizedBox(width: 12),
+                                _buildStatCard(
+                                  '${appState.downloadService.downloadTasks.where((task) => task.status == DownloadStatus.failed).length}',
+                                  l10n.failed,
+                                  const Color(0xFFEC4899),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Play and Shuffle buttons with liquid glass
+                          Row(
                             children: [
-                              Column(
-                                children: [
-                                  Text(
-                                    '${appState.tracks.where((track) => appState.downloadService.isTrackDownloaded(track.id)).length}',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: CupertinoColors.white,
+                              // Play button
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _playAllDownloaded(appState),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                      child: Container(
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Color(0xFF8B5CF6),
+                                              Color(0xFFEC4899),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.2),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              CupertinoIcons.play_fill,
+                                              color: Colors.white,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              l10n.play,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  Text(
-                                    l10n.songs,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: CupertinoColors.systemGrey,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                              Column(
-                                children: [
-                                  Text(
-                                    '${appState.downloadService.downloadTasks.where((task) => task.status == DownloadStatus.downloading).length}',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: CupertinoColors.systemBlue,
+                              const SizedBox(width: 12),
+                              // Shuffle button
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _shuffleAllDownloaded(appState),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                      child: Container(
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Color(0xFF06B6D4),
+                                              Color(0xFF8B5CF6),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.2),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              CupertinoIcons.shuffle,
+                                              color: Colors.white,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              l10n.shuffle,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  Text(
-                                    l10n.downloading,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: CupertinoColors.systemGrey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                children: [
-                                  Text(
-                                    '${appState.downloadService.downloadTasks.where((task) => task.status == DownloadStatus.failed).length}',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: CupertinoColors.systemRed,
-                                    ),
-                                  ),
-                                  Text(
-                                    l10n.failed,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: CupertinoColors.systemGrey,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        // Play and Shuffle buttons
-                        Row(
-                          children: [
-                            // Play button
-                            Expanded(
-                              child: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () => _playAllDownloaded(appState),
-                                child: Container(
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF453A),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        CupertinoIcons.play_fill,
-                                        color: Color(0xFFFFFFFF),
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        l10n.play,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFFFFFFFF),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Shuffle button
-                            Expanded(
-                              child: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () =>
-                                    _shuffleAllDownloaded(appState),
-                                child: Container(
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF453A),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        CupertinoIcons.shuffle,
-                                        color: Color(0xFFFFFFFF),
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        l10n.shuffle,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFFFFFFFF),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Downloaded content
-                ..._buildDownloadedContent(appState),
-              ],
+                  // Downloaded content
+                  ..._buildDownloadedContent(appState),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatCard(String value, String label, Color accentColor) {
+    return Expanded(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.15),
+                  Colors.white.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: accentColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
