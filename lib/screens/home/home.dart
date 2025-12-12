@@ -16,7 +16,7 @@ class HomeContent extends StatefulWidget {
   State<HomeContent> createState() => _HomeContentState();
 }
 
-class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin {
+class _HomeContentState extends State<HomeContent> {
   List<Album>? _shuffledAlbums;
   List<Album>? _continueListeningAlbums;
   List<Album>? _madeForYouAlbums;
