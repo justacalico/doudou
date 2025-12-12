@@ -461,22 +461,57 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                 ),
                                 child: Column(
                                   children: [
-                                    CupertinoSlider(
-                                      value: sliderValue,
-                                      onChanged: (value) {
+                                    // Liquid glass progress bar
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                        child: Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: CupertinoColors.white.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: LayoutBuilder(
+                                            builder: (context, constraints) {
+                                              return Stack(
+                                                children: [
+                                                  Container(
+                                                    width: constraints.maxWidth * sliderValue,
+                                                    decoration: BoxDecoration(
+                                                      gradient: const LinearGradient(
+                                                        colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    // Gesture detector for seeking
+                                    GestureDetector(
+                                      onHorizontalDragUpdate: (details) {
+                                        final box = context.findRenderObject() as RenderBox;
+                                        final localPosition = details.localPosition;
+                                        final newValue = (localPosition.dx / box.size.width).clamp(0.0, 1.0);
                                         final newPosition = Duration(
-                                          milliseconds:
-                                              (value * duration.inMilliseconds)
-                                                  .round(),
+                                          milliseconds: (newValue * duration.inMilliseconds).round(),
                                         );
                                         appState.seekTo(newPosition);
                                       },
-                                      activeColor: const Color(0xFFFFFFFF),
-                                      thumbColor: const Color(0xFFFFFFFF),
+                                      child: Container(
+                                        height: 20,
+                                        color: Colors.transparent,
+                                      ),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
+                                        horizontal: 4.0,
                                       ),
                                       child: Row(
                                         mainAxisAlignment:
@@ -484,20 +519,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         children: [
                                           Text(
                                             _formatDuration(position),
-                                            style: const TextStyle(
-                                              color:
-                                                  CupertinoColors.systemGrey2,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
+                                            style: TextStyle(
+                                              color: CupertinoColors.white.withOpacity(0.6),
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                           Text(
                                             _formatDuration(duration),
-                                            style: const TextStyle(
-                                              color:
-                                                  CupertinoColors.systemGrey2,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
+                                            style: TextStyle(
+                                              color: CupertinoColors.white.withOpacity(0.6),
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                         ],
