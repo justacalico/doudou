@@ -217,10 +217,9 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
           backgroundColor: const Color(0xFF000000),
           child: Stack(
             children: [
-              // Animated background with floating orbs
+              // Animated background with gradient
               Positioned.fill(
-                child: FloatingColorOrbs(
-                  orbCount: 4,
+                child: LiquidGradientBackground(
                   colors: const [
                     Color(0xFF8B5CF6),
                     Color(0xFFEC4899),
