@@ -43,7 +43,8 @@ class AccountInformationSection extends StatelessWidget {
                       _buildInfoTile(
                         icon: CupertinoIcons.person_circle,
                         title: l10n.userId,
-                        subtitle: server.userId?.substring(0, 8) ?? l10n.notAvailable,
+                        subtitle:
+                            server.userId?.substring(0, 8) ?? l10n.notAvailable,
                       ),
                       _buildInfoTile(
                         icon: CupertinoIcons.globe,
@@ -97,13 +98,12 @@ class AccountInformationSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF8B5CF6).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.3), width: 1),
+              border: Border.all(
+                color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                width: 1,
+              ),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF8B5CF6),
-              size: 20,
-            ),
+            child: Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
