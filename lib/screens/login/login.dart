@@ -26,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen>
   
   String _selectedServerType = 'jellyfin';
   bool _isPasswordVisible = false;
-  int _currentStep = 0; // 0 = server selection, 1 = credentials
   
   late AnimationController _animationController;
   late AnimationController _backgroundController;
@@ -222,14 +221,6 @@ class _LoginScreenState extends State<LoginScreen>
         painter: _GridPainter(),
       ),
     );
-  }
-
-  Color _getBackgroundColor(BuildContext context) {
-    final brightness = MediaQuery.of(context).platformBrightness;
-    if (brightness == Brightness.dark) {
-      return AppleColors.backgroundPrimaryDark;
-    }
-    return AppleColors.backgroundPrimary;
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
@@ -578,6 +569,9 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLoginForm(BuildContext context, {required bool isDesktop}) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
+    
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Form(
@@ -586,13 +580,39 @@ class _LoginScreenState extends State<LoginScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Server type selection
-              _buildServerTypeSelection(context, isDesktop),
+              // Form header
+              Text(
+                'Sign In',
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              Text(
+                'Connect to your media server',
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: 15,
+                  color: isDark 
+                    ? Colors.white.withOpacity(0.6) 
+                    : Colors.black.withOpacity(0.5),
+                ),
+              ),
               
               SizedBox(height: isDesktop ? 32 : 24),
               
+              // Server type selection
+              _buildServerTypeSelection(context, isDesktop),
+              
+              SizedBox(height: isDesktop ? 28 : 20),
+              
               // Server URL field
-              _buildTextField(
+              _buildModernTextField(
                 controller: _serverController,
                 label: 'Server URL',
                 icon: CupertinoIcons.globe,
@@ -604,36 +624,61 @@ class _LoginScreenState extends State<LoginScreen>
                   return null;
                 },
                 keyboardType: TextInputType.url,
-                isDesktop: isDesktop,
+                isDark: isDark,
               ),
               
-              SizedBox(height: isDesktop ? 20 : 16),
+              SizedBox(height: isDesktop ? 16 : 12),
               
               // Account fields
               ..._buildAccountFieldsModern(context, isDesktop),
               
-              SizedBox(height: isDesktop ? 32 : 24),
+              SizedBox(height: isDesktop ? 28 : 20),
               
               // Error message
               if (appState.errorMessage != null) ...[
                 _buildErrorMessage(context, appState.errorMessage!, isDesktop),
-                SizedBox(height: isDesktop ? 24 : 20),
+                SizedBox(height: isDesktop ? 20 : 16),
               ],
               
               // Sign in button
-              _buildSignInButton(context, appState, isDesktop),
+              _buildPrimaryButton(
+                context: context,
+                label: 'Sign In',
+                icon: CupertinoIcons.arrow_right,
+                isLoading: appState.isLoading,
+                onPressed: appState.isLoading ? null : _login,
+                isDark: isDark,
+              ),
               
-              SizedBox(height: isDesktop ? 16 : 12),
+              SizedBox(height: isDesktop ? 12 : 10),
               
-              // Offline mode button
-              _buildOfflineModeButton(context, appState, isDesktop),
+              // Secondary actions
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSecondaryButton(
+                      context: context,
+                      label: 'Offline',
+                      icon: CupertinoIcons.arrow_down_circle,
+                      onPressed: appState.isLoading ? null : _enterOfflineMode,
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildSecondaryButton(
+                      context: context,
+                      label: 'Try Demo',
+                      icon: CupertinoIcons.play_circle,
+                      onPressed: appState.isLoading ? null : _loginDemo,
+                      isDark: isDark,
+                      accentColor: AppleColors.systemGreen,
+                    ),
+                  ),
+                ],
+              ),
               
-              SizedBox(height: isDesktop ? 16 : 12),
-              
-              // Demo button
-              _buildDemoButton(context, appState, isDesktop),
-              
-              SizedBox(height: isDesktop ? 40 : 60),
+              SizedBox(height: isDesktop ? 24 : 20),
             ],
           ),
         );
@@ -642,172 +687,197 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildServerTypeSelection(BuildContext context, bool isDesktop) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Choose Your Server',
+          'Choose Server Type',
           style: TextStyle(
-            fontSize: 18,
+            fontFamily: AppleDesignSystem.fontFamily,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: MediaQuery.of(context).platformBrightness == Brightness.dark
-              ? CupertinoColors.white
-              : CupertinoColors.black,
+            letterSpacing: 0.5,
+            color: isDark 
+              ? Colors.white.withOpacity(0.7) 
+              : Colors.black.withOpacity(0.6),
           ),
         ),
         
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 12 : 10),
         
+        // Server type cards in a row (horizontal scroll on mobile)
         if (isDesktop)
           Row(
             children: [
-              Expanded(child: _buildServerCard('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', CupertinoColors.systemPurple, isDesktop)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildServerCard('plex', 'Plex', 'assets/icons/plex.svg', CupertinoColors.systemOrange, isDesktop)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildServerCard('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', CupertinoColors.systemBlue, isDesktop)),
+              Expanded(child: _buildServerTypeCard('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', AppleColors.systemPurple, isDark)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildServerTypeCard('plex', 'Plex', 'assets/icons/plex.svg', AppleColors.systemOrange, isDark)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildServerTypeCard('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', AppleColors.systemBlue, isDark)),
             ],
           )
         else
-          Column(
-            children: [
-              _buildServerCard('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', CupertinoColors.systemPurple, isDesktop),
-              const SizedBox(height: 12),
-              _buildServerCard('plex', 'Plex', 'assets/icons/plex.svg', CupertinoColors.systemOrange, isDesktop),
-              const SizedBox(height: 12),
-              _buildServerCard('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', CupertinoColors.systemBlue, isDesktop),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildServerTypeChip('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', AppleColors.systemPurple, isDark),
+                const SizedBox(width: 10),
+                _buildServerTypeChip('plex', 'Plex', 'assets/icons/plex.svg', AppleColors.systemOrange, isDark),
+                const SizedBox(width: 10),
+                _buildServerTypeChip('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', AppleColors.systemBlue, isDark),
+              ],
+            ),
           ),
       ],
     );
   }
-
-  Widget _buildServerCard(String type, String label, String iconPath, Color color, bool isDesktop) {
+  
+  Widget _buildServerTypeCard(String type, String label, String iconPath, Color color, bool isDark) {
     final isSelected = _selectedServerType == type;
-    final brightness = MediaQuery.of(context).platformBrightness;
-    final isDark = brightness == Brightness.dark;
     
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    return GestureDetector(
+      onTap: () async {
+        await _triggerButtonPress();
+        setState(() {
+          _selectedServerType = type;
+          _serverController.text = _getServerPlaceholder();
+          if (type == 'plex') {
+            _usernameController.clear();
+            _passwordController.clear();
+          } else {
+            _plexTokenController.clear();
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+            ? color.withOpacity(isDark ? 0.2 : 0.12)
+            : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
           borderRadius: BorderRadius.circular(16),
-          onTap: () async {
-            await _triggerButtonPress();
-            setState(() {
-              _selectedServerType = type;
-              _serverController.text = _getServerPlaceholder();
-              if (type == 'plex') {
-                _usernameController.clear();
-                _passwordController.clear();
-              } else {
-                _plexTokenController.clear();
-              }
-            });
-          },
-          child: Container(
-            padding: EdgeInsets.all(isDesktop ? 20 : 16),
-            decoration: BoxDecoration(
-              color: isSelected 
-                ? color.withOpacity(0.15)
-                : (isDark 
-                    ? const Color(0xFF2C2C2E) 
-                    : CupertinoColors.systemGrey6.color),
-              border: Border.all(
-                color: isSelected 
-                  ? color
-                  : (isDark 
-                      ? const Color(0xFF3A3A3C) 
-                      : CupertinoColors.systemGrey4.color),
-                width: isSelected ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: color.withOpacity(0.2),
-                      blurRadius: 8,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
-            ),
-            child: isDesktop
-              ? Column(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: SvgPicture.asset(
-                        iconPath,
-                        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isSelected 
-                          ? color 
-                          : (isDark 
-                              ? CupertinoColors.white 
-                              : CupertinoColors.black),
-                      ),
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: SvgPicture.asset(
-                        iconPath,
-                        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: isSelected 
-                            ? color 
-                            : (isDark 
-                                ? CupertinoColors.white 
-                                : CupertinoColors.black),
-                        ),
-                      ),
-                    ),
-                    if (isSelected)
-                      Icon(
-                        CupertinoIcons.check_mark_circled_solid,
-                        color: color,
-                        size: 24,
-                      ),
-                  ],
-                ),
+          border: Border.all(
+            color: isSelected 
+              ? color.withOpacity(0.6)
+              : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08)),
+            width: isSelected ? 2 : 1,
           ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(isDark ? 0.15 : 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SvgPicture.asset(
+                iconPath,
+                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected 
+                  ? color 
+                  : (isDark ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.7)),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
-  Widget _buildTextField({
+  
+  Widget _buildServerTypeChip(String type, String label, String iconPath, Color color, bool isDark) {
+    final isSelected = _selectedServerType == type;
+    
+    return GestureDetector(
+      onTap: () async {
+        await _triggerButtonPress();
+        setState(() {
+          _selectedServerType = type;
+          _serverController.text = _getServerPlaceholder();
+          if (type == 'plex') {
+            _usernameController.clear();
+            _passwordController.clear();
+          } else {
+            _plexTokenController.clear();
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected 
+            ? color.withOpacity(isDark ? 0.2 : 0.12)
+            : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+              ? color.withOpacity(0.6)
+              : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08)),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(isDark ? 0.15 : 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SvgPicture.asset(
+                iconPath,
+                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected 
+                  ? color 
+                  : (isDark ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.7)),
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Icon(
+                CupertinoIcons.checkmark_circle_fill,
+                size: 18,
+                color: color,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildModernTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -815,7 +885,8 @@ class _LoginScreenState extends State<LoginScreen>
     String? Function(String?)? validator,
     TextInputType? keyboardType,
     bool obscureText = false,
-    required bool isDesktop,
+    required bool isDark,
+    Widget? suffixIcon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -823,11 +894,10 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           label,
           style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 16,
-            color: MediaQuery.of(context).platformBrightness == Brightness.dark
-              ? CupertinoColors.white
-              : CupertinoColors.black,
+            fontFamily: AppleDesignSystem.fontFamily,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: isDark ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.6),
           ),
         ),
         const SizedBox(height: 8),
@@ -838,59 +908,67 @@ class _LoginScreenState extends State<LoginScreen>
           obscureText: obscureText,
           autocorrect: false,
           style: TextStyle(
+            fontFamily: AppleDesignSystem.fontFamily,
             fontSize: 16,
-            color: MediaQuery.of(context).platformBrightness == Brightness.dark
-              ? CupertinoColors.white
-              : CupertinoColors.black,
+            color: isDark ? Colors.white : Colors.black,
           ),
           decoration: InputDecoration(
             hintText: placeholder,
             hintStyle: TextStyle(
-              color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                ? CupertinoColors.systemGrey
-                : CupertinoColors.systemGrey2,
+              fontFamily: AppleDesignSystem.fontFamily,
+              color: isDark 
+                ? Colors.white.withOpacity(0.3) 
+                : Colors.black.withOpacity(0.3),
             ),
             prefixIcon: Icon(
               icon, 
               size: 20,
-              color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                ? CupertinoColors.systemGrey
-                : CupertinoColors.systemGrey2,
+              color: isDark 
+                ? Colors.white.withOpacity(0.5) 
+                : Colors.black.withOpacity(0.4),
             ),
+            suffixIcon: suffixIcon,
             filled: true,
-            fillColor: MediaQuery.of(context).platformBrightness == Brightness.dark
-              ? const Color(0xFF2C2C2E)
-              : CupertinoColors.systemGrey6.color,
+            fillColor: isDark 
+              ? Colors.white.withOpacity(0.06) 
+              : Colors.black.withOpacity(0.04),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                  ? const Color(0xFF3A3A3C)
-                  : CupertinoColors.systemGrey4.color,
+                color: isDark 
+                  ? Colors.white.withOpacity(0.1) 
+                  : Colors.black.withOpacity(0.08),
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: CupertinoColors.systemPurple.color,
+                color: AppleColors.systemPurple.withOpacity(0.8),
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: CupertinoColors.systemRed.color,
+                color: AppleColors.systemRed.withOpacity(0.8),
                 width: 1,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: AppleColors.systemRed.withOpacity(0.8),
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: isDesktop ? 16 : 14,
+              vertical: 16,
             ),
           ),
         ),
@@ -899,9 +977,12 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   List<Widget> _buildAccountFieldsModern(BuildContext context, bool isDesktop) {
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final isDark = brightness == Brightness.dark;
+    
     if (_selectedServerType == 'plex') {
       return [
-        _buildTextField(
+        _buildModernTextField(
           controller: _plexTokenController,
           label: 'Plex Token',
           icon: CupertinoIcons.creditcard,
@@ -912,12 +993,12 @@ class _LoginScreenState extends State<LoginScreen>
             }
             return null;
           },
-          isDesktop: isDesktop,
+          isDark: isDark,
         ),
       ];
     } else {
       return [
-        _buildTextField(
+        _buildModernTextField(
           controller: _usernameController,
           label: 'Username',
           icon: CupertinoIcons.person,
@@ -928,18 +1009,34 @@ class _LoginScreenState extends State<LoginScreen>
             }
             return null;
           },
-          isDesktop: isDesktop,
+          isDark: isDark,
         ),
         
-        SizedBox(height: isDesktop ? 20 : 16),
+        SizedBox(height: isDesktop ? 16 : 12),
         
-        _buildTextField(
+        _buildModernTextField(
           controller: _passwordController,
           label: 'Password',
           icon: CupertinoIcons.lock,
           placeholder: 'Enter your password (optional)',
-          obscureText: true,
-          isDesktop: isDesktop,
+          obscureText: !_isPasswordVisible,
+          isDark: isDark,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _isPasswordVisible 
+                ? CupertinoIcons.eye_slash 
+                : CupertinoIcons.eye,
+              size: 20,
+              color: isDark 
+                ? Colors.white.withOpacity(0.5) 
+                : Colors.black.withOpacity(0.4),
+            ),
+            onPressed: () {
+              setState(() {
+                _isPasswordVisible = !_isPasswordVisible;
+              });
+            },
+          ),
         ),
       ];
     }
@@ -947,19 +1044,19 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildErrorMessage(BuildContext context, String message, bool isDesktop) {
     return Container(
-      padding: EdgeInsets.all(isDesktop ? 16 : 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.errorContainer,
+        color: AppleColors.systemRed.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+          color: AppleColors.systemRed.withOpacity(0.3),
         ),
       ),
       child: Row(
         children: [
           Icon(
             CupertinoIcons.exclamationmark_triangle_fill,
-            color: Theme.of(context).colorScheme.error,
+            color: AppleColors.systemRed,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -967,7 +1064,8 @@ class _LoginScreenState extends State<LoginScreen>
             child: Text(
               message,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onErrorContainer,
+                fontFamily: AppleDesignSystem.fontFamily,
+                color: AppleColors.systemRed,
                 fontSize: 14,
               ),
             ),
@@ -976,26 +1074,31 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-
-  Widget _buildSignInButton(BuildContext context, AppState appState, bool isDesktop) {
-    return SizedBox(
-      height: isDesktop ? 56 : 50,
-      width: double.infinity,
+  
+  Widget _buildPrimaryButton({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required bool isLoading,
+    required VoidCallback? onPressed,
+    required bool isDark,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      height: 54,
       child: ElevatedButton(
-        onPressed: appState.isLoading ? null : _login,
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: CupertinoColors.systemPurple.color,
-          foregroundColor: CupertinoColors.white,
+          backgroundColor: AppleColors.systemPurple,
+          foregroundColor: Colors.white,
           elevation: 0,
+          shadowColor: AppleColors.systemPurple.withOpacity(0.4),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
-          padding: EdgeInsets.symmetric(
-            horizontal: isDesktop ? 24 : 20,
-            vertical: isDesktop ? 16 : 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
         ),
-        child: appState.isLoading
+        child: isLoading
           ? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1003,109 +1106,79 @@ class _LoginScreenState extends State<LoginScreen>
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: CupertinoColors.white,
+                    strokeWidth: 2.5,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Signing In...',
+                  'Connecting...',
                   style: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             )
-          : Text(
-              'Sign In',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(icon, size: 18),
+              ],
             ),
       ),
     );
   }
-
-  Widget _buildOfflineModeButton(BuildContext context, AppState appState, bool isDesktop) {
+  
+  Widget _buildSecondaryButton({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required bool isDark,
+    Color? accentColor,
+  }) {
+    final color = accentColor ?? (isDark ? Colors.white : Colors.black);
+    
     return SizedBox(
-      height: isDesktop ? 56 : 50,
-      width: double.infinity,
+      height: 48,
       child: OutlinedButton(
-        onPressed: appState.isLoading ? null : _enterOfflineMode,
+        onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: CupertinoColors.systemPurple.color,
+          foregroundColor: color.withOpacity(0.8),
           side: BorderSide(
-            color: MediaQuery.of(context).platformBrightness == Brightness.dark
-              ? const Color(0xFF3A3A3C)
-              : CupertinoColors.systemGrey4.color,
+            color: isDark 
+              ? Colors.white.withOpacity(0.15) 
+              : Colors.black.withOpacity(0.12),
             width: 1,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          padding: EdgeInsets.symmetric(
-            horizontal: isDesktop ? 24 : 20,
-            vertical: isDesktop ? 16 : 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              CupertinoIcons.arrow_down_circle,
-              size: 20,
-              color: CupertinoColors.systemPurple.color,
-            ),
-            const SizedBox(width: 8),
+            Icon(icon, size: 18, color: accentColor),
+            const SizedBox(width: 6),
             Text(
-              'Use Offline Mode',
+              label,
               style: TextStyle(
-                fontSize: 16,
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDemoButton(BuildContext context, AppState appState, bool isDesktop) {
-    return SizedBox(
-      height: isDesktop ? 56 : 50,
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: appState.isLoading ? null : _loginDemo,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: CupertinoColors.systemGreen.color,
-          side: BorderSide(
-            color: CupertinoColors.systemGreen.color.withOpacity(0.5),
-            width: 1,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: isDesktop ? 24 : 20,
-            vertical: isDesktop ? 16 : 14,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              CupertinoIcons.play_circle,
-              size: 20,
-              color: CupertinoColors.systemGreen.color,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Try Demo',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                color: accentColor,
               ),
             ),
           ],
@@ -1256,33 +1329,27 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-class _BackgroundPatternPainter extends CustomPainter {
-  final Animation<double>? animation;
-
-  _BackgroundPatternPainter({this.animation}) : super(repaint: animation);
-
+class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..style = PaintingStyle.fill;
+      ..color = Colors.white
+      ..strokeWidth = 0.5
+      ..style = PaintingStyle.stroke;
 
-    final animationValue = animation?.value ?? 0.5;
+    const gridSize = 40.0;
     
-    // Create floating circles pattern
-    for (int i = 0; i < 20; i++) {
-      final x = (i * 80.0 + animationValue * 50) % (size.width + 100);
-      final y = (i * 60.0 + animationValue * 30) % (size.height + 100);
-      final radius = 20 + (i % 3) * 10.0;
-      
-      canvas.drawCircle(
-        Offset(x, y),
-        radius,
-        paint..color = Colors.white.withOpacity(0.05 + (i % 3) * 0.02),
-      );
+    // Vertical lines
+    for (double x = 0; x < size.width; x += gridSize) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    
+    // Horizontal lines
+    for (double y = 0; y < size.height; y += gridSize) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
