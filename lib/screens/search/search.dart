@@ -233,7 +233,7 @@ class _SearchScreenState extends State<SearchScreen> {
             children: [
               // Animated liquid glass background
               _buildLiquidGlassBackground(),
-              
+
               SafeArea(
                 child: Column(
                   children: [
@@ -363,10 +363,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       children: [
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
-                            colors: [
-                              Color(0xFFFFFFFF),
-                              Color(0xFFE0E0E0),
-                            ],
+                            colors: [Color(0xFFFFFFFF), Color(0xFFE0E0E0)],
                           ).createShader(bounds),
                           child: Text(
                             AppLocalizations.of(context).search,
@@ -521,16 +518,10 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.2),
-            color.withOpacity(0.1),
-          ],
+          colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
         ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 0.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -811,13 +802,19 @@ class _SearchScreenState extends State<SearchScreen> {
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          _getChipColor(entry.key).withOpacity(0.25),
-                                          _getChipColor(entry.key).withOpacity(0.1),
+                                          _getChipColor(
+                                            entry.key,
+                                          ).withOpacity(0.25),
+                                          _getChipColor(
+                                            entry.key,
+                                          ).withOpacity(0.1),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
-                                        color: _getChipColor(entry.key).withOpacity(0.4),
+                                        color: _getChipColor(
+                                          entry.key,
+                                        ).withOpacity(0.4),
                                         width: 0.5,
                                       ),
                                     ),
@@ -975,9 +972,13 @@ class _SearchScreenState extends State<SearchScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: ShaderMask(
-                                shaderCallback: (bounds) => const LinearGradient(
-                                  colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-                                ).createShader(bounds),
+                                shaderCallback: (bounds) =>
+                                    const LinearGradient(
+                                      colors: [
+                                        Color(0xFF8B5CF6),
+                                        Color(0xFFEC4899),
+                                      ],
+                                    ).createShader(bounds),
                                 child: const Icon(
                                   CupertinoIcons.search,
                                   color: Color(0xFFFFFFFF),
@@ -1061,7 +1062,9 @@ class _SearchScreenState extends State<SearchScreen> {
           CupertinoIcons.person_2,
         ),
       );
-      final artistsToShow = _artistsExpanded ? _artistResults : _artistResults.take(5).toList();
+      final artistsToShow = _artistsExpanded
+          ? _artistResults
+          : _artistResults.take(5).toList();
       for (final artist in artistsToShow) {
         allResults.add(_buildUnifiedArtistItem(artist, appState));
       }
@@ -1087,7 +1090,9 @@ class _SearchScreenState extends State<SearchScreen> {
           CupertinoIcons.music_albums,
         ),
       );
-      final albumsToShow = _albumsExpanded ? _albumResults : _albumResults.take(5).toList();
+      final albumsToShow = _albumsExpanded
+          ? _albumResults
+          : _albumResults.take(5).toList();
       for (final album in albumsToShow) {
         allResults.add(_buildUnifiedAlbumItem(album, appState));
       }
@@ -1113,7 +1118,9 @@ class _SearchScreenState extends State<SearchScreen> {
           CupertinoIcons.music_note,
         ),
       );
-      final tracksToShow = _tracksExpanded ? _trackResults : _trackResults.take(8).toList();
+      final tracksToShow = _tracksExpanded
+          ? _trackResults
+          : _trackResults.take(8).toList();
       for (final track in tracksToShow) {
         allResults.add(_buildUnifiedTrackItem(track, appState));
       }
@@ -1153,7 +1160,7 @@ class _SearchScreenState extends State<SearchScreen> {
     } else {
       accentColor = const Color(0xFF06B6D4);
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, top: 8),
       child: Row(
@@ -1216,7 +1223,11 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildShowMoreButton(String text, {required VoidCallback onTap, bool isExpanded = false}) {
+  Widget _buildShowMoreButton(
+    String text, {
+    required VoidCallback onTap,
+    bool isExpanded = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(top: 8, bottom: 16),
       child: GestureDetector(
@@ -1576,7 +1587,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: const Color(0xFFEC4899).withOpacity(0.3),
+                                  color: const Color(
+                                    0xFFEC4899,
+                                  ).withOpacity(0.3),
                                   width: 0.5,
                                 ),
                               ),
