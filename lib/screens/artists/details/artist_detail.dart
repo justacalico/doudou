@@ -85,10 +85,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: Text(
-          widget.artist.name,
-          style: const TextStyle(fontSize: 16),
-        ),
+        title: Text(widget.artist.name, style: const TextStyle(fontSize: 16)),
         message: Text(
           '${_artistTracks.length} ${_artistTracks.length == 1 ? 'song' : 'songs'} • ${_artistAlbums.length} ${_artistAlbums.length == 1 ? 'album' : 'albums'}',
           style: const TextStyle(fontSize: 14),
@@ -127,11 +124,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    CupertinoIcons.plus,
-                    size: 18,
-                    color: Color(0xFF8B5CF6),
-                  ),
+                  Icon(CupertinoIcons.plus, size: 18, color: Color(0xFF8B5CF6)),
                   SizedBox(width: 8),
                   Text(
                     'Add All to Queue',
@@ -141,7 +134,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
               ),
             ),
           // Create artist radio/station (only for Jellyfin)
-          if (_artistTracks.isNotEmpty && appState.mediaServiceManager.currentServerType == ServerType.jellyfin)
+          if (_artistTracks.isNotEmpty &&
+              appState.mediaServiceManager.currentServerType ==
+                  ServerType.jellyfin)
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
@@ -172,11 +167,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  CupertinoIcons.share,
-                  size: 18,
-                  color: Color(0xFF8B5CF6),
-                ),
+                Icon(CupertinoIcons.share, size: 18, color: Color(0xFF8B5CF6)),
                 SizedBox(width: 8),
                 Text(
                   'Share Artist',
@@ -188,7 +179,10 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Color(0xFF8B5CF6))),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Color(0xFF8B5CF6)),
+          ),
         ),
       ),
     );
@@ -200,14 +194,16 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         appState.downloadService.downloadTrack(track);
       }
     }
-    
+
     // Show confirmation
     if (mounted) {
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
           title: const Text('Download Started'),
-          content: Text('Downloading ${_artistTracks.length} tracks by ${widget.artist.name}'),
+          content: Text(
+            'Downloading ${_artistTracks.length} tracks by ${widget.artist.name}',
+          ),
           actions: [
             CupertinoDialogAction(
               onPressed: () => Navigator.pop(context),
@@ -223,14 +219,16 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     for (final track in _artistTracks) {
       appState.addToQueue(track);
     }
-    
+
     // Show confirmation
     if (mounted) {
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
           title: const Text('Added to Queue'),
-          content: Text('Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue'),
+          content: Text(
+            'Added ${_artistTracks.length} tracks by ${widget.artist.name} to your queue',
+          ),
           actions: [
             CupertinoDialogAction(
               onPressed: () => Navigator.pop(context),
@@ -248,14 +246,16 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       appState.enableRadioMode();
       final shuffledTracks = List<Track>.from(_artistTracks)..shuffle();
       await appState.audioHandler?.playPlaylist(shuffledTracks, 0);
-      
+
       // Show confirmation
       if (mounted) {
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: const Text('Radio Station Created'),
-            content: Text('Started ${widget.artist.name} radio station with infinite playback'),
+            content: Text(
+              'Started ${widget.artist.name} radio station with infinite playback',
+            ),
             actions: [
               CupertinoDialogAction(
                 onPressed: () => Navigator.pop(context),
@@ -270,7 +270,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
   void _shareArtist(BuildContext context) {
     final artistInfo = '${widget.artist.name} - Check out this artist!';
-    
+
     // For now, just show the artist info in a dialog
     // In a real app, you would use a share plugin like share_plus
     showCupertinoDialog(
@@ -360,7 +360,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                               ),
                               child: CupertinoButton(
                                 padding: EdgeInsets.zero,
-                                onPressed: () => _showArtistOptionsMenu(context, appState),
+                                onPressed: () =>
+                                    _showArtistOptionsMenu(context, appState),
                                 child: Icon(
                                   CupertinoIcons.ellipsis,
                                   color: Colors.white,
@@ -391,7 +392,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                                        color: const Color(
+                                          0xFF8B5CF6,
+                                        ).withOpacity(0.5),
                                         blurRadius: 40,
                                         spreadRadius: 10,
                                       ),
@@ -423,7 +426,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
                                 // Enhanced Artist Name
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
                                   child: Text(
                                     widget.artist.name,
                                     style: TextStyle(
@@ -443,7 +448,10 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 20,
+                                        sigmaY: 20,
+                                      ),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 24,
@@ -456,9 +464,13 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                               Colors.white.withOpacity(0.05),
                                             ],
                                           ),
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withOpacity(
+                                              0.2,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
@@ -467,19 +479,28 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                           children: [
                                             _buildStatItem(
                                               '${_artistAlbums.length}',
-                                              _artistAlbums.length == 1 ? 'Album' : 'Albums',
+                                              _artistAlbums.length == 1
+                                                  ? 'Album'
+                                                  : 'Albums',
                                               CupertinoIcons.music_albums,
                                               const Color(0xFF8B5CF6),
                                             ),
                                             Container(
                                               width: 1,
                                               height: 32,
-                                              color: Colors.white.withOpacity(0.2),
-                                              margin: const EdgeInsets.symmetric(horizontal: 20),
+                                              color: Colors.white.withOpacity(
+                                                0.2,
+                                              ),
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 20,
+                                                  ),
                                             ),
                                             _buildStatItem(
                                               '${_artistTracks.length}',
-                                              _artistTracks.length == 1 ? 'Song' : 'Songs',
+                                              _artistTracks.length == 1
+                                                  ? 'Song'
+                                                  : 'Songs',
                                               CupertinoIcons.music_note,
                                               const Color(0xFF06B6D4),
                                             ),
@@ -493,7 +514,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           ],
                         ),
                       ),
-                    ),                    // Enhanced Action Buttons Section
+                    ), // Enhanced Action Buttons Section
                     SliverToBoxAdapter(
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -510,25 +531,41 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(16),
                                         child: BackdropFilter(
-                                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                          filter: ImageFilter.blur(
+                                            sigmaX: 20,
+                                            sigmaY: 20,
+                                          ),
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
                                             decoration: BoxDecoration(
                                               gradient: const LinearGradient(
-                                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                                colors: [
+                                                  Color(0xFF8B5CF6),
+                                                  Color(0xFFEC4899),
+                                                ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
-                                              borderRadius: BorderRadius.circular(16),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                               border: Border.all(
-                                                color: Colors.white.withOpacity(0.2),
+                                                color: Colors.white.withOpacity(
+                                                  0.2,
+                                                ),
                                                 width: 1,
                                               ),
                                             ),
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
-                                                Icon(CupertinoIcons.play_fill, color: Colors.white, size: 20),
+                                                Icon(
+                                                  CupertinoIcons.play_fill,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
                                                 const SizedBox(width: 12),
                                                 Text(
                                                   'Play All',
@@ -553,26 +590,43 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(16),
                                         child: BackdropFilter(
-                                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                          filter: ImageFilter.blur(
+                                            sigmaX: 20,
+                                            sigmaY: 20,
+                                          ),
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 colors: [
-                                                  Colors.white.withOpacity(0.15),
-                                                  Colors.white.withOpacity(0.05),
+                                                  Colors.white.withOpacity(
+                                                    0.15,
+                                                  ),
+                                                  Colors.white.withOpacity(
+                                                    0.05,
+                                                  ),
                                                 ],
                                               ),
-                                              borderRadius: BorderRadius.circular(16),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                               border: Border.all(
-                                                color: Colors.white.withOpacity(0.2),
+                                                color: Colors.white.withOpacity(
+                                                  0.2,
+                                                ),
                                                 width: 1,
                                               ),
                                             ),
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
-                                                Icon(CupertinoIcons.shuffle, color: Colors.white, size: 20),
+                                                Icon(
+                                                  CupertinoIcons.shuffle,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
                                                 const SizedBox(width: 12),
                                                 Text(
                                                   'Shuffle',
@@ -594,176 +648,189 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           ],
                         ),
                       ),
-                    ),                  // Loading or Content
-                  if (_isLoading)
-                    const SliverFillRemaining(
-                      child: Center(
-                        child: CupertinoActivityIndicator(
-                          color: Color(0xFFFFFFFF),
-                        ),
-                      ),
-                    )
-                  else ...[
-                    // Albums Section
-                    if (_artistAlbums.isNotEmpty) ...[
-                      SliverToBoxAdapter(
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: const Color(0xFF8B5CF6).withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.music_albums_fill,
-                                  color: Color(0xFF8B5CF6),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Albums',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: 300,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: _artistAlbums.length,
-                            itemBuilder: (context, index) {
-                              final album = _artistAlbums[index];
-                              return _buildEnhancedAlbumCard(album, appState);
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Popular Tracks Section
-                    if (_artistTracks.isNotEmpty) ...[
-                      SliverToBoxAdapter(
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEC4899).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: const Color(0xFFEC4899).withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.music_note_list,
-                                  color: Color(0xFFEC4899),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Popular Tracks',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final track = _artistTracks[index];
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              left: 20,
-                              right: 20,
-                              bottom: index < _artistTracks.length - 1
-                                  ? 12
-                                  : 20,
-                            ),
-                            child: _buildEnhancedTrackItem(
-                              track,
-                              appState,
-                              index,
-                            ),
-                          );
-                        }, childCount: _artistTracks.length),
-                      ),
-                    ],
-
-                    // Empty State
-                    if (_artistTracks.isEmpty && _artistAlbums.isEmpty)
-                      SliverFillRemaining(
+                    ), // Loading or Content
+                    if (_isLoading)
+                      const SliverFillRemaining(
                         child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                CupertinoIcons.music_note,
-                                size: 80,
-                                color: Color(0xFF333333),
-                              ),
-                              const SizedBox(height: 24),
-                              Text(
-                                'No content found for ${widget.artist.name}',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFFFFFFFF),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'This artist\'s music will appear here once it\'s loaded.',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF8E8E93),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                          child: CupertinoActivityIndicator(
+                            color: Color(0xFFFFFFFF),
                           ),
                         ),
-                      ),
-                  ],
+                      )
+                    else ...[
+                      // Albums Section
+                      if (_artistAlbums.isNotEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF8B5CF6,
+                                    ).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFF8B5CF6,
+                                      ).withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    CupertinoIcons.music_albums_fill,
+                                    color: Color(0xFF8B5CF6),
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Albums',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: 300,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              itemCount: _artistAlbums.length,
+                              itemBuilder: (context, index) {
+                                final album = _artistAlbums[index];
+                                return _buildEnhancedAlbumCard(album, appState);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
 
-                  // Bottom padding for mini player
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              ),
-              // Mini Player
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: MiniPlayer(),
-              ),
-            ],
+                      // Popular Tracks Section
+                      if (_artistTracks.isNotEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFFEC4899,
+                                    ).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFEC4899,
+                                      ).withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    CupertinoIcons.music_note_list,
+                                    color: Color(0xFFEC4899),
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Popular Tracks',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final track = _artistTracks[index];
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                left: 20,
+                                right: 20,
+                                bottom: index < _artistTracks.length - 1
+                                    ? 12
+                                    : 20,
+                              ),
+                              child: _buildEnhancedTrackItem(
+                                track,
+                                appState,
+                                index,
+                              ),
+                            );
+                          }, childCount: _artistTracks.length),
+                        ),
+                      ],
+
+                      // Empty State
+                      if (_artistTracks.isEmpty && _artistAlbums.isEmpty)
+                        SliverFillRemaining(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.music_note,
+                                  size: 80,
+                                  color: Color(0xFF333333),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'No content found for ${widget.artist.name}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFFFFFFFF),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'This artist\'s music will appear here once it\'s loaded.',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF8E8E93),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+
+                    // Bottom padding for mini player
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
+                ),
+                // Mini Player
+                const Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: MiniPlayer(),
+                ),
+              ],
+            ),
           ),
-        ),
         );
       },
     );
