@@ -455,92 +455,124 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () => _navigateToAlbum(album, appState, context),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              // Album artwork
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.05),
+                  ],
                 ),
-                child: album.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(
-                            album.imageUrl!,
-                            width: 100,
-                            height: 100,
-                          ),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorWidget: Container(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Album artwork with glow
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: album.imageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedImageWidget(
+                              imageUrl: appState.getImageUrl(
+                                album.imageUrl!,
+                                width: 100,
+                                height: 100,
+                              ),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorWidget: Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF8B5CF6), Color(0xFF06B6D4)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.music_albums,
+                                  color: CupertinoColors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFF30D158),
-                              borderRadius: BorderRadius.circular(8),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF8B5CF6), Color(0xFF06B6D4)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_albums,
-                              color: Color(0xFFFFFFFF),
+                              color: CupertinoColors.white,
                               size: 24,
                             ),
                           ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          album.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF30D158),
-                          borderRadius: BorderRadius.circular(8),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Album • ${album.artistName ?? 'Unknown Artist'}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: const Icon(
-                          CupertinoIcons.music_albums,
-                          color: Color(0xFFFFFFFF),
-                          size: 24,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      album.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFFFFFFF),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Album • ${album.artistName ?? 'Unknown Artist'}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.systemGrey2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                  ),
+                  Icon(
+                    CupertinoIcons.chevron_right,
+                    color: Colors.white.withOpacity(0.4),
+                    size: 16,
+                  ),
+                ],
               ),
-              const Icon(
-                CupertinoIcons.chevron_right,
-                color: CupertinoColors.systemGrey2,
-                size: 16,
-              ),
-            ],
+            ),
           ),
         ),
       ),
