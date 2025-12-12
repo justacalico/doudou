@@ -1901,19 +1901,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMobileLayout(AppState appState) {
     final l10n = AppLocalizations.of(context);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     
     return Stack(
       children: [
-        // Main content without tab scaffold
-        IndexedStack(
-          index: _tabController.index,
-          children: [
-            _buildTabContent(0, appState), // Home
-            _buildTabContent(1, appState), // Library
-            _buildTabContent(2, appState), // Downloads
-            _buildTabContent(3, appState), // Search
-            _buildTabContent(4, appState), // Settings
-          ],
+        // Main content - positioned to leave room for navbar
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0, // Content can extend to bottom, navbar overlays it
+          child: IndexedStack(
+            index: _tabController.index,
+            children: [
+              _buildTabContent(0, appState), // Home
+              _buildTabContent(1, appState), // Library
+              _buildTabContent(2, appState), // Downloads
+              _buildTabContent(3, appState), // Search
+              _buildTabContent(4, appState), // Settings
+            ],
+          ),
         ),
 
         // Dynamic Isle - only show on mobile and when enabled in settings
@@ -1924,48 +1931,51 @@ class _HomeScreenState extends State<HomeScreen> {
         Positioned(
           left: 0,
           right: 0,
-          bottom: MediaQuery.of(context).padding.bottom,
-          child: LiquidGlassNavBar(
-            currentIndex: _tabController.index,
-            onTap: (index) {
-              setState(() {
-                if (_tabController.index == index) {
-                  // Double tap - reload tab
-                  _reloadCurrentTab(index);
-                } else {
-                  _tabController.index = index;
-                  _previousIndex = index;
-                }
-              });
-            },
-            items: [
-              LiquidGlassNavItem(
-                icon: CupertinoIcons.house,
-                activeIcon: CupertinoIcons.house_fill,
-                label: l10n.navHome,
-              ),
-              LiquidGlassNavItem(
-                icon: CupertinoIcons.music_note_list,
-                activeIcon: CupertinoIcons.music_note_list,
-                label: l10n.navLibrary,
-              ),
-              LiquidGlassNavItem(
-                icon: CupertinoIcons.arrow_down_circle,
-                activeIcon: CupertinoIcons.arrow_down_circle_fill,
-                label: l10n.navDownloads,
-              ),
-              LiquidGlassNavItem(
-                icon: CupertinoIcons.search,
-                activeIcon: CupertinoIcons.search,
-                label: l10n.navSearch,
-              ),
-              LiquidGlassNavItem(
-                icon: CupertinoIcons.gear,
-                activeIcon: CupertinoIcons.gear_solid,
-                label: l10n.navSettings,
-              ),
-            ],
-            accentColor: AppleColors.systemPink,
+          bottom: bottomPadding,
+          child: IgnorePointer(
+            ignoring: false,
+            child: LiquidGlassNavBar(
+              currentIndex: _tabController.index,
+              onTap: (index) {
+                setState(() {
+                  if (_tabController.index == index) {
+                    // Double tap - reload tab
+                    _reloadCurrentTab(index);
+                  } else {
+                    _tabController.index = index;
+                    _previousIndex = index;
+                  }
+                });
+              },
+              items: [
+                LiquidGlassNavItem(
+                  icon: CupertinoIcons.house,
+                  activeIcon: CupertinoIcons.house_fill,
+                  label: l10n.navHome,
+                ),
+                LiquidGlassNavItem(
+                  icon: CupertinoIcons.music_note_list,
+                  activeIcon: CupertinoIcons.music_note_list,
+                  label: l10n.navLibrary,
+                ),
+                LiquidGlassNavItem(
+                  icon: CupertinoIcons.arrow_down_circle,
+                  activeIcon: CupertinoIcons.arrow_down_circle_fill,
+                  label: l10n.navDownloads,
+                ),
+                LiquidGlassNavItem(
+                  icon: CupertinoIcons.search,
+                  activeIcon: CupertinoIcons.search,
+                  label: l10n.navSearch,
+                ),
+                LiquidGlassNavItem(
+                  icon: CupertinoIcons.gear,
+                  activeIcon: CupertinoIcons.gear_solid,
+                  label: l10n.navSettings,
+                ),
+              ],
+              accentColor: AppleColors.systemPink,
+            ),
           ),
         ),
       ],
