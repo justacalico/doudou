@@ -1066,8 +1066,6 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
 
   @override
   Widget build(BuildContext context) {
-    final brightness = MediaQuery.of(context).platformBrightness;
-    final isDark = brightness == Brightness.dark;
     final accent = widget.accentColor ?? AppleColors.systemPink;
     
     return GestureDetector(
