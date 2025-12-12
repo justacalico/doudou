@@ -741,63 +741,28 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                               );
                             },
                           ),
-                                              break;
-                                            case AudioServiceRepeatMode.one:
-                                              await audioHandler.setRepeatMode(
-                                                AudioServiceRepeatMode.none,
-                                              );
-                                              break;
-                                            case AudioServiceRepeatMode.group:
-                                              await audioHandler.setRepeatMode(
-                                                AudioServiceRepeatMode.none,
-                                              );
-                                              break;
-                                          }
-                                        }
-                                      },
-                                      child:
-                                          StreamBuilder<AudioServiceRepeatMode>(
-                                            stream: audioHandler?.playbackState
-                                                .map(
-                                                  (state) => state.repeatMode,
-                                                )
-                                                .cast<AudioServiceRepeatMode>(),
-                                            builder: (context, snapshot) {
-                                              final repeatMode =
-                                                  snapshot.data ??
-                                                  AudioServiceRepeatMode.none;
 
-                                              return Icon(
-                                                repeatMode ==
-                                                        AudioServiceRepeatMode
-                                                            .one
-                                                    ? CupertinoIcons.repeat_1
-                                                    : CupertinoIcons.repeat,
-                                                color:
-                                                    repeatMode ==
-                                                        AudioServiceRepeatMode
-                                                            .none
-                                                    ? CupertinoColors
-                                                          .systemGrey2
-                                                    : const Color(0xFFFFFFFF),
-                                                size: 24,
-                                              );
-                                            },
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                          const SizedBox(height: 20),
 
-                          const SizedBox(height: 15),
-
-                          // Bottom controls row
+                          // Bottom controls row with liquid glass
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 60),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            padding: const EdgeInsets.symmetric(horizontal: 50),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: CupertinoColors.white.withOpacity(0.2),
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 // Queue button
                                 CupertinoButton(
