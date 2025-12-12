@@ -923,8 +923,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF30D158).withOpacity(0.3),
-                        const Color(0xFF32ADE6).withOpacity(0.2),
+                        const Color(0xFF8B5CF6).withOpacity(0.3),
+                        const Color(0xFFEC4899).withOpacity(0.2),
                       ],
                     ),
                   ),
@@ -942,8 +942,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF30D158).withOpacity(0.3),
-                                  const Color(0xFF32ADE6).withOpacity(0.2),
+                                  const Color(0xFF8B5CF6).withOpacity(0.3),
+                                  const Color(0xFFEC4899).withOpacity(0.2),
                                 ],
                               ),
                             ),
@@ -958,8 +958,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                const Color(0xFF30D158).withOpacity(0.3),
-                                const Color(0xFF32ADE6).withOpacity(0.2),
+                                const Color(0xFF8B5CF6).withOpacity(0.3),
+                                const Color(0xFFEC4899).withOpacity(0.2),
                               ],
                             ),
                           ),
@@ -997,7 +997,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF30D158).withOpacity(0.15),
+                          color: const Color(0xFF8B5CF6).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -1005,7 +1005,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF30D158),
+                            color: Color(0xFF8B5CF6),
                           ),
                         ),
                       ),
@@ -1053,7 +1053,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color(0xFF007AFF).withOpacity(0.15),
+                color: const Color(0xFF8B5CF6).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -1062,7 +1062,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF007AFF),
+                    color: Color(0xFF8B5CF6),
                   ),
                 ),
               ),
@@ -1078,8 +1078,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 borderRadius: BorderRadius.circular(8),
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF007AFF).withOpacity(0.3),
-                    const Color(0xFF5856D6).withOpacity(0.2),
+                    const Color(0xFF8B5CF6).withOpacity(0.3),
+                    const Color(0xFFEC4899).withOpacity(0.2),
                   ],
                 ),
               ),
