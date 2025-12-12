@@ -658,30 +658,6 @@ class _HomeContentState extends State<HomeContent> {
                             color: CupertinoColors.systemGrey,
                           ),
                   ),
-                  // Liquid glass overlay at bottom
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: ClipRRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                CupertinoColors.black.withOpacity(0.0),
-                                CupertinoColors.black.withOpacity(0.6),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                   // Play indicator
                   if (isLarge)
                     Positioned(
