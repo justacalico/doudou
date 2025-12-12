@@ -223,27 +223,10 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Liquid glass header
-                SliverPersistentHeader(
-                  floating: true,
-                  delegate: _LiquidGlassHeaderDelegate(
-                    minHeight: 100,
-                    maxHeight: 140,
-                    greeting: _getGreeting(l10n),
-                    subtitle: l10n.whatWouldYouLikeToHear,
-                    fadeAnimation: _headerFadeAnimation,
-                    onSettingsTap: () {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                // Top padding for safe area
+                SliverToBoxAdapter(
+                  child: SizedBox(height: MediaQuery.of(context).padding.top + 16),
                 ),
-                
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 
                 // Liquid glass shuffle buttons
                 SliverToBoxAdapter(
