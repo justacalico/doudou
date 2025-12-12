@@ -1215,74 +1215,77 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              count.toString(),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF007AFF),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildShowMoreButton(String text, {required VoidCallback onTap, bool isExpanded = false}) {
     return Container(
       margin: const EdgeInsets.only(top: 8, bottom: 16),
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF1C1C1E).withOpacity(0.6),
-                const Color(0xFF2C2C2E).withOpacity(0.4),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF007AFF).withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedRotation(
-                turns: isExpanded ? 0.5 : 0,
-                duration: const Duration(milliseconds: 200),
-                child: const Icon(
-                  CupertinoIcons.chevron_down,
-                  color: Color(0xFF007AFF),
-                  size: 16,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.1),
+                    Colors.white.withOpacity(0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                  width: 0.5,
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF007AFF),
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                      ).createShader(bounds),
+                      child: const Icon(
+                        CupertinoIcons.chevron_down,
+                        color: Color(0xFFFFFFFF),
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                    ).createShader(bounds),
+                    child: Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Enhanced unified result item builders
+  // Liquid Glass result item builders
   Widget _buildUnifiedArtistItem(Artist artist, AppState appState) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -1292,108 +1295,124 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           );
         },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF1C1C1E).withOpacity(0.6),
-                const Color(0xFF2C2C2E).withOpacity(0.4),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF3C3C3E).withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              // Enhanced artist avatar
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF8E4EC6).withOpacity(0.8),
-                      const Color(0xFFBF5AF2).withOpacity(0.6),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF8E4EC6).withOpacity(0.3),
-                      offset: const Offset(0, 4),
-                      blurRadius: 12,
-                    ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.08),
+                    Colors.white.withOpacity(0.03),
                   ],
                 ),
-                child: artist.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(28),
-                        child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(
-                            artist.imageUrl!,
-                            width: 112,
-                            height: 112,
-                          ),
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.cover,
-                          errorWidget: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  const Color(0xFF8E4EC6).withOpacity(0.8),
-                                  const Color(0xFFBF5AF2).withOpacity(0.6),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.person_fill,
-                              color: Color(0xFFFFFFFF),
-                              size: 28,
-                            ),
-                          ),
-                        ),
-                      )
-                    : const Icon(
-                        CupertinoIcons.person_fill,
-                        color: Color(0xFFFFFFFF),
-                        size: 28,
-                      ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 0.5,
+                ),
               ),
-
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      artist.name,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFFFFFFF),
-                        letterSpacing: -0.2,
+              child: Row(
+                children: [
+                  // Artist avatar with gradient glow
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF8B5CF6).withOpacity(0.8),
+                          const Color(0xFFEC4899).withOpacity(0.6),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                          offset: const Offset(0, 4),
+                          blurRadius: 16,
+                          spreadRadius: -2,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                    child: artist.imageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(28),
+                            child: CachedImageWidget(
+                              imageUrl: appState.getImageUrl(
+                                artist.imageUrl!,
+                                width: 112,
+                                height: 112,
+                              ),
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorWidget: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFF8B5CF6).withOpacity(0.8),
+                                      const Color(0xFFEC4899).withOpacity(0.6),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.person_fill,
+                                  color: Color(0xFFFFFFFF),
+                                  size: 26,
+                                ),
+                              ),
+                            ),
+                          )
+                        : const Icon(
+                            CupertinoIcons.person_fill,
+                            color: Color(0xFFFFFFFF),
+                            size: 26,
+                          ),
+                  ),
+
+                  const SizedBox(width: 14),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          artist.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFFFFFFF),
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 5),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: 10,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8E4EC6).withOpacity(0.15),
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF8B5CF6).withOpacity(0.2),
+                                const Color(0xFF8B5CF6).withOpacity(0.1),
+                              ],
+                            ),
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                              width: 0.5,
+                            ),
                           ),
                           child: const Text(
                             'Artist',
