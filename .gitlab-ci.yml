@@ -27,12 +27,18 @@ cache:
     - .pub-cache-$CI_JOB_NAME/
   policy: pull-push
 
-build_debug_apk:
+# Build signed AAB for Google Play Store
+build_release_aab:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - linux
   allow_failure: true
+  # Only run when keystore variables are set
+  rules:
+    - if: $ANDROID_KEYSTORE_BASE64
+      when: always
+    - when: never
   retry:
     max: 1
     when:
@@ -41,7 +47,7 @@ build_debug_apk:
   variables:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 1
-    FLUTTER_BUILD_MODE: "debug"
+    FLUTTER_BUILD_MODE: "release"
     ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
     ANDROID_HOME: "/opt/android-sdk-linux"
   cache:
@@ -53,8 +59,9 @@ build_debug_apk:
   before_script:
     # Install Android SDK and tools
     - apt-get update -qq
-    - apt-get install -y -qq wget unzip openjdk-17-jdk
+    - apt-get install -y -qq wget unzip openjdk-17-jdk openjdk-17-jre-headless
     - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
     # Setup Android SDK
     - mkdir -p $ANDROID_SDK_ROOT
     - cd $ANDROID_SDK_ROOT
@@ -72,17 +79,46 @@ build_debug_apk:
     - flutter config --android-sdk $ANDROID_SDK_ROOT
     # Clean only what's necessary
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
+    # Setup signing - decode base64 keystore from CI variable
+    - |
+      if [[ -n "$ANDROID_KEYSTORE_BASE64" ]]; then
+        echo "Setting up release signing from CI variables..."
+        mkdir -p android/keystore
+        echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/keystore/upload-keystore.jks
+        # Create key.properties file
+        cat > android/key.properties << EOF
+      storePassword=$ANDROID_KEYSTORE_PASSWORD
+      keyPassword=$ANDROID_KEY_PASSWORD
+      keyAlias=$ANDROID_KEY_ALIAS
+      storeFile=keystore/upload-keystore.jks
+      EOF
+        echo "Release signing configured"
+      else
+        echo "Keystore not configured - this shouldn't happen with rules"
+        exit 1
+      fi
   script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
     - flutter pub get --no-precompile
-    # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
-    - BUILD_NUMBER=$(date +%s)
-    - echo "Using build number:" $BUILD_NUMBER
-    # Build debug APK (automatically signed with debug key)
-    - flutter build apk --debug --build-number=$BUILD_NUMBER
+    # Extract version from pubspec.yaml or git tag
+    - |
+      if [[ -n "$CI_COMMIT_TAG" && "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+        # Use version from git tag (v8.0.0 -> 8.0.0)
+        VERSION=${CI_COMMIT_TAG#v}
+        echo "Building from tag: $VERSION"
+      else
+        # Extract version from pubspec.yaml
+        VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
+        echo "Building version from pubspec: $VERSION"
+      fi
+    # Generate build number from timestamp (last 7 digits to stay under Android's 2.1B limit)
+    - BUILD_NUMBER=$(date +%s | cut -c4-10)
+    - 'echo "Using version: $VERSION, build number: $BUILD_NUMBER"'
+    # Build signed release AAB for Play Store
+    - flutter build appbundle --release --build-name=$VERSION --build-number=$BUILD_NUMBER
   artifacts:
     paths:
-      - build/app/outputs/flutter-apk/app-debug.apk
+      - build/app/outputs/bundle/release/app-release.aab
     expire_in: never
   timeout: 1h
 
@@ -179,18 +215,12 @@ build_release_apk:
     expire_in: never
   timeout: 1h
 
-# Build signed AAB for Google Play Store
-build_release_aab:
+build_debug_apk:
   stage: build
   image: ghcr.io/cirruslabs/flutter:stable
   tags:
     - linux
   allow_failure: true
-  # Only run when keystore variables are set
-  rules:
-    - if: $ANDROID_KEYSTORE_BASE64
-      when: always
-    - when: never
   retry:
     max: 1
     when:
@@ -199,7 +229,7 @@ build_release_aab:
   variables:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 1
-    FLUTTER_BUILD_MODE: "release"
+    FLUTTER_BUILD_MODE: "debug"
     ANDROID_SDK_ROOT: "/opt/android-sdk-linux"
     ANDROID_HOME: "/opt/android-sdk-linux"
   cache:
@@ -211,9 +241,8 @@ build_release_aab:
   before_script:
     # Install Android SDK and tools
     - apt-get update -qq
-    - apt-get install -y -qq wget unzip openjdk-17-jdk openjdk-17-jre-headless
+    - apt-get install -y -qq wget unzip openjdk-17-jdk
     - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-    - export PATH=$JAVA_HOME/bin:$PATH
     # Setup Android SDK
     - mkdir -p $ANDROID_SDK_ROOT
     - cd $ANDROID_SDK_ROOT
@@ -231,46 +260,17 @@ build_release_aab:
     - flutter config --android-sdk $ANDROID_SDK_ROOT
     # Clean only what's necessary
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
-    # Setup signing - decode base64 keystore from CI variable
-    - |
-      if [[ -n "$ANDROID_KEYSTORE_BASE64" ]]; then
-        echo "Setting up release signing from CI variables..."
-        mkdir -p android/keystore
-        echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/keystore/upload-keystore.jks
-        # Create key.properties file
-        cat > android/key.properties << EOF
-      storePassword=$ANDROID_KEYSTORE_PASSWORD
-      keyPassword=$ANDROID_KEY_PASSWORD
-      keyAlias=$ANDROID_KEY_ALIAS
-      storeFile=keystore/upload-keystore.jks
-      EOF
-        echo "Release signing configured"
-      else
-        echo "Keystore not configured - this shouldn't happen with rules"
-        exit 1
-      fi
   script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/android/.gradle"
     - flutter pub get --no-precompile
-    # Extract version from pubspec.yaml or git tag
-    - |
-      if [[ -n "$CI_COMMIT_TAG" && "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-        # Use version from git tag (v8.0.0 -> 8.0.0)
-        VERSION=${CI_COMMIT_TAG#v}
-        echo "Building from tag: $VERSION"
-      else
-        # Extract version from pubspec.yaml
-        VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
-        echo "Building version from pubspec: $VERSION"
-      fi
-    # Generate build number from timestamp (last 7 digits to stay under Android's 2.1B limit)
-    - BUILD_NUMBER=$(date +%s | cut -c4-10)
-    - 'echo "Using version: $VERSION, build number: $BUILD_NUMBER"'
-    # Build signed release AAB for Play Store
-    - flutter build appbundle --release --build-name=$VERSION --build-number=$BUILD_NUMBER
+    # Use a smaller build number based on timestamp to stay under Android's 2.1B limit
+    - BUILD_NUMBER=$(date +%s)
+    - echo "Using build number:" $BUILD_NUMBER
+    # Build debug APK (automatically signed with debug key)
+    - flutter build apk --debug --build-number=$BUILD_NUMBER
   artifacts:
     paths:
-      - build/app/outputs/bundle/release/app-release.aab
+      - build/app/outputs/flutter-apk/app-debug.apk
     expire_in: never
   timeout: 1h
 
