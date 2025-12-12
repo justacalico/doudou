@@ -91,7 +91,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Custom header for iOS-style left-aligned title with glass effect
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
+                      padding: const EdgeInsets.fromLTRB(
+                        16.0,
+                        16.0,
+                        16.0,
+                        20.0,
+                      ),
                       child: Row(
                         children: [
                           Text(
@@ -106,375 +111,410 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                   ),
-                // Account Information Section
-                const SliverToBoxAdapter(child: AccountInformationSection()),
+                  // Account Information Section
+                  const SliverToBoxAdapter(child: AccountInformationSection()),
 
-                // Audio Settings Section
-                const SliverToBoxAdapter(child: AudioSettingsSection()),
+                  // Audio Settings Section
+                  const SliverToBoxAdapter(child: AudioSettingsSection()),
 
-                // Language Settings Section
-                const SliverToBoxAdapter(child: LanguageSettingsSection()),
+                  // Language Settings Section
+                  const SliverToBoxAdapter(child: LanguageSettingsSection()),
 
-                // Player Interface Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.12),
-                                Colors.white.withOpacity(0.05),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildSectionHeader(
-                                AppLocalizations.of(context).playerInterface,
+                  // Player Interface Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.12),
+                                  Colors.white.withOpacity(0.05),
+                                ],
                               ),
-                              _buildSwitchTile(
-                                icon: CupertinoIcons.rectangle_3_offgrid,
-                                title: AppLocalizations.of(context).dynamicIslePlayer,
-                                subtitle: AppLocalizations.of(
-                                  context,
-                                ).useModernFloatingPlayer,
-                                value: appState.useDynamicIsle,
-                                onChanged: (value) =>
-                                    appState.toggleDynamicIsle(value),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
                               ),
-                              // VR Mode button (mobile only)
-                              if (!kIsWeb &&
-                                  (defaultTargetPlatform == TargetPlatform.android ||
-                                      defaultTargetPlatform == TargetPlatform.iOS))
-                                _buildSettingTile(
-                                  icon: CupertinoIcons.viewfinder,
-                                  title: AppLocalizations.of(context).vrMode,
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSectionHeader(
+                                  AppLocalizations.of(context).playerInterface,
+                                ),
+                                _buildSwitchTile(
+                                  icon: CupertinoIcons.rectangle_3_offgrid,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).dynamicIslePlayer,
                                   subtitle: AppLocalizations.of(
-                              context,
-                            ).launchVRPlayer,
-                            onTap: () => _launchVRMode(context),
-                          ),
-                            ],
+                                    context,
+                                  ).useModernFloatingPlayer,
+                                  value: appState.useDynamicIsle,
+                                  onChanged: (value) =>
+                                      appState.toggleDynamicIsle(value),
+                                ),
+                                // VR Mode button (mobile only)
+                                if (!kIsWeb &&
+                                    (defaultTargetPlatform ==
+                                            TargetPlatform.android ||
+                                        defaultTargetPlatform ==
+                                            TargetPlatform.iOS))
+                                  _buildSettingTile(
+                                    icon: CupertinoIcons.viewfinder,
+                                    title: AppLocalizations.of(context).vrMode,
+                                    subtitle: AppLocalizations.of(
+                                      context,
+                                    ).launchVRPlayer,
+                                    onTap: () => _launchVRMode(context),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                // Storage & Cache Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.12),
-                                Colors.white.withOpacity(0.05),
+                  // Storage & Cache Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.12),
+                                  Colors.white.withOpacity(0.05),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSectionHeader(
+                                  AppLocalizations.of(context).storageAndCache,
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.folder,
+                                  title: AppLocalizations.of(context).cacheSize,
+                                  subtitle: _cacheSize,
+                                  onTap: () => _showCacheDialog(context),
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.trash,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).clearCacheOptions,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).freeUpStorage,
+                                  onTap: () => _showClearCacheDialog(context),
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.refresh,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).cleanExpiredCache,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).removeOldCachedData,
+                                  onTap: () => _cleanExpiredCache(context),
+                                ),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildSectionHeader(
-                                AppLocalizations.of(context).storageAndCache,
-                              ),
-                              _buildSettingTile(
-                                icon: CupertinoIcons.folder,
-                                title: AppLocalizations.of(context).cacheSize,
-                                subtitle: _cacheSize,
-                                onTap: () => _showCacheDialog(context),
-                              ),
-                              _buildSettingTile(
-                                icon: CupertinoIcons.trash,
-                                title: AppLocalizations.of(context).clearCacheOptions,
-                                subtitle: AppLocalizations.of(context).freeUpStorage,
-                                onTap: () => _showClearCacheDialog(context),
-                              ),
-                              _buildSettingTile(
-                                icon: CupertinoIcons.refresh,
-                                title: AppLocalizations.of(context).cleanExpiredCache,
-                                subtitle: AppLocalizations.of(
-                                  context,
-                                ).removeOldCachedData,
-                                onTap: () => _cleanExpiredCache(context),
-                              ),
-                            ],
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                // Logs & Diagnostics Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.12),
-                                Colors.white.withOpacity(0.05),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildSectionHeader(
-                                AppLocalizations.of(context).logsAndDiagnostics,
+                  // Logs & Diagnostics Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.12),
+                                  Colors.white.withOpacity(0.05),
+                                ],
                               ),
-                              _buildSwitchTile(
-                                icon: CupertinoIcons.doc_text,
-                                title: AppLocalizations.of(context).enableLogging,
-                                subtitle: AppLocalizations.of(
-                                  context,
-                                ).recordAppActivity,
-                                value: appState.loggingEnabled,
-                                onChanged: (value) => appState.toggleLogging(value),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
                               ),
-                              _buildSettingTile(
-                                icon: CupertinoIcons.doc_text_viewfinder,
-                                title: AppLocalizations.of(
-                                  context,
-                                ).viewApplicationLogs,
-                                subtitle: AppLocalizations.of(context).viewExportLogs,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => const LogsViewerScreen(),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSectionHeader(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).logsAndDiagnostics,
+                                ),
+                                _buildSwitchTile(
+                                  icon: CupertinoIcons.doc_text,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).enableLogging,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).recordAppActivity,
+                                  value: appState.loggingEnabled,
+                                  onChanged: (value) =>
+                                      appState.toggleLogging(value),
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.doc_text_viewfinder,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).viewApplicationLogs,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).viewExportLogs,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) =>
+                                          const LogsViewerScreen(),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                // About Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(
-                        0xFF1C1C1E,
-                      ), // Dark gray background instead of pure black
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
+                  // About Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(AppLocalizations.of(context).about),
-                        _buildInfoTile(
-                          icon: CupertinoIcons.info,
-                          title: AppLocalizations.of(context).appVersion,
-                          subtitle: _appVersion,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.12),
+                                  Colors.white.withOpacity(0.05),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSectionHeader(
+                                  AppLocalizations.of(context).about,
+                                ),
+                                _buildInfoTile(
+                                  icon: CupertinoIcons.info,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).appVersion,
+                                  subtitle: _appVersion,
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.doc_text,
+                                  title: AppLocalizations.of(context).licenses,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).viewOpenSourceLicenses,
+                                  onTap: () => _showLicensesDialog(context),
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.link,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).gitLabRepository,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).viewSourceAndContribute,
+                                  onTap: () => _openGitLabPage(context),
+                                ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.heart,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).supportDevelopment,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).helpSupportProject,
+                                  onTap: () => _showSupportDialog(context),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.doc_text,
-                          title: AppLocalizations.of(context).licenses,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          ).viewOpenSourceLicenses,
-                          onTap: () => _showLicensesDialog(context),
-                        ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.link,
-                          title: AppLocalizations.of(context).gitLabRepository,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          ).viewSourceAndContribute,
-                          onTap: () => _openGitLabPage(context),
-                        ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.heart,
-                          title: AppLocalizations.of(
-                            context,
-                          ).supportDevelopment,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          ).helpSupportProject,
-                          onTap: () => _showSupportDialog(context),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-                // Refresh Data Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  // Refresh Data Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF007AFF).withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: CupertinoButton(
+                        onPressed: appState.isLoading
+                            ? null
+                            : () => _refreshLibraryData(context, appState),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (appState.isLoading)
+                              const CupertinoActivityIndicator(
+                                color: Color(0xFFFFFFFF),
+                              )
+                            else
+                              const Icon(
+                                CupertinoIcons.refresh,
+                                color: Color(0xFFFFFFFF),
+                                size: 20,
+                              ),
+                            const SizedBox(width: 12),
+                            Text(
+                              appState.isLoading
+                                  ? AppLocalizations.of(context).refreshing
+                                  : AppLocalizations.of(context).refreshLibrary,
+                              style: TextStyle(
+                                color: appState.isLoading
+                                    ? const Color(0xFFFFFFFF).withOpacity(0.6)
+                                    : const Color(0xFFFFFFFF),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: CupertinoButton(
-                      onPressed: appState.isLoading
-                          ? null
-                          : () => _refreshLibraryData(context, appState),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (appState.isLoading)
-                            const CupertinoActivityIndicator(
-                              color: Color(0xFFFFFFFF),
-                            )
-                          else
+                  ),
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                  // Logout Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEC4899).withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: CupertinoButton(
+                        onPressed: () => _showLogoutDialog(context, appState),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                             const Icon(
-                              CupertinoIcons.refresh,
+                              CupertinoIcons.square_arrow_left,
                               color: Color(0xFFFFFFFF),
                               size: 20,
                             ),
-                          const SizedBox(width: 12),
-                          Text(
-                            appState.isLoading
-                                ? AppLocalizations.of(context).refreshing
-                                : AppLocalizations.of(context).refreshLibrary,
-                            style: TextStyle(
-                              color: appState.isLoading
-                                  ? const Color(0xFFFFFFFF).withOpacity(0.6)
-                                  : const Color(0xFFFFFFFF),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 17,
+                            const SizedBox(width: 12),
+                            Text(
+                              AppLocalizations.of(context).signOut,
+                              style: const TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                // Logout Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFF453A), Color(0xFFFF2D92)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFF453A).withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: CupertinoButton(
-                      onPressed: () => _showLogoutDialog(context, appState),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            CupertinoIcons.square_arrow_left,
-                            color: Color(0xFFFFFFFF),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            AppLocalizations.of(context).signOut,
-                            style: const TextStyle(
-                              color: Color(0xFFFFFFFF),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 17,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),
-                ),
 
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 20),
-                ), // Reduced spacing to prevent overlap with now playing
-              ],
-            );
-          },
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 20),
+                  ), // Reduced spacing to prevent overlap with now playing
+                ],
+              );
+            },
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -507,15 +547,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
+              color: const Color(0xFF8B5CF6).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
+              border: Border.all(
+                color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                width: 1,
+              ),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF007AFF), // Blue accent for better contrast
-              size: 20,
-            ),
+            child: Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -565,15 +604,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF1C1C1E),
+                color: const Color(0xFF06B6D4).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
+                border: Border.all(
+                  color: const Color(0xFF06B6D4).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF007AFF), // Blue accent
-                size: 20,
-              ),
+              child: Icon(icon, color: const Color(0xFF06B6D4), size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -602,12 +640,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1C1C1E),
+                color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.chevron_right,
-                color: Color(0xFF666666),
+                color: Colors.white.withOpacity(0.5),
                 size: 16,
               ),
             ),
@@ -632,17 +670,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
+              color: value
+                  ? const Color(0xFFEC4899).withOpacity(0.15)
+                  : const Color(0xFF8B5CF6).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF3A3A3C), width: 1),
+              border: Border.all(
+                color: value
+                    ? const Color(0xFFEC4899).withOpacity(0.3)
+                    : const Color(0xFF8B5CF6).withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Icon(
               icon,
-              color: value
-                  ? const Color(0xFF30D158)
-                  : const Color(
-                      0xFF007AFF,
-                    ), // Green when active, blue when inactive
+              color: value ? const Color(0xFFEC4899) : const Color(0xFF8B5CF6),
               size: 20,
             ),
           ),
@@ -673,8 +714,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           CupertinoSwitch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF30D158), // Green for OLED
-            trackColor: const Color(0xFF1C1C1E), // Dark track
+            activeColor: const Color(0xFFEC4899),
+            trackColor: Colors.white.withOpacity(0.1),
           ),
         ],
       ),
