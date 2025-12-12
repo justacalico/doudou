@@ -74,25 +74,29 @@ class _DetailTrackViewState extends State<DetailTrackView> {
     final appState = context.read<AppState>();
 
     // Ensure tracks are loaded first for albums
-    if (widget.viewType == DetailViewType.album && appState.tracks.isEmpty && !appState.isLoading) {
+    if (widget.viewType == DetailViewType.album &&
+        appState.tracks.isEmpty &&
+        !appState.isLoading) {
       await appState.loadLibraryData();
     }
 
     try {
       List<Track> loadedTracks = [];
-      
+
       if (widget.viewType == DetailViewType.album) {
         // First try to get tracks from the API
         final albumTracks = await appState.getAlbumTracks(widget.id);
-        
+
         if (albumTracks.isNotEmpty) {
           loadedTracks = albumTracks;
         } else {
           // If no tracks from API, try filtering from existing tracks
           final allTracks = appState.tracks;
           if (allTracks.isNotEmpty) {
-            loadedTracks = allTracks.where((track) => track.albumId == widget.id).toList();
-            
+            loadedTracks = allTracks
+                .where((track) => track.albumId == widget.id)
+                .toList();
+
             // Sort by track number if available
             loadedTracks.sort((a, b) {
               if (a.trackNumber != null && b.trackNumber != null) {
@@ -106,11 +110,13 @@ class _DetailTrackViewState extends State<DetailTrackView> {
         if (kDebugMode) {
           print('Loading tracks for playlist: ${widget.id}');
         }
-        
+
         loadedTracks = await appState.getPlaylistTracks(widget.id);
-        
+
         if (kDebugMode) {
-          print('Loaded ${loadedTracks.length} tracks for playlist: ${widget.name}');
+          print(
+            'Loaded ${loadedTracks.length} tracks for playlist: ${widget.name}',
+          );
         }
       }
 
@@ -122,7 +128,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
       if (kDebugMode) {
         print('Error loading ${widget.viewType.name} tracks: $e');
       }
-      
+
       setState(() {
         tracks = [];
         isLoading = false;
@@ -142,11 +148,11 @@ class _DetailTrackViewState extends State<DetailTrackView> {
 
     final appState = context.read<AppState>();
     List<Track> tracksToPlay = List.from(tracks);
-    
+
     if (shuffle) {
       tracksToPlay.shuffle();
     }
-    
+
     appState.playPlaylist(tracksToPlay, 0);
   }
 
@@ -158,7 +164,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
 
   Widget _buildHeader() {
     final appState = context.read<AppState>();
-    
+
     return Container(
       color: Colors.transparent,
       child: Column(
@@ -197,7 +203,10 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                             placeholder: (context, url) => Container(
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                  colors: [
+                                    Color(0xFF8B5CF6),
+                                    Color(0xFFEC4899),
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -211,7 +220,10 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                             errorWidget: (context, url, error) => Container(
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                  colors: [
+                                    Color(0xFF8B5CF6),
+                                    Color(0xFFEC4899),
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -227,15 +239,21 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: widget.viewType == DetailViewType.album
-                                    ? [const Color(0xFF8B5CF6), const Color(0xFFEC4899)]
-                                    : [const Color(0xFF06B6D4), const Color(0xFF8B5CF6)],
+                                    ? [
+                                        const Color(0xFF8B5CF6),
+                                        const Color(0xFFEC4899),
+                                      ]
+                                    : [
+                                        const Color(0xFF06B6D4),
+                                        const Color(0xFF8B5CF6),
+                                      ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                             ),
                             child: Icon(
-                              widget.viewType == DetailViewType.album 
-                                  ? CupertinoIcons.music_albums 
+                              widget.viewType == DetailViewType.album
+                                  ? CupertinoIcons.music_albums
                                   : CupertinoIcons.music_note_list,
                               size: 64,
                               color: CupertinoColors.white,
@@ -261,7 +279,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // Artist name (for albums)
                       if (widget.artistName != null) ...[
                         Text(
@@ -275,13 +293,14 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                         ),
                         const SizedBox(height: 8),
                       ],
-                      
+
                       // Metadata
                       if (widget.year != null || widget.trackCount != null) ...[
                         Text(
                           [
                             if (widget.year != null) widget.year!,
-                            if (widget.trackCount != null) '${widget.trackCount} tracks',
+                            if (widget.trackCount != null)
+                              '${widget.trackCount} tracks',
                           ].join(' • '),
                           style: TextStyle(
                             fontSize: 14,
@@ -296,7 +315,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
               ],
             ),
           ),
-          
+
           // Action buttons with liquid glass
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -306,7 +325,9 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                 Expanded(
                   child: CupertinoButton(
                     padding: EdgeInsets.zero,
-                    onPressed: tracks.isNotEmpty ? () => _playAllTracks() : null,
+                    onPressed: tracks.isNotEmpty
+                        ? () => _playAllTracks()
+                        : null,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: BackdropFilter(
@@ -328,9 +349,19 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(CupertinoIcons.play_fill, size: 18, color: Colors.white),
+                              Icon(
+                                CupertinoIcons.play_fill,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 8),
-                              Text('Play', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                              Text(
+                                'Play',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -339,15 +370,17 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                
+
                 // Shuffle button
                 Expanded(
                   child: CupertinoButton(
                     padding: EdgeInsets.zero,
-                    onPressed: tracks.isNotEmpty ? () {
-                      _toggleShuffle();
-                      _playAllTracks(shuffle: true);
-                    } : null,
+                    onPressed: tracks.isNotEmpty
+                        ? () {
+                            _toggleShuffle();
+                            _playAllTracks(shuffle: true);
+                          }
+                        : null,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: BackdropFilter(
@@ -357,7 +390,10 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                           decoration: BoxDecoration(
                             gradient: _isShuffled
                                 ? const LinearGradient(
-                                    colors: [Color(0xFF06B6D4), Color(0xFF8B5CF6)],
+                                    colors: [
+                                      Color(0xFF06B6D4),
+                                      Color(0xFF8B5CF6),
+                                    ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   )
@@ -381,13 +417,17 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               Icon(
                                 CupertinoIcons.shuffle,
                                 size: 18,
-                                color: _isShuffled ? Colors.white : Colors.white.withOpacity(0.7),
+                                color: _isShuffled
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.7),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 'Shuffle',
                                 style: TextStyle(
-                                  color: _isShuffled ? Colors.white : Colors.white.withOpacity(0.7),
+                                  color: _isShuffled
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.7),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -406,8 +446,6 @@ class _DetailTrackViewState extends State<DetailTrackView> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return LiquidGradientBackground(
@@ -421,7 +459,10 @@ class _DetailTrackViewState extends State<DetailTrackView> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -435,7 +476,9 @@ class _DetailTrackViewState extends State<DetailTrackView> {
               ),
             ),
           ),
-          previousPageTitle: widget.viewType == DetailViewType.album ? 'Albums' : 'Playlists',
+          previousPageTitle: widget.viewType == DetailViewType.album
+              ? 'Albums'
+              : 'Playlists',
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -444,15 +487,11 @@ class _DetailTrackViewState extends State<DetailTrackView> {
               CustomScrollView(
                 slivers: [
                   // Pull to refresh
-                  CupertinoSliverRefreshControl(
-                    onRefresh: _refreshTracks,
-                  ),
-                  
+                  CupertinoSliverRefreshControl(onRefresh: _refreshTracks),
+
                   // Header
-                  SliverToBoxAdapter(
-                    child: _buildHeader(),
-                  ),
-                  
+                  SliverToBoxAdapter(child: _buildHeader()),
+
                   // Track list
                   if (isLoading)
                     SliverToBoxAdapter(
@@ -465,7 +504,9 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               color: Colors.white.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: const CupertinoActivityIndicator(color: CupertinoColors.white),
+                            child: const CupertinoActivityIndicator(
+                              color: CupertinoColors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -502,14 +543,19 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                     height: 80,
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                        colors: [
+                                          Color(0xFF8B5CF6),
+                                          Color(0xFFEC4899),
+                                        ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       ),
                                       borderRadius: BorderRadius.circular(20),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                                          color: const Color(
+                                            0xFF8B5CF6,
+                                          ).withOpacity(0.4),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),
                                         ),
@@ -548,30 +594,27 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                     )
                   else
                     SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final track = tracks[index];
-                          return TrackListItem(
-                            track: track,
-                            showAlbumArt: widget.viewType == DetailViewType.playlist,
-                            showTrackNumber: widget.viewType == DetailViewType.album,
-                            onTap: () {
-                              final appState = context.read<AppState>();
-                              appState.playPlaylist(tracks, index);
-                            },
-                          );
-                        },
-                        childCount: tracks.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final track = tracks[index];
+                        return TrackListItem(
+                          track: track,
+                          showAlbumArt:
+                              widget.viewType == DetailViewType.playlist,
+                          showTrackNumber:
+                              widget.viewType == DetailViewType.album,
+                          onTap: () {
+                            final appState = context.read<AppState>();
+                            appState.playPlaylist(tracks, index);
+                          },
+                        );
+                      }, childCount: tracks.length),
                     ),
-                  
+
                   // Bottom padding for mini player
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
-              
+
               // Mini player at bottom
               const Positioned(
                 left: 0,
