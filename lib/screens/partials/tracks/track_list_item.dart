@@ -1,5 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Material, MaterialType;
+import 'package:flutter/material.dart' show Colors, Material, MaterialType;
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/app_state.dart';
@@ -34,17 +35,33 @@ class TrackListItem extends StatelessWidget {
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
-        decoration: BoxDecoration(
-          color: const Color(0xFF000000), // Pure black for OLED
-          borderRadius: BorderRadius.circular(showAlbumArt ? 16 : 12),
-          border: showAlbumArt
-              ? Border.all(color: const Color(0xFF1D1D1F), width: 0.5)
-              : null,
-        ),
-        child: GestureDetector(
-          onLongPress: () => _showTrackContextMenu(context, appState),
-          child: _buildContent(context, appState),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.12),
+                    Colors.white.withOpacity(0.04),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1,
+                ),
+              ),
+              child: GestureDetector(
+                onLongPress: () => _showTrackContextMenu(context, appState),
+                child: _buildContent(context, appState),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -77,12 +94,12 @@ class TrackListItem extends StatelessWidget {
                       Icon(
                         CupertinoIcons.arrow_down_circle,
                         size: 18,
-                        color: Color(0xFF007AFF),
+                        color: Color(0xFF06B6D4),
                       ),
                       SizedBox(width: 8),
                       Text(
                         'Download',
-                        style: TextStyle(color: Color(0xFF007AFF)),
+                        style: TextStyle(color: Color(0xFF06B6D4)),
                       ),
                     ],
                   ),
@@ -98,12 +115,12 @@ class TrackListItem extends StatelessWidget {
                     Icon(
                       CupertinoIcons.plus,
                       size: 18,
-                      color: Color(0xFF007AFF),
+                      color: Color(0xFF8B5CF6),
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Add to Queue',
-                      style: TextStyle(color: Color(0xFF007AFF)),
+                      style: TextStyle(color: Color(0xFF8B5CF6)),
                     ),
                   ],
                 ),
@@ -119,12 +136,12 @@ class TrackListItem extends StatelessWidget {
                     Icon(
                       CupertinoIcons.play_arrow_solid,
                       size: 18,
-                      color: Color(0xFF007AFF),
+                      color: Color(0xFF8B5CF6),
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Play Next',
-                      style: TextStyle(color: Color(0xFF007AFF)),
+                      style: TextStyle(color: Color(0xFF8B5CF6)),
                     ),
                   ],
                 ),
@@ -143,15 +160,15 @@ class TrackListItem extends StatelessWidget {
                           : CupertinoIcons.heart,
                       size: 18,
                       color: currentTrack.isFavorite
-                          ? const Color(0xFFFF453A)
-                          : const Color(0xFF007AFF),
+                          ? const Color(0xFFEC4899)
+                          : const Color(0xFFEC4899),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       currentTrack.isFavorite
                           ? 'Remove from Favorites'
                           : 'Add to Favorites',
-                      style: const TextStyle(color: Color(0xFF007AFF)),
+                      style: const TextStyle(color: Color(0xFFEC4899)),
                     ),
                   ],
                 ),
@@ -162,7 +179,7 @@ class TrackListItem extends StatelessWidget {
               child: const Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Color(0xFF007AFF),
+                  color: Color(0xFF8B5CF6),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -179,13 +196,23 @@ class TrackListItem extends StatelessWidget {
       return GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Album artwork
-              SizedBox(
-                width: 60,
-                height: 60,
+              // Album artwork with glow
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: track.imageUrl != null
@@ -197,60 +224,51 @@ class TrackListItem extends StatelessWidget {
                           ),
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  const Color(0xFF1C1C1E),
-                                  const Color(0xFF2C2C2E),
-                                ],
+                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                               ),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_note,
-                              color: Color(0xFF8E8E93),
-                              size: 28,
+                              color: CupertinoColors.white,
+                              size: 24,
                             ),
                           ),
                           errorWidget: (context, url, error) => Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  const Color(0xFF1C1C1E),
-                                  const Color(0xFF2C2C2E),
-                                ],
+                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                               ),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_note,
-                              color: Color(0xFF8E8E93),
-                              size: 28,
+                              color: CupertinoColors.white,
+                              size: 24,
                             ),
                           ),
                         )
                       : Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF1C1C1E),
-                                const Color(0xFF2C2C2E),
-                              ],
+                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                             ),
                           ),
                           child: const Icon(
                             CupertinoIcons.music_note,
-                            color: Color(0xFF8E8E93),
-                            size: 28,
+                            color: CupertinoColors.white,
+                            size: 24,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               // Track info
               Expanded(
                 child: Column(
@@ -258,11 +276,11 @@ class TrackListItem extends StatelessWidget {
                   children: [
                     Text(
                       track.name,
-                      style: const TextStyle(
-                        fontSize: 17,
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFFFFFFFF),
-                        letterSpacing: -0.4,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -271,10 +289,10 @@ class TrackListItem extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         track.artistName!,
-                        style: const TextStyle(
-                          fontSize: 15,
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF8E8E93),
+                          color: Colors.white.withOpacity(0.6),
                           letterSpacing: -0.2,
                         ),
                         maxLines: 1,
@@ -285,10 +303,10 @@ class TrackListItem extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         track.albumName!,
-                        style: const TextStyle(
-                          fontSize: 13,
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF636366),
+                          color: Colors.white.withOpacity(0.4),
                           letterSpacing: -0.1,
                         ),
                         maxLines: 1,
@@ -302,10 +320,10 @@ class TrackListItem extends StatelessWidget {
               if (showDuration && track.duration != null)
                 Text(
                   _formatDuration(Duration(milliseconds: track.duration!)),
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF8E8E93),
+                    color: Colors.white.withOpacity(0.5),
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
@@ -315,70 +333,90 @@ class TrackListItem extends StatelessWidget {
       );
     } else if (showTrackNumber) {
       // Album detail style with track numbers
-      return Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF000000),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF1D1D1F), width: 0.5),
-        ),
-        child: CupertinoListTile(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF2C2C2E), width: 0.5),
-            ),
-            child: Center(
-              child: Text(
-                track.trackNumber?.toString() ?? trackNumber.toString(),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF8E8E93),
-                  fontSize: 16,
-                  fontFeatures: [FontFeature.tabularFigures()],
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              // Track number with gradient background
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.15),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    track.trackNumber?.toString() ?? trackNumber.toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 14,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          title: Text(
-            track.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFFFFFFF),
-              fontSize: 17,
-              letterSpacing: -0.4,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: track.artistName != null
-              ? Text(
-                  track.artistName!,
-                  style: const TextStyle(
-                    color: Color(0xFF8E8E93),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: -0.2,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
-          trailing: showDuration && track.duration != null
-              ? Text(
+              const SizedBox(width: 14),
+              // Track info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      track.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontSize: 16,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (track.artistName != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        track.artistName!,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Duration
+              if (showDuration && track.duration != null)
+                Text(
                   _formatDuration(Duration(milliseconds: track.duration!)),
-                  style: const TextStyle(
-                    color: Color(0xFF8E8E93),
-                    fontSize: 15,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
-                )
-              : null,
-          onTap: onTap,
+                ),
+            ],
+          ),
         ),
       );
     } else {
@@ -387,13 +425,23 @@ class TrackListItem extends StatelessWidget {
         padding: EdgeInsets.zero,
         onPressed: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              // Album artwork
-              SizedBox(
-                width: 54,
-                height: 54,
+              // Album artwork with glow
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8B5CF6).withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: track.imageUrl != null
@@ -405,60 +453,51 @@ class TrackListItem extends StatelessWidget {
                           ),
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  const Color(0xFF1C1C1E),
-                                  const Color(0xFF2C2C2E),
-                                ],
+                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                               ),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_note,
-                              color: Color(0xFF8E8E93),
-                              size: 26,
+                              color: CupertinoColors.white,
+                              size: 22,
                             ),
                           ),
                           errorWidget: (context, url, error) => Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  const Color(0xFF1C1C1E),
-                                  const Color(0xFF2C2C2E),
-                                ],
+                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                               ),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_note,
-                              color: Color(0xFF8E8E93),
-                              size: 26,
+                              color: CupertinoColors.white,
+                              size: 22,
                             ),
                           ),
                         )
                       : Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF1C1C1E),
-                                const Color(0xFF2C2C2E),
-                              ],
+                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
                             ),
                           ),
                           child: const Icon(
                             CupertinoIcons.music_note,
-                            color: Color(0xFF8E8E93),
-                            size: 26,
+                            color: CupertinoColors.white,
+                            size: 22,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               // Song info
               Expanded(
                 child: Column(
@@ -466,11 +505,11 @@ class TrackListItem extends StatelessWidget {
                   children: [
                     Text(
                       track.name,
-                      style: const TextStyle(
-                        color: Color(0xFFFFFFFF),
-                        fontSize: 17,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        letterSpacing: -0.4,
+                        letterSpacing: -0.3,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -479,9 +518,9 @@ class TrackListItem extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         track.artistName!,
-                        style: const TextStyle(
-                          color: Color(0xFF8E8E93),
-                          fontSize: 15,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
                           letterSpacing: -0.2,
                         ),
@@ -496,9 +535,9 @@ class TrackListItem extends StatelessWidget {
               if (showDuration && track.duration != null)
                 Text(
                   _formatDuration(Duration(milliseconds: track.duration!)),
-                  style: const TextStyle(
-                    color: Color(0xFF8E8E93),
-                    fontSize: 15,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
