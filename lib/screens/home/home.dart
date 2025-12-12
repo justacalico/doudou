@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../widgets/apple_design/liquid_glass.dart';
 import '../shared/detail_track_view.dart';
 import '../settings/settings.dart';
 
@@ -16,7 +18,7 @@ class HomeContent extends StatefulWidget {
   State<HomeContent> createState() => _HomeContentState();
 }
 
-class _HomeContentState extends State<HomeContent> {
+class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin {
   List<Album>? _shuffledAlbums;
   List<Album>? _continueListeningAlbums;
   List<Album>? _madeForYouAlbums;
@@ -26,6 +28,28 @@ class _HomeContentState extends State<HomeContent> {
   // Add debouncing for shuffle buttons to prevent audio bleeding
   DateTime? _lastShuffleAllTap;
   DateTime? _lastShuffleFavoritesTap;
+  
+  late AnimationController _headerAnimationController;
+  late Animation<double> _headerFadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _headerAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _headerAnimationController, curve: Curves.easeOut),
+    );
+    _headerAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _headerAnimationController.dispose();
+    super.dispose();
+  }
 
   void _initializeAlbumLists(List<Album> allAlbums, List<Track> favoriteTracks) {
     if (_shuffledAlbums == null || _shuffledAlbums!.isEmpty) {
