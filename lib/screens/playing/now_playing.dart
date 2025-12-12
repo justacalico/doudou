@@ -542,9 +542,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                             },
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
 
-                          // Control buttons
+                          // Control buttons with liquid glass
                           StreamBuilder<PlayerState>(
                             stream: appState.playerStateStream,
                             builder: (context, snapshot) {
@@ -555,16 +555,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 50,
+                                  horizontal: 40,
                                 ),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    // Shuffle button
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: () {
+                                    // Shuffle button with liquid glass
+                                    GestureDetector(
+                                      onTap: () {
                                         final audioHandler =
                                             appState.audioHandler;
                                         if (audioHandler?.isShuffled == true) {
@@ -573,112 +572,175 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                           audioHandler?.shuffle();
                                         }
                                       },
-                                      child: Icon(
-                                        CupertinoIcons.shuffle,
-                                        color: audioHandler?.isShuffled == true
-                                            ? const Color(0xFFFFFFFF)
-                                            : CupertinoColors.systemGrey2,
-                                        size: 24,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                          child: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: audioHandler?.isShuffled == true 
+                                                  ? const Color(0xFF8B5CF6).withOpacity(0.3)
+                                                  : CupertinoColors.white.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: audioHandler?.isShuffled == true
+                                                    ? const Color(0xFF8B5CF6).withOpacity(0.5)
+                                                    : CupertinoColors.white.withOpacity(0.15),
+                                                width: 0.5,
+                                              ),
+                                            ),
+                                            child: Icon(
+                                              CupertinoIcons.shuffle,
+                                              color: audioHandler?.isShuffled == true
+                                                  ? CupertinoColors.white
+                                                  : CupertinoColors.white.withOpacity(0.6),
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                     // Previous button
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed:
-                                          audioHandler?.hasPrevious == true
+                                    GestureDetector(
+                                      onTap: audioHandler?.hasPrevious == true
                                           ? () => appState.skipToPrevious()
                                           : null,
                                       child: Icon(
                                         CupertinoIcons.backward_fill,
-                                        size: 32,
+                                        size: 36,
                                         color: audioHandler?.hasPrevious == true
-                                            ? const Color(0xFFFFFFFF)
-                                            : CupertinoColors.systemGrey2,
+                                            ? CupertinoColors.white
+                                            : CupertinoColors.white.withOpacity(0.3),
                                       ),
                                     ),
-                                    // Play/Pause button
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFFFFFFF),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child:
-                                          processingState ==
-                                                  ProcessingState.loading ||
-                                              processingState ==
-                                                  ProcessingState.buffering
-                                          ? const Center(
-                                              child: CupertinoActivityIndicator(
-                                                color: Color(0xFF000000),
-                                              ),
-                                            )
-                                          : CupertinoButton(
-                                              padding: EdgeInsets.zero,
-                                              onPressed: () {
-                                                if (kDebugMode) {
-                                                  print(
-                                                    '=== NOW PLAYING PLAY/PAUSE BUTTON TAPPED ===',
-                                                  );
-                                                  print(
-                                                    'isPlaying: $isPlaying',
-                                                  );
-                                                  print(
-                                                    'processingState: $processingState',
-                                                  );
-                                                  print(
-                                                    'audioHandler.userIntendedPlaying: ${audioHandler?.userIntendedPlaying}',
-                                                  );
-                                                }
-                                                appState.playPause();
-                                              },
-                                              child: Icon(
+                                    // Play/Pause button with gradient
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (kDebugMode) {
+                                          print('=== NOW PLAYING PLAY/PAUSE BUTTON TAPPED ===');
+                                        }
+                                        appState.playPause();
+                                      },
+                                      child: Container(
+                                        width: 72,
+                                        height: 72,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                          ),
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: processingState == ProcessingState.loading ||
+                                            processingState == ProcessingState.buffering
+                                            ? const Center(
+                                                child: CupertinoActivityIndicator(
+                                                  color: CupertinoColors.white,
+                                                ),
+                                              )
+                                            : Icon(
                                                 isPlaying
                                                     ? CupertinoIcons.pause_fill
-                                                    : CupertinoIcons
-                                                          .play_arrow_solid,
-                                                size: 28,
-                                                color: const Color(0xFF000000),
+                                                    : CupertinoIcons.play_arrow_solid,
+                                                size: 32,
+                                                color: CupertinoColors.white,
                                               ),
-                                            ),
+                                      ),
                                     ),
                                     // Next button
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: audioHandler?.hasNext == true
+                                    GestureDetector(
+                                      onTap: audioHandler?.hasNext == true
                                           ? () => appState.skipToNext()
                                           : null,
                                       child: Icon(
                                         CupertinoIcons.forward_fill,
-                                        size: 32,
+                                        size: 36,
                                         color: audioHandler?.hasNext == true
-                                            ? const Color(0xFFFFFFFF)
-                                            : CupertinoColors.systemGrey2,
+                                            ? CupertinoColors.white
+                                            : CupertinoColors.white.withOpacity(0.3),
                                       ),
                                     ),
-                                    // Repeat button
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: () async {
-                                        final audioHandler =
-                                            appState.audioHandler;
+                                    // Repeat button with liquid glass
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final audioHandler = appState.audioHandler;
                                         if (audioHandler != null) {
-                                          final currentState =
-                                              audioHandler.playbackState.value;
-                                          final currentMode =
-                                              currentState.repeatMode;
+                                          final currentState = audioHandler.playbackState.value;
+                                          final currentMode = currentState.repeatMode;
 
                                           switch (currentMode) {
                                             case AudioServiceRepeatMode.none:
-                                              await audioHandler.setRepeatMode(
-                                                AudioServiceRepeatMode.all,
-                                              );
+                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
                                               break;
                                             case AudioServiceRepeatMode.all:
-                                              await audioHandler.setRepeatMode(
-                                                AudioServiceRepeatMode.one,
-                                              );
+                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+                                              break;
+                                            case AudioServiceRepeatMode.one:
+                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                              break;
+                                            case AudioServiceRepeatMode.group:
+                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+                                              break;
+                                          }
+                                        }
+                                      },
+                                      child: StreamBuilder<AudioServiceRepeatMode>(
+                                        stream: audioHandler?.playbackState
+                                            .map((state) => state.repeatMode)
+                                            .cast<AudioServiceRepeatMode>(),
+                                        builder: (context, snapshot) {
+                                          final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
+                                          final isActive = repeatMode != AudioServiceRepeatMode.none;
+
+                                          return ClipRRect(
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                              child: Container(
+                                                width: 44,
+                                                height: 44,
+                                                decoration: BoxDecoration(
+                                                  color: isActive
+                                                      ? const Color(0xFFEC4899).withOpacity(0.3)
+                                                      : CupertinoColors.white.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: isActive
+                                                        ? const Color(0xFFEC4899).withOpacity(0.5)
+                                                        : CupertinoColors.white.withOpacity(0.15),
+                                                    width: 0.5,
+                                                  ),
+                                                ),
+                                                child: Icon(
+                                                  repeatMode == AudioServiceRepeatMode.one
+                                                      ? CupertinoIcons.repeat_1
+                                                      : CupertinoIcons.repeat,
+                                                  color: isActive
+                                                      ? CupertinoColors.white
+                                                      : CupertinoColors.white.withOpacity(0.6),
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                                               break;
                                             case AudioServiceRepeatMode.one:
                                               await audioHandler.setRepeatMode(
