@@ -215,238 +215,229 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
 
         return CupertinoPageScaffold(
           backgroundColor: const Color(0xFF000000),
-          child: Stack(
-            children: [
-              // Animated background with gradient
-              Positioned.fill(
-                child: LiquidGradientBackground(
-                  colors: const [
-                    Color(0xFF8B5CF6),
-                    Color(0xFFEC4899),
-                    Color(0xFF3B82F6),
-                    Color(0xFF10B981),
-                  ],
+          child: LiquidGradientBackground(
+            colors: const [
+              Color(0xFF0D0D0D),
+              Color(0xFF1A0A1A),
+              Color(0xFF0A1A1A),
+            ],
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Liquid glass header
+                SliverPersistentHeader(
+                  floating: true,
+                  delegate: _LiquidGlassHeaderDelegate(
+                    minHeight: 100,
+                    maxHeight: 140,
+                    greeting: _getGreeting(l10n),
+                    subtitle: l10n.whatWouldYouLikeToHear,
+                    fadeAnimation: _headerFadeAnimation,
+                    onSettingsTap: () {
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              // Main content
-              CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  // Liquid glass header
-                  SliverPersistentHeader(
-                    floating: true,
-                    delegate: _LiquidGlassHeaderDelegate(
-                      minHeight: 100,
-                      maxHeight: 140,
-                      greeting: _getGreeting(l10n),
-                      subtitle: l10n.whatWouldYouLikeToHear,
-                      fadeAnimation: _headerFadeAnimation,
-                      onSettingsTap: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => const SettingsScreen(),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                
+                // Liquid glass shuffle buttons
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildLiquidGlassShuffleButton(
+                            icon: CupertinoIcons.shuffle,
+                            label: l10n.shuffleAll,
+                            onPressed: () async {
+                              final now = DateTime.now();
+                              if (_lastShuffleAllTap != null && 
+                                  now.difference(_lastShuffleAllTap!) < const Duration(milliseconds: 1000)) {
+                                if (kDebugMode) {
+                                  print('Shuffle all button debounced');
+                                }
+                                return;
+                              }
+                              _lastShuffleAllTap = now;
+                              await appState.shuffleAllTracks();
+                            },
+                            isPrimary: true,
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildLiquidGlassShuffleButton(
+                            icon: CupertinoIcons.heart_fill,
+                            label: l10n.navFavorites,
+                            onPressed: () async {
+                              final now = DateTime.now();
+                              if (_lastShuffleFavoritesTap != null && 
+                                  now.difference(_lastShuffleFavoritesTap!) < const Duration(milliseconds: 1000)) {
+                                if (kDebugMode) {
+                                  print('Shuffle favorites button debounced');
+                                }
+                                return;
+                              }
+                              _lastShuffleFavoritesTap = now;
+                              final favoriteCount = appState.favoriteTracks.length;
+                              if (favoriteCount > 0) {
+                                await appState.shuffleFavoriteTracks();
+                              } else {
+                                _showNoFavoritesDialog(context);
+                              }
+                            },
+                            isPrimary: false,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                  
-                  // Liquid glass shuffle buttons
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                
+                // Now playing card with liquid glass
+                if (appState.audioHandler?.currentTrack != null)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildLiquidGlassShuffleButton(
-                              icon: CupertinoIcons.shuffle,
-                              label: l10n.shuffleAll,
-                              onPressed: () async {
-                                final now = DateTime.now();
-                                if (_lastShuffleAllTap != null && 
-                                    now.difference(_lastShuffleAllTap!) < const Duration(milliseconds: 1000)) {
-                                  if (kDebugMode) {
-                                    print('Shuffle all button debounced');
-                                  }
-                                  return;
-                                }
-                                _lastShuffleAllTap = now;
-                                await appState.shuffleAllTracks();
-                              },
-                              isPrimary: true,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildLiquidGlassShuffleButton(
-                              icon: CupertinoIcons.heart_fill,
-                              label: l10n.navFavorites,
-                              onPressed: () async {
-                                final now = DateTime.now();
-                                if (_lastShuffleFavoritesTap != null && 
-                                    now.difference(_lastShuffleFavoritesTap!) < const Duration(milliseconds: 1000)) {
-                                  if (kDebugMode) {
-                                    print('Shuffle favorites button debounced');
-                                  }
-                                  return;
-                                }
-                                _lastShuffleFavoritesTap = now;
-                                final favoriteCount = appState.favoriteTracks.length;
-                                if (favoriteCount > 0) {
-                                  await appState.shuffleFavoriteTracks();
-                                } else {
-                                  _showNoFavoritesDialog(context);
-                                }
-                              },
-                              isPrimary: false,
-                            ),
-                          ),
-                        ],
+                      child: _buildLiquidGlassNowPlayingCard(context, appState, l10n),
+                    ),
+                  ),
+                
+                if (appState.audioHandler?.currentTrack != null)
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                
+                // Continue listening section
+                if (continueListeningAlbums.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: _buildLiquidGlassSectionHeader(
+                        l10n.continueListening, 
+                        CupertinoIcons.clock,
+                        CupertinoColors.systemPurple,
                       ),
                     ),
                   ),
-                  
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 260,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: continueListeningAlbums.take(8).length,
+                        itemBuilder: (context, index) {
+                          final album = continueListeningAlbums[index];
+                          return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: true);
+                        },
+                      ),
+                    ),
+                  ),
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  
-                  // Now playing card with liquid glass
-                  if (appState.audioHandler?.currentTrack != null)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildLiquidGlassNowPlayingCard(context, appState, l10n),
-                      ),
-                    ),
-                  
-                  if (appState.audioHandler?.currentTrack != null)
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  
-                  // Continue listening section
-                  if (continueListeningAlbums.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildLiquidGlassSectionHeader(
-                          l10n.continueListening, 
-                          CupertinoIcons.clock,
-                          CupertinoColors.systemPurple,
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 260,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: continueListeningAlbums.take(8).length,
-                          itemBuilder: (context, index) {
-                            final album = continueListeningAlbums[index];
-                            return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: true);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  ],
-                  
-                  // Recently added section
-                  if (recentAlbums.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildLiquidGlassSectionHeader(
-                          l10n.recentlyAdded, 
-                          CupertinoIcons.sparkles,
-                          CupertinoColors.systemPink,
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 200,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: recentAlbums.take(10).length,
-                          itemBuilder: (context, index) {
-                            final album = recentAlbums[index];
-                            return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: false);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  ],
-                  
-                  // Made for you section
-                  if (madeForYouAlbums.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildLiquidGlassSectionHeader(
-                          l10n.madeForYou, 
-                          CupertinoIcons.sparkles,
-                          CupertinoColors.systemTeal,
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 200,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: madeForYouAlbums.take(8).length,
-                          itemBuilder: (context, index) {
-                            final album = madeForYouAlbums[index];
-                            return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: false);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  ],
-                  
-                  // Favorites section
-                  if (similarToFavoritesAlbums.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildLiquidGlassSectionHeader(
-                          l10n.yourFavorites, 
-                          CupertinoIcons.heart_fill,
-                          CupertinoColors.systemRed,
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 200,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: similarToFavoritesAlbums.take(8).length,
-                          itemBuilder: (context, index) {
-                            final album = similarToFavoritesAlbums[index];
-                            return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: false);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  ],
-                  
-                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
-              ),
-            ],
+                
+                // Recently added section
+                if (recentAlbums.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: _buildLiquidGlassSectionHeader(
+                        l10n.recentlyAdded, 
+                        CupertinoIcons.sparkles,
+                        CupertinoColors.systemPink,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: recentAlbums.take(10).length,
+                        itemBuilder: (context, index) {
+                          final album = recentAlbums[index];
+                          return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: false);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ],
+                
+                // Made for you section
+                if (madeForYouAlbums.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: _buildLiquidGlassSectionHeader(
+                        l10n.madeForYou, 
+                        CupertinoIcons.sparkles,
+                        CupertinoColors.systemTeal,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: madeForYouAlbums.take(8).length,
+                        itemBuilder: (context, index) {
+                          final album = madeForYouAlbums[index];
+                          return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: false);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ],
+                
+                // Favorites section
+                if (similarToFavoritesAlbums.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: _buildLiquidGlassSectionHeader(
+                        l10n.yourFavorites, 
+                        CupertinoIcons.heart_fill,
+                        CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: similarToFavoritesAlbums.take(8).length,
+                        itemBuilder: (context, index) {
+                          final album = similarToFavoritesAlbums[index];
+                          return _buildLiquidGlassAlbumCard(context, album, appState, isLarge: false);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ],
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              ],
+            ),
           ),
         );
       },
