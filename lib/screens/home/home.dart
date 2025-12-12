@@ -476,12 +476,11 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
   }) {
     return GestureDetector(
       onTap: onPressed,
-      child: LiquidGlassContainer(
-        height: 60,
+      child: LiquidGlassMaterial(
         borderRadius: 16,
-        backgroundColor: isPrimary 
-            ? CupertinoColors.systemPurple.withOpacity(0.3)
-            : null,
+        tintColor: isPrimary ? CupertinoColors.systemPurple : null,
+        tintOpacity: isPrimary ? 0.3 : 0.1,
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -522,12 +521,14 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
     final currentTrack = appState.audioHandler?.currentTrack;
     if (currentTrack == null) return const SizedBox.shrink();
 
-    return LiquidGlassContainer(
-      height: 130,
+    return LiquidGlassMaterial(
       borderRadius: 20,
-      backgroundColor: CupertinoColors.systemPurple.withOpacity(0.15),
-      child: Row(
-        children: [
+      tintColor: CupertinoColors.systemPurple,
+      tintOpacity: 0.15,
+      child: SizedBox(
+        height: 130,
+        child: Row(
+          children: [
           // Album art
           ClipRRect(
             borderRadius: const BorderRadius.only(
