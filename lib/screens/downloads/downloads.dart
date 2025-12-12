@@ -72,7 +72,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 20,
+                                        sigmaY: 20,
+                                      ),
                                       child: Container(
                                         height: 50,
                                         decoration: BoxDecoration(
@@ -84,14 +87,19 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ),
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withOpacity(
+                                              0.2,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Icon(
                                               CupertinoIcons.play_fill,
@@ -119,11 +127,15 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                               Expanded(
                                 child: CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () => _shuffleAllDownloaded(appState),
+                                  onPressed: () =>
+                                      _shuffleAllDownloaded(appState),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 20,
+                                        sigmaY: 20,
+                                      ),
                                       child: Container(
                                         height: 50,
                                         decoration: BoxDecoration(
@@ -135,14 +147,19 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ),
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withOpacity(
+                                              0.2,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Icon(
                                               CupertinoIcons.shuffle,
@@ -241,12 +258,16 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     final downloadedTracks = appState.tracks
         .where((track) => appState.downloadService.isTrackDownloaded(track.id))
         .toList();
-    
+
     // Get downloaded albums (albums that have at least one downloaded track)
     final downloadedAlbums = appState.albums
-        .where((album) => appState.tracks
-            .where((track) => track.albumId == album.id)
-            .any((track) => appState.downloadService.isTrackDownloaded(track.id)))
+        .where(
+          (album) => appState.tracks
+              .where((track) => track.albumId == album.id)
+              .any(
+                (track) => appState.downloadService.isTrackDownloaded(track.id),
+              ),
+        )
         .toList();
 
     // Get favorite downloaded tracks
@@ -271,7 +292,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       final albumDownloadedTracks = downloadedTracks
           .where((track) => track.albumId == album.id)
           .length;
-      
+
       if (albumDownloadedTracks > 0) {
         slivers.add(
           SliverToBoxAdapter(
@@ -313,38 +334,82 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
 
     // Show empty state if no downloads
-    if (slivers.length <= 1) { // Only header/padding might be present
+    if (slivers.length <= 1) {
+      // Only header/padding might be present
       slivers.add(
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.all(32),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.arrow_down_circle,
-                  size: 64,
-                  color: CupertinoColors.systemGrey,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'No Downloaded Music',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withOpacity(0.15),
+                        Colors.white.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF8B5CF6), Color(0xFF06B6D4)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.arrow_down_circle,
+                          size: 40,
+                          color: CupertinoColors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'No Downloaded Music',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Download songs to listen offline',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'Download songs to listen offline',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: CupertinoColors.systemGrey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -507,7 +572,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                               errorWidget: Container(
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFF8B5CF6), Color(0xFF06B6D4)],
+                                    colors: [
+                                      Color(0xFF8B5CF6),
+                                      Color(0xFF06B6D4),
+                                    ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
@@ -639,7 +707,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                             errorWidget: Container(
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF06B6D4), Color(0xFF8B5CF6)],
+                                  colors: [
+                                    Color(0xFF06B6D4),
+                                    Color(0xFF8B5CF6),
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -717,13 +788,17 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                                         gradient: LinearGradient(
                                           colors: [
                                             _getStatusColor(task.status),
-                                            _getStatusColor(task.status).withOpacity(0.7),
+                                            _getStatusColor(
+                                              task.status,
+                                            ).withOpacity(0.7),
                                           ],
                                         ),
                                         borderRadius: BorderRadius.circular(2),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: _getStatusColor(task.status).withOpacity(0.5),
+                                            color: _getStatusColor(
+                                              task.status,
+                                            ).withOpacity(0.5),
                                             blurRadius: 4,
                                           ),
                                         ],
@@ -858,7 +933,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                               errorWidget: Container(
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                    colors: [
+                                      Color(0xFF8B5CF6),
+                                      Color(0xFFEC4899),
+                                    ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
@@ -1006,9 +1084,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   void _navigateToAlbum(Album album, AppState appState, BuildContext context) {
     Navigator.push(
       context,
-      CupertinoPageRoute(
-        builder: (context) => DetailTrackView.album(album),
-      ),
+      CupertinoPageRoute(builder: (context) => DetailTrackView.album(album)),
     );
   }
 
@@ -1017,10 +1093,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   }
 
   void _retryDownload(DownloadTask task, AppState appState) {
-    final track = appState.tracks.firstWhere((t) => t.id == task.trackId, orElse: () => Track(
-      id: task.trackId,
-      name: 'Unknown Track',
-    ));
+    final track = appState.tracks.firstWhere(
+      (t) => t.id == task.trackId,
+      orElse: () => Track(id: task.trackId, name: 'Unknown Track'),
+    );
     appState.downloadService.downloadTrack(track);
   }
 }
