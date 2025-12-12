@@ -1919,7 +1919,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Return loading indicator if localization is not ready yet
     if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CupertinoActivityIndicator());
     }
 
     return Stack(
