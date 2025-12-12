@@ -368,12 +368,11 @@ class _SearchScreenState extends State<SearchScreen> {
                               Color(0xFFE0E0E0),
                             ],
                           ).createShader(bounds),
-                          child: Text(
-                            AppLocalizations.of(context).search,
-                            style: const TextStyle(
+                          child: const Text(
+                            style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: Color(0xFFFFFFFF),
                               letterSpacing: -0.8,
                             ),
                           ),
