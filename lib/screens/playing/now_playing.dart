@@ -763,88 +763,76 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Queue button
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    showQueueOverlay(context);
-                                  },
-                                  child: const Icon(
-                                    CupertinoIcons.list_bullet,
-                                    color: Color(0xFFFFFFFF),
-                                    size: 24,
-                                  ),
-                                ),
-                                // Favorite button
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () async {
-                                    await _favoriteAnimationController
-                                        .forward();
-                                    await _favoriteAnimationController
-                                        .reverse();
-                                    appState.toggleFavorite(currentTrack);
-                                  },
-                                  child: AnimatedBuilder(
-                                    animation: _favoriteScaleAnimation,
-                                    builder: (context, child) {
-                                      final isFavorite = appState.isFavorite(
-                                        currentTrack.id,
-                                      );
-                                      return Transform.scale(
-                                        scale: _favoriteScaleAnimation.value,
+                                    children: [
+                                      // Queue button
+                                      GestureDetector(
+                                        onTap: () {
+                                          showQueueOverlay(context);
+                                        },
                                         child: Icon(
-                                          isFavorite
-                                              ? CupertinoIcons.heart_fill
-                                              : CupertinoIcons.heart,
-                                          color: isFavorite
-                                              ? const Color(0xFFFF453A)
-                                              : const Color(0xFFFFFFFF),
-                                          size: 24,
+                                          CupertinoIcons.list_bullet,
+                                          color: CupertinoColors.white.withOpacity(0.8),
+                                          size: 22,
                                         ),
-                                      );
-                                    },
+                                      ),
+                                      // Favorite button
+                                      GestureDetector(
+                                        onTap: () async {
+                                          await _favoriteAnimationController.forward();
+                                          await _favoriteAnimationController.reverse();
+                                          appState.toggleFavorite(currentTrack);
+                                        },
+                                        child: AnimatedBuilder(
+                                          animation: _favoriteScaleAnimation,
+                                          builder: (context, child) {
+                                            final isFavorite = appState.isFavorite(currentTrack.id);
+                                            return Transform.scale(
+                                              scale: _favoriteScaleAnimation.value,
+                                              child: Icon(
+                                                isFavorite
+                                                    ? CupertinoIcons.heart_fill
+                                                    : CupertinoIcons.heart,
+                                                color: isFavorite
+                                                    ? const Color(0xFFEC4899)
+                                                    : CupertinoColors.white.withOpacity(0.8),
+                                                size: 22,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      // Lyrics button
+                                      GestureDetector(
+                                        onTap: _hasLyrics == true
+                                            ? () {
+                                                _showLyricsOverlay(context, currentTrack);
+                                              }
+                                            : null,
+                                        child: Icon(
+                                          CupertinoIcons.text_quote,
+                                          color: _hasLyrics == true
+                                              ? CupertinoColors.white.withOpacity(0.8)
+                                              : CupertinoColors.white.withOpacity(0.3),
+                                          size: 22,
+                                        ),
+                                      ),
+                                      // More options button
+                                      GestureDetector(
+                                        onTap: () => _showMoreOptions(context, currentTrack, appState),
+                                        child: Icon(
+                                          CupertinoIcons.ellipsis,
+                                          color: CupertinoColors.white.withOpacity(0.8),
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                // Lyrics button
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: _hasLyrics == true
-                                      ? () {
-                                          _showLyricsOverlay(
-                                            context,
-                                            currentTrack,
-                                          );
-                                        }
-                                      : null,
-                                  child: Icon(
-                                    CupertinoIcons.text_quote,
-                                    color: _hasLyrics == true
-                                        ? const Color(0xFFFFFFFF)
-                                        : CupertinoColors.systemGrey2,
-                                    size: 24,
-                                  ),
-                                ),
-                                // More options button
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _showMoreOptions(
-                                    context,
-                                    currentTrack,
-                                    appState,
-                                  ),
-                                  child: const Icon(
-                                    CupertinoIcons.ellipsis,
-                                    color: Color(0xFFFFFFFF),
-                                    size: 24,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
 
-                          const SizedBox(height: 15),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ],
