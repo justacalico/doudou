@@ -226,135 +226,333 @@ class _SearchScreenState extends State<SearchScreen> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return CupertinoPageScaffold(
-          backgroundColor: const Color(0xFF000000), // Pure black for OLED
+          backgroundColor: const Color(0xFF000000),
           resizeToAvoidBottomInset: true,
-          child: SafeArea(
-            child: Column(
-              children: [
-                // Enhanced Search Header
-                Container(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        const Color(0xFF000000),
-                        const Color(0xFF000000).withOpacity(0.95),
-                      ],
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title with stats
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context).search,
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFFFFFFFF),
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${appState.tracks.length} songs • ${appState.albums.length} albums • ${appState.artists.length} artists',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: CupertinoColors.systemGrey
-                                        .withOpacity(0.8),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Search filters button (optional)
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1C1C1E).withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFF3C3C3E).withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.slider_horizontal_3,
-                              color: CupertinoColors.systemGrey,
-                              size: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Enhanced Search Bar
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFF1C1C1E).withOpacity(0.8),
-                              const Color(0xFF2C2C2E).withOpacity(0.6),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF3C3C3E).withOpacity(0.3),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF000000).withOpacity(0.2),
-                              offset: const Offset(0, 4),
-                              blurRadius: 12,
-                            ),
-                          ],
-                        ),
-                        child: CupertinoSearchTextField(
-                          controller: _searchController,
-                          placeholder: 'Search artists, albums, songs...',
-                          style: const TextStyle(
-                            color: Color(0xFFFFFFFF),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          placeholderStyle: TextStyle(
-                            color: CupertinoColors.systemGrey.withOpacity(0.6),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          backgroundColor: const Color(0x00000000),
-                          onChanged: (value) => _performSearch(value, appState),
-                          onSubmitted: (value) =>
-                              _performSearch(value, appState),
-                          autofocus: false,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+          child: Stack(
+            children: [
+              // Animated liquid glass background
+              _buildLiquidGlassBackground(),
+              
+              SafeArea(
+                child: Column(
+                  children: [
+                    // Liquid Glass Search Header
+                    _buildLiquidGlassHeader(appState),
+                    // Content area
+                    Expanded(child: _buildSearchContent(appState)),
+                  ],
                 ),
-                // Content area with enhanced design
-                Expanded(child: _buildSearchContent(appState)),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildLiquidGlassBackground() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // Base gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF0A0A0F),
+                  Color(0xFF1A1A2E),
+                  Color(0xFF0F0F1A),
+                ],
+              ),
+            ),
+          ),
+          // Floating orbs
+          Positioned(
+            top: -80,
+            left: -60,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF8B5CF6).withOpacity(0.25),
+                    const Color(0xFF8B5CF6).withOpacity(0.05),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 200,
+            right: -100,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFFEC4899).withOpacity(0.2),
+                    const Color(0xFFEC4899).withOpacity(0.03),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF06B6D4).withOpacity(0.15),
+                    const Color(0xFF06B6D4).withOpacity(0.02),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiquidGlassHeader(AppState appState) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withOpacity(0.08),
+                Colors.white.withOpacity(0.02),
+              ],
+            ),
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.white.withOpacity(0.1),
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title with animated gradient and stats
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [
+                              Color(0xFFFFFFFF),
+                              Color(0xFFE0E0E0),
+                            ],
+                          ).createShader(bounds),
+                          child: Text(
+                            AppLocalizations.of(context).search,
+                            style: const TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.8,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            _buildStatChip(
+                              '${appState.tracks.length}',
+                              'songs',
+                              const Color(0xFF8B5CF6),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildStatChip(
+                              '${appState.albums.length}',
+                              'albums',
+                              const Color(0xFFEC4899),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildStatChip(
+                              '${appState.artists.length}',
+                              'artists',
+                              const Color(0xFF06B6D4),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Filter button with liquid glass
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.15),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 0.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                          blurRadius: 12,
+                          spreadRadius: -2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      CupertinoIcons.slider_horizontal_3,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Liquid Glass Search Bar
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.12),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.15),
+                    width: 0.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(0, 8),
+                      blurRadius: 24,
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                      offset: const Offset(0, 4),
+                      blurRadius: 20,
+                      spreadRadius: -5,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: CupertinoSearchTextField(
+                      controller: _searchController,
+                      placeholder: 'Search artists, albums, songs...',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      placeholderStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      backgroundColor: Colors.transparent,
+                      onChanged: (value) => _performSearch(value, appState),
+                      onSubmitted: (value) => _performSearch(value, appState),
+                      autofocus: false,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      prefixIcon: ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                        ).createShader(bounds),
+                        child: const Icon(
+                          CupertinoIcons.search,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.2),
+            color.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: color.withOpacity(0.7),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
