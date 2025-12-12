@@ -218,10 +218,10 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
           child: Stack(
             children: [
               // Animated background with floating orbs
-              const Positioned.fill(
+              Positioned.fill(
                 child: FloatingColorOrbs(
                   orbCount: 4,
-                  colors: [
+                  colors: const [
                     Color(0xFF8B5CF6),
                     Color(0xFFEC4899),
                     Color(0xFF3B82F6),
@@ -391,7 +391,7 @@ class _HomeContentState extends State<HomeContent> with TickerProviderStateMixin
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: _buildLiquidGlassSectionHeader(
                           l10n.madeForYou, 
-                          CupertinoIcons.wand_and_stars,
+                          CupertinoIcons.sparkles,
                           CupertinoColors.systemTeal,
                         ),
                       ),
