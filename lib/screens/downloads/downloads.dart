@@ -806,105 +806,137 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () => _playTrack(track, appState),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              // Track artwork
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.12),
+                    Colors.white.withOpacity(0.04),
+                  ],
                 ),
-                child: track.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(
-                            track.imageUrl!,
-                            width: 100,
-                            height: 100,
-                          ),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorWidget: Container(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Track artwork with glow
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: track.imageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedImageWidget(
+                              imageUrl: appState.getImageUrl(
+                                track.imageUrl!,
+                                width: 100,
+                                height: 100,
+                              ),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorWidget: Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.music_note,
+                                  color: CupertinoColors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFF007AFF),
-                              borderRadius: BorderRadius.circular(8),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               CupertinoIcons.music_note,
-                              color: Color(0xFFFFFFFF),
+                              color: CupertinoColors.white,
                               size: 24,
                             ),
                           ),
-                        ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF007AFF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          CupertinoIcons.music_note,
-                          color: Color(0xFFFFFFFF),
-                          size: 24,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      track.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFFFFFFF),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      track.artistName ?? 'Unknown Artist',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.systemGrey2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-
-              // Download indicator if downloaded
-              if (appState.downloadService.isTrackDownloaded(track.id))
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: const Icon(
-                    CupertinoIcons.arrow_down_circle_fill,
-                    color: Color(0xFF30D158),
-                    size: 20,
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          track.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          track.artistName ?? 'Unknown Artist',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
 
-              // Chevron
-              const Icon(
-                CupertinoIcons.chevron_right,
-                color: CupertinoColors.systemGrey3,
-                size: 16,
+                  // Download indicator if downloaded
+                  if (appState.downloadService.isTrackDownloaded(track.id))
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        CupertinoIcons.checkmark_circle_fill,
+                        color: const Color(0xFF06B6D4),
+                        size: 20,
+                      ),
+                    ),
+
+                  // Chevron
+                  Icon(
+                    CupertinoIcons.chevron_right,
+                    color: Colors.white.withOpacity(0.4),
+                    size: 16,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -914,15 +946,15 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   Color _getStatusColor(DownloadStatus status) {
     switch (status) {
       case DownloadStatus.downloading:
-        return const Color(0xFF007AFF);
+        return const Color(0xFF06B6D4); // Cyan
       case DownloadStatus.downloaded:
-        return const Color(0xFF30D158);
+        return const Color(0xFF8B5CF6); // Purple
       case DownloadStatus.failed:
-        return const Color(0xFFFF453A);
+        return const Color(0xFFEC4899); // Pink
       case DownloadStatus.paused:
-        return const Color(0xFF8E8E93);
+        return Colors.white.withOpacity(0.5);
       case DownloadStatus.notDownloaded:
-        return const Color(0xFF8E8E93);
+        return Colors.white.withOpacity(0.3);
     }
   }
 
