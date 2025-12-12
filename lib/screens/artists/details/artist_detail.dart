@@ -381,9 +381,11 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                         child: Stack(
                           children: [
                             // Main content
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
                                 // Enhanced Artist Image with purple glow
                                 Container(
                                   width: 200,
