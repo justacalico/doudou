@@ -9,6 +9,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
 import 'widgets/apple_design/apple_theme.dart';
@@ -124,13 +125,12 @@ class DoudouApp extends StatelessWidget {
                 ),
               ),
               localizationsDelegates: const [
+                AppLocalizations.delegate,
                 DefaultMaterialLocalizations.delegate,
                 DefaultCupertinoLocalizations.delegate,
                 DefaultWidgetsLocalizations.delegate,
               ],
-              supportedLocales: const [
-                Locale('en', 'US'),
-              ],
+              supportedLocales: AppLocalizations.supportedLocales,
               home: Builder(
                 builder: (context) {
                   // Show loading screen while initializing
