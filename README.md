@@ -53,55 +53,23 @@ Stream your music collection from your own media server with a beautiful, modern
 
 ### Download Doudou
 
-Choose the easiest option for your platform:
+<div align="center">
 
-#### 📱 **Mobile & Tablets**
+### 🌐 **[Download for All Platforms](https://openlyst.onrender.com/apps/doudou)**
 
-**Android**
-- Install [RepStore](https://gitlab.com/HttpAnimations/repstore) → Search "Doudou" → Install
-- Or download APK from [releases](releases.md)
+Visit our download page to get Doudou for **Android**, **iOS**, **macOS**, **Windows**, **Linux**, and **Web**.
 
-**iPhone & iPad**
-- Install [AltStore](https://altstore.io/)
-- Add repository: `https://gitlab.com/Openlyst/repos/altstore/-/raw/main/altstore.json`
-- Install Doudou from AltStore
+</div>
 
-#### 💻 **Desktop**
+#### 🐳 **Self-Host the Web Version**
 
-**macOS**
-```bash
-brew tap Openlyst/macos https://gitlab.com/Openlyst/repos/homebrew/macos.git
-brew install --cask doudou
-```
-
-**Windows & Linux**
-- Download from [GitLab Releases](https://gitlab.com/Openlyst/doudou/-/releases)
-
-#### 🌐 **Web Version (Docker)**
-
-For easy web deployment, use our pre-built Docker image:
+Want to run Doudou on your own server? Use our Docker image:
 
 ```bash
-# Quick start - run on port 34273
 docker run -d -p 34273:34273 --name doudou-web httpanimations/doudou:latest
-
-# Access at http://localhost:34273
 ```
 
-**With Docker Compose:**
-```bash
-# Download docker-compose.yml from the repository
-curl -O https://raw.githubusercontent.com/HttpAnimations/doudou/main/docker-compose.yml
-docker-compose up -d
-```
-
-**Benefits of the web version:**
-- ✅ No installation needed - runs in any modern browser
-- ✅ Works on any device with a web browser
-- ✅ Easy to deploy on your server alongside Jellyfin/Plex
-- ✅ Automatic updates by pulling the latest Docker image
-
-See [DOCKER.md](DOCKER.md) for detailed deployment instructions.
+See [DOCKER.md](docs/DOCKER.md) for detailed deployment instructions.
 
 ### Connect to Your Server
 
