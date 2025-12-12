@@ -1048,55 +1048,6 @@ class _SearchScreenState extends State<SearchScreen> {
     ];
     return colors[index % colors.length];
   }
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            search,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFFFFFFFF),
-                            ),
-                          ),
-                        ),
-                        // Individual delete button
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _recentSearches.removeAt(index);
-                            });
-                            SharedPreferences.getInstance().then((prefs) {
-                              prefs.setStringList(
-                                'recent_searches',
-                                _recentSearches,
-                              );
-                            });
-                          },
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1C1C1E).withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.xmark,
-                              color: CupertinoColors.systemGrey2,
-                              size: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildUnifiedResults(AppState appState) {
     List<Widget> allResults = [];
