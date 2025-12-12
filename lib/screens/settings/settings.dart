@@ -1,10 +1,14 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/app_state.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/apple_design/liquid_glass.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
@@ -76,31 +80,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFF000000), // Pure black for OLED
-      child: SafeArea(
-        child: Consumer<AppState>(
-          builder: (context, appState, child) {
-            return CustomScrollView(
-              slivers: [
-                // Custom header for iOS-style left-aligned title
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
-                    child: Row(
-                      children: [
-                        Text(
-                          AppLocalizations.of(context).settings,
-                          style: const TextStyle(
-                            color: Color(0xFFFFFFFF),
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
+    return LiquidGradientBackground(
+      child: CupertinoPageScaffold(
+        backgroundColor: Colors.transparent,
+        child: SafeArea(
+          child: Consumer<AppState>(
+            builder: (context, appState, child) {
+              return CustomScrollView(
+                slivers: [
+                  // Custom header for iOS-style left-aligned title with glass effect
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).settings,
+                            style: const TextStyle(
+                              color: Color(0xFFFFFFFF),
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 // Account Information Section
                 const SliverToBoxAdapter(child: AccountInformationSection()),
 
@@ -117,42 +122,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E),
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          AppLocalizations.of(context).playerInterface,
-                        ),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.rectangle_3_offgrid,
-                          title: AppLocalizations.of(context).dynamicIslePlayer,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          ).useModernFloatingPlayer,
-                          value: appState.useDynamicIsle,
-                          onChanged: (value) =>
-                              appState.toggleDynamicIsle(value),
-                        ),
-                        // VR Mode button (mobile only)
-                        if (!kIsWeb &&
-                            (defaultTargetPlatform == TargetPlatform.android ||
-                                defaultTargetPlatform == TargetPlatform.iOS))
-                          _buildSettingTile(
-                            icon: CupertinoIcons.viewfinder,
-                            title: AppLocalizations.of(context).vrMode,
-                            subtitle: AppLocalizations.of(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.12),
+                                Colors.white.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildSectionHeader(
+                                AppLocalizations.of(context).playerInterface,
+                              ),
+                              _buildSwitchTile(
+                                icon: CupertinoIcons.rectangle_3_offgrid,
+                                title: AppLocalizations.of(context).dynamicIslePlayer,
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).useModernFloatingPlayer,
+                                value: appState.useDynamicIsle,
+                                onChanged: (value) =>
+                                    appState.toggleDynamicIsle(value),
+                              ),
+                              // VR Mode button (mobile only)
+                              if (!kIsWeb &&
+                                  (defaultTargetPlatform == TargetPlatform.android ||
+                                      defaultTargetPlatform == TargetPlatform.iOS))
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.viewfinder,
+                                  title: AppLocalizations.of(context).vrMode,
+                                  subtitle: AppLocalizations.of(
                               context,
                             ).launchVRPlayer,
                             onTap: () => _launchVRMode(context),
                           ),
-                      ],
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -164,42 +182,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    decoration: BoxDecoration(
-                      color: const Color(
-                        0xFF1C1C1E,
-                      ), // Dark gray background instead of pure black
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.12),
+                                Colors.white.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildSectionHeader(
+                                AppLocalizations.of(context).storageAndCache,
+                              ),
+                              _buildSettingTile(
+                                icon: CupertinoIcons.folder,
+                                title: AppLocalizations.of(context).cacheSize,
+                                subtitle: _cacheSize,
+                                onTap: () => _showCacheDialog(context),
+                              ),
+                              _buildSettingTile(
+                                icon: CupertinoIcons.trash,
+                                title: AppLocalizations.of(context).clearCacheOptions,
+                                subtitle: AppLocalizations.of(context).freeUpStorage,
+                                onTap: () => _showClearCacheDialog(context),
+                              ),
+                              _buildSettingTile(
+                                icon: CupertinoIcons.refresh,
+                                title: AppLocalizations.of(context).cleanExpiredCache,
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).removeOldCachedData,
+                                onTap: () => _cleanExpiredCache(context),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          AppLocalizations.of(context).storageAndCache,
-                        ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.folder,
-                          title: AppLocalizations.of(context).cacheSize,
-                          subtitle: _cacheSize,
-                          onTap: () => _showCacheDialog(context),
-                        ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.trash,
-                          title: AppLocalizations.of(context).clearCacheOptions,
-                          subtitle: AppLocalizations.of(context).freeUpStorage,
-                          onTap: () => _showClearCacheDialog(context),
-                        ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.refresh,
-                          title: AppLocalizations.of(context).cleanExpiredCache,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          ).removeOldCachedData,
-                          onTap: () => _cleanExpiredCache(context),
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -213,42 +242,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E),
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2C2C2E),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          AppLocalizations.of(context).logsAndDiagnostics,
-                        ),
-                        _buildSwitchTile(
-                          icon: CupertinoIcons.doc_text,
-                          title: AppLocalizations.of(context).enableLogging,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          ).recordAppActivity,
-                          value: appState.loggingEnabled,
-                          onChanged: (value) => appState.toggleLogging(value),
-                        ),
-                        _buildSettingTile(
-                          icon: CupertinoIcons.doc_text_viewfinder,
-                          title: AppLocalizations.of(
-                            context,
-                          ).viewApplicationLogs,
-                          subtitle: AppLocalizations.of(context).viewExportLogs,
-                          onTap: () => Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) => const LogsViewerScreen(),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.12),
+                                Colors.white.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
                             ),
                           ),
+                          child: Column(
+                            children: [
+                              _buildSectionHeader(
+                                AppLocalizations.of(context).logsAndDiagnostics,
+                              ),
+                              _buildSwitchTile(
+                                icon: CupertinoIcons.doc_text,
+                                title: AppLocalizations.of(context).enableLogging,
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).recordAppActivity,
+                                value: appState.loggingEnabled,
+                                onChanged: (value) => appState.toggleLogging(value),
+                              ),
+                              _buildSettingTile(
+                                icon: CupertinoIcons.doc_text_viewfinder,
+                                title: AppLocalizations.of(
+                                  context,
+                                ).viewApplicationLogs,
+                                subtitle: AppLocalizations.of(context).viewExportLogs,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => const LogsViewerScreen(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -432,6 +474,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
         ),
       ),
+    ),
     );
   }
 
