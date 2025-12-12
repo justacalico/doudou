@@ -1932,50 +1932,47 @@ class _HomeScreenState extends State<HomeScreen> {
           left: 0,
           right: 0,
           bottom: bottomPadding,
-          child: IgnorePointer(
-            ignoring: false,
-            child: LiquidGlassNavBar(
-              currentIndex: _tabController.index,
-              onTap: (index) {
-                setState(() {
-                  if (_tabController.index == index) {
-                    // Double tap - reload tab
-                    _reloadCurrentTab(index);
-                  } else {
-                    _tabController.index = index;
-                    _previousIndex = index;
-                  }
-                });
-              },
-              items: [
-                LiquidGlassNavItem(
-                  icon: CupertinoIcons.house,
-                  activeIcon: CupertinoIcons.house_fill,
-                  label: l10n.navHome,
-                ),
-                LiquidGlassNavItem(
-                  icon: CupertinoIcons.music_note_list,
-                  activeIcon: CupertinoIcons.music_note_list,
-                  label: l10n.navLibrary,
-                ),
-                LiquidGlassNavItem(
-                  icon: CupertinoIcons.arrow_down_circle,
-                  activeIcon: CupertinoIcons.arrow_down_circle_fill,
-                  label: l10n.navDownloads,
-                ),
-                LiquidGlassNavItem(
-                  icon: CupertinoIcons.search,
-                  activeIcon: CupertinoIcons.search,
-                  label: l10n.navSearch,
-                ),
-                LiquidGlassNavItem(
-                  icon: CupertinoIcons.gear,
-                  activeIcon: CupertinoIcons.gear_solid,
-                  label: l10n.navSettings,
-                ),
-              ],
-              accentColor: AppleColors.systemPink,
-            ),
+          child: LiquidGlassNavBar(
+            currentIndex: _tabController.index,
+            onTap: (index) {
+              setState(() {
+                if (_tabController.index == index) {
+                  // Double tap - reload tab
+                  _reloadCurrentTab(index);
+                } else {
+                  _tabController.index = index;
+                  _previousIndex = index;
+                }
+              });
+            },
+            items: [
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.house,
+                activeIcon: CupertinoIcons.house_fill,
+                label: l10n.navHome,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.music_note_list,
+                activeIcon: CupertinoIcons.music_note_list,
+                label: l10n.navLibrary,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.arrow_down_circle,
+                activeIcon: CupertinoIcons.arrow_down_circle_fill,
+                label: l10n.navDownloads,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.search,
+                activeIcon: CupertinoIcons.search,
+                label: l10n.navSearch,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.gear,
+                activeIcon: CupertinoIcons.gear_solid,
+                label: l10n.navSettings,
+              ),
+            ],
+            accentColor: AppleColors.systemPink,
           ),
         ),
       ],
