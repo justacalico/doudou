@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import 'dart:ui';
+import 'dart:math' as math;
 import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 
@@ -24,22 +25,36 @@ class _LoginScreenState extends State<LoginScreen>
   final _plexTokenController = TextEditingController();
   
   String _selectedServerType = 'jellyfin';
+  bool _isPasswordVisible = false;
+  int _currentStep = 0; // 0 = server selection, 1 = credentials
+  
   late AnimationController _animationController;
+  late AnimationController _backgroundController;
+  late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+    _backgroundController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    )..repeat();
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+    
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOutCubic,
     ));
     _animationController.forward();
     
@@ -50,6 +65,8 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _backgroundController.dispose();
+    _pulseController.dispose();
     _serverController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
