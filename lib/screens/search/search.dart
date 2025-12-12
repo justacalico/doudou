@@ -1145,23 +1145,36 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSectionHeader(String title, int count, IconData icon) {
+    Color accentColor;
+    if (title == 'Artists') {
+      accentColor = const Color(0xFF8B5CF6);
+    } else if (title == 'Albums') {
+      accentColor = const Color(0xFFEC4899);
+    } else {
+      accentColor = const Color(0xFF06B6D4);
+    }
+    
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 16, top: 8),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF007AFF).withOpacity(0.15),
-                  const Color(0xFF5856D6).withOpacity(0.1),
+                  accentColor.withOpacity(0.25),
+                  accentColor.withOpacity(0.1),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: accentColor.withOpacity(0.3),
+                width: 0.5,
+              ),
             ),
-            child: Icon(icon, color: const Color(0xFF007AFF), size: 16),
+            child: Icon(icon, color: accentColor, size: 18),
           ),
           const SizedBox(width: 12),
           Text(
@@ -1169,15 +1182,39 @@ class _SearchScreenState extends State<SearchScreen> {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: CupertinoColors.white,
+              color: Color(0xFFFFFFFF),
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFF007AFF).withOpacity(0.15),
+              gradient: LinearGradient(
+                colors: [
+                  accentColor.withOpacity(0.2),
+                  accentColor.withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: accentColor.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+            child: Text(
+              count.toString(),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: accentColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
