@@ -763,6 +763,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
               ),
             ],
           ),
+        ),
         );
       },
     );
