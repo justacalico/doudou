@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
-import 'dart:ui';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
