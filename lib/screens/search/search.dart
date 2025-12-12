@@ -563,8 +563,38 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     if (_isSearching) {
-      return const Center(
-        child: CupertinoActivityIndicator(color: Color(0xFFFFFFFF)),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF8B5CF6).withOpacity(0.2),
+                    const Color(0xFFEC4899).withOpacity(0.2),
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const CupertinoActivityIndicator(
+                color: Color(0xFFFFFFFF),
+                radius: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Searching...',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -580,17 +610,44 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              CupertinoIcons.search,
-              size: 64,
-              color: CupertinoColors.systemGrey2,
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.1),
+                    Colors.white.withOpacity(0.05),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.15),
+                  width: 0.5,
+                ),
+              ),
+              child: Icon(
+                CupertinoIcons.search,
+                size: 44,
+                color: Colors.white.withOpacity(0.4),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               AppLocalizations.of(context).noResultsFor(_searchQuery),
-              style: const TextStyle(
-                fontSize: 18,
-                color: CupertinoColors.systemGrey2,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try a different search term',
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white.withOpacity(0.4),
               ),
             ),
           ],
@@ -610,43 +667,62 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             const SizedBox(height: 60),
 
-            // Enhanced empty state
+            // Liquid Glass empty state icon
             Container(
-              width: 120,
-              height: 120,
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF007AFF).withOpacity(0.15),
-                    const Color(0xFF5856D6).withOpacity(0.1),
+                    const Color(0xFF8B5CF6).withOpacity(0.2),
+                    const Color(0xFFEC4899).withOpacity(0.15),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(60),
+                borderRadius: BorderRadius.circular(70),
                 border: Border.all(
-                  color: const Color(0xFF007AFF).withOpacity(0.2),
-                  width: 2,
+                  color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                    blurRadius: 40,
+                    spreadRadius: -10,
+                  ),
+                ],
+              ),
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                ).createShader(bounds),
+                child: const Icon(
+                  CupertinoIcons.search,
+                  size: 64,
+                  color: Color(0xFFFFFFFF),
                 ),
               ),
-              child: const Icon(
-                CupertinoIcons.search,
-                size: 56,
-                color: Color(0xFF007AFF),
+            ),
+
+            const SizedBox(height: 28),
+
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFE0E0E0)],
+              ).createShader(bounds),
+              child: Text(
+                AppLocalizations.of(context).discoverYourMusic,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFFFFFFF),
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
 
-            const SizedBox(height: 24),
-
-            Text(
-              AppLocalizations.of(context).discoverYourMusic,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: CupertinoColors.white,
-                letterSpacing: -0.5,
-              ),
-            ),
-
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
             Text(
               AppLocalizations.of(context).searchDescription,
