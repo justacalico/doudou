@@ -726,103 +726,117 @@ class _SearchScreenState extends State<SearchScreen> {
 
             Text(
               AppLocalizations.of(context).searchDescription,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: CupertinoColors.systemGrey,
+                color: Colors.white.withOpacity(0.5),
                 fontWeight: FontWeight.w500,
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 36),
 
-            // Popular suggestions with enhanced design
+            // Popular suggestions with liquid glass design
             if (appState.artists.isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF1C1C1E).withOpacity(0.8),
-                      const Color(0xFF2C2C2E).withOpacity(0.6),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFF3C3C3E).withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.1),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.15),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          CupertinoIcons.sparkles,
-                          color: Color(0xFFFF9F0A),
-                          size: 20,
+                        Row(
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [Color(0xFFFFD60A), Color(0xFFFF9F0A)],
+                              ).createShader(bounds),
+                              child: const Icon(
+                                CupertinoIcons.sparkles,
+                                color: Color(0xFFFFFFFF),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Popular in your library',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFFFFFFF),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Popular in your library',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: CupertinoColors.white,
-                          ),
+
+                        const SizedBox(height: 18),
+
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: appState.artists
+                              .take(6)
+                              .toList()
+                              .asMap()
+                              .entries
+                              .map(
+                                (entry) => GestureDetector(
+                                  onTap: () {
+                                    _searchController.text = entry.value.name;
+                                    _performSearch(entry.value.name, appState);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          _getChipColor(entry.key).withOpacity(0.25),
+                                          _getChipColor(entry.key).withOpacity(0.1),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: _getChipColor(entry.key).withOpacity(0.4),
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      entry.value.name,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: _getChipColor(entry.key),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 16),
-
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: appState.artists
-                          .take(6)
-                          .map(
-                            (artist) => GestureDetector(
-                              onTap: () {
-                                _searchController.text = artist.name;
-                                _performSearch(artist.name, appState);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(0xFF007AFF).withOpacity(0.15),
-                                      const Color(0xFF5856D6).withOpacity(0.1),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: const Color(
-                                      0xFF007AFF,
-                                    ).withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  artist.name,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: CupertinoColors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -834,40 +848,82 @@ class _SearchScreenState extends State<SearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Enhanced section header
-        Container(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+        // Liquid glass section header
+        ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.05),
+                    Colors.white.withOpacity(0.02),
+                  ],
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(
-                    CupertinoIcons.clock,
-                    color: Color(0xFF007AFF),
-                    size: 20,
+                  Row(
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                        ).createShader(bounds),
+                        child: const Icon(
+                          CupertinoIcons.clock,
+                          color: Color(0xFFFFFFFF),
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Recent searches',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFFFFFFF),
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Recent searches',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.white,
-                      letterSpacing: -0.3,
+                  GestureDetector(
+                    onTap: _clearRecentSearches,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFFFF453A).withOpacity(0.2),
+                            const Color(0xFFFF453A).withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFF453A).withOpacity(0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: const Text(
+                        'Clear',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFFF453A),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              GestureDetector(
-                onTap: _clearRecentSearches,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1C1C1E).withOpacity(0.8),
+            ),
+          ),
+        ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: const Color(0xFF3C3C3E).withOpacity(0.3),
