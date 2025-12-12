@@ -1419,22 +1419,28 @@ class _SearchScreenState extends State<SearchScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF8E4EC6),
+                              color: Color(0xFF8B5CF6),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const Icon(
-                CupertinoIcons.chevron_right,
-                color: CupertinoColors.systemGrey2,
-                size: 16,
+                  // Chevron with gradient
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                    ).createShader(bounds),
+                    child: const Icon(
+                      CupertinoIcons.chevron_right,
+                      color: Color(0xFFFFFFFF),
+                      size: 18,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1443,7 +1449,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildUnifiedAlbumItem(Album album, AppState appState) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -1453,51 +1459,60 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           );
         },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF1C1C1E).withOpacity(0.6),
-                const Color(0xFF2C2C2E).withOpacity(0.4),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF3C3C3E).withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              // Enhanced album artwork
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF30D158).withOpacity(0.8),
-                      const Color(0xFF32ADE6).withOpacity(0.6),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF30D158).withOpacity(0.3),
-                      offset: const Offset(0, 4),
-                      blurRadius: 12,
-                    ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.08),
+                    Colors.white.withOpacity(0.03),
                   ],
                 ),
-                child: album.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: CachedImageWidget(
-                          imageUrl: appState.getImageUrl(
-                            album.imageUrl!,
-                            width: 112,
-                            height: 112,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 0.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Album artwork with gradient glow
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFEC4899).withOpacity(0.8),
+                          const Color(0xFF8B5CF6).withOpacity(0.6),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFEC4899).withOpacity(0.4),
+                          offset: const Offset(0, 4),
+                          blurRadius: 16,
+                          spreadRadius: -2,
+                        ),
+                      ],
+                    ),
+                    child: album.imageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedImageWidget(
+                              imageUrl: appState.getImageUrl(
+                                album.imageUrl!,
+                                width: 112,
+                                height: 112,
                           ),
                           width: 56,
                           height: 56,
