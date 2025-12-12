@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Colors;
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'dart:ui';
@@ -16,6 +15,7 @@ import '../../downloads/downloads.dart';
 import '../player/mini_player.dart';
 import '../../../widgets/isle.dart';
 import '../../../widgets/apple_design/apple_theme.dart';
+import '../../../widgets/apple_design/liquid_glass.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1901,6 +1901,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMobileLayout(AppState appState) {
+    final l10n = AppLocalizations.of(context);
+    
     return Stack(
       children: [
         // Main content without tab scaffold
@@ -1919,110 +1921,55 @@ class _HomeScreenState extends State<HomeScreen> {
         if (appState.useDynamicIsle)
           const DynamicIsle(),
 
-        // Apple-style glassmorphism tab bar positioned at the bottom
+        // iOS 26-style liquid glass tab bar positioned at the bottom
         Positioned(
           left: 0,
           right: 0,
-          bottom: 0,
-          child: Container(
-            padding: EdgeInsets.only(
-              left: AppleDesignSystem.spacing16,
-              right: AppleDesignSystem.spacing16,
-              bottom: MediaQuery.of(context).padding.bottom + AppleDesignSystem.spacing8,
-              top: AppleDesignSystem.spacing8,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: AppleDesignSystem.blurRegular,
-                  sigmaY: AppleDesignSystem.blurRegular,
-                ),
-                child: Container(
-                  height: 65,
-                  decoration: BoxDecoration(
-                    // Apple glassmorphism effect
-                    color: AppleColors.glassDark,
-                    borderRadius: BorderRadius.circular(AppleDesignSystem.radiusLarge),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 0.5,
-                    ),
-                    // Enhanced shadow for floating effect
-                    boxShadow: AppleDesignSystem.shadowLarge(Colors.black),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildAppleTabBarItem(0, CupertinoIcons.house_fill, appState),
-                      _buildAppleTabBarItem(1, CupertinoIcons.music_note_list, appState),
-                      _buildAppleTabBarItem(2, CupertinoIcons.arrow_down_circle, appState),
-                      _buildAppleTabBarItem(3, CupertinoIcons.search, appState),
-                      _buildAppleTabBarItem(4, CupertinoIcons.settings, appState),
-                    ],
-                  ),
-                ),
+          bottom: MediaQuery.of(context).padding.bottom,
+          child: LiquidGlassNavBar(
+            currentIndex: _tabController.index,
+            onTap: (index) {
+              setState(() {
+                if (_tabController.index == index) {
+                  // Double tap - reload tab
+                  _reloadCurrentTab(index);
+                } else {
+                  _tabController.index = index;
+                  _previousIndex = index;
+                }
+              });
+            },
+            items: [
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.house,
+                activeIcon: CupertinoIcons.house_fill,
+                label: l10n.navHome,
               ),
-            ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.music_note_list,
+                activeIcon: CupertinoIcons.music_note_list,
+                label: l10n.navLibrary,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.arrow_down_circle,
+                activeIcon: CupertinoIcons.arrow_down_circle_fill,
+                label: l10n.navDownloads,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.search,
+                activeIcon: CupertinoIcons.search,
+                label: l10n.navSearch,
+              ),
+              LiquidGlassNavItem(
+                icon: CupertinoIcons.gear,
+                activeIcon: CupertinoIcons.gear_solid,
+                label: l10n.navSettings,
+              ),
+            ],
+            accentColor: AppleColors.systemPink,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAppleTabBarItem(int index, IconData icon, AppState appState) {
-    final isActive = _tabController.index == index;
-    final primaryColor = CupertinoColors.systemPurple;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            if (_tabController.index == index) {
-              // Double tap - reload tab
-              _reloadCurrentTab(index);
-            } else {
-              _tabController.index = index;
-              _previousIndex = index;
-            }
-          });
-        },
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: AppleDesignSystem.durationFast,
-          curve: AppleDesignSystem.springCurve,
-          height: 65,
-          alignment: Alignment.center,
-          child: AnimatedScale(
-            scale: isActive ? 1.0 : 0.9,
-            duration: AppleDesignSystem.durationFast,
-            curve: AppleDesignSystem.springCurve,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: isActive 
-                      ? primaryColor 
-                      : AppleColors.labelSecondaryDark,
-                ),
-                const SizedBox(height: 4),
-                AnimatedContainer(
-                  duration: AppleDesignSystem.durationFast,
-                  width: isActive ? 5 : 0,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
