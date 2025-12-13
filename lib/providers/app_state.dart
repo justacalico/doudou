@@ -334,10 +334,32 @@ class AppState extends ChangeNotifier {
           // Server is unreachable, but we have credentials - check for offline capability
           if (await _hasDownloadedContent() && serverType == 'jellyfin') {
             // Offline mode only supported for Jellyfin currently
-            // Convert credentials back to JellyfinServer for offline mode
-            final serverData = jsonDecode(credential);
-            final server = JellyfinServer.fromJson(serverData);
-            _jellyfinService.setJellyfinServer(server);
+            // Set up server for offline mode using available credentials
+            JellyfinServer? server;
+            
+            if (authMethod == 'api_key' && credentials['apiKey'] != null) {
+              // API key auth - create minimal server config
+              server = JellyfinServer(
+                serverUrl: serverUrl,
+                accessToken: credentials['apiKey'],
+                apiKey: credentials['apiKey'],
+              );
+            } else if (credentials['credential'] != null) {
+              // Username/password auth - try to parse legacy format
+              try {
+                final serverData = jsonDecode(credentials['credential']!);
+                server = JellyfinServer.fromJson(serverData);
+              } catch (_) {
+                // Not JSON, just create basic server
+                server = JellyfinServer(
+                  serverUrl: serverUrl,
+                  username: credentials['identifier'],
+                );
+              }
+            }
+            
+            if (server != null) {
+              _jellyfinService.setJellyfinServer(server);
 
             // Enter offline mode with saved credentials
             _isLoggedIn = true;
