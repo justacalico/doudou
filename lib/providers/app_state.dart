@@ -654,6 +654,104 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Login to Jellyfin using an API key instead of username/password
+  Future<bool> loginWithApiKey(String serverUrl, String apiKey) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Ensure serverUrl has protocol
+      if (!serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
+        serverUrl = 'http://$serverUrl';
+      }
+
+      // Initialize Jellyfin service
+      _mediaServiceManager.initializeService(ServerType.jellyfin);
+
+      final success = await _jellyfinService.authenticateWithApiKey(serverUrl, apiKey);
+
+      if (success) {
+        if (kDebugMode) {
+          print('AppState: API key authentication success for Jellyfin');
+        }
+
+        _isLoggedIn = true;
+
+        // Initialize cache service
+        await _cacheService.initialize();
+
+        // Initialize new audio system with automatic platform detection
+        try {
+          final audioService = AudioServiceIntegration.instance;
+          await audioService.initialize(_mediaServiceManager);
+          _audioHandler = audioService;
+
+          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+          _setupAudioHandlerListeners();
+
+          if (kDebugMode) {
+            print('Audio system initialized for Jellyfin API key auth');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to initialize audio system: $e');
+          }
+          _audioHandler = null;
+        }
+
+        await _saveServerType('jellyfin');
+        await _saveApiKeyCredentials(serverUrl, apiKey);
+        await _saveServer();
+
+        // Load library data
+        try {
+          await loadLibraryData();
+        } catch (e) {
+          if (kDebugMode) {
+            print('Exception during library loading: $e');
+          }
+        }
+
+        _setLoading(false);
+        notifyListeners();
+        return true;
+      } else {
+        _setError('API key authentication failed. Please check your API key.');
+        _setLoading(false);
+        return false;
+      }
+    } catch (e) {
+      String errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (e.toString().toLowerCase().contains('timeout')) {
+        errorMessage = 'Connection timeout. Please check your network and server availability.';
+      } else if (e.toString().toLowerCase().contains('certificate')) {
+        errorMessage = 'SSL certificate error. Please check your server configuration.';
+      }
+
+      _setError(errorMessage);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Save API key credentials
+  Future<void> _saveApiKeyCredentials(String serverUrl, String apiKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('server_type', 'jellyfin');
+    await prefs.setString('server_url', serverUrl);
+    await prefs.setString('server_api_key', apiKey);
+    await prefs.setString('auth_method', 'api_key');
+    
+    // Clear any old username/password credentials
+    await prefs.remove('server_identifier');
+    await prefs.remove('server_credential');
+
+    if (kDebugMode) {
+      print('AppState: Saved API key credentials for Jellyfin at $serverUrl');
+    }
+  }
+
   Future<bool> loginWithServerType(
     String serverType,
     String serverUrl,
