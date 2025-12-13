@@ -201,12 +201,11 @@ class AppState extends ChangeNotifier {
       if (credentials != null) {
         final serverType = credentials['serverType']!;
         final serverUrl = credentials['serverUrl']!;
-        final identifier = credentials['identifier']!;
-        final credential = credentials['credential']!;
+        final authMethod = credentials['authMethod'] ?? 'password';
 
         if (kDebugMode) {
           print(
-            'AppState: Found saved credentials for $serverType server at $serverUrl',
+            'AppState: Found saved credentials for $serverType server at $serverUrl (auth: $authMethod)',
           );
         }
 
@@ -228,9 +227,21 @@ class AppState extends ChangeNotifier {
 
         // Test the connection with saved credentials
         try {
-          final isValid = await _mediaServiceManager
-              .authenticate(serverUrl, identifier, credential)
-              .timeout(const Duration(seconds: 10));
+          bool isValid = false;
+          
+          if (authMethod == 'api_key' && credentials['apiKey'] != null) {
+            // API key authentication
+            isValid = await _jellyfinService
+                .authenticateWithApiKey(serverUrl, credentials['apiKey']!)
+                .timeout(const Duration(seconds: 10));
+          } else {
+            // Username/password authentication
+            final identifier = credentials['identifier']!;
+            final credential = credentials['credential']!;
+            isValid = await _mediaServiceManager
+                .authenticate(serverUrl, identifier, credential)
+                .timeout(const Duration(seconds: 10));
+          }
 
           if (isValid) {
             if (kDebugMode) {
