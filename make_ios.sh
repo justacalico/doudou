@@ -27,28 +27,42 @@ flutter clean
 flutter pub get
 
 # --- 3. Build the IPA ---
-# This command builds the app, sets the version/build number, and creates the .ipa in a default location.
-# You will need an ExportOptions.plist file in your 'ios' directory for this to work smoothly.
-flutter build ipa --release \
+# Build without codesigning for AltStore/sideloading
+# AltStore will handle the signing when installing
+flutter build ios --release \
   --build-name="$VERSION_NAME" \
-  --build-number="$VERSION_NUMBER"
+  --build-number="$VERSION_NUMBER" \
+  --no-codesign
 
-# --- 4. Create 'dist' folder if needed and Move the IPA ---
+# --- 4. Create the IPA manually from the .app bundle ---
+echo "Creating unsigned IPA for AltStore..."
 
-# The flutter build ipa command creates the .ipa in 'build/ios/ipa'
-BUILD_PATH="./build/ios/ipa/*.ipa"
+APP_PATH="./build/ios/iphoneos/Runner.app"
 
+if [ ! -d "$APP_PATH" ]; then
+    echo "Error: Could not find the built .app at $APP_PATH"
+    exit 1
+fi
+
+# Create Payload directory structure
+PAYLOAD_DIR="./build/ios/Payload"
+rm -rf "$PAYLOAD_DIR"
+mkdir -p "$PAYLOAD_DIR"
+
+# Copy the .app to Payload
+cp -r "$APP_PATH" "$PAYLOAD_DIR/"
+
+# Create 'dist' folder if needed
 echo "Creating folder: $DIST_DIR"
 mkdir -p "$DIST_DIR"
 
-echo "Moving IPA to $DIST_DIR with new name: $IPA_FILENAME"
-# Find the .ipa file created by Flutter and rename/move it
-IPA_FILE_PATH=$(find ./build/ios/ipa/ -name "*.ipa" -print -quit)
+# Create the IPA (it's just a zip file with .ipa extension)
+cd "./build/ios"
+zip -r -q "../../$DIST_DIR/$IPA_FILENAME" "Payload"
+cd "../.."
 
-if [ -f "$IPA_FILE_PATH" ]; then
-    mv "$IPA_FILE_PATH" "./$DIST_DIR/$IPA_FILENAME"
-    echo "Success! IPA is here: $DIST_DIR/$IPA_FILENAME"
-else
-    echo "Error: Could not find the built IPA file in $BUILD_PATH"
-    exit 1
-fi
+# Clean up
+rm -rf "$PAYLOAD_DIR"
+
+echo "Success! Unsigned IPA is here: $DIST_DIR/$IPA_FILENAME"
+echo "You can now install this IPA using AltStore or Sideloadly."
