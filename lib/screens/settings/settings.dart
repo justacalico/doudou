@@ -1024,21 +1024,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showSupportDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    showCupertinoDialog(
-      context: context,
-      builder: (BuildContext context) => CupertinoAlertDialog(
-        title: Text(l10n.supportDevelopment),
-        content: Text(l10n.supportMessage),
-        actions: <CupertinoDialogAction>[
-          CupertinoDialogAction(
-            child: Text(l10n.ok),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
+  void _showSupportDialog(BuildContext context) async {
+    final url = Uri.parse('https://communistparty.ie/en/');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<void> _refreshLibraryData(
