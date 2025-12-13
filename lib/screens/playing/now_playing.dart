@@ -119,7 +119,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           stream: appState.currentTrackStream,
           builder: (context, currentTrackSnapshot) {
             // Get current track from the stream or fallback to direct access
-            final currentTrack = currentTrackSnapshot.data ?? audioHandler?.currentTrack;
+            final currentTrack =
+                currentTrackSnapshot.data ?? audioHandler?.currentTrack;
 
             // Check lyrics availability when track changes
             if (currentTrack != null && currentTrack.artistName != null) {
@@ -157,689 +158,926 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
             }
 
             return Scaffold(
-          backgroundColor: const Color(0xFF000000),
-          body: Stack(
-            children: [
-              // Blurred background with animated gradient
-              if (currentTrack.imageUrl != null)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          appState.getImageUrl(
-                            currentTrack.imageUrl!,
-                            width: 800,
-                            height: 800,
-                          ),
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: StreamBuilder<PlayerState>(
-                      stream: appState.playerStateStream,
-                      builder: (context, snapshot) {
-                        final isPlaying = snapshot.data?.playing == true;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 500),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: isPlaying ? 40 : 25,
-                              sigmaY: isPlaying ? 40 : 25,
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(isPlaying ? 0.3 : 0.5),
-                                    Colors.black.withOpacity(isPlaying ? 0.6 : 0.8),
-                                  ],
-                                ),
+              backgroundColor: const Color(0xFF000000),
+              body: Stack(
+                children: [
+                  // Blurred background with animated gradient
+                  if (currentTrack.imageUrl != null)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              appState.getImageUrl(
+                                currentTrack.imageUrl!,
+                                width: 800,
+                                height: 800,
                               ),
                             ),
+                            fit: BoxFit.cover,
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              // Content
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Column(
-                    children: [
-                      // Top bar with liquid glass style
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Liquid glass close button
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: CupertinoColors.white.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: CupertinoColors.white.withOpacity(0.2),
-                                        width: 0.5,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      CupertinoIcons.chevron_down,
-                                      color: CupertinoColors.white,
-                                      size: 22,
+                        child: StreamBuilder<PlayerState>(
+                          stream: appState.playerStateStream,
+                          builder: (context, snapshot) {
+                            final isPlaying = snapshot.data?.playing == true;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: isPlaying ? 40 : 25,
+                                  sigmaY: isPlaying ? 40 : 25,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black.withOpacity(
+                                          isPlaying ? 0.3 : 0.5,
+                                        ),
+                                        Colors.black.withOpacity(
+                                          isPlaying ? 0.6 : 0.8,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  // Content
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      child: Column(
+                        children: [
+                          // Top bar with liquid glass style
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
                             ),
-                            // Playback source indicator with liquid glass
-                            Consumer<AppState>(
-                              builder: (context, appState, child) {
-                                final isDownloaded = appState.downloadService
-                                    .isTrackDownloaded(currentTrack.id);
-
-                                return ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                    child: Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: CupertinoColors.white.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: CupertinoColors.white.withOpacity(0.2),
-                                          width: 0.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Liquid glass close button
+                                GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 10,
+                                        sigmaY: 10,
+                                      ),
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.white
+                                              .withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: CupertinoColors.white
+                                                .withOpacity(0.2),
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          CupertinoIcons.chevron_down,
+                                          color: CupertinoColors.white,
+                                          size: 22,
                                         ),
                                       ),
-                                      child: Icon(
-                                        isDownloaded
-                                            ? CupertinoIcons.floppy_disk
-                                            : CupertinoIcons.antenna_radiowaves_left_right,
-                                        color: CupertinoColors.white,
-                                        size: 20,
-                                      ),
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                                ),
+                                // Playback source indicator with liquid glass
+                                Consumer<AppState>(
+                                  builder: (context, appState, child) {
+                                    final isDownloaded = appState
+                                        .downloadService
+                                        .isTrackDownloaded(currentTrack.id);
 
-                      // Flexible content area
-                      Expanded(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 20),
-
-                            // Album Art with liquid glass shadow
-                            Expanded(
-                              flex: 3,
-                              child: StreamBuilder<PlayerState>(
-                                stream: appState.playerStateStream,
-                                builder: (context, snapshot) {
-                                  final isPlaying =
-                                      snapshot.data?.playing == true;
-
-                                  return LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      final availableSize =
-                                          constraints.maxHeight * 0.9;
-                                      final screenWidth = MediaQuery.of(
-                                        context,
-                                      ).size.width;
-                                      final albumArtSize =
-                                          (availableSize < screenWidth * 0.8)
-                                          ? availableSize
-                                          : screenWidth * 0.8;
-
-                                      return Center(
-                                        child: AnimatedScale(
-                                          scale: isPlaying ? 1.0 : 0.88,
-                                          duration: const Duration(
-                                            milliseconds: 400,
+                                    return ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 10,
+                                          sigmaY: 10,
+                                        ),
+                                        child: Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: CupertinoColors.white
+                                                .withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: CupertinoColors.white
+                                                  .withOpacity(0.2),
+                                              width: 0.5,
+                                            ),
                                           ),
-                                          curve: Curves.easeOutCubic,
-                                          child: Container(
-                                            width: albumArtSize,
-                                            height: albumArtSize,
-                                            constraints: const BoxConstraints(
-                                              maxWidth: 350,
-                                              maxHeight: 350,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(24),
-                                              boxShadow: [
-                                                // Liquid glass shadow effect
-                                                BoxShadow(
-                                                  color: const Color(0xFF8B5CF6).withOpacity(isPlaying ? 0.3 : 0.1),
-                                                  blurRadius: 40,
-                                                  offset: const Offset(0, 20),
-                                                  spreadRadius: isPlaying ? 5 : 0,
+                                          child: Icon(
+                                            isDownloaded
+                                                ? CupertinoIcons.floppy_disk
+                                                : CupertinoIcons
+                                                      .antenna_radiowaves_left_right,
+                                            color: CupertinoColors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Flexible content area
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 20),
+
+                                // Album Art with liquid glass shadow
+                                Expanded(
+                                  flex: 3,
+                                  child: StreamBuilder<PlayerState>(
+                                    stream: appState.playerStateStream,
+                                    builder: (context, snapshot) {
+                                      final isPlaying =
+                                          snapshot.data?.playing == true;
+
+                                      return LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final availableSize =
+                                              constraints.maxHeight * 0.9;
+                                          final screenWidth = MediaQuery.of(
+                                            context,
+                                          ).size.width;
+                                          final albumArtSize =
+                                              (availableSize <
+                                                  screenWidth * 0.8)
+                                              ? availableSize
+                                              : screenWidth * 0.8;
+
+                                          return Center(
+                                            child: AnimatedScale(
+                                              scale: isPlaying ? 1.0 : 0.88,
+                                              duration: const Duration(
+                                                milliseconds: 400,
+                                              ),
+                                              curve: Curves.easeOutCubic,
+                                              child: Container(
+                                                width: albumArtSize,
+                                                height: albumArtSize,
+                                                constraints:
+                                                    const BoxConstraints(
+                                                      maxWidth: 350,
+                                                      maxHeight: 350,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                  boxShadow: [
+                                                    // Liquid glass shadow effect
+                                                    BoxShadow(
+                                                      color:
+                                                          const Color(
+                                                            0xFF8B5CF6,
+                                                          ).withOpacity(
+                                                            isPlaying
+                                                                ? 0.3
+                                                                : 0.1,
+                                                          ),
+                                                      blurRadius: 40,
+                                                      offset: const Offset(
+                                                        0,
+                                                        20,
+                                                      ),
+                                                      spreadRadius: isPlaying
+                                                          ? 5
+                                                          : 0,
+                                                    ),
+                                                    BoxShadow(
+                                                      color:
+                                                          const Color(
+                                                            0xFFEC4899,
+                                                          ).withOpacity(
+                                                            isPlaying
+                                                                ? 0.2
+                                                                : 0.05,
+                                                          ),
+                                                      blurRadius: 60,
+                                                      offset: const Offset(
+                                                        -10,
+                                                        30,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                BoxShadow(
-                                                  color: const Color(0xFFEC4899).withOpacity(isPlaying ? 0.2 : 0.05),
-                                                  blurRadius: 60,
-                                                  offset: const Offset(-10, 30),
-                                                ),
-                                              ],
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(24),
-                                              child: Stack(
-                                                children: [
-                                                  AlbumArtWidget(
-                                                    imageUrl:
-                                                        currentTrack.imageUrl != null
-                                                        ? appState.getImageUrl(
-                                                            currentTrack.imageUrl!,
-                                                            width: 800,
-                                                            height: 800,
-                                                          )
-                                                        : null,
-                                                    size: albumArtSize,
-                                                    borderRadius: BorderRadius.circular(24),
-                                                  ),
-                                                  // Subtle liquid glass overlay
-                                                  if (isPlaying)
-                                                    Positioned.fill(
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                          gradient: LinearGradient(
-                                                            begin: Alignment.topLeft,
-                                                            end: Alignment.bottomRight,
-                                                            colors: [
-                                                              CupertinoColors.white.withOpacity(0.1),
-                                                              Colors.transparent,
-                                                              CupertinoColors.white.withOpacity(0.05),
-                                                            ],
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                  child: Stack(
+                                                    children: [
+                                                      AlbumArtWidget(
+                                                        imageUrl:
+                                                            currentTrack
+                                                                    .imageUrl !=
+                                                                null
+                                                            ? appState.getImageUrl(
+                                                                currentTrack
+                                                                    .imageUrl!,
+                                                                width: 800,
+                                                                height: 800,
+                                                              )
+                                                            : null,
+                                                        size: albumArtSize,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              24,
+                                                            ),
+                                                      ),
+                                                      // Subtle liquid glass overlay
+                                                      if (isPlaying)
+                                                        Positioned.fill(
+                                                          child: Container(
+                                                            decoration: BoxDecoration(
+                                                              gradient: LinearGradient(
+                                                                begin: Alignment
+                                                                    .topLeft,
+                                                                end: Alignment
+                                                                    .bottomRight,
+                                                                colors: [
+                                                                  CupertinoColors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                        0.1,
+                                                                      ),
+                                                                  Colors
+                                                                      .transparent,
+                                                                  CupertinoColors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                        0.05,
+                                                                      ),
+                                                                ],
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-
-                            // Track info section with liquid glass card
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 30,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      height: 36,
-                                      child: MarqueeText(
-                                        text: currentTrack.name,
-                                        style: const TextStyle(
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.w700,
-                                          color: CupertinoColors.white,
-                                          letterSpacing: -0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Flexible(
-                                      child: Text(
-                                        currentTrack.artistName ??
-                                            'Unknown Artist',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          color: CupertinoColors.systemGrey,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines:
-                                            2, // Allow more lines for large fonts
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Bottom section - fixed height
-                      Column(
-                        children: [
-                          // Progress slider and time
-                          StreamBuilder<Duration>(
-                            stream:
-                                audioHandler?.positionStream ??
-                                Stream.value(Duration.zero),
-                            builder: (context, snapshot) {
-                              final position = snapshot.data ?? Duration.zero;
-                              final duration =
-                                  audioHandler?.duration ?? Duration.zero;
-
-                              double sliderValue = 0.0;
-                              if (duration.inMilliseconds > 0) {
-                                sliderValue =
-                                    position.inMilliseconds /
-                                    duration.inMilliseconds;
-                                sliderValue = sliderValue.clamp(0.0, 1.0);
-                              }
-
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 30,
-                                ),
-                                child: Column(
-                                  children: [
-                                    // Liquid glass progress bar
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                                        child: Container(
-                                          height: 6,
-                                          decoration: BoxDecoration(
-                                            color: CupertinoColors.white.withOpacity(0.15),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: LayoutBuilder(
-                                            builder: (context, constraints) {
-                                              return Stack(
-                                                children: [
-                                                  Container(
-                                                    width: constraints.maxWidth * sliderValue,
-                                                    decoration: BoxDecoration(
-                                                      gradient: const LinearGradient(
-                                                        colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-                                                      ),
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
+                                                    ],
                                                   ),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    // Gesture detector for seeking
-                                    GestureDetector(
-                                      onHorizontalDragUpdate: (details) {
-                                        final box = context.findRenderObject() as RenderBox;
-                                        final localPosition = details.localPosition;
-                                        final newValue = (localPosition.dx / box.size.width).clamp(0.0, 1.0);
-                                        final newPosition = Duration(
-                                          milliseconds: (newValue * duration.inMilliseconds).round(),
-                                        );
-                                        appState.seekTo(newPosition);
-                                      },
-                                      child: Container(
-                                        height: 20,
-                                        color: Colors.transparent,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4.0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            _formatDuration(position),
-                                            style: TextStyle(
-                                              color: CupertinoColors.white.withOpacity(0.6),
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          Text(
-                                            _formatDuration(duration),
-                                            style: TextStyle(
-                                              color: CupertinoColors.white.withOpacity(0.6),
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Control buttons with liquid glass
-                          StreamBuilder<PlayerState>(
-                            stream: appState.playerStateStream,
-                            builder: (context, snapshot) {
-                              final isPlaying = snapshot.data?.playing == true;
-                              final processingState =
-                                  snapshot.data?.processingState ??
-                                  ProcessingState.idle;
-
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 40,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    // Shuffle button with liquid glass
-                                    GestureDetector(
-                                      onTap: () {
-                                        final audioHandler =
-                                            appState.audioHandler;
-                                        if (audioHandler?.isShuffled == true) {
-                                          audioHandler?.unshuffle();
-                                        } else {
-                                          audioHandler?.shuffle();
-                                        }
-                                      },
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: BackdropFilter(
-                                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                          child: Container(
-                                            width: 44,
-                                            height: 44,
-                                            decoration: BoxDecoration(
-                                              color: audioHandler?.isShuffled == true 
-                                                  ? const Color(0xFF8B5CF6).withOpacity(0.3)
-                                                  : CupertinoColors.white.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: audioHandler?.isShuffled == true
-                                                    ? const Color(0xFF8B5CF6).withOpacity(0.5)
-                                                    : CupertinoColors.white.withOpacity(0.15),
-                                                width: 0.5,
-                                              ),
-                                            ),
-                                            child: Icon(
-                                              CupertinoIcons.shuffle,
-                                              color: audioHandler?.isShuffled == true
-                                                  ? CupertinoColors.white
-                                                  : CupertinoColors.white.withOpacity(0.6),
-                                              size: 20,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Previous button
-                                    GestureDetector(
-                                      onTap: audioHandler?.hasPrevious == true
-                                          ? () => appState.skipToPrevious()
-                                          : null,
-                                      child: Icon(
-                                        CupertinoIcons.backward_fill,
-                                        size: 36,
-                                        color: audioHandler?.hasPrevious == true
-                                            ? CupertinoColors.white
-                                            : CupertinoColors.white.withOpacity(0.3),
-                                      ),
-                                    ),
-                                    // Play/Pause button with gradient
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (kDebugMode) {
-                                          print('=== NOW PLAYING PLAY/PAUSE BUTTON TAPPED ===');
-                                        }
-                                        appState.playPause();
-                                      },
-                                      child: Container(
-                                        width: 72,
-                                        height: 72,
-                                        decoration: BoxDecoration(
-                                          gradient: const LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-                                          ),
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: const Color(0xFF8B5CF6).withOpacity(0.4),
-                                              blurRadius: 20,
-                                              offset: const Offset(0, 8),
-                                            ),
-                                          ],
-                                        ),
-                                        child: processingState == ProcessingState.loading ||
-                                            processingState == ProcessingState.buffering
-                                            ? const Center(
-                                                child: CupertinoActivityIndicator(
-                                                  color: CupertinoColors.white,
-                                                ),
-                                              )
-                                            : Icon(
-                                                isPlaying
-                                                    ? CupertinoIcons.pause_fill
-                                                    : CupertinoIcons.play_arrow_solid,
-                                                size: 32,
-                                                color: CupertinoColors.white,
-                                              ),
-                                      ),
-                                    ),
-                                    // Next button
-                                    GestureDetector(
-                                      onTap: audioHandler?.hasNext == true
-                                          ? () => appState.skipToNext()
-                                          : null,
-                                      child: Icon(
-                                        CupertinoIcons.forward_fill,
-                                        size: 36,
-                                        color: audioHandler?.hasNext == true
-                                            ? CupertinoColors.white
-                                            : CupertinoColors.white.withOpacity(0.3),
-                                      ),
-                                    ),
-                                    // Repeat button with liquid glass
-                                    GestureDetector(
-                                      onTap: () async {
-                                        final audioHandler = appState.audioHandler;
-                                        if (audioHandler != null) {
-                                          final currentState = audioHandler.playbackState.value;
-                                          final currentMode = currentState.repeatMode;
-
-                                          switch (currentMode) {
-                                            case AudioServiceRepeatMode.none:
-                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                              break;
-                                            case AudioServiceRepeatMode.all:
-                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
-                                              break;
-                                            case AudioServiceRepeatMode.one:
-                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-                                              break;
-                                            case AudioServiceRepeatMode.group:
-                                              await audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-                                              break;
-                                          }
-                                        }
-                                      },
-                                      child: StreamBuilder<AudioServiceRepeatMode>(
-                                        stream: audioHandler?.playbackState
-                                            .map((state) => state.repeatMode)
-                                            .cast<AudioServiceRepeatMode>(),
-                                        builder: (context, snapshot) {
-                                          final repeatMode = snapshot.data ?? AudioServiceRepeatMode.none;
-                                          final isActive = repeatMode != AudioServiceRepeatMode.none;
-
-                                          return ClipRRect(
-                                            borderRadius: BorderRadius.circular(12),
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                              child: Container(
-                                                width: 44,
-                                                height: 44,
-                                                decoration: BoxDecoration(
-                                                  color: isActive
-                                                      ? const Color(0xFFEC4899).withOpacity(0.3)
-                                                      : CupertinoColors.white.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: isActive
-                                                        ? const Color(0xFFEC4899).withOpacity(0.5)
-                                                        : CupertinoColors.white.withOpacity(0.15),
-                                                    width: 0.5,
-                                                  ),
-                                                ),
-                                                child: Icon(
-                                                  repeatMode == AudioServiceRepeatMode.one
-                                                      ? CupertinoIcons.repeat_1
-                                                      : CupertinoIcons.repeat,
-                                                  color: isActive
-                                                      ? CupertinoColors.white
-                                                      : CupertinoColors.white.withOpacity(0.6),
-                                                  size: 20,
                                                 ),
                                               ),
                                             ),
                                           );
                                         },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Bottom controls row with liquid glass
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 50),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: CupertinoColors.white.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: CupertinoColors.white.withOpacity(0.2),
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      // Queue button
-                                      GestureDetector(
-                                        onTap: () {
-                                          showQueueOverlay(context);
-                                        },
-                                        child: Icon(
-                                          CupertinoIcons.list_bullet,
-                                          color: CupertinoColors.white.withOpacity(0.8),
-                                          size: 22,
-                                        ),
-                                      ),
-                                      // Favorite button
-                                      GestureDetector(
-                                        onTap: () async {
-                                          await _favoriteAnimationController.forward();
-                                          await _favoriteAnimationController.reverse();
-                                          appState.toggleFavorite(currentTrack);
-                                        },
-                                        child: AnimatedBuilder(
-                                          animation: _favoriteScaleAnimation,
-                                          builder: (context, child) {
-                                            final isFavorite = appState.isFavorite(currentTrack.id);
-                                            return Transform.scale(
-                                              scale: _favoriteScaleAnimation.value,
-                                              child: Icon(
-                                                isFavorite
-                                                    ? CupertinoIcons.heart_fill
-                                                    : CupertinoIcons.heart,
-                                                color: isFavorite
-                                                    ? const Color(0xFFEC4899)
-                                                    : CupertinoColors.white.withOpacity(0.8),
-                                                size: 22,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      // Lyrics button
-                                      GestureDetector(
-                                        onTap: _hasLyrics == true
-                                            ? () {
-                                                _showLyricsOverlay(context, currentTrack);
-                                              }
-                                            : null,
-                                        child: Icon(
-                                          CupertinoIcons.text_quote,
-                                          color: _hasLyrics == true
-                                              ? CupertinoColors.white.withOpacity(0.8)
-                                              : CupertinoColors.white.withOpacity(0.3),
-                                          size: 22,
-                                        ),
-                                      ),
-                                      // More options button
-                                      GestureDetector(
-                                        onTap: () => _showMoreOptions(context, currentTrack, appState),
-                                        child: Icon(
-                                          CupertinoIcons.ellipsis,
-                                          color: CupertinoColors.white.withOpacity(0.8),
-                                          size: 22,
-                                        ),
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ),
                                 ),
-                              ),
+
+                                // Track info section with liquid glass card
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 30,
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          height: 36,
+                                          child: MarqueeText(
+                                            text: currentTrack.name,
+                                            style: const TextStyle(
+                                              fontSize: 26,
+                                              fontWeight: FontWeight.w700,
+                                              color: CupertinoColors.white,
+                                              letterSpacing: -0.5,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Flexible(
+                                          child: Text(
+                                            currentTrack.artistName ??
+                                                'Unknown Artist',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: CupertinoColors.systemGrey,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines:
+                                                2, // Allow more lines for large fonts
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
 
-                          const SizedBox(height: 20),
+                          // Bottom section - fixed height
+                          Column(
+                            children: [
+                              // Progress slider and time
+                              StreamBuilder<Duration>(
+                                stream:
+                                    audioHandler?.positionStream ??
+                                    Stream.value(Duration.zero),
+                                builder: (context, snapshot) {
+                                  final position =
+                                      snapshot.data ?? Duration.zero;
+                                  final duration =
+                                      audioHandler?.duration ?? Duration.zero;
+
+                                  double sliderValue = 0.0;
+                                  if (duration.inMilliseconds > 0) {
+                                    sliderValue =
+                                        position.inMilliseconds /
+                                        duration.inMilliseconds;
+                                    sliderValue = sliderValue.clamp(0.0, 1.0);
+                                  }
+
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 30,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        // Liquid glass progress bar
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(
+                                              sigmaX: 5,
+                                              sigmaY: 5,
+                                            ),
+                                            child: Container(
+                                              height: 6,
+                                              decoration: BoxDecoration(
+                                                color: CupertinoColors.white
+                                                    .withOpacity(0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: LayoutBuilder(
+                                                builder: (context, constraints) {
+                                                  return Stack(
+                                                    children: [
+                                                      Container(
+                                                        width:
+                                                            constraints
+                                                                .maxWidth *
+                                                            sliderValue,
+                                                        decoration: BoxDecoration(
+                                                          gradient:
+                                                              const LinearGradient(
+                                                                colors: [
+                                                                  Color(
+                                                                    0xFF8B5CF6,
+                                                                  ),
+                                                                  Color(
+                                                                    0xFFEC4899,
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        // Gesture detector for seeking
+                                        GestureDetector(
+                                          onHorizontalDragUpdate: (details) {
+                                            final box =
+                                                context.findRenderObject()
+                                                    as RenderBox;
+                                            final localPosition =
+                                                details.localPosition;
+                                            final newValue =
+                                                (localPosition.dx /
+                                                        box.size.width)
+                                                    .clamp(0.0, 1.0);
+                                            final newPosition = Duration(
+                                              milliseconds:
+                                                  (newValue *
+                                                          duration
+                                                              .inMilliseconds)
+                                                      .round(),
+                                            );
+                                            appState.seekTo(newPosition);
+                                          },
+                                          child: Container(
+                                            height: 20,
+                                            color: Colors.transparent,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4.0,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                _formatDuration(position),
+                                                style: TextStyle(
+                                                  color: CupertinoColors.white
+                                                      .withOpacity(0.6),
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              Text(
+                                                _formatDuration(duration),
+                                                style: TextStyle(
+                                                  color: CupertinoColors.white
+                                                      .withOpacity(0.6),
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 24),
+
+                              // Control buttons with liquid glass
+                              StreamBuilder<PlayerState>(
+                                stream: appState.playerStateStream,
+                                builder: (context, snapshot) {
+                                  final isPlaying =
+                                      snapshot.data?.playing == true;
+                                  final processingState =
+                                      snapshot.data?.processingState ??
+                                      ProcessingState.idle;
+
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 40,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // Shuffle button with liquid glass
+                                        GestureDetector(
+                                          onTap: () {
+                                            final audioHandler =
+                                                appState.audioHandler;
+                                            if (audioHandler?.isShuffled ==
+                                                true) {
+                                              audioHandler?.unshuffle();
+                                            } else {
+                                              audioHandler?.shuffle();
+                                            }
+                                          },
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(
+                                                sigmaX: 8,
+                                                sigmaY: 8,
+                                              ),
+                                              child: Container(
+                                                width: 44,
+                                                height: 44,
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      audioHandler
+                                                              ?.isShuffled ==
+                                                          true
+                                                      ? const Color(
+                                                          0xFF8B5CF6,
+                                                        ).withOpacity(0.3)
+                                                      : CupertinoColors.white
+                                                            .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color:
+                                                        audioHandler
+                                                                ?.isShuffled ==
+                                                            true
+                                                        ? const Color(
+                                                            0xFF8B5CF6,
+                                                          ).withOpacity(0.5)
+                                                        : CupertinoColors.white
+                                                              .withOpacity(
+                                                                0.15,
+                                                              ),
+                                                    width: 0.5,
+                                                  ),
+                                                ),
+                                                child: Icon(
+                                                  CupertinoIcons.shuffle,
+                                                  color:
+                                                      audioHandler
+                                                              ?.isShuffled ==
+                                                          true
+                                                      ? CupertinoColors.white
+                                                      : CupertinoColors.white
+                                                            .withOpacity(0.6),
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        // Previous button
+                                        GestureDetector(
+                                          onTap:
+                                              audioHandler?.hasPrevious == true
+                                              ? () => appState.skipToPrevious()
+                                              : null,
+                                          child: Icon(
+                                            CupertinoIcons.backward_fill,
+                                            size: 36,
+                                            color:
+                                                audioHandler?.hasPrevious ==
+                                                    true
+                                                ? CupertinoColors.white
+                                                : CupertinoColors.white
+                                                      .withOpacity(0.3),
+                                          ),
+                                        ),
+                                        // Play/Pause button with gradient
+                                        GestureDetector(
+                                          onTap: () {
+                                            if (kDebugMode) {
+                                              print(
+                                                '=== NOW PLAYING PLAY/PAUSE BUTTON TAPPED ===',
+                                              );
+                                            }
+                                            appState.playPause();
+                                          },
+                                          child: Container(
+                                            width: 72,
+                                            height: 72,
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Color(0xFF8B5CF6),
+                                                  Color(0xFFEC4899),
+                                                ],
+                                              ),
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(
+                                                    0xFF8B5CF6,
+                                                  ).withOpacity(0.4),
+                                                  blurRadius: 20,
+                                                  offset: const Offset(0, 8),
+                                                ),
+                                              ],
+                                            ),
+                                            child:
+                                                processingState ==
+                                                        ProcessingState
+                                                            .loading ||
+                                                    processingState ==
+                                                        ProcessingState
+                                                            .buffering
+                                                ? const Center(
+                                                    child:
+                                                        CupertinoActivityIndicator(
+                                                          color: CupertinoColors
+                                                              .white,
+                                                        ),
+                                                  )
+                                                : Icon(
+                                                    isPlaying
+                                                        ? CupertinoIcons
+                                                              .pause_fill
+                                                        : CupertinoIcons
+                                                              .play_arrow_solid,
+                                                    size: 32,
+                                                    color:
+                                                        CupertinoColors.white,
+                                                  ),
+                                          ),
+                                        ),
+                                        // Next button
+                                        GestureDetector(
+                                          onTap: audioHandler?.hasNext == true
+                                              ? () => appState.skipToNext()
+                                              : null,
+                                          child: Icon(
+                                            CupertinoIcons.forward_fill,
+                                            size: 36,
+                                            color: audioHandler?.hasNext == true
+                                                ? CupertinoColors.white
+                                                : CupertinoColors.white
+                                                      .withOpacity(0.3),
+                                          ),
+                                        ),
+                                        // Repeat button with liquid glass
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final audioHandler =
+                                                appState.audioHandler;
+                                            if (audioHandler != null) {
+                                              final currentState = audioHandler
+                                                  .playbackState
+                                                  .value;
+                                              final currentMode =
+                                                  currentState.repeatMode;
+
+                                              switch (currentMode) {
+                                                case AudioServiceRepeatMode
+                                                    .none:
+                                                  await audioHandler
+                                                      .setRepeatMode(
+                                                        AudioServiceRepeatMode
+                                                            .all,
+                                                      );
+                                                  break;
+                                                case AudioServiceRepeatMode.all:
+                                                  await audioHandler
+                                                      .setRepeatMode(
+                                                        AudioServiceRepeatMode
+                                                            .one,
+                                                      );
+                                                  break;
+                                                case AudioServiceRepeatMode.one:
+                                                  await audioHandler
+                                                      .setRepeatMode(
+                                                        AudioServiceRepeatMode
+                                                            .none,
+                                                      );
+                                                  break;
+                                                case AudioServiceRepeatMode
+                                                    .group:
+                                                  await audioHandler
+                                                      .setRepeatMode(
+                                                        AudioServiceRepeatMode
+                                                            .none,
+                                                      );
+                                                  break;
+                                              }
+                                            }
+                                          },
+                                          child: StreamBuilder<AudioServiceRepeatMode>(
+                                            stream: audioHandler?.playbackState
+                                                .map(
+                                                  (state) => state.repeatMode,
+                                                )
+                                                .cast<AudioServiceRepeatMode>(),
+                                            builder: (context, snapshot) {
+                                              final repeatMode =
+                                                  snapshot.data ??
+                                                  AudioServiceRepeatMode.none;
+                                              final isActive =
+                                                  repeatMode !=
+                                                  AudioServiceRepeatMode.none;
+
+                                              return ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                    sigmaX: 8,
+                                                    sigmaY: 8,
+                                                  ),
+                                                  child: Container(
+                                                    width: 44,
+                                                    height: 44,
+                                                    decoration: BoxDecoration(
+                                                      color: isActive
+                                                          ? const Color(
+                                                              0xFFEC4899,
+                                                            ).withOpacity(0.3)
+                                                          : CupertinoColors
+                                                                .white
+                                                                .withOpacity(
+                                                                  0.1,
+                                                                ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: isActive
+                                                            ? const Color(
+                                                                0xFFEC4899,
+                                                              ).withOpacity(0.5)
+                                                            : CupertinoColors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.15,
+                                                                  ),
+                                                        width: 0.5,
+                                                      ),
+                                                    ),
+                                                    child: Icon(
+                                                      repeatMode ==
+                                                              AudioServiceRepeatMode
+                                                                  .one
+                                                          ? CupertinoIcons
+                                                                .repeat_1
+                                                          : CupertinoIcons
+                                                                .repeat,
+                                                      color: isActive
+                                                          ? CupertinoColors
+                                                                .white
+                                                          : CupertinoColors
+                                                                .white
+                                                                .withOpacity(
+                                                                  0.6,
+                                                                ),
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Bottom controls row with liquid glass
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 50,
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 15,
+                                      sigmaY: 15,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: CupertinoColors.white
+                                            .withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: CupertinoColors.white
+                                              .withOpacity(0.2),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          // Queue button
+                                          GestureDetector(
+                                            onTap: () {
+                                              showQueueOverlay(context);
+                                            },
+                                            child: Icon(
+                                              CupertinoIcons.list_bullet,
+                                              color: CupertinoColors.white
+                                                  .withOpacity(0.8),
+                                              size: 22,
+                                            ),
+                                          ),
+                                          // Favorite button
+                                          GestureDetector(
+                                            onTap: () async {
+                                              await _favoriteAnimationController
+                                                  .forward();
+                                              await _favoriteAnimationController
+                                                  .reverse();
+                                              appState.toggleFavorite(
+                                                currentTrack,
+                                              );
+                                            },
+                                            child: AnimatedBuilder(
+                                              animation:
+                                                  _favoriteScaleAnimation,
+                                              builder: (context, child) {
+                                                final isFavorite = appState
+                                                    .isFavorite(
+                                                      currentTrack.id,
+                                                    );
+                                                return Transform.scale(
+                                                  scale: _favoriteScaleAnimation
+                                                      .value,
+                                                  child: Icon(
+                                                    isFavorite
+                                                        ? CupertinoIcons
+                                                              .heart_fill
+                                                        : CupertinoIcons.heart,
+                                                    color: isFavorite
+                                                        ? const Color(
+                                                            0xFFEC4899,
+                                                          )
+                                                        : CupertinoColors.white
+                                                              .withOpacity(0.8),
+                                                    size: 22,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          // Lyrics button
+                                          GestureDetector(
+                                            onTap: _hasLyrics == true
+                                                ? () {
+                                                    _showLyricsOverlay(
+                                                      context,
+                                                      currentTrack,
+                                                    );
+                                                  }
+                                                : null,
+                                            child: Icon(
+                                              CupertinoIcons.text_quote,
+                                              color: _hasLyrics == true
+                                                  ? CupertinoColors.white
+                                                        .withOpacity(0.8)
+                                                  : CupertinoColors.white
+                                                        .withOpacity(0.3),
+                                              size: 22,
+                                            ),
+                                          ),
+                                          // More options button
+                                          GestureDetector(
+                                            onTap: () => _showMoreOptions(
+                                              context,
+                                              currentTrack,
+                                              appState,
+                                            ),
+                                            child: Icon(
+                                              CupertinoIcons.ellipsis,
+                                              color: CupertinoColors.white
+                                                  .withOpacity(0.8),
+                                              size: 22,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        );
+            );
           }, // StreamBuilder builder
         ); // StreamBuilder
       }, // Consumer builder
