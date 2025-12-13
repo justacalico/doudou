@@ -382,7 +382,7 @@ class JellyfinService implements BaseMediaService {
 
         _server = JellyfinServer(
           serverUrl: serverUrl,
-          userId: selectedUser['Id'],
+          userId: selectedUser!['Id'],
           accessToken: apiKey,
           apiKey: apiKey,
           username: selectedUser['Name'] ?? 'API User',
