@@ -999,7 +999,73 @@ class _LoginScreenState extends State<LoginScreen>
           isDark: isDark,
         ),
       ];
+    } else if (_selectedServerType == 'jellyfin') {
+      // Jellyfin supports both username/password and API key authentication
+      return [
+        // Toggle between auth methods
+        _buildAuthMethodToggle(isDark),
+        
+        SizedBox(height: isDesktop ? 16 : 12),
+        
+        if (_useApiKeyAuth) ...[
+          _buildModernTextField(
+            controller: _apiKeyController,
+            label: 'API Key',
+            icon: CupertinoIcons.key,
+            placeholder: 'Enter your Jellyfin API key',
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your API key';
+              }
+              return null;
+            },
+            isDark: isDark,
+          ),
+        ] else ...[
+          _buildModernTextField(
+            controller: _usernameController,
+            label: 'Username',
+            icon: CupertinoIcons.person,
+            placeholder: 'Enter your username',
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter username';
+              }
+              return null;
+            },
+            isDark: isDark,
+          ),
+          
+          SizedBox(height: isDesktop ? 16 : 12),
+          
+          _buildModernTextField(
+            controller: _passwordController,
+            label: 'Password',
+            icon: CupertinoIcons.lock,
+            placeholder: 'Enter your password (optional)',
+            obscureText: !_isPasswordVisible,
+            isDark: isDark,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isPasswordVisible 
+                  ? CupertinoIcons.eye_slash 
+                  : CupertinoIcons.eye,
+                size: 20,
+                color: isDark 
+                  ? Colors.white.withOpacity(0.5) 
+                  : Colors.black.withOpacity(0.4),
+              ),
+              onPressed: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
+            ),
+          ),
+        ],
+      ];
     } else {
+      // Navidrome or other servers - username/password only
       return [
         _buildModernTextField(
           controller: _usernameController,
@@ -1043,6 +1109,113 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       ];
     }
+  }
+
+  Widget _buildAuthMethodToggle(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark 
+          ? Colors.white.withOpacity(0.05) 
+          : Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark 
+            ? Colors.white.withOpacity(0.1) 
+            : Colors.black.withOpacity(0.1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _useApiKeyAuth = false;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: !_useApiKeyAuth 
+                    ? AppleColors.systemPurple 
+                    : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.person,
+                      size: 16,
+                      color: !_useApiKeyAuth 
+                        ? Colors.white 
+                        : (isDark ? Colors.white60 : Colors.black54),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Account',
+                      style: TextStyle(
+                        fontFamily: AppleDesignSystem.fontFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: !_useApiKeyAuth 
+                          ? Colors.white 
+                          : (isDark ? Colors.white60 : Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _useApiKeyAuth = true;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _useApiKeyAuth 
+                    ? AppleColors.systemPurple 
+                    : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.key,
+                      size: 16,
+                      color: _useApiKeyAuth 
+                        ? Colors.white 
+                        : (isDark ? Colors.white60 : Colors.black54),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'API Key',
+                      style: TextStyle(
+                        fontFamily: AppleDesignSystem.fontFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: _useApiKeyAuth 
+                          ? Colors.white 
+                          : (isDark ? Colors.white60 : Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildErrorMessage(BuildContext context, String message, bool isDesktop) {
@@ -1217,25 +1390,33 @@ class _LoginScreenState extends State<LoginScreen>
       // Trigger button press haptic feedback
       await _triggerButtonPress();
       
-      String identifier;
-      String credential;
-      
-      if (_selectedServerType == 'plex') {
-        identifier = '';
-        credential = _plexTokenController.text;
-      } else {
-        identifier = _usernameController.text.trim();
-        credential = _passwordController.text;
-      }
-      
       if (!mounted) return;
       final appState = context.read<AppState>();
-      final success = await appState.loginWithServerType(
-        _selectedServerType,
-        _serverController.text.trim(),
-        identifier,
-        credential,
-      );
+      bool success;
+      
+      if (_selectedServerType == 'plex') {
+        // Plex token auth
+        success = await appState.loginWithServerType(
+          _selectedServerType,
+          _serverController.text.trim(),
+          '',
+          _plexTokenController.text,
+        );
+      } else if (_selectedServerType == 'jellyfin' && _useApiKeyAuth) {
+        // Jellyfin API key auth
+        success = await appState.loginWithApiKey(
+          _serverController.text.trim(),
+          _apiKeyController.text.trim(),
+        );
+      } else {
+        // Standard username/password auth
+        success = await appState.loginWithServerType(
+          _selectedServerType,
+          _serverController.text.trim(),
+          _usernameController.text.trim(),
+          _passwordController.text,
+        );
+      }
 
       if (success && mounted) {
         // Success vibration
