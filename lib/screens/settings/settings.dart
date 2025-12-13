@@ -506,9 +506,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
 
+                  // Bottom padding to clear mini player and navbar
                   const SliverToBoxAdapter(
-                    child: SizedBox(height: 20),
-                  ), // Reduced spacing to prevent overlap with now playing
+                    child: SizedBox(height: 180),
+                  ),
                 ],
               );
             },
