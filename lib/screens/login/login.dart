@@ -24,11 +24,11 @@ class _LoginScreenState extends State<LoginScreen>
   final _passwordController = TextEditingController();
   final _plexTokenController = TextEditingController();
   final _apiKeyController = TextEditingController();
-  
+
   String _selectedServerType = 'jellyfin';
   bool _isPasswordVisible = false;
-  bool _useApiKeyAuth = false;  // Toggle between username/password and API key
-  
+  bool _useApiKeyAuth = false; // Toggle between username/password and API key
+
   late AnimationController _animationController;
   late AnimationController _backgroundController;
   late AnimationController _pulseController;
@@ -49,16 +49,12 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
     _animationController.forward();
-    
+
     // Set default server URLs
     _serverController.text = _getServerPlaceholder();
   }
@@ -82,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen>
     final isDesktop = screenSize.width > 768;
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: Theme.of(context),
@@ -92,19 +88,19 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             // Animated gradient background
             _buildAnimatedBackground(isDark),
-            
+
             // Main content
             SafeArea(
-              child: isDesktop 
-                ? _buildDesktopLayout(context)
-                : _buildMobileLayout(context),
+              child: isDesktop
+                  ? _buildDesktopLayout(context)
+                  : _buildMobileLayout(context),
             ),
           ],
         ),
       ),
     );
   }
-  
+
   Widget _buildAnimatedBackground(bool isDark) {
     return AnimatedBuilder(
       animation: _backgroundController,
@@ -114,19 +110,19 @@ class _LoginScreenState extends State<LoginScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark 
-                ? [
-                    const Color(0xFF0D0D0D),
-                    const Color(0xFF1A1A2E),
-                    const Color(0xFF16213E),
-                    const Color(0xFF0F0F23),
-                  ]
-                : [
-                    const Color(0xFFF8F9FA),
-                    const Color(0xFFE8EAF6),
-                    const Color(0xFFE3F2FD),
-                    const Color(0xFFF3E5F5),
-                  ],
+              colors: isDark
+                  ? [
+                      const Color(0xFF0D0D0D),
+                      const Color(0xFF1A1A2E),
+                      const Color(0xFF16213E),
+                      const Color(0xFF0F0F23),
+                    ]
+                  : [
+                      const Color(0xFFF8F9FA),
+                      const Color(0xFFE8EAF6),
+                      const Color(0xFFE3F2FD),
+                      const Color(0xFFF3E5F5),
+                    ],
               stops: const [0.0, 0.3, 0.6, 1.0],
             ),
           ),
@@ -142,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen>
       },
     );
   }
-  
+
   List<Widget> _buildFloatingOrbs(bool isDark) {
     final size = MediaQuery.of(context).size;
     return [
@@ -156,9 +152,9 @@ class _LoginScreenState extends State<LoginScreen>
             top: size.height * 0.2 + math.cos(progress * math.pi * 2) * 30,
             child: _buildOrb(
               200,
-              isDark 
-                ? AppleColors.systemPurple.withOpacity(0.3)
-                : AppleColors.systemPurple.withOpacity(0.15),
+              isDark
+                  ? AppleColors.systemPurple.withOpacity(0.3)
+                  : AppleColors.systemPurple.withOpacity(0.15),
             ),
           );
         },
@@ -173,9 +169,9 @@ class _LoginScreenState extends State<LoginScreen>
             top: size.height * 0.4 + math.sin(progress * math.pi * 2) * 50,
             child: _buildOrb(
               160,
-              isDark 
-                ? AppleColors.systemBlue.withOpacity(0.25)
-                : AppleColors.systemBlue.withOpacity(0.12),
+              isDark
+                  ? AppleColors.systemBlue.withOpacity(0.25)
+                  : AppleColors.systemBlue.withOpacity(0.12),
             ),
           );
         },
@@ -187,49 +183,42 @@ class _LoginScreenState extends State<LoginScreen>
           final progress = _backgroundController.value;
           return Positioned(
             left: size.width * 0.3 + math.sin(progress * math.pi * 2 + 1) * 60,
-            bottom: size.height * 0.1 + math.cos(progress * math.pi * 2 + 1) * 40,
+            bottom:
+                size.height * 0.1 + math.cos(progress * math.pi * 2 + 1) * 40,
             child: _buildOrb(
               180,
-              isDark 
-                ? AppleColors.systemPink.withOpacity(0.2)
-                : AppleColors.systemPink.withOpacity(0.1),
+              isDark
+                  ? AppleColors.systemPink.withOpacity(0.2)
+                  : AppleColors.systemPink.withOpacity(0.1),
             ),
           );
         },
       ),
     ];
   }
-  
+
   Widget _buildOrb(double size, Color color) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withOpacity(0),
-          ],
-        ),
+        gradient: RadialGradient(colors: [color, color.withOpacity(0)]),
       ),
     );
   }
-  
+
   Widget _buildGridPattern() {
     return Opacity(
       opacity: 0.03,
-      child: CustomPaint(
-        size: Size.infinite,
-        painter: _GridPainter(),
-      ),
+      child: CustomPaint(size: Size.infinite, painter: _GridPainter()),
     );
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Center(
@@ -240,13 +229,10 @@ class _LoginScreenState extends State<LoginScreen>
             child: Row(
               children: [
                 // Left side - Branding
-                Expanded(
-                  flex: 5,
-                  child: _buildBrandingSection(isDark),
-                ),
-                
+                Expanded(flex: 5, child: _buildBrandingSection(isDark)),
+
                 const SizedBox(width: 64),
-                
+
                 // Right side - Login form with glassmorphism
                 Expanded(
                   flex: 4,
@@ -265,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-  
+
   Widget _buildBrandingSection(bool isDark) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -283,14 +269,13 @@ class _LoginScreenState extends State<LoginScreen>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    AppleColors.systemPurple,
-                    AppleColors.systemIndigo,
-                  ],
+                  colors: [AppleColors.systemPurple, AppleColors.systemIndigo],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppleColors.systemPurple.withOpacity(0.3 + _pulseController.value * 0.2),
+                    color: AppleColors.systemPurple.withOpacity(
+                      0.3 + _pulseController.value * 0.2,
+                    ),
                     blurRadius: 30 + _pulseController.value * 20,
                     spreadRadius: 5,
                   ),
@@ -304,18 +289,21 @@ class _LoginScreenState extends State<LoginScreen>
             );
           },
         ),
-        
+
         const SizedBox(height: 40),
-        
+
         // Welcome text
         SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(-0.3, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _animationController,
-            curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
-          )),
+          position:
+              Tween<Offset>(
+                begin: const Offset(-0.3, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: _animationController,
+                  curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
+                ),
+              ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -325,9 +313,9 @@ class _LoginScreenState extends State<LoginScreen>
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 24,
                   fontWeight: FontWeight.w500,
-                  color: isDark 
-                    ? Colors.white.withOpacity(0.7) 
-                    : Colors.black.withOpacity(0.6),
+                  color: isDark
+                      ? Colors.white.withOpacity(0.7)
+                      : Colors.black.withOpacity(0.6),
                 ),
               ),
               const SizedBox(height: 8),
@@ -353,42 +341,48 @@ class _LoginScreenState extends State<LoginScreen>
             ],
           ),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Tagline
         SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(-0.2, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _animationController,
-            curve: const Interval(0.4, 0.9, curve: Curves.easeOut),
-          )),
+          position:
+              Tween<Offset>(
+                begin: const Offset(-0.2, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: _animationController,
+                  curve: const Interval(0.4, 0.9, curve: Curves.easeOut),
+                ),
+              ),
           child: Text(
             'Your personal music companion.\nStream from your own media server with\nstyle and privacy.',
             style: TextStyle(
               fontFamily: AppleDesignSystem.fontFamily,
               fontSize: 18,
               height: 1.6,
-              color: isDark 
-                ? Colors.white.withOpacity(0.6) 
-                : Colors.black.withOpacity(0.5),
+              color: isDark
+                  ? Colors.white.withOpacity(0.6)
+                  : Colors.black.withOpacity(0.5),
             ),
           ),
         ),
-        
+
         const SizedBox(height: 48),
-        
+
         // Feature pills
         SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(-0.1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _animationController,
-            curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
-          )),
+          position:
+              Tween<Offset>(
+                begin: const Offset(-0.1, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: _animationController,
+                  curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+                ),
+              ),
           child: Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -403,19 +397,19 @@ class _LoginScreenState extends State<LoginScreen>
       ],
     );
   }
-  
+
   Widget _buildFeaturePill(String text, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark 
-          ? Colors.white.withOpacity(0.08) 
-          : Colors.black.withOpacity(0.05),
+        color: isDark
+            ? Colors.white.withOpacity(0.08)
+            : Colors.black.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark 
-            ? Colors.white.withOpacity(0.1) 
-            : Colors.black.withOpacity(0.08),
+          color: isDark
+              ? Colors.white.withOpacity(0.1)
+              : Colors.black.withOpacity(0.08),
         ),
       ),
       child: Text(
@@ -424,12 +418,14 @@ class _LoginScreenState extends State<LoginScreen>
           fontFamily: AppleDesignSystem.fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.7),
+          color: isDark
+              ? Colors.white.withOpacity(0.8)
+              : Colors.black.withOpacity(0.7),
         ),
       ),
     );
   }
-  
+
   Widget _buildGlassCard({required Widget child, required bool isDark}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(32),
@@ -437,14 +433,14 @@ class _LoginScreenState extends State<LoginScreen>
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark 
-              ? Colors.white.withOpacity(0.08) 
-              : Colors.white.withOpacity(0.7),
+            color: isDark
+                ? Colors.white.withOpacity(0.08)
+                : Colors.white.withOpacity(0.7),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-              color: isDark 
-                ? Colors.white.withOpacity(0.15) 
-                : Colors.white.withOpacity(0.8),
+              color: isDark
+                  ? Colors.white.withOpacity(0.15)
+                  : Colors.white.withOpacity(0.8),
               width: 1.5,
             ),
             boxShadow: [
@@ -464,7 +460,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildMobileLayout(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SingleChildScrollView(
@@ -474,12 +470,12 @@ class _LoginScreenState extends State<LoginScreen>
           child: Column(
             children: [
               const SizedBox(height: 20),
-              
+
               // Mobile header with logo
               _buildMobileHeader(isDark),
-              
+
               const SizedBox(height: 32),
-              
+
               // Login form card
               _buildGlassCard(
                 child: Padding(
@@ -488,7 +484,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 isDark: isDark,
               ),
-              
+
               const SizedBox(height: 40),
             ],
           ),
@@ -496,7 +492,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-  
+
   Widget _buildMobileHeader(bool isDark) {
     return Column(
       children: [
@@ -512,14 +508,13 @@ class _LoginScreenState extends State<LoginScreen>
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    AppleColors.systemPurple,
-                    AppleColors.systemIndigo,
-                  ],
+                  colors: [AppleColors.systemPurple, AppleColors.systemIndigo],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppleColors.systemPurple.withOpacity(0.25 + _pulseController.value * 0.15),
+                    color: AppleColors.systemPurple.withOpacity(
+                      0.25 + _pulseController.value * 0.15,
+                    ),
                     blurRadius: 20 + _pulseController.value * 15,
                     spreadRadius: 2,
                   ),
@@ -533,16 +528,13 @@ class _LoginScreenState extends State<LoginScreen>
             );
           },
         ),
-        
+
         const SizedBox(height: 20),
-        
+
         // App name with gradient
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
-            colors: [
-              AppleColors.systemPurple,
-              AppleColors.systemPink,
-            ],
+            colors: [AppleColors.systemPurple, AppleColors.systemPink],
           ).createShader(bounds),
           child: Text(
             'Doudou',
@@ -554,17 +546,17 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         Text(
           'Your personal music companion',
           style: TextStyle(
             fontFamily: AppleDesignSystem.fontFamily,
             fontSize: 16,
-            color: isDark 
-              ? Colors.white.withOpacity(0.6) 
-              : Colors.black.withOpacity(0.5),
+            color: isDark
+                ? Colors.white.withOpacity(0.6)
+                : Colors.black.withOpacity(0.5),
           ),
         ),
       ],
@@ -574,7 +566,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildLoginForm(BuildContext context, {required bool isDesktop}) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Form(
@@ -593,27 +585,27 @@ class _LoginScreenState extends State<LoginScreen>
                   color: isDark ? Colors.white : Colors.black,
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               Text(
                 'Connect to your media server',
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 15,
-                  color: isDark 
-                    ? Colors.white.withOpacity(0.6) 
-                    : Colors.black.withOpacity(0.5),
+                  color: isDark
+                      ? Colors.white.withOpacity(0.6)
+                      : Colors.black.withOpacity(0.5),
                 ),
               ),
-              
+
               SizedBox(height: isDesktop ? 32 : 24),
-              
+
               // Server type selection
               _buildServerTypeSelection(context, isDesktop),
-              
+
               SizedBox(height: isDesktop ? 28 : 20),
-              
+
               // Server URL field
               _buildModernTextField(
                 controller: _serverController,
@@ -629,20 +621,20 @@ class _LoginScreenState extends State<LoginScreen>
                 keyboardType: TextInputType.url,
                 isDark: isDark,
               ),
-              
+
               SizedBox(height: isDesktop ? 16 : 12),
-              
+
               // Account fields
               ..._buildAccountFieldsModern(context, isDesktop),
-              
+
               SizedBox(height: isDesktop ? 28 : 20),
-              
+
               // Error message
               if (appState.errorMessage != null) ...[
                 _buildErrorMessage(context, appState.errorMessage!, isDesktop),
                 SizedBox(height: isDesktop ? 20 : 16),
               ],
-              
+
               // Sign in button
               _buildPrimaryButton(
                 context: context,
@@ -652,9 +644,9 @@ class _LoginScreenState extends State<LoginScreen>
                 onPressed: appState.isLoading ? null : _login,
                 isDark: isDark,
               ),
-              
+
               SizedBox(height: isDesktop ? 12 : 10),
-              
+
               // Secondary actions
               Row(
                 children: [
@@ -680,7 +672,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ],
               ),
-              
+
               SizedBox(height: isDesktop ? 24 : 20),
             ],
           ),
@@ -692,7 +684,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildServerTypeSelection(BuildContext context, bool isDesktop) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -703,23 +695,47 @@ class _LoginScreenState extends State<LoginScreen>
             fontSize: 14,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
-            color: isDark 
-              ? Colors.white.withOpacity(0.7) 
-              : Colors.black.withOpacity(0.6),
+            color: isDark
+                ? Colors.white.withOpacity(0.7)
+                : Colors.black.withOpacity(0.6),
           ),
         ),
-        
+
         SizedBox(height: isDesktop ? 12 : 10),
-        
+
         // Server type cards in a row (horizontal scroll on mobile)
         if (isDesktop)
           Row(
             children: [
-              Expanded(child: _buildServerTypeCard('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', AppleColors.systemPurple, isDark)),
+              Expanded(
+                child: _buildServerTypeCard(
+                  'jellyfin',
+                  'Jellyfin',
+                  'assets/icons/jellyfin.svg',
+                  AppleColors.systemPurple,
+                  isDark,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildServerTypeCard('plex', 'Plex', 'assets/icons/plex.svg', AppleColors.systemOrange, isDark)),
+              Expanded(
+                child: _buildServerTypeCard(
+                  'plex',
+                  'Plex',
+                  'assets/icons/plex.svg',
+                  AppleColors.systemOrange,
+                  isDark,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildServerTypeCard('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', AppleColors.systemBlue, isDark)),
+              Expanded(
+                child: _buildServerTypeCard(
+                  'navidrome',
+                  'Navidrome',
+                  'assets/icons/navidrome.svg',
+                  AppleColors.systemBlue,
+                  isDark,
+                ),
+              ),
             ],
           )
         else
@@ -727,21 +743,45 @@ class _LoginScreenState extends State<LoginScreen>
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildServerTypeChip('jellyfin', 'Jellyfin', 'assets/icons/jellyfin.svg', AppleColors.systemPurple, isDark),
+                _buildServerTypeChip(
+                  'jellyfin',
+                  'Jellyfin',
+                  'assets/icons/jellyfin.svg',
+                  AppleColors.systemPurple,
+                  isDark,
+                ),
                 const SizedBox(width: 10),
-                _buildServerTypeChip('plex', 'Plex', 'assets/icons/plex.svg', AppleColors.systemOrange, isDark),
+                _buildServerTypeChip(
+                  'plex',
+                  'Plex',
+                  'assets/icons/plex.svg',
+                  AppleColors.systemOrange,
+                  isDark,
+                ),
                 const SizedBox(width: 10),
-                _buildServerTypeChip('navidrome', 'Navidrome', 'assets/icons/navidrome.svg', AppleColors.systemBlue, isDark),
+                _buildServerTypeChip(
+                  'navidrome',
+                  'Navidrome',
+                  'assets/icons/navidrome.svg',
+                  AppleColors.systemBlue,
+                  isDark,
+                ),
               ],
             ),
           ),
       ],
     );
   }
-  
-  Widget _buildServerTypeCard(String type, String label, String iconPath, Color color, bool isDark) {
+
+  Widget _buildServerTypeCard(
+    String type,
+    String label,
+    String iconPath,
+    Color color,
+    bool isDark,
+  ) {
     final isSelected = _selectedServerType == type;
-    
+
     return GestureDetector(
       onTap: () async {
         await _triggerButtonPress();
@@ -761,14 +801,18 @@ class _LoginScreenState extends State<LoginScreen>
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-            ? color.withOpacity(isDark ? 0.2 : 0.12)
-            : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+          color: isSelected
+              ? color.withOpacity(isDark ? 0.2 : 0.12)
+              : (isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.03)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected 
-              ? color.withOpacity(0.6)
-              : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08)),
+            color: isSelected
+                ? color.withOpacity(0.6)
+                : (isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.black.withOpacity(0.08)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -794,9 +838,11 @@ class _LoginScreenState extends State<LoginScreen>
                 fontFamily: AppleDesignSystem.fontFamily,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected 
-                  ? color 
-                  : (isDark ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.7)),
+                color: isSelected
+                    ? color
+                    : (isDark
+                          ? Colors.white.withOpacity(0.8)
+                          : Colors.black.withOpacity(0.7)),
               ),
             ),
           ],
@@ -804,10 +850,16 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-  
-  Widget _buildServerTypeChip(String type, String label, String iconPath, Color color, bool isDark) {
+
+  Widget _buildServerTypeChip(
+    String type,
+    String label,
+    String iconPath,
+    Color color,
+    bool isDark,
+  ) {
     final isSelected = _selectedServerType == type;
-    
+
     return GestureDetector(
       onTap: () async {
         await _triggerButtonPress();
@@ -827,14 +879,18 @@ class _LoginScreenState extends State<LoginScreen>
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected 
-            ? color.withOpacity(isDark ? 0.2 : 0.12)
-            : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+          color: isSelected
+              ? color.withOpacity(isDark ? 0.2 : 0.12)
+              : (isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.03)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected 
-              ? color.withOpacity(0.6)
-              : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08)),
+            color: isSelected
+                ? color.withOpacity(0.6)
+                : (isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.black.withOpacity(0.08)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -861,9 +917,11 @@ class _LoginScreenState extends State<LoginScreen>
                 fontFamily: AppleDesignSystem.fontFamily,
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected 
-                  ? color 
-                  : (isDark ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.7)),
+                color: isSelected
+                    ? color
+                    : (isDark
+                          ? Colors.white.withOpacity(0.8)
+                          : Colors.black.withOpacity(0.7)),
               ),
             ),
             if (isSelected) ...[
@@ -879,7 +937,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-  
+
   Widget _buildModernTextField({
     required TextEditingController controller,
     required String label,
@@ -900,7 +958,9 @@ class _LoginScreenState extends State<LoginScreen>
             fontFamily: AppleDesignSystem.fontFamily,
             fontWeight: FontWeight.w600,
             fontSize: 14,
-            color: isDark ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.6),
+            color: isDark
+                ? Colors.white.withOpacity(0.7)
+                : Colors.black.withOpacity(0.6),
           ),
         ),
         const SizedBox(height: 8),
@@ -919,22 +979,22 @@ class _LoginScreenState extends State<LoginScreen>
             hintText: placeholder,
             hintStyle: TextStyle(
               fontFamily: AppleDesignSystem.fontFamily,
-              color: isDark 
-                ? Colors.white.withOpacity(0.3) 
-                : Colors.black.withOpacity(0.3),
+              color: isDark
+                  ? Colors.white.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.3),
             ),
             prefixIcon: Icon(
-              icon, 
+              icon,
               size: 20,
-              color: isDark 
-                ? Colors.white.withOpacity(0.5) 
-                : Colors.black.withOpacity(0.4),
+              color: isDark
+                  ? Colors.white.withOpacity(0.5)
+                  : Colors.black.withOpacity(0.4),
             ),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: isDark 
-              ? Colors.white.withOpacity(0.06) 
-              : Colors.black.withOpacity(0.04),
+            fillColor: isDark
+                ? Colors.white.withOpacity(0.06)
+                : Colors.black.withOpacity(0.04),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
@@ -942,9 +1002,9 @@ class _LoginScreenState extends State<LoginScreen>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: isDark 
-                  ? Colors.white.withOpacity(0.1) 
-                  : Colors.black.withOpacity(0.08),
+                color: isDark
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.black.withOpacity(0.08),
                 width: 1,
               ),
             ),
@@ -982,7 +1042,7 @@ class _LoginScreenState extends State<LoginScreen>
   List<Widget> _buildAccountFieldsModern(BuildContext context, bool isDesktop) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     if (_selectedServerType == 'plex') {
       return [
         _buildModernTextField(
@@ -1004,9 +1064,9 @@ class _LoginScreenState extends State<LoginScreen>
       return [
         // Toggle between auth methods
         _buildAuthMethodToggle(isDark),
-        
+
         SizedBox(height: isDesktop ? 16 : 12),
-        
+
         if (_useApiKeyAuth) ...[
           _buildModernTextField(
             controller: _apiKeyController,
@@ -1035,9 +1095,9 @@ class _LoginScreenState extends State<LoginScreen>
             },
             isDark: isDark,
           ),
-          
+
           SizedBox(height: isDesktop ? 16 : 12),
-          
+
           _buildModernTextField(
             controller: _passwordController,
             label: 'Password',
@@ -1047,13 +1107,13 @@ class _LoginScreenState extends State<LoginScreen>
             isDark: isDark,
             suffixIcon: IconButton(
               icon: Icon(
-                _isPasswordVisible 
-                  ? CupertinoIcons.eye_slash 
-                  : CupertinoIcons.eye,
+                _isPasswordVisible
+                    ? CupertinoIcons.eye_slash
+                    : CupertinoIcons.eye,
                 size: 20,
-                color: isDark 
-                  ? Colors.white.withOpacity(0.5) 
-                  : Colors.black.withOpacity(0.4),
+                color: isDark
+                    ? Colors.white.withOpacity(0.5)
+                    : Colors.black.withOpacity(0.4),
               ),
               onPressed: () {
                 setState(() {
@@ -1080,9 +1140,9 @@ class _LoginScreenState extends State<LoginScreen>
           },
           isDark: isDark,
         ),
-        
+
         SizedBox(height: isDesktop ? 16 : 12),
-        
+
         _buildModernTextField(
           controller: _passwordController,
           label: 'Password',
@@ -1092,13 +1152,13 @@ class _LoginScreenState extends State<LoginScreen>
           isDark: isDark,
           suffixIcon: IconButton(
             icon: Icon(
-              _isPasswordVisible 
-                ? CupertinoIcons.eye_slash 
-                : CupertinoIcons.eye,
+              _isPasswordVisible
+                  ? CupertinoIcons.eye_slash
+                  : CupertinoIcons.eye,
               size: 20,
-              color: isDark 
-                ? Colors.white.withOpacity(0.5) 
-                : Colors.black.withOpacity(0.4),
+              color: isDark
+                  ? Colors.white.withOpacity(0.5)
+                  : Colors.black.withOpacity(0.4),
             ),
             onPressed: () {
               setState(() {
@@ -1115,14 +1175,14 @@ class _LoginScreenState extends State<LoginScreen>
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark 
-          ? Colors.white.withOpacity(0.05) 
-          : Colors.black.withOpacity(0.05),
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : Colors.black.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark 
-            ? Colors.white.withOpacity(0.1) 
-            : Colors.black.withOpacity(0.1),
+          color: isDark
+              ? Colors.white.withOpacity(0.1)
+              : Colors.black.withOpacity(0.1),
         ),
       ),
       child: Row(
@@ -1138,9 +1198,9 @@ class _LoginScreenState extends State<LoginScreen>
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: !_useApiKeyAuth 
-                    ? AppleColors.systemPurple 
-                    : Colors.transparent,
+                  color: !_useApiKeyAuth
+                      ? AppleColors.systemPurple
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1149,9 +1209,9 @@ class _LoginScreenState extends State<LoginScreen>
                     Icon(
                       CupertinoIcons.person,
                       size: 16,
-                      color: !_useApiKeyAuth 
-                        ? Colors.white 
-                        : (isDark ? Colors.white60 : Colors.black54),
+                      color: !_useApiKeyAuth
+                          ? Colors.white
+                          : (isDark ? Colors.white60 : Colors.black54),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -1160,9 +1220,9 @@ class _LoginScreenState extends State<LoginScreen>
                         fontFamily: AppleDesignSystem.fontFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: !_useApiKeyAuth 
-                          ? Colors.white 
-                          : (isDark ? Colors.white60 : Colors.black54),
+                        color: !_useApiKeyAuth
+                            ? Colors.white
+                            : (isDark ? Colors.white60 : Colors.black54),
                       ),
                     ),
                   ],
@@ -1181,9 +1241,9 @@ class _LoginScreenState extends State<LoginScreen>
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: _useApiKeyAuth 
-                    ? AppleColors.systemPurple 
-                    : Colors.transparent,
+                  color: _useApiKeyAuth
+                      ? AppleColors.systemPurple
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1192,9 +1252,9 @@ class _LoginScreenState extends State<LoginScreen>
                     Icon(
                       CupertinoIcons.lock_shield,
                       size: 16,
-                      color: _useApiKeyAuth 
-                        ? Colors.white 
-                        : (isDark ? Colors.white60 : Colors.black54),
+                      color: _useApiKeyAuth
+                          ? Colors.white
+                          : (isDark ? Colors.white60 : Colors.black54),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -1203,9 +1263,9 @@ class _LoginScreenState extends State<LoginScreen>
                         fontFamily: AppleDesignSystem.fontFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: _useApiKeyAuth 
-                          ? Colors.white 
-                          : (isDark ? Colors.white60 : Colors.black54),
+                        color: _useApiKeyAuth
+                            ? Colors.white
+                            : (isDark ? Colors.white60 : Colors.black54),
                       ),
                     ),
                   ],
@@ -1218,15 +1278,17 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildErrorMessage(BuildContext context, String message, bool isDesktop) {
+  Widget _buildErrorMessage(
+    BuildContext context,
+    String message,
+    bool isDesktop,
+  ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppleColors.systemRed.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppleColors.systemRed.withOpacity(0.3),
-        ),
+        border: Border.all(color: AppleColors.systemRed.withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -1250,7 +1312,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-  
+
   Widget _buildPrimaryButton({
     required BuildContext context,
     required String label,
@@ -1275,47 +1337,47 @@ class _LoginScreenState extends State<LoginScreen>
           padding: const EdgeInsets.symmetric(horizontal: 24),
         ),
         child: isLoading
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Colors.white,
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Connecting...',
-                  style: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  Text(
+                    'Connecting...',
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Icon(icon, size: 18),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  Icon(icon, size: 18),
+                ],
+              ),
       ),
     );
   }
-  
+
   Widget _buildSecondaryButton({
     required BuildContext context,
     required String label,
@@ -1325,7 +1387,7 @@ class _LoginScreenState extends State<LoginScreen>
     Color? accentColor,
   }) {
     final color = accentColor ?? (isDark ? Colors.white : Colors.black);
-    
+
     return SizedBox(
       height: 48,
       child: OutlinedButton(
@@ -1333,9 +1395,9 @@ class _LoginScreenState extends State<LoginScreen>
         style: OutlinedButton.styleFrom(
           foregroundColor: color.withOpacity(0.8),
           side: BorderSide(
-            color: isDark 
-              ? Colors.white.withOpacity(0.15) 
-              : Colors.black.withOpacity(0.12),
+            color: isDark
+                ? Colors.white.withOpacity(0.15)
+                : Colors.black.withOpacity(0.12),
             width: 1,
           ),
           shape: RoundedRectangleBorder(
@@ -1366,10 +1428,10 @@ class _LoginScreenState extends State<LoginScreen>
   // Demo login method
   Future<void> _loginDemo() async {
     await _triggerButtonPress();
-    
+
     if (!mounted) return;
     final appState = context.read<AppState>();
-    
+
     final success = await appState.loginWithServerType(
       'jellyfin',
       'https://demo.jellyfin.org/stable/web',
@@ -1389,11 +1451,11 @@ class _LoginScreenState extends State<LoginScreen>
     if (_formKey.currentState!.validate()) {
       // Trigger button press haptic feedback
       await _triggerButtonPress();
-      
+
       if (!mounted) return;
       final appState = context.read<AppState>();
       bool success;
-      
+
       if (_selectedServerType == 'plex') {
         // Plex token auth
         success = await appState.loginWithServerType(
@@ -1431,28 +1493,30 @@ class _LoginScreenState extends State<LoginScreen>
       await _triggerHapticFeedback(isSuccess: false);
     }
   }
-  
+
   Future<void> _enterOfflineMode() async {
     // Trigger button press haptic feedback
     await _triggerButtonPress();
-    
+
     if (!mounted) return;
     final appState = context.read<AppState>();
     final success = await appState.enterOfflineModeWithoutLogin();
-    
+
     if (success && mounted) {
       // Success vibration
       await _triggerHapticFeedback(isSuccess: true);
     } else if (mounted) {
       // Error vibration for no offline content
       await _triggerHapticFeedback(isSuccess: false);
-      
+
       if (!mounted) return;
       showCupertinoDialog(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
           title: const Text('No Downloaded Content'),
-          content: const Text('You need to have downloaded music to use offline mode. Please sign in first to download some music.'),
+          content: const Text(
+            'You need to have downloaded music to use offline mode. Please sign in first to download some music.',
+          ),
           actions: [
             CupertinoDialogAction(
               child: const Text('OK'),
@@ -1483,7 +1547,7 @@ class _LoginScreenState extends State<LoginScreen>
       // Check if vibration is available
       bool? hasVibrator = await Vibration.hasVibrator();
       if (hasVibrator != true) return;
-      
+
       if (isSuccess) {
         // Success pattern: Light vibration
         HapticFeedback.lightImpact();
@@ -1522,12 +1586,12 @@ class _GridPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     const gridSize = 40.0;
-    
+
     // Vertical lines
     for (double x = 0; x < size.width; x += gridSize) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
-    
+
     // Horizontal lines
     for (double y = 0; y < size.height; y += gridSize) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
