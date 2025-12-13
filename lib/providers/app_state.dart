@@ -361,45 +361,46 @@ class AppState extends ChangeNotifier {
             if (server != null) {
               _jellyfinService.setJellyfinServer(server);
 
-            // Enter offline mode with saved credentials
-            _isLoggedIn = true;
-            _isConnected = false;
-            await _enterOfflineMode();
+              // Enter offline mode with saved credentials
+              _isLoggedIn = true;
+              _isConnected = false;
+              await _enterOfflineMode();
 
-            // Initialize cache service for offline mode
-            await _cacheService.initialize();
+              // Initialize cache service for offline mode
+              await _cacheService.initialize();
 
-            // Initialize new audio system with automatic platform detection
-            try {
-              final audioService = AudioServiceIntegration.instance;
-              await audioService.initialize(_mediaServiceManager);
-              _audioHandler = audioService;
+              // Initialize new audio system with automatic platform detection
+              try {
+                final audioService = AudioServiceIntegration.instance;
+                await audioService.initialize(_mediaServiceManager);
+                _audioHandler = audioService;
 
-              // Apply user settings to the audio handler
-              _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+                // Apply user settings to the audio handler
+                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
 
-              // Set up listeners for automatic UI updates
-              _setupAudioHandlerListeners();
+                // Set up listeners for automatic UI updates
+                _setupAudioHandlerListeners();
+
+                if (kDebugMode) {
+                  print(
+                    'Audio system initialized successfully for offline mode, platform: ${audioService.platformType}',
+                  );
+                }
+              } catch (audioError) {
+                if (kDebugMode) {
+                  print(
+                    'Failed to initialize audio system in offline mode: $audioError',
+                  );
+                }
+                // Continue without audio service
+                _audioHandler = null;
+              }
 
               if (kDebugMode) {
-                print(
-                  'Audio system initialized successfully for offline mode, platform: ${audioService.platformType}',
-                );
+                print('Entered offline mode with saved $serverType credentials');
               }
-            } catch (audioError) {
-              if (kDebugMode) {
-                print(
-                  'Failed to initialize audio system in offline mode: $audioError',
-                );
-              }
-              // Continue without audio service
-              _audioHandler = null;
+              notifyListeners();
             }
-
-            if (kDebugMode) {
-              print('Entered offline mode with saved $serverType credentials');
-            }
-            notifyListeners();
           } else {
             // No downloads available or server type doesn't support offline, clear invalid credentials
             final prefs = await SharedPreferences.getInstance();
