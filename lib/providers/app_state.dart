@@ -228,7 +228,7 @@ class AppState extends ChangeNotifier {
         // Test the connection with saved credentials
         try {
           bool isValid = false;
-          
+
           if (authMethod == 'api_key' && credentials['apiKey'] != null) {
             // API key authentication
             isValid = await _jellyfinService
@@ -336,7 +336,7 @@ class AppState extends ChangeNotifier {
             // Offline mode only supported for Jellyfin currently
             // Set up server for offline mode using available credentials
             JellyfinServer? server;
-            
+
             if (authMethod == 'api_key' && credentials['apiKey'] != null) {
               // API key auth - create minimal server config
               server = JellyfinServer(
@@ -357,7 +357,7 @@ class AppState extends ChangeNotifier {
                 );
               }
             }
-            
+
             if (server != null) {
               _jellyfinService.setJellyfinServer(server);
 
@@ -397,7 +397,9 @@ class AppState extends ChangeNotifier {
               }
 
               if (kDebugMode) {
-                print('Entered offline mode with saved $serverType credentials');
+                print(
+                  'Entered offline mode with saved $serverType credentials',
+                );
               }
               notifyListeners();
             }
@@ -695,14 +697,18 @@ class AppState extends ChangeNotifier {
 
     try {
       // Ensure serverUrl has protocol
-      if (!serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
+      if (!serverUrl.startsWith('http://') &&
+          !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
       }
 
       // Initialize Jellyfin service
       _mediaServiceManager.initializeService(ServerType.jellyfin);
 
-      final success = await _jellyfinService.authenticateWithApiKey(serverUrl, apiKey);
+      final success = await _jellyfinService.authenticateWithApiKey(
+        serverUrl,
+        apiKey,
+      );
 
       if (success) {
         if (kDebugMode) {
@@ -758,9 +764,11 @@ class AppState extends ChangeNotifier {
       String errorMessage = 'An unexpected error occurred. Please try again.';
 
       if (e.toString().toLowerCase().contains('timeout')) {
-        errorMessage = 'Connection timeout. Please check your network and server availability.';
+        errorMessage =
+            'Connection timeout. Please check your network and server availability.';
       } else if (e.toString().toLowerCase().contains('certificate')) {
-        errorMessage = 'SSL certificate error. Please check your server configuration.';
+        errorMessage =
+            'SSL certificate error. Please check your server configuration.';
       }
 
       _setError(errorMessage);
@@ -776,7 +784,7 @@ class AppState extends ChangeNotifier {
     await prefs.setString('server_url', serverUrl);
     await prefs.setString('server_api_key', apiKey);
     await prefs.setString('auth_method', 'api_key');
-    
+
     // Clear any old username/password credentials
     await prefs.remove('server_identifier');
     await prefs.remove('server_credential');
@@ -934,7 +942,7 @@ class AppState extends ChangeNotifier {
       final serverType = prefs.getString('server_type');
       final serverUrl = prefs.getString('server_url');
       final authMethod = prefs.getString('auth_method');
-      
+
       // Check for API key authentication first
       if (authMethod == 'api_key') {
         final apiKey = prefs.getString('server_api_key');
@@ -947,7 +955,7 @@ class AppState extends ChangeNotifier {
           };
         }
       }
-      
+
       // Fall back to username/password authentication
       final identifier = prefs.getString('server_identifier');
       final credential = prefs.getString('server_credential');
