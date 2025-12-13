@@ -23,9 +23,11 @@ class _LoginScreenState extends State<LoginScreen>
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _plexTokenController = TextEditingController();
+  final _apiKeyController = TextEditingController();
   
   String _selectedServerType = 'jellyfin';
   bool _isPasswordVisible = false;
+  bool _useApiKeyAuth = false;  // Toggle between username/password and API key
   
   late AnimationController _animationController;
   late AnimationController _backgroundController;
