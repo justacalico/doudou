@@ -1261,7 +1261,7 @@ class JellyfinService implements BaseMediaService {
     return {
       'X-Emby-Token': _server!.accessToken ?? '',
       'X-Emby-Authorization':
-          'MediaBrowser UserId="${_server!.userId}", Client="doudou-flutter", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+          'MediaBrowser UserId="${_server!.userId}", Client="doudou-flutter", Device="Flutter", DeviceId="doudou-flutter", Version="$_appVersion"',
     };
   }
 
