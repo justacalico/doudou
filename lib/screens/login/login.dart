@@ -72,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen>
     _usernameController.dispose();
     _passwordController.dispose();
     _plexTokenController.dispose();
+    _apiKeyController.dispose();
     super.dispose();
   }
 
