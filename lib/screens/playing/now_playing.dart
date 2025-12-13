@@ -10,6 +10,7 @@ import '../../models/jellyfin_models.dart';
 import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../../widgets/cached_image_widget.dart';
+import '../../widgets/marquee_text.dart';
 import '../shared/detail_track_view.dart';
 import '../artists/details/artist_detail.dart';
 import '../../services/lyrics_service.dart';
@@ -396,18 +397,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Flexible(
-                                      child: Text(
-                                        currentTrack.name,
+                                    SizedBox(
+                                      height: 36,
+                                      child: MarqueeText(
+                                        text: currentTrack.name,
                                         style: const TextStyle(
                                           fontSize: 26,
                                           fontWeight: FontWeight.w700,
                                           color: CupertinoColors.white,
                                           letterSpacing: -0.5,
                                         ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
