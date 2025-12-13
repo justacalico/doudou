@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'apple_theme.dart';
 
 /// iOS 26-style Liquid Glass Components
