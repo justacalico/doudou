@@ -1024,8 +1024,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showSupportDialog(BuildContext context) async {
     final url = Uri.parse('https://communistparty.ie/en/');
-    if (await canLaunchUrl(url)) {
+    try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Could not launch URL: $e');
+      }
     }
   }
 
