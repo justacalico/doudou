@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 
@@ -28,9 +29,31 @@ class NetworkException implements Exception {
 class JellyfinService implements BaseMediaService {
   late Dio _dio;
   JellyfinServer? _server;
+  static String _appVersion = '1.0.0'; // Default, will be updated on init
+  static bool _versionInitialized = false;
 
   @override
   ServerType get serverType => ServerType.jellyfin;
+
+  /// Initialize the app version from package info
+  static Future<void> initializeVersion() async {
+    if (_versionInitialized) return;
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _appVersion = packageInfo.version;
+      _versionInitialized = true;
+      if (kDebugMode) {
+        print('JellyfinService: Initialized app version to $_appVersion');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('JellyfinService: Failed to get app version: $e');
+      }
+    }
+  }
+
+  /// Get the current app version string
+  static String get appVersion => _appVersion;
 
   JellyfinService() {
     _dio = Dio();
