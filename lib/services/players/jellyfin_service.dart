@@ -329,9 +329,9 @@ class JellyfinService implements BaseMediaService {
         );
       }
 
-      // Test the API key by fetching the current user info
-      final response = await _dio.get(
-        '/Users/Me',
+      // First, validate the API key by checking system info
+      final systemResponse = await _dio.get(
+        '/System/Info',
         options: Options(
           headers: {
             'X-Emby-Token': apiKey,
@@ -342,14 +342,50 @@ class JellyfinService implements BaseMediaService {
         ),
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
+      if (systemResponse.statusCode != 200) {
+        if (kDebugMode) {
+          print('JellyfinService: API key validation failed');
+        }
+        return false;
+      }
+
+      if (kDebugMode) {
+        print('JellyfinService: API key validated, fetching users...');
+      }
+
+      // Get list of users to find one to use
+      final usersResponse = await _dio.get(
+        '/Users',
+        options: Options(
+          headers: {
+            'X-Emby-Token': apiKey,
+            'Content-Type': 'application/json',
+            'User-Agent':
+                'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+          },
+        ),
+      );
+
+      if (usersResponse.statusCode == 200 && usersResponse.data is List && (usersResponse.data as List).isNotEmpty) {
+        // Use the first user (usually admin) or find the first non-disabled user
+        final users = usersResponse.data as List;
+        Map<String, dynamic>? selectedUser;
+        
+        for (final user in users) {
+          if (user['Policy'] != null && user['Policy']['IsDisabled'] != true) {
+            selectedUser = user;
+            break;
+          }
+        }
+        
+        selectedUser ??= users.first;
+
         _server = JellyfinServer(
           serverUrl: serverUrl,
-          userId: data['Id'],
+          userId: selectedUser['Id'],
           accessToken: apiKey,
           apiKey: apiKey,
-          username: data['Name'] ?? 'API User',
+          username: selectedUser['Name'] ?? 'API User',
         );
 
         _dio.options.headers['X-Emby-Token'] = apiKey;
@@ -361,6 +397,11 @@ class JellyfinService implements BaseMediaService {
         }
 
         return true;
+      } else {
+        if (kDebugMode) {
+          print('JellyfinService: No users found or cannot access users list');
+        }
+        return false;
       }
     } catch (e) {
       if (kDebugMode) {
