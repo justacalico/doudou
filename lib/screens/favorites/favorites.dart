@@ -19,14 +19,16 @@ class FavoritesView extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         // Filter tracks to only show favorites
-        List<Track> favoriteTracks =
-            appState.tracks.where((track) => track.isFavorite).toList();
+        List<Track> favoriteTracks = appState.tracks
+            .where((track) => track.isFavorite)
+            .toList();
 
         // If coming from downloads page, only show downloaded favorites
         if (showDownloadedOnly) {
           favoriteTracks = favoriteTracks
               .where(
-                  (track) => appState.downloadService.isTrackDownloaded(track.id))
+                (track) => appState.downloadService.isTrackDownloaded(track.id),
+              )
               .toList();
         }
 
@@ -37,7 +39,9 @@ class FavoritesView extends StatelessWidget {
               backgroundColor: Colors.transparent,
               border: null,
               middle: Text(
-                showDownloadedOnly ? l10n.downloadedFavorites : l10n.navFavorites,
+                showDownloadedOnly
+                    ? l10n.downloadedFavorites
+                    : l10n.navFavorites,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -152,8 +156,12 @@ class FavoritesView extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, AppState appState,
-      List<Track> favoriteTracks, AppLocalizations l10n) {
+  Widget _buildContent(
+    BuildContext context,
+    AppState appState,
+    List<Track> favoriteTracks,
+    AppLocalizations l10n,
+  ) {
     return CustomScrollView(
       slivers: [
         CupertinoSliverRefreshControl(
@@ -280,26 +288,21 @@ class FavoritesView extends StatelessWidget {
         ),
         // Songs list
         SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final track = favoriteTracks[index];
-              return TrackListItem(
-                track: track,
-                onTap: () => _playTrack(context, track, index),
-                showAlbumArt: true,
-                showTrackNumber: false,
-                showDuration: true,
-                showDownloadButton: true,
-                showFavoriteButton: true,
-              );
-            },
-            childCount: favoriteTracks.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final track = favoriteTracks[index];
+            return TrackListItem(
+              track: track,
+              onTap: () => _playTrack(context, track, index),
+              showAlbumArt: true,
+              showTrackNumber: false,
+              showDuration: true,
+              showDownloadButton: true,
+              showFavoriteButton: true,
+            );
+          }, childCount: favoriteTracks.length),
         ),
         // Bottom padding for mini player
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 150),
-        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 150)),
       ],
     );
   }
@@ -321,10 +324,7 @@ class FavoritesView extends StatelessWidget {
               ],
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
           ),
           child: Row(
             children: [
@@ -381,8 +381,10 @@ class FavoritesView extends StatelessWidget {
               ),
               // Track count badge
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEC4899).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -408,11 +410,14 @@ class FavoritesView extends StatelessWidget {
 
   void _playTrack(BuildContext context, Track track, int index) {
     final appState = context.read<AppState>();
-    List<Track> favoriteTracks =
-        appState.tracks.where((track) => track.isFavorite).toList();
+    List<Track> favoriteTracks = appState.tracks
+        .where((track) => track.isFavorite)
+        .toList();
     if (showDownloadedOnly) {
       favoriteTracks = favoriteTracks
-          .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+          .where(
+            (track) => appState.downloadService.isTrackDownloaded(track.id),
+          )
           .toList();
     }
     appState.playPlaylist(favoriteTracks, index);
@@ -420,11 +425,14 @@ class FavoritesView extends StatelessWidget {
 
   void _playAllFavorites(BuildContext context) {
     final appState = context.read<AppState>();
-    List<Track> favoriteTracks =
-        appState.tracks.where((track) => track.isFavorite).toList();
+    List<Track> favoriteTracks = appState.tracks
+        .where((track) => track.isFavorite)
+        .toList();
     if (showDownloadedOnly) {
       favoriteTracks = favoriteTracks
-          .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+          .where(
+            (track) => appState.downloadService.isTrackDownloaded(track.id),
+          )
           .toList();
     }
 
@@ -435,11 +443,14 @@ class FavoritesView extends StatelessWidget {
 
   void _shuffleFavorites(BuildContext context) {
     final appState = context.read<AppState>();
-    List<Track> favoriteTracks =
-        appState.tracks.where((track) => track.isFavorite).toList();
+    List<Track> favoriteTracks = appState.tracks
+        .where((track) => track.isFavorite)
+        .toList();
     if (showDownloadedOnly) {
       favoriteTracks = favoriteTracks
-          .where((track) => appState.downloadService.isTrackDownloaded(track.id))
+          .where(
+            (track) => appState.downloadService.isTrackDownloaded(track.id),
+          )
           .toList();
     }
 
