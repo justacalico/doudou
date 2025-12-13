@@ -1043,6 +1043,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _openDeveloperWebsite(BuildContext context) async {
+    final url = Uri.parse('https://openlyst.onrender.com/');
+    try {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Could not launch URL: $e');
+      }
+    }
+  }
+
   Future<void> _refreshLibraryData(
     BuildContext context,
     AppState appState,
