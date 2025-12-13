@@ -27,15 +27,14 @@ flutter clean
 flutter pub get
 
 # --- 3. Build the IPA ---
-# Build without codesigning for AltStore/sideloading
-# AltStore will handle the signing when installing
+# Build without codesigning first, then sign manually
 flutter build ios --release \
   --build-name="$VERSION_NAME" \
   --build-number="$VERSION_NUMBER" \
   --no-codesign
 
-# --- 4. Create the IPA manually from the .app bundle ---
-echo "Creating unsigned IPA for AltStore..."
+# --- 4. Sign the app bundle and create IPA ---
+echo "Signing the app bundle..."
 
 APP_PATH="./build/ios/iphoneos/Runner.app"
 
@@ -44,12 +43,40 @@ if [ ! -d "$APP_PATH" ]; then
     exit 1
 fi
 
+# Sign all frameworks and dylibs first
+echo "Signing embedded frameworks and libraries..."
+find "$APP_PATH" -name "*.framework" -o -name "*.dylib" | while read -r item; do
+    if [ -e "$item" ]; then
+        echo "Signing: $item"
+        codesign --force --deep --sign - "$item"
+    fi
+done
+
+# Sign any app extensions
+find "$APP_PATH/PlugIns" -name "*.appex" 2>/dev/null | while read -r appex; do
+    if [ -e "$appex" ]; then
+        echo "Signing extension: $appex"
+        codesign --force --deep --sign - "$appex"
+    fi
+done
+
+# Sign the main app bundle
+echo "Signing main app bundle..."
+codesign --force --deep --sign - "$APP_PATH"
+
+# Verify the signature
+echo "Verifying signature..."
+codesign --verify --deep --strict "$APP_PATH" && echo "Signature is valid!" || echo "Warning: Signature verification failed"
+
+# --- 5. Create the IPA ---
+echo "Creating IPA..."
+
 # Create Payload directory structure
 PAYLOAD_DIR="./build/ios/Payload"
 rm -rf "$PAYLOAD_DIR"
 mkdir -p "$PAYLOAD_DIR"
 
-# Copy the .app to Payload
+# Copy the signed .app to Payload
 cp -r "$APP_PATH" "$PAYLOAD_DIR/"
 
 # Create 'dist' folder if needed
@@ -64,5 +91,5 @@ cd "../.."
 # Clean up
 rm -rf "$PAYLOAD_DIR"
 
-echo "Success! Unsigned IPA is here: $DIST_DIR/$IPA_FILENAME"
+echo "Success! Signed IPA is here: $DIST_DIR/$IPA_FILENAME"
 echo "You can now install this IPA using AltStore or Sideloadly."
