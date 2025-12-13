@@ -1722,6 +1722,16 @@
     "description": "Support development description"
   },
 
+  "developerWebsite": "Developer Website",
+  "@developerWebsite": {
+    "description": "Developer website button label"
+  },
+
+  "visitOurWebsite": "Visit Openlyst - the developers",
+  "@visitOurWebsite": {
+    "description": "Developer website description"
+  },
+
   "privacyPolicy": "Privacy Policy",
   "@privacyPolicy": {
     "description": "Privacy policy button label"
