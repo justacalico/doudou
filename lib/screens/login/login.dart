@@ -1011,7 +1011,7 @@ class _LoginScreenState extends State<LoginScreen>
           _buildModernTextField(
             controller: _apiKeyController,
             label: 'API Key',
-            icon: CupertinoIcons.key,
+            icon: CupertinoIcons.lock_shield,
             placeholder: 'Enter your Jellyfin API key',
             validator: (value) {
               if (value == null || value.isEmpty) {
