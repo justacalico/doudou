@@ -324,6 +324,8 @@ class JellyfinService implements BaseMediaService {
   Future<bool> authenticateWithApiKey(String serverUrl, String apiKey) async {
     try {
       _dio.options.baseUrl = serverUrl;
+      // Clear any existing auth headers from previous sessions
+      _dio.options.headers.remove('X-Emby-Token');
 
       if (kDebugMode) {
         print(
