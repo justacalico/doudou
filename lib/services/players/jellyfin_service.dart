@@ -337,6 +337,14 @@ class JellyfinService implements BaseMediaService {
     } catch (e) {
       if (kDebugMode) {
         print('Authentication error: $e');
+        if (e is DioException) {
+          print('DioException type: ${e.type}');
+          print('DioException response: ${e.response}');
+          print('DioException response status: ${e.response?.statusCode}');
+          print('DioException response data: ${e.response?.data}');
+          print('DioException message: ${e.message}');
+          print('DioException error: ${e.error}');
+        }
       }
     }
     return false;
