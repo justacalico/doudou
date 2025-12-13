@@ -386,6 +386,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ).helpSupportProject,
                                   onTap: () => _showSupportDialog(context),
                                 ),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.globe,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).developerWebsite,
+                                  subtitle: AppLocalizations.of(
+                                    context,
+                                  ).visitOurWebsite,
+                                  onTap: () => _openDeveloperWebsite(context),
+                                ),
                               ],
                             ),
                           ),
