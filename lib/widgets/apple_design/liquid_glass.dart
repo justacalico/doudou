@@ -43,20 +43,22 @@ class LiquidGlassMaterial extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     final baseTint = tintColor ?? (isDark ? Colors.white : Colors.black);
-    
+
     return Container(
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: shadows ?? [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow:
+            shadows ??
+            [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -67,10 +69,14 @@ class LiquidGlassMaterial extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(borderRadius),
               color: baseTint.withOpacity(tintOpacity),
-              border: showBorder ? Border.all(
-                color: (isDark ? Colors.white : Colors.black).withOpacity(borderOpacity),
-                width: 0.5,
-              ) : null,
+              border: showBorder
+                  ? Border.all(
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        borderOpacity,
+                      ),
+                      width: 0.5,
+                    )
+                  : null,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -112,7 +118,7 @@ class LiquidGlassNavBar extends StatelessWidget {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
     final accent = accentColor ?? AppleColors.systemPink;
-    
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: ClipRRect(
@@ -123,7 +129,9 @@ class LiquidGlassNavBar extends StatelessWidget {
             height: 64,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
-              color: (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.12 : 0.06),
+              color: (isDark ? Colors.white : Colors.black).withOpacity(
+                isDark ? 0.12 : 0.06,
+              ),
               border: Border.all(
                 color: (isDark ? Colors.white : Colors.black).withOpacity(0.15),
                 width: 0.5,
@@ -142,7 +150,7 @@ class LiquidGlassNavBar extends StatelessWidget {
                 final index = entry.key;
                 final item = entry.value;
                 final isSelected = index == currentIndex;
-                
+
                 return Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -197,9 +205,10 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.9,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -214,10 +223,8 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
     // This widget just displays the content
     return AnimatedBuilder(
       animation: _scaleAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _scaleAnimation.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Transform.scale(scale: _scaleAnimation.value, child: child),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -227,16 +234,18 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              color: widget.isSelected 
+              color: widget.isSelected
                   ? widget.accent.withOpacity(0.2)
                   : Colors.transparent,
             ),
             child: Icon(
               widget.isSelected ? widget.item.activeIcon : widget.item.icon,
               size: 24,
-              color: widget.isSelected 
-                  ? widget.accent 
-                  : (widget.isDark ? Colors.white.withOpacity(0.6) : Colors.black.withOpacity(0.5)),
+              color: widget.isSelected
+                  ? widget.accent
+                  : (widget.isDark
+                        ? Colors.white.withOpacity(0.6)
+                        : Colors.black.withOpacity(0.5)),
             ),
           ),
           const SizedBox(height: 2),
@@ -246,9 +255,11 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
               fontFamily: AppleDesignSystem.fontFamily,
               fontSize: 10,
               fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: widget.isSelected 
-                  ? widget.accent 
-                  : (widget.isDark ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.4)),
+              color: widget.isSelected
+                  ? widget.accent
+                  : (widget.isDark
+                        ? Colors.white.withOpacity(0.5)
+                        : Colors.black.withOpacity(0.4)),
             ),
             child: Text(widget.item.label),
           ),
@@ -303,7 +314,7 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: ClipRRect(
@@ -316,9 +327,13 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
               height: 68,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.15 : 0.08),
+                color: (isDark ? Colors.white : Colors.black).withOpacity(
+                  isDark ? 0.15 : 0.08,
+                ),
                 border: Border.all(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.12),
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(
+                    0.12,
+                  ),
                   width: 0.5,
                 ),
                 boxShadow: [
@@ -330,7 +345,10 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     // Album Art with rounded corners
@@ -353,7 +371,7 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    
+
                     // Track info
                     Expanded(
                       child: Column(
@@ -378,7 +396,8 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                               style: TextStyle(
                                 fontFamily: AppleDesignSystem.fontFamily,
                                 fontSize: 13,
-                                color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                                color: (isDark ? Colors.white : Colors.black)
+                                    .withOpacity(0.6),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -387,15 +406,17 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                         ],
                       ),
                     ),
-                    
+
                     // Controls
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _LiquidGlassIconButton(
-                          icon: isLoading 
-                              ? null 
-                              : (isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill),
+                          icon: isLoading
+                              ? null
+                              : (isPlaying
+                                    ? CupertinoIcons.pause_fill
+                                    : CupertinoIcons.play_fill),
                           isLoading: isLoading,
                           onTap: onPlayPause,
                           size: 32,
@@ -455,9 +476,10 @@ class _LiquidGlassIconButtonState extends State<_LiquidGlassIconButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.85).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.85,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -475,10 +497,8 @@ class _LiquidGlassIconButtonState extends State<_LiquidGlassIconButton>
       onTap: widget.disabled ? null : widget.onTap,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: SizedBox(
           width: widget.size,
           height: widget.size,
@@ -491,7 +511,8 @@ class _LiquidGlassIconButtonState extends State<_LiquidGlassIconButton>
                     widget.icon,
                     size: widget.size * 0.7,
                     color: widget.disabled
-                        ? (widget.isDark ? Colors.white : Colors.black).withOpacity(0.3)
+                        ? (widget.isDark ? Colors.white : Colors.black)
+                              .withOpacity(0.3)
                         : (widget.isDark ? Colors.white : Colors.black),
                   ),
           ),
@@ -528,7 +549,7 @@ class LiquidGlassSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -537,7 +558,9 @@ class LiquidGlassSearchBar extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.12 : 0.06),
+            color: (isDark ? Colors.white : Colors.black).withOpacity(
+              isDark ? 0.12 : 0.06,
+            ),
             border: Border.all(
               color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
               width: 0.5,
@@ -559,7 +582,9 @@ class LiquidGlassSearchBar extends StatelessWidget {
                   placeholderStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: 16,
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(0.4),
+                    color: (isDark ? Colors.white : Colors.black).withOpacity(
+                      0.4,
+                    ),
                   ),
                   style: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
@@ -584,7 +609,9 @@ class LiquidGlassSearchBar extends StatelessWidget {
                     child: Icon(
                       CupertinoIcons.xmark_circle_fill,
                       size: 18,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.4),
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        0.4,
+                      ),
                     ),
                   ),
                 ),
@@ -621,7 +648,7 @@ class LiquidGlassSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
       child: Row(
@@ -647,7 +674,9 @@ class LiquidGlassSectionHeader extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: 15,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        0.6,
+                      ),
                     ),
                   ),
                 ],
@@ -711,9 +740,10 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -726,7 +756,7 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
@@ -734,10 +764,8 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
       onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: SizedBox(
           width: widget.width,
           child: Column(
@@ -763,7 +791,7 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
                 ),
               ),
               const SizedBox(height: 10),
-              
+
               // Title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -779,7 +807,7 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              
+
               // Subtitle
               if (widget.subtitle != null) ...[
                 const SizedBox(height: 2),
@@ -790,7 +818,9 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: 13,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        0.6,
+                      ),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -841,7 +871,7 @@ class _LiquidGlassListTileState extends State<LiquidGlassListTile> {
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -887,7 +917,8 @@ class _LiquidGlassListTileState extends State<LiquidGlassListTile> {
                       style: TextStyle(
                         fontFamily: AppleDesignSystem.fontFamily,
                         fontSize: 14,
-                        color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withOpacity(0.6),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -941,9 +972,10 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -957,7 +989,7 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
     final accent = widget.accentColor ?? AppleColors.systemPink;
-    
+
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
@@ -965,10 +997,8 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
       onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
@@ -980,7 +1010,9 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
             borderRadius: BorderRadius.circular(20),
             color: widget.isSelected
                 ? accent.withOpacity(0.2)
-                : (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.1 : 0.06),
+                : (isDark ? Colors.white : Colors.black).withOpacity(
+                    isDark ? 0.1 : 0.06,
+                  ),
             border: Border.all(
               color: widget.isSelected
                   ? accent.withOpacity(0.5)
@@ -1006,7 +1038,9 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: 14,
-                  fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: widget.isSelected
+                      ? FontWeight.w600
+                      : FontWeight.w500,
                   color: widget.isSelected
                       ? accent
                       : (isDark ? Colors.white : Colors.black).withOpacity(0.8),
@@ -1055,9 +1089,10 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.92,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -1069,7 +1104,7 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
   @override
   Widget build(BuildContext context) {
     final accent = widget.accentColor ?? AppleColors.systemPink;
-    
+
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
@@ -1077,10 +1112,8 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
       onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: BackdropFilter(
@@ -1093,10 +1126,7 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    accent,
-                    accent.withOpacity(0.8),
-                  ],
+                  colors: [accent, accent.withOpacity(0.8)],
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -1106,11 +1136,7 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
                   ),
                 ],
               ),
-              child: Icon(
-                widget.icon,
-                size: 26,
-                color: Colors.white,
-              ),
+              child: Icon(widget.icon, size: 26, color: Colors.white),
             ),
           ),
         ),
@@ -1143,12 +1169,13 @@ class LiquidGlassProgressBar extends StatelessWidget {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
     final accent = accentColor ?? AppleColors.systemPink;
-    
+
     return Container(
       height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height / 2),
-        color: backgroundColor ?? 
+        color:
+            backgroundColor ??
             (isDark ? Colors.white : Colors.black).withOpacity(0.15),
       ),
       child: LayoutBuilder(
@@ -1163,10 +1190,7 @@ class LiquidGlassProgressBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(height / 2),
                   gradient: LinearGradient(
-                    colors: [
-                      accent,
-                      accent.withOpacity(0.8),
-                    ],
+                    colors: [accent, accent.withOpacity(0.8)],
                   ),
                 ),
               ),
@@ -1196,7 +1220,8 @@ class LiquidGradientBackground extends StatefulWidget {
   });
 
   @override
-  State<LiquidGradientBackground> createState() => _LiquidGradientBackgroundState();
+  State<LiquidGradientBackground> createState() =>
+      _LiquidGradientBackgroundState();
 }
 
 class _LiquidGradientBackgroundState extends State<LiquidGradientBackground>
@@ -1225,7 +1250,7 @@ class _LiquidGradientBackgroundState extends State<LiquidGradientBackground>
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     final defaultColors = isDark
         ? [
             const Color(0xFF0D0D0D),
@@ -1237,9 +1262,9 @@ class _LiquidGradientBackgroundState extends State<LiquidGradientBackground>
             const Color(0xFFF5F0F8),
             const Color(0xFFF0F5F8),
           ];
-    
+
     final colors = widget.colors ?? defaultColors;
-    
+
     return Stack(
       children: [
         // Base gradient
@@ -1252,7 +1277,7 @@ class _LiquidGradientBackgroundState extends State<LiquidGradientBackground>
             ),
           ),
         ),
-        
+
         // Animated orbs
         if (widget.animate)
           AnimatedBuilder(
@@ -1261,14 +1286,11 @@ class _LiquidGradientBackgroundState extends State<LiquidGradientBackground>
               final progress = _controller.value;
               return CustomPaint(
                 size: Size.infinite,
-                painter: _OrbPainter(
-                  progress: progress,
-                  isDark: isDark,
-                ),
+                painter: _OrbPainter(progress: progress, isDark: isDark),
               );
             },
           ),
-        
+
         // Content
         widget.child,
       ],
@@ -1289,7 +1311,9 @@ class _OrbPainter extends CustomPainter {
         baseX: 0.2,
         baseY: 0.3,
         radius: size.width * 0.4,
-        color: (isDark ? AppleColors.systemPink : AppleColors.systemPink.withOpacity(0.3)),
+        color: (isDark
+            ? AppleColors.systemPink
+            : AppleColors.systemPink.withOpacity(0.3)),
         phaseX: 0,
         phaseY: 0.5,
       ),
@@ -1297,7 +1321,9 @@ class _OrbPainter extends CustomPainter {
         baseX: 0.8,
         baseY: 0.5,
         radius: size.width * 0.35,
-        color: (isDark ? AppleColors.systemPurple : AppleColors.systemPurple.withOpacity(0.3)),
+        color: (isDark
+            ? AppleColors.systemPurple
+            : AppleColors.systemPurple.withOpacity(0.3)),
         phaseX: 0.3,
         phaseY: 0.8,
       ),
@@ -1305,24 +1331,33 @@ class _OrbPainter extends CustomPainter {
         baseX: 0.4,
         baseY: 0.8,
         radius: size.width * 0.3,
-        color: (isDark ? AppleColors.systemBlue : AppleColors.systemBlue.withOpacity(0.3)),
+        color: (isDark
+            ? AppleColors.systemBlue
+            : AppleColors.systemBlue.withOpacity(0.3)),
         phaseX: 0.7,
         phaseY: 0.2,
       ),
     ];
 
     for (final orb in orbs) {
-      final x = size.width * (orb.baseX + math.sin((progress + orb.phaseX) * math.pi * 2) * 0.1);
-      final y = size.height * (orb.baseY + math.cos((progress + orb.phaseY) * math.pi * 2) * 0.1);
-      
+      final x =
+          size.width *
+          (orb.baseX + math.sin((progress + orb.phaseX) * math.pi * 2) * 0.1);
+      final y =
+          size.height *
+          (orb.baseY + math.cos((progress + orb.phaseY) * math.pi * 2) * 0.1);
+
       final paint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            orb.color.withOpacity(isDark ? 0.15 : 0.1),
-            orb.color.withOpacity(0),
-          ],
-        ).createShader(Rect.fromCircle(center: Offset(x, y), radius: orb.radius));
-      
+        ..shader =
+            RadialGradient(
+              colors: [
+                orb.color.withOpacity(isDark ? 0.15 : 0.1),
+                orb.color.withOpacity(0),
+              ],
+            ).createShader(
+              Rect.fromCircle(center: Offset(x, y), radius: orb.radius),
+            );
+
       canvas.drawCircle(Offset(x, y), orb.radius, paint);
     }
   }
