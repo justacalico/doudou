@@ -23,11 +23,12 @@ class AppState extends ChangeNotifier {
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
   AudioServiceIntegration? _audioHandler;
-  
+
   // Platform detection helpers (web-safe)
-  bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
-  
+
   bool _isLoggedIn = false;
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -46,18 +47,18 @@ class AppState extends ChangeNotifier {
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _useDynamicIsle = true; // Enabled by default
-  
+
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
   static const Duration _playPauseDebounceDelay = Duration(milliseconds: 300);
-  
+
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = Colors.purple;
-  
+
   // Locale settings
   Locale? _locale; // null means use system locale
-  
+
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
@@ -75,9 +76,10 @@ class AppState extends ChangeNotifier {
   DownloadService get downloadService => _downloadService;
   // Audio handler getter - returns the appropriate handler for the platform
   dynamic get audioHandler => _audioHandler;
-  
+
   // Stream getters for the integrated audio system
-  Stream<PlayerState>? get playerStateStream => _audioHandler?.playerStateStream;
+  Stream<PlayerState>? get playerStateStream =>
+      _audioHandler?.playerStateStream;
   Stream<PlaybackState>? get playbackState => _audioHandler?.playbackState;
   Stream<Duration>? get positionStream => _audioHandler?.positionStream;
   Stream<MediaItem?>? get mediaItem => _audioHandler?.mediaItem;
@@ -94,15 +96,25 @@ class AppState extends ChangeNotifier {
   }
 
   // Helper method to get image URLs from the current media service
-  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+  String getImageUrl(
+    String itemId, {
+    String type = 'Primary',
+    int? width,
+    int? height,
+  }) {
     // If itemId is already a full URL (starts with http), return it as-is
     // This handles cases where Plex/Navidrome provide full URLs in imageUrl field
     if (itemId.startsWith('http://') || itemId.startsWith('https://')) {
       return itemId;
     }
-    
+
     // Otherwise, construct the URL using the media service
-    return _mediaServiceManager.getImageUrl(itemId, type: type, width: width, height: height);
+    return _mediaServiceManager.getImageUrl(
+      itemId,
+      type: type,
+      width: width,
+      height: height,
+    );
   }
 
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
@@ -111,18 +123,32 @@ class AppState extends ChangeNotifier {
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
   bool get loggingEnabled => _loggingEnabled;
-  
+
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
-  
+
   // Locale getter
   Locale? get locale => _locale;
 
   AppState() {
-    _mediaServiceManager = MediaServiceManager.withJellyfinService(_jellyfinService);
+    _mediaServiceManager = MediaServiceManager.withJellyfinService(
+      _jellyfinService,
+    );
     _downloadService = DownloadService(_jellyfinService);
+    // Forward download service notifications to AppState listeners
+    _downloadService.addListener(_onDownloadServiceChanged);
     _initializeApp();
+  }
+
+  void _onDownloadServiceChanged() {
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _downloadService.removeListener(_onDownloadServiceChanged);
+    super.dispose();
   }
 
   Future<void> _initializeApp() async {
@@ -152,13 +178,13 @@ class AppState extends ChangeNotifier {
         // Notify listeners when the current track changes
         notifyListeners();
       });
-      
+
       // Listen to current track stream changes (more reliable)
       _audioHandler!.currentTrackStream?.listen((track) {
         // Notify listeners when the current track changes directly
         notifyListeners();
       });
-      
+
       // Listen to playback state changes (for playing/paused status)
       _audioHandler!.playbackState?.listen((playbackState) {
         // Notify listeners when playback state changes
@@ -171,17 +197,19 @@ class AppState extends ChangeNotifier {
     try {
       // Try to load saved credentials for any server type
       final credentials = await _loadServerCredentials();
-      
+
       if (credentials != null) {
         final serverType = credentials['serverType']!;
         final serverUrl = credentials['serverUrl']!;
         final identifier = credentials['identifier']!;
         final credential = credentials['credential']!;
-        
+
         if (kDebugMode) {
-          print('AppState: Found saved credentials for $serverType server at $serverUrl');
+          print(
+            'AppState: Found saved credentials for $serverType server at $serverUrl',
+          );
         }
-        
+
         // Initialize the appropriate service
         ServerType type;
         switch (serverType) {
@@ -194,35 +222,40 @@ class AppState extends ChangeNotifier {
           default:
             type = ServerType.jellyfin;
         }
-        
+
         _mediaServiceManager.initializeService(type);
         _mediaServiceManager.setServer(serverUrl);
-        
+
         // Test the connection with saved credentials
         try {
-          final isValid = await _mediaServiceManager.authenticate(serverUrl, identifier, credential)
+          final isValid = await _mediaServiceManager
+              .authenticate(serverUrl, identifier, credential)
               .timeout(const Duration(seconds: 10));
-          
+
           if (isValid) {
             if (kDebugMode) {
-              print('AppState: Saved credentials validated successfully for $serverType');
+              print(
+                'AppState: Saved credentials validated successfully for $serverType',
+              );
             }
-            
+
             _isLoggedIn = true;
             _isConnected = true;
             _isOfflineMode = false;
-            
+
             // Initialize cache service first
             await _cacheService.initialize();
-            
+
             // Initialize new audio system with automatic platform detection
             try {
               final audioService = AudioServiceIntegration.instance;
               await audioService.initialize(_mediaServiceManager);
               _audioHandler = audioService;
-              
+
               if (kDebugMode) {
-                print('New audio system initialized successfully for platform: ${audioService.platformType}');
+                print(
+                  'New audio system initialized successfully for platform: ${audioService.platformType}',
+                );
               }
             } catch (audioError) {
               if (kDebugMode) {
@@ -231,27 +264,35 @@ class AppState extends ChangeNotifier {
               // Continue without audio service
               _audioHandler = null;
             }
-            
+
             notifyListeners();
-            
+
             // Load initial data in background
             if (kDebugMode) {
-              print('Platform.isLinux: $_isLinux, Platform.isAndroid: $_isAndroid, about to load library data...');
+              print(
+                'Platform.isLinux: $_isLinux, Platform.isAndroid: $_isAndroid, about to load library data...',
+              );
             }
-            
+
             // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
             if (_isLinux) {
               if (kDebugMode) {
-                print('AppState: Using refreshLibraryData for Linux platform during initialization to ensure UI updates');
+                print(
+                  'AppState: Using refreshLibraryData for Linux platform during initialization to ensure UI updates',
+                );
               }
               try {
                 await refreshLibraryData();
                 if (kDebugMode) {
-                  print('AppState: Linux initialization library loading completed successfully');
+                  print(
+                    'AppState: Linux initialization library loading completed successfully',
+                  );
                 }
               } catch (e) {
                 if (kDebugMode) {
-                  print('AppState: Error during Linux initialization library loading: $e');
+                  print(
+                    'AppState: Error during Linux initialization library loading: $e',
+                  );
                 }
               }
             } else {
@@ -259,7 +300,9 @@ class AppState extends ChangeNotifier {
             }
           } else {
             if (kDebugMode) {
-              print('AppState: Saved credentials invalid for $serverType - user needs to re-login');
+              print(
+                'AppState: Saved credentials invalid for $serverType - user needs to re-login',
+              );
             }
             // Clear invalid credentials
             final prefs = await SharedPreferences.getInstance();
@@ -272,9 +315,11 @@ class AppState extends ChangeNotifier {
           }
         } catch (authError) {
           if (kDebugMode) {
-            print('AppState: Cannot connect to $serverType server, checking for offline mode: $authError');
+            print(
+              'AppState: Cannot connect to $serverType server, checking for offline mode: $authError',
+            );
           }
-          
+
           // Server is unreachable, but we have credentials - check for offline capability
           if (await _hasDownloadedContent() && serverType == 'jellyfin') {
             // Offline mode only supported for Jellyfin currently
@@ -282,38 +327,42 @@ class AppState extends ChangeNotifier {
             final serverData = jsonDecode(credential);
             final server = JellyfinServer.fromJson(serverData);
             _jellyfinService.setJellyfinServer(server);
-            
+
             // Enter offline mode with saved credentials
             _isLoggedIn = true;
             _isConnected = false;
             await _enterOfflineMode();
-            
+
             // Initialize cache service for offline mode
             await _cacheService.initialize();
-            
+
             // Initialize new audio system with automatic platform detection
             try {
               final audioService = AudioServiceIntegration.instance;
               await audioService.initialize(_mediaServiceManager);
               _audioHandler = audioService;
-              
+
               // Apply user settings to the audio handler
               _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-              
+
               // Set up listeners for automatic UI updates
               _setupAudioHandlerListeners();
-              
+
               if (kDebugMode) {
-                print('Audio system initialized successfully for offline mode, platform: ${audioService.platformType}');
+                print(
+                  'Audio system initialized successfully for offline mode, platform: ${audioService.platformType}',
+                );
               }
             } catch (audioError) {
               if (kDebugMode) {
-                print('Failed to initialize audio system in offline mode: $audioError');
+                print(
+                  'Failed to initialize audio system in offline mode: $audioError',
+                );
               }
               // Continue without audio service
               _audioHandler = null;
             }
-            
+
             if (kDebugMode) {
               print('Entered offline mode with saved $serverType credentials');
             }
@@ -333,41 +382,48 @@ class AppState extends ChangeNotifier {
         // Fallback: Try legacy Jellyfin server loading for backward compatibility
         final prefs = await SharedPreferences.getInstance();
         final serverJson = prefs.getString('jellyfin_server');
-        
+
         if (serverJson != null) {
           if (kDebugMode) {
-            print('AppState: Found legacy Jellyfin server data, attempting to restore...');
+            print(
+              'AppState: Found legacy Jellyfin server data, attempting to restore...',
+            );
           }
-          
+
           final serverData = jsonDecode(serverJson);
           final server = JellyfinServer.fromJson(serverData);
           _jellyfinService.setJellyfinServer(server);
-          
+
           // Test the connection with saved credentials
           try {
-            final isValid = await _jellyfinService.validateCredentials()
+            final isValid = await _jellyfinService
+                .validateCredentials()
                 .timeout(const Duration(seconds: 10));
-            
+
             if (isValid) {
               if (kDebugMode) {
-                print('AppState: Legacy Jellyfin credentials validated successfully');
+                print(
+                  'AppState: Legacy Jellyfin credentials validated successfully',
+                );
               }
-              
+
               _isLoggedIn = true;
               _isConnected = true;
               _isOfflineMode = false;
-              
+
               // Initialize cache service first
               await _cacheService.initialize();
-              
+
               // Initialize new audio system with automatic platform detection
               try {
                 final audioService = AudioServiceIntegration.instance;
                 await audioService.initialize(_mediaServiceManager);
                 _audioHandler = audioService;
-                
+
                 if (kDebugMode) {
-                  print('Audio system initialized successfully, platform: ${audioService.platformType}');
+                  print(
+                    'Audio system initialized successfully, platform: ${audioService.platformType}',
+                  );
                 }
               } catch (audioError) {
                 if (kDebugMode) {
@@ -376,12 +432,14 @@ class AppState extends ChangeNotifier {
                 // Continue without audio service
                 _audioHandler = null;
               }
-              
+
               // Load library data
               await loadLibraryData();
-              
+
               if (kDebugMode) {
-                print('AppState: Successfully restored legacy Jellyfin session');
+                print(
+                  'AppState: Successfully restored legacy Jellyfin session',
+                );
               }
             } else {
               if (kDebugMode) {
@@ -392,7 +450,9 @@ class AppState extends ChangeNotifier {
             }
           } catch (e) {
             if (kDebugMode) {
-              print('AppState: Failed to validate legacy Jellyfin credentials: $e');
+              print(
+                'AppState: Failed to validate legacy Jellyfin credentials: $e',
+              );
             }
             _isLoggedIn = false;
           }
@@ -417,20 +477,25 @@ class AppState extends ChangeNotifier {
 
     try {
       // Ensure serverUrl has protocol
-      if (!serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
+      if (!serverUrl.startsWith('http://') &&
+          !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
       }
 
-      final success = await _jellyfinService.authenticate(serverUrl, username, password);
-      
+      final success = await _jellyfinService.authenticate(
+        serverUrl,
+        username,
+        password,
+      );
+
       if (success) {
         if (kDebugMode) {
           print('AppState: Authentication success, setting up login state...');
         }
-        
+
         try {
           _isLoggedIn = true;
-          
+
           // Initialize cache service first
           if (kDebugMode) {
             print('AppState: Initializing cache service...');
@@ -439,78 +504,90 @@ class AppState extends ChangeNotifier {
           if (kDebugMode) {
             print('AppState: Cache service initialized successfully');
           }
-        
-        // Initialize new audio system with automatic platform detection
-        try {
-          final audioService = AudioServiceIntegration.instance;
-          await audioService.initialize(_mediaServiceManager);
-          _audioHandler = audioService;
-          
-          // Apply user settings to the audio handler
-          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-          
-          // Set up listeners for automatic UI updates
-          _setupAudioHandlerListeners();
-          
-          // Notify listeners after audio handler is ready
-          notifyListeners();
-          
-          if (kDebugMode) {
-            print('Audio system initialized successfully after login, platform: ${audioService.platformType}');
-          }
-        } catch (audioError) {
-          if (kDebugMode) {
-            print('Failed to initialize audio system after login: $audioError');
-          }
-          // Continue without audio service
-          _audioHandler = null;
-          notifyListeners();
-        }
-        
-        if (kDebugMode) {
-          print('AppState: About to save server and load library data...');
-        }
 
-        await _saveServer();
+          // Initialize new audio system with automatic platform detection
+          try {
+            final audioService = AudioServiceIntegration.instance;
+            await audioService.initialize(_mediaServiceManager);
+            _audioHandler = audioService;
 
-        if (kDebugMode) {
-          print('AppState: About to call loadLibraryData after successful login...');
-        }
+            // Apply user settings to the audio handler
+            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
 
-        try {
-          // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
-          if (_isLinux) {
+            // Set up listeners for automatic UI updates
+            _setupAudioHandlerListeners();
+
+            // Notify listeners after audio handler is ready
+            notifyListeners();
+
             if (kDebugMode) {
-              print('AppState: Using refreshLibraryData for Linux platform to ensure UI updates');
+              print(
+                'Audio system initialized successfully after login, platform: ${audioService.platformType}',
+              );
             }
-            await refreshLibraryData();
+          } catch (audioError) {
             if (kDebugMode) {
-              print('AppState: refreshLibraryData completed successfully for Linux');
+              print(
+                'Failed to initialize audio system after login: $audioError',
+              );
             }
-          } else {
-            await loadLibraryData();
+            // Continue without audio service
+            _audioHandler = null;
+            notifyListeners();
+          }
+
+          if (kDebugMode) {
+            print('AppState: About to save server and load library data...');
+          }
+
+          await _saveServer();
+
+          if (kDebugMode) {
+            print(
+              'AppState: About to call loadLibraryData after successful login...',
+            );
+          }
+
+          try {
+            // On Linux, use refreshLibraryData to bypass cache issues that prevent UI updates
+            if (_isLinux) {
+              if (kDebugMode) {
+                print(
+                  'AppState: Using refreshLibraryData for Linux platform to ensure UI updates',
+                );
+              }
+              await refreshLibraryData();
+              if (kDebugMode) {
+                print(
+                  'AppState: refreshLibraryData completed successfully for Linux',
+                );
+              }
+            } else {
+              await loadLibraryData();
+              if (kDebugMode) {
+                print(
+                  'AppState: loadLibraryData completed successfully for non-Linux platforms',
+                );
+              }
+            }
+          } catch (e) {
             if (kDebugMode) {
-              print('AppState: loadLibraryData completed successfully for non-Linux platforms');
+              print('AppState: Exception during library loading: $e');
+              print('Stack trace: ${StackTrace.current}');
             }
           }
-        } catch (e) {
+
+          _setLoading(false);
+          return true;
+        } catch (setupError) {
           if (kDebugMode) {
-            print('AppState: Exception during library loading: $e');
+            print('AppState: Exception during login setup: $setupError');
             print('Stack trace: ${StackTrace.current}');
           }
+          _setError('Login setup failed: ${setupError.toString()}');
+          _setLoading(false);
+          return false;
         }
-        
-        _setLoading(false);
-        return true;
-      } catch (setupError) {
-        if (kDebugMode) {
-          print('AppState: Exception during login setup: $setupError');
-          print('Stack trace: ${StackTrace.current}');
-        }
-        _setError('Login setup failed: ${setupError.toString()}');
-        _setLoading(false);
-        return false;
-      }
       } else {
         _setError('Authentication failed. Please check your credentials.');
         _setLoading(false);
@@ -520,7 +597,7 @@ class AppState extends ChangeNotifier {
       // Handle network errors - check if we should enter offline mode
       if (e.error is NetworkException) {
         final networkError = e.error as NetworkException;
-        
+
         // If we have saved credentials and downloads, offer offline mode
         if (await _hasSavedCredentials() && await _hasDownloadedContent()) {
           await _enterOfflineMode();
@@ -538,7 +615,9 @@ class AppState extends ChangeNotifier {
           _setLoading(false);
           return true;
         } else {
-          _setError('Network error. Please check your connection and try again.');
+          _setError(
+            'Network error. Please check your connection and try again.',
+          );
         }
       }
       _setLoading(false);
@@ -546,17 +625,21 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       // Handle any other unexpected errors
       String errorMessage = 'An unexpected error occurred. Please try again.';
-      
+
       // Provide more specific error messages for common issues
       final errorString = e.toString().toLowerCase();
       if (errorString.contains('timeout')) {
-        errorMessage = 'Connection timeout. Please check your network and server availability.';
-      } else if (errorString.contains('certificate') || errorString.contains('ssl')) {
-        errorMessage = 'SSL certificate error. Please check your server configuration.';
+        errorMessage =
+            'Connection timeout. Please check your network and server availability.';
+      } else if (errorString.contains('certificate') ||
+          errorString.contains('ssl')) {
+        errorMessage =
+            'SSL certificate error. Please check your server configuration.';
       } else if (errorString.contains('host')) {
-        errorMessage = 'Cannot reach server. Please check the server URL and your network connection.';
+        errorMessage =
+            'Cannot reach server. Please check the server URL and your network connection.';
       }
-      
+
       // Check for offline mode possibility
       if (await _hasSavedCredentials() && await _hasDownloadedContent()) {
         await _enterOfflineMode();
@@ -571,7 +654,12 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<bool> loginWithServerType(String serverType, String serverUrl, String identifier, String credential) async {
+  Future<bool> loginWithServerType(
+    String serverType,
+    String serverUrl,
+    String identifier,
+    String credential,
+  ) async {
     _setLoading(true);
     _clearError();
 
@@ -595,33 +683,43 @@ class AppState extends ChangeNotifier {
       _mediaServiceManager.initializeService(type);
 
       // Ensure serverUrl has protocol for non-Plex services
-      if (type != ServerType.plex && !serverUrl.startsWith('http://') && !serverUrl.startsWith('https://')) {
+      if (type != ServerType.plex &&
+          !serverUrl.startsWith('http://') &&
+          !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
       }
 
-      final success = await _mediaServiceManager.authenticate(serverUrl, identifier, credential);
-      
+      final success = await _mediaServiceManager.authenticate(
+        serverUrl,
+        identifier,
+        credential,
+      );
+
       if (success) {
         if (kDebugMode) {
-          print('AppState: Multi-service authentication success for $serverType');
+          print(
+            'AppState: Multi-service authentication success for $serverType',
+          );
         }
-        
+
         _isLoggedIn = true;
-        
+
         // Initialize cache service
         await _cacheService.initialize();
-        
+
         // Initialize new audio system with automatic platform detection
         try {
           final audioService = AudioServiceIntegration.instance;
           await audioService.initialize(_mediaServiceManager);
           _audioHandler = audioService;
-          
+
           _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           _setupAudioHandlerListeners();
-          
+
           if (kDebugMode) {
-            print('Audio system initialized for $serverType, platform: ${audioService.platformType}');
+            print(
+              'Audio system initialized for $serverType, platform: ${audioService.platformType}',
+            );
           }
         } catch (e) {
           if (kDebugMode) {
@@ -629,11 +727,16 @@ class AppState extends ChangeNotifier {
           }
           _audioHandler = null;
         }
-        
+
         await _saveServerType(serverType);
-        await _saveServerCredentials(serverType, serverUrl, identifier, credential);
+        await _saveServerCredentials(
+          serverType,
+          serverUrl,
+          identifier,
+          credential,
+        );
         await _saveServer();
-        
+
         // Load library data
         try {
           await loadLibraryData();
@@ -642,7 +745,7 @@ class AppState extends ChangeNotifier {
             print('Exception during library loading: $e');
           }
         }
-        
+
         _setLoading(false);
         notifyListeners();
         return true;
@@ -653,13 +756,15 @@ class AppState extends ChangeNotifier {
       }
     } catch (e) {
       String errorMessage = 'An unexpected error occurred. Please try again.';
-      
+
       if (e.toString().toLowerCase().contains('timeout')) {
-        errorMessage = 'Connection timeout. Please check your network and server availability.';
+        errorMessage =
+            'Connection timeout. Please check your network and server availability.';
       } else if (e.toString().toLowerCase().contains('certificate')) {
-        errorMessage = 'SSL certificate error. Please check your server configuration.';
+        errorMessage =
+            'SSL certificate error. Please check your server configuration.';
       }
-      
+
       _setError(errorMessage);
       _setLoading(false);
       return false;
@@ -671,15 +776,20 @@ class AppState extends ChangeNotifier {
     await prefs.setString('server_type', serverType);
   }
 
-  Future<void> _saveServerCredentials(String serverType, String serverUrl, String identifier, String credential) async {
+  Future<void> _saveServerCredentials(
+    String serverType,
+    String serverUrl,
+    String identifier,
+    String credential,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Save common server info
     await prefs.setString('server_type', serverType);
     await prefs.setString('server_url', serverUrl);
     await prefs.setString('server_identifier', identifier);
     await prefs.setString('server_credential', credential);
-    
+
     if (kDebugMode) {
       print('AppState: Saved server credentials for $serverType at $serverUrl');
     }
@@ -688,13 +798,16 @@ class AppState extends ChangeNotifier {
   Future<Map<String, String>?> _loadServerCredentials() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       final serverType = prefs.getString('server_type');
       final serverUrl = prefs.getString('server_url');
       final identifier = prefs.getString('server_identifier');
       final credential = prefs.getString('server_credential');
-      
-      if (serverType != null && serverUrl != null && identifier != null && credential != null) {
+
+      if (serverType != null &&
+          serverUrl != null &&
+          identifier != null &&
+          credential != null) {
         return {
           'serverType': serverType,
           'serverUrl': serverUrl,
@@ -702,7 +815,7 @@ class AppState extends ChangeNotifier {
           'credential': credential,
         };
       }
-      
+
       if (kDebugMode) {
         print('AppState: No complete server credentials found in storage');
       }
@@ -717,35 +830,37 @@ class AppState extends ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Clear all server credentials
     await prefs.remove('jellyfin_server'); // Legacy Jellyfin
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('navidrome_credentials');
     await prefs.remove('plex_credentials');
-    
+
     if (kDebugMode) {
       print('AppState: Cleared all server credentials during logout');
     }
-    
+
     // Dispose audio handler
     try {
       await _audioHandler?.dispose();
     } catch (e) {
       // Handle platform-specific limitations (e.g., MissingPluginException on Linux)
       if (kDebugMode) {
-        print('Audio handler disposal error during logout (this may be expected on some platforms): $e');
+        print(
+          'Audio handler disposal error during logout (this may be expected on some platforms): $e',
+        );
       }
     }
     _audioHandler = null;
-    
+
     _isLoggedIn = false;
     _albums.clear();
     _artists.clear();
     _tracks.clear();
     _playlists.clear();
     _clearError();
-    
+
     notifyListeners();
   }
 
@@ -802,39 +917,44 @@ class AppState extends ChangeNotifier {
 
     try {
       // First, try to validate current credentials
-      final isValid = await _jellyfinService.validateCredentials()
-          .timeout(const Duration(seconds: 15));
-      
+      final isValid = await _jellyfinService.validateCredentials().timeout(
+        const Duration(seconds: 15),
+      );
+
       if (isValid) {
         if (kDebugMode) {
-          print('AppState: Network reconnection successful - credentials still valid');
+          print(
+            'AppState: Network reconnection successful - credentials still valid',
+          );
         }
-        
+
         // Credentials are still valid, refresh data
         _isConnected = true;
         _isOfflineMode = false;
-        
+
         // Reload library data in background
         _loadFreshDataInBackground();
       } else {
         // Credentials invalid, try to refresh token
         if (kDebugMode) {
-          print('AppState: Credentials invalid after network change, attempting refresh...');
+          print(
+            'AppState: Credentials invalid after network change, attempting refresh...',
+          );
         }
-        
+
         final refreshSuccess = await _attemptTokenRefresh();
-        
+
         if (refreshSuccess) {
           _isConnected = true;
           _isOfflineMode = false;
-          
+
           // Reload library data in background
           _loadFreshDataInBackground();
         } else {
           if (kDebugMode) {
             print('AppState: Failed to refresh token after network change');
           }
-          
+
           // Check if we can fall back to offline mode
           if (await _hasDownloadedContent()) {
             _isConnected = false;
@@ -850,7 +970,7 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('AppState: Network reconnection failed: $e');
       }
-      
+
       // Network still unreachable, check if we can go offline
       if (await _hasDownloadedContent()) {
         _isConnected = false;
@@ -859,7 +979,7 @@ class AppState extends ChangeNotifier {
       }
       // If no offline content, stay in current state and let user retry manually
     }
-    
+
     notifyListeners();
   }
 
@@ -882,47 +1002,61 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('AppState: Loading cached data...');
       }
-      
+
       // Try to load from cache first to provide immediate data
       final cachedAlbums = await _cacheService.getCachedAlbums();
       final cachedArtists = await _cacheService.getCachedArtists();
       final cachedTracks = await _cacheService.getCachedTracks();
       final cachedPlaylists = await _cacheService.getCachedPlaylists();
-      
-      bool hasValidCache = cachedAlbums != null && cachedArtists != null && 
-                          cachedTracks != null && cachedPlaylists != null;
-      
+
+      bool hasValidCache =
+          cachedAlbums != null &&
+          cachedArtists != null &&
+          cachedTracks != null &&
+          cachedPlaylists != null;
+
       if (kDebugMode) {
-        print('AppState: Cache check - Albums: ${cachedAlbums?.length}, Artists: ${cachedArtists?.length}, Tracks: ${cachedTracks?.length}, Playlists: ${cachedPlaylists?.length}');
+        print(
+          'AppState: Cache check - Albums: ${cachedAlbums?.length}, Artists: ${cachedArtists?.length}, Tracks: ${cachedTracks?.length}, Playlists: ${cachedPlaylists?.length}',
+        );
         print('AppState: hasValidCache: $hasValidCache');
       }
-      
+
       if (hasValidCache) {
         // Use cached data immediately for better user experience
         _albums = cachedAlbums;
         _artists = cachedArtists;
         _tracks = cachedTracks;
         _playlists = cachedPlaylists;
-        
+
         // Update audio handler with cached media library for Android Auto
         try {
-          _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
+          _audioHandler?.updateMediaLibrary(
+            _tracks,
+            _albums,
+            _artists,
+            _playlists,
+          );
         } catch (e) {
           if (kDebugMode) {
-            print('Warning: Failed to update AudioHandler with cached data: $e');
+            print(
+              'Warning: Failed to update AudioHandler with cached data: $e',
+            );
           }
           // Don't fail completely - UI still works with cached data
         }
-        
+
         // Load recent tracks now that we have track data
         await _loadRecentTracks();
-        
+
         _setLoading(false);
-        
+
         if (kDebugMode) {
-          print('Loaded library data from cache - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}');
+          print(
+            'Loaded library data from cache - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}',
+          );
         }
-        
+
         // Load fresh data in background and update cache
         _loadFreshDataInBackground();
       } else {
@@ -936,15 +1070,18 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('AppState: Error in loadLibraryData: $e');
       }
-      
+
       // Provide user-friendly error messages based on error type
       String userMessage = 'Failed to load library';
-      if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+      if (e.toString().contains('401') ||
+          e.toString().contains('unauthorized')) {
         // Attempt token refresh before giving up
         if (kDebugMode) {
-          print('AppState: Authentication error loading library, attempting token refresh...');
+          print(
+            'AppState: Authentication error loading library, attempting token refresh...',
+          );
         }
-        
+
         final refreshSuccess = await _attemptTokenRefresh();
         if (refreshSuccess) {
           // Token refresh successful, try loading library again
@@ -959,36 +1096,50 @@ class AppState extends ChangeNotifier {
             // Fall through to handle as normal error
           }
         }
-        
+
         userMessage = 'Authentication failed. Please log in again.';
         // Only logout if token refresh fails
         if (!refreshSuccess) {
           logout();
         }
-      } else if (e.toString().contains('timeout') || e.toString().contains('connection')) {
-        userMessage = 'Connection timeout. Please check your network and server.';
-      } else if (e.toString().contains('404') || e.toString().contains('not found')) {
+      } else if (e.toString().contains('timeout') ||
+          e.toString().contains('connection')) {
+        userMessage =
+            'Connection timeout. Please check your network and server.';
+      } else if (e.toString().contains('404') ||
+          e.toString().contains('not found')) {
         userMessage = 'Server not found. Please check your server URL.';
-      } else if (e.toString().contains('500') || e.toString().contains('server error')) {
+      } else if (e.toString().contains('500') ||
+          e.toString().contains('server error')) {
         userMessage = 'Server error. Please try again later.';
       }
-      
+
       _setError(userMessage);
       _setLoading(false);
-      
+
       // For Android Auto safety, ensure we have empty but valid collections
-      if (_albums.isEmpty && _artists.isEmpty && _tracks.isEmpty && _playlists.isEmpty) {
+      if (_albums.isEmpty &&
+          _artists.isEmpty &&
+          _tracks.isEmpty &&
+          _playlists.isEmpty) {
         _albums = <Album>[];
         _artists = <Artist>[];
         _tracks = <Track>[];
         _playlists = <Playlist>[];
-        
+
         // Update audio handler with empty but safe data
         try {
-          _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
+          _audioHandler?.updateMediaLibrary(
+            _tracks,
+            _albums,
+            _artists,
+            _playlists,
+          );
         } catch (audioError) {
           if (kDebugMode) {
-            print('Warning: Failed to update AudioHandler with empty data: $audioError');
+            print(
+              'Warning: Failed to update AudioHandler with empty data: $audioError',
+            );
           }
         }
       }
@@ -1019,15 +1170,18 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('AppState: Error during force refresh: $e');
       }
-      
+
       // Provide user-friendly error messages based on error type
       String userMessage = 'Failed to refresh library';
-      if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+      if (e.toString().contains('401') ||
+          e.toString().contains('unauthorized')) {
         // Attempt token refresh before giving up
         if (kDebugMode) {
-          print('AppState: Authentication error during refresh, attempting token refresh...');
+          print(
+            'AppState: Authentication error during refresh, attempting token refresh...',
+          );
         }
-        
+
         final refreshSuccess = await _attemptTokenRefresh();
         if (refreshSuccess) {
           // Token refresh successful, try refreshing library again
@@ -1042,34 +1196,38 @@ class AppState extends ChangeNotifier {
             // Fall through to handle as normal error
           }
         }
-        
+
         userMessage = 'Authentication failed. Please log in again.';
         // Only logout if token refresh fails
         if (!refreshSuccess) {
           logout();
         }
-      } else if (e.toString().contains('timeout') || e.toString().contains('connection')) {
-        userMessage = 'Connection timeout. Please check your network and server.';
-      } else if (e.toString().contains('404') || e.toString().contains('not found')) {
+      } else if (e.toString().contains('timeout') ||
+          e.toString().contains('connection')) {
+        userMessage =
+            'Connection timeout. Please check your network and server.';
+      } else if (e.toString().contains('404') ||
+          e.toString().contains('not found')) {
         userMessage = 'Server not found. Please check your server URL.';
-      } else if (e.toString().contains('500') || e.toString().contains('server error')) {
+      } else if (e.toString().contains('500') ||
+          e.toString().contains('server error')) {
         userMessage = 'Server error. Please try again later.';
       }
-      
+
       _setError(userMessage);
       _setLoading(false);
-      
+
       // Re-throw the error so the UI can handle it
       rethrow;
     }
   }
-  
+
   Future<void> _loadFreshData() async {
     try {
       if (kDebugMode) {
         print('AppState: Loading fresh library data from server...');
       }
-      
+
       // Load all library data concurrently with individual error handling
       final List<Future> futures = [
         _mediaServiceManager.getAlbums().catchError((e) {
@@ -1097,24 +1255,33 @@ class AppState extends ChangeNotifier {
           return <Playlist>[];
         }),
       ];
-      
+
       final results = await Future.wait(futures);
-      
+
       _albums = results[0] as List<Album>;
       _artists = results[1] as List<Artist>;
       _tracks = results[2] as List<Track>;
       _playlists = results[3] as List<Playlist>;
-      
+
       if (kDebugMode) {
-        print('AppState: Loaded fresh data - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}');
+        print(
+          'AppState: Loaded fresh data - Albums: ${_albums.length}, Artists: ${_artists.length}, Tracks: ${_tracks.length}, Playlists: ${_playlists.length}',
+        );
       }
-      
+
       // Update audio handler with media library for Android Auto browsing
       try {
-        _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
-        
+        _audioHandler?.updateMediaLibrary(
+          _tracks,
+          _albums,
+          _artists,
+          _playlists,
+        );
+
         if (kDebugMode) {
-          print('AppState: Updated AudioHandler MediaBrowser with fresh library data');
+          print(
+            'AppState: Updated AudioHandler MediaBrowser with fresh library data',
+          );
         }
       } catch (e) {
         if (kDebugMode) {
@@ -1122,7 +1289,7 @@ class AppState extends ChangeNotifier {
         }
         // Don't fail completely - the data is still loaded in AppState
       }
-      
+
       // Cache the fresh data with individual error handling
       final cacheFutures = [
         _cacheService.cacheAlbums(_albums).catchError((e) {
@@ -1146,14 +1313,14 @@ class AppState extends ChangeNotifier {
           }
         }),
       ];
-      
+
       await Future.wait(cacheFutures);
-      
+
       // Load recent tracks now that we have fresh track data
       await _loadRecentTracks();
-      
+
       _setLoading(false);
-      
+
       if (kDebugMode) {
         print('AppState: Successfully loaded and cached fresh library data');
       }
@@ -1161,41 +1328,51 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('AppState: Critical error in _loadFreshData: $e');
       }
-      
+
       _setLoading(false);
-      
+
       // Ensure we have safe empty collections for Android Auto
-      if (_albums.isEmpty && _artists.isEmpty && _tracks.isEmpty && _playlists.isEmpty) {
+      if (_albums.isEmpty &&
+          _artists.isEmpty &&
+          _tracks.isEmpty &&
+          _playlists.isEmpty) {
         _albums = <Album>[];
         _artists = <Artist>[];
         _tracks = <Track>[];
         _playlists = <Playlist>[];
-        
+
         try {
-          _audioHandler?.updateMediaLibrary(_tracks, _albums, _artists, _playlists);
+          _audioHandler?.updateMediaLibrary(
+            _tracks,
+            _albums,
+            _artists,
+            _playlists,
+          );
         } catch (audioError) {
           if (kDebugMode) {
-            print('Warning: Failed to update AudioHandler with empty collections: $audioError');
+            print(
+              'Warning: Failed to update AudioHandler with empty collections: $audioError',
+            );
           }
         }
       }
-      
+
       // Re-throw for parent error handling
       rethrow;
     }
   }
-  
+
   Future<void> _loadFreshDataInBackground() async {
     try {
       if (kDebugMode) {
         print('AppState: Loading fresh data in background...');
       }
-      
+
       await _loadFreshData();
-      
+
       // Notify listeners to update UI with fresh data
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('AppState: Background data refresh completed successfully');
       }
@@ -1203,18 +1380,23 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('AppState: Background data refresh failed: $e');
       }
-      
+
       // Handle specific error types for background refresh
-      if (e.toString().contains('401') || e.toString().contains('unauthorized')) {
+      if (e.toString().contains('401') ||
+          e.toString().contains('unauthorized')) {
         if (kDebugMode) {
-          print('AppState: Authentication error in background refresh - attempting token refresh');
+          print(
+            'AppState: Authentication error in background refresh - attempting token refresh',
+          );
         }
-        
+
         // Attempt token refresh in background
         final refreshSuccess = await _attemptTokenRefresh();
         if (refreshSuccess) {
           if (kDebugMode) {
-            print('AppState: Token refresh successful, retrying background data load');
+            print(
+              'AppState: Token refresh successful, retrying background data load',
+            );
           }
           // Try loading fresh data again after token refresh
           try {
@@ -1223,23 +1405,28 @@ class AppState extends ChangeNotifier {
             return; // Success, exit early
           } catch (retryError) {
             if (kDebugMode) {
-              print('AppState: Retry after token refresh failed in background: $retryError');
+              print(
+                'AppState: Retry after token refresh failed in background: $retryError',
+              );
             }
           }
         } else {
           if (kDebugMode) {
-            print('AppState: Token refresh failed in background - user may need to re-login');
+            print(
+              'AppState: Token refresh failed in background - user may need to re-login',
+            );
           }
         }
         // Don't logout in background refresh - let user discover the issue naturally
       }
-      
+
       // Don't show error to user since we have cached data and this is background
       // But do set connection status if it's a network issue
-      if (e.toString().contains('timeout') || e.toString().contains('connection')) {
+      if (e.toString().contains('timeout') ||
+          e.toString().contains('connection')) {
         _isConnected = false;
         notifyListeners();
-        
+
         // Try to restore connection status after some time
         Future.delayed(const Duration(minutes: 1), () {
           _isConnected = true;
@@ -1253,24 +1440,28 @@ class AppState extends ChangeNotifier {
   Future<void> _refreshTracksInBackground() async {
     try {
       if (kDebugMode) {
-        print('AppState: Refreshing tracks in background to sync favorite status...');
+        print(
+          'AppState: Refreshing tracks in background to sync favorite status...',
+        );
       }
-      
+
       // Get fresh tracks from the media service
       final freshTracks = await _mediaServiceManager.getTracks();
-      
+
       if (freshTracks.isNotEmpty) {
         // Update tracks with fresh data (including favorite status)
         _tracks = freshTracks;
-        
+
         // Update cache
         await _cacheService.cacheTracks(freshTracks);
-        
+
         // Notify listeners to update UI
         notifyListeners();
-        
+
         if (kDebugMode) {
-          print('AppState: Tracks refreshed successfully with ${freshTracks.length} tracks');
+          print(
+            'AppState: Tracks refreshed successfully with ${freshTracks.length} tracks',
+          );
         }
       }
     } catch (e) {
@@ -1285,39 +1476,47 @@ class AppState extends ChangeNotifier {
     try {
       if (kDebugMode) {
         print('AppState.getAlbumTracks called for albumId: $albumId');
-        print('MediaServiceManager type: ${_mediaServiceManager.currentServerType}');
+        print(
+          'MediaServiceManager type: ${_mediaServiceManager.currentServerType}',
+        );
       }
-      
+
       // Try cache first
       final cachedTracks = await _cacheService.getCachedAlbumTracks(albumId);
       if (cachedTracks != null) {
         if (kDebugMode) {
-          print('Loaded ${cachedTracks.length} album tracks from cache for album: $albumId');
+          print(
+            'Loaded ${cachedTracks.length} album tracks from cache for album: $albumId',
+          );
         }
-        
+
         // Load fresh data in background and update cache
         _loadAlbumTracksInBackground(albumId);
-        
+
         return cachedTracks;
       }
-      
+
       if (kDebugMode) {
-        print('No cached tracks found, calling MediaServiceManager.getTracks for albumId: $albumId');
+        print(
+          'No cached tracks found, calling MediaServiceManager.getTracks for albumId: $albumId',
+        );
       }
-      
+
       // Load fresh data
       final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
-      
+
       if (kDebugMode) {
-        print('MediaServiceManager returned ${tracks.length} tracks for albumId: $albumId');
+        print(
+          'MediaServiceManager returned ${tracks.length} tracks for albumId: $albumId',
+        );
         if (tracks.isNotEmpty) {
           print('Sample track from service: ${tracks.first.name}');
         }
       }
-      
+
       // Cache the tracks
       await _cacheService.cacheAlbumTracks(albumId, tracks);
-      
+
       return tracks;
     } catch (e) {
       if (kDebugMode) {
@@ -1327,7 +1526,7 @@ class AppState extends ChangeNotifier {
       return [];
     }
   }
-  
+
   Future<void> _loadAlbumTracksInBackground(String albumId) async {
     try {
       final tracks = await _mediaServiceManager.getTracks(parentId: albumId);
@@ -1344,34 +1543,42 @@ class AppState extends ChangeNotifier {
       if (kDebugMode) {
         print('getPlaylistTracks called for playlist: $playlistId');
       }
-      
+
       // Try cache first
-      final cachedTracks = await _cacheService.getCachedPlaylistTracks(playlistId);
+      final cachedTracks = await _cacheService.getCachedPlaylistTracks(
+        playlistId,
+      );
       if (cachedTracks != null) {
         if (kDebugMode) {
-          print('Loaded ${cachedTracks.length} playlist tracks from cache for playlist: $playlistId');
+          print(
+            'Loaded ${cachedTracks.length} playlist tracks from cache for playlist: $playlistId',
+          );
         }
-        
+
         // Load fresh data in background and update cache
         _loadPlaylistTracksInBackground(playlistId);
-        
+
         return cachedTracks;
       }
-      
+
       if (kDebugMode) {
-        print('No cached playlist tracks found, loading fresh data for playlist: $playlistId');
+        print(
+          'No cached playlist tracks found, loading fresh data for playlist: $playlistId',
+        );
       }
-      
+
       // Load fresh data
       final tracks = await _mediaServiceManager.getPlaylistTracks(playlistId);
-      
+
       if (kDebugMode) {
-        print('Loaded ${tracks.length} fresh playlist tracks for playlist: $playlistId');
+        print(
+          'Loaded ${tracks.length} fresh playlist tracks for playlist: $playlistId',
+        );
       }
-      
+
       // Cache the tracks
       await _cacheService.cachePlaylistTracks(playlistId, tracks);
-      
+
       return tracks;
     } catch (e) {
       if (kDebugMode) {
@@ -1381,22 +1588,28 @@ class AppState extends ChangeNotifier {
       return [];
     }
   }
-  
+
   Future<void> _loadPlaylistTracksInBackground(String playlistId) async {
     try {
       if (kDebugMode) {
-        print('Loading fresh playlist tracks in background for playlist: $playlistId');
+        print(
+          'Loading fresh playlist tracks in background for playlist: $playlistId',
+        );
       }
-      
+
       final tracks = await _mediaServiceManager.getPlaylistTracks(playlistId);
       await _cacheService.cachePlaylistTracks(playlistId, tracks);
-      
+
       if (kDebugMode) {
-        print('Successfully refreshed ${tracks.length} playlist tracks in background for playlist: $playlistId');
+        print(
+          'Successfully refreshed ${tracks.length} playlist tracks in background for playlist: $playlistId',
+        );
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to refresh playlist tracks in background for playlist $playlistId: $e');
+        print(
+          'Failed to refresh playlist tracks in background for playlist $playlistId: $e',
+        );
       }
     }
   }
@@ -1406,10 +1619,14 @@ class AppState extends ChangeNotifier {
     if (kDebugMode) {
       print('AppState.playTrack called for: ${track.name} (ID: ${track.id})');
       print('AudioHandler available: ${_audioHandler != null}');
-      print('MediaServiceManager current service: ${_mediaServiceManager.currentService}');
-      print('MediaServiceManager server type: ${_mediaServiceManager.currentServerType}');
+      print(
+        'MediaServiceManager current service: ${_mediaServiceManager.currentService}',
+      );
+      print(
+        'MediaServiceManager server type: ${_mediaServiceManager.currentServerType}',
+      );
     }
-    
+
     if (_audioHandler != null) {
       await _audioHandler!.playTrack(track);
       _addToRecentTracks(track);
@@ -1432,11 +1649,11 @@ class AppState extends ChangeNotifier {
       }
       print('AudioHandler exists: ${_audioHandler != null}');
     }
-    
+
     if (_audioHandler != null) {
       await _audioHandler!.playPlaylist(tracks, startIndex);
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('=== APP_STATE.playPlaylist() COMPLETED ===');
       }
@@ -1451,34 +1668,40 @@ class AppState extends ChangeNotifier {
     if (kDebugMode) {
       print('=== AppState.playPause() called ===');
     }
-    
+
     // Debounce rapid play/pause commands to prevent deadlocks
     final now = DateTime.now();
-    if (_lastPlayPauseCommand != null && 
+    if (_lastPlayPauseCommand != null &&
         now.difference(_lastPlayPauseCommand!) < _playPauseDebounceDelay) {
       if (kDebugMode) {
-        print('Play/pause command debounced - too recent (${now.difference(_lastPlayPauseCommand!).inMilliseconds}ms ago)');
+        print(
+          'Play/pause command debounced - too recent (${now.difference(_lastPlayPauseCommand!).inMilliseconds}ms ago)',
+        );
       }
       return;
     }
     _lastPlayPauseCommand = now;
-    
+
     if (_audioHandler != null) {
       // CRITICAL FIX: Use userIntendedPlaying instead of playbackState.playing to avoid race conditions
       // playbackState.playing can lag behind the actual command completion, causing double-click issues
       final userIntendedPlaying = _audioHandler!.userIntendedPlaying;
-      
+
       if (kDebugMode) {
         print('Current userIntendedPlaying: $userIntendedPlaying');
-        print('Action: ${userIntendedPlaying ? "PAUSE" : "PLAY"} (using userIntendedPlaying to avoid race condition)');
+        print(
+          'Action: ${userIntendedPlaying ? "PAUSE" : "PLAY"} (using userIntendedPlaying to avoid race condition)',
+        );
       }
-      
+
       try {
         // Remove external timeout to prevent mutex interruption
         // The audio handler has its own internal timeout and error handling
         if (userIntendedPlaying) {
           if (kDebugMode) {
-            print('Calling audioHandler.pause() (based on userIntendedPlaying)');
+            print(
+              'Calling audioHandler.pause() (based on userIntendedPlaying)',
+            );
           }
           await _audioHandler!.pause();
         } else {
@@ -1493,9 +1716,9 @@ class AppState extends ChangeNotifier {
         }
         // Try to recover by notifying listeners anyway
       }
-      
+
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('=== AppState.playPause() completed ===');
       }
@@ -1551,30 +1774,30 @@ class AppState extends ChangeNotifier {
   // Queue getters
   List<Track> get queue => _audioHandler?.queueTracks ?? [];
   List<Track> get upNext => _audioHandler?.upNext ?? [];
-  
+
   // Radio mode controls
   bool get radioModeEnabled => _audioHandler?.radioModeEnabled ?? false;
-  
+
   void toggleRadioMode() {
     _audioHandler?.toggleRadioMode();
     notifyListeners();
   }
-  
+
   void enableRadioMode() {
     _audioHandler?.enableRadioMode();
     notifyListeners();
   }
-  
+
   void disableRadioMode() {
     _audioHandler?.disableRadioMode();
     notifyListeners();
   }
-  
+
   void removeFromQueue(int index) {
     // Remove from queue functionality would need to be added to the handler
     notifyListeners();
   }
-  
+
   void reorderQueue(int oldIndex, int newIndex) {
     // Reorder queue functionality would need to be added to the handler
     notifyListeners();
@@ -1583,81 +1806,93 @@ class AppState extends ChangeNotifier {
   // Add operation tracking for shuffle operations to prevent audio bleeding
   DateTime? _lastShuffleAllOperation;
   DateTime? _lastShuffleFavoritesOperation;
-  
+
   Future<void> shuffleAllTracks() async {
     if (_tracks.isNotEmpty && _audioHandler != null) {
       // CRITICAL FIX: Add aggressive debouncing for shuffle all button
       final now = DateTime.now();
-      if (_lastShuffleAllOperation != null && 
-          now.difference(_lastShuffleAllOperation!) < const Duration(milliseconds: 800)) {
+      if (_lastShuffleAllOperation != null &&
+          now.difference(_lastShuffleAllOperation!) <
+              const Duration(milliseconds: 800)) {
         if (kDebugMode) {
-          print('Shuffle all debounced - ${now.difference(_lastShuffleAllOperation!).inMilliseconds}ms since last operation');
+          print(
+            'Shuffle all debounced - ${now.difference(_lastShuffleAllOperation!).inMilliseconds}ms since last operation',
+          );
         }
         return; // Ignore rapid successive taps
       }
       _lastShuffleAllOperation = now;
-      
+
       if (kDebugMode) {
         print('=== SHUFFLE ALL CALLED ===');
         print('Found ${_tracks.length} total tracks');
       }
-      
+
       final shuffledTracks = List<Track>.from(_tracks);
       shuffledTracks.shuffle();
-      
+
       if (kDebugMode) {
-        print('Playing shuffled all tracks - first track: ${shuffledTracks.first.name}');
+        print(
+          'Playing shuffled all tracks - first track: ${shuffledTracks.first.name}',
+        );
       }
-      
+
       await _audioHandler!.playPlaylist(shuffledTracks, 0);
       _audioHandler!.shuffle(); // Enable shuffle mode
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('=== SHUFFLE ALL COMPLETED ===');
       }
     }
   }
-  
+
   Future<void> shuffleFavoriteTracks() async {
     final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
     if (favoriteTracks.isNotEmpty && _audioHandler != null) {
       // CRITICAL FIX: Add aggressive debouncing for shuffle favorites button
       final now = DateTime.now();
-      if (_lastShuffleFavoritesOperation != null && 
-          now.difference(_lastShuffleFavoritesOperation!) < const Duration(milliseconds: 800)) {
+      if (_lastShuffleFavoritesOperation != null &&
+          now.difference(_lastShuffleFavoritesOperation!) <
+              const Duration(milliseconds: 800)) {
         if (kDebugMode) {
-          print('Shuffle favorites debounced - ${now.difference(_lastShuffleFavoritesOperation!).inMilliseconds}ms since last operation');
+          print(
+            'Shuffle favorites debounced - ${now.difference(_lastShuffleFavoritesOperation!).inMilliseconds}ms since last operation',
+          );
         }
         return; // Ignore rapid successive taps
       }
       _lastShuffleFavoritesOperation = now;
-      
+
       if (kDebugMode) {
         print('=== SHUFFLE FAVORITES CALLED ===');
         print('Found ${favoriteTracks.length} favorite tracks');
       }
-      
+
       final shuffledFavorites = List<Track>.from(favoriteTracks);
       shuffledFavorites.shuffle();
-      
+
       if (kDebugMode) {
-        print('Playing shuffled favorites - first track: ${shuffledFavorites.first.name}');
+        print(
+          'Playing shuffled favorites - first track: ${shuffledFavorites.first.name}',
+        );
       }
-      
+
       await _audioHandler!.playPlaylist(shuffledFavorites, 0);
       _audioHandler!.shuffle(); // Enable shuffle mode
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('=== SHUFFLE FAVORITES COMPLETED ===');
       }
     }
   }
 
-  List<Track> get favoriteTracks => _tracks.where((track) => track.isFavorite).toList();
+  List<Track> get favoriteTracks =>
+      _tracks.where((track) => track.isFavorite).toList();
 
-  List<Album> get favoriteAlbums => _albums.where((album) => album.isFavorite).toList();
+  List<Album> get favoriteAlbums =>
+      _albums.where((album) => album.isFavorite).toList();
 
   /// Check if a track is favorited by its ID
   bool isFavorite(String trackId) {
@@ -1686,22 +1921,25 @@ class AppState extends ChangeNotifier {
       print('Current isFavorite: ${track.isFavorite}');
       print('Will set to: ${!track.isFavorite}');
     }
-    
+
     try {
-      final success = await _mediaServiceManager.toggleFavorite(track.id, track.isFavorite);
-      
+      final success = await _mediaServiceManager.toggleFavorite(
+        track.id,
+        track.isFavorite,
+      );
+
       if (kDebugMode) {
         print('Server response success: $success');
       }
-      
+
       if (success) {
         // Update the track in the local list
         final index = _tracks.indexWhere((t) => t.id == track.id);
-        
+
         if (kDebugMode) {
           print('Track found at index: $index');
         }
-        
+
         if (index != -1) {
           _tracks[index] = Track(
             id: track.id,
@@ -1714,14 +1952,14 @@ class AppState extends ChangeNotifier {
             imageUrl: track.imageUrl,
             isFavorite: !track.isFavorite,
           );
-          
+
           if (kDebugMode) {
             print('Updated track isFavorite to: ${_tracks[index].isFavorite}');
             print('Calling notifyListeners()');
           }
-          
+
           notifyListeners();
-          
+
           if (kDebugMode) {
             print('notifyListeners() called successfully');
           }
@@ -1730,7 +1968,7 @@ class AppState extends ChangeNotifier {
             print('WARNING: Track not found in _tracks list!');
             print('Adding track to _tracks list with updated favorite status');
           }
-          
+
           // Track not found in main list, add it with updated favorite status
           final updatedTrack = Track(
             id: track.id,
@@ -1743,21 +1981,23 @@ class AppState extends ChangeNotifier {
             imageUrl: track.imageUrl,
             isFavorite: !track.isFavorite,
           );
-          
+
           _tracks.add(updatedTrack);
-          
+
           if (kDebugMode) {
-            print('Track added to _tracks list with isFavorite: ${updatedTrack.isFavorite}');
+            print(
+              'Track added to _tracks list with isFavorite: ${updatedTrack.isFavorite}',
+            );
             print('Calling notifyListeners()');
           }
-          
+
           notifyListeners();
-          
+
           if (kDebugMode) {
             print('notifyListeners() called successfully');
           }
         }
-        
+
         // Also refresh tracks in background to ensure all tracks have correct favorite status
         if (kDebugMode) {
           print('Refreshing tracks to sync favorite status...');
@@ -1774,7 +2014,7 @@ class AppState extends ChangeNotifier {
       }
       _setError('Failed to toggle favorite: ${e.toString()}');
     }
-    
+
     if (kDebugMode) {
       print('=== TOGGLE FAVORITE END ===');
     }
@@ -1782,7 +2022,10 @@ class AppState extends ChangeNotifier {
 
   Future<void> toggleAlbumFavorite(Album album) async {
     try {
-      final success = await _mediaServiceManager.toggleFavorite(album.id, album.isFavorite);
+      final success = await _mediaServiceManager.toggleFavorite(
+        album.id,
+        album.isFavorite,
+      );
       if (success) {
         // Update the album in the local list
         final index = _albums.indexWhere((a) => a.id == album.id);
@@ -1823,7 +2066,10 @@ class AppState extends ChangeNotifier {
 
   Future<bool> renamePlaylist(String playlistId, String newName) async {
     try {
-      final success = await _mediaServiceManager.renamePlaylist(playlistId, newName);
+      final success = await _mediaServiceManager.renamePlaylist(
+        playlistId,
+        newName,
+      );
       if (success) {
         // Update the local playlist list
         final index = _playlists.indexWhere((p) => p.id == playlistId);
@@ -1882,63 +2128,61 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-
-
   Future<void> toggleNormalizeVolume(bool enabled) async {
     _normalizeVolumeEnabled = enabled;
-    
+
     // Update the audio handler with the new normalize volume setting
-    
+
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('normalize_volume_enabled', enabled);
-    
+
     notifyListeners();
   }
 
   Future<void> toggleGaplessPlayback(bool enabled) async {
     _gaplessPlaybackEnabled = enabled;
-    
+
     // Update the audio handler with the new gapless playback setting
     _audioHandler?.setGaplessPlayback(enabled);
-    
+
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('gapless_playback_enabled', enabled);
-    
+
     notifyListeners();
   }
 
   Future<void> toggleOledDarkMode(bool enabled) async {
     _oledDarkModeEnabled = enabled;
-    
+
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('oled_dark_mode_enabled', enabled);
-    
+
     notifyListeners();
   }
 
   Future<void> toggleShowAlbumArt(bool enabled) async {
     _showAlbumArtEnabled = enabled;
-    
+
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('show_album_art_enabled', enabled);
-    
+
     notifyListeners();
   }
 
   Future<void> toggleLogging(bool enabled) async {
     _loggingEnabled = enabled;
-    
+
     // Update the logging service
     await LoggingService().setLoggingEnabled(enabled);
-    
+
     // Save the setting to preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('logging_enabled', enabled);
-    
+
     notifyListeners();
   }
 
@@ -1953,15 +2197,15 @@ class AppState extends ChangeNotifier {
   void _addToRecentTracks(Track track) {
     // Remove if already exists to avoid duplicates
     _recentTracks.removeWhere((t) => t.id == track.id);
-    
+
     // Add to beginning of list
     _recentTracks.insert(0, track);
-    
+
     // Keep only last 50 tracks
     if (_recentTracks.length > 50) {
       _recentTracks = _recentTracks.take(50).toList();
     }
-    
+
     // Save to preferences
     _saveRecentTracks();
   }
@@ -1982,7 +2226,7 @@ class AppState extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final recentIds = prefs.getStringList('recent_track_ids') ?? [];
-      
+
       _recentTracks = [];
       for (final id in recentIds) {
         final track = findTrackById(id);
@@ -2006,31 +2250,35 @@ class AppState extends ChangeNotifier {
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
-    _normalizeVolumeEnabled = prefs.getBool('normalize_volume_enabled') ?? false;
+    _normalizeVolumeEnabled =
+        prefs.getBool('normalize_volume_enabled') ?? false;
     _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
-    _loggingEnabled = prefs.getBool('logging_enabled') ?? false; // Disabled by default
-    _useDynamicIsle = prefs.getBool('use_dynamic_isle') ?? true; // Enabled by default
-    
+    _loggingEnabled =
+        prefs.getBool('logging_enabled') ?? false; // Disabled by default
+    _useDynamicIsle =
+        prefs.getBool('use_dynamic_isle') ?? true; // Enabled by default
+
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';
     _themeMode = _parseThemeMode(themeModeString);
-    
-    final accentColorValue = prefs.getInt('accent_color') ?? Colors.purple.value;
+
+    final accentColorValue =
+        prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
-    
+
     // Load locale settings
     final localeCode = prefs.getString('locale');
     if (localeCode != null && localeCode.isNotEmpty) {
       final parts = localeCode.split('_');
-      _locale = parts.length > 1 
-          ? Locale(parts[0], parts[1]) 
+      _locale = parts.length > 1
+          ? Locale(parts[0], parts[1])
           : Locale(parts[0]);
     } else {
       _locale = null; // Use system locale
     }
-    
+
     // Load recent tracks (only after tracks are loaded)
     if (_tracks.isNotEmpty) {
       await _loadRecentTracks();
@@ -2085,8 +2333,8 @@ class AppState extends ChangeNotifier {
       _locale = locale;
       final prefs = await SharedPreferences.getInstance();
       if (locale != null) {
-        final localeCode = locale.countryCode != null 
-            ? '${locale.languageCode}_${locale.countryCode}' 
+        final localeCode = locale.countryCode != null
+            ? '${locale.languageCode}_${locale.countryCode}'
             : locale.languageCode;
         await prefs.setString('locale', localeCode);
       } else {
@@ -2106,7 +2354,7 @@ class AppState extends ChangeNotifier {
     try {
       await _cacheService.clearAllCache();
       await ImageCacheManager.clearCache();
-      
+
       if (kDebugMode) {
         print('All cache cleared successfully');
       }
@@ -2116,11 +2364,11 @@ class AppState extends ChangeNotifier {
       }
     }
   }
-  
+
   Future<void> clearDataCache() async {
     try {
       await _cacheService.clearAllCache();
-      
+
       if (kDebugMode) {
         print('Data cache cleared successfully');
       }
@@ -2130,11 +2378,11 @@ class AppState extends ChangeNotifier {
       }
     }
   }
-  
+
   Future<void> clearImageCache() async {
     try {
       await ImageCacheManager.clearCache();
-      
+
       if (kDebugMode) {
         print('Image cache cleared successfully');
       }
@@ -2144,16 +2392,13 @@ class AppState extends ChangeNotifier {
       }
     }
   }
-  
+
   Future<Map<String, dynamic>> getCacheStats() async {
     try {
       final dataStats = await _cacheService.getCacheStats();
       final imageSize = await ImageCacheManager.getCacheSize();
-      
-      return {
-        'data_cache': dataStats,
-        'image_cache_size': imageSize,
-      };
+
+      return {'data_cache': dataStats, 'image_cache_size': imageSize};
     } catch (e) {
       if (kDebugMode) {
         print('Error getting cache stats: $e');
@@ -2161,11 +2406,11 @@ class AppState extends ChangeNotifier {
       return {};
     }
   }
-  
+
   Future<void> cleanupExpiredCache() async {
     try {
       await _cacheService.cleanupExpiredCache();
-      
+
       if (kDebugMode) {
         print('Expired cache cleaned up');
       }
@@ -2180,7 +2425,9 @@ class AppState extends ChangeNotifier {
   Future<bool> _checkConnectivity() async {
     try {
       // Simple connectivity check - try to get albums with short timeout
-      await _mediaServiceManager.getAlbums().timeout(const Duration(seconds: 5));
+      await _mediaServiceManager.getAlbums().timeout(
+        const Duration(seconds: 5),
+      );
       return true;
     } catch (e) {
       if (kDebugMode) {
@@ -2193,7 +2440,7 @@ class AppState extends ChangeNotifier {
   Future<void> _updateConnectivityState() async {
     final wasConnected = _isConnected;
     _isConnected = await _checkConnectivity();
-    
+
     if (wasConnected && !_isConnected) {
       // Lost connection - enter offline mode if we have downloads and credentials
       if (_isLoggedIn && await _hasDownloadedContent()) {
@@ -2210,7 +2457,7 @@ class AppState extends ChangeNotifier {
         print('Connection restored, exited offline mode');
       }
     }
-    
+
     notifyListeners();
   }
 
@@ -2220,47 +2467,52 @@ class AppState extends ChangeNotifier {
       // Set offline mode without requiring login
       _isOfflineMode = true;
       _isConnected = false;
-      _isLoggedIn = true; // We're setting this to true to bypass the login screen
-      
+      _isLoggedIn =
+          true; // We're setting this to true to bypass the login screen
+
       if (kDebugMode) {
         print('Entering offline mode without login');
       }
-      
+
       // Initialize cache service for offline mode
       await _cacheService.initialize();
-      
+
       // Load downloaded tracks and cached data for offline access
       await _loadOfflineData();
-      
+
       // Clear any previous error messages
       _clearError();
-      
+
       // Filter content to show only downloaded items
       _filterContentForOfflineMode();
-      
+
       // Initialize new audio system for offline playback
       try {
         final audioService = AudioServiceIntegration.instance;
         await audioService.initialize(_mediaServiceManager);
         _audioHandler = audioService;
-        
+
         // Apply user settings to the audio handler
         _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
-        
+
         // Set up listeners for automatic UI updates
         _setupAudioHandlerListeners();
-        
+
         if (kDebugMode) {
-          print('Audio system initialized for offline mode, platform: ${audioService.platformType}');
+          print(
+            'Audio system initialized for offline mode, platform: ${audioService.platformType}',
+          );
         }
       } catch (audioError) {
         if (kDebugMode) {
-          print('Failed to initialize audio system for offline mode: $audioError');
+          print(
+            'Failed to initialize audio system for offline mode: $audioError',
+          );
         }
         // Continue without audio service
         _audioHandler = null;
       }
-      
+
       notifyListeners();
       return true;
     } else {
@@ -2276,19 +2528,19 @@ class AppState extends ChangeNotifier {
     if (kDebugMode) {
       print('Entering offline mode');
     }
-    
+
     _isOfflineMode = true;
     _isConnected = false;
-    
+
     // Load downloaded tracks and cached data for offline access
     await _loadOfflineData();
-    
+
     // Clear any previous error messages since we're now in a valid offline state
     _clearError();
-    
+
     // Ensure we show only downloaded content
     _filterContentForOfflineMode();
-    
+
     notifyListeners();
   }
 
@@ -2296,9 +2548,9 @@ class AppState extends ChangeNotifier {
     if (kDebugMode) {
       print('Exiting offline mode');
     }
-    
+
     _isOfflineMode = false;
-    
+
     // Try to refresh library data now that we're back online
     try {
       await loadLibraryData();
@@ -2307,7 +2559,7 @@ class AppState extends ChangeNotifier {
         print('Failed to refresh library data after going online: $e');
       }
     }
-    
+
     notifyListeners();
   }
 
@@ -2318,15 +2570,18 @@ class AppState extends ChangeNotifier {
       final cachedArtists = await _cacheService.getCachedArtists();
       final cachedTracks = await _cacheService.getCachedTracks();
       final cachedPlaylists = await _cacheService.getCachedPlaylists();
-      
-      if (cachedAlbums != null && cachedAlbums.isNotEmpty) _albums = cachedAlbums;
-      if (cachedArtists != null && cachedArtists.isNotEmpty) _artists = cachedArtists;
-      if (cachedTracks != null && cachedTracks.isNotEmpty) _tracks = cachedTracks;
-      if (cachedPlaylists != null && cachedPlaylists.isNotEmpty) _playlists = cachedPlaylists;
-      
+
+      if (cachedAlbums != null && cachedAlbums.isNotEmpty)
+        _albums = cachedAlbums;
+      if (cachedArtists != null && cachedArtists.isNotEmpty)
+        _artists = cachedArtists;
+      if (cachedTracks != null && cachedTracks.isNotEmpty)
+        _tracks = cachedTracks;
+      if (cachedPlaylists != null && cachedPlaylists.isNotEmpty)
+        _playlists = cachedPlaylists;
+
       // Filter to only show content that's available offline
       _filterToOfflineContent();
-      
     } catch (e) {
       if (kDebugMode) {
         print('Error loading offline data: $e');
@@ -2336,20 +2591,22 @@ class AppState extends ChangeNotifier {
 
   void _filterToOfflineContent() {
     // Filter tracks to only those that are downloaded
-    _tracks = _tracks.where((track) => 
-      _downloadService.isTrackDownloaded(track.id)
-    ).toList();
-    
+    _tracks = _tracks
+        .where((track) => _downloadService.isTrackDownloaded(track.id))
+        .toList();
+
     // Filter albums to only those with downloaded tracks
-    _albums = _albums.where((album) => 
-      _tracks.any((track) => track.albumId == album.id)
-    ).toList();
-    
+    _albums = _albums
+        .where((album) => _tracks.any((track) => track.albumId == album.id))
+        .toList();
+
     // Filter artists to only those with downloaded tracks
-    _artists = _artists.where((artist) => 
-      _tracks.any((track) => track.artistName == artist.name)
-    ).toList();
-    
+    _artists = _artists
+        .where(
+          (artist) => _tracks.any((track) => track.artistName == artist.name),
+        )
+        .toList();
+
     // Filter playlists to only those with downloaded tracks
     // Note: This is more complex as we'd need to check playlist contents
     // For now, we'll keep all playlists but they'll show filtered content
@@ -2357,26 +2614,32 @@ class AppState extends ChangeNotifier {
 
   void _filterContentForOfflineMode() {
     if (!_isOfflineMode) return;
-    
+
     // Filter tracks to only show downloaded ones
     final downloadedTrackIds = _downloadService.downloadedTracks.keys.toSet();
-    _tracks = _tracks.where((track) => downloadedTrackIds.contains(track.id)).toList();
-    
+    _tracks = _tracks
+        .where((track) => downloadedTrackIds.contains(track.id))
+        .toList();
+
     // Filter albums to only show those with downloaded tracks
-    _albums = _albums.where((album) => 
-      _tracks.any((track) => track.albumId == album.id)
-    ).toList();
-    
+    _albums = _albums
+        .where((album) => _tracks.any((track) => track.albumId == album.id))
+        .toList();
+
     // Filter artists to only show those with downloaded tracks
-    _artists = _artists.where((artist) =>
-      _tracks.any((track) => track.artistName == artist.name)
-    ).toList();
-    
+    _artists = _artists
+        .where(
+          (artist) => _tracks.any((track) => track.artistName == artist.name),
+        )
+        .toList();
+
     // Keep playlists but they will show filtered content when opened
     // The playlist detail screens will handle filtering their tracks
-    
+
     if (kDebugMode) {
-      print('Filtered content for offline mode: ${_tracks.length} tracks, ${_albums.length} albums, ${_artists.length} artists');
+      print(
+        'Filtered content for offline mode: ${_tracks.length} tracks, ${_albums.length} albums, ${_artists.length} artists',
+      );
     }
   }
 
