@@ -306,10 +306,10 @@ class JellyfinService implements BaseMediaService {
         options: Options(
           headers: {
             'X-Emby-Authorization':
-                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="$_appVersion"',
             'Content-Type': 'application/json',
             'User-Agent':
-                'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+                'Doudou-Flutter/$_appVersion (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
           },
         ),
       );
