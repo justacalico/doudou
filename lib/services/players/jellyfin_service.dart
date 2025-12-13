@@ -284,6 +284,54 @@ class JellyfinService implements BaseMediaService {
     return false;
   }
 
+  /// Authenticate using an API key (X-Emby-Token)
+  /// This allows users to login with just an API key instead of username/password
+  Future<bool> authenticateWithApiKey(String serverUrl, String apiKey) async {
+    try {
+      _dio.options.baseUrl = serverUrl;
+      
+      if (kDebugMode) {
+        print('JellyfinService: Attempting to authenticate to $serverUrl with API key');
+      }
+      
+      // Test the API key by fetching the current user info
+      final response = await _dio.get(
+        '/Users/Me',
+        options: Options(
+          headers: {
+            'X-Emby-Token': apiKey,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        _server = JellyfinServer(
+          serverUrl: serverUrl,
+          userId: data['Id'],
+          accessToken: apiKey,
+          apiKey: apiKey,
+          username: data['Name'] ?? 'API User',
+        );
+        
+        _dio.options.headers['X-Emby-Token'] = apiKey;
+        
+        if (kDebugMode) {
+          print('JellyfinService: API key authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Username: ${_server!.username}');
+        }
+        
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('API key authentication error: $e');
+      }
+    }
+    return false;
+  }
+
   @override
   Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
     if (_server == null) {
