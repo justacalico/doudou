@@ -145,7 +145,11 @@ class LiquidGlassNavBar extends StatelessWidget {
                 
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () => onTap(index),
+                    onTap: () {
+                      // Trigger iOS-style haptic feedback on tap
+                      HapticFeedback.selectionClick();
+                      onTap(index);
+                    },
                     behavior: HitTestBehavior.opaque,
                     child: _NavBarItemWidget(
                       item: item,
