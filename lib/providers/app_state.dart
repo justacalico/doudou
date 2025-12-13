@@ -899,6 +899,22 @@ class AppState extends ChangeNotifier {
 
       final serverType = prefs.getString('server_type');
       final serverUrl = prefs.getString('server_url');
+      final authMethod = prefs.getString('auth_method');
+      
+      // Check for API key authentication first
+      if (authMethod == 'api_key') {
+        final apiKey = prefs.getString('server_api_key');
+        if (serverType != null && serverUrl != null && apiKey != null) {
+          return {
+            'serverType': serverType,
+            'serverUrl': serverUrl,
+            'authMethod': 'api_key',
+            'apiKey': apiKey,
+          };
+        }
+      }
+      
+      // Fall back to username/password authentication
       final identifier = prefs.getString('server_identifier');
       final credential = prefs.getString('server_credential');
 
@@ -909,6 +925,7 @@ class AppState extends ChangeNotifier {
         return {
           'serverType': serverType,
           'serverUrl': serverUrl,
+          'authMethod': 'password',
           'identifier': identifier,
           'credential': credential,
         };
