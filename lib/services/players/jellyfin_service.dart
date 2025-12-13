@@ -12,15 +12,15 @@ enum NetworkErrorType {
   unauthorized,
   notFound,
   noInternet,
-  unknown
+  unknown,
 }
 
 class NetworkException implements Exception {
   final String message;
   final NetworkErrorType type;
-  
+
   NetworkException(this.message, this.type);
-  
+
   @override
   String toString() => message;
 }
@@ -34,7 +34,7 @@ class JellyfinService implements BaseMediaService {
 
   JellyfinService() {
     _dio = Dio();
-    
+
     // Configure timeouts for better network handling
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
@@ -42,7 +42,7 @@ class JellyfinService implements BaseMediaService {
     if (!kIsWeb) {
       _dio.options.sendTimeout = const Duration(seconds: 30);
     }
-    
+
     // Platform-specific configurations (not available on web)
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       // On Linux, we might need more lenient SSL handling for self-signed certificates
@@ -67,99 +67,125 @@ class JellyfinService implements BaseMediaService {
         }
       }
     }
-    
+
     // Add error handling interceptor
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        // Skip adding auth headers if skipAuth is specified
-        if (options.extra['skipAuth'] == true) {
-          // Remove any existing auth headers for this request
-          options.headers.remove('X-Emby-Token');
-        }
-        handler.next(options);
-      },
-      onError: (error, handler) {
-        // Handle 401 errors with automatic token refresh
-        if (error.response?.statusCode == 401 && 
-            _server != null && 
-            _server!.username != null && 
-            _server!.password != null &&
-            error.requestOptions.extra['skipAuth'] != true) { // Don't retry skipAuth requests
-          
-          if (kDebugMode) {
-            print('JellyfinService: 401 error detected, attempting token refresh...');
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          // Skip adding auth headers if skipAuth is specified
+          if (options.extra['skipAuth'] == true) {
+            // Remove any existing auth headers for this request
+            options.headers.remove('X-Emby-Token');
           }
-          
-          // Attempt to refresh the token
-          _refreshToken().then((success) {
-            if (success) {
-              if (kDebugMode) {
-                print('JellyfinService: Token refresh successful, retrying request...');
-              }
-              // Retry the original request with the new token
-              final options = error.requestOptions;
-              options.headers['X-Emby-Token'] = _server!.accessToken;
-              
-              _dio.request(
-                options.path,
-                data: options.data,
-                queryParameters: options.queryParameters,
-                options: Options(
-                  method: options.method,
-                  headers: options.headers,
-                  extra: options.extra,
-                ),
-              ).then((response) {
-                handler.resolve(response);
-              }).catchError((retryError) {
-                if (kDebugMode) {
-                  print('JellyfinService: Retry after token refresh failed: $retryError');
-                }
-                // If retry fails, proceed with original error handling
-                final networkError = _handleDioError(error);
-                handler.reject(DioException(
-                  requestOptions: error.requestOptions,
-                  error: networkError,
-                  message: networkError.message,
-                ));
-              });
-            } else {
-              if (kDebugMode) {
-                print('JellyfinService: Token refresh failed, proceeding with 401 error');
-              }
-              // Token refresh failed, proceed with original error handling
-              final networkError = _handleDioError(error);
-              handler.reject(DioException(
+          handler.next(options);
+        },
+        onError: (error, handler) {
+          // Handle 401 errors with automatic token refresh
+          if (error.response?.statusCode == 401 &&
+              _server != null &&
+              _server!.username != null &&
+              _server!.password != null &&
+              error.requestOptions.extra['skipAuth'] != true) {
+            // Don't retry skipAuth requests
+
+            if (kDebugMode) {
+              print(
+                'JellyfinService: 401 error detected, attempting token refresh...',
+              );
+            }
+
+            // Attempt to refresh the token
+            _refreshToken()
+                .then((success) {
+                  if (success) {
+                    if (kDebugMode) {
+                      print(
+                        'JellyfinService: Token refresh successful, retrying request...',
+                      );
+                    }
+                    // Retry the original request with the new token
+                    final options = error.requestOptions;
+                    options.headers['X-Emby-Token'] = _server!.accessToken;
+
+                    _dio
+                        .request(
+                          options.path,
+                          data: options.data,
+                          queryParameters: options.queryParameters,
+                          options: Options(
+                            method: options.method,
+                            headers: options.headers,
+                            extra: options.extra,
+                          ),
+                        )
+                        .then((response) {
+                          handler.resolve(response);
+                        })
+                        .catchError((retryError) {
+                          if (kDebugMode) {
+                            print(
+                              'JellyfinService: Retry after token refresh failed: $retryError',
+                            );
+                          }
+                          // If retry fails, proceed with original error handling
+                          final networkError = _handleDioError(error);
+                          handler.reject(
+                            DioException(
+                              requestOptions: error.requestOptions,
+                              error: networkError,
+                              message: networkError.message,
+                            ),
+                          );
+                        });
+                  } else {
+                    if (kDebugMode) {
+                      print(
+                        'JellyfinService: Token refresh failed, proceeding with 401 error',
+                      );
+                    }
+                    // Token refresh failed, proceed with original error handling
+                    final networkError = _handleDioError(error);
+                    handler.reject(
+                      DioException(
+                        requestOptions: error.requestOptions,
+                        error: networkError,
+                        message: networkError.message,
+                      ),
+                    );
+                  }
+                })
+                .catchError((refreshError) {
+                  if (kDebugMode) {
+                    print(
+                      'JellyfinService: Token refresh threw error: $refreshError',
+                    );
+                  }
+                  // Token refresh threw an error, proceed with original error handling
+                  final networkError = _handleDioError(error);
+                  handler.reject(
+                    DioException(
+                      requestOptions: error.requestOptions,
+                      error: networkError,
+                      message: networkError.message,
+                    ),
+                  );
+                });
+          } else {
+            // Not a 401, no credentials to refresh, or skipAuth request - handle normally
+            final networkError = _handleDioError(error);
+            handler.reject(
+              DioException(
                 requestOptions: error.requestOptions,
                 error: networkError,
                 message: networkError.message,
-              ));
-            }
-          }).catchError((refreshError) {
-            if (kDebugMode) {
-              print('JellyfinService: Token refresh threw error: $refreshError');
-            }
-            // Token refresh threw an error, proceed with original error handling
-            final networkError = _handleDioError(error);
-            handler.reject(DioException(
-              requestOptions: error.requestOptions,
-              error: networkError,
-              message: networkError.message,
-            ));
-          });
-        } else {
-          // Not a 401, no credentials to refresh, or skipAuth request - handle normally
-          final networkError = _handleDioError(error);
-          handler.reject(DioException(
-            requestOptions: error.requestOptions,
-            error: networkError,
-            message: networkError.message,
-          ));
-        }
-      },
-    ));
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
-  
+
   NetworkException _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
@@ -221,7 +247,7 @@ class JellyfinService implements BaseMediaService {
   void setJellyfinServer(JellyfinServer server) {
     _server = server;
     _dio.options.baseUrl = server.serverUrl;
-    
+
     if (server.accessToken != null) {
       _dio.options.headers['X-Emby-Token'] = server.accessToken;
     }
@@ -234,26 +260,31 @@ class JellyfinService implements BaseMediaService {
   bool get isConnected => _server != null;
 
   @override
-  Future<bool> authenticate(String serverUrl, String username, String password) async {
+  Future<bool> authenticate(
+    String serverUrl,
+    String username,
+    String password,
+  ) async {
     try {
       _dio.options.baseUrl = serverUrl;
-      
+
       if (kDebugMode) {
-        print('JellyfinService: Attempting to authenticate to $serverUrl with user $username');
+        print(
+          'JellyfinService: Attempting to authenticate to $serverUrl with user $username',
+        );
         print('Platform: ${kIsWeb ? 'Web' : defaultTargetPlatform.name}');
       }
-      
+
       final response = await _dio.post(
         '/Users/AuthenticateByName',
-        data: {
-          'Username': username,
-          'Pw': password,
-        },
+        data: {'Username': username, 'Pw': password},
         options: Options(
           headers: {
-            'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+            'X-Emby-Authorization':
+                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+            'User-Agent':
+                'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
           },
         ),
       );
@@ -267,13 +298,15 @@ class JellyfinService implements BaseMediaService {
           username: username,
           password: password,
         );
-        
+
         _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
-        
+
         if (kDebugMode) {
-          print('JellyfinService: Authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Token: ${_server!.accessToken?.substring(0, 8)}...');
+          print(
+            'JellyfinService: Authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Token: ${_server!.accessToken?.substring(0, 8)}...',
+          );
         }
-        
+
         return true;
       }
     } catch (e) {
@@ -289,11 +322,13 @@ class JellyfinService implements BaseMediaService {
   Future<bool> authenticateWithApiKey(String serverUrl, String apiKey) async {
     try {
       _dio.options.baseUrl = serverUrl;
-      
+
       if (kDebugMode) {
-        print('JellyfinService: Attempting to authenticate to $serverUrl with API key');
+        print(
+          'JellyfinService: Attempting to authenticate to $serverUrl with API key',
+        );
       }
-      
+
       // Test the API key by fetching the current user info
       final response = await _dio.get(
         '/Users/Me',
@@ -301,7 +336,8 @@ class JellyfinService implements BaseMediaService {
           headers: {
             'X-Emby-Token': apiKey,
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+            'User-Agent':
+                'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
           },
         ),
       );
@@ -315,13 +351,15 @@ class JellyfinService implements BaseMediaService {
           apiKey: apiKey,
           username: data['Name'] ?? 'API User',
         );
-        
+
         _dio.options.headers['X-Emby-Token'] = apiKey;
-        
+
         if (kDebugMode) {
-          print('JellyfinService: API key authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Username: ${_server!.username}');
+          print(
+            'JellyfinService: API key authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Username: ${_server!.username}',
+          );
         }
-        
+
         return true;
       }
     } catch (e) {
@@ -333,7 +371,11 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
-  Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Album>> getAlbums({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (_server == null) {
       if (kDebugMode) {
         print('JellyfinService.getAlbums(): Server not configured');
@@ -342,14 +384,18 @@ class JellyfinService implements BaseMediaService {
     }
 
     if (kDebugMode) {
-      print('JellyfinService.getAlbums(): Server URL: ${_server!.serverUrl}, Token exists: ${_server!.accessToken != null}');
+      print(
+        'JellyfinService.getAlbums(): Server URL: ${_server!.serverUrl}, Token exists: ${_server!.accessToken != null}',
+      );
     }
 
     try {
       if (kDebugMode) {
-        print('JellyfinService.getAlbums(): Making API call to /Users/${_server!.userId}/Items');
+        print(
+          'JellyfinService.getAlbums(): Making API call to /Users/${_server!.userId}/Items',
+        );
       }
-      
+
       final response = await _dio.get(
         '/Users/${_server!.userId}/Items',
         queryParameters: {
@@ -364,7 +410,9 @@ class JellyfinService implements BaseMediaService {
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
         if (kDebugMode) {
-          print('JellyfinService.getAlbums(): Successfully loaded ${items.length} albums');
+          print(
+            'JellyfinService.getAlbums(): Successfully loaded ${items.length} albums',
+          );
         }
         return items.map((item) => Album.fromJson(item)).toList();
       }
@@ -380,7 +428,9 @@ class JellyfinService implements BaseMediaService {
     if (_server == null) throw Exception('Server not configured');
 
     if (kDebugMode) {
-      print('JellyfinService.getAlbumTracks(): Fetching tracks for album: $albumId');
+      print(
+        'JellyfinService.getAlbumTracks(): Fetching tracks for album: $albumId',
+      );
     }
 
     try {
@@ -390,7 +440,8 @@ class JellyfinService implements BaseMediaService {
           'ParentId': albumId,
           'IncludeItemTypes': 'Audio',
           'Recursive': true,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+          'Fields':
+              'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
           'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
@@ -399,17 +450,23 @@ class JellyfinService implements BaseMediaService {
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
         if (kDebugMode) {
-          print('JellyfinService.getAlbumTracks(): Successfully loaded ${items.length} tracks for album: $albumId');
+          print(
+            'JellyfinService.getAlbumTracks(): Successfully loaded ${items.length} tracks for album: $albumId',
+          );
         }
         return items.map((item) => Track.fromJson(item)).toList();
       } else {
         if (kDebugMode) {
-          print('JellyfinService.getAlbumTracks(): Bad response ${response.statusCode} for album: $albumId');
+          print(
+            'JellyfinService.getAlbumTracks(): Bad response ${response.statusCode} for album: $albumId',
+          );
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('JellyfinService.getAlbumTracks(): Error fetching album tracks for $albumId: $e');
+        print(
+          'JellyfinService.getAlbumTracks(): Error fetching album tracks for $albumId: $e',
+        );
       }
     }
     return [];
@@ -424,7 +481,8 @@ class JellyfinService implements BaseMediaService {
         queryParameters: {
           'IncludeItemTypes': 'Audio',
           'Recursive': true,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+          'Fields':
+              'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
           'SortBy': 'Album,IndexNumber',
           'SortOrder': 'Ascending',
           'Limit': 1000, // Limit to prevent too large responses
@@ -444,7 +502,11 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
-  Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Artist>> getArtists({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (_server == null) throw Exception('Server not configured');
 
     try {
@@ -489,7 +551,7 @@ class JellyfinService implements BaseMediaService {
         'SortBy': 'SortName',
         'SortOrder': 'Ascending',
       };
-      
+
       if (kDebugMode) {
         print('JellyfinService: Making request to: $url');
         print('JellyfinService: Query params: $queryParams');
@@ -499,32 +561,40 @@ class JellyfinService implements BaseMediaService {
 
       if (kDebugMode) {
         print('JellyfinService: Response status: ${response.statusCode}');
-        print('JellyfinService: Response data type: ${response.data.runtimeType}');
+        print(
+          'JellyfinService: Response data type: ${response.data.runtimeType}',
+        );
       }
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
-        
+
         if (kDebugMode) {
           print('JellyfinService: Found ${items.length} playlist items');
           if (items.isNotEmpty) {
             print('JellyfinService: First playlist raw data: ${items.first}');
           }
         }
-        
+
         final playlists = items.map((item) => Playlist.fromJson(item)).toList();
-        
+
         if (kDebugMode) {
-          print('JellyfinService: Converted to ${playlists.length} playlist objects');
+          print(
+            'JellyfinService: Converted to ${playlists.length} playlist objects',
+          );
           if (playlists.isNotEmpty) {
-            print('JellyfinService: First playlist: ${playlists.first.name} (${playlists.first.trackCount} tracks)');
+            print(
+              'JellyfinService: First playlist: ${playlists.first.name} (${playlists.first.trackCount} tracks)',
+            );
           }
         }
-        
+
         return playlists;
       } else {
         if (kDebugMode) {
-          print('JellyfinService: Unexpected response status: ${response.statusCode}');
+          print(
+            'JellyfinService: Unexpected response status: ${response.statusCode}',
+          );
         }
       }
     } catch (e) {
@@ -545,7 +615,8 @@ class JellyfinService implements BaseMediaService {
         '/Playlists/$playlistId/Items',
         queryParameters: {
           'UserId': _server!.userId,
-          'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+          'Fields':
+              'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
           'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
@@ -567,41 +638,50 @@ class JellyfinService implements BaseMediaService {
   final Map<String, String> _imageUrlCache = <String, String>{};
 
   @override
-  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+  String getImageUrl(
+    String itemId, {
+    String type = 'Primary',
+    int? width,
+    int? height,
+  }) {
     if (_server == null || itemId.isEmpty) {
       return '';
     }
-    
+
     // Create cache key
     final cacheKey = '$itemId-$type-$width-$height';
-    
+
     // Return cached URL if available
     if (_imageUrlCache.containsKey(cacheKey)) {
       return _imageUrlCache[cacheKey]!;
     }
-    
+
     final params = <String, String>{};
     if (width != null) params['width'] = width.toString();
     if (height != null) params['height'] = height.toString();
-    
-    final queryString = params.isEmpty ? '' : '?${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
-    
+
+    final queryString = params.isEmpty
+        ? ''
+        : '?${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
+
     // Remove trailing slash from serverUrl to prevent double slashes
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
+
     final imageUrl = '$baseUrl/Items/$itemId/Images/$type$queryString';
-    
+
     // Cache the generated URL
     _imageUrlCache[cacheKey] = imageUrl;
-    
+
     // Only log first generation of each URL, not repeated calls
     if (kDebugMode && _imageUrlCache.length % 50 == 1) {
       // ignore: avoid_print
-      print('JellyfinService.getImageUrl: Cached ${_imageUrlCache.length} image URLs');
+      print(
+        'JellyfinService.getImageUrl: Cached ${_imageUrlCache.length} image URLs',
+      );
     }
-    
+
     return imageUrl;
   }
 
@@ -610,33 +690,38 @@ class JellyfinService implements BaseMediaService {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
-    
+
     // Use the stream endpoint with specific parameters for better compatibility
     final params = {
       'UserId': _server!.userId!,
       'DeviceId': 'doudou-flutter',
       'api_key': _server!.accessToken!,
-      'Container': 'mp3,aac,m4a,flac,webm,mp4,ogg', // Specify supported containers
-      'AudioCodec': 'mp3,aac,flac,vorbis,opus',      // Specify supported codecs
-      'AudioBitRate': bitrate?.toString() ?? '320000', // Use provided bitrate or default to high quality
-      'MaxAudioChannels': '2',                        // Stereo
-      'TranscodingContainer': 'mp3',                  // Fallback container
-      'TranscodingProtocol': 'http',                  // Use HTTP protocol
+      'Container':
+          'mp3,aac,m4a,flac,webm,mp4,ogg', // Specify supported containers
+      'AudioCodec': 'mp3,aac,flac,vorbis,opus', // Specify supported codecs
+      'AudioBitRate':
+          bitrate?.toString() ??
+          '320000', // Use provided bitrate or default to high quality
+      'MaxAudioChannels': '2', // Stereo
+      'TranscodingContainer': 'mp3', // Fallback container
+      'TranscodingProtocol': 'http', // Use HTTP protocol
     };
-    
-    final queryString = params.entries.map((e) => '${e.key}=${e.value}').join('&');
-    
+
+    final queryString = params.entries
+        .map((e) => '${e.key}=${e.value}')
+        .join('&');
+
     // Remove trailing slash from serverUrl to prevent double slashes
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
+
     final streamUrl = '$baseUrl/Audio/$itemId/stream?$queryString';
-    
+
     if (kDebugMode) {
       print('JellyfinService.getStreamUrl: Generated URL: $streamUrl');
     }
-    
+
     return streamUrl;
   }
 
@@ -644,19 +729,20 @@ class JellyfinService implements BaseMediaService {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
-    
+
     // Remove trailing slash from serverUrl to prevent double slashes
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
+
     // Alternative: direct download URL (no transcoding)
-    final directUrl = '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
-    
+    final directUrl =
+        '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
+
     if (kDebugMode) {
       print('JellyfinService.getDirectStreamUrl: Generated URL: $directUrl');
     }
-    
+
     return directUrl;
   }
 
@@ -664,19 +750,22 @@ class JellyfinService implements BaseMediaService {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
-    
+
     // Remove trailing slash from serverUrl to prevent double slashes
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
+
     // Alternative: universal endpoint with minimal params
-    final universalUrl = '$baseUrl/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
-    
+    final universalUrl =
+        '$baseUrl/Audio/$itemId/universal?UserId=${_server!.userId}&DeviceId=doudou-flutter&api_key=${_server!.accessToken}';
+
     if (kDebugMode) {
-      print('JellyfinService.getUniversalStreamUrl: Generated URL: $universalUrl');
+      print(
+        'JellyfinService.getUniversalStreamUrl: Generated URL: $universalUrl',
+      );
     }
-    
+
     return universalUrl;
   }
 
@@ -685,7 +774,9 @@ class JellyfinService implements BaseMediaService {
     if (_server == null) throw Exception('Server not configured');
 
     if (kDebugMode) {
-      print('JellyfinService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite');
+      print(
+        'JellyfinService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite',
+      );
       print('Server URL: ${_server!.serverUrl}');
       print('User ID: ${_server!.userId}');
     }
@@ -693,18 +784,18 @@ class JellyfinService implements BaseMediaService {
     try {
       final method = isFavorite ? 'DELETE' : 'POST';
       final url = '/Users/${_server!.userId}/FavoriteItems/$itemId';
-      
+
       if (kDebugMode) {
         print('Making $method request to: $url');
       }
-      
+
       final response = await _dio.request(
         url,
         options: Options(method: method),
       );
 
       final success = response.statusCode == 200 || response.statusCode == 204;
-      
+
       if (kDebugMode) {
         print('Jellyfin response: ${response.statusCode}, success: $success');
         if (response.data != null) {
@@ -727,11 +818,7 @@ class JellyfinService implements BaseMediaService {
     try {
       final response = await _dio.post(
         '/Playlists',
-        data: {
-          'Name': name,
-          'MediaType': 'Audio',
-          'UserId': _server!.userId,
-        },
+        data: {'Name': name, 'MediaType': 'Audio', 'UserId': _server!.userId},
       );
 
       if (response.statusCode == 200) {
@@ -760,13 +847,11 @@ class JellyfinService implements BaseMediaService {
     try {
       final response = await _dio.post(
         '/Playlists/$playlistId/Items',
-        queryParameters: {
-          'Ids': trackId,
-          'UserId': _server!.userId,
-        },
+        queryParameters: {'Ids': trackId, 'UserId': _server!.userId},
       );
 
-      return response.statusCode == 204; // Jellyfin returns 204 for successful additions
+      return response.statusCode ==
+          204; // Jellyfin returns 204 for successful additions
     } catch (e) {
       if (kDebugMode) {
         print('Error adding track to playlist: $e');
@@ -780,17 +865,19 @@ class JellyfinService implements BaseMediaService {
 
     try {
       // Get the current playlist to preserve other properties
-      final currentPlaylist = await _dio.get('/Users/${_server!.userId}/Items/$playlistId');
-      
+      final currentPlaylist = await _dio.get(
+        '/Users/${_server!.userId}/Items/$playlistId',
+      );
+
       if (currentPlaylist.statusCode != 200) {
         if (kDebugMode) {
           print('Failed to get current playlist data');
         }
         return false;
       }
-      
+
       final playlistData = currentPlaylist.data;
-      
+
       // Update the playlist using the correct Jellyfin endpoint
       final response = await _dio.post(
         '/Items/$playlistId',
@@ -801,22 +888,18 @@ class JellyfinService implements BaseMediaService {
           'MediaType': playlistData['MediaType'] ?? 'Audio',
           'PlaylistMediaType': playlistData['PlaylistMediaType'] ?? 'Audio',
         },
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       bool success = response.statusCode == 204 || response.statusCode == 200;
-      
+
       if (kDebugMode) {
         print('Rename playlist response: ${response.statusCode}');
         if (!success) {
           print('Rename failed with data: ${response.data}');
         }
       }
-      
+
       return success;
     } catch (e) {
       if (kDebugMode) {
@@ -860,7 +943,9 @@ class JellyfinService implements BaseMediaService {
   Future<bool> refreshAuthentication() async {
     if (_server == null) {
       if (kDebugMode) {
-        print('JellyfinService: Cannot refresh authentication - no server configured');
+        print(
+          'JellyfinService: Cannot refresh authentication - no server configured',
+        );
       }
       return false;
     }
@@ -868,13 +953,18 @@ class JellyfinService implements BaseMediaService {
     // For Jellyfin, we need to get fresh credentials from storage since we don't store the password
     // This method will be called by AppState when it has access to stored credentials
     if (kDebugMode) {
-      print('JellyfinService: refreshAuthentication called, but requires credentials from AppState');
+      print(
+        'JellyfinService: refreshAuthentication called, but requires credentials from AppState',
+      );
     }
     return false;
   }
 
   /// Re-authenticate with provided credentials (called from AppState)
-  Future<bool> reauthenticateWithCredentials(String username, String password) async {
+  Future<bool> reauthenticateWithCredentials(
+    String username,
+    String password,
+  ) async {
     if (_server == null) return false;
 
     try {
@@ -884,15 +974,14 @@ class JellyfinService implements BaseMediaService {
 
       final response = await _dio.post(
         '/Users/AuthenticateByName',
-        data: {
-          'Username': username,
-          'Pw': password,
-        },
+        data: {'Username': username, 'Pw': password},
         options: Options(
           headers: {
-            'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+            'X-Emby-Authorization':
+                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+            'User-Agent':
+                'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
           },
         ),
       );
@@ -907,14 +996,16 @@ class JellyfinService implements BaseMediaService {
           username: _server!.username,
           password: _server!.password,
         );
-        
+
         // Update Dio headers with new token
         _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
-        
+
         if (kDebugMode) {
-          print('JellyfinService: Re-authentication successful. New token: ${_server!.accessToken?.substring(0, 8)}...');
+          print(
+            'JellyfinService: Re-authentication successful. New token: ${_server!.accessToken?.substring(0, 8)}...',
+          );
         }
-        
+
         return true;
       }
     } catch (e) {
@@ -927,29 +1018,34 @@ class JellyfinService implements BaseMediaService {
 
   /// Internal method to refresh token using stored credentials
   Future<bool> _refreshToken() async {
-    if (_server == null || _server!.username == null || _server!.password == null) {
+    if (_server == null ||
+        _server!.username == null ||
+        _server!.password == null) {
       if (kDebugMode) {
-        print('JellyfinService: Cannot refresh token - missing server or credentials');
+        print(
+          'JellyfinService: Cannot refresh token - missing server or credentials',
+        );
       }
       return false;
     }
 
     try {
       if (kDebugMode) {
-        print('JellyfinService: Attempting to refresh token for user ${_server!.username}');
+        print(
+          'JellyfinService: Attempting to refresh token for user ${_server!.username}',
+        );
       }
 
       final response = await _dio.post(
         '/Users/AuthenticateByName',
-        data: {
-          'Username': _server!.username,
-          'Pw': _server!.password,
-        },
+        data: {'Username': _server!.username, 'Pw': _server!.password},
         options: Options(
           headers: {
-            'X-Emby-Authorization': 'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+            'X-Emby-Authorization':
+                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
             'Content-Type': 'application/json',
-            'User-Agent': 'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+            'User-Agent':
+                'Doudou-Flutter/1.0.0 (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
           },
           // Don't include the old token in the refresh request
           extra: {'skipAuth': true},
@@ -966,14 +1062,16 @@ class JellyfinService implements BaseMediaService {
           username: _server!.username,
           password: _server!.password,
         );
-        
+
         // Update Dio headers with new token
         _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
-        
+
         if (kDebugMode) {
-          print('JellyfinService: Token refresh successful. New token: ${_server!.accessToken?.substring(0, 8)}...');
+          print(
+            'JellyfinService: Token refresh successful. New token: ${_server!.accessToken?.substring(0, 8)}...',
+          );
         }
-        
+
         return true;
       }
     } catch (e) {
@@ -995,28 +1093,34 @@ class JellyfinService implements BaseMediaService {
       }
       return false;
     }
-    
+
     if (_server!.serverUrl.isEmpty) {
       if (kDebugMode) {
-        print('JellyfinService._isServerConfigurationValid: Server URL is empty');
+        print(
+          'JellyfinService._isServerConfigurationValid: Server URL is empty',
+        );
       }
       return false;
     }
-    
+
     if (_server!.userId == null || _server!.userId!.isEmpty) {
       if (kDebugMode) {
-        print('JellyfinService._isServerConfigurationValid: User ID is null or empty');
+        print(
+          'JellyfinService._isServerConfigurationValid: User ID is null or empty',
+        );
       }
       return false;
     }
-    
+
     if (_server!.accessToken == null || _server!.accessToken!.isEmpty) {
       if (kDebugMode) {
-        print('JellyfinService._isServerConfigurationValid: Access token is null or empty');
+        print(
+          'JellyfinService._isServerConfigurationValid: Access token is null or empty',
+        );
       }
       return false;
     }
-    
+
     return true;
   }
 
@@ -1025,17 +1129,18 @@ class JellyfinService implements BaseMediaService {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
-    
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
-    final simpleUrl = '$baseUrl/Audio/$itemId/stream.mp3?api_key=${_server!.accessToken}';
-    
+
+    final simpleUrl =
+        '$baseUrl/Audio/$itemId/stream.mp3?api_key=${_server!.accessToken}';
+
     if (kDebugMode) {
       print('JellyfinService.getSimpleStreamUrl: Generated URL: $simpleUrl');
     }
-    
+
     return simpleUrl;
   }
 
@@ -1044,17 +1149,17 @@ class JellyfinService implements BaseMediaService {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
-    
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
+
     final minimalUrl = '$baseUrl/Audio/$itemId?api_key=${_server!.accessToken}';
-    
+
     if (kDebugMode) {
       print('JellyfinService.getMinimalStreamUrl: Generated URL: $minimalUrl');
     }
-    
+
     return minimalUrl;
   }
 
@@ -1063,41 +1168,41 @@ class JellyfinService implements BaseMediaService {
     if (!_isServerConfigurationValid() || itemId.isEmpty) {
       return '';
     }
-    
+
     // Remove trailing slash from serverUrl to prevent double slashes
-    final baseUrl = _server!.serverUrl.endsWith('/') 
+    final baseUrl = _server!.serverUrl.endsWith('/')
         ? _server!.serverUrl.substring(0, _server!.serverUrl.length - 1)
         : _server!.serverUrl;
-    
-    final downloadUrl = '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
-    
+
+    final downloadUrl =
+        '$baseUrl/Items/$itemId/Download?api_key=${_server!.accessToken}';
+
     if (kDebugMode) {
       print('JellyfinService.getDownloadUrl: Generated URL: $downloadUrl');
     }
-    
+
     return downloadUrl;
   }
 
   // Get authentication headers for HTTP requests
   Future<Map<String, String>> getAuthHeaders() async {
     if (_server == null) return {};
-    
+
     return {
       'X-Emby-Token': _server!.accessToken ?? '',
-      'X-Emby-Authorization': 'MediaBrowser UserId="${_server!.userId}", Client="doudou-flutter", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
+      'X-Emby-Authorization':
+          'MediaBrowser UserId="${_server!.userId}", Client="doudou-flutter", Device="Flutter", DeviceId="doudou-flutter", Version="1.0.0"',
     };
   }
 
   @override
   Future<List<Library>> getLibraries() async {
     if (_server == null) throw Exception('Server not configured');
-    
+
     try {
       final response = await _dio.get(
         '/Users/${_server!.userId}/Views',
-        queryParameters: {
-          'IncludeExternalContent': false,
-        },
+        queryParameters: {'IncludeExternalContent': false},
       );
 
       if (response.statusCode == 200) {
@@ -1116,14 +1221,20 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
-  Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
+  Future<List<Track>> getTracks({
+    String? libraryId,
+    String? parentId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (_server == null) throw Exception('Server not configured');
 
     try {
       final params = <String, dynamic>{
         'IncludeItemTypes': 'Audio',
         'Recursive': true,
-        'Fields': 'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+        'Fields':
+            'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
         'SortBy': 'Album,IndexNumber',
         'SortOrder': 'Ascending',
       };
@@ -1151,13 +1262,18 @@ class JellyfinService implements BaseMediaService {
   }
 
   @override
-  Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
+  Future<SearchResults> search(
+    String query, {
+    List<String>? includeItemTypes,
+    int? limit,
+  }) async {
     if (_server == null) throw Exception('Server not configured');
 
     try {
       final params = <String, dynamic>{
         'SearchTerm': query,
-        'IncludeItemTypes': includeItemTypes?.join(',') ?? 'MusicAlbum,MusicArtist,Audio',
+        'IncludeItemTypes':
+            includeItemTypes?.join(',') ?? 'MusicAlbum,MusicArtist,Audio',
         'Recursive': true,
         'Fields': 'PrimaryImageAspectRatio,ImageTags',
       };
@@ -1171,7 +1287,7 @@ class JellyfinService implements BaseMediaService {
 
       if (response.statusCode == 200) {
         final List<dynamic> items = response.data['Items'];
-        
+
         final albums = <Album>[];
         final artists = <Artist>[];
         final tracks = <Track>[];
@@ -1213,7 +1329,7 @@ class JellyfinService implements BaseMediaService {
 
     try {
       final response = await _dio.get('/System/Info');
-      
+
       if (response.statusCode == 200) {
         final data = response.data;
         return ServerInfo(
@@ -1228,7 +1344,7 @@ class JellyfinService implements BaseMediaService {
         print('Error getting server info: $e');
       }
     }
-    
+
     return ServerInfo(
       name: 'Jellyfin Server',
       version: 'Unknown',
@@ -1240,36 +1356,50 @@ class JellyfinService implements BaseMediaService {
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
     if (kDebugMode) {
-      print('JellyfinService.getAlternativeStreamUrls: Getting URLs for trackId: $trackId');
-      print('JellyfinService.getAlternativeStreamUrls: Server configured: ${_server != null}');
+      print(
+        'JellyfinService.getAlternativeStreamUrls: Getting URLs for trackId: $trackId',
+      );
+      print(
+        'JellyfinService.getAlternativeStreamUrls: Server configured: ${_server != null}',
+      );
       if (_server != null) {
-        print('JellyfinService.getAlternativeStreamUrls: Server URL: ${_server!.serverUrl}');
-        print('JellyfinService.getAlternativeStreamUrls: User ID: ${_server!.userId}');
-        print('JellyfinService.getAlternativeStreamUrls: Access Token exists: ${_server!.accessToken != null && _server!.accessToken!.isNotEmpty}');
+        print(
+          'JellyfinService.getAlternativeStreamUrls: Server URL: ${_server!.serverUrl}',
+        );
+        print(
+          'JellyfinService.getAlternativeStreamUrls: User ID: ${_server!.userId}',
+        );
+        print(
+          'JellyfinService.getAlternativeStreamUrls: Access Token exists: ${_server!.accessToken != null && _server!.accessToken!.isNotEmpty}',
+        );
       }
     }
-    
+
     // Return multiple Jellyfin stream URLs in order of preference for fallback
     // Prioritize direct download since it works most reliably
     final urls = [
-      getDirectStreamUrl(trackId),    // Direct download URL (most reliable)
-      getSimpleStreamUrl(trackId),    // Simple stream format
-      getMinimalStreamUrl(trackId),   // Minimal params format
-      getStreamUrl(trackId),          // Primary transcoded stream URL
+      getDirectStreamUrl(trackId), // Direct download URL (most reliable)
+      getSimpleStreamUrl(trackId), // Simple stream format
+      getMinimalStreamUrl(trackId), // Minimal params format
+      getStreamUrl(trackId), // Primary transcoded stream URL
       getUniversalStreamUrl(trackId), // Universal stream URL
     ].where((url) => url.isNotEmpty).toList(); // Filter out empty URLs
-    
+
     if (kDebugMode) {
-      print('JellyfinService.getAlternativeStreamUrls: Generated ${urls.length} valid URLs:');
+      print(
+        'JellyfinService.getAlternativeStreamUrls: Generated ${urls.length} valid URLs:',
+      );
       for (int i = 0; i < urls.length; i++) {
         final url = urls[i];
         print('  [$i] ${url.isEmpty ? '<EMPTY>' : url}');
       }
     }
-    
+
     if (urls.isEmpty && kDebugMode) {
       if (kDebugMode) {
-        print('JellyfinService.getAlternativeStreamUrls: ERROR - No valid URLs generated!');
+        print(
+          'JellyfinService.getAlternativeStreamUrls: ERROR - No valid URLs generated!',
+        );
       }
       if (kDebugMode) {
         print('  Server configuration valid: ${_isServerConfigurationValid()}');
@@ -1278,7 +1408,7 @@ class JellyfinService implements BaseMediaService {
         print('  Track ID provided: ${trackId.isNotEmpty}');
       }
     }
-    
+
     return urls;
   }
 
