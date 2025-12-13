@@ -366,18 +366,20 @@ class JellyfinService implements BaseMediaService {
         ),
       );
 
-      if (usersResponse.statusCode == 200 && usersResponse.data is List && (usersResponse.data as List).isNotEmpty) {
+      if (usersResponse.statusCode == 200 &&
+          usersResponse.data is List &&
+          (usersResponse.data as List).isNotEmpty) {
         // Use the first user (usually admin) or find the first non-disabled user
         final users = usersResponse.data as List;
         Map<String, dynamic>? selectedUser;
-        
+
         for (final user in users) {
           if (user['Policy'] != null && user['Policy']['IsDisabled'] != true) {
             selectedUser = user;
             break;
           }
         }
-        
+
         selectedUser ??= users.first;
 
         _server = JellyfinServer(
