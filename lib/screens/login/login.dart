@@ -1190,7 +1190,7 @@ class _LoginScreenState extends State<LoginScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      CupertinoIcons.key,
+                      CupertinoIcons.lock_shield,
                       size: 16,
                       color: _useApiKeyAuth 
                         ? Colors.white 
