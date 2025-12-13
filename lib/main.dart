@@ -9,6 +9,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
+import 'services/players/jellyfin_service.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
@@ -38,6 +39,9 @@ bool _isDesktopOrWebPlatform() {
 
 void _runMobileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize app version for Jellyfin service
+  await JellyfinService.initializeVersion();
 
   // Initialize logging service
   try {
