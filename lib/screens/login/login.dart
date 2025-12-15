@@ -1073,14 +1073,14 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       ];
     } else if (_selectedServerType == 'jellyfin') {
-      // Jellyfin supports both username/password and API key authentication
+      // Jellyfin supports account, API key, and Quick Connect authentication
       return [
         // Toggle between auth methods
         _buildAuthMethodToggle(isDark),
 
         SizedBox(height: isDesktop ? 16 : 12),
 
-        if (_useApiKeyAuth) ...[
+        if (_jellyfinAuthMethod == JellyfinAuthMethod.apiKey) ...[
           _buildModernTextField(
             controller: _apiKeyController,
             label: 'API Key',
@@ -1094,6 +1094,8 @@ class _LoginScreenState extends State<LoginScreen>
             },
             isDark: isDark,
           ),
+        ] else if (_jellyfinAuthMethod == JellyfinAuthMethod.quickConnect) ...[
+          _buildQuickConnectUI(isDark, isDesktop),
         ] else ...[
           _buildModernTextField(
             controller: _usernameController,
@@ -1201,92 +1203,83 @@ class _LoginScreenState extends State<LoginScreen>
       child: Row(
         children: [
           Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _useApiKeyAuth = false;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: !_useApiKeyAuth
-                      ? AppleColors.systemPurple
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.person,
-                      size: 16,
-                      color: !_useApiKeyAuth
-                          ? Colors.white
-                          : (isDark ? Colors.white60 : Colors.black54),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Account',
-                      style: TextStyle(
-                        fontFamily: AppleDesignSystem.fontFamily,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: !_useApiKeyAuth
-                            ? Colors.white
-                            : (isDark ? Colors.white60 : Colors.black54),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            child: _buildAuthMethodOption(
+              method: JellyfinAuthMethod.account,
+              icon: CupertinoIcons.person,
+              label: 'Account',
+              isDark: isDark,
             ),
           ),
           Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _useApiKeyAuth = true;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _useApiKeyAuth
-                      ? AppleColors.systemPurple
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.lock_shield,
-                      size: 16,
-                      color: _useApiKeyAuth
-                          ? Colors.white
-                          : (isDark ? Colors.white60 : Colors.black54),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'API Key',
-                      style: TextStyle(
-                        fontFamily: AppleDesignSystem.fontFamily,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: _useApiKeyAuth
-                            ? Colors.white
-                            : (isDark ? Colors.white60 : Colors.black54),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            child: _buildAuthMethodOption(
+              method: JellyfinAuthMethod.apiKey,
+              icon: CupertinoIcons.lock_shield,
+              label: 'API Key',
+              isDark: isDark,
+            ),
+          ),
+          Expanded(
+            child: _buildAuthMethodOption(
+              method: JellyfinAuthMethod.quickConnect,
+              icon: CupertinoIcons.qrcode,
+              label: 'Quick',
+              isDark: isDark,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAuthMethodOption({
+    required JellyfinAuthMethod method,
+    required IconData icon,
+    required String label,
+    required bool isDark,
+  }) {
+    final isSelected = _jellyfinAuthMethod == method;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _jellyfinAuthMethod = method;
+          // Cancel any existing Quick Connect session when switching away
+          if (method != JellyfinAuthMethod.quickConnect) {
+            _cancelQuickConnect();
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppleColors.systemPurple : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white60 : Colors.black54),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppleDesignSystem.fontFamily,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white60 : Colors.black54),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
