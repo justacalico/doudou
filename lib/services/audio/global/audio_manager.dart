@@ -837,7 +837,7 @@ class AudioManager {
     
     // All URLs failed
     final error = lastError ?? AudioError(
-      type: AudioErrorType.playback,
+      type: AudioErrorType.player,
       message: 'All audio URLs failed',
       operation: 'playTrack',
       track: track,
@@ -1021,67 +1021,6 @@ class AudioManager {
       final singleUrl = _getAudioUrl(track);
       return singleUrl != null ? [singleUrl] : [];
     }
-  }
-
-  /// Execute operation with retry logic
-  Future<AudioResult<void>> _withRetry(
-    Future<AudioResult<void>> Function() operation,
-    String operationName, {
-    Track? track,
-  }) async {
-    AudioError? lastError;
-    
-    for (int attempt = 0; attempt < _maxRetries; attempt++) {
-      try {
-        final result = await operation();
-        
-        if (result.isSuccess) {
-          return result;
-        }
-        
-        lastError = result.error;
-        
-        // Don't retry non-recoverable errors
-        if (lastError != null && !lastError.isRecoverable) {
-          _handleError(lastError);
-          return result;
-        }
-        
-        // Wait before retry
-        if (attempt < _maxRetries - 1) {
-          await Future.delayed(_retryDelay * (attempt + 1));
-        }
-      } catch (e, stackTrace) {
-        lastError = AudioError.fromException(
-          e,
-          operationName,
-          track: track,
-          stackTrace: stackTrace,
-        );
-        
-        if (!lastError.isRecoverable) {
-          _handleError(lastError);
-          return AudioResult.failure(lastError);
-        }
-        
-        // Wait before retry
-        if (attempt < _maxRetries - 1) {
-          await Future.delayed(_retryDelay * (attempt + 1));
-        }
-      }
-    }
-    
-    // All retries failed
-    lastError ??= AudioError(
-      type: AudioErrorType.unknown,
-      message: 'Operation failed after $_maxRetries attempts',
-      operation: operationName,
-      track: track,
-      timestamp: DateTime.now(),
-    );
-    
-    _handleError(lastError);
-    return AudioResult.failure(lastError);
   }
 
   /// Handle an error
