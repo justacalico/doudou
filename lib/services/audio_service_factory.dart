@@ -1,9 +1,12 @@
+/// Audio Service Factory - Creates and manages the AudioManager
+/// 
+/// This factory provides a simple API to initialize and access 
+/// the global audio system.
+library;
+
 import 'package:flutter/foundation.dart';
-import 'package:audio_service/audio_service.dart' as audio_service;
 import 'media_service_manager.dart';
-import 'audio/mobile_audio_handler.dart';
-import 'audio/desktop_audio_handler.dart';
-import 'audio/web_audio_handler.dart';
+import 'audio/global/global_audio.dart';
 
 /// Simple audio service factory that creates the appropriate audio handler
 /// based on the current platform
@@ -12,15 +15,15 @@ class AudioServiceFactory {
   static AudioServiceFactory get instance => _instance ??= AudioServiceFactory._();
   AudioServiceFactory._();
 
-  dynamic _audioHandler;
+  AudioManagerIntegration? _audioHandler;
   bool _initialized = false;
 
   /// Get the current audio handler
-  dynamic get audioHandler {
-    if (!_initialized) {
+  AudioManagerIntegration get audioHandler {
+    if (!_initialized || _audioHandler == null) {
       throw StateError('AudioServiceFactory not initialized. Call initialize() first.');
     }
-    return _audioHandler;
+    return _audioHandler!;
   }
 
   /// Initialize the appropriate audio handler for the current platform
@@ -32,41 +35,16 @@ class AudioServiceFactory {
         print('AudioServiceFactory: Initializing for platform ${defaultTargetPlatform.name}...');
       }
 
-      if (kIsWeb) {
-        // Web platform - use WebAudioHandler directly
-        _audioHandler = WebAudioHandler(mediaServiceManager);
-        if (kDebugMode) {
-          print('AudioServiceFactory: Created WebAudioHandler');
-        }
-      } else if (defaultTargetPlatform == TargetPlatform.android || 
-                 defaultTargetPlatform == TargetPlatform.iOS) {
-        // Mobile platforms - use AudioService with DoudouAudioHandler
-        _audioHandler = await audio_service.AudioService.init(
-          builder: () => DoudouAudioHandler(
-            mediaServiceManager: mediaServiceManager,
-          ),
-          config: audio_service.AudioServiceConfig(
-            androidNotificationChannelId: 'com.doudoubox.audio',
-            androidNotificationChannelName: 'Doudou Audio',
-            androidNotificationChannelDescription: 'Playing audio',
-            androidShowNotificationBadge: true,
-            androidNotificationClickStartsActivity: true,
-            androidStopForegroundOnPause: false, // CRITICAL - don't stop foreground on pause
-            androidNotificationIcon: 'mipmap/launcher_icon', // Use app icon
-            preloadArtwork: true,
-            fastForwardInterval: const Duration(seconds: 10),
-            rewindInterval: const Duration(seconds: 10),
-          ),
-        );
-        if (kDebugMode) {
-          print('AudioServiceFactory: Created DoudouAudioHandler with AudioService');
-        }
-      } else {
-        // Desktop platforms - use DesktopAudioHandler directly
-        _audioHandler = DesktopAudioHandler(mediaServiceManager);
-        if (kDebugMode) {
-          print('AudioServiceFactory: Created DesktopAudioHandler');
-        }
+      // Create the AudioManagerIntegration which handles all platforms
+      _audioHandler = AudioManagerIntegration(
+        mediaServiceManager: mediaServiceManager,
+      );
+      
+      // Initialize the audio manager
+      final success = await _audioHandler!.initialize();
+      
+      if (!success) {
+        throw Exception('Failed to initialize AudioManager');
       }
 
       _initialized = true;
@@ -99,13 +77,7 @@ class AudioServiceFactory {
   /// Dispose resources
   Future<void> dispose() async {
     if (_audioHandler != null) {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).dispose();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).dispose();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).dispose();
-      }
+      await _audioHandler!.dispose();
     }
     _audioHandler = null;
     _initialized = false;
