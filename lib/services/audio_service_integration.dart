@@ -1,12 +1,14 @@
+/// Audio Service Integration - Bridge for existing AppState
+/// 
+/// This provides a backwards-compatible interface to the new global audio system.
+library;
+
 import 'package:flutter/foundation.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import 'package:just_audio/just_audio.dart';
 import 'audio_service_factory.dart';
 import 'media_service_manager.dart';
-import 'audio/web_audio_handler.dart';
-import 'audio/mobile_audio_handler.dart';
-import 'audio/desktop_audio_handler.dart';
-import 'audio/base_audio_handler.dart';
+import 'audio/global/global_audio.dart';
 import '../models/jellyfin_models.dart';
 
 /// Simple wrapper to integrate new audio system with existing AppState
