@@ -32,7 +32,14 @@ class _LoginScreenState extends State<LoginScreen>
 
   String _selectedServerType = 'jellyfin';
   bool _isPasswordVisible = false;
-  bool _useApiKeyAuth = false; // Toggle between username/password and API key
+  JellyfinAuthMethod _jellyfinAuthMethod = JellyfinAuthMethod.account;
+  
+  // Quick Connect state
+  bool _isQuickConnectActive = false;
+  String? _quickConnectCode;
+  String? _quickConnectSecret;
+  Timer? _quickConnectPollTimer;
+  bool _isQuickConnectAvailable = false;
 
   late AnimationController _animationController;
   late AnimationController _backgroundController;
