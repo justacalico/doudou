@@ -78,7 +78,15 @@ Future<void> runDesktopApp() async {
     // Initialize MediaKit for Linux audio support
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       try {
+        // Set debug log level to help diagnose issues
+        JustAudioMediaKit.mpvLogLevel = MPVLogLevel.warn;
+        // Increase buffer size for better streaming
+        JustAudioMediaKit.bufferSize = 64 * 1024 * 1024; // 64 MB
+        JustAudioMediaKit.title = 'Doudou Music Player';
         JustAudioMediaKit.ensureInitialized();
+        if (kDebugMode) {
+          print('MediaKit initialized successfully');
+        }
       } catch (e) {
         if (kDebugMode) {
           print('Failed to initialize MediaKit: $e');
