@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:media_kit/media_kit.dart'; // For MPVLogLevel
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
