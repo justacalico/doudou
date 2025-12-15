@@ -6,8 +6,13 @@ import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import 'dart:ui';
 import 'dart:math' as math;
+import 'dart:async';
 import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
+import '../../services/players/jellyfin_service.dart';
+
+// Auth method enum for Jellyfin
+enum JellyfinAuthMethod { account, apiKey, quickConnect }
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
