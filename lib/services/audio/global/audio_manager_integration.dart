@@ -10,14 +10,83 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../media_service_manager.dart';
-import '../base_audio_handler.dart' as base;
 import 'global_audio.dart';
+
+/// Abstract base interface for all audio handlers
+/// Ensures consistent API across mobile, desktop, and web platforms
+abstract class BaseAudioHandler {
+  // Core playback streams
+  Stream<AudioPlayerState> get stateStream;
+  Stream<Duration> get positionStream;
+  Stream<Duration?> get durationStream;
+  Stream<double> get volumeStream;
+  Stream<PlaybackState> get playbackState;
+  Stream<MediaItem?> get mediaItem;
+  Stream<List<MediaItem>> get queueStream;
+  Stream<PlayerState> get playerStateStream;
+  
+  // Current state getters
+  AudioPlayerState get currentState;
+  Duration get position;
+  Duration get duration;
+  Track? get currentTrack;
+  List<Track> get queueTracks;
+  List<Track> get upNext;
+  double get volume;
+  double get speed;
+  bool get userIntendedPlaying;
+  PlayerState get playerState;
+  
+  // Queue management
+  int? get currentIndex;
+  bool get hasNext;
+  bool get hasPrevious;
+  
+  // Playback modes
+  RepeatMode get repeatMode;
+  bool get shuffleEnabled;
+  bool get gaplessPlaybackEnabled;
+  bool get radioModeEnabled;
+  
+  // Core playback control
+  Future<void> play();
+  Future<void> pause();
+  Future<void> stop();
+  Future<void> seek(Duration position);
+  Future<void> setSpeed(double speed);
+  Future<void> setVolume(double volume);
+  
+  // Track and playlist control
+  Future<void> playTrack(Track track);
+  Future<void> playPlaylist(List<Track> tracks, int startIndex);
+  Future<void> skipToNext();
+  Future<void> skipToPrevious();
+  Future<void> skipToQueueItem(int index);
+  
+  // Queue management
+  void addToQueue(Track track);
+  void addNext(Track track);
+  void removeFromQueue(int index);
+  void reorderQueue(int oldIndex, int newIndex);
+  void clearQueue();
+  
+  // Playback modes
+  void setRepeatMode(RepeatMode mode);
+  void toggleShuffle();
+  void setGaplessPlayback(bool enabled);
+  void toggleRadioMode();
+  void enableRadioMode();
+  void disableRadioMode();
+  
+  // Lifecycle management
+  Future<void> dispose();
+}
 
 /// Integration class that wraps the new AudioManager and exposes
 /// the old BaseAudioHandler interface for compatibility with existing code.
 /// 
 /// This allows gradual migration to the new audio system.
-class AudioManagerIntegration implements base.BaseAudioHandler {
+class AudioManagerIntegration implements BaseAudioHandler {
   final MediaServiceManager _mediaServiceManager;
   
   // Stream controllers for compatibility
@@ -207,7 +276,7 @@ class AudioManagerIntegration implements base.BaseAudioHandler {
   // ============================================================
 
   @override
-  Stream<base.AudioPlayerState> get stateStream => 
+  Stream<AudioPlayerState> get stateStream => 
       AudioManager.instance.stateStream.map((s) => _mapPhaseToState(s.phase));
 
   @override
@@ -239,7 +308,7 @@ class AudioManagerIntegration implements base.BaseAudioHandler {
       _playerStateController.stream;
 
   @override
-  base.AudioPlayerState get currentState => 
+  AudioPlayerState get currentState => 
       _mapPhaseToState(AudioManager.instance.currentPhase);
 
   @override
@@ -308,7 +377,7 @@ class AudioManagerIntegration implements base.BaseAudioHandler {
   bool get hasPrevious => AudioManager.instance.hasPrevious;
 
   @override
-  base.RepeatMode get repeatMode => _mapRepeatMode(AudioManager.instance.currentState.repeatMode);
+  RepeatMode get repeatMode => _mapRepeatMode(AudioManager.instance.currentState.repeatMode);
 
   @override
   bool get shuffleEnabled => AudioManager.instance.currentState.shuffleMode != AudioShuffleMode.none;
@@ -400,11 +469,11 @@ class AudioManagerIntegration implements base.BaseAudioHandler {
   }
 
   @override
-  void setRepeatMode(base.RepeatMode mode) {
+  void setRepeatMode(RepeatMode mode) {
     final newMode = switch (mode) {
-      base.RepeatMode.none => AudioRepeatMode.none,
-      base.RepeatMode.one => AudioRepeatMode.one,
-      base.RepeatMode.all => AudioRepeatMode.all,
+      RepeatMode.none => AudioRepeatMode.none,
+      RepeatMode.one => AudioRepeatMode.one,
+      RepeatMode.all => AudioRepeatMode.all,
     };
     AudioManager.instance.setRepeatMode(newMode);
   }
@@ -451,24 +520,24 @@ class AudioManagerIntegration implements base.BaseAudioHandler {
   }
 
   // Helper methods
-  base.AudioPlayerState _mapPhaseToState(AudioPhase phase) {
+  AudioPlayerState _mapPhaseToState(AudioPhase phase) {
     return switch (phase) {
-      AudioPhase.idle => base.AudioPlayerState.idle,
-      AudioPhase.loading => base.AudioPlayerState.loading,
-      AudioPhase.ready => base.AudioPlayerState.idle,
-      AudioPhase.playing => base.AudioPlayerState.playing,
-      AudioPhase.paused => base.AudioPlayerState.paused,
-      AudioPhase.completed => base.AudioPlayerState.completed,
-      AudioPhase.stopped => base.AudioPlayerState.idle,
-      AudioPhase.error => base.AudioPlayerState.error,
+      AudioPhase.idle => AudioPlayerState.idle,
+      AudioPhase.loading => AudioPlayerState.loading,
+      AudioPhase.ready => AudioPlayerState.idle,
+      AudioPhase.playing => AudioPlayerState.playing,
+      AudioPhase.paused => AudioPlayerState.paused,
+      AudioPhase.completed => AudioPlayerState.completed,
+      AudioPhase.stopped => AudioPlayerState.idle,
+      AudioPhase.error => AudioPlayerState.error,
     };
   }
 
-  base.RepeatMode _mapRepeatMode(AudioRepeatMode mode) {
+  RepeatMode _mapRepeatMode(AudioRepeatMode mode) {
     return switch (mode) {
-      AudioRepeatMode.none => base.RepeatMode.none,
-      AudioRepeatMode.one => base.RepeatMode.one,
-      AudioRepeatMode.all => base.RepeatMode.all,
+      AudioRepeatMode.none => RepeatMode.none,
+      AudioRepeatMode.one => RepeatMode.one,
+      AudioRepeatMode.all => RepeatMode.all,
     };
   }
 }
