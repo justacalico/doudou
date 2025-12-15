@@ -448,6 +448,158 @@ class JellyfinService implements BaseMediaService {
     return false;
   }
 
+  /// Check if Quick Connect is enabled on the server
+  Future<bool> isQuickConnectEnabled(String serverUrl) async {
+    try {
+      final response = await _dio.get(
+        '$serverUrl/QuickConnect/Enabled',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent':
+                'Doudou-Flutter/$_appVersion (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+          },
+          extra: {'skipAuth': true},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // Response is a boolean
+        return response.data == true;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Quick Connect availability check error: $e');
+      }
+    }
+    return false;
+  }
+
+  /// Initiate a Quick Connect session and get the code
+  Future<Map<String, dynamic>?> initiateQuickConnect(String serverUrl) async {
+    try {
+      final response = await _dio.post(
+        '$serverUrl/QuickConnect/Initiate',
+        options: Options(
+          headers: {
+            'X-Emby-Authorization':
+                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="$_appVersion"',
+            'Content-Type': 'application/json',
+            'User-Agent':
+                'Doudou-Flutter/$_appVersion (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+          },
+          extra: {'skipAuth': true},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return {
+          'secret': response.data['Secret'],
+          'code': response.data['Code'],
+        };
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Quick Connect initiation error: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Check the status of a Quick Connect session
+  Future<Map<String, dynamic>?> checkQuickConnectStatus(
+    String serverUrl,
+    String secret,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '$serverUrl/QuickConnect/Connect',
+        queryParameters: {'secret': secret},
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent':
+                'Doudou-Flutter/$_appVersion (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+          },
+          extra: {'skipAuth': true},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return {
+          'authenticated': response.data['Authenticated'] == true,
+          'secret': response.data['Secret'],
+        };
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Quick Connect status check error: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Complete Quick Connect authentication after user authorizes
+  Future<bool> authenticateWithQuickConnect(
+    String serverUrl,
+    String secret,
+  ) async {
+    try {
+      _dio.options.baseUrl = serverUrl;
+      // Clear any existing auth headers from previous sessions
+      _dio.options.headers.remove('X-Emby-Token');
+
+      if (kDebugMode) {
+        print(
+          'JellyfinService: Attempting Quick Connect authentication to $serverUrl',
+        );
+      }
+
+      final response = await _dio.post(
+        '/Users/AuthenticateWithQuickConnect',
+        data: {'Secret': secret},
+        options: Options(
+          headers: {
+            'X-Emby-Authorization':
+                'MediaBrowser Client="Doudou", Device="Flutter", DeviceId="doudou-flutter", Version="$_appVersion"',
+            'Content-Type': 'application/json',
+            'User-Agent':
+                'Doudou-Flutter/$_appVersion (${kIsWeb ? 'Web' : defaultTargetPlatform.name})',
+          },
+          extra: {'skipAuth': true},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        _server = JellyfinServer(
+          serverUrl: serverUrl,
+          userId: data['User']['Id'],
+          accessToken: data['AccessToken'],
+          username: data['User']['Name'],
+        );
+
+        _dio.options.headers['X-Emby-Token'] = _server!.accessToken;
+
+        if (kDebugMode) {
+          print(
+            'JellyfinService: Quick Connect authentication successful. Server: ${_server!.serverUrl}, UserId: ${_server!.userId}, Username: ${_server!.username}',
+          );
+        }
+
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Quick Connect authentication error: $e');
+        if (e is DioException) {
+          print('DioException response: ${e.response?.data}');
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   Future<List<Album>> getAlbums({
     String? libraryId,
