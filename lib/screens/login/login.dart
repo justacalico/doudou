@@ -39,7 +39,6 @@ class _LoginScreenState extends State<LoginScreen>
   String? _quickConnectCode;
   String? _quickConnectSecret;
   Timer? _quickConnectPollTimer;
-  bool _isQuickConnectAvailable = false;
 
   late AnimationController _animationController;
   late AnimationController _backgroundController;
@@ -1284,6 +1283,253 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  Widget _buildQuickConnectUI(bool isDark, bool isDesktop) {
+    if (_isQuickConnectActive && _quickConnectCode != null) {
+      // Show the Quick Connect code
+      return Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppleColors.systemPurple.withOpacity(0.3),
+                width: 2,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  CupertinoIcons.qrcode_viewfinder,
+                  size: 48,
+                  color: AppleColors.systemPurple,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Enter this code on your Jellyfin server',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: 14,
+                    color: isDark
+                        ? Colors.white.withOpacity(0.7)
+                        : Colors.black.withOpacity(0.6),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppleColors.systemPurple.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _quickConnectCode!,
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 8,
+                      color: AppleColors.systemPurple,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppleColors.systemPurple,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Waiting for authorization...',
+                      style: TextStyle(
+                        fontFamily: AppleDesignSystem.fontFamily,
+                        fontSize: 13,
+                        color: isDark
+                            ? Colors.white.withOpacity(0.5)
+                            : Colors.black.withOpacity(0.4),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: _cancelQuickConnect,
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      color: AppleColors.systemRed,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Show the "Start Quick Connect" button
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.08),
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                CupertinoIcons.bolt_circle,
+                size: 48,
+                color: AppleColors.systemPurple.withOpacity(0.8),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Quick Connect',
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Sign in using a code from your Jellyfin server. Go to your user settings in Jellyfin and authorize the code.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: AppleDesignSystem.fontFamily,
+                  fontSize: 13,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.6)
+                      : Colors.black.withOpacity(0.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _startQuickConnect() async {
+    final serverUrl = _serverController.text.trim();
+    if (serverUrl.isEmpty) {
+      if (mounted) {
+        final appState = context.read<AppState>();
+        appState.setErrorMessage('Please enter a server URL first');
+      }
+      return;
+    }
+
+    final jellyfinService = JellyfinService();
+    
+    // Check if Quick Connect is enabled
+    final isEnabled = await jellyfinService.isQuickConnectEnabled(serverUrl);
+    if (!isEnabled) {
+      if (mounted) {
+        final appState = context.read<AppState>();
+        appState.setErrorMessage('Quick Connect is not enabled on this server. Please enable it in the server settings or use another login method.');
+      }
+      return;
+    }
+
+    // Initiate Quick Connect
+    final result = await jellyfinService.initiateQuickConnect(serverUrl);
+    if (result == null) {
+      if (mounted) {
+        final appState = context.read<AppState>();
+        appState.setErrorMessage('Failed to start Quick Connect. Please try again.');
+      }
+      return;
+    }
+
+    setState(() {
+      _isQuickConnectActive = true;
+      _quickConnectCode = result['code'];
+      _quickConnectSecret = result['secret'];
+    });
+
+    // Start polling for authorization
+    _quickConnectPollTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => _checkQuickConnectStatus(),
+    );
+  }
+
+  Future<void> _checkQuickConnectStatus() async {
+    if (_quickConnectSecret == null) return;
+
+    final serverUrl = _serverController.text.trim();
+    final jellyfinService = JellyfinService();
+    
+    final status = await jellyfinService.checkQuickConnectStatus(
+      serverUrl,
+      _quickConnectSecret!,
+    );
+
+    if (status != null && status['authenticated'] == true) {
+      _quickConnectPollTimer?.cancel();
+      
+      // Complete authentication
+      final success = await jellyfinService.authenticateWithQuickConnect(
+        serverUrl,
+        _quickConnectSecret!,
+      );
+
+      if (success && mounted) {
+        // Update app state with the authenticated service
+        final appState = context.read<AppState>();
+        await appState.loginWithQuickConnect(jellyfinService);
+        
+        await _triggerHapticFeedback(isSuccess: true);
+        
+        setState(() {
+          _isQuickConnectActive = false;
+          _quickConnectCode = null;
+          _quickConnectSecret = null;
+        });
+      } else if (mounted) {
+        await _triggerHapticFeedback(isSuccess: false);
+        final appState = context.read<AppState>();
+        appState.setErrorMessage('Quick Connect authentication failed. Please try again.');
+        _cancelQuickConnect();
+      }
+    }
+  }
+
+  void _cancelQuickConnect() {
+    _quickConnectPollTimer?.cancel();
+    setState(() {
+      _isQuickConnectActive = false;
+      _quickConnectCode = null;
+      _quickConnectSecret = null;
+    });
+  }
+
   Widget _buildErrorMessage(
     BuildContext context,
     String message,
@@ -1454,6 +1700,14 @@ class _LoginScreenState extends State<LoginScreen>
 
   // Login and utility methods
   Future<void> _login() async {
+    // Handle Quick Connect separately - it doesn't use the form validation
+    if (_selectedServerType == 'jellyfin' && 
+        _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect) {
+      await _triggerButtonPress();
+      await _startQuickConnect();
+      return;
+    }
+    
     if (_formKey.currentState!.validate()) {
       // Trigger button press haptic feedback
       await _triggerButtonPress();
@@ -1470,7 +1724,8 @@ class _LoginScreenState extends State<LoginScreen>
           '',
           _plexTokenController.text,
         );
-      } else if (_selectedServerType == 'jellyfin' && _useApiKeyAuth) {
+      } else if (_selectedServerType == 'jellyfin' && 
+                 _jellyfinAuthMethod == JellyfinAuthMethod.apiKey) {
         // Jellyfin API key auth
         success = await appState.loginWithApiKey(
           _serverController.text.trim(),
