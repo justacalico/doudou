@@ -1,0 +1,844 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:audio_service/audio_service.dart';
+import '../../models/jellyfin_models.dart';
+import '../media_service_manager.dart';
+import 'base_audio_handler.dart';
+import 'audio_state_controller.dart';
+import 'queue_manager.dart';
+
+/// WebAudioHandler - Audio handler for web platform
+/// Uses just_audio with web-specific optimizations
+class WebAudioHandler {
+  final MediaServiceManager _mediaServiceManager;
+  final AudioStateController _stateController = AudioStateController();
+  final AudioQueueManager _queueManager = AudioQueueManager();
+  final AudioPlayer _player = AudioPlayer();
+
+  // Stream subscriptions for proper cleanup
+  late final List<StreamSubscription> _subscriptions = [];
+
+  // Radio mode state
+  bool _radioModeEnabled = false;
+  Timer? _radioModeTimer;
+
+  // Constructor
+  WebAudioHandler(this._mediaServiceManager) {
+    _initializeAudio();
+  }
+
+  /// Initialize audio system for web
+  Future<void> _initializeAudio() async {
+    try {
+      if (kDebugMode) {
+        print('WebAudioHandler: Initializing web audio system...');
+      }
+
+      // Set up player event listeners
+      _setupPlayerListeners();
+
+      if (kDebugMode) {
+        print('WebAudioHandler: Web audio system initialized successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Failed to initialize web audio system: $e');
+      }
+      _stateController.updateError('Failed to initialize web audio: $e');
+    }
+  }
+
+  /// Set up player event listeners
+  void _setupPlayerListeners() {
+    // Position stream
+    _subscriptions.add(
+      _player.positionStream.listen(_stateController.updatePosition),
+    );
+
+    // Duration stream
+    _subscriptions.add(
+      _player.durationStream.listen((duration) {
+        _stateController.updateDuration(duration ?? Duration.zero);
+      }),
+    );
+
+    // Player state stream
+    _subscriptions.add(
+      _player.playerStateStream.listen(_handlePlayerStateChange),
+    );
+
+    // Processing state for loading detection
+    _subscriptions.add(
+      _player.processingStateStream.listen(_handleProcessingStateChange),
+    );
+
+    // Player completion
+    _subscriptions.add(
+      _player.playbackEventStream
+          .where((event) => event.processingState == ProcessingState.completed)
+          .listen((_) => _handleTrackCompletion()),
+    );
+
+    // Volume and speed synchronization
+    _subscriptions.add(
+      _player.volumeStream.listen(_stateController.updateVolume),
+    );
+
+    _subscriptions.add(
+      _player.speedStream.listen(_stateController.updateSpeed),
+    );
+
+    // Update media session when track changes (if using web media session API)
+    _subscriptions.add(
+      _stateController.currentTrackStream.listen((track) {
+        if (track != null) {
+          _updateMediaSessionMetadata(track);
+        }
+      }),
+    );
+  }
+
+  /// Handle player state changes
+  void _handlePlayerStateChange(PlayerState playerState) {
+    switch (playerState.processingState) {
+      case ProcessingState.idle:
+        _stateController.updateState(AudioPlayerState.idle);
+        break;
+      case ProcessingState.loading:
+      case ProcessingState.buffering:
+        _stateController.updateState(AudioPlayerState.loading);
+        break;
+      case ProcessingState.ready:
+        if (playerState.playing) {
+          _stateController.updateState(AudioPlayerState.playing);
+        } else {
+          _stateController.updateState(AudioPlayerState.paused);
+        }
+        break;
+      case ProcessingState.completed:
+        _stateController.updateState(AudioPlayerState.completed);
+        break;
+    }
+
+    // Update media session playback state
+    _updateMediaSessionPlaybackState();
+  }
+
+  /// Update media session playback state (web-specific)
+  void _updateMediaSessionPlaybackState() {
+    // This would use the web Media Session API if needed
+    // Implementation depends on your web integration requirements
+  }
+
+  /// Update media session metadata (web-specific)
+  void _updateMediaSessionMetadata(Track track) {
+    // This would use the web Media Session API if needed
+    // Implementation depends on your web integration requirements
+  }
+
+  /// Handle processing state changes
+  void _handleProcessingStateChange(ProcessingState state) {
+    if (state == ProcessingState.ready) {
+      _stateController.clearError();
+    }
+  }
+
+  /// Handle track completion
+  Future<void> _handleTrackCompletion() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Track completed');
+    }
+
+    // In radio mode, fetch and play similar tracks
+    if (_radioModeEnabled) {
+      await _handleRadioModeNext();
+      return;
+    }
+
+    // Normal mode - advance to next track
+    final nextIndex = _queueManager.getNextTrackIndex();
+    if (nextIndex != null) {
+      await skipToQueueItem(nextIndex);
+    } else {
+      // End of queue
+      _stateController.updateState(AudioPlayerState.completed);
+      _stateController.updateUserIntent(false);
+    }
+  }
+
+  /// Handle radio mode - fetch similar tracks
+  Future<void> _handleRadioModeNext() async {
+    try {
+      final currentTrack = _stateController.currentTrack;
+      if (currentTrack == null) return;
+
+      // Fetch similar tracks from the media service
+      final similarTracks = await _fetchSimilarTracks(currentTrack);
+
+      if (similarTracks.isNotEmpty) {
+        // Add similar tracks to queue and play next
+        for (final track in similarTracks.take(5)) {
+          _queueManager.addToQueue(track);
+        }
+        await skipToNext();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Failed to fetch radio tracks: $e');
+      }
+      // Fallback to normal next track behavior
+      await skipToNext();
+    }
+  }
+
+  /// Fetch similar tracks for radio mode
+  Future<List<Track>> _fetchSimilarTracks(Track track) async {
+    try {
+      // This would need to be implemented based on your media service API
+      // Example placeholder - you'll need to adjust this to match your API
+      return [];
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Error fetching similar tracks: $e');
+      }
+      return [];
+    }
+  }
+
+  // BaseAudioHandler implementation - Stream getters
+
+  Stream<AudioPlayerState> get stateStream => _stateController.stateStream;
+
+  Stream<Duration> get positionStream => _stateController.positionStream;
+
+  Stream<Duration?> get durationStream => _stateController.durationStream;
+
+  Stream<double> get volumeStream => _player.volumeStream;
+
+  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
+
+  // Web-specific streams for AudioService compatibility
+  Stream<PlaybackState> get playbackState => _createPlaybackStateStream();
+
+  Stream<MediaItem?> get mediaItem => _createMediaItemStream();
+
+  /// Create a PlaybackState stream compatible with AudioService
+  Stream<PlaybackState> _createPlaybackStateStream() {
+    return _player.playerStateStream.map((playerState) {
+      return PlaybackState(
+        controls: [
+          MediaControl.skipToPrevious,
+          if (playerState.playing) MediaControl.pause else MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        processingState: _mapProcessingState(playerState.processingState),
+        playing: playerState.playing,
+        updatePosition: _stateController.position,
+        bufferedPosition: _stateController.position,
+        speed: _stateController.speed,
+        queueIndex: _stateController.currentIndex,
+      );
+    });
+  }
+
+  /// Create a MediaItem stream from current track
+  Stream<MediaItem?> _createMediaItemStream() {
+    return _stateController.currentTrackStream.map((track) {
+      if (track == null) return null;
+
+      return MediaItem(
+        id: track.id,
+        album: track.albumName,
+        title: track.name,
+        artist: track.artistName,
+        duration: Duration(seconds: track.duration ?? 0),
+        artUri: track.imageUrl != null
+            ? Uri.parse(_mediaServiceManager.getImageUrl(track.imageUrl!))
+            : null,
+        extras: {'albumId': track.albumId, 'trackNumber': track.trackNumber},
+      );
+    });
+  }
+
+  /// Map just_audio ProcessingState to AudioService AudioProcessingState
+  AudioProcessingState _mapProcessingState(ProcessingState state) {
+    switch (state) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
+  }
+
+  // Property getters
+
+  AudioPlayerState get currentState => _stateController.currentState;
+
+  Duration get position => _stateController.position;
+
+  Duration get duration => _stateController.duration;
+
+  Track? get currentTrack => _stateController.currentTrack;
+
+  Stream<Track?> get currentTrackStream => _stateController.currentTrackStream;
+
+  List<Track> get queueTracks => _stateController.queue;
+
+  List<Track> get upNext => _queueManager.getUpNext();
+
+  double get volume => _stateController.volume;
+
+  double get speed => _stateController.speed;
+
+  bool get userIntendedPlaying => _stateController.userIntendedPlaying;
+
+  PlayerState get playerState => _player.playerState;
+
+  int? get currentIndex => _stateController.currentIndex;
+
+  bool get hasNext => _queueManager.hasNext;
+
+  bool get hasPrevious => _queueManager.hasPrevious;
+
+  RepeatMode get repeatMode => _stateController.repeatMode;
+
+  bool get shuffleEnabled => _stateController.shuffleEnabled;
+
+  bool get gaplessPlaybackEnabled => _stateController.gaplessPlaybackEnabled;
+
+  bool get radioModeEnabled => _radioModeEnabled;
+
+  // Playback control methods
+
+  Future<void> play() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Play command received');
+    }
+
+    // Update UI state immediately for responsiveness
+    _stateController.updateUserIntent(true);
+    _stateController.updateState(AudioPlayerState.loading);
+
+    // Run the actual audio operation asynchronously without blocking UI
+    _performPlayOperation();
+  }
+
+  Future<void> _performPlayOperation() async {
+    try {
+      await _player.play();
+      if (kDebugMode) {
+        print('WebAudioHandler: Play command completed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Play failed: $e');
+      }
+      _stateController.updateError('Play failed: $e');
+      _stateController.updateUserIntent(false);
+      _stateController.updateState(AudioPlayerState.error);
+    }
+  }
+
+  Future<void> pause() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Pause command received');
+    }
+
+    // Update UI state immediately for responsiveness
+    _stateController.updateUserIntent(false);
+    _stateController.updateState(AudioPlayerState.paused);
+
+    // Run the actual audio operation asynchronously without blocking UI
+    _performPauseOperation();
+  }
+
+  Future<void> _performPauseOperation() async {
+    try {
+      await _player.pause();
+      if (kDebugMode) {
+        print('WebAudioHandler: Pause command completed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Pause failed: $e');
+      }
+      _stateController.updateError('Pause failed: $e');
+      _stateController.updateState(AudioPlayerState.error);
+    }
+  }
+
+  Future<void> stop() async {
+    return _stateController.queueCommand(() async {
+      if (kDebugMode) {
+        print('WebAudioHandler: Stop command received');
+      }
+
+      _stateController.updateUserIntent(false);
+
+      try {
+        await _player.stop();
+        _stateController.updateState(AudioPlayerState.idle);
+        if (kDebugMode) {
+          print('WebAudioHandler: Stop command completed');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Stop failed: $e');
+        }
+        _stateController.updateError('Stop failed: $e');
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> seek(Duration position) async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Seek to ${position.inSeconds}s requested');
+    }
+
+    // Update UI position immediately for responsiveness
+    _stateController.updatePosition(position);
+
+    // Run the actual seek operation asynchronously without blocking UI
+    _performSeekOperation(position);
+  }
+
+  Future<void> _performSeekOperation(Duration position) async {
+    try {
+      await _player.seek(position);
+      _updateMediaSessionPlaybackState();
+      if (kDebugMode) {
+        print('WebAudioHandler: Seek completed successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Seek failed: $e');
+      }
+      _stateController.updateError('Seek failed: $e');
+    }
+  }
+
+  Future<void> setSpeed(double speed) async {
+    try {
+      await _player.setSpeed(speed);
+      _stateController.updateSpeed(speed);
+      _updateMediaSessionPlaybackState();
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Set speed failed: $e');
+      }
+      _stateController.updateError('Set speed failed: $e');
+    }
+  }
+
+  Future<void> setVolume(double volume) async {
+    try {
+      await _player.setVolume(volume);
+      _stateController.updateVolume(volume);
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Set volume failed: $e');
+      }
+      _stateController.updateError('Set volume failed: $e');
+    }
+  }
+
+  Future<void> playTrack(Track track) async {
+    return _stateController.queueCommand(() async {
+      if (kDebugMode) {
+        print('WebAudioHandler: Playing single track: ${track.name}');
+      }
+
+      try {
+        // Set up single track queue
+        _queueManager.setQueue([track], startIndex: 0);
+        _stateController.updateCurrentTrack(track);
+
+        // Get stream URL
+        final streamUrl = _getStreamUrl(track);
+
+        // Load and play the track
+        await _loadAndPlayTrack(streamUrl);
+
+        if (kDebugMode) {
+          print('WebAudioHandler: Track loaded and playing');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Failed to play track: $e');
+        }
+        _stateController.updateError('Failed to play track: $e');
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
+    return _stateController.queueCommand(() async {
+      if (kDebugMode) {
+        print(
+          'WebAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex',
+        );
+      }
+
+      try {
+        if (tracks.isEmpty) {
+          throw Exception('Cannot play empty playlist');
+        }
+
+        final validStartIndex = startIndex.clamp(0, tracks.length - 1);
+
+        // Set up queue
+        _queueManager.setQueue(tracks, startIndex: validStartIndex);
+
+        // Play the starting track
+        await _playTrackAtIndex(validStartIndex);
+
+        if (kDebugMode) {
+          print('WebAudioHandler: Playlist loaded and playing');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Failed to play playlist: $e');
+        }
+        _stateController.updateError('Failed to play playlist: $e');
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> skipToNext() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Skip to next requested');
+    }
+
+    final nextIndex = _queueManager.getNextTrackIndex();
+    if (nextIndex != null) {
+      // Update UI immediately
+      final queue = _stateController.queue;
+      if (nextIndex < queue.length) {
+        _stateController.updateCurrentIndex(nextIndex);
+        _stateController.updateCurrentTrack(queue[nextIndex]);
+        _stateController.updateState(AudioPlayerState.loading);
+      }
+      // Run actual skip operation asynchronously
+      _performSkipToQueueItem(nextIndex);
+    }
+  }
+
+  Future<void> skipToPrevious() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Skip to previous requested');
+    }
+    
+    final previousIndex = _queueManager.getPreviousTrackIndex();
+    if (previousIndex != null) {
+      // Update UI immediately
+      final queue = _stateController.queue;
+      if (previousIndex >= 0 && previousIndex < queue.length) {
+        _stateController.updateCurrentIndex(previousIndex);
+        _stateController.updateCurrentTrack(queue[previousIndex]);
+        _stateController.updateState(AudioPlayerState.loading);
+      }
+      // Run actual skip operation asynchronously
+      _performSkipToQueueItem(previousIndex);
+    }
+  }
+
+  Future<void> skipToQueueItem(int index) async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Skip to queue item $index requested');
+    }
+
+    // Update UI immediately with comprehensive synchronization
+    final queue = _stateController.queue;
+    if (index >= 0 && index < queue.length) {
+      final track = queue[index];
+      _stateController.updateCurrentIndex(index);
+      _stateController.updateCurrentTrack(track);
+      _stateController.updateState(AudioPlayerState.loading);
+
+    }
+
+    // Run actual skip operation asynchronously
+    _performSkipToQueueItem(index);
+  }
+
+  Future<void> _performSkipToQueueItem(int index) async {
+    try {
+      final queue = _stateController.queue;
+      if (index < 0 || index >= queue.length) {
+        throw Exception('Invalid queue index: $index');
+      }
+
+      await _playTrackAtIndex(index);
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Skip to index failed: $e');
+      }
+      _stateController.updateError('Skip failed: $e');
+      _stateController.updateState(AudioPlayerState.error);
+    }
+  }
+
+  /// Play track at specific queue index
+  Future<void> _playTrackAtIndex(int index) async {
+    final queue = _stateController.queue;
+    final track = queue[index];
+
+    if (kDebugMode) {
+      print('WebAudioHandler: Playing track at index $index: ${track.name}');
+    }
+
+    // Update state before starting playback
+    _stateController.updateCurrentIndex(index);
+    _stateController.updateCurrentTrack(track);
+
+    final streamUrl = _getStreamUrl(track);
+
+    if (kDebugMode) {
+      print('WebAudioHandler: Stream URL for ${track.name}: $streamUrl');
+    }
+
+    await _loadAndPlayTrack(streamUrl);
+  }
+
+  /// Load and play track from URL
+  Future<void> _loadAndPlayTrack(String url) async {
+    try {
+      if (kDebugMode) {
+        print('WebAudioHandler: Loading track from URL: $url');
+      }
+
+      _stateController.updateState(AudioPlayerState.loading);
+      _stateController.updateUserIntent(true);
+
+      // CRITICAL: Stop current audio completely before loading new track
+      // This prevents multiple audio streams playing simultaneously on web
+      try {
+        await _player.stop();
+        if (kDebugMode) {
+          print('WebAudioHandler: Stopped previous audio stream');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Warning - failed to stop previous audio: $e');
+        }
+      }
+
+      // Try to load and play the audio with fallback handling for CORS
+      await _tryLoadWithFallbacks(url);
+
+      if (kDebugMode) {
+        print('WebAudioHandler: New track playback started successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Failed to load and play track: $e');
+      }
+      _stateController.updateState(AudioPlayerState.error);
+      _stateController.updateUserIntent(false);
+      rethrow;
+    }
+  }
+
+  /// Try to load audio with fallbacks for CORS issues
+  Future<void> _tryLoadWithFallbacks(String primaryUrl) async {
+    List<String> urlsToTry = [primaryUrl];
+    
+    // Add fallback URLs if we have them
+    if (kIsWeb && _stateController.currentTrack != null) {
+      urlsToTry.addAll(_getFallbackUrls(_stateController.currentTrack!));
+    }
+
+    Exception? lastError;
+    
+    for (int i = 0; i < urlsToTry.length; i++) {
+      final url = urlsToTry[i];
+      try {
+        if (kDebugMode) {
+          print('WebAudioHandler: Trying URL ${i + 1}/${urlsToTry.length}: $url');
+        }
+
+        // Create and load new audio source
+        final audioSource = await _createWebAudioSource(url);
+        await _player.setAudioSource(audioSource);
+        await _player.play();
+        
+        if (kDebugMode) {
+          print('WebAudioHandler: Successfully loaded URL ${i + 1}/${urlsToTry.length}');
+        }
+        return; // Success - exit the retry loop
+        
+      } catch (e) {
+        lastError = e is Exception ? e : Exception(e.toString());
+        if (kDebugMode) {
+          print('WebAudioHandler: Failed to load URL ${i + 1}/${urlsToTry.length}: $e');
+        }
+        
+        // If it's a CORS-related error and we have more URLs to try, continue
+        if (i < urlsToTry.length - 1 && _isCorsError(e)) {
+          if (kDebugMode) {
+            print('WebAudioHandler: CORS error detected, trying next URL...');
+          }
+          continue;
+        }
+      }
+    }
+    
+    // If we get here, all URLs failed
+    throw lastError ?? Exception('All stream URLs failed to load');
+  }
+
+  /// Check if error is CORS-related
+  bool _isCorsError(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    return errorString.contains('cors') || 
+           errorString.contains('cross-origin') ||
+           errorString.contains('blocked') ||
+           errorString.contains('access-control');
+  }
+
+  /// Create web-compatible audio source
+  Future<AudioSource> _createWebAudioSource(String url) async {
+    if (kIsWeb) {
+      try {
+        if (kDebugMode) {
+          print('WebAudioHandler: Creating web audio source for: $url');
+        }
+
+        // For web, try the direct stream URL first
+        return AudioSource.uri(Uri.parse(url));
+      } catch (e) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Failed to create audio source: $e');
+        }
+        rethrow;
+      }
+    } else {
+      return AudioSource.uri(Uri.parse(url));
+    }
+  }
+
+  /// Get stream URL for track
+  String _getStreamUrl(Track track) {
+    if (kIsWeb) {
+      // For web, get all possible URLs and we'll try them in order
+      final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+      if (directUrl.isNotEmpty) {
+        if (kDebugMode) {
+          print('WebAudioHandler: Using direct stream URL for web: $directUrl');
+        }
+        return directUrl;
+      }
+    }
+
+    return _mediaServiceManager.getStreamUrl(track.id);
+  }
+
+  /// Get fallback URLs for CORS issues on web
+  List<String> _getFallbackUrls(Track track) {
+    if (!kIsWeb) return [];
+    
+    return _mediaServiceManager.getAlternativeStreamUrls(track.id);
+  }
+
+  // Queue management
+
+  void addToQueue(Track track) {
+    _queueManager.addToQueue(track);
+  }
+
+  void addNext(Track track) {
+    _queueManager.addNext(track);
+  }
+
+  void removeFromQueue(int index) {
+    _queueManager.removeFromQueue(index);
+  }
+
+  void reorderQueue(int oldIndex, int newIndex) {
+    _queueManager.reorderQueue(oldIndex, newIndex);
+  }
+
+  void clearQueue() {
+    _queueManager.clearQueue();
+  }
+
+  // Playback modes
+
+  void setRepeatMode(RepeatMode mode) {
+    _stateController.updateRepeatMode(mode);
+  }
+
+  void toggleShuffle() {
+    _queueManager.toggleShuffle();
+  }
+
+  void setGaplessPlayback(bool enabled) {
+    _stateController.updateGaplessPlayback(enabled);
+  }
+
+  void toggleRadioMode() {
+    _radioModeEnabled = !_radioModeEnabled;
+    _stateController.updateRadioMode(_radioModeEnabled);
+  }
+
+  void enableRadioMode() {
+    _radioModeEnabled = true;
+    _stateController.updateRadioMode(true);
+  }
+
+  void disableRadioMode() {
+    _radioModeEnabled = false;
+    _stateController.updateRadioMode(false);
+  }
+
+  // Lifecycle management
+
+  Future<void> dispose() async {
+    if (kDebugMode) {
+      print('WebAudioHandler: Disposing...');
+    }
+
+    // Cancel all subscriptions
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+
+    // Cancel radio mode timer
+    _radioModeTimer?.cancel();
+
+    // Stop and dispose player
+    try {
+      await _player.stop();
+      await _player.dispose();
+    } catch (e) {
+      if (kDebugMode) {
+        print('WebAudioHandler: Error disposing player: $e');
+      }
+    }
+
+    // Reset state
+    _stateController.reset();
+
+    if (kDebugMode) {
+      print('WebAudioHandler: Disposed');
+    }
+  }
+}
+
+// Web-specific types for compatibility

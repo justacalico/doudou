@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import '../providers/app_state.dart';
 import '../models/jellyfin_models.dart';
-import '../services/audio/global/global_audio.dart';
+import '../services/audio/base_audio_handler.dart';
 import '../screens/playing/now_playing.dart';
 import 'apple_design/apple_theme.dart';
 
