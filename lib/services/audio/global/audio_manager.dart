@@ -763,9 +763,9 @@ class AudioManager {
       clearErrorMessage: true,
     ));
     
-    // Get audio URL
-    final url = _getAudioUrl(track);
-    if (url == null) {
+    // Get alternative audio URLs (includes fallback URLs)
+    final urls = _getAlternativeAudioUrls(track);
+    if (urls.isEmpty) {
       final error = AudioError(
         type: AudioErrorType.notFound,
         message: 'Could not get audio URL for track',
@@ -777,36 +777,74 @@ class AudioManager {
       return AudioResult.failure(error);
     }
     
-    // Try to load and play with retries
-    return _withRetry(() async {
-      // Load the track
-      final loadResult = await _adapter.load(url, track);
-      if (!loadResult.isSuccess) {
-        return loadResult as AudioResult<void>;
+    // Try each URL until one works
+    AudioError? lastError;
+    for (int i = 0; i < urls.length; i++) {
+      final url = urls[i];
+      
+      if (kDebugMode) {
+        print('AudioManager: Trying URL ${i + 1}/${urls.length}: $url');
       }
       
-      // Update duration
-      final duration = loadResult.valueOr(Duration.zero);
-      _updateState((state) => state.copyWith(
-        duration: duration,
-        position: Duration.zero,
-      ));
-      
-      // Start playback
-      final playResult = await _adapter.play();
-      if (!playResult.isSuccess) {
-        return playResult;
+      try {
+        // Load the track
+        final loadResult = await _adapter.load(url, track);
+        if (!loadResult.isSuccess) {
+          lastError = loadResult.error;
+          if (kDebugMode) {
+            print('AudioManager: URL $i failed: ${loadResult.error?.message}');
+          }
+          continue; // Try next URL
+        }
+        
+        // Update duration
+        final duration = loadResult.valueOr(Duration.zero);
+        _updateState((state) => state.copyWith(
+          duration: duration,
+          position: Duration.zero,
+        ));
+        
+        // Start playback
+        final playResult = await _adapter.play();
+        if (!playResult.isSuccess) {
+          lastError = playResult.error;
+          if (kDebugMode) {
+            print('AudioManager: Play failed for URL $i: ${playResult.error?.message}');
+          }
+          continue; // Try next URL
+        }
+        
+        // Success! Update state to playing
+        _updateState((state) => state.copyWith(
+          phase: AudioPhase.playing,
+          queue: [track],
+          currentIndex: 0,
+        ));
+        
+        if (kDebugMode) {
+          print('AudioManager: Successfully playing URL ${i + 1}');
+        }
+        
+        return const AudioResult.success(null);
+      } catch (e) {
+        if (kDebugMode) {
+          print('AudioManager: Exception for URL $i: $e');
+        }
+        lastError = AudioError.fromException(e, 'playTrack', track: track);
+        continue; // Try next URL
       }
-      
-      // Update state to playing
-      _updateState((state) => state.copyWith(
-        phase: AudioPhase.playing,
-        queue: [track],
-        currentIndex: 0,
-      ));
-      
-      return const AudioResult.success(null);
-    }, 'playTrack', track: track);
+    }
+    
+    // All URLs failed
+    final error = lastError ?? AudioError(
+      type: AudioErrorType.playback,
+      message: 'All audio URLs failed',
+      operation: 'playTrack',
+      track: track,
+      timestamp: DateTime.now(),
+    );
+    _handleError(error);
+    return AudioResult.failure(error);
   }
 
   /// Internal method to play a playlist
