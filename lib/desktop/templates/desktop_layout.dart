@@ -1,5 +1,3 @@
-// ignore_for_file: unused_element_parameter
-
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -19,7 +17,7 @@ import '../pages/tracks.dart';
 import '../pages/settings.dart';
 import '../../services/desktop_lyrics_service.dart';
 import '../../models/jellyfin_models.dart';
-import '../../services/audio/global/global_audio.dart';
+import '../../services/audio/base_audio_handler.dart' as base_handler;
 import '../../widgets/apple_design/apple_theme.dart';
 
 class DesktopLayout extends StatefulWidget {
@@ -1671,7 +1669,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   AudioProcessingState.buffering;
               // Use the audioHandler's direct properties for shuffle/repeat state
               final isShuffled = audioHandler?.isShuffled ?? false;
-              final repeatMode = audioHandler?.repeatMode ?? RepeatMode.none;
+              final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1762,30 +1760,30 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     onPressed: audioHandler != null
                         ? () {
                             switch (repeatMode) {
-                              case RepeatMode.none:
+                              case base_handler.RepeatMode.none:
                                 audioHandler.setRepeatMode(
-                                  RepeatMode.all,
+                                  base_handler.RepeatMode.all,
                                 );
                                 break;
-                              case RepeatMode.all:
+                              case base_handler.RepeatMode.all:
                                 audioHandler.setRepeatMode(
-                                  RepeatMode.one,
+                                  base_handler.RepeatMode.one,
                                 );
                                 break;
-                              case RepeatMode.one:
+                              case base_handler.RepeatMode.one:
                                 audioHandler.setRepeatMode(
-                                  RepeatMode.none,
+                                  base_handler.RepeatMode.none,
                                 );
                                 break;
                             }
                           }
                         : null,
                     icon: Icon(
-                      repeatMode == RepeatMode.one
+                      repeatMode == base_handler.RepeatMode.one
                           ? Icons.repeat_one_rounded
                           : Icons.repeat_rounded,
                     ),
-                    color: repeatMode != RepeatMode.none
+                    color: repeatMode != base_handler.RepeatMode.none
                         ? Colors.white
                         : Colors.white.withOpacity(0.5),
                     iconSize: 24,

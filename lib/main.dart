@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:media_kit/media_kit.dart'; // For MPVLogLevel
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
@@ -66,11 +65,6 @@ void _runMobileApp() async {
 
   // Initialize MediaKit for Linux audio support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-    // Set debug log level to help diagnose issues
-    JustAudioMediaKit.mpvLogLevel = MPVLogLevel.warn;
-    // Increase buffer size for better streaming
-    JustAudioMediaKit.bufferSize = 64 * 1024 * 1024; // 64 MB
-    JustAudioMediaKit.title = 'Doudou Music Player';
     JustAudioMediaKit.ensureInitialized();
   }
 
