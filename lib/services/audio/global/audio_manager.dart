@@ -93,10 +93,6 @@ class AudioManager {
   
   // Operation timeout
   static const Duration _operationTimeout = Duration(seconds: 10);
-  
-  // Retry configuration
-  static const int _maxRetries = 3;
-  static const Duration _retryDelay = Duration(milliseconds: 500);
 
   // ============================================================
   // INITIALIZATION
