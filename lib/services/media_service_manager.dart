@@ -40,6 +40,13 @@ class MediaServiceManager {
     }
   }
 
+  /// Set an already authenticated JellyfinService (for Quick Connect)
+  void setAuthenticatedJellyfinService(JellyfinService service) {
+    _sharedJellyfinService = service;
+    _currentServerType = ServerType.jellyfin;
+    _currentService = JellyfinServiceAdapter(service);
+  }
+
   /// Authenticate with the current service
   Future<bool> authenticate(String serverUrl, String identifier, String credential) async {
     if (_currentService == null) return false;
