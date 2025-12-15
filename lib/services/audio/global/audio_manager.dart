@@ -1005,6 +1005,24 @@ class AudioManager {
     }
   }
 
+  /// Get alternative audio URLs for a track (includes fallback URLs)
+  List<String> _getAlternativeAudioUrls(Track track) {
+    try {
+      final urls = _mediaServiceManager.getAlternativeStreamUrls(track.id);
+      if (kDebugMode) {
+        print('AudioManager: Got ${urls.length} alternative URLs for ${track.name}');
+      }
+      return urls;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioManager: Failed to get alternative audio URLs: $e');
+      }
+      // Fall back to single URL
+      final singleUrl = _getAudioUrl(track);
+      return singleUrl != null ? [singleUrl] : [];
+    }
+  }
+
   /// Execute operation with retry logic
   Future<AudioResult<void>> _withRetry(
     Future<AudioResult<void>> Function() operation,
