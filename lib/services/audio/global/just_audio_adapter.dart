@@ -212,8 +212,29 @@ class JustAudioAdapter extends PlatformAudioAdapter with PlatformAdapterMixin {
       _phaseSubject.add(AudioPhase.loading);
       _currentUrl = url;
       
-      // Set the audio source
-      final duration = await _player!.setUrl(url);
+      // Set the audio source with proper error handling
+      Duration? duration;
+      try {
+        // Use AudioSource for better control over loading
+        final audioSource = AudioSource.uri(
+          Uri.parse(url),
+          tag: track.name,
+        );
+        duration = await _player!.setAudioSource(audioSource);
+      } catch (loadError) {
+        if (kDebugMode) {
+          print('JustAudioAdapter: setAudioSource failed: $loadError');
+        }
+        // Try simpler setUrl as fallback
+        try {
+          duration = await _player!.setUrl(url);
+        } catch (urlError) {
+          if (kDebugMode) {
+            print('JustAudioAdapter: setUrl fallback also failed: $urlError');
+          }
+          rethrow;
+        }
+      }
       
       if (duration != null) {
         _durationSubject.add(duration);
@@ -225,11 +246,17 @@ class JustAudioAdapter extends PlatformAudioAdapter with PlatformAdapterMixin {
         _phaseSubject.add(AudioPhase.ready);
         return AudioResult.success(duration);
       } else {
+        // Duration is null but load succeeded - still allow playback
+        if (kDebugMode) {
+          print('JustAudioAdapter: Loaded but duration is null (streaming?)');
+        }
+        _phaseSubject.add(AudioPhase.ready);
         return const AudioResult.success(Duration.zero);
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         print('JustAudioAdapter: Load failed: $e');
+        print('JustAudioAdapter: Stack trace: $stackTrace');
       }
       
       _phaseSubject.add(AudioPhase.error);
