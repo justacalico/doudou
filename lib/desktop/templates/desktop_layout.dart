@@ -1671,7 +1671,7 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                   AudioProcessingState.buffering;
               // Use the audioHandler's direct properties for shuffle/repeat state
               final isShuffled = audioHandler?.isShuffled ?? false;
-              final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
+              final repeatMode = audioHandler?.repeatMode ?? RepeatMode.none;
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1762,30 +1762,30 @@ class _YouTubeMusicNowPlayingState extends State<_YouTubeMusicNowPlaying>
                     onPressed: audioHandler != null
                         ? () {
                             switch (repeatMode) {
-                              case base_handler.RepeatMode.none:
+                              case RepeatMode.none:
                                 audioHandler.setRepeatMode(
-                                  base_handler.RepeatMode.all,
+                                  RepeatMode.all,
                                 );
                                 break;
-                              case base_handler.RepeatMode.all:
+                              case RepeatMode.all:
                                 audioHandler.setRepeatMode(
-                                  base_handler.RepeatMode.one,
+                                  RepeatMode.one,
                                 );
                                 break;
-                              case base_handler.RepeatMode.one:
+                              case RepeatMode.one:
                                 audioHandler.setRepeatMode(
-                                  base_handler.RepeatMode.none,
+                                  RepeatMode.none,
                                 );
                                 break;
                             }
                           }
                         : null,
                     icon: Icon(
-                      repeatMode == base_handler.RepeatMode.one
+                      repeatMode == RepeatMode.one
                           ? Icons.repeat_one_rounded
                           : Icons.repeat_rounded,
                     ),
-                    color: repeatMode != base_handler.RepeatMode.none
+                    color: repeatMode != RepeatMode.none
                         ? Colors.white
                         : Colors.white.withOpacity(0.5),
                     iconSize: 24,
