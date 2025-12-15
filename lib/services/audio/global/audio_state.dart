@@ -479,3 +479,66 @@ enum AudioOperationType {
   skipPrevious,
   skipToIndex,
 }
+
+// ============================================================
+// COMPATIBILITY TYPES
+// These types are provided for compatibility with existing code
+// that used the old base_audio_handler.dart definitions.
+// ============================================================
+
+/// Audio playback states (compatibility alias for AudioPhase)
+/// @deprecated Use [AudioPhase] instead
+enum AudioPlayerState { 
+  idle, 
+  loading, 
+  playing, 
+  paused, 
+  completed, 
+  error 
+}
+
+/// Repeat modes for playback (compatibility alias for AudioRepeatMode)
+/// @deprecated Use [AudioRepeatMode] instead
+enum RepeatMode { 
+  none, 
+  one, 
+  all 
+}
+
+/// Shuffle mode (compatibility)
+enum ShuffleMode { 
+  none, 
+  all 
+}
+
+/// Audio state event for unified state management
+class AudioStateEvent {
+  final AudioPlayerState state;
+  final Track? track;
+  final Duration position;
+  final Duration duration;
+  final String? error;
+  final DateTime timestamp;
+  
+  AudioStateEvent({
+    required this.state,
+    this.track,
+    this.position = Duration.zero,
+    this.duration = Duration.zero,
+    this.error,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+}
+
+/// Queue change event for queue updates
+class QueueChangeEvent {
+  final List<Track> queue;
+  final int? currentIndex;
+  final DateTime timestamp;
+  
+  QueueChangeEvent({
+    required this.queue,
+    this.currentIndex,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+}
