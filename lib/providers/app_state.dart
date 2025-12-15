@@ -777,6 +777,95 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Login to Jellyfin using Quick Connect (already authenticated service)
+  Future<bool> loginWithQuickConnect(JellyfinService authenticatedService) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      if (kDebugMode) {
+        print('AppState: Quick Connect authentication for Jellyfin');
+      }
+
+      // Set the authenticated service
+      _mediaServiceManager.initializeService(ServerType.jellyfin);
+      _mediaServiceManager.setAuthenticatedJellyfinService(authenticatedService);
+
+      _isLoggedIn = true;
+
+      // Initialize cache service
+      await _cacheService.initialize();
+
+      // Initialize new audio system with automatic platform detection
+      try {
+        final audioService = AudioServiceIntegration.instance;
+        await audioService.initialize(_mediaServiceManager);
+        _audioHandler = audioService;
+
+        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+        _setupAudioHandlerListeners();
+
+        if (kDebugMode) {
+          print('Audio system initialized for Jellyfin Quick Connect auth');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to initialize audio system: $e');
+        }
+        _audioHandler = null;
+      }
+
+      await _saveServerType('jellyfin');
+      await _saveQuickConnectCredentials(
+        authenticatedService.serverUrl ?? '',
+        authenticatedService.userId ?? '',
+      );
+      await _saveServer();
+
+      // Load library data
+      try {
+        await loadLibraryData();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Exception during library loading: $e');
+        }
+      }
+
+      _setLoading(false);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      String errorMessage = 'Quick Connect authentication failed. Please try again.';
+      _setError(errorMessage);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Save Quick Connect credentials (just server URL and user ID)
+  Future<void> _saveQuickConnectCredentials(String serverUrl, String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('server_type', 'jellyfin');
+    await prefs.setString('server_url', serverUrl);
+    await prefs.setString('auth_method', 'quick_connect');
+    await prefs.setString('user_id', userId);
+
+    // Clear any old credentials
+    await prefs.remove('server_identifier');
+    await prefs.remove('server_credential');
+    await prefs.remove('server_api_key');
+
+    if (kDebugMode) {
+      print('AppState: Saved Quick Connect credentials for Jellyfin at $serverUrl');
+    }
+  }
+
+  /// Set an error message (useful for external components like login screen)
+  void setErrorMessage(String message) {
+    _setError(message);
+    notifyListeners();
+  }
+
   /// Save API key credentials
   Future<void> _saveApiKeyCredentials(String serverUrl, String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
