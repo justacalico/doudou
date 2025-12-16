@@ -708,6 +708,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
+    if (_disposed) return;
+    
     try {
       if (kDebugMode) {
         print('DesktopAudioHandler: Loading audio source: $url');
@@ -715,6 +717,21 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
+
+      // CRITICAL: Stop any current playback first to prevent native callback crashes
+      // This ensures the previous media_kit/mpv instance releases its callbacks
+      try {
+        await _player.stop();
+        // Small delay to allow native callbacks to settle
+        await Future.delayed(const Duration(milliseconds: 50));
+      } catch (e) {
+        // Ignore stop errors - player might already be stopped
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Stop before load (safe to ignore): $e');
+        }
+      }
+      
+      if (_disposed) return;
 
       // Try to set the audio source with reduced timeout for better responsiveness
       try {
@@ -776,6 +793,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
         rethrow;
       }
 
+      if (_disposed) return;
+
       // Try to play with reduced timeout for better responsiveness
       try {
         await _player.play().timeout(
@@ -795,6 +814,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
         rethrow;
       }
     } catch (e) {
+      if (_disposed) return;
+      
       if (kDebugMode) {
         print('DesktopAudioHandler: Load and play failed: $e');
       }
