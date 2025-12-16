@@ -72,9 +72,7 @@ class DesktopLayout extends StatefulWidget {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.failedToAddTrackToPlaylist),
-                      ),
+                      SnackBar(content: Text(l10n.failedToAddTrackToPlaylist)),
                     );
                   }
                 }
@@ -132,7 +130,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         children: [
           // Animated gradient background
           _buildAnimatedBackground(theme),
-          
+
           // Main layout
           Column(
             children: [
@@ -144,9 +142,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                     _buildModernSidebar(theme, l10n, navigationItems, isDark),
 
                     // Main content area with glass effect
-                    Expanded(
-                      child: _buildMainContentArea(isDark),
-                    ),
+                    Expanded(child: _buildMainContentArea(isDark)),
                   ],
                 ),
               ),
@@ -164,12 +160,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
-        
+
         return StreamBuilder<MediaItem?>(
           stream: audioHandler?.mediaItem,
           builder: (context, snapshot) {
             final currentTrack = snapshot.data;
-            
+
             return AnimatedContainer(
               duration: const Duration(milliseconds: 800),
               decoration: BoxDecoration(
@@ -212,17 +208,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           decoration: BoxDecoration(
             color: DesktopTheme.backgroundSecondary.withOpacity(0.7),
             border: Border(
-              right: BorderSide(
-                color: DesktopTheme.glassBorder,
-                width: 1,
-              ),
+              right: BorderSide(color: DesktopTheme.glassBorder, width: 1),
             ),
           ),
           child: Column(
             children: [
               // Logo and app title
               _buildSidebarHeader(theme, l10n),
-              
+
               // Navigation sections
               Expanded(
                 child: SingleChildScrollView(
@@ -233,45 +226,81 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Main navigation
-                      _buildNavSection(
-                        theme,
-                        l10n.navHome,
-                        [
-                          _buildNavItem(0, Icons.home_rounded, Icons.home_rounded, navigationItems[0], theme),
-                          _buildNavItem(1, Icons.search_rounded, Icons.search_rounded, navigationItems[1], theme),
-                        ],
-                      ),
-                      
+                      _buildNavSection(theme, l10n.navHome, [
+                        _buildNavItem(
+                          0,
+                          Icons.home_rounded,
+                          Icons.home_rounded,
+                          navigationItems[0],
+                          theme,
+                        ),
+                        _buildNavItem(
+                          1,
+                          Icons.search_rounded,
+                          Icons.search_rounded,
+                          navigationItems[1],
+                          theme,
+                        ),
+                      ]),
+
                       const SizedBox(height: DesktopTheme.spacingLg),
-                      
+
                       // Library section
-                      _buildNavSection(
-                        theme,
-                        l10n.navLibrary,
-                        [
-                          _buildNavItem(2, Icons.library_music_outlined, Icons.library_music_rounded, navigationItems[2], theme),
-                          _buildNavItem(3, Icons.music_note_outlined, Icons.music_note_rounded, navigationItems[3], theme),
-                          _buildNavItem(4, Icons.queue_music_outlined, Icons.queue_music_rounded, navigationItems[4], theme),
-                          _buildNavItem(5, Icons.album_outlined, Icons.album_rounded, navigationItems[5], theme),
-                          _buildNavItem(6, Icons.person_outline_rounded, Icons.person_rounded, navigationItems[6], theme),
-                        ],
-                      ),
-                      
+                      _buildNavSection(theme, l10n.navLibrary, [
+                        _buildNavItem(
+                          2,
+                          Icons.library_music_outlined,
+                          Icons.library_music_rounded,
+                          navigationItems[2],
+                          theme,
+                        ),
+                        _buildNavItem(
+                          3,
+                          Icons.music_note_outlined,
+                          Icons.music_note_rounded,
+                          navigationItems[3],
+                          theme,
+                        ),
+                        _buildNavItem(
+                          4,
+                          Icons.queue_music_outlined,
+                          Icons.queue_music_rounded,
+                          navigationItems[4],
+                          theme,
+                        ),
+                        _buildNavItem(
+                          5,
+                          Icons.album_outlined,
+                          Icons.album_rounded,
+                          navigationItems[5],
+                          theme,
+                        ),
+                        _buildNavItem(
+                          6,
+                          Icons.person_outline_rounded,
+                          Icons.person_rounded,
+                          navigationItems[6],
+                          theme,
+                        ),
+                      ]),
+
                       const SizedBox(height: DesktopTheme.spacingLg),
-                      
+
                       // Settings
-                      _buildNavSection(
-                        theme,
-                        null,
-                        [
-                          _buildNavItem(7, Icons.settings_outlined, Icons.settings_rounded, navigationItems[7], theme),
-                        ],
-                      ),
+                      _buildNavSection(theme, null, [
+                        _buildNavItem(
+                          7,
+                          Icons.settings_outlined,
+                          Icons.settings_rounded,
+                          navigationItems[7],
+                          theme,
+                        ),
+                      ]),
                     ],
                   ),
                 ),
               ),
-              
+
               // User info / quick actions
               _buildSidebarFooter(theme, l10n),
             ],
@@ -284,15 +313,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   Widget _buildSidebarHeader(ThemeData theme, AppLocalizations l10n) {
     return Container(
       height: DesktopTheme.headerHeight,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesktopTheme.spacingMd,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: DesktopTheme.glassBorder,
-            width: 1,
-          ),
+          bottom: BorderSide(color: DesktopTheme.glassBorder, width: 1),
         ),
       ),
       child: Row(
@@ -388,10 +412,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, IconData selectedIcon, String label, ThemeData theme) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    IconData selectedIcon,
+    String label,
+    ThemeData theme,
+  ) {
     final currentSelectedIndex = widget.selectedIndex ?? _selectedIndex;
     final isSelected = index == currentSelectedIndex;
-    
+
     return DesktopNavItem(
       icon: icon,
       selectedIcon: selectedIcon,
@@ -420,10 +450,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           padding: const EdgeInsets.all(DesktopTheme.spacingMd),
           decoration: BoxDecoration(
             border: Border(
-              top: BorderSide(
-                color: DesktopTheme.glassBorder,
-                width: 1,
-              ),
+              top: BorderSide(color: DesktopTheme.glassBorder, width: 1),
             ),
           ),
           child: Row(
@@ -449,7 +476,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      appState.jellyfinService.currentServer?.username ?? 'User',
+                      appState.jellyfinService.currentServer?.username ??
+                          'User',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -492,7 +520,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     );
   }
 
-  Widget _buildModernBottomPlayerBar(ThemeData theme, AppLocalizations l10n, bool isDark) {
+  Widget _buildModernBottomPlayerBar(
+    ThemeData theme,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
@@ -527,7 +559,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             child: Container(
                               height: DesktopTheme.playerBarHeight,
                               decoration: BoxDecoration(
-                                color: DesktopTheme.backgroundSecondary.withOpacity(0.85),
+                                color: DesktopTheme.backgroundSecondary
+                                    .withOpacity(0.85),
                                 border: Border(
                                   top: BorderSide(
                                     color: DesktopTheme.glassBorder,
@@ -623,9 +656,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       child: Stack(
         children: [
           // Background
-          Container(
-            color: DesktopTheme.backgroundElevated,
-          ),
+          Container(color: DesktopTheme.backgroundElevated),
           // Progress
           AnimatedFractionallySizedBox(
             duration: DesktopTheme.durationFast,
@@ -651,9 +682,13 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       if (box != null) {
                         final width = box.size.width;
                         final tapPosition = details.localPosition.dx;
-                        final newProgress = (tapPosition / width).clamp(0.0, 1.0);
+                        final newProgress = (tapPosition / width).clamp(
+                          0.0,
+                          1.0,
+                        );
                         final newPosition = Duration(
-                          milliseconds: (newProgress * duration.inMilliseconds).round(),
+                          milliseconds: (newProgress * duration.inMilliseconds)
+                              .round(),
                         );
                         audioHandler.seek(newPosition);
                       }
@@ -679,9 +714,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     AppState appState,
   ) {
     return GestureDetector(
-      onTap: currentTrack != null
-          ? () => _showNowPlayingDialog(context)
-          : null,
+      onTap: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
       child: MouseRegion(
         cursor: currentTrack != null
             ? SystemMouseCursors.click
@@ -690,9 +723,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           children: [
             // Album art
             _buildAlbumArt(currentTrack, theme),
-            
+
             const SizedBox(width: DesktopTheme.spacingMd),
-            
+
             // Track details
             Expanded(
               child: Column(
@@ -722,7 +755,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 ],
               ),
             ),
-            
+
             // Favorite button
             if (currentTrack != null)
               _buildFavoriteButton(theme, l10n, currentTrack, appState),
@@ -826,10 +859,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           builder: (context, playbackSnapshot) {
             final playbackState = playbackSnapshot.data;
             final isPlaying = playbackState?.playing == true;
-            final isBuffering = playbackState?.processingState ==
+            final isBuffering =
+                playbackState?.processingState ==
                 AudioProcessingState.buffering;
             final isShuffled = audioHandler?.isShuffled ?? false;
-            final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
+            final repeatMode =
+                audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
 
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -843,9 +878,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   isActive: isShuffled,
                   size: 18,
                 ),
-                
+
                 const SizedBox(width: DesktopTheme.spacingMd),
-                
+
                 // Previous
                 DesktopIconButton(
                   icon: Icons.skip_previous_rounded,
@@ -854,22 +889,25 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       : null,
                   size: 24,
                 ),
-                
+
                 const SizedBox(width: DesktopTheme.spacingSm),
-                
+
                 // Play/Pause
                 DesktopPlayButton(
                   isPlaying: isPlaying,
                   isBuffering: isBuffering,
-                  onPressed: audioHandler != null && currentTrack != null && !isBuffering
+                  onPressed:
+                      audioHandler != null &&
+                          currentTrack != null &&
+                          !isBuffering
                       ? () => appState.playPause()
                       : null,
                   accentColor: theme.colorScheme.primary,
                   size: 48,
                 ),
-                
+
                 const SizedBox(width: DesktopTheme.spacingSm),
-                
+
                 // Next
                 DesktopIconButton(
                   icon: Icons.skip_next_rounded,
@@ -878,9 +916,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       : null,
                   size: 24,
                 ),
-                
+
                 const SizedBox(width: DesktopTheme.spacingMd),
-                
+
                 // Repeat
                 DesktopIconButton(
                   icon: repeatMode == base_handler.RepeatMode.one
@@ -890,13 +928,19 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       ? () {
                           switch (repeatMode) {
                             case base_handler.RepeatMode.none:
-                              audioHandler.setRepeatMode(base_handler.RepeatMode.all);
+                              audioHandler.setRepeatMode(
+                                base_handler.RepeatMode.all,
+                              );
                               break;
                             case base_handler.RepeatMode.all:
-                              audioHandler.setRepeatMode(base_handler.RepeatMode.one);
+                              audioHandler.setRepeatMode(
+                                base_handler.RepeatMode.one,
+                              );
                               break;
                             case base_handler.RepeatMode.one:
-                              audioHandler.setRepeatMode(base_handler.RepeatMode.none);
+                              audioHandler.setRepeatMode(
+                                base_handler.RepeatMode.none,
+                              );
                               break;
                           }
                         }
@@ -908,9 +952,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             );
           },
         ),
-        
+
         const SizedBox(height: DesktopTheme.spacingXs),
-        
+
         // Time display
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -925,10 +969,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             ),
             Text(
               ' / ',
-              style: TextStyle(
-                fontSize: 11,
-                color: DesktopTheme.textMuted,
-              ),
+              style: TextStyle(fontSize: 11, color: DesktopTheme.textMuted),
             ),
             Text(
               _formatDuration(duration),
@@ -967,8 +1008,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   icon: currentVolume == 0.0
                       ? Icons.volume_off_rounded
                       : currentVolume < 0.5
-                          ? Icons.volume_down_rounded
-                          : Icons.volume_up_rounded,
+                      ? Icons.volume_down_rounded
+                      : Icons.volume_up_rounded,
                   onPressed: () {
                     if (audioHandler != null) {
                       audioHandler.setVolume(currentVolume == 0.0 ? 1.0 : 0.0);
@@ -991,18 +1032,18 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             );
           },
         ),
-        
+
         const SizedBox(width: DesktopTheme.spacingLg),
-        
+
         // Queue button
         DesktopIconButton(
           icon: Icons.queue_music_rounded,
           onPressed: () => _showNowPlayingDialog(context),
           tooltip: l10n.queue,
         ),
-        
+
         const SizedBox(width: DesktopTheme.spacingSm),
-        
+
         // Expand button
         DesktopIconButton(
           icon: Icons.open_in_full_rounded,
@@ -1077,8 +1118,7 @@ class _ModernNowPlaying extends StatefulWidget {
   const _ModernNowPlaying({required this.navigationService});
 
   @override
-  State<_ModernNowPlaying> createState() =>
-      _ModernNowPlayingState();
+  State<_ModernNowPlaying> createState() => _ModernNowPlayingState();
 }
 
 class _ModernNowPlayingState extends State<_ModernNowPlaying>
@@ -1104,7 +1144,11 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
     super.dispose();
   }
 
-  void _handleKeyEvent(KeyEvent event, AppState appState, MediaItem? currentTrack) {
+  void _handleKeyEvent(
+    KeyEvent event,
+    AppState appState,
+    MediaItem? currentTrack,
+  ) {
     if (event is! KeyDownEvent) return;
 
     final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
@@ -1168,12 +1212,13 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
             return KeyboardListener(
               focusNode: _focusNode,
               autofocus: true,
-              onKeyEvent: (event) => _handleKeyEvent(event, appState, currentTrack),
+              onKeyEvent: (event) =>
+                  _handleKeyEvent(event, appState, currentTrack),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Hide sidebar when width is less than 700px
                   final showSidebar = constraints.maxWidth >= 700;
-                  
+
                   return Scaffold(
                     backgroundColor: DesktopTheme.backgroundDeep,
                     body: Row(
@@ -1190,240 +1235,292 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                                     currentTrack!.artUri.toString(),
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      color: DesktopTheme.backgroundDeep,
-                                    );
-                                  },
-                                ),
-                              ),
-
-                        // Dark overlay gradient
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  DesktopTheme.backgroundDeep.withOpacity(0.3),
-                                  DesktopTheme.backgroundDeep.withOpacity(0.7),
-                                  DesktopTheme.backgroundDeep.withOpacity(0.95),
-                                ],
-                                stops: const [0.0, 0.5, 1.0],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Main content
-                        Column(
-                          children: [
-                            // Top bar with close button and Song/Video toggle
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              child: Row(
-                                children: [
-                                  // Close button
-                                  DesktopIconButton(
-                                    icon: Icons.keyboard_arrow_down_rounded,
-                                    onPressed: () => Navigator.pop(context),
-                                    size: 28,
-                                  ),
-
-                                  const Spacer(),
-
-                                  // More options button
-                                  DesktopIconButton(
-                                    icon: Icons.more_vert_rounded,
-                                    onPressed: () {
-                                      // Show options menu
+                                      return Container(
+                                        color: DesktopTheme.backgroundDeep,
+                                      );
                                     },
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
 
-                            // Center content area
-                            Expanded(
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Album art or lyrics
-                                    if (_showLyrics)
-                                      Expanded(
-                                        child: _YouTubeMusicLyrics(
-                                          audioHandler: audioHandler,
-                                          queue: appState.queue,
-                                          currentIndex: audioHandler?.currentIndex,
+                              // Dark overlay gradient
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        DesktopTheme.backgroundDeep.withOpacity(
+                                          0.3,
                                         ),
-                                      )
-                                    else
-                                      Expanded(
-                                        child: Center(
-                                          child: _buildAlbumArt(currentTrack),
+                                        DesktopTheme.backgroundDeep.withOpacity(
+                                          0.7,
                                         ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            // Track info and controls at bottom
-                            _buildBottomSection(
-                              context,
-                              appState,
-                              audioHandler,
-                              currentTrack,
-                              AppLocalizations.of(context),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Right sidebar - Up Next queue (like YouTube Music)
-                  // Animated slide in/out based on window width
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: showSidebar ? Offset.zero : const Offset(1, 0),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      width: showSidebar ? 350 : 0,
-                      child: showSidebar
-                          ? Container(
-                              width: 350,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  left: BorderSide(
-                                    color: DesktopTheme.glassBorder,
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Stack(
-                                children: [
-                                  // Background image fading from left (flipped horizontally)
-                                  if (currentTrack?.artUri != null)
-                                    Positioned.fill(
-                                      child: ShaderMask(
-                                        shaderCallback: (Rect bounds) {
-                                          return LinearGradient(
-                                            begin: Alignment.centerLeft,
-                                            end: Alignment.centerRight,
-                                            colors: [
-                                              Colors.white.withOpacity(0.3),
-                                              Colors.white.withOpacity(0.1),
-                                    Colors.transparent,
-                                  ],
-                                  stops: const [0.0, 0.3, 0.7],
-                                ).createShader(bounds);
-                              },
-                              blendMode: BlendMode.dstIn,
-                              child: Transform.flip(
-                                flipX: true,
-                                child: Image.network(
-                                  currentTrack!.artUri.toString(),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        // Dark overlay for readability
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  DesktopTheme.glassSurface.withOpacity(0.7),
-                                  DesktopTheme.glassSurface.withOpacity(0.95),
-                                  DesktopTheme.glassSurface,
-                                ],
-                                stops: const [0.0, 0.4, 1.0],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Content
-                        Column(
-                          children: [
-                            // Tabs header
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  _buildSidebarTab(AppLocalizations.of(context).upNext, 0),
-                                  const SizedBox(width: 24),
-                                  _buildSidebarTab(AppLocalizations.of(context).lyrics, 1),
-                                ],
-                              ),
-                            ),
-
-                            // Playing from indicator
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    AppLocalizations.of(context).playingFrom,
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 12,
+                                        DesktopTheme.backgroundDeep.withOpacity(
+                                          0.95,
+                                        ),
+                                      ],
+                                      stops: const [0.0, 0.5, 1.0],
                                     ),
                                   ),
+                                ),
+                              ),
+
+                              // Main content
+                              Column(
+                                children: [
+                                  // Top bar with close button and Song/Video toggle
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Close button
+                                        DesktopIconButton(
+                                          icon:
+                                              Icons.keyboard_arrow_down_rounded,
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          size: 28,
+                                        ),
+
+                                        const Spacer(),
+
+                                        // More options button
+                                        DesktopIconButton(
+                                          icon: Icons.more_vert_rounded,
+                                          onPressed: () {
+                                            // Show options menu
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Center content area
                                   Expanded(
-                                    child: Text(
-                                      currentTrack?.album ?? AppLocalizations.of(context).unknownAlbum,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          // Album art or lyrics
+                                          if (_showLyrics)
+                                            Expanded(
+                                              child: _YouTubeMusicLyrics(
+                                                audioHandler: audioHandler,
+                                                queue: appState.queue,
+                                                currentIndex:
+                                                    audioHandler?.currentIndex,
+                                              ),
+                                            )
+                                          else
+                                            Expanded(
+                                              child: Center(
+                                                child: _buildAlbumArt(
+                                                  currentTrack,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
+                                  ),
+
+                                  // Track info and controls at bottom
+                                  _buildBottomSection(
+                                    context,
+                                    appState,
+                                    audioHandler,
+                                    currentTrack,
+                                    AppLocalizations.of(context),
                                   ),
                                 ],
                               ),
-                            ),
+                            ],
+                          ),
+                        ),
 
-                            const SizedBox(height: 8),
+                        // Right sidebar - Up Next queue (like YouTube Music)
+                        // Animated slide in/out based on window width
+                        AnimatedSlide(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          offset: showSidebar
+                              ? Offset.zero
+                              : const Offset(1, 0),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            width: showSidebar ? 350 : 0,
+                            child: showSidebar
+                                ? Container(
+                                    width: 350,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: DesktopTheme.glassBorder,
+                                          width: 1,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        // Background image fading from left (flipped horizontally)
+                                        if (currentTrack?.artUri != null)
+                                          Positioned.fill(
+                                            child: ShaderMask(
+                                              shaderCallback: (Rect bounds) {
+                                                return LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Colors.white.withOpacity(
+                                                      0.3,
+                                                    ),
+                                                    Colors.white.withOpacity(
+                                                      0.1,
+                                                    ),
+                                                    Colors.transparent,
+                                                  ],
+                                                  stops: const [0.0, 0.3, 0.7],
+                                                ).createShader(bounds);
+                                              },
+                                              blendMode: BlendMode.dstIn,
+                                              child: Transform.flip(
+                                                flipX: true,
+                                                child: Image.network(
+                                                  currentTrack!.artUri
+                                                      .toString(),
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return const SizedBox.shrink();
+                                                      },
+                                                ),
+                                              ),
+                                            ),
+                                          ),
 
-                            // Content based on selected tab
-                            Expanded(
-                              child: TabBarView(
-                                controller: _tabController,
-                                children: [
-                                  // UP NEXT tab - Queue list
-                                  _buildQueueList(appState, audioHandler),
-                                  // LYRICS tab
-                                  _buildSidebarLyrics(audioHandler),
-                                ],
-                              ),
-                            ),
-                          ],
+                                        // Dark overlay for readability
+                                        Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.centerLeft,
+                                                end: Alignment.centerRight,
+                                                colors: [
+                                                  DesktopTheme.glassSurface
+                                                      .withOpacity(0.7),
+                                                  DesktopTheme.glassSurface
+                                                      .withOpacity(0.95),
+                                                  DesktopTheme.glassSurface,
+                                                ],
+                                                stops: const [0.0, 0.4, 1.0],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                        // Content
+                                        Column(
+                                          children: [
+                                            // Tabs header
+                                            Container(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Row(
+                                                children: [
+                                                  _buildSidebarTab(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    ).upNext,
+                                                    0,
+                                                  ),
+                                                  const SizedBox(width: 24),
+                                                  _buildSidebarTab(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    ).lyrics,
+                                                    1,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                            // Playing from indicator
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                  ),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    ).playingFrom,
+                                                    style: TextStyle(
+                                                      color: Colors.white
+                                                          .withOpacity(0.5),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      currentTrack?.album ??
+                                                          AppLocalizations.of(
+                                                            context,
+                                                          ).unknownAlbum,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                            const SizedBox(height: 8),
+
+                                            // Content based on selected tab
+                                            Expanded(
+                                              child: TabBarView(
+                                                controller: _tabController,
+                                                children: [
+                                                  // UP NEXT tab - Queue list
+                                                  _buildQueueList(
+                                                    appState,
+                                                    audioHandler,
+                                                  ),
+                                                  // LYRICS tab
+                                                  _buildSidebarLyrics(
+                                                    audioHandler,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
                         ),
                       ],
                     ),
-                  )
-                          : const SizedBox.shrink(),
-                    ),
-                  ),
-                ],
-              ),
-              );
+                  );
                 },
               ),
             );
@@ -1446,7 +1543,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? DesktopTheme.textPrimary : DesktopTheme.textTertiary,
+              color: isSelected
+                  ? DesktopTheme.textPrimary
+                  : DesktopTheme.textTertiary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -1513,10 +1612,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            DesktopTheme.glassSurface,
-            DesktopTheme.glassOverlay,
-          ],
+          colors: [DesktopTheme.glassSurface, DesktopTheme.glassOverlay],
         ),
       ),
       child: Center(
@@ -1644,7 +1740,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                       final isFavorite = trackInState.isFavorite;
 
                       return DesktopIconButton(
-                        icon: isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        icon: isFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
                         onPressed: () => appState.toggleFavorite(trackInState),
                         color: isFavorite ? DesktopTheme.heartRed : null,
                       );
@@ -1653,7 +1751,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                   const SizedBox(width: 8),
                   // Lyrics toggle
                   DesktopIconButton(
-                    icon: _showLyrics ? Icons.lyrics_rounded : Icons.lyrics_outlined,
+                    icon: _showLyrics
+                        ? Icons.lyrics_rounded
+                        : Icons.lyrics_outlined,
                     onPressed: () {
                       setState(() {
                         _showLyrics = !_showLyrics;
@@ -1743,7 +1843,8 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                   AudioProcessingState.buffering;
               // Use the audioHandler's direct properties for shuffle/repeat state
               final isShuffled = audioHandler?.isShuffled ?? false;
-              final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
+              final repeatMode =
+                  audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1840,11 +1941,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.queue_music,
-              size: 48,
-              color: DesktopTheme.textTertiary,
-            ),
+            Icon(Icons.queue_music, size: 48, color: DesktopTheme.textTertiary),
             const SizedBox(height: 16),
             Text(
               'No songs in queue',
@@ -2061,9 +2158,9 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
   void _preloadNextTrackLyrics() {
     final queue = widget.queue;
     final currentIndex = widget.currentIndex;
-    
+
     if (queue == null || currentIndex == null) return;
-    
+
     // Preload next track's lyrics
     final nextIndex = currentIndex + 1;
     if (nextIndex < queue.length) {
@@ -3219,10 +3316,10 @@ class _AppleSidebarNavigationItemState
             color: widget.isSelected
                 ? widget.primaryColor.withOpacity(widget.isDark ? 0.24 : 0.12)
                 : _isHovering
-                    ? (widget.isDark
-                        ? AppleColors.fillPrimaryDark
-                        : AppleColors.fillPrimary)
-                    : Colors.transparent,
+                ? (widget.isDark
+                      ? AppleColors.fillPrimaryDark
+                      : AppleColors.fillPrimary)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
           ),
           child: Row(
@@ -3232,25 +3329,26 @@ class _AppleSidebarNavigationItemState
                 color: widget.isSelected
                     ? widget.primaryColor
                     : widget.isDark
-                        ? AppleColors.labelSecondaryDark
-                        : AppleColors.labelSecondary,
+                    ? AppleColors.labelSecondaryDark
+                    : AppleColors.labelSecondary,
                 size: 20,
               ),
               const SizedBox(width: AppleDesignSystem.spacing12),
               Expanded(
                 child: Text(
                   widget.label,
-                  style: AppleTextStyles.subheadline(
-                    color: widget.isSelected
-                        ? widget.primaryColor
-                        : widget.isDark
+                  style:
+                      AppleTextStyles.subheadline(
+                        color: widget.isSelected
+                            ? widget.primaryColor
+                            : widget.isDark
                             ? AppleColors.labelPrimaryDark
                             : AppleColors.labelPrimary,
-                  ).copyWith(
-                    fontWeight: widget.isSelected
-                        ? AppleDesignSystem.weightSemiBold
-                        : AppleDesignSystem.weightRegular,
-                  ),
+                      ).copyWith(
+                        fontWeight: widget.isSelected
+                            ? AppleDesignSystem.weightSemiBold
+                            : AppleDesignSystem.weightRegular,
+                      ),
                 ),
               ),
             ],
@@ -3290,14 +3388,15 @@ class _AppleIconButtonState extends State<_AppleIconButton> {
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null;
-    final iconColor = widget.color ??
+    final iconColor =
+        widget.color ??
         (isDisabled
             ? (widget.isDark
-                ? AppleColors.labelTertiaryDark
-                : AppleColors.labelTertiary)
+                  ? AppleColors.labelTertiaryDark
+                  : AppleColors.labelTertiary)
             : (widget.isDark
-                ? AppleColors.labelSecondaryDark
-                : AppleColors.labelSecondary));
+                  ? AppleColors.labelSecondaryDark
+                  : AppleColors.labelSecondary));
 
     final button = MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -3314,34 +3413,27 @@ class _AppleIconButtonState extends State<_AppleIconButton> {
           decoration: BoxDecoration(
             color: _isPressed
                 ? (widget.isDark
-                    ? AppleColors.fillSecondaryDark
-                    : AppleColors.fillSecondary)
+                      ? AppleColors.fillSecondaryDark
+                      : AppleColors.fillSecondary)
                 : _isHovering
-                    ? (widget.isDark
-                        ? AppleColors.fillTertiaryDark
-                        : AppleColors.fillTertiary)
-                    : Colors.transparent,
+                ? (widget.isDark
+                      ? AppleColors.fillTertiaryDark
+                      : AppleColors.fillTertiary)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
           ),
           child: AnimatedScale(
             scale: _isPressed ? AppleDesignSystem.pressScale : 1.0,
             duration: AppleDesignSystem.durationFast,
             curve: AppleDesignSystem.interactiveCurve,
-            child: Icon(
-              widget.icon,
-              color: iconColor,
-              size: widget.size,
-            ),
+            child: Icon(widget.icon, color: iconColor, size: widget.size),
           ),
         ),
       ),
     );
 
     if (widget.tooltip != null) {
-      return Tooltip(
-        message: widget.tooltip!,
-        child: button,
-      );
+      return Tooltip(message: widget.tooltip!, child: button);
     }
 
     return button;
@@ -3379,8 +3471,7 @@ class _AppleAlbumArtState extends State<_AppleAlbumArt> {
         child: AnimatedContainer(
           duration: AppleDesignSystem.durationFast,
           curve: AppleDesignSystem.springCurve,
-          transform: Matrix4.identity()
-            ..scale(_isHovering ? 1.02 : 1.0),
+          transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
           transformAlignment: Alignment.center,
           child: Container(
             width: widget.size,
@@ -3389,11 +3480,15 @@ class _AppleAlbumArtState extends State<_AppleAlbumArt> {
               color: widget.isDark
                   ? AppleColors.elevatedSecondaryDark
                   : AppleColors.systemGray6,
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              borderRadius: BorderRadius.circular(
+                AppleDesignSystem.radiusMedium,
+              ),
               boxShadow: AppleDesignSystem.shadowMedium(Colors.black),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              borderRadius: BorderRadius.circular(
+                AppleDesignSystem.radiusMedium,
+              ),
               child: widget.imageUrl != null
                   ? Image.network(
                       widget.imageUrl!,
@@ -3455,13 +3550,13 @@ class _ApplePlayButtonState extends State<_ApplePlayButton>
       duration: AppleDesignSystem.durationFast,
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: AppleDesignSystem.pressScale,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: AppleDesignSystem.interactiveCurve,
-    ));
+    _scaleAnimation =
+        Tween<double>(begin: 1.0, end: AppleDesignSystem.pressScale).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: AppleDesignSystem.interactiveCurve,
+          ),
+        );
   }
 
   @override
@@ -3504,8 +3599,8 @@ class _ApplePlayButtonState extends State<_ApplePlayButton>
               decoration: BoxDecoration(
                 color: widget.onPressed == null
                     ? (widget.isDark
-                        ? AppleColors.systemGray4Dark
-                        : AppleColors.systemGray4)
+                          ? AppleColors.systemGray4Dark
+                          : AppleColors.systemGray4)
                     : widget.primaryColor,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
