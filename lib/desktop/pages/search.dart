@@ -694,7 +694,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: artists.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppleDesignSystem.spacing16),
+        separatorBuilder: (_, _) => const SizedBox(width: AppleDesignSystem.spacing16),
         itemBuilder: (context, index) {
           final artist = artists[index];
           return _buildArtistPreviewCard(appState, artist, isDark);
@@ -730,7 +730,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
                         child: Image.network(
                           _getImageUrl(appState, artist.imageUrl)!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
+                          errorBuilder: (_, _, _) => Icon(
                             Icons.person_rounded,
                             size: 40,
                             color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
@@ -1121,7 +1121,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
               ? Image.network(
                   _getImageUrl(appState, item.imageUrl)!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildPlaceholderIcon(type, isDark),
+                  errorBuilder: (_, _, _) => _buildPlaceholderIcon(type, isDark),
                 )
               : _buildPlaceholderIcon(type, isDark),
         ),
