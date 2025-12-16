@@ -223,7 +223,7 @@ class _HomePageState extends State<HomePage> {
     AppLocalizations l10n,
   ) {
     return SizedBox(
-      height: 220,
+      height: 230,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -260,7 +260,7 @@ class _HomePageState extends State<HomePage> {
     AppLocalizations l10n,
   ) {
     return SizedBox(
-      height: 220,
+      height: 230,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
