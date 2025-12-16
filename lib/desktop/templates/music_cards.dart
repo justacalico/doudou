@@ -35,7 +35,7 @@ class _MusicCardState extends State<MusicCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
@@ -49,7 +49,13 @@ class _MusicCardState extends State<MusicCard>
           duration: DesktopTheme.durationFast,
           curve: DesktopTheme.curveSpring,
           transform: Matrix4.identity()
-            ..scale(_isPressed ? 0.97 : _isHovering ? 1.03 : 1.0),
+            ..scale(
+              _isPressed
+                  ? 0.97
+                  : _isHovering
+                  ? 1.03
+                  : 1.0,
+            ),
           transformAlignment: Alignment.center,
           child: SizedBox(
             width: widget.size,
@@ -62,11 +68,15 @@ class _MusicCardState extends State<MusicCard>
                   aspectRatio: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                      borderRadius: BorderRadius.circular(
+                        DesktopTheme.radiusMd,
+                      ),
                       boxShadow: _isHovering
                           ? [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withOpacity(0.3),
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.3,
+                                ),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -75,7 +85,9 @@ class _MusicCardState extends State<MusicCard>
                           : DesktopTheme.shadowSm,
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                      borderRadius: BorderRadius.circular(
+                        DesktopTheme.radiusMd,
+                      ),
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
@@ -89,7 +101,7 @@ class _MusicCardState extends State<MusicCard>
                                   },
                                 )
                               : _buildPlaceholder(theme),
-                          
+
                           // Gradient overlay on hover
                           AnimatedOpacity(
                             duration: DesktopTheme.durationFast,
@@ -107,7 +119,7 @@ class _MusicCardState extends State<MusicCard>
                               ),
                             ),
                           ),
-                          
+
                           // Play button overlay
                           if (widget.showPlayOverlay)
                             AnimatedOpacity(
@@ -137,32 +149,38 @@ class _MusicCardState extends State<MusicCard>
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: DesktopTheme.spacingSm),
-                
-                // Title
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: DesktopTheme.textPrimary,
+
+                // Title - constrained to prevent overflow
+                SizedBox(
+                  width: widget.size,
+                  child: Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: DesktopTheme.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                
+
                 const SizedBox(height: 2),
-                
-                // Subtitle
-                Text(
-                  widget.subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: DesktopTheme.textSecondary,
+
+                // Subtitle - constrained to prevent overflow
+                SizedBox(
+                  width: widget.size,
+                  child: Text(
+                    widget.subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: DesktopTheme.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -227,7 +245,7 @@ class _MusicListTileState extends State<MusicListTile> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
@@ -248,13 +266,12 @@ class _MusicListTileState extends State<MusicListTile> {
             color: _isPressed
                 ? DesktopTheme.glassOverlay
                 : _isHovering
-                    ? DesktopTheme.glassHighlight
-                    : Colors.transparent,
+                ? DesktopTheme.glassHighlight
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-            border: _isHovering ? Border.all(
-              color: DesktopTheme.glassBorder,
-              width: 1,
-            ) : null,
+            border: _isHovering
+                ? Border.all(color: DesktopTheme.glassBorder, width: 1)
+                : null,
           ),
           child: Row(
             children: [
@@ -269,12 +286,16 @@ class _MusicListTileState extends State<MusicListTile> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: DesktopTheme.backgroundElevated,
-                        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          DesktopTheme.radiusSm,
+                        ),
                         boxShadow: DesktopTheme.shadowSm,
                       ),
                       child: widget.imageUrl != null
                           ? ClipRRect(
-                              borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+                              borderRadius: BorderRadius.circular(
+                                DesktopTheme.radiusSm,
+                              ),
                               child: Image.network(
                                 widget.imageUrl!,
                                 fit: BoxFit.cover,
@@ -301,7 +322,9 @@ class _MusicListTileState extends State<MusicListTile> {
                           height: 48,
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+                            borderRadius: BorderRadius.circular(
+                              DesktopTheme.radiusSm,
+                            ),
                           ),
                           child: Icon(
                             Icons.play_arrow_rounded,
@@ -312,9 +335,9 @@ class _MusicListTileState extends State<MusicListTile> {
                       ),
                   ],
                 ),
-              
+
               const SizedBox(width: DesktopTheme.spacingMd),
-              
+
               // Text content
               Expanded(
                 child: Column(
@@ -346,7 +369,7 @@ class _MusicListTileState extends State<MusicListTile> {
                   ],
                 ),
               ),
-              
+
               if (widget.trailing != null) ...[
                 const SizedBox(width: DesktopTheme.spacingSm),
                 widget.trailing!,
@@ -386,7 +409,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
@@ -396,8 +419,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
         child: AnimatedContainer(
           duration: DesktopTheme.durationFast,
           height: widget.height,
-          transform: Matrix4.identity()
-            ..scale(_isHovering ? 1.02 : 1.0),
+          transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
@@ -436,7 +458,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
                           ),
                         ),
                       ),
-                
+
                 // Gradient overlay
                 Container(
                   decoration: BoxDecoration(
@@ -450,7 +472,7 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
                     ),
                   ),
                 ),
-                
+
                 // Content
                 Positioned(
                   left: DesktopTheme.spacingLg,
@@ -552,8 +574,7 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: DesktopTheme.durationFast,
-          transform: Matrix4.identity()
-            ..scale(_isHovering ? 1.02 : 1.0),
+          transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
           transformAlignment: Alignment.center,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
@@ -582,13 +603,11 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: widget.color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+                        borderRadius: BorderRadius.circular(
+                          DesktopTheme.radiusMd,
+                        ),
                       ),
-                      child: Icon(
-                        widget.icon,
-                        color: widget.color,
-                        size: 24,
-                      ),
+                      child: Icon(widget.icon, color: widget.color, size: 24),
                     ),
                     const SizedBox(height: DesktopTheme.spacingMd),
                     Text(
