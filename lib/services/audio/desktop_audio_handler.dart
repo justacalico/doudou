@@ -18,21 +18,21 @@ class DesktopAudioHandler implements BaseAudioHandler {
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
   final AudioPlayer _player = AudioPlayer();
-  
+
   // Stream subscriptions for proper cleanup
   late final List<StreamSubscription> _subscriptions = [];
-  
+
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;
-  
+
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
-  
+
   // Preloading system for faster skips
   String? _preloadedNextUrl;
   String? _preloadedPreviousUrl;
-  
+
   // Constructor
   DesktopAudioHandler(this._mediaServiceManager) {
     _initializeAudio();
@@ -47,16 +47,20 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
       // Configure just_audio to use media_kit backend for better codec support
       JustAudioMediaKit.ensureInitialized();
-      
+
       // Set up player event listeners
       _setupPlayerListeners();
-      
+
       if (kDebugMode) {
-        print('DesktopAudioHandler: Desktop audio system initialized successfully');
+        print(
+          'DesktopAudioHandler: Desktop audio system initialized successfully',
+        );
       }
     } catch (e) {
       if (kDebugMode) {
-        print('DesktopAudioHandler: Failed to initialize desktop audio system: $e');
+        print(
+          'DesktopAudioHandler: Failed to initialize desktop audio system: $e',
+        );
       }
       _stateController.updateError('Failed to initialize desktop audio: $e');
     }
@@ -68,53 +72,60 @@ class DesktopAudioHandler implements BaseAudioHandler {
     _subscriptions.add(
       _player.positionStream
           .throttleTime(const Duration(milliseconds: 100))
-          .listen(_stateController.updatePosition)
+          .listen((pos) {
+            if (!_disposed) _stateController.updatePosition(pos);
+          }),
     );
-    
-    // Duration stream - debounce to prevent multiple rapid updates  
+
+    // Duration stream - debounce to prevent multiple rapid updates
     _subscriptions.add(
       _player.durationStream
           .debounceTime(const Duration(milliseconds: 100))
           .listen((duration) {
-        _stateController.updateDuration(duration ?? Duration.zero);
-      })
+            if (!_disposed)
+              _stateController.updateDuration(duration ?? Duration.zero);
+          }),
     );
-    
+
     // Player state stream - immediate updates for state changes
     _subscriptions.add(
-      _player.playerStateStream.listen(_handlePlayerStateChange)
+      _player.playerStateStream.listen(_handlePlayerStateChange),
     );
-    
+
     // Processing state for loading detection - immediate updates
     _subscriptions.add(
-      _player.processingStateStream.listen(_handleProcessingStateChange)
+      _player.processingStateStream.listen(_handleProcessingStateChange),
     );
-    
+
     // Player completion - immediate handling
     _subscriptions.add(
       _player.playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
-          .listen((_) => _handleTrackCompletion())
+          .listen((_) => _handleTrackCompletion()),
     );
-    
+
     // Volume and speed synchronization - debounce to prevent UI spam
     _subscriptions.add(
       _player.volumeStream
           .debounceTime(const Duration(milliseconds: 50))
-          .listen(_stateController.updateVolume)
+          .listen((vol) {
+            if (!_disposed) _stateController.updateVolume(vol);
+          }),
     );
-    
+
     _subscriptions.add(
-      _player.speedStream
-          .debounceTime(const Duration(milliseconds: 50))
-          .listen(_stateController.updateSpeed)
+      _player.speedStream.debounceTime(const Duration(milliseconds: 50)).listen(
+        (speed) {
+          if (!_disposed) _stateController.updateSpeed(speed);
+        },
+      ),
     );
   }
 
   /// Handle player state changes
   void _handlePlayerStateChange(PlayerState playerState) {
     if (_disposed) return;
-    
+
     switch (playerState.processingState) {
       case ProcessingState.idle:
         _stateController.updateState(AudioPlayerState.idle);
@@ -139,7 +150,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   /// Handle processing state changes
   void _handleProcessingStateChange(ProcessingState state) {
     if (_disposed) return;
-    
+
     if (state == ProcessingState.ready) {
       _stateController.clearError();
     }
@@ -148,7 +159,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
-    
+
     if (kDebugMode) {
       print('DesktopAudioHandler: Track completed');
     }
@@ -171,40 +182,51 @@ class DesktopAudioHandler implements BaseAudioHandler {
   }
 
   /// Play next track with retry logic for network issues
-  Future<void> _playNextTrackWithRetry(int startIndex, {int maxRetries = 3}) async {
+  Future<void> _playNextTrackWithRetry(
+    int startIndex, {
+    int maxRetries = 3,
+  }) async {
     int currentIndex = startIndex;
     int retryCount = 0;
-    
-    while (retryCount < maxRetries && currentIndex < _stateController.queue.length) {
+
+    while (retryCount < maxRetries &&
+        currentIndex < _stateController.queue.length) {
       try {
         if (kDebugMode) {
-          print('DesktopAudioHandler: Attempting to play track at index $currentIndex (attempt ${retryCount + 1})');
+          print(
+            'DesktopAudioHandler: Attempting to play track at index $currentIndex (attempt ${retryCount + 1})',
+          );
         }
-        
+
         await skipToQueueItem(currentIndex);
-        
+
         // If we get here without exception, playback started successfully
         if (kDebugMode) {
-          print('DesktopAudioHandler: Successfully started track at index $currentIndex');
+          print(
+            'DesktopAudioHandler: Successfully started track at index $currentIndex',
+          );
         }
         return;
-        
       } catch (e) {
         if (kDebugMode) {
-          print('DesktopAudioHandler: Failed to play track at index $currentIndex: $e');
+          print(
+            'DesktopAudioHandler: Failed to play track at index $currentIndex: $e',
+          );
         }
-        
+
         retryCount++;
-        
+
         // If this was the last retry for this track, try the next track
         if (retryCount >= maxRetries) {
           retryCount = 0; // Reset retry count for next track
           currentIndex = _getNextAvailableTrackIndex(currentIndex);
-          
+
           if (currentIndex == -1) {
             // No more tracks available
             if (kDebugMode) {
-              print('DesktopAudioHandler: No more tracks available, stopping playback');
+              print(
+                'DesktopAudioHandler: No more tracks available, stopping playback',
+              );
             }
             _stateController.updateState(AudioPlayerState.completed);
             _stateController.updateUserIntent(false);
@@ -216,10 +238,12 @@ class DesktopAudioHandler implements BaseAudioHandler {
         }
       }
     }
-    
+
     // If we exhausted all retries and tracks, stop playback
     if (kDebugMode) {
-      print('DesktopAudioHandler: Exhausted all retry attempts, stopping playback');
+      print(
+        'DesktopAudioHandler: Exhausted all retry attempts, stopping playback',
+      );
     }
     _stateController.updateState(AudioPlayerState.completed);
     _stateController.updateUserIntent(false);
@@ -229,17 +253,17 @@ class DesktopAudioHandler implements BaseAudioHandler {
   int _getNextAvailableTrackIndex(int currentIndex) {
     final queue = _stateController.queue;
     final nextIndex = currentIndex + 1;
-    
+
     if (nextIndex < queue.length) {
       return nextIndex;
     }
-    
+
     // Check if we should loop based on repeat mode
     final repeatMode = _stateController.repeatMode;
     if (repeatMode == RepeatMode.all && queue.isNotEmpty) {
       return 0; // Loop back to beginning
     }
-    
+
     return -1; // No more tracks
   }
 
@@ -251,7 +275,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
       // Fetch similar tracks from the media service
       final similarTracks = await _fetchSimilarTracks(currentTrack);
-      
+
       if (similarTracks.isNotEmpty) {
         // Add similar tracks to queue and play next
         for (final track in similarTracks.take(5)) {
@@ -276,11 +300,11 @@ class DesktopAudioHandler implements BaseAudioHandler {
         parentId: track.artistName,
         limit: 20,
       );
-      
+
       // Filter out current track and already queued tracks
       final currentQueue = _stateController.queue;
       final queueIds = currentQueue.map((t) => t.id).toSet();
-      
+
       return artistTracks
           .where((t) => t.id != track.id && !queueIds.contains(t.id))
           .toList();
@@ -307,38 +331,37 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Stream<double> get volumeStream => _player.volumeStream;
 
   @override
-  Stream<audio_service.PlaybackState> get playbackState => 
-    CombineLatestStream.combine3(
-      stateStream,
-      // Reduce throttling to 50ms for more responsive UI updates
-      positionStream.throttleTime(const Duration(milliseconds: 50)),
-      _player.speedStream,
-      (state, position, speed) => audio_service.PlaybackState(
-        playing: state == AudioPlayerState.playing,
-        processingState: audio_service.AudioProcessingState.ready,
-        updatePosition: position,
-        speed: speed,
-      )
-    );
+  Stream<audio_service.PlaybackState> get playbackState =>
+      CombineLatestStream.combine3(
+        stateStream,
+        // Reduce throttling to 50ms for more responsive UI updates
+        positionStream.throttleTime(const Duration(milliseconds: 50)),
+        _player.speedStream,
+        (state, position, speed) => audio_service.PlaybackState(
+          playing: state == AudioPlayerState.playing,
+          processingState: audio_service.AudioProcessingState.ready,
+          updatePosition: position,
+          speed: speed,
+        ),
+      );
 
   @override
-  Stream<List<audio_service.MediaItem>> get queueStream => 
-    _stateController.queueStream.map((tracks) => 
-      tracks.map(_trackToMediaItem).toList()
-    );
+  Stream<List<audio_service.MediaItem>> get queueStream => _stateController
+      .queueStream
+      .map((tracks) => tracks.map(_trackToMediaItem).toList());
 
   @override
-  Stream<audio_service.MediaItem?> get mediaItem => 
-    _stateController.currentTrackStream.map((track) => 
-      track != null ? _trackToMediaItem(track) : null
-    );
+  Stream<audio_service.MediaItem?> get mediaItem => _stateController
+      .currentTrackStream
+      .map((track) => track != null ? _trackToMediaItem(track) : null);
 
   @override
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
-  
+
   /// High-frequency position stream for progress bars and other UI elements
   /// that need smooth position updates. Use sparingly to avoid performance issues.
-  Stream<Duration> get highFrequencyPositionStream => _stateController.positionStream;
+  Stream<Duration> get highFrequencyPositionStream =>
+      _stateController.positionStream;
 
   @override
   AudioPlayerState get currentState => _stateController.currentState;
@@ -477,7 +500,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Future<void> seek(Duration position) async {
     // Update position immediately for instant UI feedback
     _stateController.updatePosition(position);
-    
+
     try {
       // Execute seek directly without queueing for instant response
       await _player.seek(position);
@@ -494,7 +517,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Future<void> setSpeed(double speed) async {
     // Update UI immediately for instant feedback
     _stateController.updateSpeed(speed);
-    
+
     try {
       // Execute without queueing for instant response
       await _player.setSpeed(speed);
@@ -510,7 +533,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Future<void> setVolume(double volume) async {
     // Update UI immediately for instant feedback
     _stateController.updateVolume(volume);
-    
+
     try {
       // Execute without queueing for instant response
       await _player.setVolume(volume);
@@ -532,19 +555,19 @@ class DesktopAudioHandler implements BaseAudioHandler {
     _stateController.updateCurrentTrack(track);
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
-    
+
     // Queue complex operation to prevent blocking subsequent commands
     return _stateController.queueCommand(() async {
       try {
         // Set up single track queue
         _queueManager.setQueue([track], startIndex: 0);
-        
+
         // Get stream URL (try async method for better Plex support)
         final streamUrl = await _getBestStreamUrl(track);
-        
+
         // Load and play the track
         await _loadAndPlayTrack(streamUrl);
-        
+
         if (kDebugMode) {
           print('DesktopAudioHandler: Track loaded and playing');
         }
@@ -562,7 +585,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
   @override
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
     if (kDebugMode) {
-      print('DesktopAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex');
+      print(
+        'DesktopAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex',
+      );
     }
 
     if (tracks.isEmpty) {
@@ -570,21 +595,21 @@ class DesktopAudioHandler implements BaseAudioHandler {
     }
 
     final validStartIndex = startIndex.clamp(0, tracks.length - 1);
-    
+
     // Update UI immediately for instant feedback
     _stateController.updateCurrentTrack(tracks[validStartIndex]);
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
-    
+
     // Queue complex operation to prevent blocking subsequent commands
     return _stateController.queueCommand(() async {
       try {
         // Set up queue
         _queueManager.setQueue(tracks, startIndex: validStartIndex);
-        
+
         // Play the starting track
         await _playTrackAtIndex(validStartIndex, updateStateImmediately: false);
-        
+
         if (kDebugMode) {
           print('DesktopAudioHandler: Playlist loaded and playing');
         }
@@ -641,26 +666,29 @@ class DesktopAudioHandler implements BaseAudioHandler {
   }
 
   /// Play track at specific queue index
-  Future<void> _playTrackAtIndex(int index, {bool updateStateImmediately = true}) async {
+  Future<void> _playTrackAtIndex(
+    int index, {
+    bool updateStateImmediately = true,
+  }) async {
     final queue = _stateController.queue;
     final track = queue[index];
-    
+
     if (updateStateImmediately) {
       _stateController.updateCurrentIndex(index);
       _stateController.updateCurrentTrack(track);
     }
-    
+
     final streamUrl = await _getBestStreamUrl(track);
     await _loadAndPlayTrack(streamUrl);
-    
+
     // Preload next/previous tracks in background for faster skips
     _preloadAdjacentTracks(index);
   }
-  
+
   /// Preload adjacent tracks for faster skipping
   void _preloadAdjacentTracks(int currentIndex) {
     final queue = _stateController.queue;
-    
+
     // Preload next track
     if (currentIndex + 1 < queue.length) {
       final nextTrack = queue[currentIndex + 1];
@@ -668,7 +696,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
     } else {
       _preloadedNextUrl = null;
     }
-    
+
     // Preload previous track
     if (currentIndex - 1 >= 0) {
       final previousTrack = queue[currentIndex - 1];
@@ -684,44 +712,59 @@ class DesktopAudioHandler implements BaseAudioHandler {
       if (kDebugMode) {
         print('DesktopAudioHandler: Loading audio source: $url');
       }
-      
+
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
-      
+
       // Try to set the audio source with reduced timeout for better responsiveness
       try {
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(url)))
-            .timeout(const Duration(seconds: 8), onTimeout: () {
-          throw Exception('Audio source loading timed out after 8 seconds');
-        });
-        
+        await _player
+            .setAudioSource(AudioSource.uri(Uri.parse(url)))
+            .timeout(
+              const Duration(seconds: 8),
+              onTimeout: () {
+                throw Exception(
+                  'Audio source loading timed out after 8 seconds',
+                );
+              },
+            );
+
         if (kDebugMode) {
           print('DesktopAudioHandler: Audio source set successfully');
         }
       } catch (sourceError) {
         if (kDebugMode) {
-          print('DesktopAudioHandler: Failed to set audio source: $sourceError');
+          print(
+            'DesktopAudioHandler: Failed to set audio source: $sourceError',
+          );
         }
-        
+
         // Try fallback URL if direct stream failed
         if (url.contains('download') || url.contains('Download')) {
           if (kDebugMode) {
-            print('DesktopAudioHandler: Direct stream failed, trying alternative URLs');
+            print(
+              'DesktopAudioHandler: Direct stream failed, trying alternative URLs',
+            );
           }
           final currentTrack = _stateController.currentTrack;
           if (currentTrack != null) {
             // Try alternative stream URLs for better Plex support
-            final alternativeUrls = _mediaServiceManager.getAlternativeStreamUrls(currentTrack.id);
+            final alternativeUrls = _mediaServiceManager
+                .getAlternativeStreamUrls(currentTrack.id);
             for (final alternativeUrl in alternativeUrls) {
               if (alternativeUrl != url) {
                 if (kDebugMode) {
-                  print('DesktopAudioHandler: Trying alternative URL: $alternativeUrl');
+                  print(
+                    'DesktopAudioHandler: Trying alternative URL: $alternativeUrl',
+                  );
                 }
                 try {
                   return await _loadAndPlayTrack(alternativeUrl);
                 } catch (alternativeError) {
                   if (kDebugMode) {
-                    print('DesktopAudioHandler: Alternative URL failed: $alternativeError');
+                    print(
+                      'DesktopAudioHandler: Alternative URL failed: $alternativeError',
+                    );
                   }
                   // Continue to next alternative URL
                 }
@@ -729,16 +772,19 @@ class DesktopAudioHandler implements BaseAudioHandler {
             }
           }
         }
-        
+
         rethrow;
       }
-      
+
       // Try to play with reduced timeout for better responsiveness
       try {
-        await _player.play().timeout(const Duration(seconds: 3), onTimeout: () {
-          throw Exception('Playback start timed out after 3 seconds');
-        });
-        
+        await _player.play().timeout(
+          const Duration(seconds: 3),
+          onTimeout: () {
+            throw Exception('Playback start timed out after 3 seconds');
+          },
+        );
+
         if (kDebugMode) {
           print('DesktopAudioHandler: Playback started successfully');
         }
@@ -748,7 +794,6 @@ class DesktopAudioHandler implements BaseAudioHandler {
         }
         rethrow;
       }
-      
     } catch (e) {
       if (kDebugMode) {
         print('DesktopAudioHandler: Load and play failed: $e');
@@ -764,22 +809,22 @@ class DesktopAudioHandler implements BaseAudioHandler {
   String _getStreamUrl(Track track) {
     final currentIndex = _stateController.currentIndex;
     final queue = _stateController.queue;
-    
+
     // Check if we can use preloaded URLs for faster access
     if (currentIndex != null) {
       // Check if this is the next track and we have it preloaded
-      if (currentIndex + 1 < queue.length && 
-          queue[currentIndex + 1].id == track.id && 
+      if (currentIndex + 1 < queue.length &&
+          queue[currentIndex + 1].id == track.id &&
           _preloadedNextUrl != null) {
         if (kDebugMode) {
           print('DesktopAudioHandler: Using preloaded next URL');
         }
         return _preloadedNextUrl!;
       }
-      
+
       // Check if this is the previous track and we have it preloaded
-      if (currentIndex - 1 >= 0 && 
-          queue[currentIndex - 1].id == track.id && 
+      if (currentIndex - 1 >= 0 &&
+          queue[currentIndex - 1].id == track.id &&
           _preloadedPreviousUrl != null) {
         if (kDebugMode) {
           print('DesktopAudioHandler: Using preloaded previous URL');
@@ -787,7 +832,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
         return _preloadedPreviousUrl!;
       }
     }
-    
+
     // Try direct stream first (no transcoding) for better compatibility
     final directUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
     if (directUrl.isNotEmpty) {
@@ -796,7 +841,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
       }
       return directUrl;
     }
-    
+
     // Fallback to transcoded stream
     final transcodedUrl = _mediaServiceManager.getStreamUrl(track.id);
     if (kDebugMode) {
@@ -809,22 +854,22 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Future<String> _getBestStreamUrl(Track track) async {
     final currentIndex = _stateController.currentIndex;
     final queue = _stateController.queue;
-    
+
     // Check if we can use preloaded URLs for faster access
     if (currentIndex != null) {
       // Check if this is the next track and we have it preloaded
-      if (currentIndex + 1 < queue.length && 
-          queue[currentIndex + 1].id == track.id && 
+      if (currentIndex + 1 < queue.length &&
+          queue[currentIndex + 1].id == track.id &&
           _preloadedNextUrl != null) {
         if (kDebugMode) {
           print('DesktopAudioHandler: Using preloaded next URL');
         }
         return _preloadedNextUrl!;
       }
-      
+
       // Check if this is the previous track and we have it preloaded
-      if (currentIndex - 1 >= 0 && 
-          queue[currentIndex - 1].id == track.id && 
+      if (currentIndex - 1 >= 0 &&
+          queue[currentIndex - 1].id == track.id &&
           _preloadedPreviousUrl != null) {
         if (kDebugMode) {
           print('DesktopAudioHandler: Using preloaded previous URL');
@@ -832,7 +877,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
         return _preloadedPreviousUrl!;
       }
     }
-    
+
     // For Plex, try the async best URL method
     if (_mediaServiceManager.currentService is PlexService) {
       final plexService = _mediaServiceManager.currentService as PlexService;
@@ -844,11 +889,13 @@ class DesktopAudioHandler implements BaseAudioHandler {
         return bestUrl;
       } catch (e) {
         if (kDebugMode) {
-          print('DesktopAudioHandler: Failed to get Plex best URL, falling back: $e');
+          print(
+            'DesktopAudioHandler: Failed to get Plex best URL, falling back: $e',
+          );
         }
       }
     }
-    
+
     // Fallback to regular sync method
     return _getStreamUrl(track);
   }
@@ -860,16 +907,17 @@ class DesktopAudioHandler implements BaseAudioHandler {
       album: track.albumName,
       title: track.name,
       artist: track.artistName ?? 'Unknown Artist',
-      duration: track.duration != null ? Duration(milliseconds: track.duration!) : null,
-      artUri: Uri.tryParse(_mediaServiceManager.getImageUrl(
-        track.albumId ?? track.id,
-        width: 300,
-        height: 300,
-      )),
-      extras: {
-        'trackId': track.id,
-        'albumId': track.albumId,
-      },
+      duration: track.duration != null
+          ? Duration(milliseconds: track.duration!)
+          : null,
+      artUri: Uri.tryParse(
+        _mediaServiceManager.getImageUrl(
+          track.albumId ?? track.id,
+          width: 300,
+          height: 300,
+        ),
+      ),
+      extras: {'trackId': track.id, 'albumId': track.albumId},
     );
   }
 
@@ -915,7 +963,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   @override
   void setGaplessPlayback(bool enabled) {
     _stateController.updateGaplessPlayback(enabled);
-    
+
     // Configure gapless playback on the player if supported
     try {
       if (!enabled) {
@@ -953,7 +1001,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Future<void> dispose() async {
     // Set disposed flag FIRST to prevent any callbacks from executing
     _disposed = true;
-    
+
     if (kDebugMode) {
       print('DesktopAudioHandler: Disposing...');
     }
@@ -966,7 +1014,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Cancel radio mode timer
     _radioModeTimer?.cancel();
-    
+
     // Clear preloaded URLs
     _preloadedNextUrl = null;
     _preloadedPreviousUrl = null;
@@ -989,4 +1037,3 @@ class DesktopAudioHandler implements BaseAudioHandler {
     }
   }
 }
-
