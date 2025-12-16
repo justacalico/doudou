@@ -29,9 +29,6 @@ class DesktopAudioHandler implements BaseAudioHandler {
   Completer<void>? _currentLoadOperation;
   int _loadOperationId = 0;
 
-  // Track the last successfully loaded URL to avoid reloading the same track
-  String? _lastLoadedUrl;
-
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
@@ -874,9 +871,6 @@ class DesktopAudioHandler implements BaseAudioHandler {
             throw Exception('Playback start timed out after 3 seconds');
           },
         );
-
-        // Track the successfully loaded URL
-        _lastLoadedUrl = url;
 
         if (kDebugMode) {
           print('DesktopAudioHandler: Playback started successfully');
