@@ -1794,7 +1794,10 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                   const SizedBox(width: 16),
 
                   // Repeat
-                  IconButton(
+                  DesktopIconButton(
+                    icon: repeatMode == base_handler.RepeatMode.one
+                        ? Icons.repeat_one_rounded
+                        : Icons.repeat_rounded,
                     onPressed: audioHandler != null
                         ? () {
                             switch (repeatMode) {
@@ -1816,15 +1819,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                             }
                           }
                         : null,
-                    icon: Icon(
-                      repeatMode == base_handler.RepeatMode.one
-                          ? Icons.repeat_one_rounded
-                          : Icons.repeat_rounded,
-                    ),
                     color: repeatMode != base_handler.RepeatMode.none
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.5),
-                    iconSize: 24,
+                        ? DesktopTheme.repeatBlue
+                        : null,
                   ),
                 ],
               );
@@ -1846,7 +1843,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
             Icon(
               Icons.queue_music,
               size: 48,
-              color: Colors.white.withOpacity(0.3),
+              color: DesktopTheme.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
