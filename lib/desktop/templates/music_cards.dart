@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../widgets/apple_design/apple_theme.dart';
 import 'desktop_theme.dart';
 
 /// Modern glass-styled music card with hover effects and glow
