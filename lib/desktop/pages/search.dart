@@ -1256,7 +1256,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
                       ? Image.network(
                           _getImageUrl(appState, track.imageUrl)!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
+                          errorBuilder: (_, _, _) => Icon(
                             Icons.music_note_rounded,
                             color: isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary,
                           ),
