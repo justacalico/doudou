@@ -25,6 +25,10 @@ class DesktopAudioHandler implements BaseAudioHandler {
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;
 
+  // Loading lock to prevent concurrent load operations
+  bool _isLoading = false;
+  int _loadOperationId = 0;
+
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
@@ -709,7 +713,25 @@ class DesktopAudioHandler implements BaseAudioHandler {
   /// Load and play track from URL
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
-    
+
+    // Increment operation ID to invalidate any previous in-flight operations
+    final currentOperationId = ++_loadOperationId;
+
+    // If already loading, stop the player first to cancel the previous operation
+    if (_isLoading) {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Cancelling previous load operation');
+      }
+      try {
+        await _player.stop();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    _isLoading = true;
+
     try {
       if (kDebugMode) {
         print('DesktopAudioHandler: Loading audio source: $url');
@@ -722,16 +744,22 @@ class DesktopAudioHandler implements BaseAudioHandler {
       // This ensures the previous media_kit/mpv instance releases its callbacks
       try {
         await _player.stop();
-        // Small delay to allow native callbacks to settle
-        await Future.delayed(const Duration(milliseconds: 50));
+        // Delay to allow native callbacks to settle
+        await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
         // Ignore stop errors - player might already be stopped
         if (kDebugMode) {
           print('DesktopAudioHandler: Stop before load (safe to ignore): $e');
         }
       }
-      
-      if (_disposed) return;
+
+      // Check if this operation was superseded by a newer one
+      if (_disposed || currentOperationId != _loadOperationId) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Load operation cancelled (superseded)');
+        }
+        return;
+      }
 
       // Try to set the audio source with reduced timeout for better responsiveness
       try {
@@ -793,7 +821,13 @@ class DesktopAudioHandler implements BaseAudioHandler {
         rethrow;
       }
 
-      if (_disposed) return;
+      // Check if this operation was superseded
+      if (_disposed || currentOperationId != _loadOperationId) {
+        if (kDebugMode) {
+          print('DesktopAudioHandler: Load operation cancelled before play');
+        }
+        return;
+      }
 
       // Try to play with reduced timeout for better responsiveness
       try {
@@ -814,8 +848,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
         rethrow;
       }
     } catch (e) {
-      if (_disposed) return;
-      
+      if (_disposed || currentOperationId != _loadOperationId) return;
+
       if (kDebugMode) {
         print('DesktopAudioHandler: Load and play failed: $e');
       }
@@ -823,6 +857,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _stateController.updateUserIntent(false);
       _stateController.updateError('Failed to load track: $e');
       rethrow;
+    } finally {
+      _isLoading = false;
     }
   }
 
