@@ -17,10 +17,15 @@ class DesktopAudioHandler implements BaseAudioHandler {
   final MediaServiceManager _mediaServiceManager;
   final AudioStateController _stateController = AudioStateController();
   final AudioQueueManager _queueManager = AudioQueueManager();
-  final AudioPlayer _player = AudioPlayer();
+  
+  // Player instance - recreated for each track to prevent native callback crashes
+  AudioPlayer _player = AudioPlayer();
+  
+  // Player instance generation ID - used to invalidate old callbacks
+  int _playerGeneration = 0;
 
   // Stream subscriptions for proper cleanup
-  late final List<StreamSubscription> _subscriptions = [];
+  List<StreamSubscription> _subscriptions = [];
 
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;
@@ -28,6 +33,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
   // Loading operation management - use Completer for proper async coordination
   Completer<void>? _currentLoadOperation;
   int _loadOperationId = 0;
+  
+  // Lock to prevent concurrent player recreation
+  bool _isRecreatingPlayer = false;
 
   // Radio mode state
   bool _radioModeEnabled = false;
@@ -72,14 +80,21 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   /// Set up player event listeners with optimized debouncing
   /// All listeners wrap callbacks in try-catch to prevent native callback crashes
+  /// Captures the player generation to invalidate callbacks from old player instances
   void _setupPlayerListeners() {
+    final capturedGeneration = _playerGeneration;
+    final capturedPlayer = _player;
+    
+    // Helper to check if callback should be ignored
+    bool shouldIgnore() => _disposed || capturedGeneration != _playerGeneration;
+    
     // Position stream - throttle to prevent excessive updates during seeks
     _subscriptions.add(
-      _player.positionStream
+      capturedPlayer.positionStream
           .throttleTime(const Duration(milliseconds: 100))
           .listen((pos) {
             try {
-              if (!_disposed) _stateController.updatePosition(pos);
+              if (!shouldIgnore()) _stateController.updatePosition(pos);
             } catch (e) {
               // Ignore - callback may have fired after disposal
             }
@@ -88,11 +103,11 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Duration stream - debounce to prevent multiple rapid updates
     _subscriptions.add(
-      _player.durationStream
+      capturedPlayer.durationStream
           .debounceTime(const Duration(milliseconds: 100))
           .listen((duration) {
             try {
-              if (!_disposed) {
+              if (!shouldIgnore()) {
                 _stateController.updateDuration(duration ?? Duration.zero);
               }
             } catch (e) {
@@ -103,9 +118,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Player state stream - immediate updates for state changes
     _subscriptions.add(
-      _player.playerStateStream.listen((state) {
+      capturedPlayer.playerStateStream.listen((state) {
         try {
-          _handlePlayerStateChange(state);
+          if (!shouldIgnore()) _handlePlayerStateChange(state);
         } catch (e) {
           // Ignore - callback may have fired after disposal
         }
@@ -114,9 +129,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Processing state for loading detection - immediate updates
     _subscriptions.add(
-      _player.processingStateStream.listen((state) {
+      capturedPlayer.processingStateStream.listen((state) {
         try {
-          _handleProcessingStateChange(state);
+          if (!shouldIgnore()) _handleProcessingStateChange(state);
         } catch (e) {
           // Ignore - callback may have fired after disposal
         }
@@ -125,11 +140,11 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Player completion - immediate handling
     _subscriptions.add(
-      _player.playbackEventStream
+      capturedPlayer.playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
           .listen((_) {
             try {
-              _handleTrackCompletion();
+              if (!shouldIgnore()) _handleTrackCompletion();
             } catch (e) {
               // Ignore - callback may have fired after disposal
             }
@@ -138,11 +153,11 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Volume and speed synchronization - debounce to prevent UI spam
     _subscriptions.add(
-      _player.volumeStream
+      capturedPlayer.volumeStream
           .debounceTime(const Duration(milliseconds: 50))
           .listen((vol) {
             try {
-              if (!_disposed) _stateController.updateVolume(vol);
+              if (!shouldIgnore()) _stateController.updateVolume(vol);
             } catch (e) {
               // Ignore - callback may have fired after disposal
             }
@@ -150,16 +165,74 @@ class DesktopAudioHandler implements BaseAudioHandler {
     );
 
     _subscriptions.add(
-      _player.speedStream.debounceTime(const Duration(milliseconds: 50)).listen(
+      capturedPlayer.speedStream.debounceTime(const Duration(milliseconds: 50)).listen(
         (speed) {
           try {
-            if (!_disposed) _stateController.updateSpeed(speed);
+            if (!shouldIgnore()) _stateController.updateSpeed(speed);
           } catch (e) {
             // Ignore - callback may have fired after disposal
           }
         },
       ),
     );
+  }
+  
+  /// Recreate the AudioPlayer instance to isolate native callbacks
+  /// This prevents "Callback invoked after it has been deleted" crashes
+  Future<void> _recreatePlayer() async {
+    if (_isRecreatingPlayer) return;
+    _isRecreatingPlayer = true;
+    
+    try {
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Recreating player instance (generation ${_playerGeneration + 1})');
+      }
+      
+      // Increment generation FIRST to invalidate all old callbacks immediately
+      _playerGeneration++;
+      
+      // Store old player reference
+      final oldPlayer = _player;
+      final oldSubscriptions = _subscriptions;
+      
+      // Create new subscriptions list
+      _subscriptions = [];
+      
+      // Create new player instance
+      _player = AudioPlayer();
+      
+      // Set up listeners on new player
+      _setupPlayerListeners();
+      
+      // Dispose old subscriptions in background (don't await - they may be stuck)
+      Future.microtask(() async {
+        for (final sub in oldSubscriptions) {
+          try {
+            await sub.cancel();
+          } catch (e) {
+            // Ignore cancellation errors
+          }
+        }
+      });
+      
+      // Dispose old player in background with delay to let callbacks drain
+      Future.delayed(const Duration(milliseconds: 200), () async {
+        try {
+          await oldPlayer.dispose();
+        } catch (e) {
+          // Ignore disposal errors from old player
+          if (kDebugMode) {
+            print('DesktopAudioHandler: Old player disposal (safe to ignore): $e');
+          }
+        }
+      });
+      
+      if (kDebugMode) {
+        print('DesktopAudioHandler: Player recreated successfully');
+      }
+    } finally {
+      _isRecreatingPlayer = false;
+    }
   }
 
   /// Handle player state changes
@@ -773,18 +846,12 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _stateController.updateState(AudioPlayerState.loading);
       _stateController.updateUserIntent(true);
 
-      // CRITICAL: Stop any current playback first to prevent native callback crashes
-      // This ensures the previous media_kit/mpv instance releases its callbacks
-      try {
-        await _player.stop();
-        // Give native layer time to clean up callbacks - this is critical!
-        await Future.delayed(const Duration(milliseconds: 150));
-      } catch (e) {
-        // Ignore stop errors - player might already be stopped
-        if (kDebugMode) {
-          print('DesktopAudioHandler: Stop before load (safe to ignore): $e');
-        }
-      }
+      // CRITICAL: Recreate the player instance to prevent native callback crashes
+      // This completely isolates the new track from any lingering callbacks
+      await _recreatePlayer();
+      
+      // Small delay to ensure player is fully initialized
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Check if this operation was superseded by a newer one
       if (_disposed || currentOperationId != _loadOperationId) {
