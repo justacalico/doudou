@@ -1475,8 +1475,13 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
         aspectRatio: 1.0,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
             boxShadow: [
+              BoxShadow(
+                color: DesktopTheme.accentPrimary.withOpacity(0.15),
+                blurRadius: 60,
+                spreadRadius: 20,
+              ),
               BoxShadow(
                 color: Colors.black.withOpacity(0.5),
                 blurRadius: 40,
@@ -1486,7 +1491,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
             child: currentTrack?.artUri != null
                 ? Image.network(
                     currentTrack!.artUri.toString(),
@@ -1504,12 +1509,21 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
 
   Widget _buildPlaceholderArt() {
     return Container(
-      color: const Color(0xFF282828),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            DesktopTheme.glassSurface,
+            DesktopTheme.glassOverlay,
+          ],
+        ),
+      ),
       child: Center(
         child: Icon(
           Icons.music_note_rounded,
           size: 100,
-          color: Colors.white.withOpacity(0.3),
+          color: DesktopTheme.textTertiary,
         ),
       ),
     );
