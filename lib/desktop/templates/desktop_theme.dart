@@ -54,6 +54,15 @@ class DesktopTheme {
   static const Color playButtonGreen = Color(0xFF1DB954);
   static const Color heartRed = Color(0xFFEF4444);
   static const Color shufflePurple = Color(0xFF8B5CF6);
+  static const Color repeatBlue = Color(0xFF3B82F6);
+  static const Color accentPrimary = Color(0xFF8B5CF6);
+  
+  /// Pre-built gradient for accent styling
+  static const LinearGradient accentGradient = LinearGradient(
+    colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
 
   // ============================================
   // SIZING & SPACING
