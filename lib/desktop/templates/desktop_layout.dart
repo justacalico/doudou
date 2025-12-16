@@ -1191,7 +1191,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                     return Container(
-                                      color: const Color(0xFF0F0F0F),
+                                      color: DesktopTheme.backgroundDeep,
                                     );
                                   },
                                 ),
@@ -1205,9 +1205,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  const Color(0xFF0F0F0F).withOpacity(0.3),
-                                  const Color(0xFF0F0F0F).withOpacity(0.7),
-                                  const Color(0xFF0F0F0F).withOpacity(0.95),
+                                  DesktopTheme.backgroundDeep.withOpacity(0.3),
+                                  DesktopTheme.backgroundDeep.withOpacity(0.7),
+                                  DesktopTheme.backgroundDeep.withOpacity(0.95),
                                 ],
                                 stops: const [0.0, 0.5, 1.0],
                               ),
