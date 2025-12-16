@@ -10,20 +10,20 @@ class DesktopTheme {
   // ============================================
   // COLOR PALETTE - Dark Mode Primary
   // ============================================
-  
+
   /// Deep background colors
   static const Color backgroundDeep = Color(0xFF0A0A0C);
   static const Color backgroundPrimary = Color(0xFF0F0F12);
   static const Color backgroundSecondary = Color(0xFF161619);
   static const Color backgroundTertiary = Color(0xFF1E1E23);
   static const Color backgroundElevated = Color(0xFF252529);
-  
+
   /// Glass surface colors
   static const Color glassSurface = Color(0xFF1A1A1E);
   static const Color glassOverlay = Color(0x15FFFFFF);
   static const Color glassBorder = Color(0x20FFFFFF);
   static const Color glassHighlight = Color(0x08FFFFFF);
-  
+
   /// Accent gradients
   static const List<Color> accentGradientPurple = [
     Color(0xFF8B5CF6),
@@ -37,26 +37,26 @@ class DesktopTheme {
     Color(0xFF3B82F6),
     Color(0xFF06B6D4),
   ];
-  
+
   /// Text colors
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xB3FFFFFF);
   static const Color textTertiary = Color(0x66FFFFFF);
   static const Color textMuted = Color(0x33FFFFFF);
-  
+
   /// Semantic colors
   static const Color success = Color(0xFF22C55E);
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
-  
+
   /// Vibrant UI colors
   static const Color playButtonGreen = Color(0xFF1DB954);
   static const Color heartRed = Color(0xFFEF4444);
   static const Color shufflePurple = Color(0xFF8B5CF6);
   static const Color repeatBlue = Color(0xFF3B82F6);
   static const Color accentPrimary = Color(0xFF8B5CF6);
-  
+
   /// Pre-built gradient for accent styling
   static const LinearGradient accentGradient = LinearGradient(
     colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
@@ -67,19 +67,19 @@ class DesktopTheme {
   // ============================================
   // SIZING & SPACING
   // ============================================
-  
+
   static const double sidebarWidth = 260.0;
   static const double sidebarCollapsedWidth = 72.0;
   static const double playerBarHeight = 96.0;
   static const double headerHeight = 72.0;
-  
+
   static const double spacingXs = 4.0;
   static const double spacingSm = 8.0;
   static const double spacingMd = 16.0;
   static const double spacingLg = 24.0;
   static const double spacingXl = 32.0;
   static const double spacing2xl = 48.0;
-  
+
   static const double radiusSm = 8.0;
   static const double radiusMd = 12.0;
   static const double radiusLg = 16.0;
@@ -89,7 +89,7 @@ class DesktopTheme {
   // ============================================
   // BLUR VALUES
   // ============================================
-  
+
   static const double blurLight = 10.0;
   static const double blurMedium = 20.0;
   static const double blurHeavy = 40.0;
@@ -98,7 +98,7 @@ class DesktopTheme {
   // ============================================
   // ANIMATION
   // ============================================
-  
+
   static const Duration durationFast = Duration(milliseconds: 150);
   static const Duration durationMedium = Duration(milliseconds: 250);
   static const Duration durationSlow = Duration(milliseconds: 400);
@@ -108,7 +108,7 @@ class DesktopTheme {
   // ============================================
   // SHADOW PRESETS
   // ============================================
-  
+
   static List<BoxShadow> shadowSm = [
     BoxShadow(
       color: Colors.black.withOpacity(0.2),
@@ -116,7 +116,7 @@ class DesktopTheme {
       offset: const Offset(0, 2),
     ),
   ];
-  
+
   static List<BoxShadow> shadowMd = [
     BoxShadow(
       color: Colors.black.withOpacity(0.25),
@@ -124,7 +124,7 @@ class DesktopTheme {
       offset: const Offset(0, 4),
     ),
   ];
-  
+
   static List<BoxShadow> shadowLg = [
     BoxShadow(
       color: Colors.black.withOpacity(0.35),
@@ -132,7 +132,7 @@ class DesktopTheme {
       offset: const Offset(0, 8),
     ),
   ];
-  
+
   static List<BoxShadow> shadowGlow(Color color) => [
     BoxShadow(
       color: color.withOpacity(0.4),
@@ -197,20 +197,19 @@ class DesktopGlassContainer extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: backgroundColor ?? DesktopTheme.glassSurface.withOpacity(0.8),
+              color:
+                  backgroundColor ?? DesktopTheme.glassSurface.withOpacity(0.8),
               borderRadius: BorderRadius.circular(borderRadius),
-              border: showBorder ? Border.all(
-                color: DesktopTheme.glassBorder,
-                width: 1,
-              ) : null,
-              gradient: gradient ?? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  DesktopTheme.glassHighlight,
-                  Colors.transparent,
-                ],
-              ),
+              border: showBorder
+                  ? Border.all(color: DesktopTheme.glassBorder, width: 1)
+                  : null,
+              gradient:
+                  gradient ??
+                  LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [DesktopTheme.glassHighlight, Colors.transparent],
+                  ),
             ),
             child: child,
           ),
@@ -253,7 +252,7 @@ class _DesktopGlassButtonState extends State<DesktopGlassButton> {
   Widget build(BuildContext context) {
     final accent = widget.accentColor ?? Theme.of(context).colorScheme.primary;
     final isEnabled = widget.onPressed != null;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -266,26 +265,34 @@ class _DesktopGlassButtonState extends State<DesktopGlassButton> {
         child: AnimatedContainer(
           duration: DesktopTheme.durationFast,
           curve: DesktopTheme.curveSpring,
-          padding: widget.padding ?? const EdgeInsets.symmetric(
-            horizontal: DesktopTheme.spacingMd,
-            vertical: DesktopTheme.spacingSm,
-          ),
+          padding:
+              widget.padding ??
+              const EdgeInsets.symmetric(
+                horizontal: DesktopTheme.spacingMd,
+                vertical: DesktopTheme.spacingSm,
+              ),
           transform: Matrix4.identity()
-            ..scale(_isPressed ? 0.97 : _isHovered ? 1.02 : 1.0),
+            ..scale(
+              _isPressed
+                  ? 0.97
+                  : _isHovered
+                  ? 1.02
+                  : 1.0,
+            ),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(widget.borderRadius),
             color: widget.filled
                 ? (isEnabled ? accent : accent.withOpacity(0.5))
-                : (_isHovered
-                    ? DesktopTheme.glassOverlay
-                    : Colors.transparent),
-            border: widget.filled ? null : Border.all(
-              color: _isHovered
-                  ? accent.withOpacity(0.5)
-                  : DesktopTheme.glassBorder,
-              width: 1,
-            ),
+                : (_isHovered ? DesktopTheme.glassOverlay : Colors.transparent),
+            border: widget.filled
+                ? null
+                : Border.all(
+                    color: _isHovered
+                        ? accent.withOpacity(0.5)
+                        : DesktopTheme.glassBorder,
+                    width: 1,
+                  ),
             boxShadow: widget.showGlow && _isHovered && widget.filled
                 ? DesktopTheme.shadowGlow(accent)
                 : null,
@@ -294,14 +301,18 @@ class _DesktopGlassButtonState extends State<DesktopGlassButton> {
             style: TextStyle(
               color: widget.filled
                   ? Colors.white
-                  : (isEnabled ? DesktopTheme.textPrimary : DesktopTheme.textMuted),
+                  : (isEnabled
+                        ? DesktopTheme.textPrimary
+                        : DesktopTheme.textMuted),
               fontWeight: FontWeight.w600,
             ),
             child: IconTheme.merge(
               data: IconThemeData(
                 color: widget.filled
                     ? Colors.white
-                    : (isEnabled ? DesktopTheme.textPrimary : DesktopTheme.textMuted),
+                    : (isEnabled
+                          ? DesktopTheme.textPrimary
+                          : DesktopTheme.textMuted),
               ),
               child: widget.child,
             ),
@@ -423,16 +434,13 @@ class DesktopGradientText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gradientColors = colors ?? DesktopTheme.accentGradientPurple;
-    
+
     return ShaderMask(
-      shaderCallback: (bounds) => LinearGradient(
-        colors: gradientColors,
-      ).createShader(bounds),
+      shaderCallback: (bounds) =>
+          LinearGradient(colors: gradientColors).createShader(bounds),
       child: Text(
         text,
-        style: (style ?? const TextStyle()).copyWith(
-          color: Colors.white,
-        ),
+        style: (style ?? const TextStyle()).copyWith(color: Colors.white),
       ),
     );
   }
@@ -452,7 +460,8 @@ class DesktopAnimatedBackground extends StatefulWidget {
   });
 
   @override
-  State<DesktopAnimatedBackground> createState() => _DesktopAnimatedBackgroundState();
+  State<DesktopAnimatedBackground> createState() =>
+      _DesktopAnimatedBackgroundState();
 }
 
 class _DesktopAnimatedBackgroundState extends State<DesktopAnimatedBackground>
@@ -479,12 +488,14 @@ class _DesktopAnimatedBackgroundState extends State<DesktopAnimatedBackground>
 
   @override
   Widget build(BuildContext context) {
-    final baseColors = widget.colors ?? [
-      DesktopTheme.backgroundDeep,
-      const Color(0xFF1A0A2E),
-      const Color(0xFF0A1A2E),
-      DesktopTheme.backgroundDeep,
-    ];
+    final baseColors =
+        widget.colors ??
+        [
+          DesktopTheme.backgroundDeep,
+          const Color(0xFF1A0A2E),
+          const Color(0xFF0A1A2E),
+          DesktopTheme.backgroundDeep,
+        ];
 
     return AnimatedBuilder(
       animation: _controller,
@@ -539,7 +550,7 @@ class _DesktopNavItemState extends State<DesktopNavItem> {
   @override
   Widget build(BuildContext context) {
     final accent = widget.accentColor ?? Theme.of(context).colorScheme.primary;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -562,13 +573,10 @@ class _DesktopNavItemState extends State<DesktopNavItem> {
             color: widget.isSelected
                 ? accent.withOpacity(0.15)
                 : _isHovered
-                    ? DesktopTheme.glassOverlay
-                    : Colors.transparent,
+                ? DesktopTheme.glassOverlay
+                : Colors.transparent,
             border: widget.isSelected
-                ? Border.all(
-                    color: accent.withOpacity(0.3),
-                    width: 1,
-                  )
+                ? Border.all(color: accent.withOpacity(0.3), width: 1)
                 : null,
           ),
           child: Row(
@@ -583,8 +591,8 @@ class _DesktopNavItemState extends State<DesktopNavItem> {
                   color: widget.isSelected
                       ? accent
                       : _isHovered
-                          ? DesktopTheme.textPrimary
-                          : DesktopTheme.textSecondary,
+                      ? DesktopTheme.textPrimary
+                      : DesktopTheme.textSecondary,
                   size: 20,
                 ),
               ),
@@ -600,8 +608,8 @@ class _DesktopNavItemState extends State<DesktopNavItem> {
                     color: widget.isSelected
                         ? accent
                         : _isHovered
-                            ? DesktopTheme.textPrimary
-                            : DesktopTheme.textSecondary,
+                        ? DesktopTheme.textPrimary
+                        : DesktopTheme.textSecondary,
                   ),
                 ),
               ),
@@ -644,12 +652,16 @@ class _DesktopIconButtonState extends State<DesktopIconButton> {
   @override
   Widget build(BuildContext context) {
     final isEnabled = widget.onPressed != null;
-    final activeColor = widget.activeColor ?? Theme.of(context).colorScheme.primary;
+    final activeColor =
+        widget.activeColor ?? Theme.of(context).colorScheme.primary;
     final iconColor = widget.isActive
         ? activeColor
-        : widget.color ?? (isEnabled
-            ? (_isHovered ? DesktopTheme.textPrimary : DesktopTheme.textSecondary)
-            : DesktopTheme.textMuted);
+        : widget.color ??
+              (isEnabled
+                  ? (_isHovered
+                        ? DesktopTheme.textPrimary
+                        : DesktopTheme.textSecondary)
+                  : DesktopTheme.textMuted);
 
     final button = MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -666,20 +678,13 @@ class _DesktopIconButtonState extends State<DesktopIconButton> {
                 ? DesktopTheme.glassOverlay
                 : Colors.transparent,
           ),
-          child: Icon(
-            widget.icon,
-            color: iconColor,
-            size: widget.size,
-          ),
+          child: Icon(widget.icon, color: iconColor, size: widget.size),
         ),
       ),
     );
 
     if (widget.tooltip != null) {
-      return Tooltip(
-        message: widget.tooltip!,
-        child: button,
-      );
+      return Tooltip(message: widget.tooltip!, child: button);
     }
 
     return button;
@@ -711,7 +716,7 @@ class _DesktopProgressSliderState extends State<DesktopProgressSlider> {
   @override
   Widget build(BuildContext context) {
     final accent = widget.activeColor ?? Theme.of(context).colorScheme.primary;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
