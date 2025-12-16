@@ -102,17 +102,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     l10n.navSettings,
   ];
 
-  final List<IconData> _navigationIcons = [
-    Icons.home_outlined,
-    Icons.search,
-    Icons.library_music_outlined,
-    Icons.music_note_outlined,
-    Icons.playlist_play_outlined,
-    Icons.album_outlined,
-    Icons.person_outline,
-    Icons.settings_outlined,
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -460,7 +449,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      appState.username ?? 'User',
+                      appState.jellyfinService.currentServer?.username ?? 'User',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
