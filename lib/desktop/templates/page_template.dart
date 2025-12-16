@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/apple_design/apple_theme.dart';
+import 'desktop_theme.dart';
 
-/// Apple-styled page template with large title navigation and smooth transitions
+/// Modern page template with gradient header and glass effects
 class PageTemplate extends StatelessWidget {
   final String title;
   final Widget child;
@@ -10,6 +11,8 @@ class PageTemplate extends StatelessWidget {
   final EdgeInsets? padding;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
+  final String? subtitle;
+  final bool showGradientHeader;
 
   const PageTemplate({
     super.key,
@@ -20,48 +23,72 @@ class PageTemplate extends StatelessWidget {
     this.padding,
     this.showBackButton = false,
     this.onBackPressed,
+    this.subtitle,
+    this.showGradientHeader = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Apple-style large title header
+        // Modern header with gradient option
         Container(
           padding: const EdgeInsets.fromLTRB(
-            AppleDesignSystem.spacing24,
-            AppleDesignSystem.spacing16,
-            AppleDesignSystem.spacing24,
-            AppleDesignSystem.spacing12,
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingLg,
+            DesktopTheme.spacingMd,
           ),
+          decoration: showGradientHeader ? BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary.withOpacity(0.1),
+                Colors.transparent,
+              ],
+            ),
+          ) : null,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (showBackButton) ...[
-                _AppleBackButton(onPressed: onBackPressed),
-                const SizedBox(width: AppleDesignSystem.spacing12),
+                _ModernBackButton(onPressed: onBackPressed),
+                const SizedBox(width: DesktopTheme.spacingMd),
               ],
               Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: AppleDesignSystem.typeScaleLargeTitle,
-                    fontWeight: AppleDesignSystem.weightBold,
-                    letterSpacing: -0.5,
-                    color: isDark 
-                        ? AppleColors.labelPrimaryDark 
-                        : AppleColors.labelPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: DesktopTheme.textPrimary,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: DesktopTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               if (actions != null) ...[
-                const SizedBox(width: AppleDesignSystem.spacing16),
+                const SizedBox(width: DesktopTheme.spacingMd),
                 ...actions!.map((action) => Padding(
-                  padding: const EdgeInsets.only(left: AppleDesignSystem.spacing8),
+                  padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),
                   child: action,
                 )),
               ],
@@ -69,30 +96,28 @@ class PageTemplate extends StatelessWidget {
           ),
         ),
         
-        // Subtle divider
+        // Subtle gradient divider
         Container(
-          height: 0.5,
+          height: 1,
           margin: const EdgeInsets.symmetric(
-            horizontal: AppleDesignSystem.spacing24,
+            horizontal: DesktopTheme.spacingLg,
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                (isDark ? AppleColors.separatorDark : AppleColors.separator)
-                    .withValues(alpha: 0),
-                isDark ? AppleColors.separatorDark : AppleColors.separator,
-                (isDark ? AppleColors.separatorDark : AppleColors.separator)
-                    .withValues(alpha: 0),
+                Colors.transparent,
+                DesktopTheme.glassBorder,
+                Colors.transparent,
               ],
             ),
           ),
         ),
         
-        // Page content with smooth scroll physics
+        // Page content
         Expanded(
           child: Padding(
             padding: padding ?? const EdgeInsets.symmetric(
-              horizontal: AppleDesignSystem.spacing24,
+              horizontal: DesktopTheme.spacingLg,
             ),
             child: child,
           ),
@@ -102,12 +127,13 @@ class PageTemplate extends StatelessWidget {
   }
 }
 
-/// Apple-styled section header with optional trailing action
+/// Modern section header with gradient text option
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onSeeAllPressed;
+  final bool useGradient;
 
   const SectionHeader({
     super.key,
@@ -115,16 +141,16 @@ class SectionHeader extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onSeeAllPressed,
+    this.useGradient = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: AppleDesignSystem.spacing16,
+        vertical: DesktopTheme.spacingMd,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -133,28 +159,36 @@ class SectionHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: AppleDesignSystem.typeScaleTitle2,
-                    fontWeight: AppleDesignSystem.weightSemiBold,
-                    letterSpacing: -0.3,
-                    color: isDark 
-                        ? AppleColors.labelPrimaryDark 
-                        : AppleColors.labelPrimary,
+                if (useGradient)
+                  DesktopGradientText(
+                    text: title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
+                    ),
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary.withOpacity(0.7),
+                    ],
+                  )
+                else
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
+                      color: DesktopTheme.textPrimary,
+                    ),
                   ),
-                ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: AppleDesignSystem.spacing4),
+                  const SizedBox(height: DesktopTheme.spacingXs),
                   Text(
                     subtitle!,
                     style: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleSubheadline,
-                      color: isDark 
-                          ? AppleColors.labelSecondaryDark 
-                          : AppleColors.labelSecondary,
+                      fontSize: 14,
+                      color: DesktopTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -164,30 +198,29 @@ class SectionHeader extends StatelessWidget {
           if (trailing != null) 
             trailing!
           else if (onSeeAllPressed != null)
-            _AppleSeeAllButton(onPressed: onSeeAllPressed!),
+            _ModernSeeAllButton(onPressed: onSeeAllPressed!),
         ],
       ),
     );
   }
 }
 
-/// Apple-styled back button with SF Symbol style icon
-class _AppleBackButton extends StatefulWidget {
+/// Modern back button with hover effect
+class _ModernBackButton extends StatefulWidget {
   final VoidCallback? onPressed;
 
-  const _AppleBackButton({this.onPressed});
+  const _ModernBackButton({this.onPressed});
 
   @override
-  State<_AppleBackButton> createState() => _AppleBackButtonState();
+  State<_ModernBackButton> createState() => _ModernBackButtonState();
 }
 
-class _AppleBackButtonState extends State<_AppleBackButton> {
+class _ModernBackButtonState extends State<_ModernBackButton> {
   bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -196,33 +229,43 @@ class _AppleBackButtonState extends State<_AppleBackButton> {
       child: GestureDetector(
         onTap: widget.onPressed ?? () => Navigator.of(context).pop(),
         child: AnimatedContainer(
-          duration: AppleDesignSystem.durationFast,
-          curve: AppleDesignSystem.springCurve,
-          padding: const EdgeInsets.all(AppleDesignSystem.spacing8),
+          duration: DesktopTheme.durationFast,
+          curve: DesktopTheme.curveSpring,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
+          ),
           decoration: BoxDecoration(
             color: _isHovered
-                ? (isDark 
-                    ? AppleColors.systemGray5Dark 
-                    : AppleColors.systemGray5)
+                ? DesktopTheme.glassOverlay
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(
-              AppleDesignSystem.radiusSmall,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+            border: Border.all(
+              color: _isHovered
+                  ? theme.colorScheme.primary.withOpacity(0.3)
+                  : DesktopTheme.glassBorder,
+              width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.chevron_left_rounded,
-                size: 24,
-                color: theme.colorScheme.primary,
+                Icons.arrow_back_rounded,
+                size: 18,
+                color: _isHovered
+                    ? theme.colorScheme.primary
+                    : DesktopTheme.textSecondary,
               ),
+              const SizedBox(width: DesktopTheme.spacingSm),
               Text(
                 'Back',
                 style: TextStyle(
-                  fontFamily: AppleDesignSystem.fontFamily,
-                  fontSize: AppleDesignSystem.typeScaleBody,
-                  color: theme.colorScheme.primary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _isHovered
+                      ? theme.colorScheme.primary
+                      : DesktopTheme.textSecondary,
                 ),
               ),
             ],
@@ -233,17 +276,17 @@ class _AppleBackButtonState extends State<_AppleBackButton> {
   }
 }
 
-/// Apple-styled "See All" button with chevron
-class _AppleSeeAllButton extends StatefulWidget {
+/// Modern "See All" button with hover animation
+class _ModernSeeAllButton extends StatefulWidget {
   final VoidCallback onPressed;
 
-  const _AppleSeeAllButton({required this.onPressed});
+  const _ModernSeeAllButton({required this.onPressed});
 
   @override
-  State<_AppleSeeAllButton> createState() => _AppleSeeAllButtonState();
+  State<_ModernSeeAllButton> createState() => _ModernSeeAllButtonState();
 }
 
-class _AppleSeeAllButtonState extends State<_AppleSeeAllButton> {
+class _ModernSeeAllButtonState extends State<_ModernSeeAllButton> {
   bool _isHovered = false;
 
   @override
@@ -256,25 +299,38 @@ class _AppleSeeAllButtonState extends State<_AppleSeeAllButton> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onPressed,
-        child: AnimatedOpacity(
-          duration: AppleDesignSystem.durationFast,
-          opacity: _isHovered ? 0.7 : 1.0,
+        child: AnimatedContainer(
+          duration: DesktopTheme.durationFast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
+          ),
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? theme.colorScheme.primary.withOpacity(0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusRound),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'See All',
                 style: TextStyle(
-                  fontFamily: AppleDesignSystem.fontFamily,
-                  fontSize: AppleDesignSystem.typeScaleSubheadline,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
                 ),
               ),
-              const SizedBox(width: AppleDesignSystem.spacing4),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: theme.colorScheme.primary,
+              const SizedBox(width: DesktopTheme.spacingXs),
+              AnimatedSlide(
+                duration: DesktopTheme.durationFast,
+                offset: _isHovered ? const Offset(0.2, 0) : Offset.zero,
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ],
           ),
