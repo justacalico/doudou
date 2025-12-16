@@ -1551,7 +1551,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                     Text(
                       l10n.youAreListeningTo,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                        color: DesktopTheme.textTertiary,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1560,7 +1560,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                     Text(
                       currentTrack?.title ?? l10n.noTrackPlaying,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: DesktopTheme.textPrimary,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1573,7 +1573,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                         Text(
                           l10n.byArtist,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
+                            color: DesktopTheme.textTertiary,
                             fontSize: 14,
                           ),
                         ),
@@ -1581,7 +1581,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                           child: Text(
                             currentTrack?.artist ?? l10n.unknownArtist,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: DesktopTheme.textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1596,7 +1596,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                         Text(
                           l10n.fromAlbum,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
+                            color: DesktopTheme.textTertiary,
                             fontSize: 14,
                           ),
                         ),
@@ -1604,7 +1604,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                           child: Text(
                             currentTrack?.album ?? l10n.unknownAlbum,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: DesktopTheme.textSecondary,
                               fontSize: 14,
                             ),
                             maxLines: 1,
@@ -1643,33 +1643,23 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                       );
                       final isFavorite = trackInState.isFavorite;
 
-                      return IconButton(
+                      return DesktopIconButton(
+                        icon: isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                         onPressed: () => appState.toggleFavorite(trackInState),
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                        ),
-                        color: isFavorite
-                            ? Colors.red
-                            : Colors.white.withOpacity(0.7),
-                        iconSize: 24,
+                        color: isFavorite ? DesktopTheme.heartRed : null,
                       );
                     },
                   ),
                   const SizedBox(width: 8),
                   // Lyrics toggle
-                  IconButton(
+                  DesktopIconButton(
+                    icon: _showLyrics ? Icons.lyrics_rounded : Icons.lyrics_outlined,
                     onPressed: () {
                       setState(() {
                         _showLyrics = !_showLyrics;
                       });
                     },
-                    icon: Icon(
-                      _showLyrics ? Icons.lyrics : Icons.lyrics_outlined,
-                    ),
-                    color: _showLyrics
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.7),
-                    iconSize: 24,
+                    color: _showLyrics ? DesktopTheme.accentPrimary : null,
                   ),
                 ],
               ),
@@ -1694,37 +1684,18 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
 
                   return Column(
                     children: [
-                      // Progress slider
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 4,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 12,
-                          ),
-                          activeTrackColor: Colors.white,
-                          inactiveTrackColor: Colors.white.withOpacity(0.2),
-                          thumbColor: Colors.white,
-                          overlayColor: Colors.white.withOpacity(0.2),
-                        ),
-                        child: Slider(
-                          value: progress.clamp(0.0, 1.0),
-                          onChanged:
-                              currentTrack != null && audioHandler != null
-                              ? (value) {
-                                  final newPosition = Duration(
-                                    milliseconds:
-                                        (value * duration.inMilliseconds)
-                                            .round(),
-                                  );
-                                  audioHandler.seek(newPosition);
-                                }
-                              : null,
-                          min: 0.0,
-                          max: 1.0,
-                        ),
+                      // Progress slider using DesktopProgressSlider
+                      DesktopProgressSlider(
+                        value: progress.clamp(0.0, 1.0),
+                        onChanged: currentTrack != null && audioHandler != null
+                            ? (value) {
+                                final newPosition = Duration(
+                                  milliseconds:
+                                      (value * duration.inMilliseconds).round(),
+                                );
+                                audioHandler.seek(newPosition);
+                              }
+                            : null,
                       ),
 
                       // Time labels
@@ -1736,7 +1707,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                             Text(
                               _formatDuration(position),
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: DesktopTheme.textSecondary,
                                 fontSize: 12,
                                 fontFamily: 'monospace',
                               ),
@@ -1744,7 +1715,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                             Text(
                               _formatDuration(duration),
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: DesktopTheme.textTertiary,
                                 fontSize: 12,
                                 fontFamily: 'monospace',
                               ),
@@ -1778,82 +1749,46 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Shuffle
-                  IconButton(
+                  DesktopIconButton(
+                    icon: Icons.shuffle_rounded,
                     onPressed: audioHandler != null
                         ? () => audioHandler.setShuffleMode(!isShuffled)
                         : null,
-                    icon: const Icon(Icons.shuffle_rounded),
-                    color: isShuffled
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.5),
-                    iconSize: 24,
+                    color: isShuffled ? DesktopTheme.shufflePurple : null,
                   ),
 
                   const SizedBox(width: 16),
 
                   // Previous
-                  IconButton(
+                  DesktopIconButton(
+                    icon: Icons.skip_previous_rounded,
                     onPressed: audioHandler != null && audioHandler.hasPrevious
                         ? () => appState.skipToPrevious()
                         : null,
-                    icon: const Icon(Icons.skip_previous_rounded),
-                    color: audioHandler?.hasPrevious == true
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.3),
-                    iconSize: 36,
+                    size: 32,
                   ),
 
                   const SizedBox(width: 16),
 
                   // Play/Pause
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(32),
-                        onTap: audioHandler != null && currentTrack != null
-                            ? () => appState.playPause()
-                            : null,
-                        child: Center(
-                          child: isBuffering
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.black,
-                                  ),
-                                )
-                              : Icon(
-                                  isPlaying
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  color: Colors.black,
-                                  size: 36,
-                                ),
-                        ),
-                      ),
-                    ),
+                  DesktopPlayButton(
+                    isPlaying: isPlaying,
+                    isBuffering: isBuffering,
+                    onPressed: audioHandler != null && currentTrack != null
+                        ? () => appState.playPause()
+                        : null,
+                    size: 64,
                   ),
 
                   const SizedBox(width: 16),
 
                   // Next
-                  IconButton(
+                  DesktopIconButton(
+                    icon: Icons.skip_next_rounded,
                     onPressed: audioHandler != null && audioHandler.hasNext
                         ? () => appState.skipToNext()
                         : null,
-                    icon: const Icon(Icons.skip_next_rounded),
-                    color: audioHandler?.hasNext == true
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.3),
-                    iconSize: 36,
+                    size: 32,
                   ),
 
                   const SizedBox(width: 16),
