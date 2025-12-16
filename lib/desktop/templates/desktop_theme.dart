@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../widgets/apple_design/apple_theme.dart';
 
 /// Modern Desktop Theme System
 /// Combines iOS 26 Liquid Glass aesthetics with desktop-optimized layouts
