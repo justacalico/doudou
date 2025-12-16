@@ -28,7 +28,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
   // Loading operation management - use Completer for proper async coordination
   Completer<void>? _currentLoadOperation;
   int _loadOperationId = 0;
-  
+
   // Track the last successfully loaded URL to avoid reloading the same track
   String? _lastLoadedUrl;
 
@@ -74,13 +74,18 @@ class DesktopAudioHandler implements BaseAudioHandler {
   }
 
   /// Set up player event listeners with optimized debouncing
+  /// All listeners wrap callbacks in try-catch to prevent native callback crashes
   void _setupPlayerListeners() {
     // Position stream - throttle to prevent excessive updates during seeks
     _subscriptions.add(
       _player.positionStream
           .throttleTime(const Duration(milliseconds: 100))
           .listen((pos) {
-            if (!_disposed) _stateController.updatePosition(pos);
+            try {
+              if (!_disposed) _stateController.updatePosition(pos);
+            } catch (e) {
+              // Ignore - callback may have fired after disposal
+            }
           }),
     );
 
@@ -89,26 +94,48 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _player.durationStream
           .debounceTime(const Duration(milliseconds: 100))
           .listen((duration) {
-            if (!_disposed)
-              _stateController.updateDuration(duration ?? Duration.zero);
+            try {
+              if (!_disposed)
+                _stateController.updateDuration(duration ?? Duration.zero);
+            } catch (e) {
+              // Ignore - callback may have fired after disposal
+            }
           }),
     );
 
     // Player state stream - immediate updates for state changes
     _subscriptions.add(
-      _player.playerStateStream.listen(_handlePlayerStateChange),
+      _player.playerStateStream.listen((state) {
+        try {
+          _handlePlayerStateChange(state);
+        } catch (e) {
+          // Ignore - callback may have fired after disposal
+        }
+      }),
     );
 
     // Processing state for loading detection - immediate updates
     _subscriptions.add(
-      _player.processingStateStream.listen(_handleProcessingStateChange),
+      _player.processingStateStream.listen((state) {
+        try {
+          _handleProcessingStateChange(state);
+        } catch (e) {
+          // Ignore - callback may have fired after disposal
+        }
+      }),
     );
 
     // Player completion - immediate handling
     _subscriptions.add(
       _player.playbackEventStream
           .where((event) => event.processingState == ProcessingState.completed)
-          .listen((_) => _handleTrackCompletion()),
+          .listen((_) {
+            try {
+              _handleTrackCompletion();
+            } catch (e) {
+              // Ignore - callback may have fired after disposal
+            }
+          }),
     );
 
     // Volume and speed synchronization - debounce to prevent UI spam
@@ -116,14 +143,22 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _player.volumeStream
           .debounceTime(const Duration(milliseconds: 50))
           .listen((vol) {
-            if (!_disposed) _stateController.updateVolume(vol);
+            try {
+              if (!_disposed) _stateController.updateVolume(vol);
+            } catch (e) {
+              // Ignore - callback may have fired after disposal
+            }
           }),
     );
 
     _subscriptions.add(
       _player.speedStream.debounceTime(const Duration(milliseconds: 50)).listen(
         (speed) {
-          if (!_disposed) _stateController.updateSpeed(speed);
+          try {
+            if (!_disposed) _stateController.updateSpeed(speed);
+          } catch (e) {
+            // Ignore - callback may have fired after disposal
+          }
         },
       ),
     );
@@ -719,7 +754,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Increment operation ID to invalidate any previous in-flight operations
     final currentOperationId = ++_loadOperationId;
-    
+
     // Cancel any existing load operation
     if (_currentLoadOperation != null && !_currentLoadOperation!.isCompleted) {
       if (kDebugMode) {
@@ -727,7 +762,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
       }
       // Don't await - just let it know it's cancelled via operation ID
     }
-    
+
     // Create a new completer for this operation
     final completer = Completer<void>();
     _currentLoadOperation = completer;
@@ -839,7 +874,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
             throw Exception('Playback start timed out after 3 seconds');
           },
         );
-        
+
         // Track the successfully loaded URL
         _lastLoadedUrl = url;
 
@@ -852,7 +887,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
         }
         rethrow;
       }
-      
+
       // Complete successfully
       if (!completer.isCompleted) completer.complete();
     } catch (e) {
