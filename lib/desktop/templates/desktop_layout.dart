@@ -1227,42 +1227,20 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                               child: Row(
                                 children: [
                                   // Close button
-                                  IconButton(
+                                  DesktopIconButton(
+                                    icon: Icons.keyboard_arrow_down_rounded,
                                     onPressed: () => Navigator.pop(context),
-                                    icon: const Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      color: Colors.white,
-                                      size: 32,
-                                    ),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white.withOpacity(
-                                        0.1,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
+                                    size: 28,
                                   ),
 
                                   const Spacer(),
 
                                   // More options button
-                                  IconButton(
+                                  DesktopIconButton(
+                                    icon: Icons.more_vert_rounded,
                                     onPressed: () {
                                       // Show options menu
                                     },
-                                    icon: const Icon(
-                                      Icons.more_vert,
-                                      color: Colors.white,
-                                    ),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white.withOpacity(
-                                        0.1,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
                                   ),
                                 ],
                               ),
@@ -1324,7 +1302,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                               decoration: BoxDecoration(
                                 border: Border(
                                   left: BorderSide(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: DesktopTheme.glassBorder,
                                     width: 1,
                                   ),
                                 ),
@@ -1369,9 +1347,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                                 colors: [
-                                  const Color(0xFF1D1D1D).withOpacity(0.7),
-                                  const Color(0xFF1D1D1D).withOpacity(0.95),
-                                  const Color(0xFF1D1D1D),
+                                  DesktopTheme.glassSurface.withOpacity(0.7),
+                                  DesktopTheme.glassSurface.withOpacity(0.95),
+                                  DesktopTheme.glassSurface,
                                 ],
                                 stops: const [0.0, 0.4, 1.0],
                               ),
@@ -1468,7 +1446,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+              color: isSelected ? DesktopTheme.textPrimary : DesktopTheme.textTertiary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -1480,7 +1458,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
               width: label.length * 6.0,
               height: 2,
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: DesktopTheme.accentGradient,
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
