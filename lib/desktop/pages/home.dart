@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return PageTemplate(
@@ -68,12 +68,12 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: DesktopTheme.spacingMd),
-                      
+
                       // Quick access cards
                       _buildQuickAccessSection(context, appState, l10n),
-                      
+
                       const SizedBox(height: DesktopTheme.spacingXl),
-                      
+
                       // Recently Added Albums
                       if (appState.albums.isNotEmpty) ...[
                         SectionHeader(
@@ -84,10 +84,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _buildAlbumRow(context, appState, l10n),
-                        
+
                         const SizedBox(height: DesktopTheme.spacingXl),
                       ],
-                      
+
                       // Your Artists
                       if (appState.artists.isNotEmpty) ...[
                         SectionHeader(
@@ -97,10 +97,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _buildArtistRow(context, appState, l10n),
-                        
+
                         const SizedBox(height: DesktopTheme.spacingXl),
                       ],
-                      
+
                       // Recent Tracks
                       if (appState.tracks.isNotEmpty) ...[
                         SectionHeader(
@@ -110,7 +110,7 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _buildRecentTracksList(context, appState, l10n),
                       ],
-                      
+
                       // Extra space for bottom player
                       const SizedBox(height: 120),
                     ],
@@ -148,25 +148,28 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: DesktopTheme.spacingMd),
           Text(
             'Loading your music...',
-            style: TextStyle(
-              fontSize: 16,
-              color: DesktopTheme.textSecondary,
-            ),
+            style: TextStyle(fontSize: 16, color: DesktopTheme.textSecondary),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuickAccessSection(BuildContext context, AppState appState, AppLocalizations l10n) {
+  Widget _buildQuickAccessSection(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     final theme = Theme.of(context);
-    
+
     return Row(
       children: [
         Expanded(
           child: QuickAccessCard(
             title: l10n.likedSongs,
-            subtitle: l10n.countSongs(appState.tracks.where((t) => t.isFavorite).length),
+            subtitle: l10n.countSongs(
+              appState.tracks.where((t) => t.isFavorite).length,
+            ),
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,
             onTap: () {
@@ -214,7 +217,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildAlbumRow(BuildContext context, AppState appState, AppLocalizations l10n) {
+  Widget _buildAlbumRow(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     return SizedBox(
       height: 220,
       child: ListView.builder(
@@ -247,7 +254,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildArtistRow(BuildContext context, AppState appState, AppLocalizations l10n) {
+  Widget _buildArtistRow(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     return SizedBox(
       height: 220,
       child: ListView.builder(
@@ -280,43 +291,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildRecentTracksList(BuildContext context, AppState appState, AppLocalizations l10n) {
+  Widget _buildRecentTracksList(
+    BuildContext context,
+    AppState appState,
+    AppLocalizations l10n,
+  ) {
     return Column(
       children: appState.tracks
           .take(8)
-          .map((track) => Padding(
-                padding: const EdgeInsets.only(bottom: DesktopTheme.spacingSm),
-                child: MusicListTile(
-                  title: track.name,
-                  subtitle: '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
-                  imageUrl: _getImageUrl(appState, track.imageUrl),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (track.duration != null)
-                        Text(
-                          _formatDuration(track.duration!),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: DesktopTheme.textTertiary,
-                            fontFamily: 'monospace',
-                          ),
+          .map(
+            (track) => Padding(
+              padding: const EdgeInsets.only(bottom: DesktopTheme.spacingSm),
+              child: MusicListTile(
+                title: track.name,
+                subtitle:
+                    '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
+                imageUrl: _getImageUrl(appState, track.imageUrl),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (track.duration != null)
+                      Text(
+                        _formatDuration(track.duration!),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: DesktopTheme.textTertiary,
+                          fontFamily: 'monospace',
                         ),
-                      const SizedBox(width: DesktopTheme.spacingSm),
-                      DesktopIconButton(
-                        icon: Icons.more_horiz_rounded,
-                        onPressed: () {},
-                        size: 18,
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    // Play track
-                    final trackIndex = appState.tracks.indexOf(track);
-                    appState.playPlaylist(appState.tracks, trackIndex);
-                  },
+                    const SizedBox(width: DesktopTheme.spacingSm),
+                    DesktopIconButton(
+                      icon: Icons.more_horiz_rounded,
+                      onPressed: () {},
+                      size: 18,
+                    ),
+                  ],
                 ),
-              ))
+                onTap: () {
+                  // Play track
+                  final trackIndex = appState.tracks.indexOf(track);
+                  appState.playPlaylist(appState.tracks, trackIndex);
+                },
+              ),
+            ),
+          )
           .toList(),
     );
   }
