@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/apple_design/apple_theme.dart';
 import '../templates/page_template.dart';
 import '../templates/music_cards.dart';
+import '../templates/desktop_theme.dart';
 import '../../providers/app_state.dart';
 import 'details/media_details.dart';
 import 'details/artist_details.dart';
@@ -40,204 +39,80 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return PageTemplate(
           title: l10n.navHome,
+          subtitle: _getGreeting(l10n),
+          showGradientHeader: true,
           actions: [
-            IconButton(
+            DesktopGlassButton(
               onPressed: () => appState.loadLibraryData(),
-              icon: const Icon(Icons.refresh),
-              tooltip: l10n.refresh,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.refresh_rounded, size: 18),
+                  const SizedBox(width: DesktopTheme.spacingSm),
+                  Text(l10n.refresh),
+                ],
+              ),
             ),
           ],
           child: appState.isLoading
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(l10n.loadingYourMusicLibrary),
-                    ],
-                  ),
-                )
+              ? _buildLoadingState(theme)
               : SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Recently Added Albums section
-                      SectionHeader(
-                        title: l10n.recentlyAddedAlbums,
-                        subtitle: l10n.yourNewestAdditions,
-                        trailing: TextButton(
-                          onPressed: () {},
-                          child: Text(l10n.viewAll),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 200,
-                        child: appState.albums.isEmpty
-                            ? Center(
-                                child: Text(l10n.noAlbumsFound),
-                              )
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.only(bottom: 16),
-                                itemCount: appState.albums.length > 10 
-                                    ? 10 
-                                    : appState.albums.length,
-                                itemBuilder: (context, index) {
-                                  final album = appState.albums[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 16),
-                                    child: MusicCard(
-                                      title: album.name,
-                                      subtitle: album.artistName ?? l10n.unknownArtist,
-                                      imageUrl: _getImageUrl(appState, album.imageUrl),
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => MediaDetailsPage.album(album: album),
-                                              ),
-                                            );
-                                          },
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Quick Access section
-                      SectionHeader(
-                        title: l10n.quickAccess,
-                        subtitle: l10n.jumpBackIntoFavorites,
-                      ),
+                      const SizedBox(height: DesktopTheme.spacingMd),
                       
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildQuickAccessCard(
-                              context,
-                              l10n.likedSongs,
-                              l10n.countSongs(appState.tracks.where((t) => t.isFavorite).length),
-                              Icons.favorite,
-                              Colors.purple,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildQuickAccessCard(
-                              context,
-                              l10n.allAlbums,
-                              l10n.countAlbums(appState.albums.length),
-                              Icons.album,
-                              Colors.green,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildQuickAccessCard(
-                              context,
-                              l10n.allArtists,
-                              l10n.countArtists(appState.artists.length),
-                              Icons.person,
-                              Colors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Your Artists section
-                      SectionHeader(
-                        title: l10n.yourArtists,
-                        subtitle: l10n.browseByArtist,
-                        trailing: TextButton(
-                          onPressed: () {},
-                          child: Text(l10n.viewAll),
+                      // Quick access cards
+                      _buildQuickAccessSection(context, appState, l10n),
+                      
+                      const SizedBox(height: DesktopTheme.spacingXl),
+                      
+                      // Recently Added Albums
+                      if (appState.albums.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.recentlyAddedAlbums,
+                          subtitle: l10n.yourNewestAdditions,
+                          useGradient: true,
+                          onSeeAllPressed: () {},
                         ),
-                      ),
-                      SizedBox(
-                        height: 200,
-                        child: appState.artists.isEmpty
-                            ? Center(
-                                child: Text(l10n.noArtistsFound),
-                              )
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.only(bottom: 16),
-                                itemCount: appState.artists.length > 10 
-                                    ? 10 
-                                    : appState.artists.length,
-                                itemBuilder: (context, index) {
-                                  final artist = appState.artists[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 16),
-                                    child: MusicCard(
-                                      title: artist.name,
-                                      subtitle: l10n.artist,
-                                      imageUrl: _getImageUrl(appState, artist.imageUrl),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ArtistDetailsPage(artist: artist),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Recent Tracks section
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _buildAlbumRow(context, appState, l10n),
+                        
+                        const SizedBox(height: DesktopTheme.spacingXl),
+                      ],
+                      
+                      // Your Artists
+                      if (appState.artists.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.yourArtists,
+                          subtitle: l10n.browseByArtist,
+                          onSeeAllPressed: () {},
+                        ),
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _buildArtistRow(context, appState, l10n),
+                        
+                        const SizedBox(height: DesktopTheme.spacingXl),
+                      ],
+                      
+                      // Recent Tracks
                       if (appState.tracks.isNotEmpty) ...[
                         SectionHeader(
                           title: l10n.recentTracks,
                           subtitle: l10n.yourMusicCollection,
                         ),
-                        
-                        Column(
-                          children: appState.tracks
-                              .take(5)
-                              .map((track) => MusicListTile(
-                                    title: track.name,
-                                    subtitle: '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
-                                    imageUrl: _getImageUrl(appState, track.imageUrl),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (track.duration != null)
-                                          Text(
-                                            _formatDuration(track.duration!),
-                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        IconButton(
-                                          onPressed: () {},
-                                          icon: const Icon(Icons.more_vert),
-                                          iconSize: 20,
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      // Play song
-                                    },
-                                  ))
-                              .toList(),
-                        ),
+                        const SizedBox(height: DesktopTheme.spacingMd),
+                        _buildRecentTracksList(context, appState, l10n),
                       ],
-
-                      const SizedBox(height: 100), // Extra space for bottom player
+                      
+                      // Extra space for bottom player
+                      const SizedBox(height: 120),
                     ],
                   ),
                 ),
@@ -246,93 +121,210 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String _getGreeting(AppLocalizations l10n) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning';
+    } else if (hour < 17) {
+      return 'Good afternoon';
+    } else {
+      return 'Good evening';
+    }
+  }
+
+  Widget _buildLoadingState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: DesktopTheme.spacingMd),
+          Text(
+            'Loading your music...',
+            style: TextStyle(
+              fontSize: 16,
+              color: DesktopTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessSection(BuildContext context, AppState appState, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    
+    return Row(
+      children: [
+        Expanded(
+          child: QuickAccessCard(
+            title: l10n.likedSongs,
+            subtitle: l10n.countSongs(appState.tracks.where((t) => t.isFavorite).length),
+            icon: Icons.favorite_rounded,
+            color: DesktopTheme.heartRed,
+            onTap: () {
+              // Navigate to favorites
+            },
+          ),
+        ),
+        const SizedBox(width: DesktopTheme.spacingMd),
+        Expanded(
+          child: QuickAccessCard(
+            title: l10n.allAlbums,
+            subtitle: l10n.countAlbums(appState.albums.length),
+            icon: Icons.album_rounded,
+            color: theme.colorScheme.primary,
+            onTap: () {
+              // Navigate to albums
+            },
+          ),
+        ),
+        const SizedBox(width: DesktopTheme.spacingMd),
+        Expanded(
+          child: QuickAccessCard(
+            title: l10n.allArtists,
+            subtitle: l10n.countArtists(appState.artists.length),
+            icon: Icons.person_rounded,
+            color: DesktopTheme.shufflePurple,
+            onTap: () {
+              // Navigate to artists
+            },
+          ),
+        ),
+        const SizedBox(width: DesktopTheme.spacingMd),
+        Expanded(
+          child: QuickAccessCard(
+            title: 'Shuffle All',
+            subtitle: 'Play random songs',
+            icon: Icons.shuffle_rounded,
+            color: DesktopTheme.playButtonGreen,
+            onTap: () {
+              appState.shuffleAllTracks();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAlbumRow(BuildContext context, AppState appState, AppLocalizations l10n) {
+    return SizedBox(
+      height: 220,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: appState.albums.length > 10 ? 10 : appState.albums.length,
+        itemBuilder: (context, index) {
+          final album = appState.albums[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index < 9 ? DesktopTheme.spacingMd : 0,
+            ),
+            child: MusicCard(
+              title: album.name,
+              subtitle: album.artistName ?? l10n.unknownArtist,
+              imageUrl: _getImageUrl(appState, album.imageUrl),
+              size: 180,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MediaDetailsPage.album(album: album),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildArtistRow(BuildContext context, AppState appState, AppLocalizations l10n) {
+    return SizedBox(
+      height: 220,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: appState.artists.length > 10 ? 10 : appState.artists.length,
+        itemBuilder: (context, index) {
+          final artist = appState.artists[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index < 9 ? DesktopTheme.spacingMd : 0,
+            ),
+            child: MusicCard(
+              title: artist.name,
+              subtitle: l10n.artist,
+              imageUrl: _getImageUrl(appState, artist.imageUrl),
+              size: 180,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ArtistDetailsPage(artist: artist),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRecentTracksList(BuildContext context, AppState appState, AppLocalizations l10n) {
+    return Column(
+      children: appState.tracks
+          .take(8)
+          .map((track) => Padding(
+                padding: const EdgeInsets.only(bottom: DesktopTheme.spacingSm),
+                child: MusicListTile(
+                  title: track.name,
+                  subtitle: '${track.artistName ?? l10n.unknownArtist} • ${track.albumName ?? l10n.unknownAlbum}',
+                  imageUrl: _getImageUrl(appState, track.imageUrl),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (track.duration != null)
+                        Text(
+                          _formatDuration(track.duration!),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: DesktopTheme.textTertiary,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      const SizedBox(width: DesktopTheme.spacingSm),
+                      DesktopIconButton(
+                        icon: Icons.more_horiz_rounded,
+                        onPressed: () {},
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    // Play track
+                    final trackIndex = appState.tracks.indexOf(track);
+                    appState.playPlaylist(appState.tracks, trackIndex);
+                  },
+                ),
+              ))
+          .toList(),
+    );
+  }
+
   String _formatDuration(int milliseconds) {
     final duration = Duration(milliseconds: milliseconds);
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
-  Widget _buildQuickAccessCard(
-    BuildContext context,
-    String title,
-    String subtitle,
-    IconData icon,
-    Color color,
-  ) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: AppleDesignSystem.blurThin,
-          sigmaY: AppleDesignSystem.blurThin,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {},
-            borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
-            child: Container(
-              padding: const EdgeInsets.all(AppleDesignSystem.spacing20),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
-                    : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05),
-                  width: 0.5,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppleDesignSystem.spacing12),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(height: AppleDesignSystem.spacing16),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleBody,
-                      fontWeight: AppleDesignSystem.weightSemiBold,
-                      color: isDark 
-                          ? AppleColors.labelPrimaryDark 
-                          : AppleColors.labelPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppleDesignSystem.spacing4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleCaption1,
-                      color: isDark 
-                          ? AppleColors.labelSecondaryDark 
-                          : AppleColors.labelSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
