@@ -92,8 +92,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
           .debounceTime(const Duration(milliseconds: 100))
           .listen((duration) {
             try {
-              if (!_disposed)
+              if (!_disposed) {
                 _stateController.updateDuration(duration ?? Duration.zero);
+              }
             } catch (e) {
               // Ignore - callback may have fired after disposal
             }
