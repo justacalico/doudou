@@ -25,9 +25,12 @@ class DesktopAudioHandler implements BaseAudioHandler {
   // Disposed flag to prevent callbacks after cleanup
   bool _disposed = false;
 
-  // Loading lock to prevent concurrent load operations
-  bool _isLoading = false;
+  // Loading operation management - use Completer for proper async coordination
+  Completer<void>? _currentLoadOperation;
   int _loadOperationId = 0;
+  
+  // Track the last successfully loaded URL to avoid reloading the same track
+  String? _lastLoadedUrl;
 
   // Radio mode state
   bool _radioModeEnabled = false;
@@ -716,21 +719,18 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
     // Increment operation ID to invalidate any previous in-flight operations
     final currentOperationId = ++_loadOperationId;
-
-    // If already loading, stop the player first to cancel the previous operation
-    if (_isLoading) {
+    
+    // Cancel any existing load operation
+    if (_currentLoadOperation != null && !_currentLoadOperation!.isCompleted) {
       if (kDebugMode) {
         print('DesktopAudioHandler: Cancelling previous load operation');
       }
-      try {
-        await _player.stop();
-        await Future.delayed(const Duration(milliseconds: 100));
-      } catch (e) {
-        // Ignore
-      }
+      // Don't await - just let it know it's cancelled via operation ID
     }
-
-    _isLoading = true;
+    
+    // Create a new completer for this operation
+    final completer = Completer<void>();
+    _currentLoadOperation = completer;
 
     try {
       if (kDebugMode) {
@@ -744,8 +744,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
       // This ensures the previous media_kit/mpv instance releases its callbacks
       try {
         await _player.stop();
-        // Delay to allow native callbacks to settle
-        await Future.delayed(const Duration(milliseconds: 100));
+        // Give native layer time to clean up callbacks - this is critical!
+        await Future.delayed(const Duration(milliseconds: 150));
       } catch (e) {
         // Ignore stop errors - player might already be stopped
         if (kDebugMode) {
@@ -758,6 +758,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
         if (kDebugMode) {
           print('DesktopAudioHandler: Load operation cancelled (superseded)');
         }
+        if (!completer.isCompleted) completer.complete();
         return;
       }
 
@@ -826,6 +827,7 @@ class DesktopAudioHandler implements BaseAudioHandler {
         if (kDebugMode) {
           print('DesktopAudioHandler: Load operation cancelled before play');
         }
+        if (!completer.isCompleted) completer.complete();
         return;
       }
 
@@ -837,6 +839,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
             throw Exception('Playback start timed out after 3 seconds');
           },
         );
+        
+        // Track the successfully loaded URL
+        _lastLoadedUrl = url;
 
         if (kDebugMode) {
           print('DesktopAudioHandler: Playback started successfully');
@@ -847,8 +852,14 @@ class DesktopAudioHandler implements BaseAudioHandler {
         }
         rethrow;
       }
+      
+      // Complete successfully
+      if (!completer.isCompleted) completer.complete();
     } catch (e) {
-      if (_disposed || currentOperationId != _loadOperationId) return;
+      if (_disposed || currentOperationId != _loadOperationId) {
+        if (!completer.isCompleted) completer.complete();
+        return;
+      }
 
       if (kDebugMode) {
         print('DesktopAudioHandler: Load and play failed: $e');
@@ -856,9 +867,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
       _stateController.updateState(AudioPlayerState.error);
       _stateController.updateUserIntent(false);
       _stateController.updateError('Failed to load track: $e');
+      if (!completer.isCompleted) completer.completeError(e);
       rethrow;
-    } finally {
-      _isLoading = false;
     }
   }
 
