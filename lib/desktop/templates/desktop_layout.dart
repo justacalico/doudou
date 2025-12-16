@@ -1175,7 +1175,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                   final showSidebar = constraints.maxWidth >= 700;
                   
                   return Scaffold(
-                    backgroundColor: const Color(0xFF0F0F0F),
+                    backgroundColor: DesktopTheme.backgroundDeep,
                     body: Row(
                       children: [
                         // Main content area (left side - like YouTube Music video area)
