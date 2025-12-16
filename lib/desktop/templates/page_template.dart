@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../widgets/apple_design/apple_theme.dart';
 import 'desktop_theme.dart';
 
 /// Modern page template with gradient header and glass effects
