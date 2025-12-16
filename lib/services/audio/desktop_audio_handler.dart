@@ -22,6 +22,9 @@ class DesktopAudioHandler implements BaseAudioHandler {
   // Stream subscriptions for proper cleanup
   late final List<StreamSubscription> _subscriptions = [];
   
+  // Disposed flag to prevent callbacks after cleanup
+  bool _disposed = false;
+  
   // Radio mode state
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
@@ -110,6 +113,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   /// Handle player state changes
   void _handlePlayerStateChange(PlayerState playerState) {
+    if (_disposed) return;
+    
     switch (playerState.processingState) {
       case ProcessingState.idle:
         _stateController.updateState(AudioPlayerState.idle);
@@ -133,6 +138,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   /// Handle processing state changes
   void _handleProcessingStateChange(ProcessingState state) {
+    if (_disposed) return;
+    
     if (state == ProcessingState.ready) {
       _stateController.clearError();
     }
@@ -140,6 +147,8 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
+    if (_disposed) return;
+    
     if (kDebugMode) {
       print('DesktopAudioHandler: Track completed');
     }
@@ -942,13 +951,16 @@ class DesktopAudioHandler implements BaseAudioHandler {
 
   @override
   Future<void> dispose() async {
+    // Set disposed flag FIRST to prevent any callbacks from executing
+    _disposed = true;
+    
     if (kDebugMode) {
       print('DesktopAudioHandler: Disposing...');
     }
 
-    // Cancel all subscriptions
+    // Cancel all subscriptions immediately
     for (final subscription in _subscriptions) {
-      subscription.cancel();
+      await subscription.cancel();
     }
     _subscriptions.clear();
 
