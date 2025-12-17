@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:palette_generator/palette_generator.dart';
 import '../../l10n/app_localizations.dart';
 import '../pages/home.dart';
 import '../services/navigation_service.dart';
@@ -574,9 +575,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   currentTrack,
                                   accentColor,
                                 ),
-                                
+
                                 const SizedBox(width: 20),
-                                
+
                                 // Center: Album art + Track info + Progress
                                 Expanded(
                                   child: _buildCenterSection(
@@ -590,9 +591,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     accentColor,
                                   ),
                                 ),
-                                
+
                                 const SizedBox(width: 20),
-                                
+
                                 // Right: Volume + Queue
                                 _buildCompactRightControls(
                                   audioHandler,
@@ -625,9 +626,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       builder: (context, playbackSnapshot) {
         final playbackState = playbackSnapshot.data;
         final isPlaying = playbackState?.playing == true;
-        final isBuffering = playbackState?.processingState == AudioProcessingState.buffering;
+        final isBuffering =
+            playbackState?.processingState == AudioProcessingState.buffering;
         final isShuffled = audioHandler?.isShuffled ?? false;
-        final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
+        final repeatMode =
+            audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
 
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -641,9 +644,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               isActive: isShuffled,
               activeColor: accentColor,
             ),
-            
+
             const SizedBox(width: 8),
-            
+
             // Previous
             _buildMiniButton(
               icon: Icons.skip_previous_rounded,
@@ -652,21 +655,22 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   : null,
               size: 22,
             ),
-            
+
             const SizedBox(width: 4),
-            
+
             // Play/Pause
             _buildCompactPlayButton(
               isPlaying: isPlaying,
               isBuffering: isBuffering,
-              onPressed: audioHandler != null && currentTrack != null && !isBuffering
+              onPressed:
+                  audioHandler != null && currentTrack != null && !isBuffering
                   ? () => appState.playPause()
                   : null,
               accentColor: accentColor,
             ),
-            
+
             const SizedBox(width: 4),
-            
+
             // Next
             _buildMiniButton(
               icon: Icons.skip_next_rounded,
@@ -675,9 +679,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   : null,
               size: 22,
             ),
-            
+
             const SizedBox(width: 8),
-            
+
             // Repeat
             _buildMiniButton(
               icon: repeatMode == base_handler.RepeatMode.one
@@ -687,13 +691,19 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   ? () {
                       switch (repeatMode) {
                         case base_handler.RepeatMode.none:
-                          audioHandler.setRepeatMode(base_handler.RepeatMode.all);
+                          audioHandler.setRepeatMode(
+                            base_handler.RepeatMode.all,
+                          );
                           break;
                         case base_handler.RepeatMode.all:
-                          audioHandler.setRepeatMode(base_handler.RepeatMode.one);
+                          audioHandler.setRepeatMode(
+                            base_handler.RepeatMode.one,
+                          );
                           break;
                         case base_handler.RepeatMode.one:
-                          audioHandler.setRepeatMode(base_handler.RepeatMode.none);
+                          audioHandler.setRepeatMode(
+                            base_handler.RepeatMode.none,
+                          );
                           break;
                       }
                     }
@@ -721,7 +731,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     return GestureDetector(
       onTap: onPressed,
       child: MouseRegion(
-        cursor: onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        cursor: onPressed != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         child: Padding(
           padding: const EdgeInsets.all(6),
           child: Icon(icon, color: color, size: size),
@@ -739,14 +751,13 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     return GestureDetector(
       onTap: onPressed,
       child: MouseRegion(
-        cursor: onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        cursor: onPressed != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         child: Container(
           width: 32,
           height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: accentColor,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: accentColor),
           child: isBuffering
               ? Padding(
                   padding: const EdgeInsets.all(8),
@@ -778,7 +789,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     return GestureDetector(
       onTap: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
       child: MouseRegion(
-        cursor: currentTrack != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        cursor: currentTrack != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         child: Row(
           children: [
             // Album art
@@ -808,9 +821,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       ),
               ),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Track info + Progress bar
             Expanded(
               child: Column(
@@ -861,9 +874,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       ],
                     ],
                   ),
-                  
+
                   const SizedBox(height: 6),
-                  
+
                   // Progress bar with times
                   Row(
                     children: [
@@ -929,7 +942,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         cursor: SystemMouseCursors.click,
         child: Icon(
           isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-          color: isFavorite ? const Color(0xFFFF2D55) : Colors.white.withOpacity(0.4),
+          color: isFavorite
+              ? const Color(0xFFFF2D55)
+              : Colors.white.withOpacity(0.4),
           size: 16,
         ),
       ),
@@ -947,14 +962,18 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       builder: (context, constraints) {
         final trackWidth = constraints.maxWidth;
         final playheadPosition = (progress.clamp(0.0, 1.0) * trackWidth);
-        
+
         return GestureDetector(
           onTapDown: currentTrack != null && audioHandler != null
               ? (details) {
                   final tapPosition = details.localPosition.dx;
-                  final newProgress = (tapPosition / trackWidth).clamp(0.0, 1.0);
+                  final newProgress = (tapPosition / trackWidth).clamp(
+                    0.0,
+                    1.0,
+                  );
                   final newPosition = Duration(
-                    milliseconds: (newProgress * duration.inMilliseconds).round(),
+                    milliseconds: (newProgress * duration.inMilliseconds)
+                        .round(),
                   );
                   audioHandler.seek(newPosition);
                 }
@@ -962,15 +981,21 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           onHorizontalDragUpdate: currentTrack != null && audioHandler != null
               ? (details) {
                   final dragPosition = details.localPosition.dx;
-                  final newProgress = (dragPosition / trackWidth).clamp(0.0, 1.0);
+                  final newProgress = (dragPosition / trackWidth).clamp(
+                    0.0,
+                    1.0,
+                  );
                   final newPosition = Duration(
-                    milliseconds: (newProgress * duration.inMilliseconds).round(),
+                    milliseconds: (newProgress * duration.inMilliseconds)
+                        .round(),
                   );
                   audioHandler.seek(newPosition);
                 }
               : null,
           child: MouseRegion(
-            cursor: currentTrack != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            cursor: currentTrack != null
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
             child: Container(
               height: 20,
               alignment: Alignment.center,
@@ -987,7 +1012,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  
+
                   // Progress fill
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 50),
@@ -998,7 +1023,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  
+
                   // Playhead circle
                   if (currentTrack != null)
                     AnimatedPositioned(
@@ -1029,10 +1054,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     );
   }
 
-  Widget _buildCompactRightControls(
-    dynamic audioHandler,
-    Color accentColor,
-  ) {
+  Widget _buildCompactRightControls(dynamic audioHandler, Color accentColor) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1049,8 +1071,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   icon: currentVolume == 0.0
                       ? Icons.volume_off_rounded
                       : currentVolume < 0.5
-                          ? Icons.volume_down_rounded
-                          : Icons.volume_up_rounded,
+                      ? Icons.volume_down_rounded
+                      : Icons.volume_up_rounded,
                   onPressed: () {
                     if (audioHandler != null) {
                       audioHandler.setVolume(currentVolume == 0.0 ? 1.0 : 0.0);
@@ -1071,17 +1093,17 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             );
           },
         ),
-        
+
         const SizedBox(width: 12),
-        
+
         // Queue button
         _buildMiniButton(
           icon: Icons.queue_music_rounded,
           onPressed: () => _showNowPlayingDialog(context),
         ),
-        
+
         const SizedBox(width: 4),
-        
+
         // Fullscreen button
         _buildMiniButton(
           icon: Icons.open_in_full_rounded,
@@ -1109,7 +1131,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             }
           : null,
       child: MouseRegion(
-        cursor: onChanged != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        cursor: onChanged != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         child: Container(
           height: 16,
           alignment: Alignment.center,
@@ -1211,6 +1235,8 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
   late TabController _tabController;
   bool _showLyrics = false;
   final FocusNode _focusNode = FocusNode();
+  Color? _dominantColor;
+  String? _currentArtUrl;
 
   @override
   void initState() {
@@ -1227,6 +1253,35 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
     _tabController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _extractDominantColor(String? artUrl) async {
+    if (artUrl == null || artUrl == _currentArtUrl) return;
+
+    _currentArtUrl = artUrl;
+
+    try {
+      final paletteGenerator = await PaletteGenerator.fromImageProvider(
+        NetworkImage(artUrl),
+        size: const Size(100, 100),
+        maximumColorCount: 16,
+      );
+
+      // Try to get the dominant color, fallback to vibrant or muted
+      final color =
+          paletteGenerator.dominantColor?.color ??
+          paletteGenerator.vibrantColor?.color ??
+          paletteGenerator.mutedColor?.color;
+
+      if (mounted && color != null) {
+        setState(() {
+          _dominantColor = color;
+        });
+      }
+    } catch (e) {
+      // Silently fail - will use default accent color
+      debugPrint('Failed to extract dominant color: $e');
+    }
   }
 
   void _handleKeyEvent(
@@ -1652,19 +1707,38 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
   }
 
   Widget _buildAlbumArt(MediaItem? currentTrack) {
+    // Extract dominant color when track changes
+    if (currentTrack?.artUri != null) {
+      _extractDominantColor(currentTrack!.artUri.toString());
+    } else if (_currentArtUrl != null) {
+      // Reset when no track
+      _currentArtUrl = null;
+      _dominantColor = null;
+    }
+
+    // Use extracted color or fall back to accent
+    final glowColor = _dominantColor ?? DesktopTheme.accentPrimary;
+
     return Container(
       constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
       margin: const EdgeInsets.all(32),
       child: AspectRatio(
         aspectRatio: 1.0,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusLg),
             boxShadow: [
               BoxShadow(
-                color: DesktopTheme.accentPrimary.withOpacity(0.15),
+                color: glowColor.withOpacity(0.35),
                 blurRadius: 60,
                 spreadRadius: 20,
+              ),
+              BoxShadow(
+                color: glowColor.withOpacity(0.15),
+                blurRadius: 100,
+                spreadRadius: 30,
               ),
               BoxShadow(
                 color: Colors.black.withOpacity(0.5),
@@ -1719,7 +1793,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
   ) {
     final theme = Theme.of(context);
     final accentColor = theme.colorScheme.primary;
-    
+
     return Container(
       padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
       child: Column(
@@ -1876,23 +1950,34 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                       LayoutBuilder(
                         builder: (context, constraints) {
                           final trackWidth = constraints.maxWidth;
-                          final playheadPosition = progress.clamp(0.0, 1.0) * trackWidth;
-                          
+                          final playheadPosition =
+                              progress.clamp(0.0, 1.0) * trackWidth;
+
                           return GestureDetector(
-                            onTapDown: currentTrack != null && audioHandler != null
+                            onTapDown:
+                                currentTrack != null && audioHandler != null
                                 ? (details) {
-                                    final tapPosition = details.localPosition.dx / trackWidth;
+                                    final tapPosition =
+                                        details.localPosition.dx / trackWidth;
                                     final newPosition = Duration(
-                                      milliseconds: (tapPosition.clamp(0.0, 1.0) * duration.inMilliseconds).round(),
+                                      milliseconds:
+                                          (tapPosition.clamp(0.0, 1.0) *
+                                                  duration.inMilliseconds)
+                                              .round(),
                                     );
                                     audioHandler.seek(newPosition);
                                   }
                                 : null,
-                            onHorizontalDragUpdate: currentTrack != null && audioHandler != null
+                            onHorizontalDragUpdate:
+                                currentTrack != null && audioHandler != null
                                 ? (details) {
-                                    final dragPosition = details.localPosition.dx / trackWidth;
+                                    final dragPosition =
+                                        details.localPosition.dx / trackWidth;
                                     final newPosition = Duration(
-                                      milliseconds: (dragPosition.clamp(0.0, 1.0) * duration.inMilliseconds).round(),
+                                      milliseconds:
+                                          (dragPosition.clamp(0.0, 1.0) *
+                                                  duration.inMilliseconds)
+                                              .round(),
                                     );
                                     audioHandler.seek(newPosition);
                                   }
@@ -1962,7 +2047,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                               color: accentColor,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                           Text(
@@ -1971,7 +2058,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                               color: Colors.white.withOpacity(0.5),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                         ],
@@ -3824,8 +3913,8 @@ class _SpotifyActionButtonState extends State<_SpotifyActionButton> {
     final color = widget.isActive
         ? (widget.activeColor ?? Colors.white)
         : _isHovered
-            ? Colors.white
-            : Colors.white.withOpacity(0.6);
+        ? Colors.white
+        : Colors.white.withOpacity(0.6);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -3836,11 +3925,7 @@ class _SpotifyActionButtonState extends State<_SpotifyActionButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(8),
-          child: Icon(
-            widget.icon,
-            color: color,
-            size: 24,
-          ),
+          child: Icon(widget.icon, color: color, size: 24),
         ),
       ),
     );
@@ -3877,10 +3962,10 @@ class _SpotifyControlButtonState extends State<_SpotifyControlButton> {
     final color = isDisabled
         ? Colors.white.withOpacity(0.3)
         : widget.isActive
-            ? (widget.activeColor ?? Colors.white)
-            : _isHovered
-                ? Colors.white
-                : Colors.white.withOpacity(0.7);
+        ? (widget.activeColor ?? Colors.white)
+        : _isHovered
+        ? Colors.white
+        : Colors.white.withOpacity(0.7);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -3900,11 +3985,7 @@ class _SpotifyControlButtonState extends State<_SpotifyControlButton> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  widget.icon,
-                  color: color,
-                  size: widget.size,
-                ),
+                Icon(widget.icon, color: color, size: widget.size),
                 // Active indicator dot
                 if (widget.isActive)
                   Container(
@@ -3950,7 +4031,7 @@ class _SpotifyPlayButtonState extends State<_SpotifyPlayButton> {
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -3961,7 +4042,11 @@ class _SpotifyPlayButtonState extends State<_SpotifyPlayButton> {
         onTapUp: (_) => setState(() => _isPressed = false),
         onTapCancel: () => setState(() => _isPressed = false),
         child: AnimatedScale(
-          scale: _isPressed ? 0.95 : _isHovered ? 1.05 : 1.0,
+          scale: _isPressed
+              ? 0.95
+              : _isHovered
+              ? 1.05
+              : 1.0,
           duration: const Duration(milliseconds: 100),
           child: Container(
             width: 56,
