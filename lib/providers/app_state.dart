@@ -1695,18 +1695,33 @@ class AppState extends ChangeNotifier {
       final freshTracks = await _mediaServiceManager.getTracks();
 
       if (freshTracks.isNotEmpty) {
-        // Update tracks with fresh data (including favorite status)
-        _tracks = freshTracks;
+        // For Navidrome, getTracks returns random songs which may not include
+        // the tracks we have locally. Merge fresh data with existing tracks
+        // to preserve favorite status and ensure we don't lose tracks.
+        final Map<String, Track> trackMap = {};
+        
+        // First, add all existing tracks to the map
+        for (final track in _tracks) {
+          trackMap[track.id] = track;
+        }
+        
+        // Then, update with fresh tracks (this updates favorite status for tracks that exist in both)
+        for (final freshTrack in freshTracks) {
+          trackMap[freshTrack.id] = freshTrack;
+        }
+        
+        // Convert back to list
+        _tracks = trackMap.values.toList();
 
         // Update cache
-        await _cacheService.cacheTracks(freshTracks);
+        await _cacheService.cacheTracks(_tracks);
 
         // Notify listeners to update UI
         notifyListeners();
 
         if (kDebugMode) {
           print(
-            'AppState: Tracks refreshed successfully with ${freshTracks.length} tracks',
+            'AppState: Tracks refreshed successfully with ${_tracks.length} tracks',
           );
         }
       }
