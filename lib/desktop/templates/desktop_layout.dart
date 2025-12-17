@@ -945,12 +945,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final trackWidth = constraints.maxWidth;
+        final playheadPosition = (progress.clamp(0.0, 1.0) * trackWidth);
+        
         return GestureDetector(
           onTapDown: currentTrack != null && audioHandler != null
               ? (details) {
-                  final width = constraints.maxWidth;
                   final tapPosition = details.localPosition.dx;
-                  final newProgress = (tapPosition / width).clamp(0.0, 1.0);
+                  final newProgress = (tapPosition / trackWidth).clamp(0.0, 1.0);
                   final newPosition = Duration(
                     milliseconds: (newProgress * duration.inMilliseconds).round(),
                   );
@@ -959,9 +961,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               : null,
           onHorizontalDragUpdate: currentTrack != null && audioHandler != null
               ? (details) {
-                  final width = constraints.maxWidth;
                   final dragPosition = details.localPosition.dx;
-                  final newProgress = (dragPosition / width).clamp(0.0, 1.0);
+                  final newProgress = (dragPosition / trackWidth).clamp(0.0, 1.0);
                   final newPosition = Duration(
                     milliseconds: (newProgress * duration.inMilliseconds).round(),
                   );
@@ -971,29 +972,55 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           child: MouseRegion(
             cursor: currentTrack != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
             child: Container(
-              height: 16,
+              height: 20,
               alignment: Alignment.center,
-              child: Container(
-                height: 3,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(1.5),
-                ),
-                child: Stack(
-                  children: [
-                    AnimatedFractionallySizedBox(
-                      duration: const Duration(milliseconds: 80),
-                      widthFactor: progress.clamp(0.0, 1.0),
-                      alignment: Alignment.centerLeft,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                clipBehavior: Clip.none,
+                children: [
+                  // Track outline (full duration)
+                  Container(
+                    height: 4,
+                    width: trackWidth,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  
+                  // Progress fill
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 50),
+                    height: 4,
+                    width: playheadPosition,
+                    decoration: BoxDecoration(
+                      color: accentColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  
+                  // Playhead circle
+                  if (currentTrack != null)
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 50),
+                      left: playheadPosition - 6,
                       child: Container(
+                        width: 12,
+                        height: 12,
                         decoration: BoxDecoration(
                           color: accentColor,
-                          borderRadius: BorderRadius.circular(1.5),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.4),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
