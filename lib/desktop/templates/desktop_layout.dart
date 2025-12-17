@@ -2298,7 +2298,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: Text(
-                  _formatDuration(Duration(seconds: track.duration ?? 0)),
+                  _formatDuration(Duration(milliseconds: track.duration ?? 0)),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.5),
                     fontSize: 12,
