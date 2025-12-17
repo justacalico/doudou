@@ -291,7 +291,7 @@ build_release_linux:
   before_script:
     # Install dependencies more efficiently
     - apt-get update -qq
-    - apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev libmpv-dev zip
+    - apt-get install -y -qq clang lld cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev libmpv-dev zip
     - rm -rf build/ .dart_tool/ .flutter-plugins-dependencies || true
   script:
     - flutter config --enable-linux-desktop
