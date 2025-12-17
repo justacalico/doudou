@@ -355,7 +355,7 @@ class NavidromeService implements BaseMediaService {
           name: song['title'],
           artistName: song['artist'] ?? 'Unknown Artist',
           albumName: song['album'] ?? 'Unknown Album',
-          duration: song['duration'],
+          duration: song['duration'] != null ? (song['duration'] as int) * 1000 : null, // Convert seconds to milliseconds
           trackNumber: song['track'],
           imageUrl: song['coverArt'] != null ? '$_serverUrl/rest/getCoverArt?id=${song['coverArt']}&${Uri(queryParameters: _baseParams).query}' : null,
           isFavorite: song['starred'] != null, // Navidrome uses 'starred' field with timestamp or null
