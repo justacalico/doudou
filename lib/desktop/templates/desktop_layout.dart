@@ -550,116 +550,55 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             ? position.inMilliseconds / duration.inMilliseconds
                             : 0.0;
 
-                        // Extract dominant color from album art for glow effect
                         final accentColor = theme.colorScheme.primary;
 
                         return Container(
+                          height: 64,
                           decoration: BoxDecoration(
-                            // Gradient background that fades from transparent to solid
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                const Color(0xFF0D0D0D).withOpacity(0.95),
-                                const Color(0xFF0D0D0D),
-                              ],
-                              stops: const [0.0, 0.3, 1.0],
+                            color: const Color(0xFF1C1C1E),
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.white.withOpacity(0.08),
+                                width: 0.5,
+                              ),
                             ),
                           ),
-                          child: ClipRRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 30,
-                                sigmaY: 30,
-                              ),
-                              child: Container(
-                                height: 90,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1A1A1A).withOpacity(0.7),
-                                  border: Border(
-                                    top: BorderSide(
-                                      color: Colors.white.withOpacity(0.06),
-                                      width: 1,
-                                    ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                // Left: Playback controls
+                                _buildCompactControls(
+                                  appState,
+                                  audioHandler,
+                                  currentTrack,
+                                  accentColor,
+                                ),
+                                
+                                const SizedBox(width: 20),
+                                
+                                // Center: Album art + Track info + Progress
+                                Expanded(
+                                  child: _buildCenterSection(
+                                    l10n,
+                                    currentTrack,
+                                    appState,
+                                    audioHandler,
+                                    position,
+                                    duration,
+                                    progress,
+                                    accentColor,
                                   ),
                                 ),
-                                child: Stack(
-                                  children: [
-                                    // Accent glow behind album art
-                                    if (currentTrack != null)
-                                      Positioned(
-                                        left: 20,
-                                        top: 0,
-                                        bottom: 0,
-                                        child: Center(
-                                          child: Container(
-                                            width: 100,
-                                            height: 100,
-                                            decoration: BoxDecoration(
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: accentColor.withOpacity(0.3),
-                                                  blurRadius: 40,
-                                                  spreadRadius: 5,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    
-                                    // Main content
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                                      child: Row(
-                                        children: [
-                                          // Track info (left)
-                                          Expanded(
-                                            flex: 3,
-                                            child: _buildModernTrackInfo(
-                                              theme,
-                                              l10n,
-                                              currentTrack,
-                                              appState,
-                                              accentColor,
-                                            ),
-                                          ),
-
-                                          // Player controls (center)
-                                          Expanded(
-                                            flex: 4,
-                                            child: _buildModernPlayerControls(
-                                              theme,
-                                              l10n,
-                                              appState,
-                                              audioHandler,
-                                              currentTrack,
-                                              position,
-                                              duration,
-                                              progress,
-                                              accentColor,
-                                            ),
-                                          ),
-
-                                          // Right side controls
-                                          Expanded(
-                                            flex: 3,
-                                            child: _buildModernRightControls(
-                                              theme,
-                                              l10n,
-                                              appState,
-                                              audioHandler,
-                                              currentTrack,
-                                              accentColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                
+                                const SizedBox(width: 20),
+                                
+                                // Right: Volume + Queue
+                                _buildCompactRightControls(
+                                  audioHandler,
+                                  accentColor,
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         );
@@ -675,128 +614,298 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     );
   }
 
-  Widget _buildModernTrackInfo(
-    ThemeData theme,
+  Widget _buildCompactControls(
+    AppState appState,
+    dynamic audioHandler,
+    MediaItem? currentTrack,
+    Color accentColor,
+  ) {
+    return StreamBuilder<PlaybackState>(
+      stream: audioHandler?.playbackState,
+      builder: (context, playbackSnapshot) {
+        final playbackState = playbackSnapshot.data;
+        final isPlaying = playbackState?.playing == true;
+        final isBuffering = playbackState?.processingState == AudioProcessingState.buffering;
+        final isShuffled = audioHandler?.isShuffled ?? false;
+        final repeatMode = audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
+
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Shuffle
+            _buildMiniButton(
+              icon: Icons.shuffle_rounded,
+              onPressed: audioHandler != null
+                  ? () => audioHandler.setShuffleMode(!isShuffled)
+                  : null,
+              isActive: isShuffled,
+              activeColor: accentColor,
+            ),
+            
+            const SizedBox(width: 8),
+            
+            // Previous
+            _buildMiniButton(
+              icon: Icons.skip_previous_rounded,
+              onPressed: audioHandler != null && audioHandler.hasPrevious
+                  ? () => appState.skipToPrevious()
+                  : null,
+              size: 22,
+            ),
+            
+            const SizedBox(width: 4),
+            
+            // Play/Pause
+            _buildCompactPlayButton(
+              isPlaying: isPlaying,
+              isBuffering: isBuffering,
+              onPressed: audioHandler != null && currentTrack != null && !isBuffering
+                  ? () => appState.playPause()
+                  : null,
+              accentColor: accentColor,
+            ),
+            
+            const SizedBox(width: 4),
+            
+            // Next
+            _buildMiniButton(
+              icon: Icons.skip_next_rounded,
+              onPressed: audioHandler != null && audioHandler.hasNext
+                  ? () => appState.skipToNext()
+                  : null,
+              size: 22,
+            ),
+            
+            const SizedBox(width: 8),
+            
+            // Repeat
+            _buildMiniButton(
+              icon: repeatMode == base_handler.RepeatMode.one
+                  ? Icons.repeat_one_rounded
+                  : Icons.repeat_rounded,
+              onPressed: audioHandler != null
+                  ? () {
+                      switch (repeatMode) {
+                        case base_handler.RepeatMode.none:
+                          audioHandler.setRepeatMode(base_handler.RepeatMode.all);
+                          break;
+                        case base_handler.RepeatMode.all:
+                          audioHandler.setRepeatMode(base_handler.RepeatMode.one);
+                          break;
+                        case base_handler.RepeatMode.one:
+                          audioHandler.setRepeatMode(base_handler.RepeatMode.none);
+                          break;
+                      }
+                    }
+                  : null,
+              isActive: repeatMode != base_handler.RepeatMode.none,
+              activeColor: accentColor,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMiniButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool isActive = false,
+    double size = 18,
+    Color? activeColor,
+  }) {
+    final color = isActive
+        ? (activeColor ?? Colors.white)
+        : Colors.white.withOpacity(onPressed != null ? 0.6 : 0.25);
+
+    return GestureDetector(
+      onTap: onPressed,
+      child: MouseRegion(
+        cursor: onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(icon, color: color, size: size),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactPlayButton({
+    required bool isPlaying,
+    required bool isBuffering,
+    required VoidCallback? onPressed,
+    required Color accentColor,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: MouseRegion(
+        cursor: onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: accentColor,
+          ),
+          child: isBuffering
+              ? Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Icon(
+                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCenterSection(
     AppLocalizations l10n,
     MediaItem? currentTrack,
     AppState appState,
+    dynamic audioHandler,
+    Duration position,
+    Duration duration,
+    double progress,
     Color accentColor,
   ) {
     return GestureDetector(
       onTap: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
       child: MouseRegion(
-        cursor: currentTrack != null
-            ? SystemMouseCursors.click
-            : SystemMouseCursors.basic,
+        cursor: currentTrack != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
         child: Row(
           children: [
-            // Album art with glow
-            _buildModernAlbumArt(currentTrack, theme, accentColor),
-
-            const SizedBox(width: 16),
-
-            // Track details
+            // Album art
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: const Color(0xFF2C2C2E),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: currentTrack?.artUri != null
+                    ? Image.network(
+                        currentTrack!.artUri.toString(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Icon(
+                          Icons.music_note_rounded,
+                          color: Colors.white.withOpacity(0.3),
+                          size: 20,
+                        ),
+                      )
+                    : Icon(
+                        Icons.music_note_rounded,
+                        color: Colors.white.withOpacity(0.3),
+                        size: 20,
+                      ),
+              ),
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // Track info + Progress bar
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    currentTrack?.title ?? l10n.noTrackPlaying,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      letterSpacing: -0.3,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // Track title and artist
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          currentTrack?.title ?? l10n.noTrackPlaying,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (currentTrack != null) ...[
+                        Text(
+                          '  •••  ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.4),
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            currentTrack.artist ?? '',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.5),
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      // Favorite button inline
+                      if (currentTrack != null) ...[
+                        const SizedBox(width: 8),
+                        _buildInlineFavoriteButton(currentTrack, appState),
+                      ],
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    currentTrack?.artist ?? l10n.selectSongToPlay,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.5),
-                      letterSpacing: -0.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  
+                  const SizedBox(height: 6),
+                  
+                  // Progress bar with times
+                  Row(
+                    children: [
+                      Text(
+                        _formatDuration(position),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white.withOpacity(0.4),
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildCompactProgressBar(
+                          progress: progress,
+                          duration: duration,
+                          audioHandler: audioHandler,
+                          currentTrack: currentTrack,
+                          accentColor: accentColor,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '-${_formatDuration(duration - position)}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white.withOpacity(0.4),
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-
-            // Favorite button
-            if (currentTrack != null)
-              _buildModernFavoriteButton(theme, l10n, currentTrack, appState),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildModernAlbumArt(MediaItem? currentTrack, ThemeData theme, Color accentColor) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-          if (currentTrack != null)
-            BoxShadow(
-              color: accentColor.withOpacity(0.2),
-              blurRadius: 20,
-              spreadRadius: -5,
-            ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: currentTrack?.artUri != null
-            ? Image.network(
-                currentTrack!.artUri.toString(),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildModernAlbumArtPlaceholder();
-                },
-              )
-            : _buildModernAlbumArtPlaceholder(),
-      ),
-    );
-  }
-
-  Widget _buildModernAlbumArtPlaceholder() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF2A2A2A),
-            const Color(0xFF1A1A1A),
-          ],
-        ),
-      ),
-      child: Icon(
-        Icons.music_note_rounded,
-        color: Colors.white.withOpacity(0.3),
-        size: 24,
-      ),
-    );
-  }
-
-  Widget _buildModernFavoriteButton(
-    ThemeData theme,
-    AppLocalizations l10n,
-    MediaItem currentTrack,
-    AppState appState,
-  ) {
+  Widget _buildInlineFavoriteButton(MediaItem currentTrack, AppState appState) {
     final trackInState = appState.tracks.firstWhere(
       (t) => t.id == currentTrack.id,
       orElse: () => Track(
@@ -818,267 +927,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       onTap: () => appState.toggleFavorite(trackInState),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(8),
-          child: Icon(
-            isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            color: isFavorite 
-                ? const Color(0xFFFF2D55) 
-                : Colors.white.withOpacity(0.5),
-            size: 22,
-          ),
+        child: Icon(
+          isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          color: isFavorite ? const Color(0xFFFF2D55) : Colors.white.withOpacity(0.4),
+          size: 16,
         ),
       ),
     );
   }
 
-  Widget _buildModernPlayerControls(
-    ThemeData theme,
-    AppLocalizations l10n,
-    AppState appState,
-    dynamic audioHandler,
-    MediaItem? currentTrack,
-    Duration position,
-    Duration duration,
-    double progress,
-    Color accentColor,
-  ) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Main controls row
-        StreamBuilder<PlaybackState>(
-          stream: audioHandler?.playbackState,
-          builder: (context, playbackSnapshot) {
-            final playbackState = playbackSnapshot.data;
-            final isPlaying = playbackState?.playing == true;
-            final isBuffering =
-                playbackState?.processingState ==
-                AudioProcessingState.buffering;
-            final isShuffled = audioHandler?.isShuffled ?? false;
-            final repeatMode =
-                audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
-
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Shuffle
-                _buildControlButton(
-                  icon: Icons.shuffle_rounded,
-                  onPressed: audioHandler != null
-                      ? () => audioHandler.setShuffleMode(!isShuffled)
-                      : null,
-                  isActive: isShuffled,
-                  size: 20,
-                  activeColor: accentColor,
-                ),
-
-                const SizedBox(width: 20),
-
-                // Previous
-                _buildControlButton(
-                  icon: Icons.skip_previous_rounded,
-                  onPressed: audioHandler != null && audioHandler.hasPrevious
-                      ? () => appState.skipToPrevious()
-                      : null,
-                  size: 28,
-                ),
-
-                const SizedBox(width: 12),
-
-                // Play/Pause - main button
-                _buildPlayPauseButton(
-                  isPlaying: isPlaying,
-                  isBuffering: isBuffering,
-                  onPressed: audioHandler != null &&
-                      currentTrack != null &&
-                      !isBuffering
-                      ? () => appState.playPause()
-                      : null,
-                  accentColor: accentColor,
-                ),
-
-                const SizedBox(width: 12),
-
-                // Next
-                _buildControlButton(
-                  icon: Icons.skip_next_rounded,
-                  onPressed: audioHandler != null && audioHandler.hasNext
-                      ? () => appState.skipToNext()
-                      : null,
-                  size: 28,
-                ),
-
-                const SizedBox(width: 20),
-
-                // Repeat
-                _buildControlButton(
-                  icon: repeatMode == base_handler.RepeatMode.one
-                      ? Icons.repeat_one_rounded
-                      : Icons.repeat_rounded,
-                  onPressed: audioHandler != null
-                      ? () {
-                          switch (repeatMode) {
-                            case base_handler.RepeatMode.none:
-                              audioHandler.setRepeatMode(
-                                base_handler.RepeatMode.all,
-                              );
-                              break;
-                            case base_handler.RepeatMode.all:
-                              audioHandler.setRepeatMode(
-                                base_handler.RepeatMode.one,
-                              );
-                              break;
-                            case base_handler.RepeatMode.one:
-                              audioHandler.setRepeatMode(
-                                base_handler.RepeatMode.none,
-                              );
-                              break;
-                          }
-                        }
-                      : null,
-                  isActive: repeatMode != base_handler.RepeatMode.none,
-                  size: 20,
-                  activeColor: accentColor,
-                ),
-              ],
-            );
-          },
-        ),
-
-        const SizedBox(height: 8),
-
-        // Progress bar with time
-        SizedBox(
-          width: 400,
-          child: Row(
-            children: [
-              // Current time
-              SizedBox(
-                width: 45,
-                child: Text(
-                  _formatDuration(position),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withOpacity(0.5),
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              
-              const SizedBox(width: 10),
-              
-              // Progress slider
-              Expanded(
-                child: _buildModernProgressSlider(
-                  progress: progress,
-                  duration: duration,
-                  audioHandler: audioHandler,
-                  currentTrack: currentTrack,
-                  accentColor: accentColor,
-                ),
-              ),
-              
-              const SizedBox(width: 10),
-              
-              // Total time
-              SizedBox(
-                width: 45,
-                child: Text(
-                  _formatDuration(duration),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withOpacity(0.5),
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required VoidCallback? onPressed,
-    bool isActive = false,
-    double size = 24,
-    Color? activeColor,
-  }) {
-    final color = isActive 
-        ? (activeColor ?? Colors.white) 
-        : Colors.white.withOpacity(onPressed != null ? 0.7 : 0.3);
-    
-    return GestureDetector(
-      onTap: onPressed,
-      child: MouseRegion(
-        cursor: onPressed != null 
-            ? SystemMouseCursors.click 
-            : SystemMouseCursors.basic,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.all(8),
-          child: Icon(
-            icon,
-            color: color,
-            size: size,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlayPauseButton({
-    required bool isPlaying,
-    required bool isBuffering,
-    required VoidCallback? onPressed,
-    required Color accentColor,
-  }) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: MouseRegion(
-        cursor: onPressed != null 
-            ? SystemMouseCursors.click 
-            : SystemMouseCursors.basic,
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: accentColor,
-            boxShadow: [
-              BoxShadow(
-                color: accentColor.withOpacity(0.4),
-                blurRadius: 16,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: isBuffering
-              ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Icon(
-                  isPlaying 
-                      ? Icons.pause_rounded 
-                      : Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModernProgressSlider({
+  Widget _buildCompactProgressBar({
     required double progress,
     required Duration duration,
     required dynamic audioHandler,
@@ -1099,6 +957,160 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   audioHandler.seek(newPosition);
                 }
               : null,
+          onHorizontalDragUpdate: currentTrack != null && audioHandler != null
+              ? (details) {
+                  final width = constraints.maxWidth;
+                  final dragPosition = details.localPosition.dx;
+                  final newProgress = (dragPosition / width).clamp(0.0, 1.0);
+                  final newPosition = Duration(
+                    milliseconds: (newProgress * duration.inMilliseconds).round(),
+                  );
+                  audioHandler.seek(newPosition);
+                }
+              : null,
+          child: MouseRegion(
+            cursor: currentTrack != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            child: Container(
+              height: 16,
+              alignment: Alignment.center,
+              child: Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(1.5),
+                ),
+                child: Stack(
+                  children: [
+                    AnimatedFractionallySizedBox(
+                      duration: const Duration(milliseconds: 80),
+                      widthFactor: progress.clamp(0.0, 1.0),
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: accentColor,
+                          borderRadius: BorderRadius.circular(1.5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCompactRightControls(
+    dynamic audioHandler,
+    Color accentColor,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Volume
+        StreamBuilder<double>(
+          stream: audioHandler?.volumeStream,
+          builder: (context, volumeSnapshot) {
+            final currentVolume = volumeSnapshot.data ?? 1.0;
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMiniButton(
+                  icon: currentVolume == 0.0
+                      ? Icons.volume_off_rounded
+                      : currentVolume < 0.5
+                          ? Icons.volume_down_rounded
+                          : Icons.volume_up_rounded,
+                  onPressed: () {
+                    if (audioHandler != null) {
+                      audioHandler.setVolume(currentVolume == 0.0 ? 1.0 : 0.0);
+                    }
+                  },
+                ),
+                const SizedBox(width: 4),
+                SizedBox(
+                  width: 80,
+                  child: _buildCompactVolumeSlider(
+                    volume: currentVolume,
+                    onChanged: audioHandler != null
+                        ? (value) => audioHandler.setVolume(value)
+                        : null,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        
+        const SizedBox(width: 12),
+        
+        // Queue button
+        _buildMiniButton(
+          icon: Icons.queue_music_rounded,
+          onPressed: () => _showNowPlayingDialog(context),
+        ),
+        
+        const SizedBox(width: 4),
+        
+        // Fullscreen button
+        _buildMiniButton(
+          icon: Icons.open_in_full_rounded,
+          onPressed: () => _showNowPlayingDialog(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactVolumeSlider({
+    required double volume,
+    required ValueChanged<double>? onChanged,
+  }) {
+    return GestureDetector(
+      onHorizontalDragUpdate: onChanged != null
+          ? (details) {
+              final newVolume = (details.localPosition.dx / 80).clamp(0.0, 1.0);
+              onChanged(newVolume);
+            }
+          : null,
+      onTapDown: onChanged != null
+          ? (details) {
+              final newVolume = (details.localPosition.dx / 80).clamp(0.0, 1.0);
+              onChanged(newVolume);
+            }
+          : null,
+      child: MouseRegion(
+        cursor: onChanged != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: Container(
+          height: 16,
+          alignment: Alignment.center,
+          child: Container(
+            height: 3,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(1.5),
+            ),
+            child: Stack(
+              children: [
+                FractionallySizedBox(
+                  widthFactor: volume.clamp(0.0, 1.0),
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(1.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
           onHorizontalDragUpdate: currentTrack != null && audioHandler != null
               ? (details) {
                   final width = constraints.maxWidth;
