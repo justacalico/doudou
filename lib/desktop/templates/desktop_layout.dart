@@ -3793,3 +3793,215 @@ class _ApplePlayButtonState extends State<_ApplePlayButton>
     );
   }
 }
+
+// ============================================
+// Spotify-Style Button Widgets for Now Playing
+// ============================================
+
+/// Spotify-style action button (heart, add to playlist)
+class _SpotifyActionButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isActive;
+  final Color? activeColor;
+
+  const _SpotifyActionButton({
+    required this.icon,
+    this.onPressed,
+    this.isActive = false,
+    this.activeColor,
+  });
+
+  @override
+  State<_SpotifyActionButton> createState() => _SpotifyActionButtonState();
+}
+
+class _SpotifyActionButtonState extends State<_SpotifyActionButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.isActive
+        ? (widget.activeColor ?? Colors.white)
+        : _isHovered
+            ? Colors.white
+            : Colors.white.withOpacity(0.6);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            widget.icon,
+            color: color,
+            size: 24,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Spotify-style control button (shuffle, skip, repeat)
+class _SpotifyControlButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isActive;
+  final Color? activeColor;
+  final double size;
+
+  const _SpotifyControlButton({
+    required this.icon,
+    this.onPressed,
+    this.isActive = false,
+    this.activeColor,
+    this.size = 24,
+  });
+
+  @override
+  State<_SpotifyControlButton> createState() => _SpotifyControlButtonState();
+}
+
+class _SpotifyControlButtonState extends State<_SpotifyControlButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
+    final color = isDisabled
+        ? Colors.white.withOpacity(0.3)
+        : widget.isActive
+            ? (widget.activeColor ?? Colors.white)
+            : _isHovered
+                ? Colors.white
+                : Colors.white.withOpacity(0.7);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: isDisabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedScale(
+          scale: _isPressed ? 0.9 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  widget.icon,
+                  color: color,
+                  size: widget.size,
+                ),
+                // Active indicator dot
+                if (widget.isActive)
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    width: 4,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: widget.activeColor ?? Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Spotify-style large play button (green circular)
+class _SpotifyPlayButton extends StatefulWidget {
+  final bool isPlaying;
+  final bool isBuffering;
+  final VoidCallback? onPressed;
+  final Color accentColor;
+
+  const _SpotifyPlayButton({
+    required this.isPlaying,
+    required this.isBuffering,
+    this.onPressed,
+    required this.accentColor,
+  });
+
+  @override
+  State<_SpotifyPlayButton> createState() => _SpotifyPlayButtonState();
+}
+
+class _SpotifyPlayButtonState extends State<_SpotifyPlayButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
+    
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: isDisabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedScale(
+          scale: _isPressed ? 0.95 : _isHovered ? 1.05 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: isDisabled
+                  ? Colors.white.withOpacity(0.3)
+                  : widget.accentColor,
+              shape: BoxShape.circle,
+              boxShadow: isDisabled
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: widget.accentColor.withOpacity(0.4),
+                        blurRadius: _isHovered ? 20 : 12,
+                        spreadRadius: _isHovered ? 2 : 0,
+                      ),
+                    ],
+            ),
+            child: widget.isBuffering
+                ? const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : Icon(
+                    widget.isPlaying
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
