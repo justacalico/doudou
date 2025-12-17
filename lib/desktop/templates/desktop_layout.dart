@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:palette_generator/palette_generator.dart';
 import '../../l10n/app_localizations.dart';
 import '../pages/home.dart';
 import '../services/navigation_service.dart';
