@@ -1233,7 +1233,7 @@ class _ModernNowPlaying extends StatefulWidget {
 class _ModernNowPlayingState extends State<_ModernNowPlaying>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _showLyrics = false;
+  final bool _showLyrics = false;
   final FocusNode _focusNode = FocusNode();
   Color? _dominantColor;
   String? _currentArtUrl;
