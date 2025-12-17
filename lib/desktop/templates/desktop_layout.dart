@@ -1717,14 +1717,18 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
     MediaItem? currentTrack,
     AppLocalizations l10n,
   ) {
+    final theme = Theme.of(context);
+    final accentColor = theme.colorScheme.primary;
+    
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
       child: Column(
         children: [
-          // Track info row
+          // Track info row with action buttons
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Track details
+              // Track details (left side)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1732,29 +1736,31 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                     Text(
                       l10n.youAreListeningTo,
                       style: TextStyle(
-                        color: DesktopTheme.textTertiary,
+                        color: Colors.white.withOpacity(0.5),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
+                        letterSpacing: 0.3,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       currentTrack?.title ?? l10n.noTrackPlaying,
                       style: const TextStyle(
-                        color: DesktopTheme.textPrimary,
-                        fontSize: 24,
+                        color: Colors.white,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Text(
                           l10n.byArtist,
                           style: TextStyle(
-                            color: DesktopTheme.textTertiary,
+                            color: Colors.white.withOpacity(0.5),
                             fontSize: 14,
                           ),
                         ),
@@ -1762,9 +1768,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                           child: Text(
                             currentTrack?.artist ?? l10n.unknownArtist,
                             style: const TextStyle(
-                              color: DesktopTheme.textPrimary,
+                              color: Colors.white,
                               fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1777,7 +1783,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                         Text(
                           l10n.fromAlbum,
                           style: TextStyle(
-                            color: DesktopTheme.textTertiary,
+                            color: Colors.white.withOpacity(0.5),
                             fontSize: 14,
                           ),
                         ),
@@ -1785,8 +1791,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                           child: Text(
                             currentTrack?.album ?? l10n.unknownAlbum,
                             style: TextStyle(
-                              color: DesktopTheme.textSecondary,
+                              color: accentColor,
                               fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1798,7 +1805,7 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                 ),
               ),
 
-              // Action buttons
+              // Action buttons (right side) - Spotify style
               Row(
                 children: [
                   // Favorite/Like button
@@ -1824,36 +1831,32 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                       );
                       final isFavorite = trackInState.isFavorite;
 
-                      return DesktopIconButton(
+                      return _SpotifyActionButton(
                         icon: isFavorite
                             ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
+                            : Icons.favorite_outline_rounded,
                         onPressed: () => appState.toggleFavorite(trackInState),
-                        color: isFavorite ? DesktopTheme.heartRed : null,
+                        isActive: isFavorite,
+                        activeColor: accentColor,
                       );
                     },
                   ),
-                  const SizedBox(width: 8),
-                  // Lyrics toggle
-                  DesktopIconButton(
-                    icon: _showLyrics
-                        ? Icons.lyrics_rounded
-                        : Icons.lyrics_outlined,
+                  const SizedBox(width: 12),
+                  // Add to playlist button
+                  _SpotifyActionButton(
+                    icon: Icons.playlist_add_rounded,
                     onPressed: () {
-                      setState(() {
-                        _showLyrics = !_showLyrics;
-                      });
+                      // TODO: Show add to playlist dialog
                     },
-                    color: _showLyrics ? DesktopTheme.accentPrimary : null,
                   ),
                 ],
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // Progress bar
+          // Progress bar - Spotify style with playhead
           StreamBuilder<Duration>(
             stream: audioHandler?.positionStream,
             builder: (context, positionSnapshot) {
@@ -1869,44 +1872,109 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
 
                   return Column(
                     children: [
-                      // Progress slider using DesktopProgressSlider
-                      DesktopProgressSlider(
-                        value: progress.clamp(0.0, 1.0),
-                        onChanged: currentTrack != null && audioHandler != null
-                            ? (value) {
-                                final newPosition = Duration(
-                                  milliseconds:
-                                      (value * duration.inMilliseconds).round(),
-                                );
-                                audioHandler.seek(newPosition);
-                              }
-                            : null,
+                      // Progress bar with playhead
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final trackWidth = constraints.maxWidth;
+                          final playheadPosition = progress.clamp(0.0, 1.0) * trackWidth;
+                          
+                          return GestureDetector(
+                            onTapDown: currentTrack != null && audioHandler != null
+                                ? (details) {
+                                    final tapPosition = details.localPosition.dx / trackWidth;
+                                    final newPosition = Duration(
+                                      milliseconds: (tapPosition.clamp(0.0, 1.0) * duration.inMilliseconds).round(),
+                                    );
+                                    audioHandler.seek(newPosition);
+                                  }
+                                : null,
+                            onHorizontalDragUpdate: currentTrack != null && audioHandler != null
+                                ? (details) {
+                                    final dragPosition = details.localPosition.dx / trackWidth;
+                                    final newPosition = Duration(
+                                      milliseconds: (dragPosition.clamp(0.0, 1.0) * duration.inMilliseconds).round(),
+                                    );
+                                    audioHandler.seek(newPosition);
+                                  }
+                                : null,
+                            child: Container(
+                              height: 20,
+                              alignment: Alignment.center,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                alignment: Alignment.centerLeft,
+                                children: [
+                                  // Track background
+                                  Container(
+                                    height: 4,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  // Progress fill
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 100),
+                                    height: 4,
+                                    width: playheadPosition,
+                                    decoration: BoxDecoration(
+                                      color: accentColor,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  // Playhead circle
+                                  AnimatedPositioned(
+                                    duration: const Duration(milliseconds: 100),
+                                    left: playheadPosition - 6,
+                                    child: Container(
+                                      width: 12,
+                                      height: 12,
+                                      decoration: BoxDecoration(
+                                        color: accentColor,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: accentColor.withOpacity(0.4),
+                                            blurRadius: 6,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
+                      const SizedBox(height: 8),
+
                       // Time labels
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDuration(position),
-                              style: TextStyle(
-                                color: DesktopTheme.textSecondary,
-                                fontSize: 12,
-                                fontFamily: 'monospace',
-                              ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatDuration(position),
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFeatures: const [FontFeature.tabularFigures()],
                             ),
-                            Text(
-                              _formatDuration(duration),
-                              style: TextStyle(
-                                color: DesktopTheme.textTertiary,
-                                fontSize: 12,
-                                fontFamily: 'monospace',
-                              ),
+                          ),
+                          Text(
+                            _formatDuration(duration),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFeatures: const [FontFeature.tabularFigures()],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   );
@@ -1915,9 +1983,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
             },
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
 
-          // Playback controls
+          // Playback controls - Spotify style centered
           StreamBuilder<PlaybackState>(
             stream: audioHandler?.playbackState,
             builder: (context, playbackSnapshot) {
@@ -1926,7 +1994,6 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
               final isBuffering =
                   playbackState?.processingState ==
                   AudioProcessingState.buffering;
-              // Use the audioHandler's direct properties for shuffle/repeat state
               final isShuffled = audioHandler?.isShuffled ?? false;
               final repeatMode =
                   audioHandler?.repeatMode ?? base_handler.RepeatMode.none;
@@ -1935,18 +2002,20 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Shuffle
-                  DesktopIconButton(
+                  _SpotifyControlButton(
                     icon: Icons.shuffle_rounded,
                     onPressed: audioHandler != null
                         ? () => audioHandler.setShuffleMode(!isShuffled)
                         : null,
-                    color: isShuffled ? DesktopTheme.shufflePurple : null,
+                    isActive: isShuffled,
+                    activeColor: accentColor,
+                    size: 22,
                   ),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 28),
 
                   // Previous
-                  DesktopIconButton(
+                  _SpotifyControlButton(
                     icon: Icons.skip_previous_rounded,
                     onPressed: audioHandler != null && audioHandler.hasPrevious
                         ? () => appState.skipToPrevious()
@@ -1954,22 +2023,22 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                     size: 32,
                   ),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 20),
 
-                  // Play/Pause
-                  DesktopPlayButton(
+                  // Play/Pause - Large circular green button (Spotify style)
+                  _SpotifyPlayButton(
                     isPlaying: isPlaying,
                     isBuffering: isBuffering,
                     onPressed: audioHandler != null && currentTrack != null
                         ? () => appState.playPause()
                         : null,
-                    size: 64,
+                    accentColor: accentColor,
                   ),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 20),
 
                   // Next
-                  DesktopIconButton(
+                  _SpotifyControlButton(
                     icon: Icons.skip_next_rounded,
                     onPressed: audioHandler != null && audioHandler.hasNext
                         ? () => appState.skipToNext()
@@ -1977,10 +2046,10 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                     size: 32,
                   ),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 28),
 
                   // Repeat
-                  DesktopIconButton(
+                  _SpotifyControlButton(
                     icon: repeatMode == base_handler.RepeatMode.one
                         ? Icons.repeat_one_rounded
                         : Icons.repeat_rounded,
@@ -2005,9 +2074,9 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                             }
                           }
                         : null,
-                    color: repeatMode != base_handler.RepeatMode.none
-                        ? DesktopTheme.repeatBlue
-                        : null,
+                    isActive: repeatMode != base_handler.RepeatMode.none,
+                    activeColor: accentColor,
+                    size: 22,
                   ),
                 ],
               );
