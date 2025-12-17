@@ -106,8 +106,9 @@ class NavidromeService implements BaseMediaService {
     if (_serverUrl == null ||
         _username == null ||
         _token == null ||
-        _salt == null)
+        _salt == null) {
       return false;
+    }
 
     try {
       final response = await _dio.get(
