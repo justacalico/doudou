@@ -550,58 +550,86 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             ? position.inMilliseconds / duration.inMilliseconds
                             : 0.0;
 
-                        return ClipRRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: DesktopTheme.blurHeavy,
-                              sigmaY: DesktopTheme.blurHeavy,
+                        // Extract dominant color from album art for glow effect
+                        final accentColor = theme.colorScheme.primary;
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            // Gradient background that fades from transparent to solid
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                const Color(0xFF0D0D0D).withOpacity(0.95),
+                                const Color(0xFF0D0D0D),
+                              ],
+                              stops: const [0.0, 0.3, 1.0],
                             ),
-                            child: Container(
-                              height: DesktopTheme.playerBarHeight,
-                              decoration: BoxDecoration(
-                                color: DesktopTheme.backgroundSecondary
-                                    .withOpacity(0.85),
-                                border: Border(
-                                  top: BorderSide(
-                                    color: DesktopTheme.glassBorder,
-                                    width: 1,
+                          ),
+                          child: ClipRRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: 30,
+                                sigmaY: 30,
+                              ),
+                              child: Container(
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1A1A1A).withOpacity(0.7),
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: Colors.white.withOpacity(0.06),
+                                      width: 1,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: Column(
-                                children: [
-                                  // Progress bar at top
-                                  _buildProgressBar(
-                                    theme,
-                                    progress,
-                                    currentTrack,
-                                    audioHandler,
-                                    duration,
-                                  ),
-
-                                  // Main player content
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: DesktopTheme.spacingLg,
+                                child: Stack(
+                                  children: [
+                                    // Accent glow behind album art
+                                    if (currentTrack != null)
+                                      Positioned(
+                                        left: 20,
+                                        top: 0,
+                                        bottom: 0,
+                                        child: Center(
+                                          child: Container(
+                                            width: 100,
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: accentColor.withOpacity(0.3),
+                                                  blurRadius: 40,
+                                                  spreadRadius: 5,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
+                                    
+                                    // Main content
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24),
                                       child: Row(
                                         children: [
                                           // Track info (left)
                                           Expanded(
                                             flex: 3,
-                                            child: _buildTrackInfo(
+                                            child: _buildModernTrackInfo(
                                               theme,
                                               l10n,
                                               currentTrack,
                                               appState,
+                                              accentColor,
                                             ),
                                           ),
 
                                           // Player controls (center)
                                           Expanded(
                                             flex: 4,
-                                            child: _buildPlayerControls(
+                                            child: _buildModernPlayerControls(
                                               theme,
                                               l10n,
                                               appState,
@@ -609,25 +637,28 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               currentTrack,
                                               position,
                                               duration,
+                                              progress,
+                                              accentColor,
                                             ),
                                           ),
 
                                           // Right side controls
                                           Expanded(
                                             flex: 3,
-                                            child: _buildRightControls(
+                                            child: _buildModernRightControls(
                                               theme,
                                               l10n,
                                               appState,
                                               audioHandler,
                                               currentTrack,
+                                              accentColor,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -644,74 +675,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     );
   }
 
-  Widget _buildProgressBar(
-    ThemeData theme,
-    double progress,
-    MediaItem? currentTrack,
-    dynamic audioHandler,
-    Duration duration,
-  ) {
-    return SizedBox(
-      height: 4,
-      child: Stack(
-        children: [
-          // Background
-          Container(color: DesktopTheme.backgroundElevated),
-          // Progress
-          AnimatedFractionallySizedBox(
-            duration: DesktopTheme.durationFast,
-            widthFactor: progress.clamp(0.0, 1.0),
-            alignment: Alignment.centerLeft,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    theme.colorScheme.primary,
-                    theme.colorScheme.primary.withOpacity(0.8),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Interaction layer
-          Positioned.fill(
-            child: GestureDetector(
-              onTapDown: currentTrack != null && audioHandler != null
-                  ? (details) {
-                      final box = context.findRenderObject() as RenderBox?;
-                      if (box != null) {
-                        final width = box.size.width;
-                        final tapPosition = details.localPosition.dx;
-                        final newProgress = (tapPosition / width).clamp(
-                          0.0,
-                          1.0,
-                        );
-                        final newPosition = Duration(
-                          milliseconds: (newProgress * duration.inMilliseconds)
-                              .round(),
-                        );
-                        audioHandler.seek(newPosition);
-                      }
-                    }
-                  : null,
-              child: MouseRegion(
-                cursor: currentTrack != null
-                    ? SystemMouseCursors.click
-                    : SystemMouseCursors.basic,
-                child: const SizedBox.expand(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrackInfo(
+  Widget _buildModernTrackInfo(
     ThemeData theme,
     AppLocalizations l10n,
     MediaItem? currentTrack,
     AppState appState,
+    Color accentColor,
   ) {
     return GestureDetector(
       onTap: currentTrack != null ? () => _showNowPlayingDialog(context) : null,
@@ -721,10 +690,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             : SystemMouseCursors.basic,
         child: Row(
           children: [
-            // Album art
-            _buildAlbumArt(currentTrack, theme),
+            // Album art with glow
+            _buildModernAlbumArt(currentTrack, theme, accentColor),
 
-            const SizedBox(width: DesktopTheme.spacingMd),
+            const SizedBox(width: 16),
 
             // Track details
             Expanded(
@@ -737,17 +706,19 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: DesktopTheme.textPrimary,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     currentTrack?.artist ?? l10n.selectSongToPlay,
                     style: TextStyle(
                       fontSize: 12,
-                      color: DesktopTheme.textSecondary,
+                      color: Colors.white.withOpacity(0.5),
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -758,58 +729,69 @@ class _DesktopLayoutState extends State<DesktopLayout> {
 
             // Favorite button
             if (currentTrack != null)
-              _buildFavoriteButton(theme, l10n, currentTrack, appState),
+              _buildModernFavoriteButton(theme, l10n, currentTrack, appState),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAlbumArt(MediaItem? currentTrack, ThemeData theme) {
+  Widget _buildModernAlbumArt(MediaItem? currentTrack, ThemeData theme, Color accentColor) {
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
-        color: DesktopTheme.backgroundElevated,
-        boxShadow: DesktopTheme.shadowMd,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+          if (currentTrack != null)
+            BoxShadow(
+              color: accentColor.withOpacity(0.2),
+              blurRadius: 20,
+              spreadRadius: -5,
+            ),
+        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+        borderRadius: BorderRadius.circular(10),
         child: currentTrack?.artUri != null
             ? Image.network(
                 currentTrack!.artUri.toString(),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return _buildAlbumArtPlaceholder(theme);
+                  return _buildModernAlbumArtPlaceholder();
                 },
               )
-            : _buildAlbumArtPlaceholder(theme),
+            : _buildModernAlbumArtPlaceholder(),
       ),
     );
   }
 
-  Widget _buildAlbumArtPlaceholder(ThemeData theme) {
+  Widget _buildModernAlbumArtPlaceholder() {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            DesktopTheme.backgroundElevated,
-            DesktopTheme.backgroundTertiary,
+            const Color(0xFF2A2A2A),
+            const Color(0xFF1A1A1A),
           ],
         ),
       ),
       child: Icon(
         Icons.music_note_rounded,
-        color: DesktopTheme.textMuted,
+        color: Colors.white.withOpacity(0.3),
         size: 24,
       ),
     );
   }
 
-  Widget _buildFavoriteButton(
+  Widget _buildModernFavoriteButton(
     ThemeData theme,
     AppLocalizations l10n,
     MediaItem currentTrack,
@@ -832,16 +814,26 @@ class _DesktopLayoutState extends State<DesktopLayout> {
 
     final isFavorite = trackInState.isFavorite;
 
-    return DesktopIconButton(
-      icon: isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-      onPressed: () => appState.toggleFavorite(trackInState),
-      isActive: isFavorite,
-      activeColor: DesktopTheme.heartRed,
-      tooltip: isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
+    return GestureDetector(
+      onTap: () => appState.toggleFavorite(trackInState),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: isFavorite 
+                ? const Color(0xFFFF2D55) 
+                : Colors.white.withOpacity(0.5),
+            size: 22,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildPlayerControls(
+  Widget _buildModernPlayerControls(
     ThemeData theme,
     AppLocalizations l10n,
     AppState appState,
@@ -849,6 +841,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     MediaItem? currentTrack,
     Duration position,
     Duration duration,
+    double progress,
+    Color accentColor,
   ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -870,57 +864,56 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Shuffle
-                DesktopIconButton(
+                _buildControlButton(
                   icon: Icons.shuffle_rounded,
                   onPressed: audioHandler != null
                       ? () => audioHandler.setShuffleMode(!isShuffled)
                       : null,
                   isActive: isShuffled,
-                  size: 18,
+                  size: 20,
+                  activeColor: accentColor,
                 ),
 
-                const SizedBox(width: DesktopTheme.spacingMd),
+                const SizedBox(width: 20),
 
                 // Previous
-                DesktopIconButton(
+                _buildControlButton(
                   icon: Icons.skip_previous_rounded,
                   onPressed: audioHandler != null && audioHandler.hasPrevious
                       ? () => appState.skipToPrevious()
                       : null,
-                  size: 24,
+                  size: 28,
                 ),
 
-                const SizedBox(width: DesktopTheme.spacingSm),
+                const SizedBox(width: 12),
 
-                // Play/Pause
-                DesktopPlayButton(
+                // Play/Pause - main button
+                _buildPlayPauseButton(
                   isPlaying: isPlaying,
                   isBuffering: isBuffering,
-                  onPressed:
-                      audioHandler != null &&
-                          currentTrack != null &&
-                          !isBuffering
+                  onPressed: audioHandler != null &&
+                      currentTrack != null &&
+                      !isBuffering
                       ? () => appState.playPause()
                       : null,
-                  accentColor: theme.colorScheme.primary,
-                  size: 48,
+                  accentColor: accentColor,
                 ),
 
-                const SizedBox(width: DesktopTheme.spacingSm),
+                const SizedBox(width: 12),
 
                 // Next
-                DesktopIconButton(
+                _buildControlButton(
                   icon: Icons.skip_next_rounded,
                   onPressed: audioHandler != null && audioHandler.hasNext
                       ? () => appState.skipToNext()
                       : null,
-                  size: 24,
+                  size: 28,
                 ),
 
-                const SizedBox(width: DesktopTheme.spacingMd),
+                const SizedBox(width: 20),
 
                 // Repeat
-                DesktopIconButton(
+                _buildControlButton(
                   icon: repeatMode == base_handler.RepeatMode.one
                       ? Icons.repeat_one_rounded
                       : Icons.repeat_rounded,
@@ -946,51 +939,233 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                         }
                       : null,
                   isActive: repeatMode != base_handler.RepeatMode.none,
-                  size: 18,
+                  size: 20,
+                  activeColor: accentColor,
                 ),
               ],
             );
           },
         ),
 
-        const SizedBox(height: DesktopTheme.spacingXs),
+        const SizedBox(height: 8),
 
-        // Time display
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _formatDuration(position),
-              style: TextStyle(
-                fontSize: 11,
-                color: DesktopTheme.textTertiary,
-                fontFamily: 'monospace',
+        // Progress bar with time
+        SizedBox(
+          width: 400,
+          child: Row(
+            children: [
+              // Current time
+              SizedBox(
+                width: 45,
+                child: Text(
+                  _formatDuration(position),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.5),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                  textAlign: TextAlign.right,
+                ),
               ),
-            ),
-            Text(
-              ' / ',
-              style: TextStyle(fontSize: 11, color: DesktopTheme.textMuted),
-            ),
-            Text(
-              _formatDuration(duration),
-              style: TextStyle(
-                fontSize: 11,
-                color: DesktopTheme.textTertiary,
-                fontFamily: 'monospace',
+              
+              const SizedBox(width: 10),
+              
+              // Progress slider
+              Expanded(
+                child: _buildModernProgressSlider(
+                  progress: progress,
+                  duration: duration,
+                  audioHandler: audioHandler,
+                  currentTrack: currentTrack,
+                  accentColor: accentColor,
+                ),
               ),
-            ),
-          ],
+              
+              const SizedBox(width: 10),
+              
+              // Total time
+              SizedBox(
+                width: 45,
+                child: Text(
+                  _formatDuration(duration),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.5),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildRightControls(
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool isActive = false,
+    double size = 24,
+    Color? activeColor,
+  }) {
+    final color = isActive 
+        ? (activeColor ?? Colors.white) 
+        : Colors.white.withOpacity(onPressed != null ? 0.7 : 0.3);
+    
+    return GestureDetector(
+      onTap: onPressed,
+      child: MouseRegion(
+        cursor: onPressed != null 
+            ? SystemMouseCursors.click 
+            : SystemMouseCursors.basic,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            icon,
+            color: color,
+            size: size,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayPauseButton({
+    required bool isPlaying,
+    required bool isBuffering,
+    required VoidCallback? onPressed,
+    required Color accentColor,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: MouseRegion(
+        cursor: onPressed != null 
+            ? SystemMouseCursors.click 
+            : SystemMouseCursors.basic,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: accentColor,
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withOpacity(0.4),
+                blurRadius: 16,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: isBuffering
+              ? Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Icon(
+                  isPlaying 
+                      ? Icons.pause_rounded 
+                      : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernProgressSlider({
+    required double progress,
+    required Duration duration,
+    required dynamic audioHandler,
+    required MediaItem? currentTrack,
+    required Color accentColor,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          onTapDown: currentTrack != null && audioHandler != null
+              ? (details) {
+                  final width = constraints.maxWidth;
+                  final tapPosition = details.localPosition.dx;
+                  final newProgress = (tapPosition / width).clamp(0.0, 1.0);
+                  final newPosition = Duration(
+                    milliseconds: (newProgress * duration.inMilliseconds).round(),
+                  );
+                  audioHandler.seek(newPosition);
+                }
+              : null,
+          onHorizontalDragUpdate: currentTrack != null && audioHandler != null
+              ? (details) {
+                  final width = constraints.maxWidth;
+                  final dragPosition = details.localPosition.dx;
+                  final newProgress = (dragPosition / width).clamp(0.0, 1.0);
+                  final newPosition = Duration(
+                    milliseconds: (newProgress * duration.inMilliseconds).round(),
+                  );
+                  audioHandler.seek(newPosition);
+                }
+              : null,
+          child: MouseRegion(
+            cursor: currentTrack != null
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            child: Container(
+              height: 20,
+              alignment: Alignment.center,
+              child: Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Stack(
+                  children: [
+                    // Progress fill
+                    AnimatedFractionallySizedBox(
+                      duration: const Duration(milliseconds: 100),
+                      widthFactor: progress.clamp(0.0, 1.0),
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              accentColor,
+                              accentColor.withOpacity(0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.5),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModernRightControls(
     ThemeData theme,
     AppLocalizations l10n,
     AppState appState,
     dynamic audioHandler,
     MediaItem? currentTrack,
+    Color accentColor,
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -1004,7 +1179,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DesktopIconButton(
+                _buildControlButton(
                   icon: currentVolume == 0.0
                       ? Icons.volume_off_rounded
                       : currentVolume < 0.5
@@ -1015,17 +1190,17 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       audioHandler.setVolume(currentVolume == 0.0 ? 1.0 : 0.0);
                     }
                   },
-                  size: 18,
+                  size: 20,
                 ),
-                const SizedBox(width: DesktopTheme.spacingSm),
+                const SizedBox(width: 8),
                 SizedBox(
                   width: 100,
-                  child: DesktopProgressSlider(
-                    value: currentVolume,
+                  child: _buildModernVolumeSlider(
+                    volume: currentVolume,
                     onChanged: audioHandler != null
                         ? (value) => audioHandler.setVolume(value)
                         : null,
-                    activeColor: theme.colorScheme.primary,
+                    accentColor: accentColor,
                   ),
                 ),
               ],
@@ -1033,24 +1208,81 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           },
         ),
 
-        const SizedBox(width: DesktopTheme.spacingLg),
+        const SizedBox(width: 24),
 
         // Queue button
-        DesktopIconButton(
+        _buildControlButton(
           icon: Icons.queue_music_rounded,
           onPressed: () => _showNowPlayingDialog(context),
-          tooltip: l10n.queue,
+          size: 22,
         ),
 
-        const SizedBox(width: DesktopTheme.spacingSm),
+        const SizedBox(width: 8),
 
         // Expand button
-        DesktopIconButton(
+        _buildControlButton(
           icon: Icons.open_in_full_rounded,
           onPressed: () => _showNowPlayingDialog(context),
-          tooltip: l10n.nowPlaying,
+          size: 20,
         ),
       ],
+    );
+  }
+
+  Widget _buildModernVolumeSlider({
+    required double volume,
+    required ValueChanged<double>? onChanged,
+    required Color accentColor,
+  }) {
+    return GestureDetector(
+      onHorizontalDragUpdate: onChanged != null
+          ? (details) {
+              final box = context.findRenderObject() as RenderBox?;
+              if (box != null) {
+                // Calculate volume from drag position
+                final localPosition = box.globalToLocal(details.globalPosition);
+                // Adjust for the position within the slider (accounting for padding)
+                final newVolume = (localPosition.dx / 100).clamp(0.0, 1.0);
+                onChanged(newVolume);
+              }
+            }
+          : null,
+      onTapDown: onChanged != null
+          ? (details) {
+              final newVolume = (details.localPosition.dx / 100).clamp(0.0, 1.0);
+              onChanged(newVolume);
+            }
+          : null,
+      child: MouseRegion(
+        cursor: onChanged != null 
+            ? SystemMouseCursors.click 
+            : SystemMouseCursors.basic,
+        child: Container(
+          height: 20,
+          alignment: Alignment.center,
+          child: Container(
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Stack(
+              children: [
+                FractionallySizedBox(
+                  widthFactor: volume.clamp(0.0, 1.0),
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
