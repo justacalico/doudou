@@ -21,6 +21,9 @@ class LocalMusicService implements BaseMediaService {
   // Map from track ID to file path for efficient lookup
   final Map<String, String> _trackIdToPath = {};
   
+  // Map from playlist ID to list of track IDs
+  final Map<String, List<String>> _playlistTracks = {};
+  
   // Album art service instance
   final AlbumArtService _albumArtService = AlbumArtService();
   
@@ -41,6 +44,8 @@ class LocalMusicService implements BaseMediaService {
   static const String _cachedPathsKey = 'local_music_cached_paths';
   static const String _lastScanKey = 'local_music_last_scan';
   static const String _fetchOnlineArtworkKey = 'local_music_fetch_online_artwork';
+  static const String _cachedPlaylistsKey = 'local_music_cached_playlists';
+  static const String _playlistTracksKey = 'local_music_playlist_tracks';
 
   @override
   ServerType get serverType => ServerType.local;
@@ -413,6 +418,9 @@ class LocalMusicService implements BaseMediaService {
           _trackIdToPath[key] = value as String;
         });
       }
+      
+      // Load playlist data
+      await _loadPlaylistData(prefs);
     } catch (e) {
       if (kDebugMode) {
         print('Error loading cached data: $e');
@@ -630,8 +638,303 @@ class LocalMusicService implements BaseMediaService {
 
   @override
   Future<List<Track>> getPlaylistTracks(String playlistId) async {
-    // TODO: Implement local playlists
-    return [];
+    await initialize();
+    
+    final trackIds = _playlistTracks[playlistId];
+    if (trackIds == null || trackIds.isEmpty) {
+      return [];
+    }
+    
+    // Return tracks in playlist order
+    final playlistTracks = <Track>[];
+    for (final trackId in trackIds) {
+      final track = _tracks.firstWhere(
+        (t) => t.id == trackId,
+        orElse: () => Track(id: '', name: ''),
+      );
+      if (track.id.isNotEmpty) {
+        playlistTracks.add(track);
+      }
+    }
+    
+    return playlistTracks;
+  }
+  
+  /// Create a new playlist
+  Future<Playlist> createPlaylist(String name, {String? description}) async {
+    await initialize();
+    
+    final playlistId = _generatePathHash('playlist_${DateTime.now().millisecondsSinceEpoch}_$name');
+    
+    final playlist = Playlist(
+      id: playlistId,
+      name: name,
+      description: description,
+      trackCount: 0,
+    );
+    
+    _playlists.add(playlist);
+    _playlistTracks[playlistId] = [];
+    
+    await _savePlaylistData();
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Created playlist "$name" with ID $playlistId');
+    }
+    
+    return playlist;
+  }
+  
+  /// Delete a playlist
+  Future<bool> deletePlaylist(String playlistId) async {
+    await initialize();
+    
+    final index = _playlists.indexWhere((p) => p.id == playlistId);
+    if (index < 0) return false;
+    
+    final playlistName = _playlists[index].name;
+    _playlists.removeAt(index);
+    _playlistTracks.remove(playlistId);
+    
+    await _savePlaylistData();
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Deleted playlist "$playlistName"');
+    }
+    
+    return true;
+  }
+  
+  /// Rename a playlist
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    await initialize();
+    
+    final index = _playlists.indexWhere((p) => p.id == playlistId);
+    if (index < 0) return false;
+    
+    final oldPlaylist = _playlists[index];
+    _playlists[index] = Playlist(
+      id: oldPlaylist.id,
+      name: newName,
+      description: oldPlaylist.description,
+      imageUrl: oldPlaylist.imageUrl,
+      trackCount: oldPlaylist.trackCount,
+    );
+    
+    await _savePlaylistData();
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Renamed playlist to "$newName"');
+    }
+    
+    return true;
+  }
+  
+  /// Add a track to a playlist
+  Future<bool> addTrackToPlaylist(String playlistId, String trackId) async {
+    await initialize();
+    
+    final playlistIndex = _playlists.indexWhere((p) => p.id == playlistId);
+    if (playlistIndex < 0) return false;
+    
+    // Verify track exists
+    final trackExists = _tracks.any((t) => t.id == trackId);
+    if (!trackExists) return false;
+    
+    // Add track if not already in playlist
+    final trackList = _playlistTracks[playlistId] ?? [];
+    if (!trackList.contains(trackId)) {
+      trackList.add(trackId);
+      _playlistTracks[playlistId] = trackList;
+      
+      // Update playlist track count and image
+      final playlist = _playlists[playlistIndex];
+      final track = _tracks.firstWhere((t) => t.id == trackId);
+      _playlists[playlistIndex] = Playlist(
+        id: playlist.id,
+        name: playlist.name,
+        description: playlist.description,
+        imageUrl: playlist.imageUrl ?? track.imageUrl,
+        trackCount: trackList.length,
+      );
+      
+      await _savePlaylistData();
+      
+      if (kDebugMode) {
+        print('LocalMusicService: Added track to playlist (${trackList.length} tracks)');
+      }
+    }
+    
+    return true;
+  }
+  
+  /// Add multiple tracks to a playlist
+  Future<int> addTracksToPlaylist(String playlistId, List<String> trackIds) async {
+    int addedCount = 0;
+    for (final trackId in trackIds) {
+      if (await addTrackToPlaylist(playlistId, trackId)) {
+        addedCount++;
+      }
+    }
+    return addedCount;
+  }
+  
+  /// Remove a track from a playlist
+  Future<bool> removeTrackFromPlaylist(String playlistId, String trackId) async {
+    await initialize();
+    
+    final playlistIndex = _playlists.indexWhere((p) => p.id == playlistId);
+    if (playlistIndex < 0) return false;
+    
+    final trackList = _playlistTracks[playlistId];
+    if (trackList == null || !trackList.contains(trackId)) return false;
+    
+    trackList.remove(trackId);
+    
+    // Update playlist track count and possibly image
+    final playlist = _playlists[playlistIndex];
+    String? newImageUrl = playlist.imageUrl;
+    
+    // If we removed the track that provided the image, get a new one
+    if (trackList.isNotEmpty) {
+      final firstTrack = _tracks.firstWhere(
+        (t) => t.id == trackList.first,
+        orElse: () => Track(id: '', name: ''),
+      );
+      newImageUrl = firstTrack.imageUrl;
+    } else {
+      newImageUrl = null;
+    }
+    
+    _playlists[playlistIndex] = Playlist(
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      imageUrl: newImageUrl,
+      trackCount: trackList.length,
+    );
+    
+    await _savePlaylistData();
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Removed track from playlist (${trackList.length} tracks remaining)');
+    }
+    
+    return true;
+  }
+  
+  /// Reorder tracks in a playlist
+  Future<bool> reorderPlaylistTrack(String playlistId, int oldIndex, int newIndex) async {
+    await initialize();
+    
+    final trackList = _playlistTracks[playlistId];
+    if (trackList == null) return false;
+    
+    if (oldIndex < 0 || oldIndex >= trackList.length ||
+        newIndex < 0 || newIndex >= trackList.length) {
+      return false;
+    }
+    
+    final trackId = trackList.removeAt(oldIndex);
+    trackList.insert(newIndex, trackId);
+    
+    await _savePlaylistData();
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Reordered track from $oldIndex to $newIndex');
+    }
+    
+    return true;
+  }
+  
+  /// Clear all tracks from a playlist
+  Future<bool> clearPlaylist(String playlistId) async {
+    await initialize();
+    
+    final playlistIndex = _playlists.indexWhere((p) => p.id == playlistId);
+    if (playlistIndex < 0) return false;
+    
+    _playlistTracks[playlistId] = [];
+    
+    final playlist = _playlists[playlistIndex];
+    _playlists[playlistIndex] = Playlist(
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      imageUrl: null,
+      trackCount: 0,
+    );
+    
+    await _savePlaylistData();
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Cleared playlist "${playlist.name}"');
+    }
+    
+    return true;
+  }
+  
+  /// Save playlist data to preferences
+  Future<void> _savePlaylistData() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Save playlists
+    final playlistsJson = _playlists.map((p) => _playlistToLocalJson(p)).toList();
+    await prefs.setString(_cachedPlaylistsKey, jsonEncode(playlistsJson));
+    
+    // Save playlist tracks mapping
+    await prefs.setString(_playlistTracksKey, jsonEncode(_playlistTracks));
+  }
+  
+  /// Load playlist data from preferences
+  Future<void> _loadPlaylistData(SharedPreferences prefs) async {
+    try {
+      // Load playlists
+      final playlistsString = prefs.getString(_cachedPlaylistsKey);
+      if (playlistsString != null) {
+        final playlistsList = jsonDecode(playlistsString) as List;
+        _playlists.clear();
+        _playlists.addAll(playlistsList.map((json) => _playlistFromLocalJson(json)));
+      }
+      
+      // Load playlist tracks mapping
+      final tracksString = prefs.getString(_playlistTracksKey);
+      if (tracksString != null) {
+        final tracksMap = jsonDecode(tracksString) as Map<String, dynamic>;
+        _playlistTracks.clear();
+        tracksMap.forEach((key, value) {
+          _playlistTracks[key] = List<String>.from(value as List);
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading playlist data: $e');
+      }
+      _playlists.clear();
+      _playlistTracks.clear();
+    }
+  }
+  
+  /// Convert Playlist to local JSON format
+  Map<String, dynamic> _playlistToLocalJson(Playlist playlist) {
+    return {
+      'id': playlist.id,
+      'name': playlist.name,
+      'description': playlist.description,
+      'imageUrl': playlist.imageUrl,
+      'trackCount': playlist.trackCount,
+    };
+  }
+  
+  /// Create Playlist from local JSON format
+  Playlist _playlistFromLocalJson(Map<String, dynamic> json) {
+    return Playlist(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'],
+      imageUrl: json['imageUrl'],
+      trackCount: json['trackCount'] ?? 0,
+    );
   }
 
   @override
@@ -807,6 +1110,7 @@ class LocalMusicService implements BaseMediaService {
     _tracks.clear();
     _playlists.clear();
     _trackIdToPath.clear();
+    _playlistTracks.clear();
     _isInitialized = false;
     
     // Clear persisted data asynchronously
@@ -824,6 +1128,8 @@ class LocalMusicService implements BaseMediaService {
       await prefs.remove(_cachedPathsKey);
       await prefs.remove(_lastScanKey);
       await prefs.remove(_fetchOnlineArtworkKey);
+      await prefs.remove(_cachedPlaylistsKey);
+      await prefs.remove(_playlistTracksKey);
       
       // Also clear artwork cache
       await _albumArtService.clearCachedFiles();
