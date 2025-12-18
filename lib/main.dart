@@ -65,6 +65,7 @@ void _runMobileApp() async {
 
   // Initialize MediaKit for Linux audio support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+    await _debugLinuxMpv();
     JustAudioMediaKit.ensureInitialized();
   }
 
