@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../models/playbook.dart';
 import '../../services/playbook_service.dart';
 import '../../services/base_service.dart';
+import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 
 /// Desktop widget for managing Playbooks in settings
@@ -381,18 +382,23 @@ class _DesktopPlaybooksSectionState extends State<DesktopPlaybooksSection> {
   void _confirmDeletePlaybook(Playbook playbook, PlaybookService playbookService) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Playbook?'),
         content: Text('Are you sure you want to delete "${playbook.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              playbookService.removePlaybook(playbook.id);
-              Navigator.pop(context);
+            onPressed: () async {
+              await playbookService.removePlaybook(playbook.id);
+              Navigator.pop(dialogContext);
+              // Refresh content after removing playbook
+              if (context.mounted) {
+                final appState = context.read<AppState>();
+                await appState.refreshLibraryData();
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
@@ -720,6 +726,7 @@ class _AddPlaybookDialogState extends State<AddPlaybookDialog> {
 
     try {
       final playbookService = context.read<PlaybookService>();
+      final appState = context.read<AppState>();
 
       Map<String, dynamic> config;
 
@@ -751,11 +758,23 @@ class _AddPlaybookDialogState extends State<AddPlaybookDialog> {
           break;
       }
 
-      await playbookService.addPlaybook(
+      final playbook = await playbookService.addPlaybook(
         name: _nameController.text,
         type: _selectedType!,
         config: config,
       );
+
+      // Trigger scan/refresh based on playbook type
+      if (_selectedType == ServerType.local) {
+        // For local playbooks, scan the directories
+        final service = await playbookService.getServiceForPlaybook(playbook.id);
+        if (service != null) {
+          await service.authenticate();
+        }
+      }
+      
+      // Refresh library data to show new content
+      await appState.refreshLibraryData();
 
       if (mounted) {
         Navigator.pop(context);
