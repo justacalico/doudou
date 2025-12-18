@@ -17,6 +17,7 @@ import 'partials/audio_settings.dart';
 import 'partials/language_settings.dart';
 import 'logs_viewer.dart';
 import 'local_music_settings.dart';
+import 'playbooks_screen.dart';
 import '../../cardboard/pages/vr_player.dart';
 
 class SettingsScreen extends StatefulWidget {
