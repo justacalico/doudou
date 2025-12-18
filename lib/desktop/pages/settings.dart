@@ -48,12 +48,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
+    final appState = context.watch<AppState>();
+    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
 
     final categories = [
       {'id': 'general', 'title': l10n.generalSettings.split(' ').first, 'icon': Icons.settings_rounded},
       {'id': 'audio', 'title': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'title': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
-      {'id': 'server', 'title': l10n.server, 'icon': Icons.dns_rounded},
+      {'id': 'server', 'title': isLocalMusic ? 'Local Music' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
       {'id': 'logs', 'title': l10n.logsAndDiagnostics.split(' ').first, 'icon': Icons.description_rounded},
       {'id': 'about', 'title': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info_rounded},
     ];
