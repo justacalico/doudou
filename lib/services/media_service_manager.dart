@@ -327,6 +327,12 @@ class MediaServiceManager {
           print('Local playlist creation not yet implemented');
         }
         break;
+      case ServerType.swingmusic:
+        if (_currentService is SwingMusicService) {
+          final swingService = _currentService as SwingMusicService;
+          return await swingService.createPlaylist(name);
+        }
+        break;
     }
     return null;
   }
@@ -356,6 +362,12 @@ class MediaServiceManager {
         // Local add to playlist could be implemented here
         if (kDebugMode) {
           print('Local add to playlist not yet implemented');
+        }
+        break;
+      case ServerType.swingmusic:
+        if (_currentService is SwingMusicService) {
+          final swingService = _currentService as SwingMusicService;
+          return await swingService.addToPlaylist(playlistId, trackId);
         }
         break;
     }
@@ -389,6 +401,12 @@ class MediaServiceManager {
           print('Local rename playlist not yet implemented');
         }
         break;
+      case ServerType.swingmusic:
+        if (_currentService is SwingMusicService) {
+          final swingService = _currentService as SwingMusicService;
+          return await swingService.renamePlaylist(playlistId, newName);
+        }
+        break;
     }
     return false;
   }
@@ -418,6 +436,12 @@ class MediaServiceManager {
         // Local remove playlist could be implemented here
         if (kDebugMode) {
           print('Local remove playlist not yet implemented');
+        }
+        break;
+      case ServerType.swingmusic:
+        if (_currentService is SwingMusicService) {
+          final swingService = _currentService as SwingMusicService;
+          return await swingService.removePlaylist(playlistId);
         }
         break;
     }
