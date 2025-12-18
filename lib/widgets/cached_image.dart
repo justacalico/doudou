@@ -1,6 +1,20 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/image_cache_manager.dart';
+
+/// Helper to check if a URL is a local file path
+bool _isLocalFilePath(String url) {
+  return url.startsWith('file://') || url.startsWith('/');
+}
+
+/// Helper to get the actual file path from a URL
+String _getFilePath(String url) {
+  if (url.startsWith('file://')) {
+    return url.substring(7); // Remove 'file://' prefix
+  }
+  return url;
+}
 
 class CachedImage extends StatelessWidget {
   final String imageUrl;
@@ -24,33 +38,80 @@ class CachedImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget image = CachedNetworkImage(
-      imageUrl: imageUrl,
-      width: width,
-      height: height,
-      fit: fit,
-      cacheManager: ImageCacheManager.instance,
-      placeholder: (context, url) => placeholder ?? Container(
+    Widget image;
+    
+    // Check if it's a local file path
+    if (_isLocalFilePath(imageUrl)) {
+      final filePath = _getFilePath(imageUrl);
+      final file = File(filePath);
+      
+      image = FutureBuilder<bool>(
+        future: file.exists(),
+        builder: (context, snapshot) {
+          if (snapshot.data == true) {
+            return Image.file(
+              file,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (context, error, stackTrace) {
+                return errorWidget ?? Container(
+                  width: width,
+                  height: height,
+                  color: const Color(0xFF1C1C1E),
+                  child: const Icon(
+                    CupertinoIcons.photo,
+                    color: CupertinoColors.systemGrey2,
+                    size: 32,
+                  ),
+                );
+              },
+            );
+          }
+          
+          // File doesn't exist or still loading
+          return errorWidget ?? Container(
+            width: width,
+            height: height,
+            color: const Color(0xFF1C1C1E),
+            child: const Icon(
+              CupertinoIcons.photo,
+              color: CupertinoColors.systemGrey2,
+              size: 32,
+            ),
+          );
+        },
+      );
+    } else {
+      // Network image
+      image = CachedNetworkImage(
+        imageUrl: imageUrl,
         width: width,
         height: height,
-        color: const Color(0xFF1C1C1E),
-        child: const Center(
-          child: CupertinoActivityIndicator(
-            color: CupertinoColors.systemGrey,
+        fit: fit,
+        cacheManager: ImageCacheManager.instance,
+        placeholder: (context, url) => placeholder ?? Container(
+          width: width,
+          height: height,
+          color: const Color(0xFF1C1C1E),
+          child: const Center(
+            child: CupertinoActivityIndicator(
+              color: CupertinoColors.systemGrey,
+            ),
           ),
         ),
-      ),
-      errorWidget: (context, url, error) => errorWidget ?? Container(
-        width: width,
-        height: height,
-        color: const Color(0xFF1C1C1E),
-        child: const Icon(
-          CupertinoIcons.photo,
-          color: CupertinoColors.systemGrey2,
-          size: 32,
+        errorWidget: (context, url, error) => errorWidget ?? Container(
+          width: width,
+          height: height,
+          color: const Color(0xFF1C1C1E),
+          child: const Icon(
+            CupertinoIcons.photo,
+            color: CupertinoColors.systemGrey2,
+            size: 32,
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     if (borderRadius != null) {
       image = ClipRRect(
