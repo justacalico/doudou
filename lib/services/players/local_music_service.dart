@@ -40,6 +40,7 @@ class LocalMusicService implements BaseMediaService {
   static const String _cachedArtistsKey = 'local_music_cached_artists';
   static const String _cachedPathsKey = 'local_music_cached_paths';
   static const String _lastScanKey = 'local_music_last_scan';
+  static const String _fetchOnlineArtworkKey = 'local_music_fetch_online_artwork';
 
   @override
   ServerType get serverType => ServerType.local;
@@ -50,6 +51,15 @@ class LocalMusicService implements BaseMediaService {
   bool get isInitialized => _isInitialized;
   bool get isScanning => _isScanning;
   List<String> get musicDirectories => List.unmodifiable(_musicDirectories);
+  bool get fetchOnlineArtwork => _fetchOnlineArtwork;
+  AlbumArtService get albumArtService => _albumArtService;
+  
+  /// Set whether to fetch online artwork during scans
+  Future<void> setFetchOnlineArtwork(bool enabled) async {
+    _fetchOnlineArtwork = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_fetchOnlineArtworkKey, enabled);
+  }
 
   /// Initialize the service and load cached data
   Future<void> initialize() async {
