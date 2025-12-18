@@ -800,7 +800,7 @@ class LocalMusicService implements BaseMediaService {
 
   @override
   void clearAuth() {
-    // Clear all data
+    // Clear all in-memory data
     _musicDirectories.clear();
     _albums.clear();
     _artists.clear();
@@ -808,6 +808,40 @@ class LocalMusicService implements BaseMediaService {
     _playlists.clear();
     _trackIdToPath.clear();
     _isInitialized = false;
+    
+    // Clear persisted data asynchronously
+    _clearPersistedData();
+  }
+  
+  /// Clear all persisted data from SharedPreferences
+  Future<void> _clearPersistedData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_directoriesKey);
+      await prefs.remove(_cachedTracksKey);
+      await prefs.remove(_cachedAlbumsKey);
+      await prefs.remove(_cachedArtistsKey);
+      await prefs.remove(_cachedPathsKey);
+      await prefs.remove(_lastScanKey);
+      await prefs.remove(_fetchOnlineArtworkKey);
+      
+      // Also clear artwork cache
+      await _albumArtService.clearCachedFiles();
+      
+      if (kDebugMode) {
+        print('LocalMusicService: Cleared all persisted data');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('LocalMusicService: Error clearing persisted data: $e');
+      }
+    }
+  }
+  
+  /// Full logout - clears all data and waits for completion
+  Future<void> fullLogout() async {
+    clearAuth();
+    await _clearPersistedData();
   }
 
   /// Get tracks for a specific artist
