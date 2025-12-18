@@ -75,6 +75,9 @@ dependencies:
   # File picker for local music
   file_picker: ^8.1.7
   device_info_plus: ^11.3.3
+  
+  # Audio metadata extraction for embedded album art
+  audiotags: ^1.4.5
 
 dev_dependencies:
   flutter_test:
