@@ -796,6 +796,15 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(width: 10),
                 _buildServerTypeChip(
+                  'swingmusic',
+                  'Swing',
+                  null,
+                  AppleColors.systemTeal,
+                  isDark,
+                  icon: CupertinoIcons.music_note_2,
+                ),
+                const SizedBox(width: 10),
+                _buildServerTypeChip(
                   'local',
                   'Local',
                   null,
@@ -1857,6 +1866,8 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-plex-server:32400';
       case 'navidrome':
         return 'http://your-navidrome-server:4533';
+      case 'swingmusic':
+        return 'http://your-swingmusic-server:1970';
       case 'local':
         return ''; // Local doesn't need a server URL
       default:
