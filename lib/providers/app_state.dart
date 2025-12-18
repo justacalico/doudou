@@ -209,6 +209,23 @@ class AppState extends ChangeNotifier {
           );
         }
 
+        // Handle local music specially
+        if (serverType == 'local') {
+          final success = await loginWithLocalMusic();
+          if (success) {
+            if (kDebugMode) {
+              print('AppState: Local music mode restored successfully');
+            }
+            return;
+          } else {
+            if (kDebugMode) {
+              print('AppState: Failed to restore local music mode');
+            }
+            // Don't continue with server auth for local mode
+            return;
+          }
+        }
+
         // Initialize the appropriate service
         ServerType type;
         switch (serverType) {
