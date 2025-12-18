@@ -489,7 +489,10 @@ Future<void> _debugLinuxMpv() async {
     final aoResult = await Process.run('mpv', ['--ao=help']);
     if (aoResult.exitCode == 0) {
       final output = aoResult.stdout.toString();
-      final lines = output.split('\n').where((l) => l.trim().isNotEmpty).take(10);
+      final lines = output
+          .split('\n')
+          .where((l) => l.trim().isNotEmpty)
+          .take(10);
       print('  Available audio outputs:');
       for (final line in lines) {
         print('     $line');
