@@ -527,6 +527,93 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                   ),
                 ),
 
+              // Artwork Settings
+              if (service != null && service.isInitialized && !_isScanning)
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: _buildGlassCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Album Art',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Album art is fetched from embedded metadata, local images, and online sources',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildArtworkSettingTile(
+                              'Fetch Online Artwork',
+                              'Download missing artwork from MusicBrainz & Cover Art Archive',
+                              service.fetchOnlineArtwork,
+                              (value) async {
+                                await service.setFetchOnlineArtwork(value);
+                                setState(() {});
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            _buildArtworkActionTile(
+                              'Clear Artwork Cache',
+                              'Remove cached artwork from online sources',
+                              CupertinoIcons.trash,
+                              AppleColors.systemRed,
+                              () async {
+                                final confirmed = await showCupertinoDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => CupertinoAlertDialog(
+                                    title: const Text('Clear Cache?'),
+                                    content: const Text('This will remove all cached online artwork. Your local album art files will not be affected.'),
+                                    actions: [
+                                      CupertinoDialogAction(
+                                        isDestructiveAction: true,
+                                        onPressed: () => Navigator.pop(ctx, true),
+                                        child: const Text('Clear'),
+                                      ),
+                                      CupertinoDialogAction(
+                                        isDefaultAction: true,
+                                        onPressed: () => Navigator.pop(ctx, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                
+                                if (confirmed == true && mounted) {
+                                  await service.clearArtworkCache();
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text('Artwork cache cleared'),
+                                        backgroundColor: AppleColors.systemGreen,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      isDark: isDark,
+                    ),
+                  ),
+                ),
+
               // Actions
               SliverToBoxAdapter(
                 child: Padding(
