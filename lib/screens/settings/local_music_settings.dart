@@ -39,11 +39,20 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
   Future<void> _initializeService() async {
     final appState = context.read<AppState>();
-    final service = appState.mediaServiceManager.localMusicService;
+    
+    // Ensure the local music service is created
+    var service = appState.mediaServiceManager.localMusicService;
+    if (service == null) {
+      // Create the service by adding a dummy call that initializes it
+      await appState.mediaServiceManager.setLocalMusicService();
+      service = appState.mediaServiceManager.localMusicService;
+    }
+    
     if (service != null && !service.isInitialized) {
       await service.initialize();
-      if (mounted) setState(() {});
     }
+    
+    if (mounted) setState(() {});
   }
 
   Future<void> _addDirectory() async {
