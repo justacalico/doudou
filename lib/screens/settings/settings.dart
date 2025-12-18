@@ -118,6 +118,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Account Information Section
                   const SliverToBoxAdapter(child: AccountInformationSection()),
 
+                  // Playbooks Section - Manage Music Sources
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.12),
+                                  Colors.white.withOpacity(0.05),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSectionHeader('Music Sources'),
+                                _buildSettingTile(
+                                  icon: CupertinoIcons.music_albums,
+                                  title: 'Playbooks',
+                                  subtitle: 'Manage your music services',
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      CupertinoPageRoute(
+                                        builder: (context) => const PlaybooksScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
                   // Audio Settings Section
                   const SliverToBoxAdapter(child: AudioSettingsSection()),
 
