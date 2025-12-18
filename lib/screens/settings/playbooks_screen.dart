@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../models/playbook.dart';
 import '../../services/playbook_service.dart';
 import '../../services/base_service.dart';
+import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 
 /// Screen for managing Playbooks (music service configurations)
@@ -382,9 +383,14 @@ class _PlaybooksScreenState extends State<PlaybooksScreen> {
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            onPressed: () {
-              playbookService.removePlaybook(playbook.id);
+            onPressed: () async {
+              await playbookService.removePlaybook(playbook.id);
               Navigator.pop(context);
+              // Refresh content after removing playbook
+              if (context.mounted) {
+                final appState = context.read<AppState>();
+                await appState.refreshLibraryData();
+              }
             },
             child: const Text('Delete'),
           ),
@@ -825,6 +831,7 @@ class _AddPlaybookSheetState extends State<AddPlaybookSheet> {
 
     try {
       final playbookService = context.read<PlaybookService>();
+      final appState = context.read<AppState>();
       
       Map<String, dynamic> config;
       
@@ -856,11 +863,23 @@ class _AddPlaybookSheetState extends State<AddPlaybookSheet> {
           break;
       }
 
-      await playbookService.addPlaybook(
+      final playbook = await playbookService.addPlaybook(
         name: _nameController.text,
         type: _selectedType!,
         config: config,
       );
+
+      // Trigger scan/refresh based on playbook type
+      if (_selectedType == ServerType.local) {
+        // For local playbooks, scan the directories
+        final service = await playbookService.getServiceForPlaybook(playbook.id);
+        if (service != null) {
+          await service.authenticate();
+        }
+      }
+      
+      // Refresh library data to show new content
+      await appState.refreshLibraryData();
 
       if (mounted) {
         Navigator.pop(context);
