@@ -902,15 +902,28 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildServerTypeChip(
     String type,
     String label,
-    String iconPath,
+    String? iconPath,
     Color color,
-    bool isDark,
-  ) {
+    bool isDark, {
+    IconData? icon,
+  }) {
     final isSelected = _selectedServerType == type;
 
     return GestureDetector(
       onTap: () async {
         await _triggerButtonPress();
+        if (type == 'local') {
+          // Navigate to local music setup
+          if (mounted) {
+            Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => const LocalMusicSettingsScreen(isInitialSetup: true),
+              ),
+            );
+          }
+          return;
+        }
         setState(() {
           _selectedServerType = type;
           _serverController.text = _getServerPlaceholder();
@@ -953,10 +966,12 @@ class _LoginScreenState extends State<LoginScreen>
                 color: color.withOpacity(isDark ? 0.15 : 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: SvgPicture.asset(
-                iconPath,
-                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-              ),
+              child: icon != null
+                  ? Icon(icon, color: color, size: 20)
+                  : SvgPicture.asset(
+                      iconPath!,
+                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                    ),
             ),
             const SizedBox(width: 10),
             Text(
