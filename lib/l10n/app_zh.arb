@@ -3,7 +3,7 @@
 
   "appName": "Doudou",
   "appTitle": "Doudou - Jellyfin音乐播放器",
-  "appTagline": "您的个人音乐伴侣。\n从Jellyfin、Plex或Navidrome串流。",
+  "appTagline": "您的个人音乐伴侣。\n从Jellyfin、Plex或Subsonic串流。",
 
   "navHome": "首页",
   "navLibrary": "媒体库",
@@ -154,7 +154,7 @@
   "signingIn": "登录中...",
   "jellyfinPlaceholder": "http://your-jellyfin-server:8096",
   "plexPlaceholder": "http://your-plex-server:32400",
-  "navidromePlaceholder": "http://your-navidrome-server:4533",
+  "subsonicPlaceholder": "http://your-subsonic-server:4533",
   "defaultServerPlaceholder": "http://your-server:port",
 
   "createPlaylist": "创建播放列表",
