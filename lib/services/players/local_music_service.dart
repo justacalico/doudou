@@ -340,6 +340,9 @@ class LocalMusicService implements BaseMediaService {
     // Save artists as JSON
     final artistsJson = _artists.map((a) => a.toJson()).toList();
     await prefs.setString(_cachedArtistsKey, jsonEncode(artistsJson));
+    
+    // Save track ID to path mapping
+    await prefs.setString(_cachedPathsKey, jsonEncode(_trackIdToPath));
   }
 
   /// Load cached data from preferences
@@ -365,6 +368,16 @@ class LocalMusicService implements BaseMediaService {
         final artistsList = jsonDecode(artistsString) as List;
         _artists = artistsList.map((json) => Artist.fromJson(json)).toList();
       }
+      
+      // Load track ID to path mapping
+      final pathsString = prefs.getString(_cachedPathsKey);
+      if (pathsString != null) {
+        final pathsMap = jsonDecode(pathsString) as Map<String, dynamic>;
+        _trackIdToPath.clear();
+        pathsMap.forEach((key, value) {
+          _trackIdToPath[key] = value as String;
+        });
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error loading cached data: $e');
@@ -373,6 +386,7 @@ class LocalMusicService implements BaseMediaService {
       _tracks = [];
       _albums = [];
       _artists = [];
+      _trackIdToPath.clear();
     }
   }
 
