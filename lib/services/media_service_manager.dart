@@ -70,7 +70,7 @@ class MediaServiceManager {
       _currentServerType = ServerType.navidrome;
     } else if (service is LocalMusicService) {
       _currentServerType = ServerType.local;
-      _sharedLocalMusicService = service as LocalMusicService;
+      _sharedLocalMusicService = service;
     }
     
     if (kDebugMode) {
