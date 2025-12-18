@@ -19,7 +19,7 @@
 - **Device**: 
 
 ### Server Info
-- **Server Type**: <!-- Jellyfin, Plex, or Navidrome -->
+- **Server Type**: <!-- Jellyfin, Plex, or Subsonic -->
 - **Server Version**: 
 - **Hosting Method**: <!-- e.g., Docker, native, etc. -->
 
