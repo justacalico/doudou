@@ -3,7 +3,7 @@ import '../models/jellyfin_models.dart';
 import 'base_service.dart';
 import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
-import 'players/navidrome_service.dart';
+import 'players/subsonic_service.dart';
 import 'players/swingmusic_service.dart';
 import 'players/local_music_service.dart';
 
@@ -41,8 +41,8 @@ class MediaServiceManager {
       case ServerType.plex:
         _currentService = PlexService();
         break;
-      case ServerType.navidrome:
-        _currentService = NavidromeService();
+      case ServerType.subsonic:
+        _currentService = SubsonicService();
         break;
       case ServerType.swingmusic:
         _currentService = SwingMusicService();
@@ -309,10 +309,10 @@ class MediaServiceManager {
           return await adapter._jellyfinService.createPlaylist(name);
         }
         break;
-      case ServerType.navidrome:
-        if (_currentService is NavidromeService) {
-          final navidromeService = _currentService as NavidromeService;
-          return await navidromeService.createPlaylist(name);
+      case ServerType.subsonic:
+        if (_currentService is SubsonicService) {
+          final subsonicService = _currentService as SubsonicService;
+          return await subsonicService.createPlaylist(name);
         }
         break;
       case ServerType.plex:
@@ -346,10 +346,10 @@ class MediaServiceManager {
           return await adapter._jellyfinService.addToPlaylist(playlistId, trackId);
         }
         break;
-      case ServerType.navidrome:
-        if (_currentService is NavidromeService) {
-          final navidromeService = _currentService as NavidromeService;
-          return await navidromeService.addToPlaylist(playlistId, trackId);
+      case ServerType.subsonic:
+        if (_currentService is SubsonicService) {
+          final subsonicService = _currentService as SubsonicService;
+          return await subsonicService.addToPlaylist(playlistId, trackId);
         }
         break;
       case ServerType.plex:
@@ -383,10 +383,10 @@ class MediaServiceManager {
           return await adapter._jellyfinService.renamePlaylist(playlistId, newName);
         }
         break;
-      case ServerType.navidrome:
-        if (_currentService is NavidromeService) {
-          final navidromeService = _currentService as NavidromeService;
-          return await navidromeService.renamePlaylist(playlistId, newName);
+      case ServerType.subsonic:
+        if (_currentService is SubsonicService) {
+          final subsonicService = _currentService as SubsonicService;
+          return await subsonicService.renamePlaylist(playlistId, newName);
         }
         break;
       case ServerType.plex:
@@ -420,10 +420,10 @@ class MediaServiceManager {
           return await adapter._jellyfinService.removePlaylist(playlistId);
         }
         break;
-      case ServerType.navidrome:
-        if (_currentService is NavidromeService) {
-          final navidromeService = _currentService as NavidromeService;
-          return await navidromeService.removePlaylist(playlistId);
+      case ServerType.subsonic:
+        if (_currentService is SubsonicService) {
+          final subsonicService = _currentService as SubsonicService;
+          return await subsonicService.removePlaylist(playlistId);
         }
         break;
       case ServerType.plex:
