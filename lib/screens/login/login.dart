@@ -837,7 +837,9 @@ class _LoginScreenState extends State<LoginScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.all(16),
+        width: 88,
+        height: 88,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? color.withOpacity(isDark ? 0.2 : 0.12)
