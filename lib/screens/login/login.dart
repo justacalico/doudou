@@ -838,8 +838,8 @@ class _LoginScreenState extends State<LoginScreen>
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
         width: 88,
-        height: 88,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        height: 100,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? color.withOpacity(isDark ? 0.2 : 0.12)
