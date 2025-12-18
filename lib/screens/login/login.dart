@@ -857,28 +857,31 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 40,
+              height: 40,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withOpacity(isDark ? 0.15 : 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: icon != null
-                  ? Icon(icon, color: color, size: 28)
+                  ? Icon(icon, color: color, size: 24)
                   : SvgPicture.asset(
                       iconPath!,
                       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                     ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               label,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: AppleDesignSystem.fontFamily,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected
                     ? color
