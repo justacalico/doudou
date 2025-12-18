@@ -320,6 +320,12 @@ class MediaServiceManager {
           print('Plex add to playlist not yet implemented');
         }
         break;
+      case ServerType.local:
+        // Local add to playlist could be implemented here
+        if (kDebugMode) {
+          print('Local add to playlist not yet implemented');
+        }
+        break;
     }
     return false;
   }
