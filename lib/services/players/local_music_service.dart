@@ -520,31 +520,25 @@ class LocalMusicService implements BaseMediaService {
 
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
-    // For local files, the trackId is a hash, so we need to find the actual file path
-    // We store the file path in the track, but since we hash it, we need to reverse lookup
-    
-    // Find the track and get its file path from the ID
-    final track = _tracks.firstWhere(
-      (t) => t.id == trackId,
-      orElse: () => Track(id: '', name: ''),
-    );
-    
-    if (track.id.isEmpty) {
-      if (kDebugMode) {
-        print('LocalMusicService: Track not found for ID $trackId');
-      }
-      return '';
+    // First try to get the path from our cached map (fast lookup)
+    final cachedPath = _trackIdToPath[trackId];
+    if (cachedPath != null && File(cachedPath).existsSync()) {
+      return 'file://$cachedPath';
     }
     
-    // Find the actual file by searching through directories
+    // If not in cache, search through directories (slower but thorough)
     for (final dirPath in _musicDirectories) {
       final foundPath = _findFileByTrackId(dirPath, trackId);
       if (foundPath != null) {
-        // Return file:// URL for local files
+        // Cache the path for future lookups
+        _trackIdToPath[trackId] = foundPath;
         return 'file://$foundPath';
       }
     }
     
+    if (kDebugMode) {
+      print('LocalMusicService: File not found for track ID $trackId');
+    }
     return '';
   }
 
