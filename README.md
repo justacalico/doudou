@@ -58,7 +58,7 @@ Don't have a media server? No problem! Doudou can play music directly from your 
 ## 🚀 Get Started in Minutes
 
 ### What You Need
-- A media server running **Jellyfin 10.8+**, **Plex** (with Plex Pass), or **Navidrome 0.48+**
+- A media server running **Jellyfin 10.8+**, **Plex** (with Plex Pass), **Navidrome 0.48+**, or **Swing Music**
 - A device running **Android 5.0+**, **iOS 12.0+**, **macOS 10.15+**, **Linux**, or **Windows 10+**
 - Network connection to your media server
 
