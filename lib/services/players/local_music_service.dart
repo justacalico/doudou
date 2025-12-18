@@ -781,6 +781,92 @@ class LocalMusicService implements BaseMediaService {
     }
     return null;
   }
+  
+  /// Refresh artwork for a specific track by fetching from online sources
+  Future<String?> refreshTrackArtwork(String trackId) async {
+    final trackIndex = _tracks.indexWhere((t) => t.id == trackId);
+    if (trackIndex < 0) return null;
+    
+    final track = _tracks[trackIndex];
+    final filePath = _trackIdToPath[trackId];
+    if (filePath == null) return null;
+    
+    // Clear any cached artwork for this track
+    _albumArtService.clearCache();
+    
+    // Fetch new artwork with online lookup enabled
+    final newArtwork = await _albumArtService.getAlbumArt(
+      filePath: filePath,
+      albumName: track.albumName,
+      artistName: track.artistName,
+      trackName: track.name,
+      checkEmbedded: true,
+      checkLocal: true,
+      checkOnline: true,
+    );
+    
+    if (newArtwork != null) {
+      // Update the track with new artwork
+      _tracks[trackIndex] = Track(
+        id: track.id,
+        name: track.name,
+        albumName: track.albumName,
+        artistName: track.artistName,
+        albumId: track.albumId,
+        duration: track.duration,
+        trackNumber: track.trackNumber,
+        imageUrl: newArtwork,
+        isFavorite: track.isFavorite,
+        playCount: track.playCount,
+      );
+      
+      // Update album artwork if this track's album matches
+      final albumIndex = _albums.indexWhere((a) => a.id == track.albumId);
+      if (albumIndex >= 0) {
+        final album = _albums[albumIndex];
+        _albums[albumIndex] = Album(
+          id: album.id,
+          name: album.name,
+          artistName: album.artistName,
+          imageUrl: newArtwork,
+          year: album.year,
+          trackCount: album.trackCount,
+        );
+      }
+      
+      await _saveCachedData();
+    }
+    
+    return newArtwork;
+  }
+  
+  /// Refresh artwork for all tracks in an album
+  Future<String?> refreshAlbumArtwork(String albumId) async {
+    final albumTracks = _tracks.where((t) => t.albumId == albumId).toList();
+    if (albumTracks.isEmpty) return null;
+    
+    // Try to get artwork from the first track
+    final firstTrack = albumTracks.first;
+    return refreshTrackArtwork(firstTrack.id);
+  }
+  
+  /// Search for artwork online and return available options
+  Future<List<AlbumArtResult>> searchArtwork({
+    required String albumName,
+    required String artistName,
+    int maxResults = 5,
+  }) async {
+    return _albumArtService.searchOnlineArtwork(
+      albumName: albumName,
+      artistName: artistName,
+      maxResults: maxResults,
+    );
+  }
+  
+  /// Clear artwork cache
+  Future<void> clearArtworkCache() async {
+    await _albumArtService.clearCachedFiles();
+  }
 }
 
 /// Represents a local music "server" configuration
