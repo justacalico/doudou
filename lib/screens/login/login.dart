@@ -739,9 +739,9 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(width: 12),
                 _buildServerTypeCard(
-                  'navidrome',
-                  'Navidrome',
-                  'assets/icons/navidrome.svg',
+                  'subsonic',
+                  'Subsonic',
+                  'assets/icons/subsonic.svg',
                   AppleColors.systemBlue,
                   isDark,
                 ),
@@ -789,9 +789,9 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(width: 10),
                 _buildServerTypeChip(
-                  'navidrome',
-                  'Navidrome',
-                  'assets/icons/navidrome.svg',
+                  'subsonic',
+                  'Subsonic',
+                  'assets/icons/subsonic.svg',
                   AppleColors.systemBlue,
                   isDark,
                 ),
@@ -1210,7 +1210,7 @@ class _LoginScreenState extends State<LoginScreen>
         ],
       ];
     } else {
-      // Navidrome or other servers - username/password only
+      // Subsonic or other servers - username/password only
       return [
         _buildModernTextField(
           controller: _usernameController,
@@ -1866,8 +1866,8 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-jellyfin-server:8096';
       case 'plex':
         return 'http://your-plex-server:32400';
-      case 'navidrome':
-        return 'http://your-navidrome-server:4533';
+      case 'subsonic':
+        return 'http://your-subsonic-server:4533';
       case 'swingmusic':
         return 'http://your-swingmusic-server:1970';
       case 'local':
