@@ -375,6 +375,89 @@ class SwingMusicService implements BaseMediaService {
     }
   }
 
+  /// Create a new playlist
+  Future<Playlist?> createPlaylist(String name) async {
+    try {
+      final response = await _dio.post(
+        '$_serverUrl/playlist/new',
+        data: {'name': name},
+        options: _authOptions,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data != null) {
+          return _parsePlaylist(response.data);
+        }
+        // If no data returned, create a minimal playlist object
+        return Playlist(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: name,
+          imageUrl: null,
+          trackCount: 0,
+        );
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('SwingMusic: Error creating playlist: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Add a track to a playlist
+  Future<bool> addToPlaylist(String playlistId, String trackId) async {
+    try {
+      final response = await _dio.post(
+        '$_serverUrl/playlist/$playlistId/add',
+        data: {'trackhash': trackId},
+        options: _authOptions,
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      if (kDebugMode) {
+        print('SwingMusic: Error adding to playlist: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Rename a playlist
+  Future<bool> renamePlaylist(String playlistId, String newName) async {
+    try {
+      final response = await _dio.put(
+        '$_serverUrl/playlist/$playlistId',
+        data: {'name': newName},
+        options: _authOptions,
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) {
+        print('SwingMusic: Error renaming playlist: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Remove/delete a playlist
+  Future<bool> removePlaylist(String playlistId) async {
+    try {
+      final response = await _dio.delete(
+        '$_serverUrl/playlist/$playlistId',
+        options: _authOptions,
+      );
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      if (kDebugMode) {
+        print('SwingMusic: Error removing playlist: $e');
+      }
+      return false;
+    }
+  }
+
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
     if (_serverUrl == null) return '';
