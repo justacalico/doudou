@@ -10,6 +10,7 @@ import 'dart:async';
 import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 import '../../services/players/jellyfin_service.dart';
+import '../settings/local_music_settings.dart';
 
 // Auth method enum for Jellyfin
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
@@ -748,6 +749,17 @@ class _LoginScreenState extends State<LoginScreen>
                   isDark,
                 ),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildServerTypeCard(
+                  'local',
+                  'Local',
+                  null,
+                  AppleColors.systemGreen,
+                  isDark,
+                  icon: CupertinoIcons.folder_fill,
+                ),
+              ),
             ],
           )
         else
@@ -777,6 +789,15 @@ class _LoginScreenState extends State<LoginScreen>
                   'assets/icons/navidrome.svg',
                   AppleColors.systemBlue,
                   isDark,
+                ),
+                const SizedBox(width: 10),
+                _buildServerTypeChip(
+                  'local',
+                  'Local',
+                  null,
+                  AppleColors.systemGreen,
+                  isDark,
+                  icon: CupertinoIcons.folder_fill,
                 ),
               ],
             ),
