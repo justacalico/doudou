@@ -73,6 +73,9 @@ class LocalMusicService implements BaseMediaService {
       _musicDirectories = savedDirs;
     }
     
+    // Load online artwork preference
+    _fetchOnlineArtwork = prefs.getBool(_fetchOnlineArtworkKey) ?? true;
+    
     // Load cached data
     await _loadCachedData(prefs);
     
@@ -81,6 +84,7 @@ class LocalMusicService implements BaseMediaService {
     if (kDebugMode) {
       print('LocalMusicService initialized with ${_musicDirectories.length} directories');
       print('Cached: ${_albums.length} albums, ${_artists.length} artists, ${_tracks.length} tracks');
+      print('Fetch online artwork: $_fetchOnlineArtwork');
     }
   }
 
