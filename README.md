@@ -12,6 +12,7 @@ Stream your music collection from your own media server with a beautiful, modern
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?logo=jellyfin)
 ![Plex](https://img.shields.io/badge/Plex-E5A00D?logo=plex)
 ![Navidrome](https://img.shields.io/badge/Navidrome-663399)
+![Swing Music](https://img.shields.io/badge/Swing%20Music-00BCD4)
 ![Local](https://img.shields.io/badge/Local%20Files-4CAF50)
 
 </div>
@@ -23,6 +24,7 @@ Stream your music collection from your own media server with a beautiful, modern
 - **🟢 Jellyfin** - Full support (recommended)
 - **🟢 Plex** - Working with limitations*
 - **🟢 Navidrome** - Full SubSonic compatibility
+- **🟢 Swing Music** - Full support for Swing Music servers
 - **🟢 Local Files** - Play music directly from your device
 
 *Plex support is functional, but some API calls are not implemented or are bugged.
