@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../services/players/jellyfin_service.dart';
+import '../services/playbook_service.dart';
 import '../screens/login/login.dart';
 import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
 import '../widgets/apple_design/apple_theme.dart';
