@@ -103,7 +103,7 @@ class AppState extends ChangeNotifier {
     int? height,
   }) {
     // If itemId is already a full URL (starts with http), return it as-is
-    // This handles cases where Plex/Navidrome provide full URLs in imageUrl field
+    // This handles cases where Plex/Subsonic provide full URLs in imageUrl field
     if (itemId.startsWith('http://') || itemId.startsWith('https://')) {
       return itemId;
     }
@@ -232,8 +232,8 @@ class AppState extends ChangeNotifier {
           case 'plex':
             type = ServerType.plex;
             break;
-          case 'navidrome':
-            type = ServerType.navidrome;
+          case 'subsonic':
+            type = ServerType.subsonic;
             break;
           case 'swingmusic':
             type = ServerType.swingmusic;
@@ -991,8 +991,8 @@ class AppState extends ChangeNotifier {
         case 'plex':
           type = ServerType.plex;
           break;
-        case 'navidrome':
-          type = ServerType.navidrome;
+        case 'subsonic':
+          type = ServerType.subsonic;
           break;
         case 'swingmusic':
           type = ServerType.swingmusic;
@@ -1179,7 +1179,7 @@ class AppState extends ChangeNotifier {
     // Clear all server credentials
     await prefs.remove('jellyfin_server'); // Legacy Jellyfin
     await prefs.remove('jellyfin_credentials');
-    await prefs.remove('navidrome_credentials');
+    await prefs.remove('subsonic_credentials');
     await prefs.remove('plex_credentials');
     
     // Clear saved server type
@@ -1812,7 +1812,7 @@ class AppState extends ChangeNotifier {
       final freshTracks = await _mediaServiceManager.getTracks();
 
       if (freshTracks.isNotEmpty) {
-        // For Navidrome, getTracks returns random songs which may not include
+        // For Subsonic, getTracks returns random songs which may not include
         // the tracks we have locally. Merge fresh data with existing tracks
         // to preserve favorite status and ensure we don't lose tracks.
         final Map<String, Track> trackMap = {};
