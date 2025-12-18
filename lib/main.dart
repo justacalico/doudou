@@ -13,7 +13,6 @@ import 'services/players/jellyfin_service.dart';
 import 'services/playbook_service.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/partials/navbar/navbar.dart';
-import 'screens/settings/playbooks_screen.dart';
 import 'widgets/apple_design/apple_theme.dart';
 import 'desktop/main.dart' as desktop_main;
 
@@ -180,11 +179,7 @@ class DoudouApp extends StatelessWidget {
                     );
                   }
 
-                  if (appState.isLoggedIn) {
-                    return const HomeScreen();
-                  } else {
-                    return const PlaybooksScreen();
-                  }
+                  return const HomeScreen();
                 },
               ),
               debugShowCheckedModeBanner: false,
