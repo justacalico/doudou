@@ -187,6 +187,7 @@ class DoudouApp extends StatelessWidget {
             );
           },
         ),
+        ),
       ),
     );
   }
@@ -202,6 +203,36 @@ class DoudouApp extends StatelessWidget {
 
     // On other platforms (including web), return the app directly
     return app;
+  }
+}
+
+/// Widget that connects PlaybookService to AppState
+class _PlaybookConnector extends StatefulWidget {
+  final Widget child;
+  
+  const _PlaybookConnector({required this.child});
+  
+  @override
+  State<_PlaybookConnector> createState() => _PlaybookConnectorState();
+}
+
+class _PlaybookConnectorState extends State<_PlaybookConnector> {
+  bool _connected = false;
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_connected) {
+      final appState = context.read<AppState>();
+      final playbookService = context.read<PlaybookService>();
+      appState.setPlaybookService(playbookService);
+      _connected = true;
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
 
