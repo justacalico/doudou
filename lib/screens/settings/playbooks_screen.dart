@@ -900,8 +900,8 @@ class _ManageDirectoriesScreenState extends State<ManageDirectoriesScreen> {
         middle: const Text('Manage Directories'),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.add),
           onPressed: _addDirectory,
+          child: const Icon(CupertinoIcons.add),
         ),
       ),
       child: SafeArea(
