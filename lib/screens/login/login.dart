@@ -720,45 +720,37 @@ class _LoginScreenState extends State<LoginScreen>
         if (isDesktop)
           Row(
             children: [
-              Expanded(
-                child: _buildServerTypeCard(
-                  'jellyfin',
-                  'Jellyfin',
-                  'assets/icons/jellyfin.svg',
-                  AppleColors.systemPurple,
-                  isDark,
-                ),
+              _buildServerTypeCard(
+                'jellyfin',
+                'Jellyfin',
+                'assets/icons/jellyfin.svg',
+                AppleColors.systemPurple,
+                isDark,
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: _buildServerTypeCard(
-                  'plex',
-                  'Plex',
-                  'assets/icons/plex.svg',
-                  AppleColors.systemOrange,
-                  isDark,
-                ),
+              _buildServerTypeCard(
+                'plex',
+                'Plex',
+                'assets/icons/plex.svg',
+                AppleColors.systemOrange,
+                isDark,
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: _buildServerTypeCard(
-                  'navidrome',
-                  'Navidrome',
-                  'assets/icons/navidrome.svg',
-                  AppleColors.systemBlue,
-                  isDark,
-                ),
+              _buildServerTypeCard(
+                'navidrome',
+                'Navidrome',
+                'assets/icons/navidrome.svg',
+                AppleColors.systemBlue,
+                isDark,
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: _buildServerTypeCard(
-                  'local',
-                  'Local',
-                  null,
-                  AppleColors.systemGreen,
-                  isDark,
-                  icon: CupertinoIcons.folder_fill,
-                ),
+              _buildServerTypeCard(
+                'local',
+                'Local',
+                null,
+                AppleColors.systemGreen,
+                isDark,
+                icon: CupertinoIcons.folder_fill,
               ),
             ],
           )
