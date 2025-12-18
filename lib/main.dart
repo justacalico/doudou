@@ -382,3 +382,144 @@ Future<void> _logSystemInfo(String context) async {
     logger.error('Failed to log system info: $e', 'SystemInfo');
   }
 }
+
+/// Debug MPV availability and configuration on Linux for audio playback
+Future<void> _debugLinuxMpv() async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.linux) return;
+
+  print('');
+  print('╔══════════════════════════════════════════════════════════════╗');
+  print('║               LINUX MPV DEBUG OUTPUT                         ║');
+  print('╚══════════════════════════════════════════════════════════════╝');
+  print('');
+
+  // Check if mpv binary exists
+  print('🔍 Checking MPV installation...');
+  try {
+    final whichResult = await Process.run('which', ['mpv']);
+    if (whichResult.exitCode == 0) {
+      final mpvPath = whichResult.stdout.toString().trim();
+      print('  ✅ MPV found at: $mpvPath');
+
+      // Get MPV version
+      final versionResult = await Process.run('mpv', ['--version']);
+      if (versionResult.exitCode == 0) {
+        final versionLines = versionResult.stdout.toString().split('\n');
+        if (versionLines.isNotEmpty) {
+          print('  ✅ MPV version: ${versionLines.first}');
+        }
+      }
+    } else {
+      print('  ❌ MPV NOT FOUND! Audio playback will likely fail.');
+      print('     Install with: sudo apt install mpv libmpv-dev');
+      print('     Or: sudo dnf install mpv mpv-libs-devel');
+      print('     Or: sudo pacman -S mpv');
+    }
+  } catch (e) {
+    print('  ❌ Error checking MPV: $e');
+  }
+
+  // Check for libmpv
+  print('');
+  print('🔍 Checking libmpv library...');
+  try {
+    final ldconfigResult = await Process.run('ldconfig', ['-p']);
+    if (ldconfigResult.exitCode == 0) {
+      final output = ldconfigResult.stdout.toString();
+      final mpvLibs = output
+          .split('\n')
+          .where((line) => line.contains('libmpv'))
+          .toList();
+      if (mpvLibs.isNotEmpty) {
+        print('  ✅ libmpv libraries found:');
+        for (final lib in mpvLibs) {
+          print('     $lib');
+        }
+      } else {
+        print('  ❌ libmpv NOT FOUND in ldconfig cache!');
+        print('     Install with: sudo apt install libmpv-dev');
+      }
+    }
+  } catch (e) {
+    print('  ⚠️  Could not check ldconfig: $e');
+  }
+
+  // Check LD_LIBRARY_PATH
+  print('');
+  print('🔍 Checking LD_LIBRARY_PATH...');
+  final ldPath = Platform.environment['LD_LIBRARY_PATH'];
+  if (ldPath != null && ldPath.isNotEmpty) {
+    print('  LD_LIBRARY_PATH: $ldPath');
+  } else {
+    print('  LD_LIBRARY_PATH: (not set)');
+  }
+
+  // Check for common MPV library paths
+  print('');
+  print('🔍 Checking common library paths for libmpv...');
+  final commonPaths = [
+    '/usr/lib/x86_64-linux-gnu/libmpv.so',
+    '/usr/lib64/libmpv.so',
+    '/usr/lib/libmpv.so',
+    '/usr/local/lib/libmpv.so',
+    '/app/lib/libmpv.so', // Flatpak
+  ];
+  for (final path in commonPaths) {
+    final file = File(path);
+    if (await file.exists()) {
+      print('  ✅ Found: $path');
+    }
+  }
+
+  // Check if running in Flatpak
+  print('');
+  print('🔍 Checking Flatpak environment...');
+  final flatpakId = Platform.environment['FLATPAK_ID'];
+  if (flatpakId != null) {
+    print('  ⚠️  Running in Flatpak: $flatpakId');
+    print('     MPV may need to be bundled or accessed via portal');
+  } else {
+    print('  ✅ Not running in Flatpak');
+  }
+
+  // Try to test MPV audio output
+  print('');
+  print('🔍 Checking MPV audio outputs...');
+  try {
+    final aoResult = await Process.run('mpv', ['--ao=help']);
+    if (aoResult.exitCode == 0) {
+      final output = aoResult.stdout.toString();
+      final lines = output.split('\n').where((l) => l.trim().isNotEmpty).take(10);
+      print('  Available audio outputs:');
+      for (final line in lines) {
+        print('     $line');
+      }
+    }
+  } catch (e) {
+    print('  ❌ Could not query MPV audio outputs: $e');
+  }
+
+  // Check PulseAudio/PipeWire status
+  print('');
+  print('🔍 Checking audio server...');
+  try {
+    final paResult = await Process.run('pactl', ['info']);
+    if (paResult.exitCode == 0) {
+      final output = paResult.stdout.toString();
+      final serverName = output
+          .split('\n')
+          .firstWhere((l) => l.contains('Server Name:'), orElse: () => '');
+      if (serverName.isNotEmpty) {
+        print('  ✅ $serverName');
+      }
+    }
+  } catch (e) {
+    print('  ⚠️  Could not check PulseAudio/PipeWire: $e');
+  }
+
+  print('');
+  print('╔══════════════════════════════════════════════════════════════╗');
+  print('║           END LINUX MPV DEBUG OUTPUT                         ║');
+  print('╚══════════════════════════════════════════════════════════════╝');
+  print('');
+}
