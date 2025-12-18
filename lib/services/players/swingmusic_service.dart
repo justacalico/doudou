@@ -53,14 +53,17 @@ class SwingMusicService implements BaseMediaService {
           : serverUrl;
       _username = identifier;
 
+      // Swing Music API endpoint - note: some Flask servers need trailing slash
       final loginUrl = '$_serverUrl/auth/login';
-      
+
       if (kDebugMode) {
-        print('SwingMusic: Attempting login to $loginUrl with username: $identifier');
+        print(
+            'SwingMusic: Attempting login to $loginUrl with username: $identifier');
       }
 
       // Swing Music uses JWT authentication
       // The API expects a JSON body with username and password
+      // Disable redirect following to debug 405 issues
       final response = await _dio.post(
         loginUrl,
         data: {'username': identifier, 'password': credential},
@@ -69,12 +72,51 @@ class SwingMusicService implements BaseMediaService {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
+          followRedirects: false,
           validateStatus: (status) => status != null && status < 500,
         ),
       );
 
       if (kDebugMode) {
         print('SwingMusic: Login response status: ${response.statusCode}');
+        print('SwingMusic: Login response headers: ${response.headers}');
+      }
+
+      // Handle redirect - Flask may redirect to URL with trailing slash
+      if (response.statusCode == 307 || response.statusCode == 308) {
+        final redirectUrl = response.headers['location']?.first;
+        if (redirectUrl != null) {
+          if (kDebugMode) {
+            print('SwingMusic: Following redirect to $redirectUrl');
+          }
+          final redirectResponse = await _dio.post(
+            redirectUrl.startsWith('http')
+                ? redirectUrl
+                : '$_serverUrl$redirectUrl',
+            data: {'username': identifier, 'password': credential},
+            options: Options(
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              validateStatus: (status) => status != null && status < 500,
+            ),
+          );
+
+          if (redirectResponse.statusCode == 200 &&
+              redirectResponse.data != null) {
+            _accessToken = redirectResponse.data['accesstoken'];
+            _refreshToken = redirectResponse.data['refreshtoken'];
+            await _getUserInfo();
+            if (kDebugMode) {
+              print('SwingMusic: Authenticated as $_username (after redirect)');
+            }
+            return true;
+          }
+        }
+      }
+
+      if (kDebugMode) {
         print('SwingMusic: Login response data: ${response.data}');
       }
 
@@ -90,7 +132,7 @@ class SwingMusicService implements BaseMediaService {
         }
         return true;
       }
-      
+
       if (kDebugMode) {
         print('SwingMusic: Login failed with status ${response.statusCode}');
       }
