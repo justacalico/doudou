@@ -11,7 +11,7 @@
     "description": "The full title of the application"
   },
 
-  "appTagline": "Your personal music companion.\nStream from Jellyfin, Plex, or Navidrome.",
+  "appTagline": "Your personal music companion.\nStream from Jellyfin, Plex, or Subsonic.",
   "@appTagline": {
     "description": "The app tagline shown on login screen"
   },
@@ -781,9 +781,9 @@
     "description": "Plex server URL placeholder"
   },
 
-  "navidromePlaceholder": "http://your-navidrome-server:4533",
-  "@navidromePlaceholder": {
-    "description": "Navidrome server URL placeholder"
+  "subsonicPlaceholder": "http://your-subsonic-server:4533",
+  "@subsonicPlaceholder": {
+    "description": "Subsonic server URL placeholder"
   },
 
   "defaultServerPlaceholder": "http://your-server:port",
