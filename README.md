@@ -11,7 +11,7 @@ Stream your music collection from your own media server with a beautiful, modern
 ![Flutter](https://img.shields.io/badge/Built%20with-Flutter-02569B?logo=flutter)
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?logo=jellyfin)
 ![Plex](https://img.shields.io/badge/Plex-E5A00D?logo=plex)
-![Navidrome](https://img.shields.io/badge/Navidrome-663399)
+![Subsonic](https://img.shields.io/badge/Subsonic-663399)
 ![Swing Music](https://img.shields.io/badge/Swing%20Music-00BCD4)
 ![Local](https://img.shields.io/badge/Local%20Files-4CAF50)
 
@@ -23,7 +23,7 @@ Stream your music collection from your own media server with a beautiful, modern
 
 - **🟢 Jellyfin** - Full support (recommended)
 - **🟢 Plex** - Working with limitations*
-- **🟢 Navidrome** - Full SubSonic compatibility
+- **🟢 Subsonic** - Full SubSonic API compatibility
 - **🟢 Swing Music** - Full support for Swing Music servers* (Disabled unless needed)
 - **🟢 Local Files** - Play music directly from your device
 
@@ -58,7 +58,7 @@ Don't have a media server? No problem! Doudou can play music directly from your 
 ## 🚀 Get Started in Minutes
 
 ### What You Need
-- A media server running **Jellyfin 10.8+**, **Plex** (with Plex Pass), **Navidrome 0.48+**, or **Swing Music**
+- A media server running **Jellyfin 10.8+**, **Plex** (with Plex Pass), **Subsonic-compatible server**, or **Swing Music**
 - A device running **Android 5.0+**, **iOS 12.0+**, **macOS 10.15+**, **Linux**, or **Windows 10+**
 - Network connection to your media server
 
@@ -85,7 +85,7 @@ See [DOCKER.md](docs/DOCKER.md) for detailed deployment instructions.
 ### Connect to Your Server
 
 1. **Open Doudou** and tap "Add Server"
-2. **Select your server type** (Jellyfin, Plex, or Navidrome)
+2. **Select your server type** (Jellyfin, Plex, or Subsonic)
 3. **Enter your server address** (like `http://192.168.1.100:8096`)
 4. **Sign in** with your username and password
 5. **Start enjoying your music!**
@@ -113,7 +113,7 @@ That's it! Doudou will sync your library and you can start streaming immediately
 ## ❓ Frequently Asked Questions
 
 **Q: Do I need my own server?**  
-A: Not anymore! While Doudou works great with Jellyfin, Plex, or Navidrome servers, you can also use it to play local music files directly from your device.
+A: Not anymore! While Doudou works great with Jellyfin, Plex, or Subsonic servers, you can also use it to play local music files directly from your device.
 
 **Q: Can I use this away from home?**  
 A: Absolutely! As long as your server is accessible over the internet. Consider using a VPN for security.
@@ -181,7 +181,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 Built with love using these incredible open-source projects:
 
-- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Navidrome](https://navidrome.org/) - Media servers
+- [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/) - Media servers
 - [Flutter](https://flutter.dev/) - Cross-platform framework  
 - [just_audio](https://pub.dev/packages/just_audio) - Audio engine
 - [audio_service](https://pub.dev/packages/audio_service) - Background audio
