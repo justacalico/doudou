@@ -88,8 +88,17 @@ class DoudouApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AppState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AppState()),
+        ChangeNotifierProvider(
+          create: (context) {
+            final service = PlaybookService();
+            service.initialize();
+            return service;
+          },
+        ),
+      ],
       child: _buildAppWithPlatformServices(
         Consumer<AppState>(
           builder: (context, appState, child) {
