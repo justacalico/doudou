@@ -1175,9 +1175,27 @@ class AppState extends ChangeNotifier {
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('navidrome_credentials');
     await prefs.remove('plex_credentials');
+    
+    // Clear saved server type
+    await prefs.remove('saved_server_type');
+    
+    // Clear local music data if using local service
+    final localService = _mediaServiceManager.localMusicService;
+    if (localService != null) {
+      await localService.fullLogout();
+    }
+    
+    // Clear all cached library data
+    await prefs.remove('albums_cache');
+    await prefs.remove('artists_cache');
+    await prefs.remove('tracks_cache');
+    await prefs.remove('playlists_cache');
+    
+    // Clear the media service manager state
+    _mediaServiceManager.clearAuth();
 
     if (kDebugMode) {
-      print('AppState: Cleared all server credentials during logout');
+      print('AppState: Cleared all server credentials and cached data during logout');
     }
 
     // Dispose audio handler
