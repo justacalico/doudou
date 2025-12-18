@@ -11,7 +11,6 @@ import '../../providers/app_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/apple_design/liquid_glass.dart';
 import '../../services/base_service.dart';
-import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
 import 'partials/language_settings.dart';
@@ -867,7 +866,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await appState.logout();
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
-                  CupertinoPageRoute(builder: (context) => const LoginScreen()),
+                  CupertinoPageRoute(builder: (context) => const PlaybooksScreen()),
                   (route) => false,
                 );
               }
