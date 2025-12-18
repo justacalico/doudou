@@ -98,36 +98,37 @@ class DoudouApp extends StatelessWidget {
           },
         ),
       ],
-      child: _buildAppWithPlatformServices(
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            final isDark =
-                appState.themeMode == ThemeMode.dark ||
-                (appState.themeMode == ThemeMode.system &&
-                    MediaQuery.platformBrightnessOf(context) ==
-                        Brightness.dark);
+      child: _PlaybookConnector(
+        child: _buildAppWithPlatformServices(
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              final isDark =
+                  appState.themeMode == ThemeMode.dark ||
+                  (appState.themeMode == ThemeMode.system &&
+                      MediaQuery.platformBrightnessOf(context) ==
+                          Brightness.dark);
 
-            return CupertinoApp(
-              title: 'Doudou - Jellyfin Music Player',
-              theme: CupertinoThemeData(
-                primaryColor: appState.accentColor,
-                brightness: isDark ? Brightness.dark : Brightness.light,
-                scaffoldBackgroundColor: isDark
-                    ? AppleColors.backgroundPrimaryDark
-                    : AppleColors.backgroundPrimary,
-                barBackgroundColor: isDark
-                    ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.9)
-                    : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
-                textTheme: CupertinoTextThemeData(
+              return CupertinoApp(
+                title: 'Doudou - Jellyfin Music Player',
+                theme: CupertinoThemeData(
                   primaryColor: appState.accentColor,
-                  textStyle: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: AppleDesignSystem.typeScaleBody,
-                    color: isDark
-                        ? AppleColors.labelPrimaryDark
-                        : AppleColors.labelPrimary,
-                  ),
-                  navTitleTextStyle: TextStyle(
+                  brightness: isDark ? Brightness.dark : Brightness.light,
+                  scaffoldBackgroundColor: isDark
+                      ? AppleColors.backgroundPrimaryDark
+                      : AppleColors.backgroundPrimary,
+                  barBackgroundColor: isDark
+                      ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.9)
+                      : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
+                  textTheme: CupertinoTextThemeData(
+                    primaryColor: appState.accentColor,
+                    textStyle: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleBody,
+                      color: isDark
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
+                    ),
+                    navTitleTextStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleHeadline,
                     fontWeight: FontWeight.w600,
