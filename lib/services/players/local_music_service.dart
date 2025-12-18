@@ -364,16 +364,16 @@ class LocalMusicService implements BaseMediaService {
   Future<void> _saveCachedData() async {
     final prefs = await SharedPreferences.getInstance();
     
-    // Save tracks as JSON
-    final tracksJson = _tracks.map((t) => t.toJson()).toList();
+    // Save tracks as JSON (using local-specific format to preserve imageUrl)
+    final tracksJson = _tracks.map((t) => _trackToLocalJson(t)).toList();
     await prefs.setString(_cachedTracksKey, jsonEncode(tracksJson));
     
-    // Save albums as JSON
-    final albumsJson = _albums.map((a) => a.toJson()).toList();
+    // Save albums as JSON (using local-specific format to preserve imageUrl)
+    final albumsJson = _albums.map((a) => _albumToLocalJson(a)).toList();
     await prefs.setString(_cachedAlbumsKey, jsonEncode(albumsJson));
     
-    // Save artists as JSON
-    final artistsJson = _artists.map((a) => a.toJson()).toList();
+    // Save artists as JSON (using local-specific format to preserve imageUrl)
+    final artistsJson = _artists.map((a) => _artistToLocalJson(a)).toList();
     await prefs.setString(_cachedArtistsKey, jsonEncode(artistsJson));
     
     // Save track ID to path mapping
@@ -383,25 +383,25 @@ class LocalMusicService implements BaseMediaService {
   /// Load cached data from preferences
   Future<void> _loadCachedData(SharedPreferences prefs) async {
     try {
-      // Load tracks
+      // Load tracks (using local-specific format)
       final tracksString = prefs.getString(_cachedTracksKey);
       if (tracksString != null) {
         final tracksList = jsonDecode(tracksString) as List;
-        _tracks = tracksList.map((json) => Track.fromJson(json)).toList();
+        _tracks = tracksList.map((json) => _trackFromLocalJson(json)).toList();
       }
       
-      // Load albums
+      // Load albums (using local-specific format)
       final albumsString = prefs.getString(_cachedAlbumsKey);
       if (albumsString != null) {
         final albumsList = jsonDecode(albumsString) as List;
-        _albums = albumsList.map((json) => Album.fromJson(json)).toList();
+        _albums = albumsList.map((json) => _albumFromLocalJson(json)).toList();
       }
       
-      // Load artists
+      // Load artists (using local-specific format)
       final artistsString = prefs.getString(_cachedArtistsKey);
       if (artistsString != null) {
         final artistsList = jsonDecode(artistsString) as List;
-        _artists = artistsList.map((json) => Artist.fromJson(json)).toList();
+        _artists = artistsList.map((json) => _artistFromLocalJson(json)).toList();
       }
       
       // Load track ID to path mapping
@@ -423,6 +423,82 @@ class LocalMusicService implements BaseMediaService {
       _artists = [];
       _trackIdToPath.clear();
     }
+  }
+  
+  // ==================== Local-specific JSON serialization ====================
+  
+  /// Convert Track to local JSON format (preserves imageUrl as-is)
+  Map<String, dynamic> _trackToLocalJson(Track track) {
+    return {
+      'id': track.id,
+      'name': track.name,
+      'albumName': track.albumName,
+      'artistName': track.artistName,
+      'albumId': track.albumId,
+      'duration': track.duration,
+      'trackNumber': track.trackNumber,
+      'imageUrl': track.imageUrl,
+      'isFavorite': track.isFavorite,
+      'playCount': track.playCount,
+    };
+  }
+  
+  /// Create Track from local JSON format
+  Track _trackFromLocalJson(Map<String, dynamic> json) {
+    return Track(
+      id: json['id'] ?? json['Id'] ?? '',
+      name: json['name'] ?? json['Name'] ?? '',
+      albumName: json['albumName'] ?? json['Album'],
+      artistName: json['artistName'] ?? (json['Artists'] is List ? json['Artists']?.join(', ') : json['Artists']),
+      albumId: json['albumId'] ?? json['AlbumId'],
+      duration: json['duration'] ?? (json['RunTimeTicks'] != null ? (json['RunTimeTicks'] / 10000).round() : null),
+      trackNumber: json['trackNumber'] ?? json['IndexNumber'],
+      imageUrl: json['imageUrl'],
+      isFavorite: json['isFavorite'] ?? json['UserData']?['IsFavorite'] ?? false,
+      playCount: json['playCount'] ?? json['UserData']?['PlayCount'],
+    );
+  }
+  
+  /// Convert Album to local JSON format (preserves imageUrl as-is)
+  Map<String, dynamic> _albumToLocalJson(Album album) {
+    return {
+      'id': album.id,
+      'name': album.name,
+      'artistName': album.artistName,
+      'imageUrl': album.imageUrl,
+      'year': album.year,
+      'isFavorite': album.isFavorite,
+    };
+  }
+  
+  /// Create Album from local JSON format
+  Album _albumFromLocalJson(Map<String, dynamic> json) {
+    return Album(
+      id: json['id'] ?? json['Id'] ?? '',
+      name: json['name'] ?? json['Name'] ?? '',
+      artistName: json['artistName'] ?? json['AlbumArtist'],
+      imageUrl: json['imageUrl'],
+      year: json['year'] ?? json['ProductionYear'],
+      isFavorite: json['isFavorite'] ?? json['UserData']?['IsFavorite'] ?? false,
+    );
+  }
+  
+  /// Convert Artist to local JSON format (preserves imageUrl as-is)
+  Map<String, dynamic> _artistToLocalJson(Artist artist) {
+    return {
+      'id': artist.id,
+      'name': artist.name,
+      'imageUrl': artist.imageUrl,
+    };
+  }
+  
+  /// Create Artist from local JSON format
+  Artist _artistFromLocalJson(Map<String, dynamic> json) {
+    return Artist(
+      id: json['id'] ?? json['Id'] ?? '',
+      name: json['name'] ?? json['Name'] ?? '',
+      imageUrl: json['imageUrl'],
+    );
   }
 
   // ==================== BaseMediaService Implementation ====================
