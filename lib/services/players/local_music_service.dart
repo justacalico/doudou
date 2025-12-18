@@ -675,6 +675,7 @@ class LocalMusicService implements BaseMediaService {
     _artists.clear();
     _tracks.clear();
     _playlists.clear();
+    _trackIdToPath.clear();
     _isInitialized = false;
   }
 
