@@ -991,6 +991,9 @@ class AppState extends ChangeNotifier {
         case 'navidrome':
           type = ServerType.navidrome;
           break;
+        case 'swingmusic':
+          type = ServerType.swingmusic;
+          break;
         case 'local':
           type = ServerType.local;
           break;
