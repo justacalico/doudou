@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/base_service.dart';
 
 class AccountInformationSection extends StatelessWidget {
   const AccountInformationSection({super.key});
@@ -14,7 +15,9 @@ class AccountInformationSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
         final server = appState.jellyfinService.currentServer;
+        final localService = appState.mediaServiceManager.localMusicService;
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -39,7 +42,25 @@ class AccountInformationSection extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildSectionHeader(l10n.accountInformation),
-                    if (server != null) ...[
+                    if (isLocalMusic && localService != null) ...[
+                      // Local Music Mode
+                      _buildInfoTile(
+                        icon: CupertinoIcons.folder,
+                        title: 'Music Source',
+                        subtitle: 'Local Files',
+                      ),
+                      _buildInfoTile(
+                        icon: CupertinoIcons.music_albums,
+                        title: 'Directories',
+                        subtitle: '${localService.musicDirectories.length} folder${localService.musicDirectories.length != 1 ? 's' : ''} configured',
+                      ),
+                      _buildInfoTile(
+                        icon: CupertinoIcons.checkmark_seal,
+                        title: l10n.connectionStatus,
+                        subtitle: 'Active',
+                      ),
+                    ] else if (server != null) ...[
+                      // Server Mode (Jellyfin, etc.)
                       _buildInfoTile(
                         icon: CupertinoIcons.person_circle,
                         title: l10n.userId,
