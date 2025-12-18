@@ -1848,6 +1848,8 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-plex-server:32400';
       case 'navidrome':
         return 'http://your-navidrome-server:4533';
+      case 'local':
+        return ''; // Local doesn't need a server URL
       default:
         return 'http://your-server:port';
     }
