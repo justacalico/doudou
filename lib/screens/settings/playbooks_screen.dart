@@ -23,39 +23,47 @@ class _PlaybooksScreenState extends State<PlaybooksScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return CupertinoPageScaffold(
-      backgroundColor: isDark 
-          ? const Color(0xFF0A0A0A)
-          : CupertinoColors.systemGroupedBackground,
-      navigationBar: CupertinoNavigationBar(
-        backgroundColor: Colors.transparent,
-        border: null,
-        middle: const Text('Playbooks'),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.add),
-          onPressed: () => _showAddPlaybookSheet(context),
-        ),
-      ),
-      child: Consumer<PlaybookService>(
-        builder: (context, playbookService, child) {
-          final playbooks = playbookService.playbooks;
-
-          if (playbooks.isEmpty) {
-            return _buildEmptyState(context, isDark);
-          }
-
-          return SafeArea(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: playbooks.length,
-              itemBuilder: (context, index) {
-                final playbook = playbooks[index];
-                return _buildPlaybookCard(context, playbook, playbookService, isDark);
-              },
+    return Material(
+      color: Colors.transparent,
+      child: CupertinoPageScaffold(
+        backgroundColor: isDark 
+            ? const Color(0xFF0A0A0A)
+            : CupertinoColors.systemGroupedBackground,
+        navigationBar: CupertinoNavigationBar(
+          backgroundColor: Colors.transparent,
+          border: null,
+          middle: Text(
+            'Playbooks',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
             ),
-          );
-        },
+          ),
+          trailing: CupertinoButton(
+            padding: EdgeInsets.zero,
+            child: const Icon(CupertinoIcons.add),
+            onPressed: () => _showAddPlaybookSheet(context),
+          ),
+        ),
+        child: Consumer<PlaybookService>(
+          builder: (context, playbookService, child) {
+            final playbooks = playbookService.playbooks;
+
+            if (playbooks.isEmpty) {
+              return _buildEmptyState(context, isDark);
+            }
+
+            return SafeArea(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: playbooks.length,
+                itemBuilder: (context, index) {
+                  final playbook = playbooks[index];
+                  return _buildPlaybookCard(context, playbook, playbookService, isDark);
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -87,6 +95,7 @@ class _PlaybooksScreenState extends State<PlaybooksScreen> {
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.white : Colors.black,
+              decoration: TextDecoration.none,
             ),
           ),
           const SizedBox(height: 8),
@@ -95,6 +104,7 @@ class _PlaybooksScreenState extends State<PlaybooksScreen> {
             style: TextStyle(
               fontSize: 15,
               color: isDark ? Colors.white54 : Colors.black54,
+              decoration: TextDecoration.none,
             ),
           ),
           const SizedBox(height: 24),
