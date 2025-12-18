@@ -212,6 +212,9 @@ class LocalMusicService implements BaseMediaService {
     // Generate album ID based on album folder path
     final albumId = _generatePathHash(parentDir);
     
+    // Store the file path for later retrieval
+    _trackIdToPath[trackId] = filePath;
+    
     return Track(
       id: trackId,
       name: trackName,
