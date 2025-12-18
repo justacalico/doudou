@@ -130,9 +130,10 @@ class AlbumArtService {
         // Determine file extension based on mime type
         String extension = '.jpg';
         if (picture.mimeType != null) {
-          if (picture.mimeType!.contains('png')) {
+          final mimeStr = picture.mimeType.toString().toLowerCase();
+          if (mimeStr.contains('png')) {
             extension = '.png';
-          } else if (picture.mimeType!.contains('webp')) {
+          } else if (mimeStr.contains('webp')) {
             extension = '.webp';
           }
         }
