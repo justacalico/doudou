@@ -3,7 +3,7 @@
 
   "appName": "Doudou",
   "appTitle": "Doudou - Музыкальный плеер Jellyfin",
-  "appTagline": "Ваш личный музыкальный компаньон.\nСтриминг с Jellyfin, Plex или Navidrome.",
+  "appTagline": "Ваш личный музыкальный компаньон.\nСтриминг с Jellyfin, Plex или Subsonic.",
 
   "navHome": "Главная",
   "navLibrary": "Библиотека",
@@ -154,7 +154,7 @@
   "signingIn": "Вход...",
   "jellyfinPlaceholder": "http://ваш-jellyfin-сервер:8096",
   "plexPlaceholder": "http://ваш-plex-сервер:32400",
-  "navidromePlaceholder": "http://ваш-navidrome-сервер:4533",
+  "subsonicPlaceholder": "http://ваш-subsonic-сервер:4533",
   "defaultServerPlaceholder": "http://ваш-сервер:порт",
 
   "createPlaylist": "Создать плейлист",
