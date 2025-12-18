@@ -645,6 +645,13 @@ class LocalMusicService implements BaseMediaService {
 
   @override
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
+    // isFavorite is the CURRENT status - we need to toggle it
+    final newFavoriteStatus = !isFavorite;
+    
+    if (kDebugMode) {
+      print('LocalMusicService.toggleFavorite: itemId=$itemId, currentStatus=$isFavorite, newStatus=$newFavoriteStatus');
+    }
+    
     // Find and update track favorite status
     final trackIndex = _tracks.indexWhere((t) => t.id == itemId);
     if (trackIndex >= 0) {
@@ -658,11 +665,19 @@ class LocalMusicService implements BaseMediaService {
         duration: track.duration,
         trackNumber: track.trackNumber,
         imageUrl: track.imageUrl,
-        isFavorite: isFavorite,
+        isFavorite: newFavoriteStatus,
         playCount: track.playCount,
       );
       await _saveCachedData();
+      
+      if (kDebugMode) {
+        print('LocalMusicService: Track favorite status updated and saved');
+      }
       return true;
+    }
+    
+    if (kDebugMode) {
+      print('LocalMusicService: Track not found for itemId=$itemId');
     }
     return false;
   }
