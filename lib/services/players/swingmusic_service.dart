@@ -56,24 +56,17 @@ class SwingMusicService implements BaseMediaService {
       // Swing Music uses JWT authentication
       final response = await _dio.post(
         '$_serverUrl/auth/login',
-        data: {
-          'username': identifier,
-          'password': credential,
-        },
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+        data: {'username': identifier, 'password': credential},
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       if (response.statusCode == 200 && response.data != null) {
         _accessToken = response.data['accesstoken'];
         _refreshToken = response.data['refreshtoken'];
-        
+
         // Get user info
         await _getUserInfo();
-        
+
         if (kDebugMode) {
           print('SwingMusic: Authenticated as $_username');
         }
@@ -95,7 +88,7 @@ class SwingMusicService implements BaseMediaService {
         '$_serverUrl/auth/user',
         options: _authOptions,
       );
-      
+
       if (response.statusCode == 200 && response.data != null) {
         _userId = response.data['id'];
       }
@@ -135,7 +128,7 @@ class SwingMusicService implements BaseMediaService {
       if (response.statusCode == 200) {
         return true;
       }
-      
+
       // Try to refresh token
       return await _refreshAccessToken();
     } catch (e) {
@@ -146,15 +139,11 @@ class SwingMusicService implements BaseMediaService {
 
   Future<bool> _refreshAccessToken() async {
     if (_refreshToken == null) return false;
-    
+
     try {
       final response = await _dio.post(
         '$_serverUrl/auth/refresh',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $_refreshToken',
-          },
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $_refreshToken'}),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -175,17 +164,15 @@ class SwingMusicService implements BaseMediaService {
   Future<List<Library>> getLibraries() async {
     // Swing Music doesn't have a concept of libraries like Jellyfin
     // Return a single "All Music" library
-    return [
-      Library(
-        id: 'all',
-        name: 'All Music',
-        collectionType: 'music',
-      ),
-    ];
+    return [Library(id: 'all', name: 'All Music', collectionType: 'music')];
   }
 
   @override
-  Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Album>> getAlbums({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     try {
       final response = await _dio.get(
         '$_serverUrl/getall/albums',
@@ -197,7 +184,8 @@ class SwingMusicService implements BaseMediaService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> albumsData = response.data['items'] ?? response.data;
+        final List<dynamic> albumsData =
+            response.data['items'] ?? response.data;
         return albumsData.map((album) => _parseAlbum(album)).toList();
       }
 
@@ -214,17 +202,24 @@ class SwingMusicService implements BaseMediaService {
     return Album(
       id: json['albumhash'] ?? json['id'] ?? '',
       name: json['title'] ?? json['name'] ?? '',
-      artistName: json['albumartists'] is List && json['albumartists'].isNotEmpty
+      artistName:
+          json['albumartists'] is List && json['albumartists'].isNotEmpty
           ? json['albumartists'][0]['name']
           : (json['artist'] ?? 'Unknown Artist'),
       imageUrl: json['albumhash'] ?? json['image'],
-      year: json['date'] != null ? int.tryParse(json['date'].toString().split('-').first) : null,
+      year: json['date'] != null
+          ? int.tryParse(json['date'].toString().split('-').first)
+          : null,
       isFavorite: json['is_favorite'] ?? false,
     );
   }
 
   @override
-  Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Artist>> getArtists({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     try {
       final response = await _dio.get(
         '$_serverUrl/getall/artists',
@@ -236,7 +231,8 @@ class SwingMusicService implements BaseMediaService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> artistsData = response.data['items'] ?? response.data;
+        final List<dynamic> artistsData =
+            response.data['items'] ?? response.data;
         return artistsData.map((artist) => _parseArtist(artist)).toList();
       }
 
@@ -258,11 +254,16 @@ class SwingMusicService implements BaseMediaService {
   }
 
   @override
-  Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
+  Future<List<Track>> getTracks({
+    String? libraryId,
+    String? parentId,
+    int? limit,
+    int? startIndex,
+  }) async {
     try {
       String endpoint;
       Map<String, dynamic> queryParams = {};
-      
+
       if (parentId != null) {
         // Get tracks for a specific album
         final response = await _dio.post(
@@ -270,7 +271,7 @@ class SwingMusicService implements BaseMediaService {
           data: {'albumhash': parentId},
           options: _authOptions,
         );
-        
+
         if (response.statusCode == 200 && response.data != null) {
           final List<dynamic> tracksData = response.data['tracks'] ?? [];
           return tracksData.map((track) => _parseTrack(track)).toList();
@@ -290,7 +291,8 @@ class SwingMusicService implements BaseMediaService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> tracksData = response.data['items'] ?? response.data;
+        final List<dynamic> tracksData =
+            response.data['items'] ?? response.data;
         return tracksData.map((track) => _parseTrack(track)).toList();
       }
 
@@ -306,13 +308,15 @@ class SwingMusicService implements BaseMediaService {
   Track _parseTrack(Map<String, dynamic> json) {
     // Duration is in seconds, convert to milliseconds
     final durationSeconds = json['duration'] as int? ?? 0;
-    
+
     return Track(
       id: json['trackhash'] ?? json['id'] ?? '',
       name: json['title'] ?? json['name'] ?? '',
       albumName: json['album'] ?? json['albumtitle'],
       artistName: json['artists'] is List && json['artists'].isNotEmpty
-          ? (json['artists'] as List).map((a) => a is Map ? a['name'] : a.toString()).join(', ')
+          ? (json['artists'] as List)
+                .map((a) => a is Map ? a['name'] : a.toString())
+                .join(', ')
           : (json['artist'] ?? 'Unknown Artist'),
       albumId: json['albumhash'],
       duration: durationSeconds * 1000, // Convert to milliseconds
@@ -331,8 +335,11 @@ class SwingMusicService implements BaseMediaService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> playlistsData = response.data['items'] ?? response.data;
-        return playlistsData.map((playlist) => _parsePlaylist(playlist)).toList();
+        final List<dynamic> playlistsData =
+            response.data['items'] ?? response.data;
+        return playlistsData
+            .map((playlist) => _parsePlaylist(playlist))
+            .toList();
       }
 
       return [];
@@ -461,14 +468,14 @@ class SwingMusicService implements BaseMediaService {
   @override
   String getStreamUrl(String trackId, {int? bitrate}) {
     if (_serverUrl == null) return '';
-    
+
     // Swing Music streams via /file/<trackhash>/legacy endpoint
     String url = '$_serverUrl/file/$trackId/legacy?filepath=';
-    
+
     if (bitrate != null && bitrate < 320) {
       url += '&quality=$bitrate&container=mp3';
     }
-    
+
     return url;
   }
 
@@ -484,49 +491,57 @@ class SwingMusicService implements BaseMediaService {
   }
 
   @override
-  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+  String getImageUrl(
+    String itemId, {
+    String type = 'Primary',
+    int? width,
+    int? height,
+  }) {
     if (_serverUrl == null || itemId.isEmpty) return '';
-    
+
     // Swing Music serves images via /img endpoint
     // The itemId is usually an albumhash or artisthash
     String url = '$_serverUrl/img/thumbnail/$itemId';
-    
+
     if (width != null || height != null) {
       final size = width ?? height ?? 300;
       url = '$_serverUrl/img/thumbnail/$itemId?size=$size';
     }
-    
+
     return url;
   }
 
   @override
-  Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
+  Future<SearchResults> search(
+    String query, {
+    List<String>? includeItemTypes,
+    int? limit,
+  }) async {
     try {
       // Get top search results
       final response = await _dio.get(
         '$_serverUrl/search/top',
-        queryParameters: {
-          'q': query,
-          if (limit != null) 'limit': limit,
-        },
+        queryParameters: {'q': query, if (limit != null) 'limit': limit},
         options: _authOptions,
       );
 
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
-        
+
         List<Album> albums = [];
         List<Artist> artists = [];
         List<Track> tracks = [];
-        
+
         if (data['albums'] != null) {
           albums = (data['albums'] as List).map((a) => _parseAlbum(a)).toList();
         }
-        
+
         if (data['artists'] != null) {
-          artists = (data['artists'] as List).map((a) => _parseArtist(a)).toList();
+          artists = (data['artists'] as List)
+              .map((a) => _parseArtist(a))
+              .toList();
         }
-        
+
         if (data['tracks'] != null) {
           tracks = (data['tracks'] as List).map((t) => _parseTrack(t)).toList();
         }
@@ -570,10 +585,10 @@ class SwingMusicService implements BaseMediaService {
   @override
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
     try {
-      final endpoint = isFavorite 
+      final endpoint = isFavorite
           ? '$_serverUrl/favorites/remove'
           : '$_serverUrl/favorites/add';
-      
+
       final response = await _dio.post(
         endpoint,
         data: {'trackhash': itemId},
@@ -609,7 +624,8 @@ class SwingMusicService implements BaseMediaService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> tracksData = response.data['tracks'] ?? response.data;
+        final List<dynamic> tracksData =
+            response.data['tracks'] ?? response.data;
         return tracksData.map((track) => _parseTrack(track)).toList();
       }
 
@@ -634,7 +650,10 @@ class SwingMusicService implements BaseMediaService {
         final recentlyPlayed = response.data['recently_played'];
         if (recentlyPlayed != null && recentlyPlayed['tracks'] != null) {
           final List<dynamic> tracksData = recentlyPlayed['tracks'];
-          return tracksData.take(limit).map((track) => _parseTrack(track)).toList();
+          return tracksData
+              .take(limit)
+              .map((track) => _parseTrack(track))
+              .toList();
         }
       }
 
