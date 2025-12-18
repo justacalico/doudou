@@ -57,6 +57,34 @@ class MediaServiceManager {
     _currentService = JellyfinServiceAdapter(service);
   }
 
+  /// Initialize and set local music service as active
+  Future<void> setLocalMusicService() async {
+    _sharedLocalMusicService ??= LocalMusicService();
+    await _sharedLocalMusicService!.initialize();
+    _currentServerType = ServerType.local;
+    _currentService = _sharedLocalMusicService;
+  }
+
+  /// Add a directory to the local music service
+  Future<void> addLocalMusicDirectory(String directoryPath) async {
+    _sharedLocalMusicService ??= LocalMusicService();
+    await _sharedLocalMusicService!.addDirectory(directoryPath);
+  }
+
+  /// Remove a directory from the local music service
+  Future<void> removeLocalMusicDirectory(String directoryPath) async {
+    if (_sharedLocalMusicService != null) {
+      await _sharedLocalMusicService!.removeDirectory(directoryPath);
+    }
+  }
+
+  /// Scan local music directories
+  Future<void> scanLocalMusicDirectories({Function(int, int)? onProgress}) async {
+    if (_sharedLocalMusicService != null) {
+      await _sharedLocalMusicService!.scanDirectories(onProgress: onProgress);
+    }
+  }
+
   /// Authenticate with the current service
   Future<bool> authenticate(String serverUrl, String identifier, String credential) async {
     if (_currentService == null) return false;
@@ -351,6 +379,12 @@ class MediaServiceManager {
           print('Plex rename playlist not yet implemented');
         }
         break;
+      case ServerType.local:
+        // Local rename playlist could be implemented here
+        if (kDebugMode) {
+          print('Local rename playlist not yet implemented');
+        }
+        break;
     }
     return false;
   }
@@ -374,6 +408,12 @@ class MediaServiceManager {
         // Plex remove playlist could be implemented here
         if (kDebugMode) {
           print('Plex remove playlist not yet implemented');
+        }
+        break;
+      case ServerType.local:
+        // Local remove playlist could be implemented here
+        if (kDebugMode) {
+          print('Local remove playlist not yet implemented');
         }
         break;
     }
