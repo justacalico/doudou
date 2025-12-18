@@ -4,22 +4,28 @@ import 'base_service.dart';
 import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/navidrome_service.dart';
+import 'players/local_music_service.dart';
 
 class MediaServiceManager {
   BaseMediaService? _currentService;
   ServerType _currentServerType = ServerType.jellyfin;
   JellyfinService? _sharedJellyfinService;
+  LocalMusicService? _sharedLocalMusicService;
 
   ServerType get currentServerType => _currentServerType;
   BaseMediaService? get currentService => _currentService;
+  LocalMusicService? get localMusicService => _sharedLocalMusicService;
 
   /// Constructor that uses a shared JellyfinService instance
   MediaServiceManager.withJellyfinService(JellyfinService jellyfinService) {
     _sharedJellyfinService = jellyfinService;
+    _sharedLocalMusicService = LocalMusicService();
   }
 
   /// Default constructor
-  MediaServiceManager();
+  MediaServiceManager() {
+    _sharedLocalMusicService = LocalMusicService();
+  }
 
   /// Initialize service based on server type
   void initializeService(ServerType serverType) {
@@ -36,6 +42,10 @@ class MediaServiceManager {
         break;
       case ServerType.navidrome:
         _currentService = NavidromeService();
+        break;
+      case ServerType.local:
+        _sharedLocalMusicService ??= LocalMusicService();
+        _currentService = _sharedLocalMusicService;
         break;
     }
   }
@@ -277,6 +287,12 @@ class MediaServiceManager {
         // Plex playlist creation could be implemented here
         if (kDebugMode) {
           print('Plex playlist creation not yet implemented');
+        }
+        break;
+      case ServerType.local:
+        // Local playlist creation could be implemented here
+        if (kDebugMode) {
+          print('Local playlist creation not yet implemented');
         }
         break;
     }
