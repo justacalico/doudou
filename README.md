@@ -12,18 +12,27 @@ Stream your music collection from your own media server with a beautiful, modern
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?logo=jellyfin)
 ![Plex](https://img.shields.io/badge/Plex-E5A00D?logo=plex)
 ![Navidrome](https://img.shields.io/badge/Navidrome-663399)
+![Local](https://img.shields.io/badge/Local%20Files-4CAF50)
 
 </div>
 
 > **Quick Start**: Download for your platform → Connect to your server → Start listening to your music!
 
-## 📱 Works with Your Media Server
+## 📱 Works with Your Media Server (or Without One!)
 
 - **🟢 Jellyfin** - Full support (recommended)
 - **🟢 Plex** - Working with limitations*
 - **🟢 Navidrome** - Full SubSonic compatibility
+- **🟢 Local Files** - Play music directly from your device
 
 *Plex support is functional, but some API calls are not implemented or are bugged.
+
+### 🎵 Local Music Support
+Don't have a media server? No problem! Doudou can play music directly from your local filesystem:
+- **Supported formats**: MP3, FLAC, WAV, OGG, M4A, AAC, WMA, OPUS, AIFF, ALAC, APE, WEBM
+- **Album artwork**: Automatically fetches from embedded metadata, local images, or online (MusicBrainz/Cover Art Archive)
+- **Local playlists**: Create and manage playlists for your local music collection
+- **No server required**: Perfect for users who just want to play their music files
 
 ## ✨ Why Choose Doudou?
 
@@ -102,7 +111,7 @@ That's it! Doudou will sync your library and you can start streaming immediately
 ## ❓ Frequently Asked Questions
 
 **Q: Do I need my own server?**  
-A: Yes, Doudou connects to your self-hosted Jellyfin, Plex, or Navidrome server.
+A: Not anymore! While Doudou works great with Jellyfin, Plex, or Navidrome servers, you can also use it to play local music files directly from your device.
 
 **Q: Can I use this away from home?**  
 A: Absolutely! As long as your server is accessible over the internet. Consider using a VPN for security.
