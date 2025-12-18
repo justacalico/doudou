@@ -4,6 +4,7 @@ import 'base_service.dart';
 import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/navidrome_service.dart';
+import 'players/swingmusic_service.dart';
 import 'players/local_music_service.dart';
 
 class MediaServiceManager {
@@ -42,6 +43,9 @@ class MediaServiceManager {
         break;
       case ServerType.navidrome:
         _currentService = NavidromeService();
+        break;
+      case ServerType.swingmusic:
+        _currentService = SwingMusicService();
         break;
       case ServerType.local:
         _sharedLocalMusicService ??= LocalMusicService();
