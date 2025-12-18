@@ -13,7 +13,6 @@ import '../services/logging_service.dart';
 import '../services/players/jellyfin_service.dart';
 import '../services/playbook_service.dart';
 import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
-import '../screens/settings/playbooks_screen.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
@@ -291,11 +290,6 @@ class _ResponsiveHome extends StatelessWidget {
               ),
             ),
           );
-        }
-
-        // Show playbooks screen if not logged in (no active playbook)
-        if (!appState.isLoggedIn) {
-          return const PlaybooksScreen();
         }
 
         // Use LayoutBuilder to switch between mobile and desktop UI
