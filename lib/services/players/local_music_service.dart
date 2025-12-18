@@ -503,6 +503,11 @@ class LocalMusicService implements BaseMediaService {
       tracks = tracks.take(limit).toList();
     }
     
+    if (kDebugMode) {
+      final favCount = tracks.where((t) => t.isFavorite).length;
+      print('LocalMusicService.getTracks: Returning ${tracks.length} tracks, $favCount favorites');
+    }
+    
     return tracks;
   }
 
