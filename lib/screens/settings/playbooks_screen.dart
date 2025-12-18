@@ -873,8 +873,8 @@ class _AddPlaybookSheetState extends State<AddPlaybookSheet> {
       if (_selectedType == ServerType.local) {
         // For local playbooks, scan the directories
         final service = await playbookService.getServiceForPlaybook(playbook.id);
-        if (service != null) {
-          await service.authenticate();
+        if (service != null && service is LocalMusicService) {
+          await service.scanDirectories();
         }
       }
       
