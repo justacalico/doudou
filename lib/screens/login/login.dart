@@ -747,6 +747,15 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(width: 12),
                 _buildServerTypeCard(
+                  'swingmusic',
+                  'Swing',
+                  null,
+                  AppleColors.systemTeal,
+                  isDark,
+                  icon: CupertinoIcons.music_note_2,
+                ),
+                const SizedBox(width: 12),
+                _buildServerTypeCard(
                   'local',
                   'Local',
                   null,
