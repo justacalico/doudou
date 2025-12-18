@@ -718,41 +718,44 @@ class _LoginScreenState extends State<LoginScreen>
 
         // Server type cards in a row (horizontal scroll on mobile)
         if (isDesktop)
-          Row(
-            children: [
-              _buildServerTypeCard(
-                'jellyfin',
-                'Jellyfin',
-                'assets/icons/jellyfin.svg',
-                AppleColors.systemPurple,
-                isDark,
-              ),
-              const SizedBox(width: 12),
-              _buildServerTypeCard(
-                'plex',
-                'Plex',
-                'assets/icons/plex.svg',
-                AppleColors.systemOrange,
-                isDark,
-              ),
-              const SizedBox(width: 12),
-              _buildServerTypeCard(
-                'navidrome',
-                'Navidrome',
-                'assets/icons/navidrome.svg',
-                AppleColors.systemBlue,
-                isDark,
-              ),
-              const SizedBox(width: 12),
-              _buildServerTypeCard(
-                'local',
-                'Local',
-                null,
-                AppleColors.systemGreen,
-                isDark,
-                icon: CupertinoIcons.folder_fill,
-              ),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildServerTypeCard(
+                  'jellyfin',
+                  'Jellyfin',
+                  'assets/icons/jellyfin.svg',
+                  AppleColors.systemPurple,
+                  isDark,
+                ),
+                const SizedBox(width: 12),
+                _buildServerTypeCard(
+                  'plex',
+                  'Plex',
+                  'assets/icons/plex.svg',
+                  AppleColors.systemOrange,
+                  isDark,
+                ),
+                const SizedBox(width: 12),
+                _buildServerTypeCard(
+                  'navidrome',
+                  'Navidrome',
+                  'assets/icons/navidrome.svg',
+                  AppleColors.systemBlue,
+                  isDark,
+                ),
+                const SizedBox(width: 12),
+                _buildServerTypeCard(
+                  'local',
+                  'Local',
+                  null,
+                  AppleColors.systemGreen,
+                  isDark,
+                  icon: CupertinoIcons.folder_fill,
+                ),
+              ],
+            ),
           )
         else
           SingleChildScrollView(
