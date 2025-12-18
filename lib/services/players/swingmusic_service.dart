@@ -53,12 +53,30 @@ class SwingMusicService implements BaseMediaService {
           : serverUrl;
       _username = identifier;
 
+      final loginUrl = '$_serverUrl/auth/login';
+      
+      if (kDebugMode) {
+        print('SwingMusic: Attempting login to $loginUrl with username: $identifier');
+      }
+
       // Swing Music uses JWT authentication
+      // The API expects a JSON body with username and password
       final response = await _dio.post(
-        '$_serverUrl/auth/login',
+        loginUrl,
         data: {'username': identifier, 'password': credential},
-        options: Options(headers: {'Content-Type': 'application/json'}),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          validateStatus: (status) => status != null && status < 500,
+        ),
       );
+
+      if (kDebugMode) {
+        print('SwingMusic: Login response status: ${response.statusCode}');
+        print('SwingMusic: Login response data: ${response.data}');
+      }
 
       if (response.statusCode == 200 && response.data != null) {
         _accessToken = response.data['accesstoken'];
@@ -71,6 +89,10 @@ class SwingMusicService implements BaseMediaService {
           print('SwingMusic: Authenticated as $_username');
         }
         return true;
+      }
+      
+      if (kDebugMode) {
+        print('SwingMusic: Login failed with status ${response.statusCode}');
       }
 
       return false;
