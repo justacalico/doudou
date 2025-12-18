@@ -55,6 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final categories = [
       {'id': 'general', 'title': l10n.generalSettings.split(' ').first, 'icon': Icons.settings_rounded},
+      {'id': 'playbooks', 'title': 'Playbooks', 'icon': Icons.library_music_rounded},
       {'id': 'audio', 'title': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'title': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
       {'id': 'server', 'title': isLocalMusic ? 'Local Music' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
