@@ -11,7 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../services/players/jellyfin_service.dart';
-import '../services/playbook_service.dart';
+import '../screens/login/login.dart';
 import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
 import '../widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
@@ -181,59 +181,42 @@ class DesktopDoudouApp extends StatelessWidget {
     
     try {
       if (kDebugMode) {
-        print('Creating MultiProvider with AppState and PlaybookService...');
+        print('Creating ChangeNotifierProvider...');
       }
       
       // Add error boundary and proper provider initialization
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (context) {
-              if (kDebugMode) {
-                print('Creating AppState...');
-              }
-              return AppState();
-            },
-          ),
-          ChangeNotifierProvider(
-            create: (context) {
-              if (kDebugMode) {
-                print('Creating PlaybookService...');
-              }
-              final service = PlaybookService();
-              // Initialize asynchronously
-              service.initialize();
-              return service;
-            },
-          ),
-        ],
-        child: _DesktopPlaybookConnector(
-          child: _buildAppWithPlatformServices(
-          Consumer<AppState>(
-            builder: (context, appState, child) {
-              return MaterialApp(
-                title: 'Doudou - Music Player',
-                theme: AppleTheme.light(
-                  accentColor: appState.accentColor,
-                ),
-                darkTheme: AppleTheme.dark(
-                  accentColor: appState.accentColor,
-                ),
-                themeMode: appState.themeMode,
-                localizationsDelegates: const [
-                  AppLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                ],
-                supportedLocales: AppLocalizations.supportedLocales,
-                locale: appState.locale,
-                home: const _ResponsiveHome(),
-                debugShowCheckedModeBanner: false,
-              );
-            },
-          ),
-          ),
+      return ChangeNotifierProvider(
+        create: (context) {
+          if (kDebugMode) {
+            print('Creating AppState...');
+          }
+          return AppState();
+        },
+        child: _buildAppWithPlatformServices(
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            return MaterialApp(
+              title: 'Doudou - Music Player',
+              theme: AppleTheme.light(
+                accentColor: appState.accentColor,
+              ),
+              darkTheme: AppleTheme.dark(
+                accentColor: appState.accentColor,
+              ),
+              themeMode: appState.themeMode,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: appState.locale,
+              home: const _ResponsiveHome(),
+              debugShowCheckedModeBanner: false,
+            );
+          },
+        ),
         ),
       );
       
@@ -292,6 +275,11 @@ class _ResponsiveHome extends StatelessWidget {
               ),
             ),
           );
+        }
+
+        // Show login screen if not logged in
+        if (!appState.isLoggedIn) {
+          return const LoginScreen();
         }
 
         // Use LayoutBuilder to switch between mobile and desktop UI
@@ -533,39 +521,5 @@ Future<void> _logSystemInfo(String context) async {
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
   } catch (e) {
     logger.error('Failed to log system info: $e', 'SystemInfo');
-  }
-}
-
-/// Widget that connects PlaybookService to AppState on desktop
-class _DesktopPlaybookConnector extends StatefulWidget {
-  final Widget child;
-  
-  const _DesktopPlaybookConnector({required this.child});
-  
-  @override
-  State<_DesktopPlaybookConnector> createState() => _DesktopPlaybookConnectorState();
-}
-
-class _DesktopPlaybookConnectorState extends State<_DesktopPlaybookConnector> {
-  bool _connected = false;
-  
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_connected) {
-      final appState = context.read<AppState>();
-      final playbookService = context.read<PlaybookService>();
-      appState.setPlaybookService(playbookService);
-      _connected = true;
-      
-      if (kDebugMode) {
-        print('DesktopPlaybookConnector: Connected PlaybookService to AppState');
-      }
-    }
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

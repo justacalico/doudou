@@ -10,8 +10,8 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
-import 'services/playbook_service.dart';
 import 'l10n/app_localizations.dart';
+import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
 import 'widgets/apple_design/apple_theme.dart';
 import 'desktop/main.dart' as desktop_main;
@@ -87,48 +87,38 @@ class DoudouApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => AppState()),
-        ChangeNotifierProvider(
-          create: (context) {
-            final service = PlaybookService();
-            service.initialize();
-            return service;
-          },
-        ),
-      ],
-      child: _PlaybookConnector(
-        child: _buildAppWithPlatformServices(
-          Consumer<AppState>(
-            builder: (context, appState, child) {
-              final isDark =
-                  appState.themeMode == ThemeMode.dark ||
-                  (appState.themeMode == ThemeMode.system &&
-                      MediaQuery.platformBrightnessOf(context) ==
-                          Brightness.dark);
+    return ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: _buildAppWithPlatformServices(
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            final isDark =
+                appState.themeMode == ThemeMode.dark ||
+                (appState.themeMode == ThemeMode.system &&
+                    MediaQuery.platformBrightnessOf(context) ==
+                        Brightness.dark);
 
-              return CupertinoApp(
-                title: 'Doudou - Jellyfin Music Player',
-                theme: CupertinoThemeData(
+            return CupertinoApp(
+              title: 'Doudou - Jellyfin Music Player',
+              theme: CupertinoThemeData(
+                primaryColor: appState.accentColor,
+                brightness: isDark ? Brightness.dark : Brightness.light,
+                scaffoldBackgroundColor: isDark
+                    ? AppleColors.backgroundPrimaryDark
+                    : AppleColors.backgroundPrimary,
+                barBackgroundColor: isDark
+                    ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.9)
+                    : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
+                textTheme: CupertinoTextThemeData(
                   primaryColor: appState.accentColor,
-                  brightness: isDark ? Brightness.dark : Brightness.light,
-                  scaffoldBackgroundColor: isDark
-                      ? AppleColors.backgroundPrimaryDark
-                      : AppleColors.backgroundPrimary,
-                  barBackgroundColor: isDark
-                      ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.9)
-                      : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
-                  textTheme: CupertinoTextThemeData(
-                    primaryColor: appState.accentColor,
-                    textStyle: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleBody,
-                      color: isDark
-                          ? AppleColors.labelPrimaryDark
-                          : AppleColors.labelPrimary,
-                    ),
-                    navTitleTextStyle: TextStyle(
+                  textStyle: TextStyle(
+                    fontFamily: AppleDesignSystem.fontFamily,
+                    fontSize: AppleDesignSystem.typeScaleBody,
+                    color: isDark
+                        ? AppleColors.labelPrimaryDark
+                        : AppleColors.labelPrimary,
+                  ),
+                  navTitleTextStyle: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleHeadline,
                     fontWeight: FontWeight.w600,
@@ -180,13 +170,16 @@ class DoudouApp extends StatelessWidget {
                     );
                   }
 
-                  return const HomeScreen();
+                  if (appState.isLoggedIn) {
+                    return const HomeScreen();
+                  } else {
+                    return const LoginScreen();
+                  }
                 },
               ),
               debugShowCheckedModeBanner: false,
             );
           },
-        ),
         ),
       ),
     );
@@ -203,36 +196,6 @@ class DoudouApp extends StatelessWidget {
 
     // On other platforms (including web), return the app directly
     return app;
-  }
-}
-
-/// Widget that connects PlaybookService to AppState
-class _PlaybookConnector extends StatefulWidget {
-  final Widget child;
-  
-  const _PlaybookConnector({required this.child});
-  
-  @override
-  State<_PlaybookConnector> createState() => _PlaybookConnectorState();
-}
-
-class _PlaybookConnectorState extends State<_PlaybookConnector> {
-  bool _connected = false;
-  
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_connected) {
-      final appState = context.read<AppState>();
-      final playbookService = context.read<PlaybookService>();
-      appState.setPlaybookService(playbookService);
-      _connected = true;
-    }
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }
 
