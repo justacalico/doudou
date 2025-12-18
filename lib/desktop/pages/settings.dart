@@ -771,7 +771,7 @@ class _SettingsPageState extends State<SettingsPage> {
     
     if (result != null) {
       try {
-        await appState.mediaServiceManager.addLocalDirectory(result);
+        await appState.mediaServiceManager.addLocalMusicDirectory(result);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Added directory: ${result.split('/').last}')),
@@ -859,8 +859,8 @@ class _SettingsPageState extends State<SettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Library scan complete')),
         );
-        // Clear the library cache to force reload
-        await appState.clearLibraryCache();
+        // Reload library data
+        await appState.loadLibraryData();
       }
     } catch (e) {
       if (mounted) {
