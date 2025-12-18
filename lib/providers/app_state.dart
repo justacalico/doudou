@@ -1430,10 +1430,17 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> loadLibraryData() async {
-    if (!_isLoggedIn) {
+    // Check for playbooks OR old-style login
+    if (!isLoggedIn && _playbookService?.hasEnabledPlaybooks != true) {
       if (kDebugMode) {
-        print('AppState: Cannot load library data - user not logged in');
+        print('AppState: Cannot load library data - no playbooks or login');
       }
+      return;
+    }
+    
+    // If we have playbooks, load from them
+    if (_playbookService?.hasEnabledPlaybooks == true) {
+      await _loadFromPlaybooks();
       return;
     }
 
@@ -1594,19 +1601,26 @@ class AppState extends ChangeNotifier {
 
   /// Force refresh library data from server, bypassing cache
   Future<void> refreshLibraryData() async {
-    if (!_isLoggedIn) {
+    // Check for playbooks OR old-style login
+    if (!isLoggedIn && _playbookService?.hasEnabledPlaybooks != true) {
       if (kDebugMode) {
-        print('AppState: Cannot refresh library data - user not logged in');
+        print('AppState: Cannot refresh library data - no playbooks or login');
       }
       return;
     }
 
     if (kDebugMode) {
-      print('AppState: Force refreshing library data from server...');
+      print('AppState: Force refreshing library data...');
+    }
+    
+    // If we have playbooks, load from them
+    if (_playbookService?.hasEnabledPlaybooks == true) {
+      await _loadFromPlaybooks();
+      return;
     }
 
     _setLoading(true);
-    _clearError();
+    _clearError();;
 
     try {
       // Skip cache and load fresh data directly
