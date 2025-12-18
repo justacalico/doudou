@@ -207,31 +207,33 @@ class DesktopDoudouApp extends StatelessWidget {
             },
           ),
         ],
-        child: _buildAppWithPlatformServices(
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            return MaterialApp(
-              title: 'Doudou - Music Player',
-              theme: AppleTheme.light(
-                accentColor: appState.accentColor,
-              ),
-              darkTheme: AppleTheme.dark(
-                accentColor: appState.accentColor,
-              ),
-              themeMode: appState.themeMode,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale: appState.locale,
-              home: const _ResponsiveHome(),
-              debugShowCheckedModeBanner: false,
-            );
-          },
-        ),
+        child: _DesktopPlaybookConnector(
+          child: _buildAppWithPlatformServices(
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              return MaterialApp(
+                title: 'Doudou - Music Player',
+                theme: AppleTheme.light(
+                  accentColor: appState.accentColor,
+                ),
+                darkTheme: AppleTheme.dark(
+                  accentColor: appState.accentColor,
+                ),
+                themeMode: appState.themeMode,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                ],
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: appState.locale,
+                home: const _ResponsiveHome(),
+                debugShowCheckedModeBanner: false,
+              );
+            },
+          ),
+          ),
         ),
       );
       
