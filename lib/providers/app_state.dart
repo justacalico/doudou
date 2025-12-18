@@ -16,7 +16,6 @@ import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
-import '../services/playbook_service.dart';
 
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
@@ -24,9 +23,6 @@ class AppState extends ChangeNotifier {
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
   AudioServiceIntegration? _audioHandler;
-  
-  // PlaybookService for managing multiple music sources
-  PlaybookService? _playbookService;
 
   // Platform detection helpers (web-safe)
   bool get _isAndroid =>
@@ -64,8 +60,7 @@ class AppState extends ChangeNotifier {
   Locale? _locale; // null means use system locale
 
   // Getters
-  // isLoggedIn now returns true if we have enabled playbooks OR old-style login
-  bool get isLoggedIn => _isLoggedIn || (_playbookService?.hasEnabledPlaybooks ?? false);
+  bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   bool get isOfflineMode => _isOfflineMode;
@@ -77,7 +72,6 @@ class AppState extends ChangeNotifier {
   List<Playlist> get playlists => _playlists;
   List<Track> get recentTracks => _recentTracks;
   JellyfinService get jellyfinService => _jellyfinService;
-  PlaybookService? get playbookService => _playbookService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
   // Audio handler getter - returns the appropriate handler for the platform
@@ -146,88 +140,6 @@ class AppState extends ChangeNotifier {
     _downloadService.addListener(_onDownloadServiceChanged);
     _initializeApp();
   }
-  
-  /// Set the PlaybookService to enable playbook-based music loading
-  void setPlaybookService(PlaybookService playbookService) {
-    _playbookService = playbookService;
-    _playbookService!.addListener(_onPlaybookServiceChanged);
-    
-    // If playbooks are already loaded, trigger data loading
-    if (_playbookService!.hasEnabledPlaybooks) {
-      _loadFromPlaybooks();
-    }
-  }
-  
-  void _onPlaybookServiceChanged() {
-    if (kDebugMode) {
-      print('AppState: PlaybookService changed, has enabled playbooks: ${_playbookService?.hasEnabledPlaybooks}');
-    }
-    notifyListeners();
-    
-    // If we now have enabled playbooks, load data
-    if (_playbookService?.hasEnabledPlaybooks == true && _albums.isEmpty) {
-      _loadFromPlaybooks();
-    }
-  }
-  
-  /// Load music data from enabled playbooks
-  Future<void> _loadFromPlaybooks() async {
-    if (_playbookService == null || !_playbookService!.hasEnabledPlaybooks) {
-      if (kDebugMode) {
-        print('AppState: No enabled playbooks to load from');
-      }
-      return;
-    }
-    
-    if (kDebugMode) {
-      print('AppState: Loading music from playbooks...');
-    }
-    
-    _setLoading(true);
-    _clearError();
-    
-    try {
-      // Initialize cache service
-      await _cacheService.initialize();
-      
-      // Get the active playbook's service
-      final activeService = await _playbookService!.getActiveService();
-      
-      if (activeService != null) {
-        // Update the media service manager with the active service
-        _mediaServiceManager.setService(activeService);
-        
-        // Initialize audio system
-        try {
-          final audioService = AudioServiceIntegration.instance;
-          await audioService.initialize(_mediaServiceManager);
-          _audioHandler = audioService;
-          
-          if (kDebugMode) {
-            print('AppState: Audio system initialized for playbook');
-          }
-        } catch (audioError) {
-          if (kDebugMode) {
-            print('AppState: Failed to initialize audio system: $audioError');
-          }
-        }
-        
-        // Load library data from the service
-        await _loadFreshData();
-        
-        if (kDebugMode) {
-          print('AppState: Loaded ${_albums.length} albums, ${_tracks.length} tracks from playbook');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AppState: Error loading from playbooks: $e');
-      }
-      _setError('Failed to load music: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
-  }
 
   void _onDownloadServiceChanged() {
     notifyListeners();
@@ -236,7 +148,6 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _downloadService.removeListener(_onDownloadServiceChanged);
-    _playbookService?.removeListener(_onPlaybookServiceChanged);
     super.dispose();
   }
 
@@ -1430,17 +1341,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> loadLibraryData() async {
-    // Check for playbooks OR old-style login
-    if (!isLoggedIn && _playbookService?.hasEnabledPlaybooks != true) {
+    if (!_isLoggedIn) {
       if (kDebugMode) {
-        print('AppState: Cannot load library data - no playbooks or login');
+        print('AppState: Cannot load library data - user not logged in');
       }
-      return;
-    }
-    
-    // If we have playbooks, load from them
-    if (_playbookService?.hasEnabledPlaybooks == true) {
-      await _loadFromPlaybooks();
       return;
     }
 
@@ -1601,26 +1505,19 @@ class AppState extends ChangeNotifier {
 
   /// Force refresh library data from server, bypassing cache
   Future<void> refreshLibraryData() async {
-    // Check for playbooks OR old-style login
-    if (!isLoggedIn && _playbookService?.hasEnabledPlaybooks != true) {
+    if (!_isLoggedIn) {
       if (kDebugMode) {
-        print('AppState: Cannot refresh library data - no playbooks or login');
+        print('AppState: Cannot refresh library data - user not logged in');
       }
       return;
     }
 
     if (kDebugMode) {
-      print('AppState: Force refreshing library data...');
-    }
-    
-    // If we have playbooks, load from them
-    if (_playbookService?.hasEnabledPlaybooks == true) {
-      await _loadFromPlaybooks();
-      return;
+      print('AppState: Force refreshing library data from server...');
     }
 
     _setLoading(true);
-    _clearError();;
+    _clearError();
 
     try {
       // Skip cache and load fresh data directly

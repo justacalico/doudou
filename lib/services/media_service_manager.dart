@@ -56,27 +56,6 @@ class MediaServiceManager {
     _currentServerType = ServerType.jellyfin;
     _currentService = JellyfinServiceAdapter(service);
   }
-  
-  /// Set any BaseMediaService as the current service (for Playbook system)
-  void setService(BaseMediaService service) {
-    _currentService = service;
-    
-    // Determine server type from service type
-    if (service is JellyfinService || service is JellyfinServiceAdapter) {
-      _currentServerType = ServerType.jellyfin;
-    } else if (service is PlexService) {
-      _currentServerType = ServerType.plex;
-    } else if (service is NavidromeService) {
-      _currentServerType = ServerType.navidrome;
-    } else if (service is LocalMusicService) {
-      _currentServerType = ServerType.local;
-      _sharedLocalMusicService = service;
-    }
-    
-    if (kDebugMode) {
-      print('MediaServiceManager: Set service of type $_currentServerType');
-    }
-  }
 
   /// Initialize and set local music service as active
   Future<void> setLocalMusicService() async {
