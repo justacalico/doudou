@@ -17,6 +17,9 @@ class LocalMusicService implements BaseMediaService {
   bool _isInitialized = false;
   bool _isScanning = false;
   
+  // Map from track ID to file path for efficient lookup
+  final Map<String, String> _trackIdToPath = {};
+  
   // Supported audio formats
   static const List<String> supportedFormats = [
     '.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', 
@@ -28,10 +31,11 @@ class LocalMusicService implements BaseMediaService {
   static const String _cachedTracksKey = 'local_music_cached_tracks';
   static const String _cachedAlbumsKey = 'local_music_cached_albums';
   static const String _cachedArtistsKey = 'local_music_cached_artists';
+  static const String _cachedPathsKey = 'local_music_cached_paths';
   static const String _lastScanKey = 'local_music_last_scan';
 
   @override
-  ServerType get serverType => ServerType.jellyfin; // Reuse jellyfin type for compatibility
+  ServerType get serverType => ServerType.local;
 
   @override
   dynamic get currentServer => LocalMusicServer(directories: _musicDirectories);
