@@ -24,6 +24,9 @@ class AppState extends ChangeNotifier {
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
   AudioServiceIntegration? _audioHandler;
+  
+  // PlaybookService for managing multiple music sources
+  PlaybookService? _playbookService;
 
   // Platform detection helpers (web-safe)
   bool get _isAndroid =>
@@ -61,7 +64,8 @@ class AppState extends ChangeNotifier {
   Locale? _locale; // null means use system locale
 
   // Getters
-  bool get isLoggedIn => _isLoggedIn;
+  // isLoggedIn now returns true if we have enabled playbooks OR old-style login
+  bool get isLoggedIn => _isLoggedIn || (_playbookService?.hasEnabledPlaybooks ?? false);
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   bool get isOfflineMode => _isOfflineMode;
@@ -73,6 +77,7 @@ class AppState extends ChangeNotifier {
   List<Playlist> get playlists => _playlists;
   List<Track> get recentTracks => _recentTracks;
   JellyfinService get jellyfinService => _jellyfinService;
+  PlaybookService? get playbookService => _playbookService;
   MediaServiceManager get mediaServiceManager => _mediaServiceManager;
   DownloadService get downloadService => _downloadService;
   // Audio handler getter - returns the appropriate handler for the platform
