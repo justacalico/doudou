@@ -661,7 +661,7 @@ class LocalMusicService implements BaseMediaService {
   }
   
   /// Create a new playlist
-  Future<Playlist> createPlaylist(String name, {String? description}) async {
+  Future<Playlist> createPlaylist(String name) async {
     await initialize();
     
     final playlistId = _generatePathHash('playlist_${DateTime.now().millisecondsSinceEpoch}_$name');
@@ -669,7 +669,6 @@ class LocalMusicService implements BaseMediaService {
     final playlist = Playlist(
       id: playlistId,
       name: name,
-      description: description,
       trackCount: 0,
     );
     
@@ -716,7 +715,6 @@ class LocalMusicService implements BaseMediaService {
     _playlists[index] = Playlist(
       id: oldPlaylist.id,
       name: newName,
-      description: oldPlaylist.description,
       imageUrl: oldPlaylist.imageUrl,
       trackCount: oldPlaylist.trackCount,
     );
@@ -753,7 +751,6 @@ class LocalMusicService implements BaseMediaService {
       _playlists[playlistIndex] = Playlist(
         id: playlist.id,
         name: playlist.name,
-        description: playlist.description,
         imageUrl: playlist.imageUrl ?? track.imageUrl,
         trackCount: trackList.length,
       );
@@ -809,7 +806,6 @@ class LocalMusicService implements BaseMediaService {
     _playlists[playlistIndex] = Playlist(
       id: playlist.id,
       name: playlist.name,
-      description: playlist.description,
       imageUrl: newImageUrl,
       trackCount: trackList.length,
     );
@@ -860,7 +856,6 @@ class LocalMusicService implements BaseMediaService {
     _playlists[playlistIndex] = Playlist(
       id: playlist.id,
       name: playlist.name,
-      description: playlist.description,
       imageUrl: null,
       trackCount: 0,
     );
@@ -920,7 +915,6 @@ class LocalMusicService implements BaseMediaService {
     return {
       'id': playlist.id,
       'name': playlist.name,
-      'description': playlist.description,
       'imageUrl': playlist.imageUrl,
       'trackCount': playlist.trackCount,
     };
@@ -931,7 +925,6 @@ class LocalMusicService implements BaseMediaService {
     return Playlist(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
-      description: json['description'],
       imageUrl: json['imageUrl'],
       trackCount: json['trackCount'] ?? 0,
     );
