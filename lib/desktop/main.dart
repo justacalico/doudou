@@ -78,6 +78,7 @@ Future<void> runDesktopApp() async {
     // Initialize MediaKit for Linux audio support
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       try {
+        await _debugLinuxMpv();
         JustAudioMediaKit.ensureInitialized();
       } catch (e) {
         if (kDebugMode) {
