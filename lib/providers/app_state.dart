@@ -866,6 +866,78 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Login with local music (no server required)
+  Future<bool> loginWithLocalMusic() async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Initialize local music service
+      await _mediaServiceManager.setLocalMusicService();
+      
+      final localService = _mediaServiceManager.localMusicService;
+      if (localService == null) {
+        _setError('Failed to initialize local music service');
+        _setLoading(false);
+        return false;
+      }
+
+      // Check if we have any music
+      final tracks = await localService.getTracks();
+      if (tracks.isEmpty) {
+        _setError('No music found. Please add directories and scan for music.');
+        _setLoading(false);
+        return false;
+      }
+
+      _isLoggedIn = true;
+
+      // Initialize cache service
+      await _cacheService.initialize();
+
+      // Initialize audio system
+      try {
+        final audioService = AudioServiceIntegration.instance;
+        await audioService.initialize(_mediaServiceManager);
+        _audioHandler = audioService;
+        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
+        _setupAudioHandlerListeners();
+
+        if (kDebugMode) {
+          print('Audio system initialized for local music');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to initialize audio system: $e');
+        }
+        _audioHandler = null;
+      }
+
+      // Save that we're using local music
+      await _saveServerType('local');
+      
+      // Load library data
+      try {
+        await loadLibraryData();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Exception during library loading: $e');
+        }
+      }
+
+      _setLoading(false);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error logging in with local music: $e');
+      }
+      _setError('Failed to initialize local music: $e');
+      _setLoading(false);
+      return false;
+    }
+  }
+
   /// Save API key credentials
   Future<void> _saveApiKeyCredentials(String serverUrl, String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
@@ -902,6 +974,9 @@ class AppState extends ChangeNotifier {
         case 'navidrome':
           type = ServerType.navidrome;
           break;
+        case 'local':
+          type = ServerType.local;
+          break;
         case 'jellyfin':
         default:
           type = ServerType.jellyfin;
@@ -911,8 +986,9 @@ class AppState extends ChangeNotifier {
       // Initialize the appropriate service
       _mediaServiceManager.initializeService(type);
 
-      // Ensure serverUrl has protocol for non-Plex services
+      // Ensure serverUrl has protocol for non-Plex and non-local services
       if (type != ServerType.plex &&
+          type != ServerType.local &&
           !serverUrl.startsWith('http://') &&
           !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
