@@ -182,17 +182,32 @@ class DesktopDoudouApp extends StatelessWidget {
     
     try {
       if (kDebugMode) {
-        print('Creating ChangeNotifierProvider...');
+        print('Creating MultiProvider with AppState and PlaybookService...');
       }
       
       // Add error boundary and proper provider initialization
-      return ChangeNotifierProvider(
-        create: (context) {
-          if (kDebugMode) {
-            print('Creating AppState...');
-          }
-          return AppState();
-        },
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) {
+              if (kDebugMode) {
+                print('Creating AppState...');
+              }
+              return AppState();
+            },
+          ),
+          ChangeNotifierProvider(
+            create: (context) {
+              if (kDebugMode) {
+                print('Creating PlaybookService...');
+              }
+              final service = PlaybookService();
+              // Initialize asynchronously
+              service.initialize();
+              return service;
+            },
+          ),
+        ],
         child: _buildAppWithPlatformServices(
         Consumer<AppState>(
           builder: (context, appState, child) {
