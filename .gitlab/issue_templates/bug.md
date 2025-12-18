@@ -25,7 +25,7 @@
 - **Device**: <!-- e.g., iPhone 15, Pixel 8, MacBook Pro -->
 
 ### Server Info
-- **Server Type**: <!-- Jellyfin, Plex, or Navidrome -->
+- **Server Type**: <!-- Jellyfin, Plex, or Subsonic -->
 - **Server Version**: 
 - **Hosting Method**: <!-- e.g., Docker, native, etc. -->
 
