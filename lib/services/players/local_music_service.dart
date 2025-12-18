@@ -21,6 +21,12 @@ class LocalMusicService implements BaseMediaService {
   // Map from track ID to file path for efficient lookup
   final Map<String, String> _trackIdToPath = {};
   
+  // Album art service instance
+  final AlbumArtService _albumArtService = AlbumArtService();
+  
+  // Whether to fetch online artwork during scan
+  bool _fetchOnlineArtwork = true;
+  
   // Supported audio formats
   static const List<String> supportedFormats = [
     '.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', 
