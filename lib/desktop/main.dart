@@ -31,10 +31,10 @@ Future<void> runDesktopApp() async {
     if (kDebugMode) {
       print('DEBUG: Starting runDesktopApp()');
     }
-    
+
     // Initialize app version for Jellyfin service
     await JellyfinService.initializeVersion();
-    
+
     // Initialize logging service
     try {
       if (kDebugMode) {
@@ -53,11 +53,12 @@ Future<void> runDesktopApp() async {
         print('Failed to initialize logging service: $e');
       }
     }
-    
+
     // Initialize sqflite for Linux/Windows/macOS
-    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
-                    defaultTargetPlatform == TargetPlatform.windows ||
-                    defaultTargetPlatform == TargetPlatform.macOS)) {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
         if (kDebugMode) {
           print('DEBUG: About to initialize sqflite database');
@@ -74,7 +75,7 @@ Future<void> runDesktopApp() async {
         }
       }
     }
-    
+
     // Initialize MediaKit for Linux audio support
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       try {
@@ -86,7 +87,7 @@ Future<void> runDesktopApp() async {
         }
       }
     }
-    
+
     // Desktop-specific orientation settings (allow all orientations)
     if (!kIsWeb) {
       try {
@@ -108,66 +109,71 @@ Future<void> runDesktopApp() async {
         }
       }
     }
-    
+
     if (kDebugMode) {
       print('About to start DesktopDoudouApp...');
     }
-    
+
     // Start the app with error boundary
     runApp(const DesktopDoudouApp());
-    
+
     if (kDebugMode) {
       print('DesktopDoudouApp started successfully');
     }
-    
   } catch (e) {
     if (kDebugMode) {
       print('Failed to start desktop app: $e');
       print('Stack trace: ${StackTrace.current}');
     }
     // Create a simple test app to verify Flutter works
-    runApp(MaterialApp(
-      title: 'Doudou Test',
-      home: Scaffold(
-        backgroundColor: Colors.blue.shade100,
-        appBar: AppBar(
-          title: const Text('Doudou Test App'),
-          backgroundColor: Colors.blue,
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.warning, size: 64, color: Colors.orange),
-              const SizedBox(height: 16),
-              const Text('Test Window - Flutter is Working!', 
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+    runApp(
+      MaterialApp(
+        title: 'Doudou Test',
+        home: Scaffold(
+          backgroundColor: Colors.blue.shade100,
+          appBar: AppBar(
+            title: const Text('Doudou Test App'),
+            backgroundColor: Colors.blue,
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.warning, size: 64, color: Colors.orange),
+                const SizedBox(height: 16),
+                const Text(
+                  'Test Window - Flutter is Working!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                child: Text('Original error: ${e.toString()}', 
-                  style: const TextStyle(fontSize: 12)),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  // Try again
-                  if (kDebugMode) {
-                    print('Retry button pressed');
-                  }
-                },
-                child: const Text('This is a test - app is working'),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Original error: ${e.toString()}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    // Try again
+                    if (kDebugMode) {
+                      print('Retry button pressed');
+                    }
+                  },
+                  child: const Text('This is a test - app is working'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -179,12 +185,12 @@ class DesktopDoudouApp extends StatelessWidget {
     if (kDebugMode) {
       print('DesktopDoudouApp.build() called');
     }
-    
+
     try {
       if (kDebugMode) {
         print('Creating ChangeNotifierProvider...');
       }
-      
+
       // Add error boundary and proper provider initialization
       return ChangeNotifierProvider(
         create: (context) {
@@ -194,46 +200,37 @@ class DesktopDoudouApp extends StatelessWidget {
           return AppState();
         },
         child: _buildAppWithPlatformServices(
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            return MaterialApp(
-              title: 'Doudou - Music Player',
-              theme: AppleTheme.light(
-                accentColor: appState.accentColor,
-              ),
-              darkTheme: AppleTheme.dark(
-                accentColor: appState.accentColor,
-              ),
-              themeMode: appState.themeMode,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale: appState.locale,
-              home: const _ResponsiveHome(),
-              debugShowCheckedModeBanner: false,
-            );
-          },
-        ),
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              return MaterialApp(
+                title: 'Doudou - Music Player',
+                theme: AppleTheme.light(accentColor: appState.accentColor),
+                darkTheme: AppleTheme.dark(accentColor: appState.accentColor),
+                themeMode: appState.themeMode,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                ],
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: appState.locale,
+                home: const _ResponsiveHome(),
+                debugShowCheckedModeBanner: false,
+              );
+            },
+          ),
         ),
       );
-      
     } catch (e) {
       if (kDebugMode) {
         print('Error in DesktopDoudouApp.build(): $e');
       }
-      
+
       // Return a simple fallback widget
       return MaterialApp(
         title: 'Doudou Error',
-        home: Scaffold(
-          body: Center(
-            child: Text('Error: ${e.toString()}'),
-          ),
-        ),
+        home: Scaffold(body: Center(child: Text('Error: ${e.toString()}'))),
       );
     }
   }
@@ -244,7 +241,7 @@ class DesktopDoudouApp extends StatelessWidget {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
       return AudioServiceWidget(child: app);
     }
-    
+
     // On other platforms (including web), return the app directly
     return app;
   }
@@ -268,10 +265,7 @@ class _ResponsiveHome extends StatelessWidget {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  Text('Loading...', style: TextStyle(fontSize: 16)),
                 ],
               ),
             ),
@@ -287,7 +281,7 @@ class _ResponsiveHome extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= kDesktopBreakpoint;
-            
+
             if (isDesktop) {
               return const DesktopHomeLayout();
             } else {
@@ -365,21 +359,27 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
 /// Log comprehensive system information for debugging, especially Flatpak issues
 Future<void> _logSystemInfo(String context) async {
   final logger = LoggingService();
-  
+
   try {
     logger.info('=== SYSTEM INFO START ($context) ===', 'SystemInfo');
-    
+
     // Basic platform info (web-safe)
     if (!kIsWeb) {
       logger.info('Platform: ${Platform.operatingSystem}', 'SystemInfo');
-      logger.info('Platform version: ${Platform.operatingSystemVersion}', 'SystemInfo');
-      logger.info('Number of processors: ${Platform.numberOfProcessors}', 'SystemInfo');
+      logger.info(
+        'Platform version: ${Platform.operatingSystemVersion}',
+        'SystemInfo',
+      );
+      logger.info(
+        'Number of processors: ${Platform.numberOfProcessors}',
+        'SystemInfo',
+      );
     } else {
       logger.info('Platform: Web', 'SystemInfo');
     }
     logger.info('Flutter target: ${defaultTargetPlatform.name}', 'SystemInfo');
     logger.info('Is debug mode: $kDebugMode', 'SystemInfo');
-    
+
     // Environment variables critical for Flatpak and media playback (not available on web)
     if (!kIsWeb) {
       final criticalEnvVars = [
@@ -404,7 +404,7 @@ Future<void> _logSystemInfo(String context) async {
         'WAYLAND_DISPLAY',
         'PIPEWIRE_RUNTIME_DIR',
       ];
-      
+
       logger.info('=== ENVIRONMENT VARIABLES ===', 'SystemInfo');
       for (final envVar in criticalEnvVars) {
         final value = Platform.environment[envVar];
@@ -414,7 +414,7 @@ Future<void> _logSystemInfo(String context) async {
           logger.info('$envVar: (not set)', 'SystemInfo');
         }
       }
-      
+
       // Check if running in Flatpak
       final flatpakId = Platform.environment['FLATPAK_ID'];
       if (flatpakId != null) {
@@ -422,7 +422,7 @@ Future<void> _logSystemInfo(String context) async {
       } else {
         logger.info('DETECTED: Not running in Flatpak', 'SystemInfo');
       }
-      
+
       // Library path analysis
       final ldLibraryPath = Platform.environment['LD_LIBRARY_PATH'];
       if (ldLibraryPath != null) {
@@ -436,27 +436,46 @@ Future<void> _logSystemInfo(String context) async {
       }
     } else {
       logger.info('=== WEB ENVIRONMENT ===', 'SystemInfo');
-      logger.info('Running in web browser - environment variables not available', 'SystemInfo');
+      logger.info(
+        'Running in web browser - environment variables not available',
+        'SystemInfo',
+      );
     }
-    
+
     // Check for media-related executables and libraries (platform-specific, not available on web)
     if (!kIsWeb) {
       List<String> mediaCommands = [];
       if (defaultTargetPlatform == TargetPlatform.linux) {
-        mediaCommands = ['gst-launch-1.0', 'ffmpeg', 'mpv', 'pulseaudio', 'pipewire'];
+        mediaCommands = [
+          'gst-launch-1.0',
+          'ffmpeg',
+          'mpv',
+          'pulseaudio',
+          'pipewire',
+        ];
       } else if (defaultTargetPlatform == TargetPlatform.macOS) {
-        mediaCommands = ['ffmpeg', 'mpv']; // Only check commonly installed tools on macOS
+        mediaCommands = [
+          'ffmpeg',
+          'mpv',
+        ]; // Only check commonly installed tools on macOS
       } else if (defaultTargetPlatform == TargetPlatform.windows) {
         mediaCommands = ['ffmpeg']; // Only check ffmpeg on Windows
       }
-      
+
       logger.info('=== MEDIA COMMAND AVAILABILITY ===', 'SystemInfo');
       for (final cmd in mediaCommands) {
         try {
-          final whichCmd = defaultTargetPlatform == TargetPlatform.windows ? 'where' : 'which';
-          final result = await Process.run(whichCmd, [cmd]).timeout(const Duration(seconds: 2));
+          final whichCmd = defaultTargetPlatform == TargetPlatform.windows
+              ? 'where'
+              : 'which';
+          final result = await Process.run(whichCmd, [
+            cmd,
+          ]).timeout(const Duration(seconds: 2));
           if (result.exitCode == 0) {
-            logger.info('$cmd: ${result.stdout.toString().trim()}', 'SystemInfo');
+            logger.info(
+              '$cmd: ${result.stdout.toString().trim()}',
+              'SystemInfo',
+            );
           } else {
             logger.info('$cmd: not found', 'SystemInfo');
           }
@@ -466,41 +485,67 @@ Future<void> _logSystemInfo(String context) async {
       }
     } else {
       logger.info('=== WEB MEDIA ===', 'SystemInfo');
-      logger.info('Web platform: Using HTML5 audio/video elements', 'SystemInfo');
+      logger.info(
+        'Web platform: Using HTML5 audio/video elements',
+        'SystemInfo',
+      );
     }
-    
+
     // Only check GStreamer on Linux (not available on web)
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       try {
-        final result = await Process.run('gst-inspect-1.0', ['--print-all']).timeout(const Duration(seconds: 5));
+        final result = await Process.run('gst-inspect-1.0', [
+          '--print-all',
+        ]).timeout(const Duration(seconds: 5));
         if (result.exitCode == 0) {
-          final plugins = result.stdout.toString().split('\n').where((line) => line.contains(':')).take(10);
-          logger.info('GStreamer plugins (first 10): ${plugins.join(', ')}', 'SystemInfo');
+          final plugins = result.stdout
+              .toString()
+              .split('\n')
+              .where((line) => line.contains(':'))
+              .take(10);
+          logger.info(
+            'GStreamer plugins (first 10): ${plugins.join(', ')}',
+            'SystemInfo',
+          );
         } else {
-          logger.info('GStreamer plugins: failed to list (exit code: ${result.exitCode})', 'SystemInfo');
+          logger.info(
+            'GStreamer plugins: failed to list (exit code: ${result.exitCode})',
+            'SystemInfo',
+          );
         }
       } catch (e) {
         logger.info('GStreamer plugins: error checking ($e)', 'SystemInfo');
       }
     }
-    
+
     // Audio system detection (platform-specific, not available on web)
     if (!kIsWeb) {
       if (defaultTargetPlatform == TargetPlatform.linux) {
         logger.info('=== AUDIO SYSTEM ===', 'SystemInfo');
         try {
           // Check PulseAudio
-          final pulseResult = await Process.run('pulseaudio', ['--check', '-v']).timeout(const Duration(seconds: 3));
-          logger.info('PulseAudio status: exit code ${pulseResult.exitCode}', 'SystemInfo');
+          final pulseResult = await Process.run('pulseaudio', [
+            '--check',
+            '-v',
+          ]).timeout(const Duration(seconds: 3));
+          logger.info(
+            'PulseAudio status: exit code ${pulseResult.exitCode}',
+            'SystemInfo',
+          );
         } catch (e) {
           logger.info('PulseAudio status: error ($e)', 'SystemInfo');
         }
-        
+
         try {
           // Check PipeWire
-          final pipewireResult = await Process.run('pipewire', ['--version']).timeout(const Duration(seconds: 3));
+          final pipewireResult = await Process.run('pipewire', [
+            '--version',
+          ]).timeout(const Duration(seconds: 3));
           if (pipewireResult.exitCode == 0) {
-            logger.info('PipeWire: ${pipewireResult.stdout.toString().trim()}', 'SystemInfo');
+            logger.info(
+              'PipeWire: ${pipewireResult.stdout.toString().trim()}',
+              'SystemInfo',
+            );
           } else {
             logger.info('PipeWire: not available', 'SystemInfo');
           }
@@ -518,7 +563,7 @@ Future<void> _logSystemInfo(String context) async {
       logger.info('=== WEB AUDIO SYSTEM ===', 'SystemInfo');
       logger.info('Web: Using Web Audio API', 'SystemInfo');
     }
-    
+
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
   } catch (e) {
     logger.error('Failed to log system info: $e', 'SystemInfo');
@@ -631,8 +676,10 @@ Future<void> _debugLinuxMpv() async {
     final aoResult = await Process.run('mpv', ['--ao=help']);
     if (aoResult.exitCode == 0) {
       final output = aoResult.stdout.toString();
-      final lines =
-          output.split('\n').where((l) => l.trim().isNotEmpty).take(10);
+      final lines = output
+          .split('\n')
+          .where((l) => l.trim().isNotEmpty)
+          .take(10);
       print('  Available audio outputs:');
       for (final line in lines) {
         print('     $line');
