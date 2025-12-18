@@ -550,13 +550,15 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildServerSettings(AppState appState) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final localService = appState.mediaServiceManager.localMusicService;
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l10n.serverSettings,
+            isLocalMusic ? 'Local Music Settings' : l10n.serverSettings,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -573,7 +575,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Row(
                     children: [
                       Text(
-                        l10n.connection,
+                        isLocalMusic ? 'Music Source' : l10n.connection,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -591,7 +593,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          appState.isLoggedIn ? l10n.authenticated : 'Disconnected',
+                          appState.isLoggedIn 
+                              ? (isLocalMusic ? 'Active' : l10n.authenticated) 
+                              : 'Disconnected',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -602,34 +606,87 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  ListTile(
-                    title: const Text('Server URL'),
-                    subtitle: Text(
-                      appState.jellyfinService.serverUrl ?? 'Not set',
+                  if (isLocalMusic && localService != null) ...[
+                    // Local Music specific settings
+                    ListTile(
+                      title: const Text('Music Directories'),
+                      subtitle: Text(
+                        '${localService.musicDirectories.length} folder${localService.musicDirectories.length != 1 ? 's' : ''} configured',
+                      ),
+                      trailing: const Icon(Icons.folder),
                     ),
-                    trailing: const Icon(Icons.edit),
-                    onTap: () {
-                      // Edit server URL
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Username'),
-                    subtitle: Text(
-                      appState.jellyfinService.username ?? 'Not logged in',
+                    // List configured directories
+                    ...localService.musicDirectories.map((dir) => ListTile(
+                      leading: const Icon(Icons.folder_open, size: 20),
+                      title: Text(
+                        dir.split('/').last,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      subtitle: Text(
+                        dir,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                        onPressed: () => _removeLocalDirectory(appState, dir),
+                      ),
+                    )),
+                    const Divider(),
+                    ListTile(
+                      title: const Text('Add Directory'),
+                      leading: const Icon(Icons.create_new_folder),
+                      onTap: () => _addLocalDirectory(appState),
                     ),
-                    trailing: const Icon(Icons.person),
-                    onTap: () {
-                      // Show user info
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    title: const Text('Test Connection'),
-                    leading: const Icon(Icons.wifi_tethering),
-                    onTap: () {
-                      _testConnection(appState);
-                    },
-                  ),
+                    ListTile(
+                      title: const Text('Rescan Library'),
+                      leading: const Icon(Icons.refresh),
+                      subtitle: const Text('Scan directories for new music'),
+                      onTap: () => _rescanLocalLibrary(appState),
+                    ),
+                    const Divider(),
+                    SwitchListTile(
+                      title: const Text('Fetch Online Artwork'),
+                      subtitle: const Text('Download album art from MusicBrainz'),
+                      value: localService.fetchOnlineArtwork,
+                      onChanged: (value) async {
+                        await localService.setFetchOnlineArtwork(value);
+                        setState(() {});
+                      },
+                    ),
+                  ] else ...[
+                    // Server-based settings (Jellyfin, etc.)
+                    ListTile(
+                      title: const Text('Server URL'),
+                      subtitle: Text(
+                        appState.jellyfinService.serverUrl ?? 'Not set',
+                      ),
+                      trailing: const Icon(Icons.edit),
+                      onTap: () {
+                        // Edit server URL
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Username'),
+                      subtitle: Text(
+                        appState.jellyfinService.username ?? 'Not logged in',
+                      ),
+                      trailing: const Icon(Icons.person),
+                      onTap: () {
+                        // Show user info
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
+                      title: const Text('Test Connection'),
+                      leading: const Icon(Icons.wifi_tethering),
+                      onTap: () {
+                        _testConnection(appState);
+                      },
+                    ),
+                  ],
                   ListTile(
                     title: const Text('Sign Out'),
                     leading: const Icon(Icons.logout),
@@ -676,6 +733,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       _showClearCacheDialog('images');
                     },
                   ),
+                  if (isLocalMusic && localService != null)
+                    ListTile(
+                      title: const Text('Clear artwork cache'),
+                      subtitle: const Text('Remove downloaded album artwork'),
+                      trailing: const Icon(Icons.image_not_supported),
+                      onTap: () async {
+                        await localService.clearArtworkCache();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Artwork cache cleared')),
+                          );
+                        }
+                      },
+                    ),
                   ListTile(
                     title: const Text('Clear all cache'),
                     subtitle: const Text('Remove all cached data'),
@@ -691,6 +762,114 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+  
+  Future<void> _addLocalDirectory(AppState appState) async {
+    final result = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Select Music Directory',
+    );
+    
+    if (result != null) {
+      try {
+        await appState.mediaServiceManager.addLocalDirectory(result);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Added directory: ${result.split('/').last}')),
+          );
+          setState(() {});
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error adding directory: $e')),
+          );
+        }
+      }
+    }
+  }
+  
+  Future<void> _removeLocalDirectory(AppState appState, String directory) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Directory'),
+        content: Text('Remove "${directory.split('/').last}" from your music sources?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed == true) {
+      final localService = appState.mediaServiceManager.localMusicService;
+      await localService?.removeDirectory(directory);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Directory removed')),
+        );
+        setState(() {});
+      }
+    }
+  }
+  
+  Future<void> _rescanLocalLibrary(AppState appState) async {
+    final localService = appState.mediaServiceManager.localMusicService;
+    if (localService == null) return;
+    
+    // Show progress dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Scanning Library'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            StatefulBuilder(
+              builder: (context, setDialogState) {
+                return StreamBuilder<String>(
+                  stream: Stream.periodic(
+                    const Duration(milliseconds: 500),
+                    (_) => localService.isScanning ? 'Scanning...' : 'Complete',
+                  ),
+                  builder: (context, snapshot) {
+                    return Text(snapshot.data ?? 'Starting...');
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    
+    try {
+      await localService.scanDirectories();
+      if (mounted) {
+        Navigator.pop(context); // Close progress dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Library scan complete')),
+        );
+        // Clear the library cache to force reload
+        await appState.clearLibraryCache();
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close progress dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Scan error: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildLogsSettings() {
