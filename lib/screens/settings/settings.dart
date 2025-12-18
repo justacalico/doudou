@@ -1014,6 +1014,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _rescanLocalMusic(BuildContext context, AppState appState) async {
+    final localService = appState.mediaServiceManager.localMusicService;
+    if (localService == null) return;
+
+    // Show progress dialog
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const CupertinoAlertDialog(
+        title: Text('Scanning...'),
+        content: Padding(
+          padding: EdgeInsets.all(16),
+          child: CupertinoActivityIndicator(),
+        ),
+      ),
+    );
+
+    try {
+      await appState.mediaServiceManager.scanLocalMusicDirectories();
+      
+      // Reload library data
+      await appState.loadLibraryData();
+      
+      if (!context.mounted) return;
+      Navigator.pop(context); // Close progress dialog
+      
+      final trackCount = (await localService.getTracks()).length;
+      
+      showCupertinoDialog(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Scan Complete'),
+          content: Text('Found $trackCount tracks'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // Close progress dialog
+      _showErrorDialog(context, 'Scan failed: $e');
+    }
+  }
+
   void _showErrorDialog(BuildContext context, String message) {
     final l10n = AppLocalizations.of(context);
     showCupertinoDialog(
