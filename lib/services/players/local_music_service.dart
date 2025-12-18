@@ -222,6 +222,20 @@ class LocalMusicService implements BaseMediaService {
     // Store the file path for later retrieval
     _trackIdToPath[trackId] = filePath;
     
+    // Get album art from multiple sources via AlbumArtService
+    String? imageUrl = await _albumArtService.getAlbumArt(
+      filePath: filePath,
+      albumName: albumName,
+      artistName: artistName ?? 'Unknown Artist',
+      trackName: trackName,
+      checkEmbedded: true,
+      checkLocal: true,
+      checkOnline: _fetchOnlineArtwork,
+    );
+    
+    // Fall back to simple local art finder if service returns null
+    imageUrl ??= _findAlbumArt(parentDir);
+    
     return Track(
       id: trackId,
       name: trackName,
@@ -230,7 +244,7 @@ class LocalMusicService implements BaseMediaService {
       albumId: albumId,
       duration: null, // Would need metadata extraction for this
       trackNumber: trackNumber,
-      imageUrl: _findAlbumArt(parentDir),
+      imageUrl: imageUrl,
       isFavorite: false,
     );
   }
