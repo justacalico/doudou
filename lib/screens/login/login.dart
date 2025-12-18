@@ -745,15 +745,16 @@ class _LoginScreenState extends State<LoginScreen>
                   AppleColors.systemBlue,
                   isDark,
                 ),
-                const SizedBox(width: 12),
-                _buildServerTypeCard(
-                  'swingmusic',
-                  'Swing',
-                  null,
-                  AppleColors.systemTeal,
-                  isDark,
-                  icon: CupertinoIcons.music_note_2,
-                ),
+                // TODO: Re-enable when Swing Music API is working
+                // const SizedBox(width: 12),
+                // _buildServerTypeCard(
+                //   'swingmusic',
+                //   'Swing',
+                //   null,
+                //   AppleColors.systemTeal,
+                //   isDark,
+                //   icon: CupertinoIcons.music_note_2,
+                // ),
                 const SizedBox(width: 12),
                 _buildServerTypeCard(
                   'local',
@@ -794,15 +795,16 @@ class _LoginScreenState extends State<LoginScreen>
                   AppleColors.systemBlue,
                   isDark,
                 ),
-                const SizedBox(width: 10),
-                _buildServerTypeChip(
-                  'swingmusic',
-                  'Swing',
-                  null,
-                  AppleColors.systemTeal,
-                  isDark,
-                  icon: CupertinoIcons.music_note_2,
-                ),
+                // TODO: Re-enable when Swing Music API is working
+                // const SizedBox(width: 10),
+                // _buildServerTypeChip(
+                //   'swingmusic',
+                //   'Swing',
+                //   null,
+                //   AppleColors.systemTeal,
+                //   isDark,
+                //   icon: CupertinoIcons.music_note_2,
+                // ),
                 const SizedBox(width: 10),
                 _buildServerTypeChip(
                   'local',
