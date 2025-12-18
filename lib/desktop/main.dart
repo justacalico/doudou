@@ -535,3 +535,37 @@ Future<void> _logSystemInfo(String context) async {
     logger.error('Failed to log system info: $e', 'SystemInfo');
   }
 }
+
+/// Widget that connects PlaybookService to AppState on desktop
+class _DesktopPlaybookConnector extends StatefulWidget {
+  final Widget child;
+  
+  const _DesktopPlaybookConnector({required this.child});
+  
+  @override
+  State<_DesktopPlaybookConnector> createState() => _DesktopPlaybookConnectorState();
+}
+
+class _DesktopPlaybookConnectorState extends State<_DesktopPlaybookConnector> {
+  bool _connected = false;
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_connected) {
+      final appState = context.read<AppState>();
+      final playbookService = context.read<PlaybookService>();
+      appState.setPlaybookService(playbookService);
+      _connected = true;
+      
+      if (kDebugMode) {
+        print('DesktopPlaybookConnector: Connected PlaybookService to AppState');
+      }
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
