@@ -7,7 +7,7 @@ import 'package:crypto/crypto.dart';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 
-class NavidromeService implements BaseMediaService {
+class SubsonicService implements BaseMediaService {
   late Dio _dio;
   String? _serverUrl;
   String? _username;
@@ -15,9 +15,9 @@ class NavidromeService implements BaseMediaService {
   String? _salt;
 
   @override
-  ServerType get serverType => ServerType.navidrome;
+  ServerType get serverType => ServerType.subsonic;
 
-  NavidromeService() {
+  SubsonicService() {
     _dio = Dio();
 
     // Configure timeouts
@@ -52,7 +52,7 @@ class NavidromeService implements BaseMediaService {
           : serverUrl;
       _username = identifier;
 
-      // Navidrome uses Subsonic API authentication
+      // Subsonic API authentication
       _salt = DateTime.now().millisecondsSinceEpoch.toString();
       _token = _generateToken(credential, _salt!);
 
@@ -77,7 +77,7 @@ class NavidromeService implements BaseMediaService {
       return false;
     } catch (e) {
       if (kDebugMode) {
-        print('Navidrome authentication error: $e');
+        print('Subsonic authentication error: $e');
       }
       return false;
     }
@@ -162,7 +162,7 @@ class NavidromeService implements BaseMediaService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting Navidrome libraries: $e');
+        print('Error getting Subsonic libraries: $e');
       }
       return [];
     }
@@ -188,7 +188,7 @@ class NavidromeService implements BaseMediaService {
       );
 
       if (kDebugMode) {
-        print('Navidrome getAlbums response: ${response.data}');
+        print('Subsonic getAlbums response: ${response.data}');
       }
 
       // Safely navigate the response structure
@@ -236,7 +236,7 @@ class NavidromeService implements BaseMediaService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting Navidrome albums: $e');
+        print('Error getting Subsonic albums: $e');
       }
       return [];
     }
@@ -309,7 +309,7 @@ class NavidromeService implements BaseMediaService {
       return artistList;
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting Navidrome artists: $e');
+        print('Error getting Subsonic artists: $e');
       }
       return [];
     }
@@ -379,7 +379,7 @@ class NavidromeService implements BaseMediaService {
                     : null,
                 isFavorite:
                     song['starred'] !=
-                    null, // Navidrome uses 'starred' field with timestamp or null
+                    null, // Subsonic uses 'starred' field with timestamp or null
               ),
             )
             .toList();
@@ -438,14 +438,14 @@ class NavidromeService implements BaseMediaService {
                     : null,
                 isFavorite:
                     song['starred'] !=
-                    null, // Navidrome uses 'starred' field with timestamp or null
+                    null, // Subsonic uses 'starred' field with timestamp or null
               ),
             )
             .toList();
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting Navidrome tracks: $e');
+        print('Error getting Subsonic tracks: $e');
       }
       return [];
     }
@@ -503,7 +503,7 @@ class NavidromeService implements BaseMediaService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting Navidrome playlists: $e');
+        print('Error getting Subsonic playlists: $e');
       }
       return [];
     }
@@ -566,13 +566,13 @@ class NavidromeService implements BaseMediaService {
                   : null,
               isFavorite:
                   song['starred'] !=
-                  null, // Navidrome uses 'starred' field with timestamp or null
+                  null, // Subsonic uses 'starred' field with timestamp or null
             ),
           )
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting Navidrome playlist tracks: $e');
+        print('Error getting Subsonic playlist tracks: $e');
       }
       return [];
     }
@@ -691,7 +691,7 @@ class NavidromeService implements BaseMediaService {
                   : null,
               isFavorite:
                   song['starred'] !=
-                  null, // Navidrome uses 'starred' field with timestamp or null
+                  null, // Subsonic uses 'starred' field with timestamp or null
             ),
           )
           .toList();
@@ -699,7 +699,7 @@ class NavidromeService implements BaseMediaService {
       return SearchResults(albums: albums, artists: artists, tracks: tracks);
     } catch (e) {
       if (kDebugMode) {
-        print('Error searching Navidrome: $e');
+        print('Error searching Subsonic: $e');
       }
       return SearchResults();
     }
@@ -715,17 +715,17 @@ class NavidromeService implements BaseMediaService {
 
       final subsonicResponse = response.data['subsonic-response'];
       return ServerInfo(
-        name: 'Navidrome Server',
+        name: 'Subsonic Server',
         version: subsonicResponse['version'] ?? 'Unknown',
         id: _serverUrl ?? 'unknown',
-        type: ServerType.navidrome,
+        type: ServerType.subsonic,
       );
     } catch (e) {
       return ServerInfo(
-        name: 'Navidrome Server',
+        name: 'Subsonic Server',
         version: 'Unknown',
         id: _serverUrl ?? 'unknown',
-        type: ServerType.navidrome,
+        type: ServerType.subsonic,
       );
     }
   }
@@ -757,14 +757,14 @@ class NavidromeService implements BaseMediaService {
 
     if (kDebugMode) {
       print(
-        'NavidromeService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite',
+        'SubsonicService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite',
       );
       print('Server URL: $_serverUrl');
       print('Username: $_username');
     }
 
     try {
-      // Navidrome uses star/unstar endpoints for favorites
+      // Subsonic uses star/unstar endpoints for favorites
       final action = isFavorite ? 'unstar' : 'star';
       final params = Map<String, dynamic>.from(_baseParams);
       params['id'] = itemId;
@@ -779,11 +779,11 @@ class NavidromeService implements BaseMediaService {
       final response = await _dio.get(url, queryParameters: params);
 
       if (kDebugMode) {
-        print('Navidrome response: ${response.statusCode}');
+        print('Subsonic response: ${response.statusCode}');
         print('Response data: ${response.data}');
       }
 
-      // Check for success response in Navidrome format
+      // Check for success response in Subsonic format
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is Map && data['subsonic-response'] != null) {
@@ -792,7 +792,7 @@ class NavidromeService implements BaseMediaService {
 
           if (kDebugMode) {
             print(
-              'Navidrome subsonic status: ${subsonicResponse['status']}, success: $success',
+              'Subsonic status: ${subsonicResponse['status']}, success: $success',
             );
           }
 
@@ -801,13 +801,13 @@ class NavidromeService implements BaseMediaService {
       }
 
       if (kDebugMode) {
-        print('Navidrome: No valid subsonic response found');
+        print('Subsonic: No valid subsonic response found');
       }
 
       return false;
     } catch (e) {
       if (kDebugMode) {
-        print('Error toggling favorite in Navidrome: $e');
+        print('Error toggling favorite in Subsonic: $e');
       }
       return false;
     }
@@ -828,7 +828,7 @@ class NavidromeService implements BaseMediaService {
       if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
         if (kDebugMode) {
           print(
-            'Failed to create playlist in Navidrome: ${subsonicResponse?['error']}',
+            'Failed to create playlist in Subsonic: ${subsonicResponse?['error']}',
           );
         }
         return null;
@@ -855,7 +855,7 @@ class NavidromeService implements BaseMediaService {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('Error creating playlist in Navidrome: $e');
+        print('Error creating playlist in Subsonic: $e');
       }
       return null;
     }
@@ -877,7 +877,7 @@ class NavidromeService implements BaseMediaService {
       return subsonicResponse != null && subsonicResponse['status'] == 'ok';
     } catch (e) {
       if (kDebugMode) {
-        print('Error adding track to playlist in Navidrome: $e');
+        print('Error adding track to playlist in Subsonic: $e');
       }
       return false;
     }
@@ -899,7 +899,7 @@ class NavidromeService implements BaseMediaService {
       return subsonicResponse != null && subsonicResponse['status'] == 'ok';
     } catch (e) {
       if (kDebugMode) {
-        print('Error renaming playlist in Navidrome: $e');
+        print('Error renaming playlist in Subsonic: $e');
       }
       return false;
     }
@@ -920,7 +920,7 @@ class NavidromeService implements BaseMediaService {
       return subsonicResponse != null && subsonicResponse['status'] == 'ok';
     } catch (e) {
       if (kDebugMode) {
-        print('Error deleting playlist in Navidrome: $e');
+        print('Error deleting playlist in Subsonic: $e');
       }
       return false;
     }
@@ -928,7 +928,7 @@ class NavidromeService implements BaseMediaService {
 
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
-    // Return Navidrome alternative stream URLs with different formats/bitrates
+    // Return Subsonic alternative stream URLs with different formats/bitrates
     final params = Map<String, dynamic>.from(_baseParams);
     params['id'] = trackId;
 
@@ -942,7 +942,7 @@ class NavidromeService implements BaseMediaService {
 
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
-    // Navidrome doesn't need async metadata fetching, return sync version
+    // Subsonic doesn't need async metadata fetching, return sync version
     return getAlternativeStreamUrls(trackId);
   }
 }
