@@ -146,6 +146,88 @@ class AppState extends ChangeNotifier {
     _downloadService.addListener(_onDownloadServiceChanged);
     _initializeApp();
   }
+  
+  /// Set the PlaybookService to enable playbook-based music loading
+  void setPlaybookService(PlaybookService playbookService) {
+    _playbookService = playbookService;
+    _playbookService!.addListener(_onPlaybookServiceChanged);
+    
+    // If playbooks are already loaded, trigger data loading
+    if (_playbookService!.hasEnabledPlaybooks) {
+      _loadFromPlaybooks();
+    }
+  }
+  
+  void _onPlaybookServiceChanged() {
+    if (kDebugMode) {
+      print('AppState: PlaybookService changed, has enabled playbooks: ${_playbookService?.hasEnabledPlaybooks}');
+    }
+    notifyListeners();
+    
+    // If we now have enabled playbooks, load data
+    if (_playbookService?.hasEnabledPlaybooks == true && _albums.isEmpty) {
+      _loadFromPlaybooks();
+    }
+  }
+  
+  /// Load music data from enabled playbooks
+  Future<void> _loadFromPlaybooks() async {
+    if (_playbookService == null || !_playbookService!.hasEnabledPlaybooks) {
+      if (kDebugMode) {
+        print('AppState: No enabled playbooks to load from');
+      }
+      return;
+    }
+    
+    if (kDebugMode) {
+      print('AppState: Loading music from playbooks...');
+    }
+    
+    _setLoading(true);
+    _clearError();
+    
+    try {
+      // Initialize cache service
+      await _cacheService.initialize();
+      
+      // Get the active playbook's service
+      final activeService = await _playbookService!.getActiveService();
+      
+      if (activeService != null) {
+        // Update the media service manager with the active service
+        _mediaServiceManager.setService(activeService);
+        
+        // Initialize audio system
+        try {
+          final audioService = AudioServiceIntegration.instance;
+          await audioService.initialize(_mediaServiceManager);
+          _audioHandler = audioService;
+          
+          if (kDebugMode) {
+            print('AppState: Audio system initialized for playbook');
+          }
+        } catch (audioError) {
+          if (kDebugMode) {
+            print('AppState: Failed to initialize audio system: $audioError');
+          }
+        }
+        
+        // Load library data from the service
+        await _loadFreshData();
+        
+        if (kDebugMode) {
+          print('AppState: Loaded ${_albums.length} albums, ${_tracks.length} tracks from playbook');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error loading from playbooks: $e');
+      }
+      _setError('Failed to load music: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
+  }
 
   void _onDownloadServiceChanged() {
     notifyListeners();
@@ -154,6 +236,7 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _downloadService.removeListener(_onDownloadServiceChanged);
+    _playbookService?.removeListener(_onPlaybookServiceChanged);
     super.dispose();
   }
 
