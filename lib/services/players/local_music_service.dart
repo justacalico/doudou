@@ -830,7 +830,6 @@ class LocalMusicService implements BaseMediaService {
           artistName: album.artistName,
           imageUrl: newArtwork,
           year: album.year,
-          trackCount: album.trackCount,
         );
       }
       
