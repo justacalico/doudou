@@ -13,7 +13,7 @@ class LocalMusicService implements BaseMediaService {
   List<Album> _albums = [];
   List<Artist> _artists = [];
   List<Track> _tracks = [];
-  List<Playlist> _playlists = [];
+  final List<Playlist> _playlists = [];
   bool _isInitialized = false;
   bool _isScanning = false;
   
