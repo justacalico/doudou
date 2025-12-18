@@ -9,7 +9,9 @@ import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../services/logging_service.dart';
 import '../../services/base_service.dart';
+import '../../services/playbook_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../widgets/playbooks_section.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
