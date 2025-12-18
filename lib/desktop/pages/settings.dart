@@ -112,6 +112,8 @@ class _SettingsPageState extends State<SettingsPage> {
     switch (_selectedCategory) {
       case 'general':
         return _buildGeneralSettings(appState);
+      case 'playbooks':
+        return _buildPlaybooksSettings();
       case 'audio':
         return _buildAudioSettings(appState);
       case 'appearance':
@@ -125,6 +127,16 @@ class _SettingsPageState extends State<SettingsPage> {
       default:
         return _buildGeneralSettings(appState);
     }
+  }
+
+  Widget _buildPlaybooksSettings() {
+    return SingleChildScrollView(
+      child: Consumer<PlaybookService>(
+        builder: (context, playbookService, child) {
+          return const DesktopPlaybooksSection();
+        },
+      ),
+    );
   }
 
   Widget _buildGeneralSettings(AppState appState) {
