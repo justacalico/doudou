@@ -5,7 +5,7 @@ Stream your music collection from your own media server with a beautiful, modern
 📱 WORKS WITH YOUR MEDIA SERVER
 • Jellyfin - Full support (recommended)
 • Plex - Working with limitations
-• Navidrome - Full SubSonic compatibility
+• Subsonic - Full SubSonic API compatibility
 
 🔒 PRIVACY FOCUSED
 • Zero tracking - No data collection, analytics, or ads
@@ -42,7 +42,7 @@ Everything stays on your devices:
 Simple promise: Doudou only talks to your media server. That's it.
 
 ❓ REQUIREMENTS
-• A media server running Jellyfin 10.8+, Plex (with Plex Pass), or Navidrome 0.48+
+• A media server running Jellyfin 10.8+, Plex (with Plex Pass), or a Subsonic-compatible server
 • Android 5.0 or later
 • Network connection to your media server
 
