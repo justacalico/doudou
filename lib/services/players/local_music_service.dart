@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
+import '../album_art_service.dart';
 
 /// Service for playing music from local filesystem directories
 class LocalMusicService implements BaseMediaService {
