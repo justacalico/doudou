@@ -387,41 +387,71 @@ Future<void> _logSystemInfo(String context) async {
 Future<void> _debugLinuxMpv() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.linux) return;
 
-  print('');
-  print('╔══════════════════════════════════════════════════════════════╗');
-  print('║               LINUX MPV DEBUG OUTPUT                         ║');
-  print('╚══════════════════════════════════════════════════════════════╝');
-  print('');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('╔══════════════════════════════════════════════════════════════╗');
+  }
+  if (kDebugMode) {
+    print('║               LINUX MPV DEBUG OUTPUT                         ║');
+  }
+  if (kDebugMode) {
+    print('╚══════════════════════════════════════════════════════════════╝');
+  }
+  if (kDebugMode) {
+    print('');
+  }
 
   // Check if mpv binary exists
-  print('🔍 Checking MPV installation...');
+  if (kDebugMode) {
+    print('🔍 Checking MPV installation...');
+  }
   try {
     final whichResult = await Process.run('which', ['mpv']);
     if (whichResult.exitCode == 0) {
       final mpvPath = whichResult.stdout.toString().trim();
-      print('  ✅ MPV found at: $mpvPath');
+      if (kDebugMode) {
+        print('  ✅ MPV found at: $mpvPath');
+      }
 
       // Get MPV version
       final versionResult = await Process.run('mpv', ['--version']);
       if (versionResult.exitCode == 0) {
         final versionLines = versionResult.stdout.toString().split('\n');
         if (versionLines.isNotEmpty) {
-          print('  ✅ MPV version: ${versionLines.first}');
+          if (kDebugMode) {
+            print('  ✅ MPV version: ${versionLines.first}');
+          }
         }
       }
     } else {
-      print('  ❌ MPV NOT FOUND! Audio playback will likely fail.');
-      print('     Install with: sudo apt install mpv libmpv-dev');
-      print('     Or: sudo dnf install mpv mpv-libs-devel');
-      print('     Or: sudo pacman -S mpv');
+      if (kDebugMode) {
+        print('  ❌ MPV NOT FOUND! Audio playback will likely fail.');
+      }
+      if (kDebugMode) {
+        print('     Install with: sudo apt install mpv libmpv-dev');
+      }
+      if (kDebugMode) {
+        print('     Or: sudo dnf install mpv mpv-libs-devel');
+      }
+      if (kDebugMode) {
+        print('     Or: sudo pacman -S mpv');
+      }
     }
   } catch (e) {
-    print('  ❌ Error checking MPV: $e');
+    if (kDebugMode) {
+      print('  ❌ Error checking MPV: $e');
+    }
   }
 
   // Check for libmpv
-  print('');
-  print('🔍 Checking libmpv library...');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('🔍 Checking libmpv library...');
+  }
   try {
     final ldconfigResult = await Process.run('ldconfig', ['-p']);
     if (ldconfigResult.exitCode == 0) {
@@ -431,32 +461,54 @@ Future<void> _debugLinuxMpv() async {
           .where((line) => line.contains('libmpv'))
           .toList();
       if (mpvLibs.isNotEmpty) {
-        print('  ✅ libmpv libraries found:');
+        if (kDebugMode) {
+          print('  ✅ libmpv libraries found:');
+        }
         for (final lib in mpvLibs) {
-          print('     $lib');
+          if (kDebugMode) {
+            print('     $lib');
+          }
         }
       } else {
-        print('  ❌ libmpv NOT FOUND in ldconfig cache!');
-        print('     Install with: sudo apt install libmpv-dev');
+        if (kDebugMode) {
+          print('  ❌ libmpv NOT FOUND in ldconfig cache!');
+        }
+        if (kDebugMode) {
+          print('     Install with: sudo apt install libmpv-dev');
+        }
       }
     }
   } catch (e) {
-    print('  ⚠️  Could not check ldconfig: $e');
+    if (kDebugMode) {
+      print('  ⚠️  Could not check ldconfig: $e');
+    }
   }
 
   // Check LD_LIBRARY_PATH
-  print('');
-  print('🔍 Checking LD_LIBRARY_PATH...');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('🔍 Checking LD_LIBRARY_PATH...');
+  }
   final ldPath = Platform.environment['LD_LIBRARY_PATH'];
   if (ldPath != null && ldPath.isNotEmpty) {
-    print('  LD_LIBRARY_PATH: $ldPath');
+    if (kDebugMode) {
+      print('  LD_LIBRARY_PATH: $ldPath');
+    }
   } else {
-    print('  LD_LIBRARY_PATH: (not set)');
+    if (kDebugMode) {
+      print('  LD_LIBRARY_PATH: (not set)');
+    }
   }
 
   // Check for common MPV library paths
-  print('');
-  print('🔍 Checking common library paths for libmpv...');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('🔍 Checking common library paths for libmpv...');
+  }
   final commonPaths = [
     '/usr/lib/x86_64-linux-gnu/libmpv.so',
     '/usr/lib64/libmpv.so',
@@ -467,24 +519,40 @@ Future<void> _debugLinuxMpv() async {
   for (final path in commonPaths) {
     final file = File(path);
     if (await file.exists()) {
-      print('  ✅ Found: $path');
+      if (kDebugMode) {
+        print('  ✅ Found: $path');
+      }
     }
   }
 
   // Check if running in Flatpak
-  print('');
-  print('🔍 Checking Flatpak environment...');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('🔍 Checking Flatpak environment...');
+  }
   final flatpakId = Platform.environment['FLATPAK_ID'];
   if (flatpakId != null) {
-    print('  ⚠️  Running in Flatpak: $flatpakId');
-    print('     MPV may need to be bundled or accessed via portal');
+    if (kDebugMode) {
+      print('  ⚠️  Running in Flatpak: $flatpakId');
+    }
+    if (kDebugMode) {
+      print('     MPV may need to be bundled or accessed via portal');
+    }
   } else {
-    print('  ✅ Not running in Flatpak');
+    if (kDebugMode) {
+      print('  ✅ Not running in Flatpak');
+    }
   }
 
   // Try to test MPV audio output
-  print('');
-  print('🔍 Checking MPV audio outputs...');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('🔍 Checking MPV audio outputs...');
+  }
   try {
     final aoResult = await Process.run('mpv', ['--ao=help']);
     if (aoResult.exitCode == 0) {
@@ -493,18 +561,28 @@ Future<void> _debugLinuxMpv() async {
           .split('\n')
           .where((l) => l.trim().isNotEmpty)
           .take(10);
-      print('  Available audio outputs:');
+      if (kDebugMode) {
+        print('  Available audio outputs:');
+      }
       for (final line in lines) {
-        print('     $line');
+        if (kDebugMode) {
+          print('     $line');
+        }
       }
     }
   } catch (e) {
-    print('  ❌ Could not query MPV audio outputs: $e');
+    if (kDebugMode) {
+      print('  ❌ Could not query MPV audio outputs: $e');
+    }
   }
 
   // Check PulseAudio/PipeWire status
-  print('');
-  print('🔍 Checking audio server...');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('🔍 Checking audio server...');
+  }
   try {
     final paResult = await Process.run('pactl', ['info']);
     if (paResult.exitCode == 0) {
@@ -513,16 +591,30 @@ Future<void> _debugLinuxMpv() async {
           .split('\n')
           .firstWhere((l) => l.contains('Server Name:'), orElse: () => '');
       if (serverName.isNotEmpty) {
-        print('  ✅ $serverName');
+        if (kDebugMode) {
+          print('  ✅ $serverName');
+        }
       }
     }
   } catch (e) {
-    print('  ⚠️  Could not check PulseAudio/PipeWire: $e');
+    if (kDebugMode) {
+      print('  ⚠️  Could not check PulseAudio/PipeWire: $e');
+    }
   }
 
-  print('');
-  print('╔══════════════════════════════════════════════════════════════╗');
-  print('║           END LINUX MPV DEBUG OUTPUT                         ║');
-  print('╚══════════════════════════════════════════════════════════════╝');
-  print('');
+  if (kDebugMode) {
+    print('');
+  }
+  if (kDebugMode) {
+    print('╔══════════════════════════════════════════════════════════════╗');
+  }
+  if (kDebugMode) {
+    print('║           END LINUX MPV DEBUG OUTPUT                         ║');
+  }
+  if (kDebugMode) {
+    print('╚══════════════════════════════════════════════════════════════╝');
+  }
+  if (kDebugMode) {
+    print('');
+  }
 }
