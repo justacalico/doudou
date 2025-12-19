@@ -2581,35 +2581,39 @@ class _YouTubeMusicLyricsState extends State<_YouTubeMusicLyrics> {
           _scrollToCurrentLine(currentLineIndex);
         });
 
-        return ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          itemCount: lines.length,
-          itemBuilder: (context, index) {
-            final line = lines[index];
-            final isCurrentLine = index == currentLineIndex;
-            final isPastLine = index < currentLineIndex;
+        return ClipRect(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            clipBehavior: Clip.hardEdge,
+            physics: const ClampingScrollPhysics(),
+            itemCount: lines.length,
+            itemBuilder: (context, index) {
+              final line = lines[index];
+              final isCurrentLine = index == currentLineIndex;
+              final isPastLine = index < currentLineIndex;
 
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                line.text,
-                style: TextStyle(
-                  color: isCurrentLine
-                      ? Colors.white
-                      : isPastLine
-                      ? Colors.white.withOpacity(0.4)
-                      : Colors.white.withOpacity(0.6),
-                  fontSize: isCurrentLine ? 28 : 22,
-                  fontWeight: isCurrentLine
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                  height: 1.4,
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  line.text,
+                  style: TextStyle(
+                    color: isCurrentLine
+                        ? Colors.white
+                        : isPastLine
+                        ? Colors.white.withOpacity(0.4)
+                        : Colors.white.withOpacity(0.6),
+                    fontSize: isCurrentLine ? 28 : 22,
+                    fontWeight: isCurrentLine
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
@@ -3197,49 +3201,56 @@ class _SyncedLyricsContentState extends State<_SyncedLyricsContent> {
           _scrollToCurrentLine(currentLineIndex);
         });
 
-        return ListView.builder(
-          controller: _scrollController,
-          itemCount: widget.lyricsLines.length,
-          itemBuilder: (context, index) {
-            final line = widget.lyricsLines[index];
-            final isCurrentLine = index == currentLineIndex;
-            final isPastLine = index < currentLineIndex;
+        return ClipRect(
+          child: ListView.builder(
+            controller: _scrollController,
+            clipBehavior: Clip.hardEdge,
+            physics: const ClampingScrollPhysics(),
+            itemCount: widget.lyricsLines.length,
+            itemBuilder: (context, index) {
+              final line = widget.lyricsLines[index];
+              final isCurrentLine = index == currentLineIndex;
+              final isPastLine = index < currentLineIndex;
 
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isCurrentLine
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                    : null,
-                borderRadius: BorderRadius.circular(8),
-                border: isCurrentLine
-                    ? Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.3),
-                      )
-                    : null,
-              ),
-              child: Text(
-                line.text,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isCurrentLine
-                      ? Theme.of(context).colorScheme.primary
-                      : isPastLine
-                      ? Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withOpacity(0.6)
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: isCurrentLine
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                  height: 1.4,
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            );
-          },
+                decoration: BoxDecoration(
+                  color: isCurrentLine
+                      ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                      : null,
+                  borderRadius: BorderRadius.circular(8),
+                  border: isCurrentLine
+                      ? Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.3),
+                        )
+                      : null,
+                ),
+                child: Text(
+                  line.text,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isCurrentLine
+                        ? Theme.of(context).colorScheme.primary
+                        : isPastLine
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withOpacity(0.6)
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: isCurrentLine
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            },
+          ),
         );
       },
     );
