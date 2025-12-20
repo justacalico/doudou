@@ -93,6 +93,20 @@ class _MiniPlayerState extends State<MiniPlayer>
       onTapUp: (_) => _pressController.reverse(),
       onTapCancel: () => _pressController.reverse(),
       onTap: () => _navigateToNowPlaying(context),
+      onHorizontalDragEnd: (details) {
+        // Swipe left to skip to next track
+        if (details.primaryVelocity != null && details.primaryVelocity! < -200) {
+          if (audioHandler.hasNext == true) {
+            appState.skipToNext();
+          }
+        }
+        // Swipe right to skip to previous track
+        else if (details.primaryVelocity != null && details.primaryVelocity! > 200) {
+          if (audioHandler.hasPrevious == true) {
+            appState.skipToPrevious();
+          }
+        }
+      },
       child: AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) => Transform.scale(
