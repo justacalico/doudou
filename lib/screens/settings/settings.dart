@@ -1148,7 +1148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _openDeveloperWebsite(BuildContext context) async {
-    final url = Uri.parse('https://openlyst.onrender.com/');
+    final url = Uri.parse('https://openlyst.ink/');
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {

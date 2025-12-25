@@ -66,7 +66,7 @@ Don't have a media server? No problem! Doudou can play music directly from your 
 
 <div align="center">
 
-### 🌐 **[Download for All Platforms](https://openlyst.onrender.com/apps/doudou)**
+### 🌐 **[Download for All Platforms](https://openlyst.ink/apps/doudou)**
 
 Visit our download page to get Doudou for **Android**, **iOS**, **macOS**, **Windows**, **Linux**, and **Web**.
 
