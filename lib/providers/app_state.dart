@@ -798,7 +798,9 @@ class AppState extends ChangeNotifier {
   }
 
   /// Login to Jellyfin using Quick Connect (already authenticated service)
-  Future<bool> loginWithQuickConnect(JellyfinService authenticatedService) async {
+  Future<bool> loginWithQuickConnect(
+    JellyfinService authenticatedService,
+  ) async {
     _setLoading(true);
     _clearError();
 
@@ -809,7 +811,9 @@ class AppState extends ChangeNotifier {
 
       // Set the authenticated service
       _mediaServiceManager.initializeService(ServerType.jellyfin);
-      _mediaServiceManager.setAuthenticatedJellyfinService(authenticatedService);
+      _mediaServiceManager.setAuthenticatedJellyfinService(
+        authenticatedService,
+      );
 
       _isLoggedIn = true;
 
@@ -855,7 +859,8 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      String errorMessage = 'Quick Connect authentication failed. Please try again.';
+      String errorMessage =
+          'Quick Connect authentication failed. Please try again.';
       _setError(errorMessage);
       _setLoading(false);
       return false;
@@ -863,7 +868,10 @@ class AppState extends ChangeNotifier {
   }
 
   /// Save Quick Connect credentials (just server URL and user ID)
-  Future<void> _saveQuickConnectCredentials(String serverUrl, String userId) async {
+  Future<void> _saveQuickConnectCredentials(
+    String serverUrl,
+    String userId,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('server_type', 'jellyfin');
     await prefs.setString('server_url', serverUrl);
@@ -876,7 +884,9 @@ class AppState extends ChangeNotifier {
     await prefs.remove('server_api_key');
 
     if (kDebugMode) {
-      print('AppState: Saved Quick Connect credentials for Jellyfin at $serverUrl');
+      print(
+        'AppState: Saved Quick Connect credentials for Jellyfin at $serverUrl',
+      );
     }
   }
 
@@ -894,7 +904,7 @@ class AppState extends ChangeNotifier {
     try {
       // Initialize local music service
       await _mediaServiceManager.setLocalMusicService();
-      
+
       final localService = _mediaServiceManager.localMusicService;
       if (localService == null) {
         _setError('Failed to initialize local music service');
@@ -935,7 +945,7 @@ class AppState extends ChangeNotifier {
 
       // Save that we're using local music
       await _saveServerType('local');
-      
+
       // Load library data
       try {
         await loadLibraryData();
@@ -1181,27 +1191,29 @@ class AppState extends ChangeNotifier {
     await prefs.remove('jellyfin_credentials');
     await prefs.remove('subsonic_credentials');
     await prefs.remove('plex_credentials');
-    
+
     // Clear saved server type
     await prefs.remove('saved_server_type');
-    
+
     // Clear local music data if using local service
     final localService = _mediaServiceManager.localMusicService;
     if (localService != null) {
       await localService.fullLogout();
     }
-    
+
     // Clear all cached library data
     await prefs.remove('albums_cache');
     await prefs.remove('artists_cache');
     await prefs.remove('tracks_cache');
     await prefs.remove('playlists_cache');
-    
+
     // Clear the media service manager state
     _mediaServiceManager.clearAuth();
 
     if (kDebugMode) {
-      print('AppState: Cleared all server credentials and cached data during logout');
+      print(
+        'AppState: Cleared all server credentials and cached data during logout',
+      );
     }
 
     // Dispose audio handler
@@ -1816,17 +1828,17 @@ class AppState extends ChangeNotifier {
         // the tracks we have locally. Merge fresh data with existing tracks
         // to preserve favorite status and ensure we don't lose tracks.
         final Map<String, Track> trackMap = {};
-        
+
         // First, add all existing tracks to the map
         for (final track in _tracks) {
           trackMap[track.id] = track;
         }
-        
+
         // Then, update with fresh tracks (this updates favorite status for tracks that exist in both)
         for (final freshTrack in freshTracks) {
           trackMap[freshTrack.id] = freshTrack;
         }
-        
+
         // Convert back to list
         _tracks = trackMap.values.toList();
 
@@ -2184,29 +2196,61 @@ class AppState extends ChangeNotifier {
   // Add operation tracking for shuffle operations to prevent audio bleeding
   DateTime? _lastShuffleAllOperation;
   DateTime? _lastShuffleFavoritesOperation;
+  bool _isLoadingAllTracks = false;
+  bool _isLoadingFavorites = false;
+
+  /// Get loading state for shuffle all operation
+  bool get isLoadingAllTracks => _isLoadingAllTracks;
+
+  /// Get loading state for favorites operation
+  bool get isLoadingFavorites => _isLoadingFavorites;
 
   Future<void> shuffleAllTracks() async {
-    if (_tracks.isNotEmpty && _audioHandler != null) {
-      // CRITICAL FIX: Add aggressive debouncing for shuffle all button
-      final now = DateTime.now();
-      if (_lastShuffleAllOperation != null &&
-          now.difference(_lastShuffleAllOperation!) <
-              const Duration(milliseconds: 800)) {
-        if (kDebugMode) {
-          print(
-            'Shuffle all debounced - ${now.difference(_lastShuffleAllOperation!).inMilliseconds}ms since last operation',
-          );
-        }
-        return; // Ignore rapid successive taps
+    if (_audioHandler == null) return;
+
+    // CRITICAL FIX: Add aggressive debouncing for shuffle all button
+    final now = DateTime.now();
+    if (_lastShuffleAllOperation != null &&
+        now.difference(_lastShuffleAllOperation!) <
+            const Duration(milliseconds: 800)) {
+      if (kDebugMode) {
+        print(
+          'Shuffle all debounced - ${now.difference(_lastShuffleAllOperation!).inMilliseconds}ms since last operation',
+        );
       }
-      _lastShuffleAllOperation = now;
+      return; // Ignore rapid successive taps
+    }
+    _lastShuffleAllOperation = now;
+
+    if (kDebugMode) {
+      print('=== SHUFFLE ALL CALLED ===');
+    }
+
+    _isLoadingAllTracks = true;
+    notifyListeners();
+
+    try {
+      // Fetch ALL tracks from the server using the new getAllTracks method
+      // This properly paginates for Subsonic servers
+      List<Track> allTracks = await _mediaServiceManager.getAllTracks();
+
+      if (allTracks.isEmpty) {
+        // Fallback to cached tracks if getAllTracks returns nothing
+        allTracks = List<Track>.from(_tracks);
+      }
 
       if (kDebugMode) {
-        print('=== SHUFFLE ALL CALLED ===');
-        print('Found ${_tracks.length} total tracks');
+        print('Found ${allTracks.length} total tracks for shuffle');
       }
 
-      final shuffledTracks = List<Track>.from(_tracks);
+      if (allTracks.isEmpty) {
+        if (kDebugMode) {
+          print('No tracks available for shuffle');
+        }
+        return;
+      }
+
+      final shuffledTracks = List<Track>.from(allTracks);
       shuffledTracks.shuffle();
 
       if (kDebugMode) {
@@ -2217,34 +2261,64 @@ class AppState extends ChangeNotifier {
 
       await _audioHandler!.playPlaylist(shuffledTracks, 0);
       _audioHandler!.shuffle(); // Enable shuffle mode
-      notifyListeners();
 
       if (kDebugMode) {
         print('=== SHUFFLE ALL COMPLETED ===');
       }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in shuffleAllTracks: $e');
+      }
+    } finally {
+      _isLoadingAllTracks = false;
+      notifyListeners();
     }
   }
 
   Future<void> shuffleFavoriteTracks() async {
-    final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
-    if (favoriteTracks.isNotEmpty && _audioHandler != null) {
-      // CRITICAL FIX: Add aggressive debouncing for shuffle favorites button
-      final now = DateTime.now();
-      if (_lastShuffleFavoritesOperation != null &&
-          now.difference(_lastShuffleFavoritesOperation!) <
-              const Duration(milliseconds: 800)) {
-        if (kDebugMode) {
-          print(
-            'Shuffle favorites debounced - ${now.difference(_lastShuffleFavoritesOperation!).inMilliseconds}ms since last operation',
-          );
-        }
-        return; // Ignore rapid successive taps
+    if (_audioHandler == null) return;
+
+    // CRITICAL FIX: Add aggressive debouncing for shuffle favorites button
+    final now = DateTime.now();
+    if (_lastShuffleFavoritesOperation != null &&
+        now.difference(_lastShuffleFavoritesOperation!) <
+            const Duration(milliseconds: 800)) {
+      if (kDebugMode) {
+        print(
+          'Shuffle favorites debounced - ${now.difference(_lastShuffleFavoritesOperation!).inMilliseconds}ms since last operation',
+        );
       }
-      _lastShuffleFavoritesOperation = now;
+      return; // Ignore rapid successive taps
+    }
+    _lastShuffleFavoritesOperation = now;
+
+    if (kDebugMode) {
+      print('=== SHUFFLE FAVORITES CALLED ===');
+    }
+
+    _isLoadingFavorites = true;
+    notifyListeners();
+
+    try {
+      // Fetch ALL starred tracks from the server using the new getStarredTracks method
+      // This uses getStarred2 API for Subsonic which returns all starred items
+      List<Track> favoriteTracks = await _mediaServiceManager
+          .getStarredTracks();
+
+      if (favoriteTracks.isEmpty) {
+        // Fallback to cached tracks filtered by isFavorite
+        favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
+      }
 
       if (kDebugMode) {
-        print('=== SHUFFLE FAVORITES CALLED ===');
-        print('Found ${favoriteTracks.length} favorite tracks');
+        print('Found ${favoriteTracks.length} favorite tracks for shuffle');
+      }
+
+      if (favoriteTracks.isEmpty) {
+        if (kDebugMode) {
+          print('No favorite tracks available for shuffle');
+        }
+        return;
       }
 
       final shuffledFavorites = List<Track>.from(favoriteTracks);
@@ -2258,12 +2332,23 @@ class AppState extends ChangeNotifier {
 
       await _audioHandler!.playPlaylist(shuffledFavorites, 0);
       _audioHandler!.shuffle(); // Enable shuffle mode
-      notifyListeners();
 
       if (kDebugMode) {
         print('=== SHUFFLE FAVORITES COMPLETED ===');
       }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in shuffleFavoriteTracks: $e');
+      }
+    } finally {
+      _isLoadingFavorites = false;
+      notifyListeners();
     }
+  }
+
+  /// Get all starred tracks from the server (not cached)
+  Future<List<Track>> getStarredTracksFromServer() async {
+    return await _mediaServiceManager.getStarredTracks();
   }
 
   List<Track> get favoriteTracks =>

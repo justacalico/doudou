@@ -58,7 +58,8 @@ class SwingMusicService implements BaseMediaService {
 
       if (kDebugMode) {
         print(
-            'SwingMusic: Attempting login to $loginUrl with username: $identifier');
+          'SwingMusic: Attempting login to $loginUrl with username: $identifier',
+        );
       }
 
       // Swing Music uses JWT authentication
@@ -770,6 +771,28 @@ class SwingMusicService implements BaseMediaService {
     _accessToken = accessToken;
     _refreshToken = refreshToken;
     _userId = userId;
+  }
+
+  @override
+  Future<List<Track>> getAllTracks({int? maxTracks}) async {
+    // SwingMusic doesn't have great pagination, use getTracks with high limit
+    return getTracks(limit: maxTracks ?? 50000);
+  }
+
+  @override
+  Future<List<Track>> getStarredTracks() async {
+    // SwingMusic favorites - not implemented yet
+    return [];
+  }
+
+  @override
+  Future<List<Album>> getStarredAlbums() async {
+    return [];
+  }
+
+  @override
+  Future<List<Artist>> getStarredArtists() async {
+    return [];
   }
 }
 

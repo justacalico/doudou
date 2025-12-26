@@ -621,7 +621,7 @@ class PlexService implements BaseMediaService {
       }
       return getDirectStreamWithPartKey(partKey);
     }
-    
+
     final partId = await _getTrackPartId(trackId);
     if (partId != null) {
       if (kDebugMode) {
@@ -629,7 +629,7 @@ class PlexService implements BaseMediaService {
       }
       return getDirectPartUrl(partId);
     }
-    
+
     if (kDebugMode) {
       print('Plex: Falling back to Method 4 - Download URL');
     }
@@ -640,14 +640,14 @@ class PlexService implements BaseMediaService {
   /// This is what your bash script uses - Method 3 (Direct File)
   Future<String> getPreferredStreamUrl(String trackId, {int? bitrate}) async {
     final partId = await _getTrackPartId(trackId);
-    
+
     if (partId != null) {
       if (kDebugMode) {
         print('Using direct file stream with part ID: $partId');
       }
       return getDirectPartUrl(partId);
     }
-    
+
     if (kDebugMode) {
       print('Part ID not found, using universal transcode');
     }
@@ -730,19 +730,21 @@ class PlexService implements BaseMediaService {
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
     final urls = <String>[];
-    
+
     // Fetch part key and part ID for best quality streaming
     final partKey = await _getTrackPartKey(trackId);
     final partId = await _getTrackPartId(trackId);
-    
+
     // Method 1 from bash - Direct stream using part key
     if (partKey != null) {
       urls.add(getDirectStreamWithPartKey(partKey));
       if (kDebugMode) {
-        print('Plex: Adding Method 1 - Direct stream URL with part key: $partKey');
+        print(
+          'Plex: Adding Method 1 - Direct stream URL with part key: $partKey',
+        );
       }
     }
-    
+
     // Method 3 from bash - Direct file access using part ID
     if (partId != null) {
       urls.add(getDirectPartUrl(partId));
@@ -750,13 +752,13 @@ class PlexService implements BaseMediaService {
         print('Plex: Adding Method 3 - Direct file URL with part ID: $partId');
       }
     }
-    
+
     // Method 4 from bash - Download URL (very reliable)
     urls.add(getDownloadUrl(trackId));
     if (kDebugMode) {
       print('Plex: Adding Method 4 - Download URL');
     }
-    
+
     // Method 2 from bash - Universal transcode fallbacks
     urls.addAll([
       getUniversalStreamUrl(trackId, bitrate: 192),
@@ -765,7 +767,7 @@ class PlexService implements BaseMediaService {
     if (kDebugMode) {
       print('Plex: Adding Method 2 - Universal transcode URLs');
     }
-    
+
     return urls;
   }
 
@@ -897,6 +899,29 @@ class PlexService implements BaseMediaService {
     _token = null;
     _machineIdentifier = null;
     _serverUrl = null;
+  }
+
+  @override
+  Future<List<Track>> getAllTracks({int? maxTracks}) async {
+    // Plex doesn't have great pagination support, use getTracks with high limit
+    return getTracks(limit: maxTracks ?? 50000);
+  }
+
+  @override
+  Future<List<Track>> getStarredTracks() async {
+    // Plex favorites - not implemented yet
+    // Would need to query the favorites endpoint
+    return [];
+  }
+
+  @override
+  Future<List<Album>> getStarredAlbums() async {
+    return [];
+  }
+
+  @override
+  Future<List<Artist>> getStarredArtists() async {
+    return [];
   }
 
   @override

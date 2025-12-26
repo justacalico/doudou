@@ -1919,9 +1919,28 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                   // Add to playlist button
                   _SpotifyActionButton(
                     icon: Icons.playlist_add_rounded,
-                    onPressed: () {
-                      // TODO: Show add to playlist dialog
-                    },
+                    onPressed: currentTrack != null
+                        ? () {
+                            final track = Track(
+                              id: currentTrack.id,
+                              name: currentTrack.title,
+                              albumName: currentTrack.album,
+                              artistName: currentTrack.artist,
+                              albumId: currentTrack.extras?['albumId']
+                                      as String? ??
+                                  '',
+                              duration:
+                                  currentTrack.duration?.inMilliseconds ?? 0,
+                              trackNumber: null,
+                              imageUrl: currentTrack.artUri?.toString(),
+                              isFavorite: false,
+                            );
+                            DesktopLayout.showAddToPlaylistDialog(
+                              context,
+                              track,
+                            );
+                          }
+                        : null,
                   ),
                 ],
               ),

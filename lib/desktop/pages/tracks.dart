@@ -31,7 +31,7 @@ class _TracksPageState extends State<TracksPage> {
 
   Future<void> _loadTracks() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
       _error = '';
@@ -39,8 +39,10 @@ class _TracksPageState extends State<TracksPage> {
 
     try {
       final appState = context.read<AppState>();
-      final tracks = await appState.mediaServiceManager.getTracks(limit: 1000);
-      
+      // Use getAllTracks to get all tracks with proper pagination
+      // This fixes the issue where only 1 page was loaded for shuffle
+      final tracks = await appState.mediaServiceManager.getAllTracks();
+
       setState(() {
         _tracks = tracks;
         _sortTracks();
@@ -64,10 +66,14 @@ class _TracksPageState extends State<TracksPage> {
           comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
           break;
         case 'artist':
-          comparison = (a.artistName ?? '').toLowerCase().compareTo((b.artistName ?? '').toLowerCase());
+          comparison = (a.artistName ?? '').toLowerCase().compareTo(
+            (b.artistName ?? '').toLowerCase(),
+          );
           break;
         case 'album':
-          comparison = (a.albumName ?? '').toLowerCase().compareTo((b.albumName ?? '').toLowerCase());
+          comparison = (a.albumName ?? '').toLowerCase().compareTo(
+            (b.albumName ?? '').toLowerCase(),
+          );
           break;
         case 'duration':
           comparison = (a.duration ?? 0).compareTo(b.duration ?? 0);
@@ -93,14 +99,14 @@ class _TracksPageState extends State<TracksPage> {
 
   String _formatDuration(int? milliseconds) {
     if (milliseconds == null) return '--:--';
-    
+
     // Convert milliseconds to seconds
     final totalSeconds = milliseconds ~/ 1000;
-    
+
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
     final seconds = totalSeconds % 60;
-    
+
     if (hours > 0) {
       return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
     } else {
@@ -112,7 +118,7 @@ class _TracksPageState extends State<TracksPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    
+
     return PageTemplate(
       title: l10n.navTracks,
       actions: [
@@ -120,42 +126,52 @@ class _TracksPageState extends State<TracksPage> {
         Consumer<AppState>(
           builder: (context, appState, child) {
             return IconButton(
-              onPressed: _tracks.isNotEmpty ? () => _playAllTracks(appState) : null,
+              onPressed: _tracks.isNotEmpty
+                  ? () => _playAllTracks(appState)
+                  : null,
               icon: const Icon(Icons.play_arrow),
               tooltip: l10n.playAll,
               iconSize: 28,
             );
           },
         ),
-        
+
         // Shuffle button
         Consumer<AppState>(
           builder: (context, appState, child) {
             return IconButton(
-              onPressed: _tracks.isNotEmpty ? () => _shuffleAllTracks(appState) : null,
+              onPressed: _tracks.isNotEmpty
+                  ? () => _shuffleAllTracks(appState)
+                  : null,
               icon: const Icon(Icons.shuffle),
               tooltip: l10n.shuffleAll,
               iconSize: 28,
             );
           },
         ),
-        
+
         // Play Favorites button
         Consumer<AppState>(
           builder: (context, appState, child) {
-            final favoriteCount = _tracks.where((track) => track.isFavorite).length;
+            final favoriteCount = _tracks
+                .where((track) => track.isFavorite)
+                .length;
             return IconButton(
-              onPressed: favoriteCount > 0 ? () => _playFavoriteTracks(appState) : null,
+              onPressed: favoriteCount > 0
+                  ? () => _playFavoriteTracks(appState)
+                  : null,
               icon: Icon(
                 Icons.favorite,
                 color: favoriteCount > 0 ? Colors.red : null,
               ),
-              tooltip: favoriteCount > 0 ? l10n.playFavoritesCount(favoriteCount) : l10n.noFavoriteTracks,
+              tooltip: favoriteCount > 0
+                  ? l10n.playFavoritesCount(favoriteCount)
+                  : l10n.noFavoriteTracks,
               iconSize: 28,
             );
           },
         ),
-        
+
         PopupMenuButton<String>(
           icon: const Icon(Icons.sort),
           tooltip: l10n.sortBy,
@@ -170,7 +186,11 @@ class _TracksPageState extends State<TracksPage> {
                   Text(l10n.title),
                   if (_sortBy == 'title') ...[
                     const Spacer(),
-                    Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                    Icon(
+                      _sortAscending
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                    ),
                   ],
                 ],
               ),
@@ -184,7 +204,11 @@ class _TracksPageState extends State<TracksPage> {
                   Text(l10n.artist),
                   if (_sortBy == 'artist') ...[
                     const Spacer(),
-                    Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                    Icon(
+                      _sortAscending
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                    ),
                   ],
                 ],
               ),
@@ -198,7 +222,11 @@ class _TracksPageState extends State<TracksPage> {
                   Text(l10n.album),
                   if (_sortBy == 'album') ...[
                     const Spacer(),
-                    Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                    Icon(
+                      _sortAscending
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                    ),
                   ],
                 ],
               ),
@@ -212,7 +240,11 @@ class _TracksPageState extends State<TracksPage> {
                   Text(l10n.duration),
                   if (_sortBy == 'duration') ...[
                     const Spacer(),
-                    Icon(_sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                    Icon(
+                      _sortAscending
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                    ),
                   ],
                 ],
               ),
@@ -231,9 +263,7 @@ class _TracksPageState extends State<TracksPage> {
 
   Widget _buildContent(ThemeData theme, AppLocalizations l10n) {
     if (_isLoading && _tracks.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_error.isNotEmpty) {
@@ -241,16 +271,9 @@ class _TracksPageState extends State<TracksPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
-            Text(
-              l10n.errorLoadingTracks,
-              style: theme.textTheme.headlineSmall,
-            ),
+            Text(l10n.errorLoadingTracks, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
               _error,
@@ -260,10 +283,7 @@ class _TracksPageState extends State<TracksPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadTracks,
-              child: Text(l10n.retry),
-            ),
+            ElevatedButton(onPressed: _loadTracks, child: Text(l10n.retry)),
           ],
         ),
       );
@@ -330,7 +350,9 @@ class _TracksPageState extends State<TracksPage> {
                       if (_sortBy == 'title') ...[
                         const SizedBox(width: 4),
                         Icon(
-                          _sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          _sortAscending
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
                           size: 16,
                         ),
                       ],
@@ -353,7 +375,9 @@ class _TracksPageState extends State<TracksPage> {
                       if (_sortBy == 'artist') ...[
                         const SizedBox(width: 4),
                         Icon(
-                          _sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          _sortAscending
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
                           size: 16,
                         ),
                       ],
@@ -376,7 +400,9 @@ class _TracksPageState extends State<TracksPage> {
                       if (_sortBy == 'album') ...[
                         const SizedBox(width: 4),
                         Icon(
-                          _sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          _sortAscending
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
                           size: 16,
                         ),
                       ],
@@ -400,7 +426,9 @@ class _TracksPageState extends State<TracksPage> {
                       if (_sortBy == 'duration') ...[
                         const SizedBox(width: 4),
                         Icon(
-                          _sortAscending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          _sortAscending
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
                           size: 16,
                         ),
                       ],
@@ -412,7 +440,7 @@ class _TracksPageState extends State<TracksPage> {
             ],
           ),
         ),
-        
+
         // Track list
         Expanded(
           child: Consumer<AppState>(
@@ -431,13 +459,17 @@ class _TracksPageState extends State<TracksPage> {
     );
   }
 
-  Widget _buildTrackItem(Track track, int index, AppState appState, ThemeData theme, AppLocalizations l10n) {
+  Widget _buildTrackItem(
+    Track track,
+    int index,
+    AppState appState,
+    ThemeData theme,
+    AppLocalizations l10n,
+  ) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.1),
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1)),
         ),
       ),
       child: ListTile(
@@ -576,14 +608,14 @@ class _TracksPageState extends State<TracksPage> {
 
   void _playAllTracks(AppState appState) {
     if (_tracks.isEmpty) return;
-    
+
     // Play all tracks starting from the first one
     appState.playPlaylist(_tracks, 0);
   }
 
   void _shuffleAllTracks(AppState appState) {
     if (_tracks.isEmpty) return;
-    
+
     // Create a shuffled copy of the tracks
     final shuffledTracks = List<Track>.from(_tracks)..shuffle();
     appState.playPlaylist(shuffledTracks, 0);
@@ -591,11 +623,11 @@ class _TracksPageState extends State<TracksPage> {
 
   void _playFavoriteTracks(AppState appState) {
     final favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
-    
+
     if (favoriteTracks.isEmpty) {
       return;
     }
-    
+
     // Shuffle favorite tracks before playing
     favoriteTracks.shuffle();
     appState.playPlaylist(favoriteTracks, 0);
@@ -641,7 +673,10 @@ class _TracksPageState extends State<TracksPage> {
     );
 
     if (artist == null) {
-      NotificationService.showError(context, l10n.artistNotFound(track.artistName ?? l10n.unknownArtist));
+      NotificationService.showError(
+        context,
+        l10n.artistNotFound(track.artistName ?? l10n.unknownArtist),
+      );
       return;
     }
 

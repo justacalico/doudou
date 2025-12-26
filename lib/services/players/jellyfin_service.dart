@@ -702,7 +702,8 @@ class JellyfinService implements BaseMediaService {
     return [];
   }
 
-  Future<List<Track>> getAllTracks() async {
+  @override
+  Future<List<Track>> getAllTracks({int? maxTracks}) async {
     if (_server == null) throw Exception('Server not configured');
 
     try {
@@ -715,7 +716,9 @@ class JellyfinService implements BaseMediaService {
               'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
           'SortBy': 'Album,IndexNumber',
           'SortOrder': 'Ascending',
-          'Limit': 1000, // Limit to prevent too large responses
+          'Limit':
+              maxTracks ??
+              50000, // Use provided limit or high default for all tracks
         },
       );
 
@@ -729,6 +732,21 @@ class JellyfinService implements BaseMediaService {
       }
     }
     return [];
+  }
+
+  @override
+  Future<List<Track>> getStarredTracks() async {
+    return getFavoriteTracks();
+  }
+
+  @override
+  Future<List<Album>> getStarredAlbums() async {
+    return getFavoriteAlbums();
+  }
+
+  @override
+  Future<List<Artist>> getStarredArtists() async {
+    return getFavoriteArtists();
   }
 
   @override
@@ -1486,6 +1504,94 @@ class JellyfinService implements BaseMediaService {
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching tracks: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Get all favorite/starred tracks from the library
+  Future<List<Track>> getFavoriteTracks() async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: {
+          'IncludeItemTypes': 'Audio',
+          'Recursive': true,
+          'Filters': 'IsFavorite',
+          'Fields':
+              'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+          'SortBy': 'Album,IndexNumber',
+          'SortOrder': 'Ascending',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Track.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching favorite tracks: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Get all favorite/starred albums from the library
+  Future<List<Album>> getFavoriteAlbums() async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: {
+          'IncludeItemTypes': 'MusicAlbum',
+          'Recursive': true,
+          'Filters': 'IsFavorite',
+          'Fields': 'PrimaryImageAspectRatio,ImageTags',
+          'SortBy': 'SortName',
+          'SortOrder': 'Ascending',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Album.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching favorite albums: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Get all favorite/starred artists from the library
+  Future<List<Artist>> getFavoriteArtists() async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final response = await _dio.get(
+        '/Users/${_server!.userId}/Items',
+        queryParameters: {
+          'IncludeItemTypes': 'MusicArtist',
+          'Recursive': true,
+          'Filters': 'IsFavorite',
+          'Fields': 'PrimaryImageAspectRatio,ImageTags',
+          'SortBy': 'SortName',
+          'SortOrder': 'Ascending',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = response.data['Items'];
+        return items.map((item) => Artist.fromJson(item)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching favorite artists: $e');
       }
     }
     return [];

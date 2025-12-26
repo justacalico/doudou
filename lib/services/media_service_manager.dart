@@ -155,6 +155,68 @@ class MediaServiceManager {
     return tracks;
   }
 
+  /// Get ALL tracks from the current service (with pagination for large libraries)
+  /// This is useful for shuffle all functionality where you need the complete library
+  Future<List<Track>> getAllTracks({int? maxTracks}) async {
+    if (kDebugMode) {
+      print('MediaServiceManager.getAllTracks called:');
+      print('  - maxTracks: $maxTracks');
+      print('  - currentService: ${_currentService?.runtimeType}');
+      print('  - currentServerType: $currentServerType');
+    }
+    
+    if (_currentService == null) {
+      if (kDebugMode) {
+        print('MediaServiceManager: No current service available!');
+      }
+      return [];
+    }
+    
+    final tracks = await _currentService!.getAllTracks(maxTracks: maxTracks);
+    
+    if (kDebugMode) {
+      print('MediaServiceManager: getAllTracks returned ${tracks.length} tracks');
+    }
+    
+    return tracks;
+  }
+
+  /// Get all starred/favorite tracks from the current service
+  Future<List<Track>> getStarredTracks() async {
+    if (kDebugMode) {
+      print('MediaServiceManager.getStarredTracks called');
+      print('  - currentService: ${_currentService?.runtimeType}');
+      print('  - currentServerType: $currentServerType');
+    }
+    
+    if (_currentService == null) {
+      if (kDebugMode) {
+        print('MediaServiceManager: No current service available!');
+      }
+      return [];
+    }
+    
+    final tracks = await _currentService!.getStarredTracks();
+    
+    if (kDebugMode) {
+      print('MediaServiceManager: getStarredTracks returned ${tracks.length} tracks');
+    }
+    
+    return tracks;
+  }
+
+  /// Get all starred/favorite albums from the current service
+  Future<List<Album>> getStarredAlbums() async {
+    if (_currentService == null) return [];
+    return await _currentService!.getStarredAlbums();
+  }
+
+  /// Get all starred/favorite artists from the current service
+  Future<List<Artist>> getStarredArtists() async {
+    if (_currentService == null) return [];
+    return await _currentService!.getStarredArtists();
+  }
+
   /// Get playlists from the current service
   Future<List<Playlist>> getPlaylists() async {
     if (kDebugMode) {
@@ -516,6 +578,31 @@ class JellyfinServiceAdapter implements BaseMediaService {
     }
     // Otherwise get all tracks or library tracks
     return await _jellyfinService.getTracks(libraryId: libraryId, limit: limit, startIndex: startIndex);
+  }
+
+  @override
+  Future<List<Track>> getAllTracks({int? maxTracks}) async {
+    // Jellyfin can return all tracks with a high limit
+    // The getTracks method handles pagination internally
+    return await _jellyfinService.getTracks(limit: maxTracks ?? 50000);
+  }
+
+  @override
+  Future<List<Track>> getStarredTracks() async {
+    // Get favorite tracks from Jellyfin
+    return await _jellyfinService.getFavoriteTracks();
+  }
+
+  @override
+  Future<List<Album>> getStarredAlbums() async {
+    // Get favorite albums from Jellyfin
+    return await _jellyfinService.getFavoriteAlbums();
+  }
+
+  @override
+  Future<List<Artist>> getStarredArtists() async {
+    // Get favorite artists from Jellyfin
+    return await _jellyfinService.getFavoriteArtists();
   }
 
   @override

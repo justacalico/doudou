@@ -640,7 +640,11 @@ class SubsonicService implements BaseMediaService {
     try {
       final params = Map<String, dynamic>.from(_baseParams);
       params['query'] = query;
-      if (limit != null) params['count'] = limit.toString();
+      // Subsonic search3 uses separate count parameters for each type
+      final searchLimit = limit ?? 100;
+      params['artistCount'] = searchLimit.toString();
+      params['albumCount'] = searchLimit.toString();
+      params['songCount'] = searchLimit.toString();
 
       final response = await _dio.get(
         '$_serverUrl/rest/search3',
@@ -923,6 +927,273 @@ class SubsonicService implements BaseMediaService {
         print('Error deleting playlist in Subsonic: $e');
       }
       return false;
+    }
+  }
+
+  /// Get all tracks from the library using search3 with pagination
+  /// This is more reliable than getRandomSongs for getting all music
+  @override
+  Future<List<Track>> getAllTracks({int? maxTracks}) async {
+    if (_serverUrl == null ||
+        _username == null ||
+        _token == null ||
+        _salt == null) {
+      return [];
+    }
+
+    try {
+      final List<Track> allTracks = [];
+      int offset = 0;
+      const int pageSize = 500; // Max allowed by Subsonic API
+      final int maxToFetch = maxTracks ?? 50000; // Safety limit
+      bool hasMore = true;
+
+      while (hasMore && allTracks.length < maxToFetch) {
+        final params = Map<String, dynamic>.from(_baseParams);
+        params['query'] = ''; // Empty query returns all
+        params['songCount'] = pageSize.toString();
+        params['songOffset'] = offset.toString();
+        params['artistCount'] = '0'; // We only want songs
+        params['albumCount'] = '0';
+
+        final response = await _dio.get(
+          '$_serverUrl/rest/search3',
+          queryParameters: params,
+        );
+
+        final subsonicResponse = response.data['subsonic-response'];
+        if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
+          break;
+        }
+
+        final searchResult = subsonicResponse['searchResult3'];
+        if (searchResult == null) {
+          break;
+        }
+
+        final songs = searchResult['song'];
+        if (songs == null || (songs is List && songs.isEmpty)) {
+          hasMore = false;
+          break;
+        }
+
+        final songsList = songs is List ? songs : [songs];
+
+        for (final song in songsList) {
+          allTracks.add(
+            Track(
+              id: song['id'],
+              name: song['title'] ?? 'Unknown Title',
+              artistName: song['artist'] ?? 'Unknown Artist',
+              albumName: song['album'] ?? 'Unknown Album',
+              duration: song['duration'] != null
+                  ? (song['duration'] as int) * 1000
+                  : null,
+              trackNumber: song['track'],
+              imageUrl: song['coverArt'] != null
+                  ? '$_serverUrl/rest/getCoverArt?id=${song['coverArt']}&${Uri(queryParameters: _baseParams).query}'
+                  : null,
+              isFavorite: song['starred'] != null,
+              albumId: song['albumId'],
+            ),
+          );
+        }
+
+        if (songsList.length < pageSize) {
+          hasMore = false;
+        } else {
+          offset += pageSize;
+        }
+
+        if (kDebugMode) {
+          print(
+            'Subsonic getAllTracks: Fetched ${allTracks.length} tracks so far (offset: $offset)',
+          );
+        }
+      }
+
+      if (kDebugMode) {
+        print(
+          'Subsonic getAllTracks: Total ${allTracks.length} tracks fetched',
+        );
+      }
+
+      return allTracks;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting all Subsonic tracks: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get all starred (favorite) items using getStarred2 API
+  @override
+  Future<List<Track>> getStarredTracks() async {
+    if (_serverUrl == null ||
+        _username == null ||
+        _token == null ||
+        _salt == null) {
+      return [];
+    }
+
+    try {
+      final response = await _dio.get(
+        '$_serverUrl/rest/getStarred2',
+        queryParameters: _baseParams,
+      );
+
+      final subsonicResponse = response.data['subsonic-response'];
+      if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
+        if (kDebugMode) {
+          print('Subsonic getStarred2 failed: ${subsonicResponse?['error']}');
+        }
+        return [];
+      }
+
+      final starred = subsonicResponse['starred2'];
+      if (starred == null) {
+        return [];
+      }
+
+      final songs = starred['song'];
+      if (songs == null) {
+        return [];
+      }
+
+      final songsList = songs is List ? songs : [songs];
+
+      return songsList
+          .map(
+            (song) => Track(
+              id: song['id'],
+              name: song['title'] ?? 'Unknown Title',
+              artistName: song['artist'] ?? 'Unknown Artist',
+              albumName: song['album'] ?? 'Unknown Album',
+              duration: song['duration'] != null
+                  ? (song['duration'] as int) * 1000
+                  : null,
+              trackNumber: song['track'],
+              imageUrl: song['coverArt'] != null
+                  ? '$_serverUrl/rest/getCoverArt?id=${song['coverArt']}&${Uri(queryParameters: _baseParams).query}'
+                  : null,
+              isFavorite: true, // All returned items are starred
+              albumId: song['albumId'],
+            ),
+          )
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting starred Subsonic tracks: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get starred albums
+  @override
+  Future<List<Album>> getStarredAlbums() async {
+    if (_serverUrl == null ||
+        _username == null ||
+        _token == null ||
+        _salt == null) {
+      return [];
+    }
+
+    try {
+      final response = await _dio.get(
+        '$_serverUrl/rest/getStarred2',
+        queryParameters: _baseParams,
+      );
+
+      final subsonicResponse = response.data['subsonic-response'];
+      if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
+        return [];
+      }
+
+      final starred = subsonicResponse['starred2'];
+      if (starred == null) {
+        return [];
+      }
+
+      final albums = starred['album'];
+      if (albums == null) {
+        return [];
+      }
+
+      final albumsList = albums is List ? albums : [albums];
+
+      return albumsList
+          .map(
+            (album) => Album(
+              id: album['id'],
+              name: album['name'] ?? 'Unknown Album',
+              artistName: album['artist'] ?? 'Unknown Artist',
+              year: album['year'],
+              imageUrl: album['coverArt'] != null
+                  ? '$_serverUrl/rest/getCoverArt?id=${album['coverArt']}&${Uri(queryParameters: _baseParams).query}'
+                  : null,
+              isFavorite: true,
+            ),
+          )
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting starred Subsonic albums: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get starred artists
+  @override
+  Future<List<Artist>> getStarredArtists() async {
+    if (_serverUrl == null ||
+        _username == null ||
+        _token == null ||
+        _salt == null) {
+      return [];
+    }
+
+    try {
+      final response = await _dio.get(
+        '$_serverUrl/rest/getStarred2',
+        queryParameters: _baseParams,
+      );
+
+      final subsonicResponse = response.data['subsonic-response'];
+      if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
+        return [];
+      }
+
+      final starred = subsonicResponse['starred2'];
+      if (starred == null) {
+        return [];
+      }
+
+      final artists = starred['artist'];
+      if (artists == null) {
+        return [];
+      }
+
+      final artistsList = artists is List ? artists : [artists];
+
+      return artistsList
+          .map(
+            (artist) => Artist(
+              id: artist['id'],
+              name: artist['name'] ?? 'Unknown Artist',
+              imageUrl: artist['coverArt'] != null
+                  ? '$_serverUrl/rest/getCoverArt?id=${artist['coverArt']}&${Uri(queryParameters: _baseParams).query}'
+                  : null,
+            ),
+          )
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting starred Subsonic artists: $e');
+      }
+      return [];
     }
   }
 
