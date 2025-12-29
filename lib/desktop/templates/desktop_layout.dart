@@ -1361,53 +1361,47 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
 
                   return Scaffold(
                     backgroundColor: DesktopTheme.backgroundDeep,
-                    body: Row(
+                    body: Stack(
                       children: [
-                        // Main content area (left side - like YouTube Music video area)
-                        Expanded(
-                          flex: 3,
-                          child: Stack(
-                            children: [
-                              // Background with album art blur
-                              if (currentTrack?.artUri != null)
-                                Positioned.fill(
-                                  child: Image.network(
-                                    currentTrack!.artUri.toString(),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: DesktopTheme.backgroundDeep,
-                                      );
-                                    },
-                                  ),
-                                ),
+                        // Background with album art - covers entire screen
+                        if (currentTrack?.artUri != null)
+                          Positioned.fill(
+                            child: Image.network(
+                              currentTrack!.artUri.toString(),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: DesktopTheme.backgroundDeep,
+                                );
+                              },
+                            ),
+                          ),
 
-                              // Dark overlay gradient
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        DesktopTheme.backgroundDeep.withOpacity(
-                                          0.3,
-                                        ),
-                                        DesktopTheme.backgroundDeep.withOpacity(
-                                          0.7,
-                                        ),
-                                        DesktopTheme.backgroundDeep.withOpacity(
-                                          0.95,
-                                        ),
-                                      ],
-                                      stops: const [0.0, 0.5, 1.0],
-                                    ),
-                                  ),
-                                ),
+                        // Dark overlay gradient - covers entire screen
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  DesktopTheme.backgroundDeep.withOpacity(0.3),
+                                  DesktopTheme.backgroundDeep.withOpacity(0.7),
+                                  DesktopTheme.backgroundDeep.withOpacity(0.95),
+                                ],
+                                stops: const [0.0, 0.5, 1.0],
                               ),
+                            ),
+                          ),
+                        ),
 
-                              // Main content
-                              Column(
+                        // Content Row on top of background
+                        Row(
+                          children: [
+                            // Main content area (left side - like YouTube Music video area)
+                            Expanded(
+                              flex: 3,
+                              child: Column(
                                 children: [
                                   // Top bar with close button and Song/Video toggle
                                   Padding(
@@ -1479,97 +1473,36 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
 
-                        // Right sidebar - Up Next queue (like YouTube Music)
-                        // Animated slide in/out based on window width
-                        AnimatedSlide(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          offset: showSidebar
-                              ? Offset.zero
-                              : const Offset(1, 0),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            width: showSidebar ? 350 : 0,
-                            child: showSidebar
-                                ? Container(
-                                    width: 350,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                          color: DesktopTheme.glassBorder,
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        // Background image fading from left (flipped horizontally)
-                                        if (currentTrack?.artUri != null)
-                                          Positioned.fill(
-                                            child: ShaderMask(
-                                              shaderCallback: (Rect bounds) {
-                                                return LinearGradient(
-                                                  begin: Alignment.centerLeft,
-                                                  end: Alignment.centerRight,
-                                                  colors: [
-                                                    Colors.white.withOpacity(
-                                                      0.3,
-                                                    ),
-                                                    Colors.white.withOpacity(
-                                                      0.1,
-                                                    ),
-                                                    Colors.transparent,
-                                                  ],
-                                                  stops: const [0.0, 0.3, 0.7],
-                                                ).createShader(bounds);
-                                              },
-                                              blendMode: BlendMode.dstIn,
-                                              child: Transform.flip(
-                                                flipX: true,
-                                                child: Image.network(
-                                                  currentTrack!.artUri
-                                                      .toString(),
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder:
-                                                      (
-                                                        context,
-                                                        error,
-                                                        stackTrace,
-                                                      ) {
-                                                        return const SizedBox.shrink();
-                                                      },
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-
-                                        // Dark overlay for readability
-                                        Positioned.fill(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.centerLeft,
-                                                end: Alignment.centerRight,
-                                                colors: [
-                                                  DesktopTheme.glassSurface
-                                                      .withOpacity(0.7),
-                                                  DesktopTheme.glassSurface
-                                                      .withOpacity(0.95),
-                                                  DesktopTheme.glassSurface,
-                                                ],
-                                                stops: const [0.0, 0.4, 1.0],
-                                              ),
+                            // Right sidebar - Up Next queue (like YouTube Music)
+                            // Animated slide in/out based on window width
+                            AnimatedSlide(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              offset: showSidebar
+                                  ? Offset.zero
+                                  : const Offset(1, 0),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                width: showSidebar ? 350 : 0,
+                                child: showSidebar
+                                    ? Container(
+                                        width: 350,
+                                        decoration: BoxDecoration(
+                                          // Semi-transparent background to blend with main content
+                                          color: DesktopTheme.backgroundDeep
+                                              .withOpacity(0.7),
+                                          border: Border(
+                                            left: BorderSide(
+                                              color: DesktopTheme.glassBorder,
+                                              width: 1,
                                             ),
                                           ),
                                         ),
-
-                                        // Content
-                                        Column(
+                                        // Content directly without Stack
+                                        child: Column(
                                           children: [
                                             // Tabs header
                                             Container(
@@ -1652,11 +1585,11 @@ class _ModernNowPlayingState extends State<_ModernNowPlaying>
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
