@@ -265,6 +265,18 @@ class AudioServiceIntegration {
     return _audioHandler!.shuffleEnabled;
   }
 
+  /// Alias for isShuffled for compatibility
+  bool get shuffleEnabled {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.shuffleEnabled;
+  }
+
+  /// Get current volume
+  double get volume {
+    if (!_initialized || _audioHandler == null) return 1.0;
+    return _audioHandler!.volume;
+  }
+
   /// Get current repeat mode
   RepeatMode get repeatMode {
     if (!_initialized || _audioHandler == null) return RepeatMode.none;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../templates/desktop_layout.dart';
+import '../../templates/page_template.dart';
 import '../../templates/track_list_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
@@ -76,10 +76,10 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return DesktopLayout(
+        return PageTemplate(
           showBackButton: true,
           title: widget.artist.name,
-          selectedIndex: 5, // Artists page index
+          onBackPressed: () => Navigator.of(context).pop(),
           child: Column(
             children: [
               // Fixed header section

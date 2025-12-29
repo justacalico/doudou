@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../templates/desktop_layout.dart';
+import '../../templates/page_template.dart';
 
 import 'artist_details.dart';
 
@@ -145,10 +145,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         : widget.album!.name;
   }
 
-  int get _selectedIndex {
-    return widget.mediaType == MediaType.playlist ? 3 : 4; // Playlists: 3, Albums: 4
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -156,10 +152,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
       builder: (context, appState, child) {
         final theme = Theme.of(context);
         
-        return DesktopLayout(
+        return PageTemplate(
           showBackButton: true,
           title: _title,
-          selectedIndex: _selectedIndex,
+          onBackPressed: () => Navigator.of(context).pop(),
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : LayoutBuilder(

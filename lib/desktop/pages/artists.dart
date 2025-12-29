@@ -310,18 +310,27 @@ class _ArtistsPageState extends State<ArtistsPage> {
   }
 
   Widget _buildArtistsGrid(AppState appState, List<dynamic> artists, AppLocalizations l10n) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6, // 6 artists per row
-        childAspectRatio: 0.8, // Slightly taller for artist info
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: artists.length,
-      itemBuilder: (context, index) {
-        final artist = artists[index];
-        return _buildArtistCard(appState, artist, l10n);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive column count based on available width
+        // Minimum card width of 150px, maximum of 200px
+        final minCardWidth = 150.0;
+        final crossAxisCount = (constraints.maxWidth / minCardWidth).floor().clamp(2, 8);
+        
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 0.75, // Better ratio for artist cards with circular images
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: artists.length,
+          itemBuilder: (context, index) {
+            final artist = artists[index];
+            return _buildArtistCard(appState, artist, l10n);
+          },
+        );
       },
     );
   }
