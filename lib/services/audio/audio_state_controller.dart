@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../models/jellyfin_models.dart';
-import 'base_audio_handler.dart';
+import 'unified_audio_handler.dart';
 
 /// Centralized audio state controller to prevent race conditions
 /// and ensure consistent state management across all platforms

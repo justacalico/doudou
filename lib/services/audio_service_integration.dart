@@ -3,20 +3,18 @@ import 'package:audio_service/audio_service.dart' as audio_service;
 import 'package:just_audio/just_audio.dart';
 import 'audio_service_factory.dart';
 import 'media_service_manager.dart';
-import 'audio/web_audio_handler.dart';
-import 'audio/mobile_audio_handler.dart';
-import 'audio/desktop_audio_handler.dart';
-import 'audio/base_audio_handler.dart';
+import 'audio/unified_audio_handler.dart';
 import '../models/jellyfin_models.dart';
 
-/// Simple wrapper to integrate new audio system with existing AppState
-/// This provides a backwards-compatible interface while using the new architecture
+/// Simple wrapper to integrate the unified audio system with existing AppState
+/// This provides a backwards-compatible interface while using the new unified architecture
 class AudioServiceIntegration {
   static AudioServiceIntegration? _instance;
-  static AudioServiceIntegration get instance => _instance ??= AudioServiceIntegration._();
+  static AudioServiceIntegration get instance =>
+      _instance ??= AudioServiceIntegration._();
   AudioServiceIntegration._();
 
-  dynamic _audioHandler;
+  UnifiedAudioHandler? _audioHandler;
   bool _initialized = false;
 
   /// Initialize the audio service
@@ -37,7 +35,7 @@ class AudioServiceIntegration {
   }
 
   /// Get the current audio handler
-  dynamic get audioHandler {
+  UnifiedAudioHandler? get audioHandler {
     if (!_initialized) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Not initialized, returning null');
@@ -56,20 +54,14 @@ class AudioServiceIntegration {
     return AudioServiceFactory.instance.platformType;
   }
 
-  /// Helper methods for common operations
+  // === Playback Control ===
 
   /// Play a track
   Future<void> playTrack(Track track) async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).playTrack(track);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).playTrack(track);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).playTrack(track);
-      }
+      await _audioHandler!.playTrack(track);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error playing track: $e');
@@ -82,16 +74,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null || tracks.isEmpty) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        // For web, use playPlaylist method
-        await (_audioHandler as WebAudioHandler).playPlaylist(tracks, startIndex);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        // For desktop, use playPlaylist method
-        await (_audioHandler as DesktopAudioHandler).playPlaylist(tracks, startIndex);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        // For mobile, use playPlaylist method
-        await (_audioHandler as DoudouAudioHandler).playPlaylist(tracks, startIndex);
-      }
+      await _audioHandler!.playPlaylist(tracks, startIndex);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error playing playlist: $e');
@@ -104,13 +87,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).play();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).play();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).play();
-      }
+      await _audioHandler!.play();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error playing: $e');
@@ -123,13 +100,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).pause();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).pause();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).pause();
-      }
+      await _audioHandler!.pause();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error pausing: $e');
@@ -142,29 +113,10 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        final handler = _audioHandler as WebAudioHandler;
-        if (handler.currentState == AudioPlayerState.playing) {
-          await handler.pause();
-        } else {
-          await handler.play();
-        }
-      } else if (_audioHandler is DesktopAudioHandler) {
-        final handler = _audioHandler as DesktopAudioHandler;
-        if (handler.currentState == AudioPlayerState.playing) {
-          await handler.pause();
-        } else {
-          await handler.play();
-        }
-      } else if (_audioHandler is DoudouAudioHandler) {
-        // For mobile, determine state from playback state
-        final handler = _audioHandler as DoudouAudioHandler;
-        final state = handler.playbackState.value;
-        if (state.playing) {
-          await handler.pause();
-        } else {
-          await handler.play();
-        }
+      if (_audioHandler!.currentState == AudioPlayerState.playing) {
+        await _audioHandler!.pause();
+      } else {
+        await _audioHandler!.play();
       }
     } catch (e) {
       if (kDebugMode) {
@@ -178,13 +130,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).skipToNext();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).skipToNext();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).skipToNext();
-      }
+      await _audioHandler!.skipToNext();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error skipping to next: $e');
@@ -197,16 +143,23 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).skipToPrevious();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).skipToPrevious();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).skipToPrevious();
-      }
+      await _audioHandler!.skipToPrevious();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error skipping to previous: $e');
+      }
+    }
+  }
+
+  /// Seek to position
+  Future<void> seek(Duration position) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      await _audioHandler!.seek(position);
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error seeking: $e');
       }
     }
   }
@@ -216,13 +169,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).setVolume(volume);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).setVolume(volume);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).setVolume(volume);
-      }
+      await _audioHandler!.setVolume(volume);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error setting volume: $e');
@@ -230,161 +177,132 @@ class AudioServiceIntegration {
     }
   }
 
-  /// Stream getters for backwards compatibility with AppState
-  
+  /// Skip to specific queue item
+  Future<void> skipToQueueItem(int index) async {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      await _audioHandler!.skipToQueueItem(index);
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error skipping to queue item: $e');
+      }
+    }
+  }
+
+  // === Stream Getters ===
+
   Stream<PlayerState>? get playerStateStream {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).playerStateStream;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).playerStateStream;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).playerStateStream;
-    }
-    return null;
+    return _audioHandler!.playerStateStream;
   }
 
   Stream<audio_service.PlaybackState>? get playbackState {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).playbackState;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).playbackState.stream;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).playbackState;
-    }
-    return null;
+    return _audioHandler!.playbackState.stream;
   }
 
   Stream<Duration>? get positionStream {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).positionStream;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).positionStream;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).positionStream;
-    }
-    return null;
+    return _audioHandler!.positionStream;
   }
 
   Stream<Duration?>? get durationStream {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).durationStream;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).durationStream;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).durationStream;
-    }
-    return null;
+    return _audioHandler!.durationStream;
   }
 
   Stream<double>? get volumeStream {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).volumeStream;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).volumeStream;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).volumeStream;
-    }
-    return null;
+    return _audioHandler!.volumeStream;
   }
 
   Stream<audio_service.MediaItem?>? get mediaItem {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).mediaItem;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).mediaItem;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).mediaItem.stream;
-    }
-    return null;
+    return _audioHandler!.mediaItem.stream;
   }
 
   Stream<Track?>? get currentTrackStream {
     if (!_initialized || _audioHandler == null) return null;
-    
-    if (_audioHandler is WebAudioHandler) {
-      return (_audioHandler as WebAudioHandler).currentTrackStream;
-    } else if (_audioHandler is DesktopAudioHandler) {
-      return (_audioHandler as DesktopAudioHandler).currentTrackStream;
-    } else if (_audioHandler is DoudouAudioHandler) {
-      return (_audioHandler as DoudouAudioHandler).currentTrackStream;
-    }
-    return null;
+    return _audioHandler!.currentTrackStream;
   }
 
-  /// Additional methods that AppState expects
+  // === Property Getters ===
 
-  Future<void> setGaplessPlayback(bool enabled) async {
-    if (!_initialized || _audioHandler == null) return;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        // Web doesn't need special gapless handling
-      } else if (_audioHandler is DesktopAudioHandler) {
-        // Desktop can implement if needed
-      } else if (_audioHandler is DoudouAudioHandler) {
-        // Mobile may have gapless options
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error setting gapless playback: $e');
-      }
-    }
+  /// Get user intended playing state
+  bool get userIntendedPlaying {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.currentState == AudioPlayerState.playing;
   }
 
-  Future<void> seek(Duration position) async {
-    if (!_initialized || _audioHandler == null) return;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).seek(position);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).seek(position);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).seek(position);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error seeking: $e');
-      }
-    }
+  /// Get current track
+  Track? get currentTrack {
+    if (!_initialized || _audioHandler == null) return null;
+    return _audioHandler!.currentTrack;
   }
 
+  /// Check if there is a previous track available
+  bool get hasPrevious {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.hasPrevious;
+  }
+
+  /// Check if there is a next track available
+  bool get hasNext {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.hasNext;
+  }
+
+  /// Get current track duration
+  Duration get duration {
+    if (!_initialized || _audioHandler == null) return Duration.zero;
+    return _audioHandler!.duration;
+  }
+
+  /// Check if shuffle is enabled
+  bool get isShuffled {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.shuffleEnabled;
+  }
+
+  /// Get current repeat mode
+  RepeatMode get repeatMode {
+    if (!_initialized || _audioHandler == null) return RepeatMode.none;
+    return _audioHandler!.repeatMode;
+  }
+
+  /// Get current queue index
+  int? get currentIndex {
+    if (!_initialized || _audioHandler == null) return null;
+    return _audioHandler!.currentIndex;
+  }
+
+  /// Get current queue tracks
+  List<Track> get queueTracks {
+    if (!_initialized || _audioHandler == null) return [];
+    return _audioHandler!.queueTracks;
+  }
+
+  /// Get up next tracks
+  List<Track> get upNext {
+    if (!_initialized || _audioHandler == null) return [];
+    return _audioHandler!.upNext;
+  }
+
+  /// Check if radio mode is enabled
+  bool get radioModeEnabled {
+    if (!_initialized || _audioHandler == null) return false;
+    return _audioHandler!.radioModeEnabled;
+  }
+
+  // === Playback Mode Control ===
+
+  /// Set repeat mode
   Future<void> setRepeatMode(RepeatMode mode) async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).setRepeatMode(mode);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).setRepeatMode(mode);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        // Convert RepeatMode to AudioServiceRepeatMode
-        audio_service.AudioServiceRepeatMode audioServiceMode;
-        switch (mode) {
-          case RepeatMode.none:
-            audioServiceMode = audio_service.AudioServiceRepeatMode.none;
-            break;
-          case RepeatMode.one:
-            audioServiceMode = audio_service.AudioServiceRepeatMode.one;
-            break;
-          case RepeatMode.all:
-            audioServiceMode = audio_service.AudioServiceRepeatMode.all;
-            break;
-        }
-        await (_audioHandler as DoudouAudioHandler).setRepeatMode(audioServiceMode);
-      }
+      _audioHandler!.setRepeatModeValue(mode);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error setting repeat mode: $e');
@@ -392,20 +310,15 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Set shuffle mode
   Future<void> setShuffleMode(bool enabled) async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        // Web handler doesn't have shuffle mode method yet - implement if needed
-      } else if (_audioHandler is DesktopAudioHandler) {
-        // Desktop handler doesn't have shuffle mode method yet - implement if needed
-      } else if (_audioHandler is DoudouAudioHandler) {
-        // Convert bool to AudioServiceShuffleMode
-        final shuffleMode = enabled 
-          ? audio_service.AudioServiceShuffleMode.all 
-          : audio_service.AudioServiceShuffleMode.none;
-        await (_audioHandler as DoudouAudioHandler).setShuffleMode(shuffleMode);
+      if (enabled && !_audioHandler!.shuffleEnabled) {
+        _audioHandler!.toggleShuffle();
+      } else if (!enabled && _audioHandler!.shuffleEnabled) {
+        _audioHandler!.toggleShuffle();
       }
     } catch (e) {
       if (kDebugMode) {
@@ -414,228 +327,37 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Shuffle current queue
+  Future<void> shuffle() async {
+    await setShuffleMode(true);
+  }
+
   /// Disable shuffle mode
   Future<void> unshuffle() async {
     await setShuffleMode(false);
   }
 
-  /// Skip to specific queue item
-  Future<void> skipToQueueItem(int index) async {
+  /// Set gapless playback
+  Future<void> setGaplessPlayback(bool enabled) async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).skipToQueueItem(index);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).skipToQueueItem(index);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).skipToQueueItem(index);
-      }
+      _audioHandler!.setGaplessPlayback(enabled);
     } catch (e) {
       if (kDebugMode) {
-        print('AudioServiceIntegration: Error skipping to queue item: $e');
+        print('AudioServiceIntegration: Error setting gapless playback: $e');
       }
     }
   }
 
-  /// Update media library (optional method)
-  Future<void> updateMediaLibrary(List<Track> tracks, List<Album> albums, List<Artist> artists, List<Playlist> playlists) async {
-    if (!_initialized || _audioHandler == null) return;
-
-    try {
-      // Most handlers don't need this method, but we can implement if needed
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Media library updated with ${tracks.length} tracks');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error updating media library: $e');
-      }
-    }
-  }
-
-  /// Get user intended playing state (compatibility method)
-  bool get userIntendedPlaying {
-    if (!_initialized || _audioHandler == null) return false;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).currentState == AudioPlayerState.playing;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).currentState == AudioPlayerState.playing;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).playbackState.value.playing;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting user intended playing: $e');
-      }
-    }
-    return false;
-  }
-
-  /// Get current track
-  Track? get currentTrack {
-    if (!_initialized || _audioHandler == null) return null;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).currentTrack;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).currentTrack;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).currentTrack;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting current track: $e');
-      }
-    }
-    return null;
-  }
-
-  /// Check if there is a previous track available
-  bool get hasPrevious {
-    if (!_initialized || _audioHandler == null) return false;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).hasPrevious;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).hasPrevious;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).hasPrevious;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting hasPrevious: $e');
-      }
-    }
-    return false;
-  }
-
-  /// Check if there is a next track available
-  bool get hasNext {
-    if (!_initialized || _audioHandler == null) return false;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).hasNext;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).hasNext;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).hasNext;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting hasNext: $e');
-      }
-    }
-    return false;
-  }
-
-  /// Get current track duration
-  Duration get duration {
-    if (!_initialized || _audioHandler == null) return Duration.zero;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).duration;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).duration;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).duration;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting duration: $e');
-      }
-    }
-    return Duration.zero;
-  }
-
-  /// Check if shuffle is enabled
-  bool get isShuffled {
-    if (!_initialized || _audioHandler == null) return false;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).shuffleEnabled;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).shuffleEnabled;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).shuffleEnabled;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting shuffle state: $e');
-      }
-    }
-    return false;
-  }
-
-  /// Get current repeat mode
-  RepeatMode get repeatMode {
-    if (!_initialized || _audioHandler == null) return RepeatMode.none;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).repeatMode;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).repeatMode;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        // Convert AudioServiceRepeatMode to RepeatMode
-        final audioServiceMode = (_audioHandler as DoudouAudioHandler).playbackState.value.repeatMode;
-        switch (audioServiceMode) {
-          case audio_service.AudioServiceRepeatMode.none:
-            return RepeatMode.none;
-          case audio_service.AudioServiceRepeatMode.one:
-            return RepeatMode.one;
-          case audio_service.AudioServiceRepeatMode.all:
-          case audio_service.AudioServiceRepeatMode.group:
-            return RepeatMode.all;
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting repeat mode: $e');
-      }
-    }
-    return RepeatMode.none;
-  }
-
-  /// Get current queue index
-  int? get currentIndex {
-    if (!_initialized || _audioHandler == null) return null;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).currentIndex;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).currentIndex;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).currentIndex;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting current index: $e');
-      }
-    }
-    return null;
-  }
+  // === Queue Management ===
 
   /// Add track to queue
   Future<void> addToQueue(Track track) async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).addToQueue(track);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).addToQueue(track);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).addToQueue(track);
-      }
+      _audioHandler!.addToQueue(track);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error adding to queue: $e');
@@ -648,13 +370,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).addNext(track);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).addNext(track);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).addNext(track);
-      }
+      _audioHandler!.addNext(track);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error adding next: $e');
@@ -667,13 +383,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).removeFromQueue(index);
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).removeFromQueue(index);
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).removeFromQueue(index);
-      }
+      _audioHandler!.removeFromQueue(index);
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error removing from queue: $e');
@@ -686,13 +396,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).clearQueue();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).clearQueue();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).clearQueue();
-      }
+      _audioHandler!.clearQueue();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error clearing queue: $e');
@@ -700,78 +404,14 @@ class AudioServiceIntegration {
     }
   }
 
-  /// Get current queue tracks
-  List<Track> get queueTracks {
-    if (!_initialized || _audioHandler == null) return [];
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).queueTracks;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).queueTracks;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).queueTracks;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting queue tracks: $e');
-      }
-    }
-    return [];
-  }
-
-  /// Get up next tracks
-  List<Track> get upNext {
-    if (!_initialized || _audioHandler == null) return [];
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).upNext;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).upNext;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).upNext;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting up next: $e');
-      }
-    }
-    return [];
-  }
-
-  /// Check if radio mode is enabled
-  bool get radioModeEnabled {
-    if (!_initialized || _audioHandler == null) return false;
-
-    try {
-      if (_audioHandler is WebAudioHandler) {
-        return (_audioHandler as WebAudioHandler).radioModeEnabled;
-      } else if (_audioHandler is DesktopAudioHandler) {
-        return (_audioHandler as DesktopAudioHandler).radioModeEnabled;
-      } else if (_audioHandler is DoudouAudioHandler) {
-        return (_audioHandler as DoudouAudioHandler).radioModeEnabled;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error getting radio mode: $e');
-      }
-    }
-    return false;
-  }
+  // === Radio Mode ===
 
   /// Toggle radio mode
   Future<void> toggleRadioMode() async {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).toggleRadioMode();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).toggleRadioMode();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).toggleRadioMode();
-      }
+      _audioHandler!.toggleRadioMode();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error toggling radio mode: $e');
@@ -784,13 +424,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).enableRadioMode();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).enableRadioMode();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).enableRadioMode();
-      }
+      _audioHandler!.enableRadioMode();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error enabling radio mode: $e');
@@ -803,13 +437,7 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (_audioHandler is WebAudioHandler) {
-        (_audioHandler as WebAudioHandler).disableRadioMode();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        (_audioHandler as DesktopAudioHandler).disableRadioMode();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        (_audioHandler as DoudouAudioHandler).disableRadioMode();
-      }
+      _audioHandler!.disableRadioMode();
     } catch (e) {
       if (kDebugMode) {
         print('AudioServiceIntegration: Error disabling radio mode: $e');
@@ -817,21 +445,22 @@ class AudioServiceIntegration {
     }
   }
 
-  /// Shuffle current queue (basic implementation)
-  Future<void> shuffle() async {
+  // === Utility Methods ===
+
+  /// Update media library (optional method for compatibility)
+  Future<void> updateMediaLibrary(
+    List<Track> tracks,
+    List<Album> albums,
+    List<Artist> artists,
+    List<Playlist> playlists,
+  ) async {
     if (!_initialized || _audioHandler == null) return;
 
-    try {
-      // Enable shuffle mode instead of calling a shuffle method
-      await setShuffleMode(true);
-      
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Enabled shuffle mode');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error enabling shuffle: $e');
-      }
+    // The unified handler doesn't need explicit media library updates
+    if (kDebugMode) {
+      print(
+        'AudioServiceIntegration: Media library updated with ${tracks.length} tracks',
+      );
     }
   }
 

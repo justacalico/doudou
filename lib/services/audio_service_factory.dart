@@ -1,57 +1,59 @@
 import 'package:flutter/foundation.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import 'media_service_manager.dart';
-import 'audio/mobile_audio_handler.dart';
-import 'audio/desktop_audio_handler.dart';
-import 'audio/web_audio_handler.dart';
+import 'audio/unified_audio_handler.dart';
 
-/// Simple audio service factory that creates the appropriate audio handler
-/// based on the current platform
+/// Simple audio service factory that creates the unified audio handler
+/// for all platforms (mobile, desktop, and web)
 class AudioServiceFactory {
   static AudioServiceFactory? _instance;
-  static AudioServiceFactory get instance => _instance ??= AudioServiceFactory._();
+  static AudioServiceFactory get instance =>
+      _instance ??= AudioServiceFactory._();
   AudioServiceFactory._();
 
-  dynamic _audioHandler;
+  UnifiedAudioHandler? _audioHandler;
   bool _initialized = false;
 
   /// Get the current audio handler
-  dynamic get audioHandler {
-    if (!_initialized) {
-      throw StateError('AudioServiceFactory not initialized. Call initialize() first.');
+  UnifiedAudioHandler get audioHandler {
+    if (!_initialized || _audioHandler == null) {
+      throw StateError(
+        'AudioServiceFactory not initialized. Call initialize() first.',
+      );
     }
-    return _audioHandler;
+    return _audioHandler!;
   }
 
-  /// Initialize the appropriate audio handler for the current platform
+  /// Initialize the unified audio handler for all platforms
   Future<void> initialize(MediaServiceManager mediaServiceManager) async {
     if (_initialized) return;
 
     try {
       if (kDebugMode) {
-        print('AudioServiceFactory: Initializing for platform ${defaultTargetPlatform.name}...');
+        print(
+          'AudioServiceFactory: Initializing for platform ${defaultTargetPlatform.name}...',
+        );
       }
 
       if (kIsWeb) {
-        // Web platform - use WebAudioHandler directly
-        _audioHandler = WebAudioHandler(mediaServiceManager);
+        // Web platform - create handler directly (no AudioService)
+        _audioHandler = UnifiedAudioHandler(mediaServiceManager);
         if (kDebugMode) {
-          print('AudioServiceFactory: Created WebAudioHandler');
+          print('AudioServiceFactory: Created UnifiedAudioHandler for web');
         }
-      } else if (defaultTargetPlatform == TargetPlatform.android || 
-                 defaultTargetPlatform == TargetPlatform.iOS) {
-        // Mobile platforms - use AudioService with DoudouAudioHandler
+      } else if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        // Mobile platforms - use AudioService with UnifiedAudioHandler
         _audioHandler = await audio_service.AudioService.init(
-          builder: () => DoudouAudioHandler(
-            mediaServiceManager: mediaServiceManager,
-          ),
+          builder: () => UnifiedAudioHandler(mediaServiceManager),
           config: audio_service.AudioServiceConfig(
             androidNotificationChannelId: 'com.doudoubox.audio',
             androidNotificationChannelName: 'Doudou Audio',
             androidNotificationChannelDescription: 'Playing audio',
             androidShowNotificationBadge: true,
             androidNotificationClickStartsActivity: true,
-            androidStopForegroundOnPause: false, // CRITICAL - don't stop foreground on pause
+            androidStopForegroundOnPause:
+                false, // CRITICAL - don't stop foreground on pause
             androidNotificationIcon: 'mipmap/launcher_icon', // Use app icon
             preloadArtwork: true,
             fastForwardInterval: const Duration(seconds: 10),
@@ -59,18 +61,20 @@ class AudioServiceFactory {
           ),
         );
         if (kDebugMode) {
-          print('AudioServiceFactory: Created DoudouAudioHandler with AudioService');
+          print(
+            'AudioServiceFactory: Created UnifiedAudioHandler with AudioService for mobile',
+          );
         }
       } else {
-        // Desktop platforms - use DesktopAudioHandler directly
-        _audioHandler = DesktopAudioHandler(mediaServiceManager);
+        // Desktop platforms - create handler directly (no AudioService)
+        _audioHandler = UnifiedAudioHandler(mediaServiceManager);
         if (kDebugMode) {
-          print('AudioServiceFactory: Created DesktopAudioHandler');
+          print('AudioServiceFactory: Created UnifiedAudioHandler for desktop');
         }
       }
 
       _initialized = true;
-      
+
       if (kDebugMode) {
         print('AudioServiceFactory: Initialized successfully');
       }
@@ -99,13 +103,7 @@ class AudioServiceFactory {
   /// Dispose resources
   Future<void> dispose() async {
     if (_audioHandler != null) {
-      if (_audioHandler is WebAudioHandler) {
-        await (_audioHandler as WebAudioHandler).dispose();
-      } else if (_audioHandler is DesktopAudioHandler) {
-        await (_audioHandler as DesktopAudioHandler).dispose();
-      } else if (_audioHandler is DoudouAudioHandler) {
-        await (_audioHandler as DoudouAudioHandler).dispose();
-      }
+      await _audioHandler!.dispose();
     }
     _audioHandler = null;
     _initialized = false;

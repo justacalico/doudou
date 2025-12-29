@@ -20,7 +20,7 @@ import '../pages/tracks.dart';
 import '../pages/settings.dart';
 import '../../services/desktop_lyrics_service.dart';
 import '../../models/jellyfin_models.dart';
-import '../../services/audio/base_audio_handler.dart' as base_handler;
+import '../../services/audio/unified_audio_handler.dart' as base_handler;
 import '../../widgets/apple_design/apple_theme.dart';
 import 'desktop_theme.dart';
 

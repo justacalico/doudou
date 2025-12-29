@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
-import 'base_audio_handler.dart';
+import 'unified_audio_handler.dart';
 import 'audio_state_controller.dart';
 
 /// Robust queue management system with shuffle, repeat modes, and queue manipulation
