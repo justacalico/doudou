@@ -638,7 +638,6 @@ class _PlayerBarContent extends StatelessWidget {
           return FadeTransition(
             opacity: animation,
             child: _NowPlayingOverlay(
-              mediaItem: mediaItem,
               appState: appState,
               audioHandler: audioHandler,
             ),
@@ -1035,12 +1034,10 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
 
 /// Now Playing overlay
 class _NowPlayingOverlay extends StatefulWidget {
-  final MediaItem? mediaItem;
   final AppState appState;
   final dynamic audioHandler;
 
   const _NowPlayingOverlay({
-    required this.mediaItem,
     required this.appState,
     required this.audioHandler,
   });
@@ -1059,7 +1056,7 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      setState(() => _selectedTab = _tabController.index);
+      if (mounted) setState(() => _selectedTab = _tabController.index);
     });
   }
 
@@ -1073,166 +1070,173 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // Background with album art blur
-          if (widget.mediaItem?.artUri != null)
-            Positioned.fill(
-              child: Image.network(
-                widget.mediaItem!.artUri.toString(),
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>
-                    Container(color: DesktopTheme.backgroundDeep),
+    return StreamBuilder<MediaItem?>(
+      stream: widget.audioHandler?.mediaItem,
+      builder: (context, snapshot) {
+        final mediaItem = snapshot.data;
+        
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              // Background with album art blur
+              if (mediaItem?.artUri != null)
+                Positioned.fill(
+                  child: Image.network(
+                    mediaItem!.artUri.toString(),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) =>
+                        Container(color: DesktopTheme.backgroundDeep),
+                  ),
+                ),
+              // Dark overlay
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        DesktopTheme.backgroundDeep.withOpacity(0.5),
+                        DesktopTheme.backgroundDeep.withOpacity(0.85),
+                        DesktopTheme.backgroundDeep.withOpacity(0.95),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-          // Dark overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    DesktopTheme.backgroundDeep.withOpacity(0.5),
-                    DesktopTheme.backgroundDeep.withOpacity(0.85),
-                    DesktopTheme.backgroundDeep.withOpacity(0.95),
+              // Content
+              SafeArea(
+                child: Column(
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+                      child: Row(
+                        children: [
+                          DesktopIconButton(
+                            icon: Icons.keyboard_arrow_down_rounded,
+                            size: 28,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Spacer(),
+                          DesktopIconButton(
+                            icon: Icons.more_horiz_rounded,
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Main content row
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Left: Album art and controls
+                          Expanded(
+                            flex: 3,
+                            child: _NowPlayingMain(
+                              mediaItem: mediaItem,
+                              appState: widget.appState,
+                              audioHandler: widget.audioHandler,
+                            ),
+                          ),
+                          // Right: Queue/Lyrics panel
+                          Expanded(
+                            flex: 2,
+                            child: Container(
+                              margin: const EdgeInsets.only(
+                                right: DesktopTheme.spacingLg,
+                                bottom: DesktopTheme.spacingLg,
+                              ),
+                              decoration: BoxDecoration(
+                                color: DesktopTheme.backgroundDeep.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(
+                                  DesktopTheme.radiusMd,
+                                ),
+                                border: Border.all(color: DesktopTheme.glassBorder),
+                              ),
+                              child: Column(
+                                children: [
+                                  // Tabs
+                                  Padding(
+                                    padding: const EdgeInsets.all(
+                                      DesktopTheme.spacingMd,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        _TabButton(
+                                          label: l10n.upNext,
+                                          isSelected: _selectedTab == 0,
+                                          onTap: () => _tabController.animateTo(0),
+                                        ),
+                                        const SizedBox(
+                                          width: DesktopTheme.spacingMd,
+                                        ),
+                                        _TabButton(
+                                          label: l10n.lyrics,
+                                          isSelected: _selectedTab == 1,
+                                          onTap: () => _tabController.animateTo(1),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Playing from
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: DesktopTheme.spacingMd,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          '${l10n.playingFrom} ',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: DesktopTheme.textTertiary,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            mediaItem?.album ??
+                                                l10n.unknownAlbum,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: DesktopTheme.textPrimary,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: DesktopTheme.spacingSm),
+                                  // Tab content
+                                  Expanded(
+                                    child: TabBarView(
+                                      controller: _tabController,
+                                      children: [
+                                        _QueueList(
+                                          appState: widget.appState,
+                                          audioHandler: widget.audioHandler,
+                                        ),
+                                        _LyricsView(mediaItem: mediaItem),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-          // Content
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(DesktopTheme.spacingMd),
-                  child: Row(
-                    children: [
-                      DesktopIconButton(
-                        icon: Icons.keyboard_arrow_down_rounded,
-                        size: 28,
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Spacer(),
-                      DesktopIconButton(
-                        icon: Icons.more_horiz_rounded,
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-                // Main content row
-                Expanded(
-                  child: Row(
-                    children: [
-                      // Left: Album art and controls
-                      Expanded(
-                        flex: 3,
-                        child: _NowPlayingMain(
-                          mediaItem: widget.mediaItem,
-                          appState: widget.appState,
-                          audioHandler: widget.audioHandler,
-                        ),
-                      ),
-                      // Right: Queue/Lyrics panel
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          margin: const EdgeInsets.only(
-                            right: DesktopTheme.spacingLg,
-                            bottom: DesktopTheme.spacingLg,
-                          ),
-                          decoration: BoxDecoration(
-                            color: DesktopTheme.backgroundDeep.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(
-                              DesktopTheme.radiusMd,
-                            ),
-                            border: Border.all(color: DesktopTheme.glassBorder),
-                          ),
-                          child: Column(
-                            children: [
-                              // Tabs
-                              Padding(
-                                padding: const EdgeInsets.all(
-                                  DesktopTheme.spacingMd,
-                                ),
-                                child: Row(
-                                  children: [
-                                    _TabButton(
-                                      label: l10n.upNext,
-                                      isSelected: _selectedTab == 0,
-                                      onTap: () => _tabController.animateTo(0),
-                                    ),
-                                    const SizedBox(
-                                      width: DesktopTheme.spacingMd,
-                                    ),
-                                    _TabButton(
-                                      label: l10n.lyrics,
-                                      isSelected: _selectedTab == 1,
-                                      onTap: () => _tabController.animateTo(1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Playing from
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: DesktopTheme.spacingMd,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      '${l10n.playingFrom} ',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: DesktopTheme.textTertiary,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        widget.mediaItem?.album ??
-                                            l10n.unknownAlbum,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: DesktopTheme.textPrimary,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: DesktopTheme.spacingSm),
-                              // Tab content
-                              Expanded(
-                                child: TabBarView(
-                                  controller: _tabController,
-                                  children: [
-                                    _QueueList(
-                                      appState: widget.appState,
-                                      audioHandler: widget.audioHandler,
-                                    ),
-                                    _LyricsView(mediaItem: widget.mediaItem),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
