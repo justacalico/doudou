@@ -214,94 +214,160 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Results count
-            Text(
-              l10n.countPlaylists(filteredCount),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 600;
             
-            const SizedBox(width: 24),
+            if (isNarrow) {
+              // Compact layout for narrow screens
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // First row: count and play buttons
+                  Row(
+                    children: [
+                      Text(
+                        l10n.countPlaylists(filteredCount),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: filteredCount > 0 ? () {} : null,
+                        icon: const Icon(Icons.play_arrow),
+                        tooltip: l10n.playAll,
+                      ),
+                      IconButton(
+                        onPressed: filteredCount > 0 ? () {} : null,
+                        icon: const Icon(Icons.shuffle),
+                        tooltip: l10n.shuffleAll,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Second row: filter and sort
+                  Row(
+                    children: [
+                      Text(l10n.filter, style: theme.textTheme.bodySmall),
+                      const SizedBox(width: 4),
+                      DropdownButton<String>(
+                        value: _filterBy,
+                        isDense: true,
+                        onChanged: (value) {
+                          if (value != null) setState(() => _filterBy = value);
+                        },
+                        items: [
+                          DropdownMenuItem(value: 'all', child: Text(l10n.allPlaylists)),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      Text('${l10n.sortBy}:', style: theme.textTheme.bodySmall),
+                      const SizedBox(width: 4),
+                      DropdownButton<String>(
+                        value: _sortBy,
+                        isDense: true,
+                        onChanged: (value) {
+                          if (value != null) setState(() => _sortBy = value);
+                        },
+                        items: [
+                          DropdownMenuItem(value: 'name', child: Text(l10n.name)),
+                          DropdownMenuItem(value: 'trackCount', child: Text(l10n.trackCount)),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () => setState(() => _isAscending = !_isAscending),
+                        icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 18),
+                        tooltip: _isAscending ? l10n.ascending : l10n.descending,
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }
             
-            // Filter dropdown
-            Text(l10n.filter, style: theme.textTheme.bodyMedium),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
-              value: _filterBy,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _filterBy = value;
-                  });
-                }
-              },
-              items: [
-                DropdownMenuItem(value: 'all', child: Text(l10n.allPlaylists)),
-                // Remove favorites and created filters since they're not supported yet
-                // DropdownMenuItem(value: 'favorites', child: Text('Favorites')),
-                // DropdownMenuItem(value: 'created', child: Text('Created by Me')),
+            // Normal layout for wider screens
+            return Row(
+              children: [
+                // Results count
+                Text(
+                  l10n.countPlaylists(filteredCount),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                
+                const SizedBox(width: 24),
+                
+                // Filter dropdown
+                Text(l10n.filter, style: theme.textTheme.bodyMedium),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: _filterBy,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _filterBy = value;
+                      });
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(value: 'all', child: Text(l10n.allPlaylists)),
+                  ],
+                ),
+                
+                const SizedBox(width: 24),
+                
+                // Sort dropdown
+                Text('${l10n.sortBy}:', style: theme.textTheme.bodyMedium),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: _sortBy,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _sortBy = value;
+                      });
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(value: 'name', child: Text(l10n.name)),
+                    DropdownMenuItem(value: 'trackCount', child: Text(l10n.trackCount)),
+                  ],
+                ),
+                
+                const SizedBox(width: 8),
+                
+                // Sort direction toggle
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isAscending = !_isAscending;
+                    });
+                  },
+                  icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
+                  tooltip: _isAscending ? l10n.ascending : l10n.descending,
+                ),
+                
+                const Spacer(),
+                
+                // Quick action buttons
+                TextButton.icon(
+                  onPressed: filteredCount > 0 ? () {} : null,
+                  icon: const Icon(Icons.play_arrow),
+                  label: Text(l10n.playAll),
+                ),
+                
+                const SizedBox(width: 8),
+                
+                TextButton.icon(
+                  onPressed: filteredCount > 0 ? () {} : null,
+                  icon: const Icon(Icons.shuffle),
+                  label: Text(l10n.shuffleAll),
+                ),
               ],
-            ),
-            
-            const SizedBox(width: 24),
-            
-            // Sort dropdown
-            Text('${l10n.sortBy}:', style: theme.textTheme.bodyMedium),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
-              value: _sortBy,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _sortBy = value;
-                  });
-                }
-              },
-              items: [
-                DropdownMenuItem(value: 'name', child: Text(l10n.name)),
-                DropdownMenuItem(value: 'trackCount', child: Text(l10n.trackCount)),
-                // Remove dateCreated since Playlist model doesn't have this field
-                // DropdownMenuItem(value: 'dateCreated', child: Text('Date Created')),
-              ],
-            ),
-            
-            const SizedBox(width: 8),
-            
-            // Sort direction toggle
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _isAscending = !_isAscending;
-                });
-              },
-              icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-              tooltip: _isAscending ? l10n.ascending : l10n.descending,
-            ),
-            
-            const Spacer(),
-            
-            // Quick action buttons
-            TextButton.icon(
-              onPressed: filteredCount > 0 ? () {
-                // Play all playlists
-              } : null,
-              icon: const Icon(Icons.play_arrow),
-              label: Text(l10n.playAll),
-            ),
-            
-            const SizedBox(width: 8),
-            
-            TextButton.icon(
-              onPressed: filteredCount > 0 ? () {
-                // Shuffle all playlists
-              } : null,
-              icon: const Icon(Icons.shuffle),
-              label: Text(l10n.shuffleAll),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
