@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
-import 'details/media_details.dart';
-import 'details/artist_details.dart';
+import '../services/navigation_service.dart';
 
 // Helper class for filter data
 class _FilterData {
@@ -708,10 +707,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ArtistDetailsPage(artist: artist)),
-          );
+          NavigationService().navigateToArtist(artist);
         },
         child: SizedBox(
           width: 120,
@@ -1392,22 +1388,13 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
         _handlePlayTrack(appState, item);
         break;
       case 'album':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MediaDetailsPage.album(album: item)),
-        );
+        NavigationService().navigateToAlbum(item);
         break;
       case 'artist':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ArtistDetailsPage(artist: item)),
-        );
+        NavigationService().navigateToArtist(item);
         break;
       case 'playlist':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MediaDetailsPage.playlist(playlist: item)),
-        );
+        NavigationService().navigateToPlaylist(item);
         break;
     }
   }
