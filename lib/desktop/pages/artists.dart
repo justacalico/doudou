@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import 'details/artist_details.dart';
+import '../services/navigation_service.dart';
 
 class ArtistsPage extends StatefulWidget {
   const ArtistsPage({super.key});
@@ -350,17 +350,13 @@ class _ArtistsPageState extends State<ArtistsPage> {
     final theme = Theme.of(context);
     final albumCount = _getArtistAlbumCount(appState, artist.name);
     final trackCount = _getArtistTrackCount(appState, artist.name);
+    final navigationService = NavigationService();
     
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ArtistDetailsPage(artist: artist),
-            ),
-          );
+          navigationService.navigateToArtist(artist);
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
