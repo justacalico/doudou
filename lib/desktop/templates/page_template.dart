@@ -51,15 +51,13 @@ class PageTemplate extends StatelessWidget {
               ],
             ),
           ) : null,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (showBackButton) ...[
-                _ModernBackButton(onPressed: onBackPressed),
-                const SizedBox(width: DesktopTheme.spacingMd),
-              ],
-              Expanded(
-                child: Column(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 500;
+              
+              if (isNarrow && actions != null && actions!.isNotEmpty) {
+                // Stack layout for narrow screens
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -81,17 +79,74 @@ class PageTemplate extends StatelessWidget {
                         ),
                       ),
                     ],
+                    const SizedBox(height: DesktopTheme.spacingMd),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: actions!.map((action) => Padding(
+                          padding: const EdgeInsets.only(right: DesktopTheme.spacingSm),
+                          child: action,
+                        )).toList(),
+                      ),
+                    ),
                   ],
-                ),
-              ),
-              if (actions != null) ...[
-                const SizedBox(width: DesktopTheme.spacingMd),
-                ...actions!.map((action) => Padding(
-                  padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),
-                  child: action,
-                )),
-              ],
-            ],
+                );
+              }
+              
+              // Normal row layout
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (showBackButton) ...[
+                    _ModernBackButton(onPressed: onBackPressed),
+                    const SizedBox(width: DesktopTheme.spacingMd),
+                  ],
+                  // Title with minimum width to prevent wrapping
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: DesktopTheme.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: DesktopTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(width: DesktopTheme.spacingMd),
+                  if (actions != null) ...[
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: actions!.map((action) => Padding(
+                            padding: const EdgeInsets.only(left: DesktopTheme.spacingSm),
+                            child: action,
+                          )).toList(),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const Spacer(),
+                  ],
+                ],
+              );
+            },
           ),
         ),
         
