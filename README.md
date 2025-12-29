@@ -24,7 +24,6 @@ Stream your music collection from your own media server with a beautiful, modern
 - **🟢 Jellyfin** - Full support (recommended)
 - **🟢 Plex** - Working with limitations*
 - **🟢 Subsonic** - Full SubSonic API compatibility
-- **🟢 Swing Music** - Full support for Swing Music servers* (Disabled unless needed)
 - **🟢 Local Files** - Play music directly from your device
 
 *Plex support is functional, but some API calls are not implemented or are bugged.
