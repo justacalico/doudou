@@ -5,8 +5,7 @@ import '../templates/page_template.dart';
 import '../templates/music_cards.dart';
 import '../templates/desktop_theme.dart';
 import '../../providers/app_state.dart';
-import 'details/media_details.dart';
-import 'details/artist_details.dart';
+import '../services/navigation_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -240,12 +239,7 @@ class _HomePageState extends State<HomePage> {
               imageUrl: _getImageUrl(appState, album.imageUrl),
               size: 180,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MediaDetailsPage.album(album: album),
-                  ),
-                );
+                NavigationService().navigateToAlbum(album);
               },
             ),
           );
@@ -277,12 +271,7 @@ class _HomePageState extends State<HomePage> {
               imageUrl: _getImageUrl(appState, artist.imageUrl),
               size: 180,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ArtistDetailsPage(artist: artist),
-                  ),
-                );
+                NavigationService().navigateToArtist(artist);
               },
             ),
           );
