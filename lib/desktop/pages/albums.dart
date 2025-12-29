@@ -501,7 +501,6 @@ class _AlbumsPageState extends State<AlbumsPage> {
           children: [
             // Album artwork
             Expanded(
-              flex: 3,
               child: Stack(
                 children: [
                   Container(
