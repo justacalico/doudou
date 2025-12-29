@@ -1153,6 +1153,34 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
     );
   }
 
+  /// Builds an artwork widget that expands to fill available space (used inside AspectRatio)
+  Widget _buildResultArtworkExpanded(AppState appState, dynamic item, String type, bool isDark) {
+    final isCircle = type == 'artist';
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppleColors.fillSecondaryDark : AppleColors.fillSecondary,
+        borderRadius: isCircle ? null : BorderRadius.circular(AppleDesignSystem.radiusMedium),
+        shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+        boxShadow: AppleDesignSystem.shadowSmall(Colors.black),
+      ),
+      child: ClipRRect(
+        borderRadius: isCircle 
+            ? BorderRadius.circular(1000) 
+            : BorderRadius.circular(AppleDesignSystem.radiusMedium),
+        child: item.imageUrl != null
+            ? Image.network(
+                _getImageUrl(appState, item.imageUrl)!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (_, _, _) => _buildPlaceholderIcon(type, isDark),
+              )
+            : _buildPlaceholderIcon(type, isDark),
+      ),
+    );
+  }
+
   Widget _buildPlaceholderIcon(String type, bool isDark) {
     IconData icon;
     switch (type) {
