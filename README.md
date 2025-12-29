@@ -12,7 +12,6 @@ Stream your music collection from your own media server with a beautiful, modern
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-00A4DC?logo=jellyfin)
 ![Plex](https://img.shields.io/badge/Plex-E5A00D?logo=plex)
 ![Subsonic](https://img.shields.io/badge/Subsonic-663399)
-![Swing Music](https://img.shields.io/badge/Swing%20Music-00BCD4)
 ![Local](https://img.shields.io/badge/Local%20Files-4CAF50)
 
 </div>
@@ -126,30 +125,6 @@ A: Yes! Desktop platforms get an enhanced interface optimized for larger screens
 **Q: Which server works best?**  
 A: Jellyfin offers the best experience with full feature support and it's completely free.
 
-## 📱 App Permissions
-
-**Android**
-- Internet & network access (connect to your server)
-- Background audio & wake lock (music continues playing)
-- Foreground service (media controls in notification)
-
-**iPhone & iPad**
-- Network access (connect to your server)  
-- Background audio (music continues playing)
-- Media controls (lock screen & control center)
-
-## 🤝 Help Make Doudou Better
-
-Love using Doudou? Here's how you can help:
-
-- 🐛 **Report bugs** or suggest features
-- 🌍 **Translate** the app to your language
-- ⭐ **Star the project** on GitLab
-- 💬 **Share** with other self-hosted music fans
-- 💻 **Contribute code** if you're a developer
-
-[Report Issues](https://gitlab.com/Openlyst/doudou/issues) • [Join Discussions](https://gitlab.com/Openlyst/doudou/-/discussions)
-
 ## � Need Help?
 
 - 🐛 [Report a Bug](https://gitlab.com/Openlyst/doudou/issues)
@@ -159,22 +134,6 @@ Love using Doudou? Here's how you can help:
 
 ---
 
-## �️ For Developers
-
-**Building from source:**
-```bash
-git clone https://gitlab.com/Openlyst/doudou.git
-cd doudou
-flutter pub get
-flutter gen-l10n
-flutter run
-```
-
-**Requirements:** Flutter 3.8.0+, Dart 3.0.0+
-
-**Build targets:** `make android`, `make ios`, `make macos`, `make linux`, `make windows`
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## 🙏 Credits
 
@@ -182,22 +141,6 @@ Built with love using these incredible open-source projects:
 
 - [Jellyfin](https://jellyfin.org/), [Plex](https://plex.tv/), [Subsonic](http://www.subsonic.org/) - Media servers
 - [Flutter](https://flutter.dev/) - Cross-platform framework  
-- [just_audio](https://pub.dev/packages/just_audio) - Audio engine
-- [audio_service](https://pub.dev/packages/audio_service) - Background audio
-
-Special thanks to the self-hosted and Flutter communities! 🎵
-
-## 📄 License
-
-**GPL-3.0** - Free and open source forever.
-
-✅ Use, modify, and share freely  
-✅ Source code stays open  
-❌ No warranty provided  
-
-See [LICENSE](LICENSE) for full details.
-
----
 
 <div align="center">
 
