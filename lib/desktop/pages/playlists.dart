@@ -286,86 +286,87 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               );
             }
             
-            // Normal layout for wider screens
-            return Row(
-              children: [
-                // Results count
-                Text(
-                  l10n.countPlaylists(filteredCount),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+            // Normal layout for wider screens - use Flexible to prevent overflow
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // Results count
+                  Text(
+                    l10n.countPlaylists(filteredCount),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Filter dropdown
-                Text(l10n.filter, style: theme.textTheme.bodyMedium),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: _filterBy,
-                  onChanged: (value) {
-                    if (value != null) {
+                  
+                  const SizedBox(width: 24),
+                  
+                  // Filter dropdown
+                  Text(l10n.filter, style: theme.textTheme.bodyMedium),
+                  const SizedBox(width: 8),
+                  DropdownButton<String>(
+                    value: _filterBy,
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _filterBy = value;
+                        });
+                      }
+                    },
+                    items: [
+                      DropdownMenuItem(value: 'all', child: Text(l10n.allPlaylists)),
+                    ],
+                  ),
+                  
+                  const SizedBox(width: 24),
+                  
+                  // Sort dropdown
+                  Text('${l10n.sortBy}:', style: theme.textTheme.bodyMedium),
+                  const SizedBox(width: 8),
+                  DropdownButton<String>(
+                    value: _sortBy,
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _sortBy = value;
+                        });
+                      }
+                    },
+                    items: [
+                      DropdownMenuItem(value: 'name', child: Text(l10n.name)),
+                      DropdownMenuItem(value: 'trackCount', child: Text(l10n.trackCount)),
+                    ],
+                  ),
+                  
+                  const SizedBox(width: 8),
+                  
+                  // Sort direction toggle
+                  IconButton(
+                    onPressed: () {
                       setState(() {
-                        _filterBy = value;
+                        _isAscending = !_isAscending;
                       });
-                    }
-                  },
-                  items: [
-                    DropdownMenuItem(value: 'all', child: Text(l10n.allPlaylists)),
-                  ],
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Sort dropdown
-                Text('${l10n.sortBy}:', style: theme.textTheme.bodyMedium),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: _sortBy,
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _sortBy = value;
-                      });
-                    }
-                  },
-                  items: [
-                    DropdownMenuItem(value: 'name', child: Text(l10n.name)),
-                    DropdownMenuItem(value: 'trackCount', child: Text(l10n.trackCount)),
-                  ],
-                ),
-                
-                const SizedBox(width: 8),
-                
-                // Sort direction toggle
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _isAscending = !_isAscending;
-                    });
-                  },
-                  icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-                  tooltip: _isAscending ? l10n.ascending : l10n.descending,
-                ),
-                
-                const Spacer(),
-                
-                // Quick action buttons
-                TextButton.icon(
-                  onPressed: filteredCount > 0 ? () {} : null,
-                  icon: const Icon(Icons.play_arrow),
-                  label: Text(l10n.playAll),
-                ),
-                
-                const SizedBox(width: 8),
-                
-                TextButton.icon(
-                  onPressed: filteredCount > 0 ? () {} : null,
-                  icon: const Icon(Icons.shuffle),
-                  label: Text(l10n.shuffleAll),
-                ),
-              ],
+                    },
+                    icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
+                    tooltip: _isAscending ? l10n.ascending : l10n.descending,
+                  ),
+                  
+                  const SizedBox(width: 24),
+                  
+                  // Quick action buttons - icons only to save space
+                  IconButton(
+                    onPressed: filteredCount > 0 ? () {} : null,
+                    icon: const Icon(Icons.play_arrow),
+                    tooltip: l10n.playAll,
+                  ),
+                  
+                  IconButton(
+                    onPressed: filteredCount > 0 ? () {} : null,
+                    icon: const Icon(Icons.shuffle),
+                    tooltip: l10n.shuffleAll,
+                  ),
+                ],
+              ),
             );
           },
         ),
