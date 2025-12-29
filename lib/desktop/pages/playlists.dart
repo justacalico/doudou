@@ -374,17 +374,13 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
 
   Widget _buildPlaylistCard(AppState appState, dynamic playlist, AppLocalizations l10n) {
     final theme = Theme.of(context);
+    final navigationService = NavigationService();
     
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MediaDetailsPage.playlist(playlist: playlist),
-            ),
-          );
+          navigationService.navigateToPlaylist(playlist);
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
