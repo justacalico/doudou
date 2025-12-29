@@ -4,7 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
-import 'details/media_details.dart';
+import '../services/navigation_service.dart';
 
 class AlbumsPage extends StatefulWidget {
   const AlbumsPage({super.key});
@@ -488,17 +488,13 @@ class _AlbumsPageState extends State<AlbumsPage> {
 
   Widget _buildAlbumCard(AppState appState, dynamic album, AppLocalizations l10n) {
     final theme = Theme.of(context);
+    final navigationService = NavigationService();
     
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MediaDetailsPage.album(album: album),
-            ),
-          );
+          navigationService.navigateToAlbum(album);
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
