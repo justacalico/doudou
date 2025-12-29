@@ -768,7 +768,7 @@ class _TrackInfo extends StatelessWidget {
               ? Image.network(
                   mediaItem!.artUri.toString(),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                  errorBuilder: (_, _, _) => _buildPlaceholder(),
                 )
               : _buildPlaceholder(),
         ),
@@ -1083,7 +1083,7 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
               child: Image.network(
                 widget.mediaItem!.artUri.toString(),
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: DesktopTheme.backgroundDeep),
               ),
             ),
@@ -1689,7 +1689,7 @@ class _QueueItemState extends State<_QueueItem> {
                     ? Image.network(
                         widget.track.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
@@ -1940,7 +1940,7 @@ class _PlaylistItemState extends State<_PlaylistItem> {
                     ? Image.network(
                         widget.playlist.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.queue_music_rounded,
                           size: 24,
                           color: DesktopTheme.textTertiary,
@@ -2370,7 +2370,7 @@ class _DetailHeader extends StatelessWidget {
                     ? Image.network(
                         imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                        errorBuilder: (_, _, _) => _buildPlaceholder(),
                       )
                     : _buildPlaceholder(),
               ),
@@ -2649,7 +2649,7 @@ class _TrackRowState extends State<_TrackRow> {
                     ? Image.network(
                         imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
@@ -2861,7 +2861,7 @@ class _AlbumCardState extends State<_AlbumCard> {
                           ? Image.network(
                               widget.imageUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Center(
+                              errorBuilder: (_, _, _) => const Center(
                                 child: Icon(
                                   Icons.album_rounded,
                                   size: 48,
