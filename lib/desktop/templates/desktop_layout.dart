@@ -2028,7 +2028,6 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     return Consumer<AppState>(
       builder: (context, appState, _) {
@@ -2136,7 +2135,6 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final navigationService = NavigationService();
 
     return Consumer<AppState>(
@@ -2593,7 +2591,6 @@ class _TrackRowState extends State<_TrackRow> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final appState = context.read<AppState>();
     final imageUrl = widget.track.imageUrl != null
         ? appState.getImageUrl(widget.track.imageUrl!)
