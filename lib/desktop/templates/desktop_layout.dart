@@ -72,11 +72,13 @@ class _DesktopLayoutState extends State<DesktopLayout>
     _currentIndex = widget.selectedIndex;
     _pageController = PageController(initialPage: _currentIndex);
     _navigationService.selectedPageIndex.addListener(_onExternalNavigation);
+    _navigationService.detailPageStack.addListener(_onDetailPageChange);
   }
 
   @override
   void dispose() {
     _navigationService.selectedPageIndex.removeListener(_onExternalNavigation);
+    _navigationService.detailPageStack.removeListener(_onDetailPageChange);
     _pageController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -87,6 +89,11 @@ class _DesktopLayoutState extends State<DesktopLayout>
     if (newIndex != _currentIndex && newIndex < _pages.length) {
       _navigateToPage(newIndex);
     }
+  }
+
+  void _onDetailPageChange() {
+    // Trigger rebuild when detail page stack changes
+    setState(() {});
   }
 
   void _navigateToPage(int index) {
@@ -128,8 +135,33 @@ class _DesktopLayoutState extends State<DesktopLayout>
     SettingsPage(),
   ];
 
+  Widget? _buildDetailPage() {
+    final detailPage = _navigationService.currentDetailPage;
+    if (detailPage == null) return null;
+
+    switch (detailPage.type) {
+      case DetailPageType.album:
+        return _AlbumDetailView(
+          album: detailPage.data as Album,
+          onBack: _navigationService.goBack,
+        );
+      case DetailPageType.artist:
+        return _ArtistDetailView(
+          artist: detailPage.data as Artist,
+          onBack: _navigationService.goBack,
+        );
+      case DetailPageType.playlist:
+        return _PlaylistDetailView(
+          playlist: detailPage.data as Playlist,
+          onBack: _navigationService.goBack,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final detailPage = _buildDetailPage();
+
     return KeyboardListener(
       focusNode: _focusNode,
       autofocus: true,
@@ -153,7 +185,7 @@ class _DesktopLayoutState extends State<DesktopLayout>
                   // Page content
                   Expanded(
                     child: ClipRect(
-                      child: PageView(
+                      child: detailPage ?? PageView(
                         controller: _pageController,
                         physics: const NeverScrollableScrollPhysics(),
                         children: _pages,
