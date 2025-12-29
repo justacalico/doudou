@@ -369,10 +369,10 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
 
   Widget _buildFilterPill(_FilterData filter, bool isSelected, bool isDark) {
     return MouseRegion(
-      onEnter: (_) => setState(() => _hoveredCategory = filter.key),
-      onExit: (_) => setState(() => _hoveredCategory = null),
+      onEnter: (_) { if (mounted) setState(() => _hoveredCategory = filter.key); },
+      onExit: (_) { if (mounted) setState(() => _hoveredCategory = null); },
       child: GestureDetector(
-        onTap: () => setState(() => _selectedFilter = filter.key),
+        onTap: () { if (mounted) setState(() => _selectedFilter = filter.key); },
         child: AnimatedContainer(
           duration: AppleDesignSystem.durationFast,
           curve: AppleDesignSystem.springCurve,
@@ -897,8 +897,8 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
         const SizedBox(height: AppleDesignSystem.spacing16),
         MouseRegion(
           cursor: SystemMouseCursors.click,
-          onEnter: (_) => setState(() => _hoveredResultIndex = -1),
-          onExit: (_) => setState(() => _hoveredResultIndex = null),
+          onEnter: (_) { if (mounted) setState(() => _hoveredResultIndex = -1); },
+          onExit: (_) { if (mounted) setState(() => _hoveredResultIndex = null); },
           child: GestureDetector(
             onTap: () => _handleItemTap(appState, topResult, topResultType),
             child: AnimatedContainer(
@@ -1026,8 +1026,8 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
     
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hoveredResultIndex = index),
-      onExit: (_) => setState(() => _hoveredResultIndex = null),
+      onEnter: (_) { if (mounted) setState(() => _hoveredResultIndex = index); },
+      onExit: (_) { if (mounted) setState(() => _hoveredResultIndex = null); },
       child: GestureDetector(
         onTap: () => _handleItemTap(appState, item, type),
         child: AnimatedContainer(
@@ -1038,34 +1038,37 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Artwork with play overlay
-              Stack(
-                children: [
-                  _buildResultArtwork(appState, item, type, isDark),
-                  // Play overlay on hover
-                  if (isHovered)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(
-                            type == 'artist' ? AppleDesignSystem.radiusRound : AppleDesignSystem.radiusMedium,
-                          ),
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue,
-                              shape: BoxShape.circle,
-                              boxShadow: AppleDesignSystem.shadowMedium(AppleColors.systemBlue),
+              AspectRatio(
+                aspectRatio: 1,
+                child: Stack(
+                  children: [
+                    _buildResultArtworkExpanded(appState, item, type, isDark),
+                    // Play overlay on hover
+                    if (isHovered)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(
+                              type == 'artist' ? AppleDesignSystem.radiusRound : AppleDesignSystem.radiusMedium,
                             ),
-                            child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: isDark ? AppleColors.systemBlueDark : AppleColors.systemBlue,
+                                shape: BoxShape.circle,
+                                boxShadow: AppleDesignSystem.shadowMedium(AppleColors.systemBlue),
+                              ),
+                              child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: AppleDesignSystem.spacing12),
               // Title
@@ -1220,8 +1223,8 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
     
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hoveredResultIndex = index + 1000),
-      onExit: (_) => setState(() => _hoveredResultIndex = null),
+      onEnter: (_) { if (mounted) setState(() => _hoveredResultIndex = index + 1000); },
+      onExit: (_) { if (mounted) setState(() => _hoveredResultIndex = null); },
       child: GestureDetector(
         onTap: () => _handlePlayTrack(appState, track),
         child: AnimatedContainer(
