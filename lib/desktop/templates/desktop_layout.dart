@@ -1973,3 +1973,961 @@ class _PlaylistItemState extends State<_PlaylistItem> {
     );
   }
 }
+
+// =============================================================================
+// DETAIL VIEW WIDGETS - Inline pages that keep sidebar visible
+// =============================================================================
+
+/// Album detail view - displayed inline within the layout
+class _AlbumDetailView extends StatefulWidget {
+  final Album album;
+  final VoidCallback onBack;
+
+  const _AlbumDetailView({
+    required this.album,
+    required this.onBack,
+  });
+
+  @override
+  State<_AlbumDetailView> createState() => _AlbumDetailViewState();
+}
+
+class _AlbumDetailViewState extends State<_AlbumDetailView> {
+  List<Track> _tracks = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTracks();
+  }
+
+  Future<void> _loadTracks() async {
+    final appState = context.read<AppState>();
+    setState(() => _isLoading = true);
+
+    try {
+      _tracks = await appState.getAlbumTracks(widget.album.id);
+      _tracks.sort((a, b) {
+        final aTrack = a.trackNumber ?? 999;
+        final bTrack = b.trackNumber ?? 999;
+        return aTrack.compareTo(bTrack);
+      });
+    } catch (e) {
+      _tracks = [];
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String? _getImageUrl(AppState appState, String? imageId) {
+    if (imageId == null) return null;
+    return appState.getImageUrl(imageId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
+        final imageUrl = _getImageUrl(appState, widget.album.imageUrl);
+
+        return Container(
+          color: DesktopTheme.backgroundPrimary,
+          child: Column(
+            children: [
+              // Header with back button
+              _DetailHeader(
+                onBack: widget.onBack,
+                title: widget.album.name,
+                subtitle: widget.album.artistName,
+                imageUrl: imageUrl,
+                year: widget.album.year?.toString(),
+                trackCount: _tracks.length,
+                onPlay: () => appState.playPlaylist(_tracks, 0),
+                onShuffle: () {
+                  final shuffled = List<Track>.from(_tracks)..shuffle();
+                  appState.playPlaylist(shuffled, 0);
+                },
+              ),
+              // Track list
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _tracks.isEmpty
+                        ? Center(
+                            child: Text(
+                              l10n.noTracksFound,
+                              style: TextStyle(color: DesktopTheme.textSecondary),
+                            ),
+                          )
+                        : _TrackListView(
+                            tracks: _tracks,
+                            appState: appState,
+                            showTrackNumber: true,
+                          ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Artist detail view - displayed inline within the layout
+class _ArtistDetailView extends StatefulWidget {
+  final Artist artist;
+  final VoidCallback onBack;
+
+  const _ArtistDetailView({
+    required this.artist,
+    required this.onBack,
+  });
+
+  @override
+  State<_ArtistDetailView> createState() => _ArtistDetailViewState();
+}
+
+class _ArtistDetailViewState extends State<_ArtistDetailView> {
+  List<Album> _albums = [];
+  List<Track> _tracks = [];
+  bool _isLoading = true;
+  String _selectedTab = 'albums';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    final appState = context.read<AppState>();
+    setState(() => _isLoading = true);
+
+    try {
+      _albums = appState.albums
+          .where((album) => album.artistName == widget.artist.name)
+          .toList();
+      _albums.sort((a, b) {
+        final aYear = a.year ?? 0;
+        final bYear = b.year ?? 0;
+        return bYear.compareTo(aYear);
+      });
+
+      _tracks = appState.tracks
+          .where((track) => track.artistName == widget.artist.name)
+          .toList();
+    } catch (e) {
+      _albums = [];
+      _tracks = [];
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String? _getImageUrl(AppState appState, String? imageId) {
+    if (imageId == null) return null;
+    return appState.getImageUrl(imageId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final navigationService = NavigationService();
+
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
+        final imageUrl = _getImageUrl(appState, widget.artist.imageUrl);
+
+        return Container(
+          color: DesktopTheme.backgroundPrimary,
+          child: Column(
+            children: [
+              // Header with back button
+              _DetailHeader(
+                onBack: widget.onBack,
+                title: widget.artist.name,
+                subtitle: '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}',
+                imageUrl: imageUrl,
+                isCircular: true,
+                onPlay: () => appState.playPlaylist(_tracks, 0),
+                onShuffle: () {
+                  final shuffled = List<Track>.from(_tracks)..shuffle();
+                  appState.playPlaylist(shuffled, 0);
+                },
+              ),
+              // Tab selector
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesktopTheme.spacingLg,
+                  vertical: DesktopTheme.spacingSm,
+                ),
+                child: Row(
+                  children: [
+                    _TabChip(
+                      label: l10n.albums,
+                      isSelected: _selectedTab == 'albums',
+                      onTap: () => setState(() => _selectedTab = 'albums'),
+                    ),
+                    const SizedBox(width: DesktopTheme.spacingSm),
+                    _TabChip(
+                      label: l10n.songs,
+                      isSelected: _selectedTab == 'songs',
+                      onTap: () => setState(() => _selectedTab = 'songs'),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _selectedTab == 'albums'
+                        ? _AlbumGridView(
+                            albums: _albums,
+                            appState: appState,
+                            onAlbumTap: (album) => navigationService.navigateToAlbum(album),
+                          )
+                        : _TrackListView(
+                            tracks: _tracks,
+                            appState: appState,
+                          ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Playlist detail view - displayed inline within the layout
+class _PlaylistDetailView extends StatefulWidget {
+  final Playlist playlist;
+  final VoidCallback onBack;
+
+  const _PlaylistDetailView({
+    required this.playlist,
+    required this.onBack,
+  });
+
+  @override
+  State<_PlaylistDetailView> createState() => _PlaylistDetailViewState();
+}
+
+class _PlaylistDetailViewState extends State<_PlaylistDetailView> {
+  List<Track> _tracks = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTracks();
+  }
+
+  Future<void> _loadTracks() async {
+    final appState = context.read<AppState>();
+    setState(() => _isLoading = true);
+
+    try {
+      _tracks = await appState.getPlaylistTracks(widget.playlist.id);
+    } catch (e) {
+      _tracks = [];
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String? _getImageUrl(AppState appState, String? imageId) {
+    if (imageId == null) return null;
+    return appState.getImageUrl(imageId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
+        final imageUrl = _getImageUrl(appState, widget.playlist.imageUrl);
+
+        return Container(
+          color: DesktopTheme.backgroundPrimary,
+          child: Column(
+            children: [
+              // Header with back button
+              _DetailHeader(
+                onBack: widget.onBack,
+                title: widget.playlist.name,
+                subtitle: '${_tracks.length} ${l10n.songs}',
+                imageUrl: imageUrl,
+                onPlay: () => appState.playPlaylist(_tracks, 0),
+                onShuffle: () {
+                  final shuffled = List<Track>.from(_tracks)..shuffle();
+                  appState.playPlaylist(shuffled, 0);
+                },
+              ),
+              // Track list
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _tracks.isEmpty
+                        ? Center(
+                            child: Text(
+                              l10n.noTracksFound,
+                              style: TextStyle(color: DesktopTheme.textSecondary),
+                            ),
+                          )
+                        : _TrackListView(
+                            tracks: _tracks,
+                            appState: appState,
+                          ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Shared detail header widget
+class _DetailHeader extends StatelessWidget {
+  final VoidCallback onBack;
+  final String title;
+  final String? subtitle;
+  final String? imageUrl;
+  final String? year;
+  final int? trackCount;
+  final bool isCircular;
+  final VoidCallback? onPlay;
+  final VoidCallback? onShuffle;
+
+  const _DetailHeader({
+    required this.onBack,
+    required this.title,
+    this.subtitle,
+    this.imageUrl,
+    this.year,
+    this.trackCount,
+    this.isCircular = false,
+    this.onPlay,
+    this.onShuffle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.colorScheme.primary.withOpacity(0.15),
+            DesktopTheme.backgroundPrimary,
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Back button
+          DesktopIconButton(
+            icon: Icons.arrow_back_rounded,
+            onPressed: onBack,
+            tooltip: l10n.goBack,
+          ),
+          const SizedBox(height: DesktopTheme.spacingMd),
+          // Content row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Image
+              Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    isCircular ? 90 : DesktopTheme.radiusMd,
+                  ),
+                  color: DesktopTheme.backgroundElevated,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: imageUrl != null
+                    ? Image.network(
+                        imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                      )
+                    : _buildPlaceholder(),
+              ),
+              const SizedBox(width: DesktopTheme.spacingLg),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: DesktopTheme.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: DesktopTheme.spacingSm),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: DesktopTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                    if (year != null || trackCount != null) ...[
+                      const SizedBox(height: DesktopTheme.spacingSm),
+                      Text(
+                        [
+                          if (year != null) year,
+                          if (trackCount != null) '$trackCount ${l10n.songs}',
+                        ].join(' • '),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: DesktopTheme.textTertiary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: DesktopTheme.spacingLg),
+                    // Action buttons
+                    Row(
+                      children: [
+                        if (onPlay != null)
+                          DesktopPlayButton(
+                            onPressed: onPlay!,
+                            label: l10n.play,
+                          ),
+                        const SizedBox(width: DesktopTheme.spacingMd),
+                        if (onShuffle != null)
+                          DesktopGlassButton(
+                            onPressed: onShuffle!,
+                            icon: Icons.shuffle_rounded,
+                            label: l10n.shuffle,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: DesktopTheme.backgroundTertiary,
+      child: Icon(
+        isCircular ? Icons.person_rounded : Icons.album_rounded,
+        size: 64,
+        color: DesktopTheme.textTertiary,
+      ),
+    );
+  }
+}
+
+/// Tab chip for switching between views
+class _TabChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TabChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_TabChip> createState() => _TabChipState();
+}
+
+class _TabChipState extends State<_TabChip> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: DesktopTheme.durationFast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? theme.colorScheme.primary
+                : _isHovered
+                    ? DesktopTheme.glassOverlay
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusFull),
+            border: Border.all(
+              color: widget.isSelected
+                  ? Colors.transparent
+                  : DesktopTheme.glassBorder,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: widget.isSelected
+                  ? Colors.white
+                  : DesktopTheme.textPrimary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Track list view widget
+class _TrackListView extends StatelessWidget {
+  final List<Track> tracks;
+  final AppState appState;
+  final bool showTrackNumber;
+
+  const _TrackListView({
+    required this.tracks,
+    required this.appState,
+    this.showTrackNumber = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesktopTheme.spacingLg,
+        vertical: DesktopTheme.spacingSm,
+      ),
+      itemCount: tracks.length,
+      itemBuilder: (context, index) {
+        final track = tracks[index];
+        return _TrackRow(
+          track: track,
+          index: index,
+          showTrackNumber: showTrackNumber,
+          onTap: () => appState.playPlaylist(tracks, index),
+          onAddToQueue: () => appState.addToQueue(track),
+        );
+      },
+    );
+  }
+}
+
+/// Single track row widget
+class _TrackRow extends StatefulWidget {
+  final Track track;
+  final int index;
+  final bool showTrackNumber;
+  final VoidCallback onTap;
+  final VoidCallback onAddToQueue;
+
+  const _TrackRow({
+    required this.track,
+    required this.index,
+    required this.showTrackNumber,
+    required this.onTap,
+    required this.onAddToQueue,
+  });
+
+  @override
+  State<_TrackRow> createState() => _TrackRowState();
+}
+
+class _TrackRowState extends State<_TrackRow> {
+  bool _isHovered = false;
+
+  String _formatDuration(int? durationMs) {
+    if (durationMs == null) return '--:--';
+    final totalSeconds = durationMs ~/ 1000;
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appState = context.read<AppState>();
+    final imageUrl = widget.track.imageUrl != null
+        ? appState.getImageUrl(widget.track.imageUrl!)
+        : null;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: DesktopTheme.durationFast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingSm,
+          ),
+          decoration: BoxDecoration(
+            color: _isHovered ? DesktopTheme.glassOverlay : Colors.transparent,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+          ),
+          child: Row(
+            children: [
+              // Track number or play icon
+              SizedBox(
+                width: 40,
+                child: Center(
+                  child: _isHovered
+                      ? const Icon(
+                          Icons.play_arrow_rounded,
+                          color: DesktopTheme.textPrimary,
+                          size: 20,
+                        )
+                      : Text(
+                          widget.showTrackNumber
+                              ? '${widget.track.trackNumber ?? widget.index + 1}'
+                              : '${widget.index + 1}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: DesktopTheme.textTertiary,
+                          ),
+                        ),
+                ),
+              ),
+              // Album art
+              Container(
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.only(right: DesktopTheme.spacingMd),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: DesktopTheme.backgroundElevated,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: imageUrl != null
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.music_note_rounded,
+                          size: 20,
+                          color: DesktopTheme.textTertiary,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.music_note_rounded,
+                        size: 20,
+                        color: DesktopTheme.textTertiary,
+                      ),
+              ),
+              // Track info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.track.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: DesktopTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      widget.track.artistName ?? '',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: DesktopTheme.textTertiary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // Album name
+              if (widget.track.albumName != null)
+                Expanded(
+                  child: Text(
+                    widget.track.albumName!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: DesktopTheme.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              // Duration
+              SizedBox(
+                width: 60,
+                child: Text(
+                  _formatDuration(widget.track.duration),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: DesktopTheme.textTertiary,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              // More button
+              if (_isHovered)
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_horiz_rounded,
+                    color: DesktopTheme.textSecondary,
+                    size: 20,
+                  ),
+                  onSelected: (value) {
+                    if (value == 'queue') {
+                      widget.onAddToQueue();
+                    } else if (value == 'playlist') {
+                      DesktopLayout.showAddToPlaylistDialog(context, widget.track);
+                    }
+                  },
+                  itemBuilder: (context) {
+                    final l10n = AppLocalizations.of(context);
+                    return [
+                      PopupMenuItem(
+                        value: 'queue',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.queue_music_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(l10n.addToQueue),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'playlist',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.playlist_add_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(l10n.addToPlaylist),
+                          ],
+                        ),
+                      ),
+                    ];
+                  },
+                )
+              else
+                const SizedBox(width: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Album grid view widget
+class _AlbumGridView extends StatelessWidget {
+  final List<Album> albums;
+  final AppState appState;
+  final Function(Album) onAlbumTap;
+
+  const _AlbumGridView({
+    required this.albums,
+    required this.appState,
+    required this.onAlbumTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minCardWidth = 160.0;
+        final crossAxisCount = (constraints.maxWidth / minCardWidth).floor().clamp(2, 6);
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: DesktopTheme.spacingMd,
+            mainAxisSpacing: DesktopTheme.spacingMd,
+          ),
+          itemCount: albums.length,
+          itemBuilder: (context, index) {
+            final album = albums[index];
+            return _AlbumCard(
+              album: album,
+              imageUrl: album.imageUrl != null
+                  ? appState.getImageUrl(album.imageUrl!)
+                  : null,
+              onTap: () => onAlbumTap(album),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Album card widget
+class _AlbumCard extends StatefulWidget {
+  final Album album;
+  final String? imageUrl;
+  final VoidCallback onTap;
+
+  const _AlbumCard({
+    required this.album,
+    required this.imageUrl,
+    required this.onTap,
+  });
+
+  @override
+  State<_AlbumCard> createState() => _AlbumCardState();
+}
+
+class _AlbumCardState extends State<_AlbumCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? DesktopTheme.backgroundElevated
+                : DesktopTheme.backgroundSecondary,
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+          ),
+          padding: const EdgeInsets.all(DesktopTheme.spacingSm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Album art
+              Expanded(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+                        color: DesktopTheme.backgroundTertiary,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: widget.imageUrl != null
+                          ? Image.network(
+                              widget.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Center(
+                                child: Icon(
+                                  Icons.album_rounded,
+                                  size: 48,
+                                  color: DesktopTheme.textTertiary,
+                                ),
+                              ),
+                            )
+                          : const Center(
+                              child: Icon(
+                                Icons.album_rounded,
+                                size: 48,
+                                color: DesktopTheme.textTertiary,
+                              ),
+                            ),
+                    ),
+                    // Play button overlay
+                    if (_isHovered)
+                      Positioned(
+                        right: 8,
+                        bottom: 8,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: DesktopTheme.spacingSm),
+              // Album name
+              Text(
+                widget.album.name,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: DesktopTheme.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              // Artist name
+              Text(
+                widget.album.artistName ?? '',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DesktopTheme.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
