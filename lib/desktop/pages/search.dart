@@ -1095,14 +1095,39 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
   }
 
   Widget _buildResultArtwork(AppState appState, dynamic item, String type, bool isDark, {double size = 0}) {
-    final actualSize = size > 0 ? size : double.infinity;
     final isCircle = type == 'artist';
     
-    return AspectRatio(
-      aspectRatio: 1,
+    // If size is specified, use a fixed Container. Otherwise, use AspectRatio for flexible sizing.
+    if (size > 0) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: isDark ? AppleColors.fillSecondaryDark : AppleColors.fillSecondary,
+          borderRadius: isCircle ? null : BorderRadius.circular(AppleDesignSystem.radiusMedium),
+          shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+          boxShadow: AppleDesignSystem.shadowSmall(Colors.black),
+        ),
+        child: ClipRRect(
+          borderRadius: isCircle 
+              ? BorderRadius.circular(1000) 
+              : BorderRadius.circular(AppleDesignSystem.radiusMedium),
+          child: item.imageUrl != null
+              ? Image.network(
+                  _getImageUrl(appState, item.imageUrl)!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _buildPlaceholderIcon(type, isDark),
+                )
+              : _buildPlaceholderIcon(type, isDark),
+        ),
+      );
+    }
+    
+    // Fallback with SizedBox for default size
+    return SizedBox(
+      width: 60,
+      height: 60,
       child: Container(
-        width: actualSize,
-        height: actualSize,
         decoration: BoxDecoration(
           color: isDark ? AppleColors.fillSecondaryDark : AppleColors.fillSecondary,
           borderRadius: isCircle ? null : BorderRadius.circular(AppleDesignSystem.radiusMedium),
