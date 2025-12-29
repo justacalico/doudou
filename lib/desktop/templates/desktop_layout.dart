@@ -2343,7 +2343,7 @@ class _DetailHeader extends StatelessWidget {
           DesktopIconButton(
             icon: Icons.arrow_back_rounded,
             onPressed: onBack,
-            tooltip: l10n.goBack,
+            tooltip: l10n.back,
           ),
           const SizedBox(height: DesktopTheme.spacingMd),
           // Content row
@@ -2422,15 +2422,21 @@ class _DetailHeader extends StatelessWidget {
                       children: [
                         if (onPlay != null)
                           DesktopPlayButton(
+                            isPlaying: false,
                             onPressed: onPlay!,
-                            label: l10n.play,
                           ),
                         const SizedBox(width: DesktopTheme.spacingMd),
                         if (onShuffle != null)
                           DesktopGlassButton(
                             onPressed: onShuffle!,
-                            icon: Icons.shuffle_rounded,
-                            label: l10n.shuffle,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.shuffle_rounded, size: 18),
+                                const SizedBox(width: 8),
+                                Text(l10n.shuffle),
+                              ],
+                            ),
                           ),
                       ],
                     ),
@@ -2497,7 +2503,7 @@ class _TabChipState extends State<_TabChip> {
                 : _isHovered
                     ? DesktopTheme.glassOverlay
                     : Colors.transparent,
-            borderRadius: BorderRadius.circular(DesktopTheme.radiusFull),
+            borderRadius: BorderRadius.circular(DesktopTheme.radiusRound),
             border: Border.all(
               color: widget.isSelected
                   ? Colors.transparent
