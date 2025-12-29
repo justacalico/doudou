@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../providers/app_state.dart';
-import 'details/media_details.dart';
+import '../services/navigation_service.dart';
 
 class PlaylistsPage extends StatefulWidget {
   const PlaylistsPage({super.key});
