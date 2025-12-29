@@ -1,5 +1,9 @@
 # Releases
 
+
+## README
+Please head to [https://openlyst.ink/apps/doudou](https://openlyst.ink/apps/doudou) for new versions.
+
 ## Version 7.0.0
 
 ### Download Links
