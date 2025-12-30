@@ -1274,9 +1274,6 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
                 return AnimatedBuilder(
                   animation: flipAnimation,
                   builder: (context, child) {
-                    // Scale X from 0 to 1 for flip effect
-                    final scaleX = (1 - (flipAnimation.value - 0.5).abs() * 2)
-                        .clamp(0.0, 1.0);
                     return Transform(
                       alignment: Alignment.center,
                       transform: Matrix4.identity()
