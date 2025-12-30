@@ -1068,7 +1068,7 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
 
   /// Check if "The Mind Electric" easter egg should be active
   bool _isMindElectric(MediaItem? mediaItem) {
-    final title = mediaItem?.title?.toLowerCase() ?? '';
+    final title = mediaItem?.title.toLowerCase() ?? '';
     return title.contains('mind electric') ||
         title.contains('the mind electric');
   }
