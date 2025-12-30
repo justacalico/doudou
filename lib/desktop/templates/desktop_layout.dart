@@ -1070,8 +1070,12 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
   /// Returns true only during the backwards section (before 2:50)
   bool _isMindElectricBackwards(MediaItem? mediaItem, Duration position) {
     final title = mediaItem?.title.toLowerCase() ?? '';
-    final isMindElectric = title.contains('mind electric') ||
-        title.contains('the mind electric');
+    final artist = mediaItem?.artist?.toLowerCase() ?? '';
+    final isMindElectric = (title.contains('mind electric') ||
+            title.contains('the mind electric')) &&
+        (artist.contains('miracle musical') ||
+            artist.contains('tally hall') ||
+            artist.contains('joe hawley'));
     // The song plays backwards until 2:50, then forwards
     const forwardTimestamp = Duration(minutes: 2, seconds: 50);
     return isMindElectric && position < forwardTimestamp;
