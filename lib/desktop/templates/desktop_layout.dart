@@ -1259,17 +1259,49 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
 
             // Apply the horizontal flip transformation for the easter egg
             // (only during the backwards section before 2:50)
-            if (isMindElectricBackwards) {
-              content = Directionality(
-                textDirection: TextDirection.rtl,
-                child: Transform.flip(
-                  flipX: true,
-                  child: content,
-                ),
-              );
-            }
-
-            return content;
+            // Use AnimatedSwitcher for smooth transition when flipping
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 800),
+              transitionBuilder: (child, animation) {
+                // Create a flip animation around the Y axis
+                final flipAnimation = Tween<double>(
+                  begin: 1.0,
+                  end: 0.0,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ));
+                return AnimatedBuilder(
+                  animation: flipAnimation,
+                  builder: (context, child) {
+                    // Scale X from 0 to 1 for flip effect
+                    final scaleX = (1 - (flipAnimation.value - 0.5).abs() * 2)
+                        .clamp(0.0, 1.0);
+                    return Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..setEntry(3, 2, 0.001) // perspective
+                        ..rotateY(flipAnimation.value * 3.14159),
+                      child: child,
+                    );
+                  },
+                  child: child,
+                );
+              },
+              child: isMindElectricBackwards
+                  ? Directionality(
+                      key: const ValueKey('flipped'),
+                      textDirection: TextDirection.rtl,
+                      child: Transform.flip(
+                        flipX: true,
+                        child: content,
+                      ),
+                    )
+                  : KeyedSubtree(
+                      key: const ValueKey('normal'),
+                      child: content,
+                    ),
+            );
           },
         );
       },
