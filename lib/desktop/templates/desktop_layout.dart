@@ -185,11 +185,13 @@ class _DesktopLayoutState extends State<DesktopLayout>
                   // Page content
                   Expanded(
                     child: ClipRect(
-                      child: detailPage ?? PageView(
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        children: _pages,
-                      ),
+                      child:
+                          detailPage ??
+                          PageView(
+                            controller: _pageController,
+                            physics: const NeverScrollableScrollPhysics(),
+                            children: _pages,
+                          ),
                     ),
                   ),
                 ],
@@ -1071,7 +1073,8 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
   bool _isMindElectricBackwards(MediaItem? mediaItem, Duration position) {
     final title = mediaItem?.title.toLowerCase() ?? '';
     final artist = mediaItem?.artist?.toLowerCase() ?? '';
-    final isMindElectric = (title.contains('mind electric') ||
+    final isMindElectric =
+        (title.contains('mind electric') ||
             title.contains('the mind electric')) &&
         (artist.contains('miracle musical') ||
             artist.contains('tally hall') ||
@@ -1094,172 +1097,183 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
           stream: widget.audioHandler?.positionStream,
           builder: (context, positionSnapshot) {
             final position = positionSnapshot.data ?? Duration.zero;
-            final isMindElectricBackwards =
-                _isMindElectricBackwards(mediaItem, position);
+            final isMindElectricBackwards = _isMindElectricBackwards(
+              mediaItem,
+              position,
+            );
 
             // Easter egg: Flip everything horizontally during the backwards section
             // of "The Mind Electric" (before 2:50), then flip back to normal
             Widget content = Scaffold(
               backgroundColor: Colors.transparent,
               body: Stack(
-            children: [
-              // Background with album art blur
-              if (mediaItem?.artUri != null)
-                Positioned.fill(
-                  child: Image.network(
-                    mediaItem!.artUri.toString(),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        Container(color: DesktopTheme.backgroundDeep),
+                children: [
+                  // Background with album art blur
+                  if (mediaItem?.artUri != null)
+                    Positioned.fill(
+                      child: Image.network(
+                        mediaItem!.artUri.toString(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            Container(color: DesktopTheme.backgroundDeep),
+                      ),
+                    ),
+                  // Dark overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            DesktopTheme.backgroundDeep.withOpacity(0.5),
+                            DesktopTheme.backgroundDeep.withOpacity(0.85),
+                            DesktopTheme.backgroundDeep.withOpacity(0.95),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              // Dark overlay
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        DesktopTheme.backgroundDeep.withOpacity(0.5),
-                        DesktopTheme.backgroundDeep.withOpacity(0.85),
-                        DesktopTheme.backgroundDeep.withOpacity(0.95),
+                  // Content
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        // Header
+                        Padding(
+                          padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+                          child: Row(
+                            children: [
+                              DesktopIconButton(
+                                icon: Icons.keyboard_arrow_down_rounded,
+                                size: 28,
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              const Spacer(),
+                              DesktopIconButton(
+                                icon: Icons.more_horiz_rounded,
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Main content row
+                        Expanded(
+                          child: Row(
+                            children: [
+                              // Left: Album art and controls
+                              Expanded(
+                                flex: 3,
+                                child: _NowPlayingMain(
+                                  mediaItem: mediaItem,
+                                  appState: widget.appState,
+                                  audioHandler: widget.audioHandler,
+                                ),
+                              ),
+                              // Right: Queue/Lyrics panel
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  margin: const EdgeInsets.only(
+                                    right: DesktopTheme.spacingLg,
+                                    bottom: DesktopTheme.spacingLg,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: DesktopTheme.backgroundDeep
+                                        .withOpacity(0.6),
+                                    borderRadius: BorderRadius.circular(
+                                      DesktopTheme.radiusMd,
+                                    ),
+                                    border: Border.all(
+                                      color: DesktopTheme.glassBorder,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      // Tabs
+                                      Padding(
+                                        padding: const EdgeInsets.all(
+                                          DesktopTheme.spacingMd,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            _TabButton(
+                                              label: l10n.upNext,
+                                              isSelected: _selectedTab == 0,
+                                              onTap: () =>
+                                                  _tabController.animateTo(0),
+                                            ),
+                                            const SizedBox(
+                                              width: DesktopTheme.spacingMd,
+                                            ),
+                                            _TabButton(
+                                              label: l10n.lyrics,
+                                              isSelected: _selectedTab == 1,
+                                              onTap: () =>
+                                                  _tabController.animateTo(1),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Playing from
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: DesktopTheme.spacingMd,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              '${l10n.playingFrom} ',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color:
+                                                    DesktopTheme.textTertiary,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                mediaItem?.album ??
+                                                    l10n.unknownAlbum,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color:
+                                                      DesktopTheme.textPrimary,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: DesktopTheme.spacingSm,
+                                      ),
+                                      // Tab content
+                                      Expanded(
+                                        child: TabBarView(
+                                          controller: _tabController,
+                                          children: [
+                                            _QueueList(
+                                              appState: widget.appState,
+                                              audioHandler: widget.audioHandler,
+                                            ),
+                                            _LyricsView(mediaItem: mediaItem),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
-              // Content
-              SafeArea(
-                child: Column(
-                  children: [
-                    // Header
-                    Padding(
-                      padding: const EdgeInsets.all(DesktopTheme.spacingMd),
-                      child: Row(
-                        children: [
-                          DesktopIconButton(
-                            icon: Icons.keyboard_arrow_down_rounded,
-                            size: 28,
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          const Spacer(),
-                          DesktopIconButton(
-                            icon: Icons.more_horiz_rounded,
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Main content row
-                    Expanded(
-                      child: Row(
-                        children: [
-                          // Left: Album art and controls
-                          Expanded(
-                            flex: 3,
-                            child: _NowPlayingMain(
-                              mediaItem: mediaItem,
-                              appState: widget.appState,
-                              audioHandler: widget.audioHandler,
-                            ),
-                          ),
-                          // Right: Queue/Lyrics panel
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              margin: const EdgeInsets.only(
-                                right: DesktopTheme.spacingLg,
-                                bottom: DesktopTheme.spacingLg,
-                              ),
-                              decoration: BoxDecoration(
-                                color: DesktopTheme.backgroundDeep.withOpacity(0.6),
-                                borderRadius: BorderRadius.circular(
-                                  DesktopTheme.radiusMd,
-                                ),
-                                border: Border.all(color: DesktopTheme.glassBorder),
-                              ),
-                              child: Column(
-                                children: [
-                                  // Tabs
-                                  Padding(
-                                    padding: const EdgeInsets.all(
-                                      DesktopTheme.spacingMd,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        _TabButton(
-                                          label: l10n.upNext,
-                                          isSelected: _selectedTab == 0,
-                                          onTap: () => _tabController.animateTo(0),
-                                        ),
-                                        const SizedBox(
-                                          width: DesktopTheme.spacingMd,
-                                        ),
-                                        _TabButton(
-                                          label: l10n.lyrics,
-                                          isSelected: _selectedTab == 1,
-                                          onTap: () => _tabController.animateTo(1),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Playing from
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: DesktopTheme.spacingMd,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          '${l10n.playingFrom} ',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: DesktopTheme.textTertiary,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            mediaItem?.album ??
-                                                l10n.unknownAlbum,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: DesktopTheme.textPrimary,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: DesktopTheme.spacingSm),
-                                  // Tab content
-                                  Expanded(
-                                    child: TabBarView(
-                                      controller: _tabController,
-                                      children: [
-                                        _QueueList(
-                                          appState: widget.appState,
-                                          audioHandler: widget.audioHandler,
-                                        ),
-                                        _LyricsView(mediaItem: mediaItem),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
+            );
 
             // Apply the horizontal flip transformation for the easter egg
             // (only during the backwards section before 2:50)
@@ -1268,13 +1282,13 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
               duration: const Duration(milliseconds: 800),
               transitionBuilder: (child, animation) {
                 // Create a flip animation around the Y axis
-                final flipAnimation = Tween<double>(
-                  begin: 1.0,
-                  end: 0.0,
-                ).animate(CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOut,
-                ));
+                final flipAnimation = Tween<double>(begin: 1.0, end: 0.0)
+                    .animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
                 return AnimatedBuilder(
                   animation: flipAnimation,
                   builder: (context, child) {
@@ -1293,15 +1307,9 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
                   ? Directionality(
                       key: const ValueKey('flipped'),
                       textDirection: TextDirection.rtl,
-                      child: Transform.flip(
-                        flipX: true,
-                        child: content,
-                      ),
+                      child: Transform.flip(flipX: true, child: content),
                     )
-                  : KeyedSubtree(
-                      key: const ValueKey('normal'),
-                      child: content,
-                    ),
+                  : KeyedSubtree(key: const ValueKey('normal'), child: content),
             );
           },
         );
@@ -1322,8 +1330,53 @@ class _NowPlayingMain extends StatelessWidget {
     required this.audioHandler,
   });
 
+  void _navigateToAlbum(BuildContext context) {
+    final albumId = mediaItem?.extras?['albumId'] as String?;
+    final albumName = mediaItem?.album;
+
+    if (albumId != null) {
+      // Find album by ID
+      final album = appState.albums.where((a) => a.id == albumId).firstOrNull;
+      if (album != null) {
+        Navigator.of(context).pop(); // Close now playing overlay
+        NavigationService().navigateToAlbum(album);
+        return;
+      }
+    }
+
+    // Fallback: find by name
+    if (albumName != null) {
+      final album = appState.albums
+          .where((a) => a.name == albumName)
+          .firstOrNull;
+      if (album != null) {
+        Navigator.of(context).pop();
+        NavigationService().navigateToAlbum(album);
+      }
+    }
+  }
+
+  void _navigateToArtist(BuildContext context) {
+    final artistName = mediaItem?.artist;
+
+    if (artistName != null) {
+      final artist = appState.artists
+          .where((a) => a.name == artistName)
+          .firstOrNull;
+      if (artist != null) {
+        Navigator.of(context).pop(); // Close now playing overlay
+        NavigationService().navigateToArtist(artist);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final hasAlbum = mediaItem?.album != null && mediaItem!.album!.isNotEmpty;
+    final hasArtist =
+        mediaItem?.artist != null && mediaItem!.artist!.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.all(DesktopTheme.spacingXl),
       child: Column(
@@ -1378,11 +1431,77 @@ class _NowPlayingMain extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: DesktopTheme.spacingSm),
-          Text(
-            mediaItem?.artist ?? '',
-            style: TextStyle(fontSize: 16, color: DesktopTheme.textSecondary),
-            textAlign: TextAlign.center,
-          ),
+          // From: Album (clickable)
+          if (hasAlbum)
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => _navigateToAlbum(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.fromAlbum,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: DesktopTheme.textTertiary,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        mediaItem!.album!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: DesktopTheme.textSecondary,
+                          decoration: TextDecoration.underline,
+                          decorationColor: DesktopTheme.textSecondary
+                              .withOpacity(0.5),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (hasAlbum) const SizedBox(height: DesktopTheme.spacingXs),
+          // By: Artist (clickable)
+          if (hasArtist)
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => _navigateToArtist(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.byArtist,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: DesktopTheme.textTertiary,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        mediaItem!.artist!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: DesktopTheme.textSecondary,
+                          decoration: TextDecoration.underline,
+                          decorationColor: DesktopTheme.textSecondary
+                              .withOpacity(0.5),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           const SizedBox(height: DesktopTheme.spacingXl),
           // Progress
           _NowPlayingProgress(audioHandler: audioHandler),
@@ -2056,10 +2175,7 @@ class _AlbumDetailView extends StatefulWidget {
   final Album album;
   final VoidCallback onBack;
 
-  const _AlbumDetailView({
-    required this.album,
-    required this.onBack,
-  });
+  const _AlbumDetailView({required this.album, required this.onBack});
 
   @override
   State<_AlbumDetailView> createState() => _AlbumDetailViewState();
@@ -2129,17 +2245,17 @@ class _AlbumDetailViewState extends State<_AlbumDetailView> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _tracks.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.noTracksFound,
-                              style: TextStyle(color: DesktopTheme.textSecondary),
-                            ),
-                          )
-                        : _TrackListView(
-                            tracks: _tracks,
-                            appState: appState,
-                            showTrackNumber: true,
-                          ),
+                    ? Center(
+                        child: Text(
+                          l10n.noTracksFound,
+                          style: TextStyle(color: DesktopTheme.textSecondary),
+                        ),
+                      )
+                    : _TrackListView(
+                        tracks: _tracks,
+                        appState: appState,
+                        showTrackNumber: true,
+                      ),
               ),
             ],
           ),
@@ -2154,10 +2270,7 @@ class _ArtistDetailView extends StatefulWidget {
   final Artist artist;
   final VoidCallback onBack;
 
-  const _ArtistDetailView({
-    required this.artist,
-    required this.onBack,
-  });
+  const _ArtistDetailView({required this.artist, required this.onBack});
 
   @override
   State<_ArtistDetailView> createState() => _ArtistDetailViewState();
@@ -2222,7 +2335,8 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
               _DetailHeader(
                 onBack: widget.onBack,
                 title: widget.artist.name,
-                subtitle: '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}',
+                subtitle:
+                    '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}',
                 imageUrl: imageUrl,
                 isCircular: true,
                 onPlay: () => appState.playPlaylist(_tracks, 0),
@@ -2258,15 +2372,13 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _selectedTab == 'albums'
-                        ? _AlbumGridView(
-                            albums: _albums,
-                            appState: appState,
-                            onAlbumTap: (album) => navigationService.navigateToAlbum(album),
-                          )
-                        : _TrackListView(
-                            tracks: _tracks,
-                            appState: appState,
-                          ),
+                    ? _AlbumGridView(
+                        albums: _albums,
+                        appState: appState,
+                        onAlbumTap: (album) =>
+                            navigationService.navigateToAlbum(album),
+                      )
+                    : _TrackListView(tracks: _tracks, appState: appState),
               ),
             ],
           ),
@@ -2281,10 +2393,7 @@ class _PlaylistDetailView extends StatefulWidget {
   final Playlist playlist;
   final VoidCallback onBack;
 
-  const _PlaylistDetailView({
-    required this.playlist,
-    required this.onBack,
-  });
+  const _PlaylistDetailView({required this.playlist, required this.onBack});
 
   @override
   State<_PlaylistDetailView> createState() => _PlaylistDetailViewState();
@@ -2347,16 +2456,13 @@ class _PlaylistDetailViewState extends State<_PlaylistDetailView> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _tracks.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.noTracksFound,
-                              style: TextStyle(color: DesktopTheme.textSecondary),
-                            ),
-                          )
-                        : _TrackListView(
-                            tracks: _tracks,
-                            appState: appState,
-                          ),
+                    ? Center(
+                        child: Text(
+                          l10n.noTracksFound,
+                          style: TextStyle(color: DesktopTheme.textSecondary),
+                        ),
+                      )
+                    : _TrackListView(tracks: _tracks, appState: appState),
               ),
             ],
           ),
@@ -2572,8 +2678,8 @@ class _TabChipState extends State<_TabChip> {
             color: widget.isSelected
                 ? theme.colorScheme.primary
                 : _isHovered
-                    ? DesktopTheme.glassOverlay
-                    : Colors.transparent,
+                ? DesktopTheme.glassOverlay
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(DesktopTheme.radiusRound),
             border: Border.all(
               color: widget.isSelected
@@ -2798,7 +2904,10 @@ class _TrackRowState extends State<_TrackRow> {
                     if (value == 'queue') {
                       widget.onAddToQueue();
                     } else if (value == 'playlist') {
-                      DesktopLayout.showAddToPlaylistDialog(context, widget.track);
+                      DesktopLayout.showAddToPlaylistDialog(
+                        context,
+                        widget.track,
+                      );
                     }
                   },
                   itemBuilder: (context) {
@@ -2854,7 +2963,9 @@ class _AlbumGridView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final minCardWidth = 160.0;
-        final crossAxisCount = (constraints.maxWidth / minCardWidth).floor().clamp(2, 6);
+        final crossAxisCount = (constraints.maxWidth / minCardWidth)
+            .floor()
+            .clamp(2, 6);
 
         return GridView.builder(
           padding: const EdgeInsets.all(DesktopTheme.spacingLg),
@@ -2926,7 +3037,9 @@ class _AlbumCardState extends State<_AlbumCard> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          DesktopTheme.radiusSm,
+                        ),
                         color: DesktopTheme.backgroundTertiary,
                       ),
                       clipBehavior: Clip.antiAlias,
