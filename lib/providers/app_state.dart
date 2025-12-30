@@ -1604,6 +1604,7 @@ class AppState extends ChangeNotifier {
       }
 
       // Load all library data concurrently with individual error handling
+      // Use getAllTracks() to properly paginate and fetch all tracks (not limited by API caps)
       final List<Future> futures = [
         _mediaServiceManager.getAlbums().catchError((e) {
           if (kDebugMode) {
@@ -1617,7 +1618,7 @@ class AppState extends ChangeNotifier {
           }
           return <Artist>[];
         }),
-        _mediaServiceManager.getTracks(limit: 1000).catchError((e) {
+        _mediaServiceManager.getAllTracks().catchError((e) {
           if (kDebugMode) {
             print('Warning: Failed to load tracks: $e');
           }
