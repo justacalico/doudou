@@ -1066,6 +1066,13 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
     super.dispose();
   }
 
+  /// Check if "The Mind Electric" easter egg should be active
+  bool _isMindElectric(MediaItem? mediaItem) {
+    final title = mediaItem?.title?.toLowerCase() ?? '';
+    return title.contains('mind electric') ||
+        title.contains('the mind electric');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -1074,8 +1081,11 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
       stream: widget.audioHandler?.mediaItem,
       builder: (context, snapshot) {
         final mediaItem = snapshot.data;
-        
-        return Scaffold(
+        final isMindElectric = _isMindElectric(mediaItem);
+
+        // Easter egg: Flip everything horizontally when "The Mind Electric" is playing
+        // (The song famously has a reversed/backwards section)
+        Widget content = Scaffold(
           backgroundColor: Colors.transparent,
           body: Stack(
             children: [
@@ -1236,6 +1246,19 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
             ],
           ),
         );
+
+        // Apply the horizontal flip transformation for the easter egg
+        if (isMindElectric) {
+          content = Directionality(
+            textDirection: TextDirection.rtl,
+            child: Transform.flip(
+              flipX: true,
+              child: content,
+            ),
+          );
+        }
+
+        return content;
       },
     );
   }
