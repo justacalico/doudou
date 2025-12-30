@@ -1067,10 +1067,14 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
   }
 
   /// Check if "The Mind Electric" easter egg should be active
-  bool _isMindElectric(MediaItem? mediaItem) {
+  /// Returns true only during the backwards section (before 2:50)
+  bool _isMindElectricBackwards(MediaItem? mediaItem, Duration position) {
     final title = mediaItem?.title.toLowerCase() ?? '';
-    return title.contains('mind electric') ||
+    final isMindElectric = title.contains('mind electric') ||
         title.contains('the mind electric');
+    // The song plays backwards until 2:50, then forwards
+    const forwardTimestamp = Duration(minutes: 2, seconds: 50);
+    return isMindElectric && position < forwardTimestamp;
   }
 
   @override
@@ -1081,13 +1085,19 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
       stream: widget.audioHandler?.mediaItem,
       builder: (context, snapshot) {
         final mediaItem = snapshot.data;
-        final isMindElectric = _isMindElectric(mediaItem);
 
-        // Easter egg: Flip everything horizontally when "The Mind Electric" is playing
-        // (The song famously has a reversed/backwards section)
-        Widget content = Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(
+        return StreamBuilder<Duration>(
+          stream: widget.audioHandler?.positionStream,
+          builder: (context, positionSnapshot) {
+            final position = positionSnapshot.data ?? Duration.zero;
+            final isMindElectricBackwards =
+                _isMindElectricBackwards(mediaItem, position);
+
+            // Easter egg: Flip everything horizontally during the backwards section
+            // of "The Mind Electric" (before 2:50), then flip back to normal
+            Widget content = Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Stack(
             children: [
               // Background with album art blur
               if (mediaItem?.artUri != null)
@@ -1247,18 +1257,21 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
           ),
         );
 
-        // Apply the horizontal flip transformation for the easter egg
-        if (isMindElectric) {
-          content = Directionality(
-            textDirection: TextDirection.rtl,
-            child: Transform.flip(
-              flipX: true,
-              child: content,
-            ),
-          );
-        }
+            // Apply the horizontal flip transformation for the easter egg
+            // (only during the backwards section before 2:50)
+            if (isMindElectricBackwards) {
+              content = Directionality(
+                textDirection: TextDirection.rtl,
+                child: Transform.flip(
+                  flipX: true,
+                  child: content,
+                ),
+              );
+            }
 
-        return content;
+            return content;
+          },
+        );
       },
     );
   }
