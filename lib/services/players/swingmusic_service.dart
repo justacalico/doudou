@@ -6,6 +6,11 @@ import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 
 /// Service for Swing Music server
+/// 
+/// 
+/// Note: This playbook is disabled due to incomplete implementation.
+/// 
+/// 
 /// API Documentation: https://github.com/swingmx/swingmusic
 class SwingMusicService implements BaseMediaService {
   late Dio _dio;
