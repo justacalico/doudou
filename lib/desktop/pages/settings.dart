@@ -49,15 +49,40 @@ class _SettingsPageState extends State<SettingsPage> {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final appState = context.watch<AppState>();
-    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final isLocalMusic =
+        appState.mediaServiceManager.currentServerType == ServerType.local;
 
     final categories = [
-      {'id': 'general', 'title': l10n.generalSettings.split(' ').first, 'icon': Icons.settings_rounded},
-      {'id': 'audio', 'title': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
-      {'id': 'appearance', 'title': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
-      {'id': 'server', 'title': isLocalMusic ? 'Local Music' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
-      {'id': 'logs', 'title': l10n.logsAndDiagnostics.split(' ').first, 'icon': Icons.description_rounded},
-      {'id': 'about', 'title': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info_rounded},
+      {
+        'id': 'general',
+        'title': l10n.generalSettings.split(' ').first,
+        'icon': Icons.settings_rounded,
+      },
+      {
+        'id': 'audio',
+        'title': l10n.audioSettings.split(' ').first,
+        'icon': Icons.volume_up_rounded,
+      },
+      {
+        'id': 'appearance',
+        'title': l10n.appearanceSettings.split(' ').first,
+        'icon': Icons.palette_rounded,
+      },
+      {
+        'id': 'server',
+        'title': isLocalMusic ? 'Local Music' : l10n.server,
+        'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded,
+      },
+      {
+        'id': 'logs',
+        'title': l10n.logsAndDiagnostics.split(' ').first,
+        'icon': Icons.description_rounded,
+      },
+      {
+        'id': 'about',
+        'title': l10n.aboutDoudou.split(' ').first,
+        'icon': Icons.info_rounded,
+      },
     ];
 
     return SizedBox(
@@ -74,7 +99,9 @@ class _SettingsPageState extends State<SettingsPage> {
               color: isDark
                   ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.7)
                   : AppleColors.backgroundSecondary.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              borderRadius: BorderRadius.circular(
+                AppleDesignSystem.radiusMedium,
+              ),
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.1)
@@ -552,7 +579,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildServerSettings(AppState appState) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final isLocalMusic =
+        appState.mediaServiceManager.currentServerType == ServerType.local;
     final localService = appState.mediaServiceManager.localMusicService;
 
     return SingleChildScrollView(
@@ -595,8 +623,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          appState.isLoggedIn 
-                              ? (isLocalMusic ? 'Active' : l10n.authenticated) 
+                          appState.isLoggedIn
+                              ? (isLocalMusic ? 'Active' : l10n.authenticated)
                               : 'Disconnected',
                           style: const TextStyle(
                             color: Colors.white,
@@ -618,24 +646,29 @@ class _SettingsPageState extends State<SettingsPage> {
                       trailing: const Icon(Icons.folder),
                     ),
                     // List configured directories
-                    ...localService.musicDirectories.map((dir) => ListTile(
-                      leading: const Icon(Icons.folder_open, size: 20),
-                      title: Text(
-                        dir.split('/').last,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      subtitle: Text(
-                        dir,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colorScheme.onSurfaceVariant,
+                    ...localService.musicDirectories.map(
+                      (dir) => ListTile(
+                        leading: const Icon(Icons.folder_open, size: 20),
+                        title: Text(
+                          dir.split('/').last,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        subtitle: Text(
+                          dir,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => _removeLocalDirectory(appState, dir),
                         ),
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                        onPressed: () => _removeLocalDirectory(appState, dir),
-                      ),
-                    )),
+                    ),
                     const Divider(),
                     ListTile(
                       title: const Text('Add Directory'),
@@ -651,7 +684,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     const Divider(),
                     SwitchListTile(
                       title: const Text('Fetch Online Artwork'),
-                      subtitle: const Text('Download album art from MusicBrainz'),
+                      subtitle: const Text(
+                        'Download album art from MusicBrainz',
+                      ),
                       value: localService.fetchOnlineArtwork,
                       onChanged: (value) async {
                         await localService.setFetchOnlineArtwork(value);
@@ -744,7 +779,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         await localService.clearArtworkCache();
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Artwork cache cleared')),
+                            const SnackBar(
+                              content: Text('Artwork cache cleared'),
+                            ),
                           );
                         }
                       },
@@ -765,37 +802,44 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-  
+
   Future<void> _addLocalDirectory(AppState appState) async {
     final result = await FilePicker.platform.getDirectoryPath(
       dialogTitle: 'Select Music Directory',
     );
-    
+
     if (result != null) {
       try {
         await appState.mediaServiceManager.addLocalMusicDirectory(result);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Added directory: ${result.split('/').last}')),
+            SnackBar(
+              content: Text('Added directory: ${result.split('/').last}'),
+            ),
           );
           setState(() {});
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error adding directory: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error adding directory: $e')));
         }
       }
     }
   }
-  
-  Future<void> _removeLocalDirectory(AppState appState, String directory) async {
+
+  Future<void> _removeLocalDirectory(
+    AppState appState,
+    String directory,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Remove Directory'),
-        content: Text('Remove "${directory.split('/').last}" from your music sources?'),
+        content: Text(
+          'Remove "${directory.split('/').last}" from your music sources?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -808,23 +852,23 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
-    
+
     if (confirmed == true) {
       final localService = appState.mediaServiceManager.localMusicService;
       await localService?.removeDirectory(directory);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Directory removed')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Directory removed')));
         setState(() {});
       }
     }
   }
-  
+
   Future<void> _rescanLocalLibrary(AppState appState) async {
     final localService = appState.mediaServiceManager.localMusicService;
     if (localService == null) return;
-    
+
     // Show progress dialog
     showDialog(
       context: context,
@@ -853,23 +897,23 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
-    
+
     try {
       await localService.scanDirectories();
       if (mounted) {
         Navigator.pop(context); // Close progress dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Library scan complete')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Library scan complete')));
         // Reload library data
         await appState.loadLibraryData();
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close progress dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scan error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Scan error: $e')));
       }
     }
   }
@@ -941,11 +985,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      'assets/icons/icon.png',
-                      width: 80,
-                      height: 80,
-                    ),
+                    Image.asset('assets/icons/icon.png', width: 80, height: 80),
                     const SizedBox(height: 24),
                     Text(
                       'Doudou',
@@ -958,7 +998,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     FutureBuilder<PackageInfo>(
                       future: PackageInfo.fromPlatform(),
                       builder: (context, snapshot) {
-                        final version = snapshot.data?.version ?? 'Error: Unknown';
+                        final version =
+                            snapshot.data?.version ?? 'Error: Unknown';
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1534,19 +1575,19 @@ class _SettingsPageState extends State<SettingsPage> {
       'lv': 'Latviešu',
       'lt': 'Lietuvių',
     };
-    
+
     final baseName = languageNames[locale.languageCode] ?? locale.languageCode;
-    
+
     if (locale.countryCode != null && locale.countryCode!.isNotEmpty) {
       return '$baseName (${locale.countryCode})';
     }
-    
+
     return baseName;
   }
 
   void _showLanguageDialog(AppState appState) {
     final currentLocale = appState.locale;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1979,10 +2020,7 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
     return AlertDialog(
       title: const Text('Custom Accent Color'),
       content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 350,
-          maxHeight: maxHeight,
-        ),
+        constraints: BoxConstraints(maxWidth: 350, maxHeight: maxHeight),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -2011,7 +2049,6 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
               ),
 
               const SizedBox(height: 16), // Reduced spacing
-
               // RGB Sliders (more compact)
               _buildColorSlider(
                 'Red',
@@ -2060,7 +2097,6 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
               ),
 
               const SizedBox(height: 16), // Reduced spacing
-
               // Hex input
               Row(
                 children: [
@@ -2086,7 +2122,6 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
               ),
 
               const SizedBox(height: 12), // Reduced spacing
-
               // Preset colors for quick selection
               const Align(
                 alignment: Alignment.centerLeft,
@@ -2184,7 +2219,6 @@ class _CustomColorPickerDialogState extends State<_CustomColorPickerDialog> {
   }
 }
 
-/// Apple-styled settings category button
 class _AppleSettingsCategory extends StatefulWidget {
   final IconData icon;
   final String title;
@@ -2209,7 +2243,7 @@ class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: AppleDesignSystem.spacing2),
       child: MouseRegion(
@@ -2227,15 +2261,17 @@ class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
             ),
             decoration: BoxDecoration(
               color: widget.isSelected
-                  ? (isDark 
-                      ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                      : theme.colorScheme.primary.withValues(alpha: 0.1))
+                  ? (isDark
+                        ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                        : theme.colorScheme.primary.withValues(alpha: 0.1))
                   : _isHovered
-                      ? (isDark 
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03))
-                      : Colors.transparent,
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
+                  ? (isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03))
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(
+                AppleDesignSystem.radiusSmall,
+              ),
             ),
             child: Row(
               children: [
@@ -2244,9 +2280,9 @@ class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
                   size: 20,
                   color: widget.isSelected
                       ? theme.colorScheme.primary
-                      : (isDark 
-                          ? AppleColors.labelSecondaryDark 
-                          : AppleColors.labelSecondary),
+                      : (isDark
+                            ? AppleColors.labelSecondaryDark
+                            : AppleColors.labelSecondary),
                 ),
                 const SizedBox(width: AppleDesignSystem.spacing12),
                 Expanded(
@@ -2255,14 +2291,14 @@ class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: AppleDesignSystem.typeScaleSubheadline,
-                      fontWeight: widget.isSelected 
-                          ? AppleDesignSystem.weightSemiBold 
+                      fontWeight: widget.isSelected
+                          ? AppleDesignSystem.weightSemiBold
                           : AppleDesignSystem.weightRegular,
                       color: widget.isSelected
                           ? theme.colorScheme.primary
-                          : (isDark 
-                              ? AppleColors.labelPrimaryDark 
-                              : AppleColors.labelPrimary),
+                          : (isDark
+                                ? AppleColors.labelPrimaryDark
+                                : AppleColors.labelPrimary),
                     ),
                   ),
                 ),

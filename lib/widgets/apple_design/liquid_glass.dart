@@ -5,14 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'apple_theme.dart';
 
-/// iOS 26-style Liquid Glass Components
-/// Modern glassmorphism with enhanced blur, gradients, and animations
-
 // ============================================
 // LIQUID GLASS MATERIAL
 // ============================================
 
-/// iOS 26-style liquid glass material with tint and refraction
 class LiquidGlassMaterial extends StatelessWidget {
   final Widget child;
   final double blur;
@@ -98,7 +94,6 @@ class LiquidGlassMaterial extends StatelessWidget {
 // LIQUID GLASS NAV BAR
 // ============================================
 
-/// iOS 26-style bottom navigation bar with liquid glass effect
 class LiquidGlassNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -219,8 +214,6 @@ class _NavBarItemWidgetState extends State<_NavBarItemWidget>
 
   @override
   Widget build(BuildContext context) {
-    // Note: Animation is handled by parent GestureDetector
-    // This widget just displays the content
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) =>
@@ -285,7 +278,6 @@ class LiquidGlassNavItem {
 // LIQUID GLASS MINI PLAYER
 // ============================================
 
-/// iOS 26-style mini player with liquid glass effect
 class LiquidGlassMiniPlayer extends StatelessWidget {
   final Widget albumArt;
   final String title;
@@ -526,7 +518,6 @@ class _LiquidGlassIconButtonState extends State<_LiquidGlassIconButton>
 // LIQUID GLASS SEARCH BAR
 // ============================================
 
-/// iOS 26-style search bar with liquid glass effect
 class LiquidGlassSearchBar extends StatelessWidget {
   final TextEditingController? controller;
   final String placeholder;
@@ -629,7 +620,6 @@ class LiquidGlassSearchBar extends StatelessWidget {
 // LIQUID GLASS SECTION HEADER
 // ============================================
 
-/// iOS 26-style section header
 class LiquidGlassSectionHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -707,7 +697,6 @@ class LiquidGlassSectionHeader extends StatelessWidget {
 // LIQUID GLASS ALBUM CARD
 // ============================================
 
-/// iOS 26-style album card with liquid glass effect
 class LiquidGlassAlbumCard extends StatefulWidget {
   final Widget image;
   final String title;
@@ -839,7 +828,6 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
 // LIQUID GLASS LIST TILE
 // ============================================
 
-/// iOS 26-style list tile with liquid glass press effect
 class LiquidGlassListTile extends StatefulWidget {
   final Widget? leading;
   final String title;
@@ -939,7 +927,6 @@ class _LiquidGlassListTileState extends State<LiquidGlassListTile> {
 // LIQUID GLASS CHIP
 // ============================================
 
-/// iOS 26-style filter/action chip
 class LiquidGlassChip extends StatefulWidget {
   final String label;
   final IconData? icon;
@@ -1058,7 +1045,6 @@ class _LiquidGlassChipState extends State<LiquidGlassChip>
 // LIQUID GLASS FLOATING ACTION BUTTON
 // ============================================
 
-/// iOS 26-style floating action button with liquid glass effect
 class LiquidGlassFAB extends StatefulWidget {
   final IconData icon;
   final VoidCallback? onTap;
@@ -1149,7 +1135,6 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
 // LIQUID GLASS PROGRESS BAR
 // ============================================
 
-/// iOS 26-style progress bar with liquid glass effect
 class LiquidGlassProgressBar extends StatelessWidget {
   final double progress; // 0.0 to 1.0
   final double height;

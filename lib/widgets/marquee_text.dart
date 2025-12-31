@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// A text widget that automatically scrolls horizontally when the text
-/// overflows, similar to YouTube Music's song title display.
+/// A text widget that automatically scrolls horizontally when the text overflows.
 class MarqueeText extends StatefulWidget {
   final String text;
   final TextStyle? style;

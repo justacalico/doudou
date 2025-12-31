@@ -3,14 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'apple_theme.dart';
 
-/// Apple-style Glassmorphism Widget Library
-/// Implements frosted glass effects with backdrop blur, vibrancy, and animations
-
 // ============================================
 // FROSTED GLASS CONTAINER
 // ============================================
 
-/// A container with Apple-style frosted glass effect
 class FrostedGlass extends StatelessWidget {
   final Widget child;
   final double? width;
@@ -46,10 +42,14 @@ class FrostedGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final glassColor = backgroundColor ?? 
+    final glassColor =
+        backgroundColor ??
         (isDark ? AppleColors.glassDark : AppleColors.glassLight);
-    final border = borderColor ?? 
-        (isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.4));
+    final border =
+        borderColor ??
+        (isDark
+            ? Colors.white.withOpacity(0.1)
+            : Colors.white.withOpacity(0.4));
 
     return Container(
       width: width,
@@ -63,19 +63,13 @@ class FrostedGlass extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         clipBehavior: clipBehavior,
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: blurAmount,
-            sigmaY: blurAmount,
-          ),
+          filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
               color: glassColor,
               borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: border,
-                width: borderWidth,
-              ),
+              border: Border.all(color: border, width: borderWidth),
             ),
             child: child,
           ),
@@ -127,7 +121,7 @@ class _LiquidGlassCardState extends State<LiquidGlassCard>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
-  
+
   bool _isHovering = false;
   bool _isPressed = false;
 
@@ -139,21 +133,21 @@ class _LiquidGlassCardState extends State<LiquidGlassCard>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: AppleDesignSystem.hoverScale,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: AppleDesignSystem.springCurve,
-    ));
+    _scaleAnimation =
+        Tween<double>(begin: 1.0, end: AppleDesignSystem.hoverScale).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: AppleDesignSystem.springCurve,
+          ),
+        );
 
-    _opacityAnimation = Tween<double>(
-      begin: 1.0,
-      end: AppleDesignSystem.hoverOpacity,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: AppleDesignSystem.springCurve,
-    ));
+    _opacityAnimation =
+        Tween<double>(begin: 1.0, end: AppleDesignSystem.hoverOpacity).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: AppleDesignSystem.springCurve,
+          ),
+        );
   }
 
   @override
@@ -218,11 +212,11 @@ class _LiquidGlassCardState extends State<LiquidGlassCard>
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final scale = _isPressed 
-                ? AppleDesignSystem.pressScale 
+            final scale = _isPressed
+                ? AppleDesignSystem.pressScale
                 : _scaleAnimation.value;
-            final opacity = _isPressed 
-                ? AppleDesignSystem.pressOpacity 
+            final opacity = _isPressed
+                ? AppleDesignSystem.pressOpacity
                 : _opacityAnimation.value;
 
             return Transform.scale(
@@ -256,16 +250,18 @@ class _LiquidGlassCardState extends State<LiquidGlassCard>
                         duration: AppleDesignSystem.durationFast,
                         padding: widget.padding,
                         decoration: BoxDecoration(
-                          color: isDark 
-                              ? AppleColors.glassDark 
+                          color: isDark
+                              ? AppleColors.glassDark
                               : AppleColors.glassLight,
-                          borderRadius: BorderRadius.circular(widget.borderRadius),
+                          borderRadius: BorderRadius.circular(
+                            widget.borderRadius,
+                          ),
                           border: Border.all(
                             color: _isHovering
                                 ? accent.withOpacity(0.3)
-                                : (isDark 
-                                    ? Colors.white.withOpacity(0.1)
-                                    : Colors.white.withOpacity(0.4)),
+                                : (isDark
+                                      ? Colors.white.withOpacity(0.1)
+                                      : Colors.white.withOpacity(0.4)),
                             width: _isHovering ? 1.5 : 0.5,
                           ),
                         ),
@@ -307,33 +303,31 @@ class VibrancyContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     double blur;
     Color glassColor;
-    
+
     switch (style) {
       case VibrancyStyle.ultraThin:
         blur = AppleDesignSystem.blurUltraThin;
-        glassColor = isDark 
-            ? AppleColors.glassDarkUltraThin 
+        glassColor = isDark
+            ? AppleColors.glassDarkUltraThin
             : AppleColors.glassLightUltraThin;
         break;
       case VibrancyStyle.thin:
         blur = AppleDesignSystem.blurThin;
-        glassColor = isDark 
-            ? AppleColors.glassDarkThin 
+        glassColor = isDark
+            ? AppleColors.glassDarkThin
             : AppleColors.glassLightThin;
         break;
       case VibrancyStyle.regular:
         blur = AppleDesignSystem.blurRegular;
-        glassColor = isDark 
-            ? AppleColors.glassDark 
-            : AppleColors.glassLight;
+        glassColor = isDark ? AppleColors.glassDark : AppleColors.glassLight;
         break;
       case VibrancyStyle.thick:
         blur = AppleDesignSystem.blurThick;
-        glassColor = isDark 
-            ? AppleColors.glassDark.withOpacity(0.9) 
+        glassColor = isDark
+            ? AppleColors.glassDark.withOpacity(0.9)
             : AppleColors.glassLight.withOpacity(0.9);
         break;
     }
@@ -358,19 +352,14 @@ class VibrancyContainer extends StatelessWidget {
   }
 }
 
-enum VibrancyStyle {
-  ultraThin,
-  thin,
-  regular,
-  thick,
-}
+enum VibrancyStyle { ultraThin, thin, regular, thick }
 
 // ============================================
 // APPLE NAVIGATION BAR
 // ============================================
 
-/// Apple-style navigation bar with blur background
-class AppleNavigationBar extends StatelessWidget implements PreferredSizeWidget {
+class AppleNavigationBar extends StatelessWidget
+    implements PreferredSizeWidget {
   final String? title;
   final Widget? leading;
   final List<Widget>? actions;
@@ -396,8 +385,11 @@ class AppleNavigationBar extends StatelessWidget implements PreferredSizeWidget 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = backgroundColor ?? 
-        (isDark ? AppleColors.backgroundPrimaryDark : AppleColors.backgroundPrimary);
+    final bgColor =
+        backgroundColor ??
+        (isDark
+            ? AppleColors.backgroundPrimaryDark
+            : AppleColors.backgroundPrimary);
 
     Widget content = SafeArea(
       bottom: false,
@@ -418,8 +410,8 @@ class AppleNavigationBar extends StatelessWidget implements PreferredSizeWidget 
                   child: Text(
                     title!,
                     style: AppleTextStyles.headline(
-                      color: isDark 
-                          ? AppleColors.labelPrimaryDark 
+                      color: isDark
+                          ? AppleColors.labelPrimaryDark
                           : AppleColors.labelPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -443,10 +435,7 @@ class AppleNavigationBar extends StatelessWidget implements PreferredSizeWidget 
             color: bgColor.withOpacity(0.8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                if (flexibleSpace != null) flexibleSpace!,
-                content,
-              ],
+              children: [if (flexibleSpace != null) flexibleSpace!, content],
             ),
           ),
         ),
@@ -457,10 +446,7 @@ class AppleNavigationBar extends StatelessWidget implements PreferredSizeWidget 
       color: bgColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          if (flexibleSpace != null) flexibleSpace!,
-          content,
-        ],
+        children: [if (flexibleSpace != null) flexibleSpace!, content],
       ),
     );
   }
@@ -470,7 +456,6 @@ class AppleNavigationBar extends StatelessWidget implements PreferredSizeWidget 
 // APPLE TAB BAR
 // ============================================
 
-/// Apple-style bottom tab bar with blur material
 class AppleTabBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
@@ -491,7 +476,8 @@ class AppleTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = selectedColor ?? Theme.of(context).colorScheme.primary;
-    final unselected = unselectedColor ?? 
+    final unselected =
+        unselectedColor ??
         (isDark ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary);
 
     return ClipRRect(
@@ -503,13 +489,13 @@ class AppleTabBar extends StatelessWidget {
         child: Container(
           height: 83, // 49 + safe area
           decoration: BoxDecoration(
-            color: isDark 
+            color: isDark
                 ? AppleColors.glassDark.withOpacity(0.95)
                 : AppleColors.glassLight.withOpacity(0.95),
             border: Border(
               top: BorderSide(
-                color: isDark 
-                    ? AppleColors.separatorDark 
+                color: isDark
+                    ? AppleColors.separatorDark
                     : AppleColors.separator,
                 width: 0.5,
               ),
@@ -543,13 +529,14 @@ class AppleTabBar extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             item.label,
-                            style: AppleTextStyles.caption2(
-                              color: isSelected ? selected : unselected,
-                            ).copyWith(
-                              fontWeight: isSelected 
-                                  ? AppleDesignSystem.weightMedium 
-                                  : AppleDesignSystem.weightRegular,
-                            ),
+                            style:
+                                AppleTextStyles.caption2(
+                                  color: isSelected ? selected : unselected,
+                                ).copyWith(
+                                  fontWeight: isSelected
+                                      ? AppleDesignSystem.weightMedium
+                                      : AppleDesignSystem.weightRegular,
+                                ),
                           ),
                         ],
                       ),
@@ -581,7 +568,6 @@ class AppleTabBarItem {
 // APPLE SIDEBAR
 // ============================================
 
-/// Apple-style sidebar with vibrancy effect
 class AppleSidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
@@ -614,13 +600,13 @@ class AppleSidebar extends StatelessWidget {
         child: Container(
           width: width,
           decoration: BoxDecoration(
-            color: isDark 
+            color: isDark
                 ? AppleColors.glassDark.withOpacity(0.6)
                 : AppleColors.glassLight.withOpacity(0.8),
             border: Border(
               right: BorderSide(
-                color: isDark 
-                    ? AppleColors.separatorDark 
+                color: isDark
+                    ? AppleColors.separatorDark
                     : AppleColors.separator,
                 width: 0.5,
               ),
@@ -700,40 +686,41 @@ class _AppleSidebarTileState extends State<_AppleSidebarTile> {
             color: widget.isSelected
                 ? widget.primaryColor.withOpacity(widget.isDark ? 0.24 : 0.12)
                 : _isHovering
-                    ? (widget.isDark 
-                        ? AppleColors.fillPrimaryDark 
-                        : AppleColors.fillPrimary)
-                    : Colors.transparent,
+                ? (widget.isDark
+                      ? AppleColors.fillPrimaryDark
+                      : AppleColors.fillPrimary)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppleDesignSystem.radiusSmall),
           ),
           child: Row(
             children: [
               Icon(
-                widget.isSelected 
-                    ? widget.item.activeIcon ?? widget.item.icon 
+                widget.isSelected
+                    ? widget.item.activeIcon ?? widget.item.icon
                     : widget.item.icon,
                 color: widget.isSelected
                     ? widget.primaryColor
                     : widget.isDark
-                        ? AppleColors.labelSecondaryDark
-                        : AppleColors.labelSecondary,
+                    ? AppleColors.labelSecondaryDark
+                    : AppleColors.labelSecondary,
                 size: 20,
               ),
               const SizedBox(width: AppleDesignSystem.spacing12),
               Expanded(
                 child: Text(
                   widget.item.label,
-                  style: AppleTextStyles.subheadline(
-                    color: widget.isSelected
-                        ? widget.primaryColor
-                        : widget.isDark
+                  style:
+                      AppleTextStyles.subheadline(
+                        color: widget.isSelected
+                            ? widget.primaryColor
+                            : widget.isDark
                             ? AppleColors.labelPrimaryDark
                             : AppleColors.labelPrimary,
-                  ).copyWith(
-                    fontWeight: widget.isSelected
-                        ? AppleDesignSystem.weightSemiBold
-                        : AppleDesignSystem.weightRegular,
-                  ),
+                      ).copyWith(
+                        fontWeight: widget.isSelected
+                            ? AppleDesignSystem.weightSemiBold
+                            : AppleDesignSystem.weightRegular,
+                      ),
                 ),
               ),
               if (widget.item.badge != null)
@@ -777,7 +764,6 @@ class AppleSidebarItem {
 // MODAL SHEET
 // ============================================
 
-/// Apple-style modal sheet with grabber handle
 class AppleModalSheet extends StatelessWidget {
   final Widget child;
   final bool showGrabber;
@@ -820,9 +806,7 @@ class AppleModalSheet extends StatelessWidget {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark 
-                    ? AppleColors.glassDark 
-                    : AppleColors.glassLight,
+                color: isDark ? AppleColors.glassDark : AppleColors.glassLight,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppleDesignSystem.radiusXLarge),
                 ),
@@ -836,8 +820,8 @@ class AppleModalSheet extends StatelessWidget {
                       width: 36,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: isDark 
-                            ? AppleColors.systemGray3Dark 
+                        color: isDark
+                            ? AppleColors.systemGray3Dark
                             : AppleColors.systemGray4,
                         borderRadius: BorderRadius.circular(2.5),
                       ),
@@ -862,16 +846,11 @@ class AppleModalSheet extends StatelessWidget {
 // CONTEXT MENU
 // ============================================
 
-/// Apple-style context menu with blur backdrop
 class AppleContextMenu extends StatelessWidget {
   final List<AppleContextMenuItem> items;
   final double width;
 
-  const AppleContextMenu({
-    super.key,
-    required this.items,
-    this.width = 220,
-  });
+  const AppleContextMenu({super.key, required this.items, this.width = 220});
 
   @override
   Widget build(BuildContext context) {
@@ -887,15 +866,13 @@ class AppleContextMenu extends StatelessWidget {
         child: Container(
           width: width,
           decoration: BoxDecoration(
-            color: isDark 
+            color: isDark
                 ? AppleColors.elevatedSecondaryDark.withOpacity(0.95)
                 : AppleColors.glassLight.withOpacity(0.95),
             borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
             boxShadow: AppleDesignSystem.shadowLarge(Colors.black),
             border: Border.all(
-              color: isDark 
-                  ? AppleColors.separatorDark 
-                  : AppleColors.separator,
+              color: isDark ? AppleColors.separatorDark : AppleColors.separator,
               width: 0.5,
             ),
           ),
@@ -903,18 +880,15 @@ class AppleContextMenu extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               for (int i = 0; i < items.length; i++) ...[
-                _AppleContextMenuTile(
-                  item: items[i],
-                  isDark: isDark,
-                ),
+                _AppleContextMenuTile(item: items[i], isDark: isDark),
                 if (i < items.length - 1 && items[i].showDivider)
                   Divider(
                     height: 1,
                     thickness: 0.5,
                     indent: AppleDesignSystem.spacing12,
                     endIndent: AppleDesignSystem.spacing12,
-                    color: isDark 
-                        ? AppleColors.separatorDark 
+                    color: isDark
+                        ? AppleColors.separatorDark
                         : AppleColors.separator,
                   ),
               ],
@@ -930,10 +904,7 @@ class _AppleContextMenuTile extends StatefulWidget {
   final AppleContextMenuItem item;
   final bool isDark;
 
-  const _AppleContextMenuTile({
-    required this.item,
-    required this.isDark,
-  });
+  const _AppleContextMenuTile({required this.item, required this.isDark});
 
   @override
   State<_AppleContextMenuTile> createState() => _AppleContextMenuTileState();
@@ -947,7 +918,9 @@ class _AppleContextMenuTileState extends State<_AppleContextMenuTile> {
     final isDestructive = widget.item.isDestructive;
     final color = isDestructive
         ? (widget.isDark ? AppleColors.systemRedDark : AppleColors.systemRed)
-        : (widget.isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary);
+        : (widget.isDark
+              ? AppleColors.labelPrimaryDark
+              : AppleColors.labelPrimary);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -968,11 +941,7 @@ class _AppleContextMenuTileState extends State<_AppleContextMenuTile> {
           child: Row(
             children: [
               if (widget.item.icon != null) ...[
-                Icon(
-                  widget.item.icon,
-                  size: 18,
-                  color: color,
-                ),
+                Icon(widget.item.icon, size: 18, color: color),
                 const SizedBox(width: AppleDesignSystem.spacing12),
               ],
               Expanded(
@@ -985,8 +954,8 @@ class _AppleContextMenuTileState extends State<_AppleContextMenuTile> {
                 Text(
                   widget.item.shortcut!,
                   style: AppleTextStyles.footnote(
-                    color: widget.isDark 
-                        ? AppleColors.labelTertiaryDark 
+                    color: widget.isDark
+                        ? AppleColors.labelTertiaryDark
                         : AppleColors.labelTertiary,
                   ),
                 ),
@@ -1020,7 +989,6 @@ class AppleContextMenuItem {
 // APPLE BUTTON
 // ============================================
 
-/// Apple-style button with spring animation
 class AppleButton extends StatefulWidget {
   final Widget child;
   final VoidCallback? onPressed;
@@ -1059,13 +1027,13 @@ class _AppleButtonState extends State<AppleButton>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: AppleDesignSystem.pressScale,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: AppleDesignSystem.interactiveCurve,
-    ));
+    _scaleAnimation =
+        Tween<double>(begin: 1.0, end: AppleDesignSystem.pressScale).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: AppleDesignSystem.interactiveCurve,
+          ),
+        );
   }
 
   @override
@@ -1104,37 +1072,47 @@ class _AppleButtonState extends State<AppleButton>
 
     switch (widget.style) {
       case AppleButtonStyle.filled:
-        backgroundColor = isDisabled 
+        backgroundColor = isDisabled
             ? (isDark ? AppleColors.systemGray4Dark : AppleColors.systemGray4)
             : primaryColor;
         foregroundColor = isDisabled
-            ? (isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary)
+            ? (isDark
+                  ? AppleColors.labelTertiaryDark
+                  : AppleColors.labelTertiary)
             : Colors.white;
         break;
       case AppleButtonStyle.gray:
-        backgroundColor = isDark 
-            ? AppleColors.fillSecondaryDark 
+        backgroundColor = isDark
+            ? AppleColors.fillSecondaryDark
             : AppleColors.fillSecondary;
         foregroundColor = isDisabled
-            ? (isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary)
+            ? (isDark
+                  ? AppleColors.labelTertiaryDark
+                  : AppleColors.labelTertiary)
             : primaryColor;
         break;
       case AppleButtonStyle.tinted:
         backgroundColor = primaryColor.withOpacity(isDark ? 0.24 : 0.15);
         foregroundColor = isDisabled
-            ? (isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary)
+            ? (isDark
+                  ? AppleColors.labelTertiaryDark
+                  : AppleColors.labelTertiary)
             : primaryColor;
         break;
       case AppleButtonStyle.plain:
         backgroundColor = Colors.transparent;
         foregroundColor = isDisabled
-            ? (isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary)
+            ? (isDark
+                  ? AppleColors.labelTertiaryDark
+                  : AppleColors.labelTertiary)
             : primaryColor;
         break;
       case AppleButtonStyle.bordered:
         backgroundColor = Colors.transparent;
         foregroundColor = isDisabled
-            ? (isDark ? AppleColors.labelTertiaryDark : AppleColors.labelTertiary)
+            ? (isDark
+                  ? AppleColors.labelTertiaryDark
+                  : AppleColors.labelTertiary)
             : primaryColor;
         border = Border.all(
           color: isDisabled
@@ -1161,13 +1139,17 @@ class _AppleButtonState extends State<AppleButton>
               child: Container(
                 width: widget.width,
                 height: widget.height ?? 44,
-                padding: widget.padding ?? const EdgeInsets.symmetric(
-                  horizontal: AppleDesignSystem.spacing20,
-                  vertical: AppleDesignSystem.spacing12,
-                ),
+                padding:
+                    widget.padding ??
+                    const EdgeInsets.symmetric(
+                      horizontal: AppleDesignSystem.spacing20,
+                      vertical: AppleDesignSystem.spacing12,
+                    ),
                 decoration: BoxDecoration(
                   color: backgroundColor,
-                  borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    AppleDesignSystem.radiusMedium,
+                  ),
                   border: border,
                 ),
                 child: Center(
@@ -1181,9 +1163,14 @@ class _AppleButtonState extends State<AppleButton>
                           ),
                         )
                       : DefaultTextStyle(
-                          style: AppleTextStyles.headline(color: foregroundColor),
+                          style: AppleTextStyles.headline(
+                            color: foregroundColor,
+                          ),
                           child: IconTheme(
-                            data: IconThemeData(color: foregroundColor, size: 20),
+                            data: IconThemeData(
+                              color: foregroundColor,
+                              size: 20,
+                            ),
                             child: widget.child,
                           ),
                         ),
@@ -1197,19 +1184,12 @@ class _AppleButtonState extends State<AppleButton>
   }
 }
 
-enum AppleButtonStyle {
-  filled,
-  gray,
-  tinted,
-  plain,
-  bordered,
-}
+enum AppleButtonStyle { filled, gray, tinted, plain, bordered }
 
 // ============================================
 // APPLE LIST TILE
 // ============================================
 
-/// Apple-style list tile with hover effects
 class AppleListTile extends StatefulWidget {
   final Widget? leading;
   final String title;
@@ -1257,10 +1237,14 @@ class _AppleListTileState extends State<AppleListTile> {
           ),
           decoration: BoxDecoration(
             color: _isPressed
-                ? (isDark ? AppleColors.fillSecondaryDark : AppleColors.fillSecondary)
+                ? (isDark
+                      ? AppleColors.fillSecondaryDark
+                      : AppleColors.fillSecondary)
                 : _isHovering
-                    ? (isDark ? AppleColors.fillTertiaryDark : AppleColors.fillTertiary)
-                    : Colors.transparent,
+                ? (isDark
+                      ? AppleColors.fillTertiaryDark
+                      : AppleColors.fillTertiary)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
           ),
           child: Row(
@@ -1276,8 +1260,8 @@ class _AppleListTileState extends State<AppleListTile> {
                     Text(
                       widget.title,
                       style: AppleTextStyles.body(
-                        color: isDark 
-                            ? AppleColors.labelPrimaryDark 
+                        color: isDark
+                            ? AppleColors.labelPrimaryDark
                             : AppleColors.labelPrimary,
                       ),
                     ),
@@ -1286,8 +1270,8 @@ class _AppleListTileState extends State<AppleListTile> {
                       Text(
                         widget.subtitle!,
                         style: AppleTextStyles.footnote(
-                          color: isDark 
-                              ? AppleColors.labelSecondaryDark 
+                          color: isDark
+                              ? AppleColors.labelSecondaryDark
                               : AppleColors.labelSecondary,
                         ),
                       ),
@@ -1301,8 +1285,8 @@ class _AppleListTileState extends State<AppleListTile> {
                 Icon(
                   CupertinoIcons.chevron_right,
                   size: 16,
-                  color: isDark 
-                      ? AppleColors.labelTertiaryDark 
+                  color: isDark
+                      ? AppleColors.labelTertiaryDark
                       : AppleColors.labelTertiary,
                 ),
               ],

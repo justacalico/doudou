@@ -7,7 +7,6 @@ import '../../models/jellyfin_models.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 import 'desktop_layout.dart';
 
-/// Apple-styled track list with glassmorphism effects and smooth animations
 class TrackListTemplate extends StatelessWidget {
   final List<Track> tracks;
   final String emptyStateTitle;
@@ -67,23 +66,29 @@ class TrackListTemplate extends StatelessWidget {
             children: [
               // Track list header with Apple styling
               _buildHeader(context, isDark),
-              
+
               // Subtle gradient divider
               Container(
                 height: 0.5,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      (isDark ? AppleColors.separatorDark : AppleColors.separator)
+                      (isDark
+                              ? AppleColors.separatorDark
+                              : AppleColors.separator)
                           .withValues(alpha: 0),
-                      isDark ? AppleColors.separatorDark : AppleColors.separator,
-                      (isDark ? AppleColors.separatorDark : AppleColors.separator)
+                      isDark
+                          ? AppleColors.separatorDark
+                          : AppleColors.separator,
+                      (isDark
+                              ? AppleColors.separatorDark
+                              : AppleColors.separator)
                           .withValues(alpha: 0),
                     ],
                   ),
                 ),
               ),
-              
+
               // Track list with custom scroll physics
               Expanded(
                 child: ListView.builder(
@@ -107,8 +112,8 @@ class TrackListTemplate extends StatelessWidget {
                           context.read<AppState>().playPlaylist(tracks, index);
                         }
                       },
-                      onRemove: onRemoveTrack != null 
-                          ? () => onRemoveTrack!(track) 
+                      onRemove: onRemoveTrack != null
+                          ? () => onRemoveTrack!(track)
                           : null,
                     );
                   },
@@ -154,9 +159,13 @@ class TrackListTemplate extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      (isDark ? AppleColors.systemGray3Dark : AppleColors.systemGray3)
+                      (isDark
+                              ? AppleColors.systemGray3Dark
+                              : AppleColors.systemGray3)
                           .withValues(alpha: 0.5),
-                      (isDark ? AppleColors.systemGray4Dark : AppleColors.systemGray4)
+                      (isDark
+                              ? AppleColors.systemGray4Dark
+                              : AppleColors.systemGray4)
                           .withValues(alpha: 0.3),
                     ],
                   ),
@@ -165,8 +174,8 @@ class TrackListTemplate extends StatelessWidget {
                 child: Icon(
                   Icons.music_note_rounded,
                   size: 40,
-                  color: isDark 
-                      ? AppleColors.labelSecondaryDark 
+                  color: isDark
+                      ? AppleColors.labelSecondaryDark
                       : AppleColors.labelSecondary,
                 ),
               ),
@@ -177,8 +186,8 @@ class TrackListTemplate extends StatelessWidget {
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: AppleDesignSystem.typeScaleTitle3,
                   fontWeight: AppleDesignSystem.weightSemiBold,
-                  color: isDark 
-                      ? AppleColors.labelPrimaryDark 
+                  color: isDark
+                      ? AppleColors.labelPrimaryDark
                       : AppleColors.labelPrimary,
                 ),
               ),
@@ -188,8 +197,8 @@ class TrackListTemplate extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: AppleDesignSystem.fontFamily,
                   fontSize: AppleDesignSystem.typeScaleSubheadline,
-                  color: isDark 
-                      ? AppleColors.labelSecondaryDark 
+                  color: isDark
+                      ? AppleColors.labelSecondaryDark
                       : AppleColors.labelSecondary,
                 ),
                 textAlign: TextAlign.center,
@@ -220,19 +229,19 @@ class TrackListTemplate extends StatelessWidget {
                   fontSize: AppleDesignSystem.typeScaleCaption1,
                   fontWeight: AppleDesignSystem.weightMedium,
                   letterSpacing: 0.5,
-                  color: isDark 
-                      ? AppleColors.labelTertiaryDark 
+                  color: isDark
+                      ? AppleColors.labelTertiaryDark
                       : AppleColors.labelTertiary,
                 ),
               ),
             ),
-          
-          if (showTrackNumber) 
+
+          if (showTrackNumber)
             const SizedBox(width: AppleDesignSystem.spacing16),
-          
-          if (showArtwork) 
+
+          if (showArtwork)
             const SizedBox(width: 52), // Space for artwork + margin
-          
+
           Expanded(
             flex: showArtist || showAlbum ? 3 : 1,
             child: Text(
@@ -242,13 +251,13 @@ class TrackListTemplate extends StatelessWidget {
                 fontSize: AppleDesignSystem.typeScaleCaption1,
                 fontWeight: AppleDesignSystem.weightMedium,
                 letterSpacing: 0.5,
-                color: isDark 
-                    ? AppleColors.labelTertiaryDark 
+                color: isDark
+                    ? AppleColors.labelTertiaryDark
                     : AppleColors.labelTertiary,
               ),
             ),
           ),
-          
+
           if (showArtist)
             Expanded(
               flex: 2,
@@ -259,13 +268,13 @@ class TrackListTemplate extends StatelessWidget {
                   fontSize: AppleDesignSystem.typeScaleCaption1,
                   fontWeight: AppleDesignSystem.weightMedium,
                   letterSpacing: 0.5,
-                  color: isDark 
-                      ? AppleColors.labelTertiaryDark 
+                  color: isDark
+                      ? AppleColors.labelTertiaryDark
                       : AppleColors.labelTertiary,
                 ),
               ),
             ),
-          
+
           if (showAlbum)
             Expanded(
               flex: 2,
@@ -276,13 +285,13 @@ class TrackListTemplate extends StatelessWidget {
                   fontSize: AppleDesignSystem.typeScaleCaption1,
                   fontWeight: AppleDesignSystem.weightMedium,
                   letterSpacing: 0.5,
-                  color: isDark 
-                      ? AppleColors.labelTertiaryDark 
+                  color: isDark
+                      ? AppleColors.labelTertiaryDark
                       : AppleColors.labelTertiary,
                 ),
               ),
             ),
-          
+
           SizedBox(
             width: 80,
             child: Text(
@@ -292,14 +301,14 @@ class TrackListTemplate extends StatelessWidget {
                 fontSize: AppleDesignSystem.typeScaleCaption1,
                 fontWeight: AppleDesignSystem.weightMedium,
                 letterSpacing: 0.5,
-                color: isDark 
-                    ? AppleColors.labelTertiaryDark 
+                color: isDark
+                    ? AppleColors.labelTertiaryDark
                     : AppleColors.labelTertiary,
               ),
               textAlign: TextAlign.right,
             ),
           ),
-          
+
           const SizedBox(width: 48), // Space for actions
         ],
       ),
@@ -307,7 +316,6 @@ class TrackListTemplate extends StatelessWidget {
   }
 }
 
-/// Apple-styled individual track list item with hover effects and animations
 class _AppleTrackListItem extends StatefulWidget {
   final Track track;
   final int index;
@@ -361,14 +369,14 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
           ),
           decoration: BoxDecoration(
             color: _isHovered
-                ? (isDark 
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.03))
+                ? (isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03))
                 : Colors.transparent,
             border: widget.index < widget.totalTracks - 1
                 ? Border(
                     bottom: BorderSide(
-                      color: isDark 
+                      color: isDark
                           ? AppleColors.separatorDark.withValues(alpha: 0.5)
                           : AppleColors.separator.withValues(alpha: 0.5),
                       width: 0.5,
@@ -397,28 +405,32 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                             style: TextStyle(
                               fontFamily: AppleDesignSystem.fontFamily,
                               fontSize: AppleDesignSystem.typeScaleSubheadline,
-                              fontFeatures: const [FontFeature.tabularFigures()],
-                              color: isDark 
-                                  ? AppleColors.labelSecondaryDark 
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                              color: isDark
+                                  ? AppleColors.labelSecondaryDark
                                   : AppleColors.labelSecondary,
                             ),
                             textAlign: TextAlign.center,
                           ),
                   ),
                 ),
-              
-              if (widget.showTrackNumber) 
+
+              if (widget.showTrackNumber)
                 const SizedBox(width: AppleDesignSystem.spacing16),
-              
+
               // Track artwork
               if (widget.showArtwork) ...[
                 Container(
                   width: 40,
                   height: 40,
-                  margin: const EdgeInsets.only(right: AppleDesignSystem.spacing12),
+                  margin: const EdgeInsets.only(
+                    right: AppleDesignSystem.spacing12,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark 
-                        ? AppleColors.systemGray5Dark 
+                    color: isDark
+                        ? AppleColors.systemGray5Dark
                         : AppleColors.systemGray5,
                     borderRadius: BorderRadius.circular(
                       AppleDesignSystem.radiusSmall,
@@ -445,8 +457,8 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                               return Icon(
                                 Icons.music_note_rounded,
                                 size: 20,
-                                color: isDark 
-                                    ? AppleColors.labelTertiaryDark 
+                                color: isDark
+                                    ? AppleColors.labelTertiaryDark
                                     : AppleColors.labelTertiary,
                               );
                             },
@@ -454,14 +466,14 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                         : Icon(
                             Icons.music_note_rounded,
                             size: 20,
-                            color: isDark 
-                                ? AppleColors.labelTertiaryDark 
+                            color: isDark
+                                ? AppleColors.labelTertiaryDark
                                 : AppleColors.labelTertiary,
                           ),
                   ),
                 ),
               ],
-              
+
               // Track title
               Expanded(
                 flex: widget.showArtist || widget.showAlbum ? 3 : 1,
@@ -471,15 +483,15 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleBody,
                     fontWeight: AppleDesignSystem.weightMedium,
-                    color: isDark 
-                        ? AppleColors.labelPrimaryDark 
+                    color: isDark
+                        ? AppleColors.labelPrimaryDark
                         : AppleColors.labelPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              
+
               // Artist name
               if (widget.showArtist)
                 Expanded(
@@ -489,15 +501,15 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: AppleDesignSystem.typeScaleSubheadline,
-                      color: isDark 
-                          ? AppleColors.labelSecondaryDark 
+                      color: isDark
+                          ? AppleColors.labelSecondaryDark
                           : AppleColors.labelSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              
+
               // Album name
               if (widget.showAlbum)
                 Expanded(
@@ -507,34 +519,34 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                     style: TextStyle(
                       fontFamily: AppleDesignSystem.fontFamily,
                       fontSize: AppleDesignSystem.typeScaleSubheadline,
-                      color: isDark 
-                          ? AppleColors.labelSecondaryDark 
+                      color: isDark
+                          ? AppleColors.labelSecondaryDark
                           : AppleColors.labelSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              
+
               // Duration
               SizedBox(
                 width: 80,
                 child: Text(
-                  widget.track.duration != null 
-                      ? _formatDuration(widget.track.duration!) 
+                  widget.track.duration != null
+                      ? _formatDuration(widget.track.duration!)
                       : '--:--',
                   style: TextStyle(
                     fontFamily: AppleDesignSystem.fontFamily,
                     fontSize: AppleDesignSystem.typeScaleSubheadline,
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    color: isDark 
-                        ? AppleColors.labelSecondaryDark 
+                    color: isDark
+                        ? AppleColors.labelSecondaryDark
                         : AppleColors.labelSecondary,
                   ),
                   textAlign: TextAlign.right,
                 ),
               ),
-              
+
               // Actions menu
               const SizedBox(width: AppleDesignSystem.spacing8),
               _AppleTrackMenu(
@@ -558,7 +570,6 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
   }
 }
 
-/// Apple-styled popup menu for track actions
 class _AppleTrackMenu extends StatelessWidget {
   final Track track;
   final int index;
@@ -576,33 +587,50 @@ class _AppleTrackMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return PopupMenuButton<String>(
       icon: Icon(
         Icons.more_horiz_rounded,
         size: 20,
-        color: isDark 
-            ? AppleColors.labelSecondaryDark 
+        color: isDark
+            ? AppleColors.labelSecondaryDark
             : AppleColors.labelSecondary,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
       ),
-      color: isDark 
+      color: isDark
           ? AppleColors.backgroundTertiaryDark.withValues(alpha: 0.95)
           : AppleColors.backgroundTertiary.withValues(alpha: 0.95),
       elevation: 8,
       onSelected: (value) => _handleMenuAction(context, value),
       itemBuilder: (context) => [
         _buildMenuItem(context, 'play', Icons.play_arrow_rounded, 'Play'),
-        _buildMenuItem(context, 'play_next', Icons.skip_next_rounded, 'Play Next'),
-        _buildMenuItem(context, 'add_queue', Icons.queue_music_rounded, 'Add to Queue'),
-        const PopupMenuDivider(),
-        _buildMenuItem(context, 'add_playlist', Icons.playlist_add_rounded, 'Add to Playlist'),
         _buildMenuItem(
-          context, 
-          'favorite', 
-          track.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          context,
+          'play_next',
+          Icons.skip_next_rounded,
+          'Play Next',
+        ),
+        _buildMenuItem(
+          context,
+          'add_queue',
+          Icons.queue_music_rounded,
+          'Add to Queue',
+        ),
+        const PopupMenuDivider(),
+        _buildMenuItem(
+          context,
+          'add_playlist',
+          Icons.playlist_add_rounded,
+          'Add to Playlist',
+        ),
+        _buildMenuItem(
+          context,
+          'favorite',
+          track.isFavorite
+              ? Icons.favorite_rounded
+              : Icons.favorite_border_rounded,
           track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
         ),
         const PopupMenuDivider(),
@@ -610,9 +638,9 @@ class _AppleTrackMenu extends StatelessWidget {
         if (onRemove != null) ...[
           const PopupMenuDivider(),
           _buildMenuItem(
-            context, 
-            'remove', 
-            Icons.remove_circle_outline_rounded, 
+            context,
+            'remove',
+            Icons.remove_circle_outline_rounded,
             'Remove from List',
             isDestructive: true,
           ),
@@ -630,10 +658,10 @@ class _AppleTrackMenu extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final color = isDestructive 
-        ? AppleColors.systemRed 
+    final color = isDestructive
+        ? AppleColors.systemRed
         : (isDark ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary);
-    
+
     return PopupMenuItem<String>(
       value: value,
       height: 44,
@@ -656,34 +684,34 @@ class _AppleTrackMenu extends StatelessWidget {
 
   void _handleMenuAction(BuildContext context, String action) async {
     final appState = context.read<AppState>();
-    
+
     switch (action) {
       case 'play':
         await appState.playPlaylist(tracks, index);
         break;
-        
+
       case 'play_next':
         appState.addNextInQueue(track);
         _showSnackBar(context, 'Added "${track.name}" to play next');
         break;
-        
+
       case 'add_queue':
         appState.addToQueue(track);
         _showSnackBar(context, 'Added "${track.name}" to queue');
         break;
-        
+
       case 'add_playlist':
         await DesktopLayout.showAddToPlaylistDialog(context, track);
         break;
-        
+
       case 'download':
         await _downloadTrack(context, appState);
         break;
-        
+
       case 'favorite':
         await _toggleFavorite(context, appState);
         break;
-        
+
       case 'remove':
         if (onRemove != null) {
           onRemove!();
@@ -696,11 +724,14 @@ class _AppleTrackMenu extends StatelessWidget {
     try {
       final streamUrl = appState.mediaServiceManager.getStreamUrl(track.id);
       final uri = Uri.parse(streamUrl);
-      
+
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
         if (context.mounted) {
-          _showSnackBar(context, 'Opening download for "${track.name}" in browser');
+          _showSnackBar(
+            context,
+            'Opening download for "${track.name}" in browser',
+          );
         }
       } else {
         if (context.mounted) {
@@ -718,7 +749,7 @@ class _AppleTrackMenu extends StatelessWidget {
     try {
       await appState.toggleFavorite(track);
       if (context.mounted) {
-        final message = track.isFavorite 
+        final message = track.isFavorite
             ? 'Added "${track.name}" to favorites'
             : 'Removed "${track.name}" from favorites';
         _showSnackBar(context, message);
@@ -730,9 +761,13 @@ class _AppleTrackMenu extends StatelessWidget {
     }
   }
 
-  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+  void _showSnackBar(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -742,8 +777,8 @@ class _AppleTrackMenu extends StatelessWidget {
             fontSize: AppleDesignSystem.typeScaleSubheadline,
           ),
         ),
-        backgroundColor: isError 
-            ? AppleColors.systemRed 
+        backgroundColor: isError
+            ? AppleColors.systemRed
             : (isDark ? AppleColors.systemGreenDark : AppleColors.systemGreen),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

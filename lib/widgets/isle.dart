@@ -176,7 +176,9 @@ class _DynamicIsleState extends State<DynamicIsle>
                       width: _isExpanded ? 350 : 180,
                       height: _isExpanded ? 90 : 40,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                        borderRadius: BorderRadius.circular(
+                          AppleDesignSystem.radiusXLarge,
+                        ),
                         child: BackdropFilter(
                           filter: ImageFilter.blur(
                             sigmaX: AppleDesignSystem.blurRegular,
@@ -185,10 +187,14 @@ class _DynamicIsleState extends State<DynamicIsle>
                           child: Container(
                             decoration: BoxDecoration(
                               color: AppleColors.glassDark,
-                              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusXLarge),
+                              borderRadius: BorderRadius.circular(
+                                AppleDesignSystem.radiusXLarge,
+                              ),
                               border: Border.all(
                                 color: isPlaying
-                                    ? CupertinoColors.systemPurple.withOpacity(0.6)
+                                    ? CupertinoColors.systemPurple.withOpacity(
+                                        0.6,
+                                      )
                                     : Colors.white.withOpacity(0.15),
                                 width: isPlaying ? 1.5 : 0.5,
                               ),
@@ -196,7 +202,8 @@ class _DynamicIsleState extends State<DynamicIsle>
                                 ...AppleDesignSystem.shadowLarge(Colors.black),
                                 if (isPlaying)
                                   BoxShadow(
-                                    color: CupertinoColors.systemPurple.withOpacity(0.2),
+                                    color: CupertinoColors.systemPurple
+                                        .withOpacity(0.2),
                                     blurRadius: 20,
                                     spreadRadius: 4,
                                   ),
@@ -279,12 +286,13 @@ class _DynamicIsleState extends State<DynamicIsle>
           Expanded(
             child: Text(
               currentTrack.name,
-              style: AppleTextStyles.subheadline(
-                color: AppleColors.labelPrimaryDark,
-              ).copyWith(
-                fontWeight: AppleDesignSystem.weightSemiBold,
-                fontSize: 13,
-              ),
+              style:
+                  AppleTextStyles.subheadline(
+                    color: AppleColors.labelPrimaryDark,
+                  ).copyWith(
+                    fontWeight: AppleDesignSystem.weightSemiBold,
+                    fontSize: 13,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -301,9 +309,7 @@ class _DynamicIsleState extends State<DynamicIsle>
             isPrimary: true,
             size: 24,
             child: Icon(
-              isPlaying
-                  ? CupertinoIcons.pause_fill
-                  : CupertinoIcons.play_fill,
+              isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
               color: CupertinoColors.white,
               size: 12,
             ),
@@ -345,12 +351,16 @@ class _DynamicIsleState extends State<DynamicIsle>
             width: 66,
             height: 66,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              borderRadius: BorderRadius.circular(
+                AppleDesignSystem.radiusMedium,
+              ),
               color: AppleColors.elevatedSecondaryDark,
               boxShadow: AppleDesignSystem.shadowSmall(Colors.black),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppleDesignSystem.radiusMedium),
+              borderRadius: BorderRadius.circular(
+                AppleDesignSystem.radiusMedium,
+              ),
               child: currentTrack.imageUrl != null
                   ? Image.network(
                       appState.getImageUrl(
@@ -384,12 +394,13 @@ class _DynamicIsleState extends State<DynamicIsle>
                 // Track name
                 Text(
                   currentTrack.name,
-                  style: AppleTextStyles.subheadline(
-                    color: AppleColors.labelPrimaryDark,
-                  ).copyWith(
-                    fontWeight: AppleDesignSystem.weightSemiBold,
-                    fontSize: 14,
-                  ),
+                  style:
+                      AppleTextStyles.subheadline(
+                        color: AppleColors.labelPrimaryDark,
+                      ).copyWith(
+                        fontWeight: AppleDesignSystem.weightSemiBold,
+                        fontSize: 14,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -506,7 +517,6 @@ class _DynamicIsleState extends State<DynamicIsle>
   }
 }
 
-/// Apple-styled button for the Dynamic Isle
 class _AppleIsleButton extends StatefulWidget {
   final VoidCallback onTap;
   final bool isPrimary;

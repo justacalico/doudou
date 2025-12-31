@@ -54,7 +54,6 @@ class PlexService implements BaseMediaService {
     return 0;
   }
 
-  /// Get track's part key for direct streaming (Method 1 from bash script)
   Future<String?> _getTrackPartKey(String trackId) async {
     try {
       final response = await _dio.get(
@@ -610,8 +609,6 @@ class PlexService implements BaseMediaService {
     return getDownloadUrl(trackId);
   }
 
-  /// Get the best stream URL (async version that fetches metadata)
-  /// This tries all methods from the bash script in order of reliability
   Future<String> getBestStreamUrl(String trackId, {int? bitrate}) async {
     // Try to get metadata for better URLs
     final partKey = await _getTrackPartKey(trackId);
@@ -636,8 +633,6 @@ class PlexService implements BaseMediaService {
     return getDownloadUrl(trackId);
   }
 
-  /// Get the best stream URL (async version that fetches part ID)
-  /// This is what your bash script uses - Method 3 (Direct File)
   Future<String> getPreferredStreamUrl(String trackId, {int? bitrate}) async {
     final partId = await _getTrackPartId(trackId);
 
@@ -683,7 +678,6 @@ class PlexService implements BaseMediaService {
     return '$_serverUrl/library/metadata/$trackId/file.$format?$queryString';
   }
 
-  /// Get universal stream URL using Plex's universal transcode endpoint (Method 2 from bash)
   String getUniversalStreamUrl(String trackId, {int? bitrate}) {
     final audioBitrate = bitrate ?? 192;
     return '$_serverUrl/audio/:/transcode/universal/start.mp3'
@@ -697,13 +691,10 @@ class PlexService implements BaseMediaService {
         '&X-Plex-Token=$_token';
   }
 
-  /// Get direct stream URL using part key (Method 1 from bash script)
   String getDirectStreamWithPartKey(String partKey) {
     return '$_serverUrl$partKey?X-Plex-Token=$_token';
   }
 
-  /// Get direct part file URL (requires part ID from track metadata)
-  /// THIS IS METHOD 3 FROM YOUR BASH SCRIPT - THE ONE THAT WORKS!
   String getDirectPartUrl(String partId) {
     return '$_serverUrl/library/parts/$partId/file.mp3?X-Plex-Token=$_token';
   }
@@ -715,18 +706,13 @@ class PlexService implements BaseMediaService {
 
   @override
   List<String> getAlternativeStreamUrls(String trackId) {
-    // Note: This synchronous version can't fetch part IDs
-    // Use getAlternativeStreamUrlsAsync() for better Plex support
     return [
-      // Method 4 - Download URL (most reliable for synchronous calls)
       getDownloadUrl(trackId),
-      // Method 2 - Universal transcode fallbacks
       getUniversalStreamUrl(trackId, bitrate: 192),
       getUniversalStreamUrl(trackId, bitrate: 128),
     ];
   }
 
-  /// Get alternative stream URLs with async metadata fetching (all methods from bash script)
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
     final urls = <String>[];
@@ -735,7 +721,6 @@ class PlexService implements BaseMediaService {
     final partKey = await _getTrackPartKey(trackId);
     final partId = await _getTrackPartId(trackId);
 
-    // Method 1 from bash - Direct stream using part key
     if (partKey != null) {
       urls.add(getDirectStreamWithPartKey(partKey));
       if (kDebugMode) {
@@ -745,7 +730,6 @@ class PlexService implements BaseMediaService {
       }
     }
 
-    // Method 3 from bash - Direct file access using part ID
     if (partId != null) {
       urls.add(getDirectPartUrl(partId));
       if (kDebugMode) {
@@ -753,13 +737,11 @@ class PlexService implements BaseMediaService {
       }
     }
 
-    // Method 4 from bash - Download URL (very reliable)
     urls.add(getDownloadUrl(trackId));
     if (kDebugMode) {
       print('Plex: Adding Method 4 - Download URL');
     }
 
-    // Method 2 from bash - Universal transcode fallbacks
     urls.addAll([
       getUniversalStreamUrl(trackId, bitrate: 192),
       getUniversalStreamUrl(trackId, bitrate: 128),

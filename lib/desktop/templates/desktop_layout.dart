@@ -17,8 +17,6 @@ import '../pages/playlists.dart';
 import '../pages/settings.dart';
 import 'desktop_theme.dart';
 
-/// Modern Desktop Layout - Spotify-inspired design
-/// Optimized for performance with efficient widget rebuilds
 class DesktopLayout extends StatefulWidget {
   final int selectedIndex;
   final VoidCallback? onNavigationChanged;
