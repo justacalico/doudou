@@ -10,6 +10,7 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'providers/app_state.dart';
 import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
+import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/login/login.dart';
 import 'screens/partials/navbar/navbar.dart';
@@ -91,96 +92,101 @@ class DoudouApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
       child: _buildAppWithPlatformServices(
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            final isDark =
-                appState.themeMode == ThemeMode.dark ||
-                (appState.themeMode == ThemeMode.system &&
-                    MediaQuery.platformBrightnessOf(context) ==
-                        Brightness.dark);
+        // Wrap with VoiceCommandHandler for Google Assistant support (Android only)
+        VoiceCommandHandler(
+          child: Consumer<AppState>(
+            builder: (context, appState, child) {
+              final isDark =
+                  appState.themeMode == ThemeMode.dark ||
+                  (appState.themeMode == ThemeMode.system &&
+                      MediaQuery.platformBrightnessOf(context) ==
+                          Brightness.dark);
 
-            return CupertinoApp(
-              title: 'Doudou - Jellyfin Music Player',
-              theme: CupertinoThemeData(
-                primaryColor: appState.accentColor,
-                brightness: isDark ? Brightness.dark : Brightness.light,
-                scaffoldBackgroundColor: isDark
-                    ? AppleColors.backgroundPrimaryDark
-                    : AppleColors.backgroundPrimary,
-                barBackgroundColor: isDark
-                    ? AppleColors.backgroundSecondaryDark.withValues(alpha: 0.9)
-                    : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
-                textTheme: CupertinoTextThemeData(
+              return CupertinoApp(
+                title: 'Doudou - Jellyfin Music Player',
+                theme: CupertinoThemeData(
                   primaryColor: appState.accentColor,
-                  textStyle: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: AppleDesignSystem.typeScaleBody,
-                    color: isDark
-                        ? AppleColors.labelPrimaryDark
-                        : AppleColors.labelPrimary,
-                  ),
-                  navTitleTextStyle: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: AppleDesignSystem.typeScaleHeadline,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? AppleColors.labelPrimaryDark
-                        : AppleColors.labelPrimary,
-                  ),
-                  navLargeTitleTextStyle: TextStyle(
-                    fontFamily: AppleDesignSystem.fontFamily,
-                    fontSize: AppleDesignSystem.typeScaleLargeTitle,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppleColors.labelPrimaryDark
-                        : AppleColors.labelPrimary,
+                  brightness: isDark ? Brightness.dark : Brightness.light,
+                  scaffoldBackgroundColor: isDark
+                      ? AppleColors.backgroundPrimaryDark
+                      : AppleColors.backgroundPrimary,
+                  barBackgroundColor: isDark
+                      ? AppleColors.backgroundSecondaryDark.withValues(
+                          alpha: 0.9,
+                        )
+                      : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
+                  textTheme: CupertinoTextThemeData(
+                    primaryColor: appState.accentColor,
+                    textStyle: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleBody,
+                      color: isDark
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
+                    ),
+                    navTitleTextStyle: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleHeadline,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
+                    ),
+                    navLargeTitleTextStyle: TextStyle(
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleLargeTitle,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
+                    ),
                   ),
                 ),
-              ),
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                DefaultMaterialLocalizations.delegate,
-                DefaultCupertinoLocalizations.delegate,
-                DefaultWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: Builder(
-                builder: (context) {
-                  // Show loading screen while initializing
-                  if (!appState.isInitialized) {
-                    return CupertinoPageScaffold(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CupertinoActivityIndicator(radius: 20),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Loading...',
-                              style: TextStyle(
-                                fontFamily: AppleDesignSystem.fontFamily,
-                                fontSize: AppleDesignSystem.typeScaleBody,
-                                color: isDark
-                                    ? AppleColors.labelSecondaryDark
-                                    : AppleColors.labelSecondary,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  DefaultMaterialLocalizations.delegate,
+                  DefaultCupertinoLocalizations.delegate,
+                  DefaultWidgetsLocalizations.delegate,
+                ],
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: Builder(
+                  builder: (context) {
+                    // Show loading screen while initializing
+                    if (!appState.isInitialized) {
+                      return CupertinoPageScaffold(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const CupertinoActivityIndicator(radius: 20),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Loading...',
+                                style: TextStyle(
+                                  fontFamily: AppleDesignSystem.fontFamily,
+                                  fontSize: AppleDesignSystem.typeScaleBody,
+                                  color: isDark
+                                      ? AppleColors.labelSecondaryDark
+                                      : AppleColors.labelSecondary,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }
+                      );
+                    }
 
-                  if (appState.isLoggedIn) {
-                    return const HomeScreen();
-                  } else {
-                    return const LoginScreen();
-                  }
-                },
-              ),
-              debugShowCheckedModeBanner: false,
-            );
-          },
+                    if (appState.isLoggedIn) {
+                      return const HomeScreen();
+                    } else {
+                      return const LoginScreen();
+                    }
+                  },
+                ),
+                debugShowCheckedModeBanner: false,
+              );
+            },
+          ),
         ),
       ),
     );

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Google Assistant App Actions for Doudou Music Player
+    
+    Supported voice commands:
+    - "Play music on Doudou"
+    - "Play [artist/song/album] on Doudou"
+    - "Play my favorites on Doudou"
+    - "Shuffle my music on Doudou"
+    - "Resume music on Doudou"
+    - "Pause music on Doudou"
+    - "Next song on Doudou"
+    - "Previous song on Doudou"
+-->
+<actions>
+    
+    <!-- Built-in Intent: Play music (media playback) -->
+    <action intentName="actions.intent.PLAY_MUSIC">
+        <fulfillment urlTemplate="doudou://music/play{?query,artist,album,playlist}">
+            <parameter-mapping
+                intentParameter="music.byArtist.name"
+                urlParameter="artist"/>
+            <parameter-mapping
+                intentParameter="music.inAlbum.name"
+                urlParameter="album"/>
+            <parameter-mapping
+                intentParameter="music.inPlaylist.name"
+                urlParameter="playlist"/>
+            <parameter-mapping
+                intentParameter="music.name"
+                urlParameter="query"/>
+        </fulfillment>
+        <fulfillment urlTemplate="doudou://music/play"/>
+    </action>
+    
+    <!-- Built-in Intent: Pause media -->
+    <action intentName="actions.intent.PAUSE_MEDIA">
+        <fulfillment urlTemplate="doudou://music/pause"/>
+    </action>
+    
+    <!-- Built-in Intent: Resume media -->
+    <action intentName="actions.intent.RESUME_MEDIA">
+        <fulfillment urlTemplate="doudou://music/resume"/>
+    </action>
+    
+    <!-- Built-in Intent: Stop media -->
+    <action intentName="actions.intent.STOP_MEDIA">
+        <fulfillment urlTemplate="doudou://music/stop"/>
+    </action>
+    
+    <!-- Built-in Intent: Next track -->
+    <action intentName="actions.intent.SKIP_NEXT_MEDIA">
+        <fulfillment urlTemplate="doudou://music/next"/>
+    </action>
+    
+    <!-- Built-in Intent: Previous track -->
+    <action intentName="actions.intent.SKIP_PREVIOUS_MEDIA">
+        <fulfillment urlTemplate="doudou://music/previous"/>
+    </action>
+    
+    <!-- Built-in Intent: Shuffle media -->
+    <action intentName="actions.intent.SHUFFLE_MEDIA">
+        <fulfillment urlTemplate="doudou://music/shuffle"/>
+    </action>
+    
+    <!-- Built-in Intent: Repeat media -->
+    <action intentName="actions.intent.REPEAT_MEDIA">
+        <fulfillment urlTemplate="doudou://music/repeat"/>
+    </action>
+    
+    <!-- Custom action: Play favorites -->
+    <action intentName="custom.actions.intent.PLAY_FAVORITES">
+        <fulfillment urlTemplate="doudou://music/favorites{?shuffle}">
+            <parameter-mapping
+                intentParameter="shuffle"
+                urlParameter="shuffle"/>
+        </fulfillment>
+        <fulfillment urlTemplate="doudou://music/favorites"/>
+    </action>
+    
+    <!-- Custom action: Shuffle all music -->
+    <action intentName="custom.actions.intent.SHUFFLE_ALL">
+        <fulfillment urlTemplate="doudou://music/shuffle-all"/>
+    </action>
+    
+    <!-- Custom action: Search and play -->
+    <action intentName="custom.actions.intent.SEARCH_AND_PLAY">
+        <fulfillment urlTemplate="doudou://music/search{?query}">
+            <parameter-mapping
+                intentParameter="query"
+                urlParameter="query"/>
+        </fulfillment>
+    </action>
+    
+</actions>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Shortcuts for Doudou Music Player
+    Used by Google Assistant App Actions and Android shortcuts
+    
+    Voice command examples:
+    - "Hey Google, play music on Doudou"
+    - "Hey Google, play Tally Hall on Doudou"
+    - "Hey Google, play my favorites on Doudou"
+    - "Hey Google, shuffle my music on Doudou"
+    - "Hey Google, next song on Doudou"
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Capability: Play Music -->
+    <capability android:name="actions.intent.PLAY_MUSIC">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter
+                android:name="music.name"
+                android:key="query"/>
+            <parameter
+                android:name="music.byArtist.name"
+                android:key="artist"/>
+            <parameter
+                android:name="music.inAlbum.name"
+                android:key="album"/>
+            <parameter
+                android:name="music.inPlaylist.name"
+                android:key="playlist"/>
+        </intent>
+    </capability>
+    
+    <!-- Capability: Pause Media -->
+    <capability android:name="actions.intent.PAUSE_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter android:name="mediaControls.pause" android:key="pause"/>
+        </intent>
+    </capability>
+    
+    <!-- Capability: Resume Media -->
+    <capability android:name="actions.intent.RESUME_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter android:name="mediaControls.resume" android:key="resume"/>
+        </intent>
+    </capability>
+    
+    <!-- Capability: Skip Next -->
+    <capability android:name="actions.intent.SKIP_NEXT_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter android:name="mediaControls.next" android:key="next"/>
+        </intent>
+    </capability>
+    
+    <!-- Capability: Skip Previous -->
+    <capability android:name="actions.intent.SKIP_PREVIOUS_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter android:name="mediaControls.previous" android:key="previous"/>
+        </intent>
+    </capability>
+    
+    <!-- Capability: Shuffle Media -->
+    <capability android:name="actions.intent.SHUFFLE_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter android:name="mediaControls.shuffle" android:key="shuffle"/>
+        </intent>
+    </capability>
+    
+    <!-- Capability: Repeat Media -->
+    <capability android:name="actions.intent.REPEAT_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity">
+            <parameter android:name="mediaControls.repeat" android:key="repeat"/>
+        </intent>
+    </capability>
+    
+    <!-- Static Shortcuts for quick access -->
+    
+    <!-- Shuffle All Music -->
+    <shortcut
+        android:shortcutId="shuffle_all"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/shortcut_shuffle_all"
+        android:shortcutLongLabel="@string/shortcut_shuffle_all_long"
+        android:icon="@drawable/ic_shuffle">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity"
+            android:data="doudou://music/shuffle-all"/>
+        <capability-binding android:key="actions.intent.SHUFFLE_MEDIA"/>
+    </shortcut>
+    
+    <!-- Play Favorites -->
+    <shortcut
+        android:shortcutId="play_favorites"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/shortcut_favorites"
+        android:shortcutLongLabel="@string/shortcut_favorites_long"
+        android:icon="@drawable/ic_favorite">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity"
+            android:data="doudou://music/favorites"/>
+        <capability-binding android:key="actions.intent.PLAY_MUSIC">
+            <parameter-binding
+                android:key="music.inPlaylist.name"
+                android:value="@array/favorites_synonyms"/>
+        </capability-binding>
+    </shortcut>
+    
+    <!-- Resume Playing -->
+    <shortcut
+        android:shortcutId="resume_music"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/shortcut_resume"
+        android:shortcutLongLabel="@string/shortcut_resume_long"
+        android:icon="@drawable/ic_play">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="gitlab.openlyst.doudou"
+            android:targetClass="gitlab.openlyst.doudou.MainActivity"
+            android:data="doudou://music/resume"/>
+        <capability-binding android:key="actions.intent.RESUME_MEDIA"/>
+    </shortcut>
+    
+</shortcuts>

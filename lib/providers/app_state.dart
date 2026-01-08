@@ -12,6 +12,7 @@ import '../services/players/jellyfin_service.dart';
 import '../services/media_service_manager.dart';
 import '../services/base_service.dart';
 import '../services/audio_service_integration.dart';
+import '../services/audio/unified_audio_handler.dart' show RepeatMode;
 import '../services/cache_service.dart';
 import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
@@ -3007,6 +3008,462 @@ class AppState extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  // ============================================================================
+  // VOICE COMMAND HANDLING (Google Assistant Integration)
+  // ============================================================================
+
+  /// Handle a voice command from Google Assistant
+  /// This is the main entry point for all voice commands
+  Future<void> handleVoiceCommand(dynamic command) async {
+    if (kDebugMode) {
+      print('AppState: Handling voice command: $command');
+    }
+
+    // Import dynamically to avoid circular dependency
+    // The command object comes from VoiceCommandService
+    final commandType = command.type;
+
+    try {
+      switch (commandType.toString()) {
+        case 'VoiceCommandType.play':
+          await _handleVoicePlayGeneral();
+          break;
+
+        case 'VoiceCommandType.playArtist':
+          await searchAndPlayArtist(command.artist ?? '');
+          break;
+
+        case 'VoiceCommandType.playAlbum':
+          await searchAndPlayAlbum(command.album ?? '', artist: command.artist);
+          break;
+
+        case 'VoiceCommandType.playPlaylist':
+          await searchAndPlayPlaylist(command.playlist ?? '');
+          break;
+
+        case 'VoiceCommandType.playFavorites':
+          await playFavoritesFromVoice(shuffle: command.shuffle);
+          break;
+
+        case 'VoiceCommandType.shuffleAll':
+          await shuffleAllTracks();
+          break;
+
+        case 'VoiceCommandType.searchAndPlay':
+          await searchAndPlay(command.query ?? '');
+          break;
+
+        case 'VoiceCommandType.pause':
+          await _audioHandler?.pause();
+          break;
+
+        case 'VoiceCommandType.resume':
+          await _audioHandler?.play();
+          break;
+
+        case 'VoiceCommandType.stop':
+          // Stop is equivalent to pause for this audio system
+          await _audioHandler?.pause();
+          break;
+
+        case 'VoiceCommandType.next':
+          await skipToNext();
+          break;
+
+        case 'VoiceCommandType.previous':
+          await skipToPrevious();
+          break;
+
+        case 'VoiceCommandType.shuffle':
+          _audioHandler?.shuffle();
+          break;
+
+        case 'VoiceCommandType.repeat':
+          // Cycle through repeat modes: none -> all -> one -> none
+          await _cycleRepeatMode();
+          break;
+
+        default:
+          if (kDebugMode) {
+            print('AppState: Unknown voice command type: $commandType');
+          }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error handling voice command: $e');
+      }
+    }
+  }
+
+  /// Cycle through repeat modes: none -> all -> one -> none
+  Future<void> _cycleRepeatMode() async {
+    if (_audioHandler == null) return;
+
+    final currentMode = _audioHandler!.repeatMode;
+
+    // Cycle: none -> all -> one -> none
+    if (currentMode == RepeatMode.none) {
+      await _audioHandler!.setRepeatMode(RepeatMode.all);
+    } else if (currentMode == RepeatMode.all) {
+      await _audioHandler!.setRepeatMode(RepeatMode.one);
+    } else {
+      await _audioHandler!.setRepeatMode(RepeatMode.none);
+    }
+    notifyListeners();
+  }
+
+  /// Handle general "play music" command - plays recently played or shuffles all
+  Future<void> _handleVoicePlayGeneral() async {
+    if (kDebugMode) {
+      print('AppState: Handling general play command');
+    }
+
+    // If there's something in the queue, resume playback
+    if (_audioHandler != null && queue.isNotEmpty) {
+      await _audioHandler!.play();
+      return;
+    }
+
+    // Otherwise, try to play recent tracks
+    if (_recentTracks.isNotEmpty) {
+      await _audioHandler?.playPlaylist(_recentTracks, 0);
+      return;
+    }
+
+    // If no recent tracks, shuffle all
+    await shuffleAllTracks();
+  }
+
+  /// Search for content and play - handles songs, albums, artists intelligently
+  Future<void> searchAndPlay(String query) async {
+    if (query.isEmpty) {
+      if (kDebugMode) {
+        print('AppState: Empty search query, shuffling all');
+      }
+      await shuffleAllTracks();
+      return;
+    }
+
+    if (kDebugMode) {
+      print('AppState: Searching and playing: $query');
+    }
+
+    try {
+      final normalizedQuery = query.toLowerCase().trim();
+
+      // First, try to find an exact or close match in tracks
+      final matchingTracks = _tracks.where((track) {
+        final trackName = track.name.toLowerCase();
+        final artistName = track.artistName?.toLowerCase() ?? '';
+        final albumName = track.albumName?.toLowerCase() ?? '';
+        return trackName.contains(normalizedQuery) ||
+            artistName.contains(normalizedQuery) ||
+            albumName.contains(normalizedQuery);
+      }).toList();
+
+      if (matchingTracks.isNotEmpty) {
+        // Sort by relevance - exact name match first
+        matchingTracks.sort((a, b) {
+          final aExact = a.name.toLowerCase() == normalizedQuery ? 0 : 1;
+          final bExact = b.name.toLowerCase() == normalizedQuery ? 0 : 1;
+          if (aExact != bExact) return aExact.compareTo(bExact);
+
+          // Then by artist match
+          final aArtist =
+              (a.artistName?.toLowerCase() ?? '').contains(normalizedQuery)
+              ? 0
+              : 1;
+          final bArtist =
+              (b.artistName?.toLowerCase() ?? '').contains(normalizedQuery)
+              ? 0
+              : 1;
+          return aArtist.compareTo(bArtist);
+        });
+
+        if (kDebugMode) {
+          print(
+            'AppState: Found ${matchingTracks.length} matching tracks, playing first: ${matchingTracks.first.name}',
+          );
+        }
+
+        // Play the best match and queue similar tracks
+        await _audioHandler?.playPlaylist(matchingTracks, 0);
+        return;
+      }
+
+      // Try albums
+      final matchingAlbum = _albums.firstWhere(
+        (album) => album.name.toLowerCase().contains(normalizedQuery),
+        orElse: () => Album(id: '', name: '', artistName: ''),
+      );
+
+      if (matchingAlbum.id.isNotEmpty) {
+        if (kDebugMode) {
+          print('AppState: Found matching album: ${matchingAlbum.name}');
+        }
+        await _playAlbumById(matchingAlbum.id);
+        return;
+      }
+
+      // Try artists
+      final matchingArtist = _artists.firstWhere(
+        (artist) => artist.name.toLowerCase().contains(normalizedQuery),
+        orElse: () => Artist(id: '', name: ''),
+      );
+
+      if (matchingArtist.id.isNotEmpty) {
+        if (kDebugMode) {
+          print('AppState: Found matching artist: ${matchingArtist.name}');
+        }
+        await playArtistTracks(matchingArtist);
+        return;
+      }
+
+      // Try playlists
+      final matchingPlaylist = _playlists.firstWhere(
+        (playlist) => playlist.name.toLowerCase().contains(normalizedQuery),
+        orElse: () => Playlist(id: '', name: '', trackCount: 0),
+      );
+
+      if (matchingPlaylist.id.isNotEmpty) {
+        if (kDebugMode) {
+          print('AppState: Found matching playlist: ${matchingPlaylist.name}');
+        }
+        await _playPlaylistById(matchingPlaylist.id);
+        return;
+      }
+
+      // Nothing found locally, try server search
+      if (kDebugMode) {
+        print('AppState: No local match, trying server search');
+      }
+
+      final searchResults = await _mediaServiceManager.search(query);
+      if (searchResults.tracks.isNotEmpty) {
+        await _audioHandler?.playPlaylist(searchResults.tracks, 0);
+        return;
+      }
+
+      if (kDebugMode) {
+        print('AppState: No results found for query: $query');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error in searchAndPlay: $e');
+      }
+    }
+  }
+
+  /// Search for and play music by a specific artist
+  Future<void> searchAndPlayArtist(String artistName) async {
+    if (artistName.isEmpty) return;
+
+    if (kDebugMode) {
+      print('AppState: Searching for artist: $artistName');
+    }
+
+    final normalizedName = artistName.toLowerCase().trim();
+
+    // Find matching artist
+    final matchingArtist = _artists.firstWhere(
+      (artist) => artist.name.toLowerCase().contains(normalizedName),
+      orElse: () => Artist(id: '', name: ''),
+    );
+
+    if (matchingArtist.id.isNotEmpty) {
+      await playArtistTracks(matchingArtist);
+      return;
+    }
+
+    // Try tracks by artist name
+    final artistTracks = _tracks
+        .where(
+          (track) =>
+              track.artistName?.toLowerCase().contains(normalizedName) ?? false,
+        )
+        .toList();
+
+    if (artistTracks.isNotEmpty) {
+      artistTracks.shuffle();
+      await _audioHandler?.playPlaylist(artistTracks, 0);
+      return;
+    }
+
+    if (kDebugMode) {
+      print('AppState: No tracks found for artist: $artistName');
+    }
+  }
+
+  /// Search for and play a specific album
+  Future<void> searchAndPlayAlbum(String albumName, {String? artist}) async {
+    if (albumName.isEmpty) return;
+
+    if (kDebugMode) {
+      print('AppState: Searching for album: $albumName by $artist');
+    }
+
+    final normalizedAlbum = albumName.toLowerCase().trim();
+    final normalizedArtist = artist?.toLowerCase().trim();
+
+    // Find matching album
+    final matchingAlbum = _albums.firstWhere((album) {
+      final nameMatch = album.name.toLowerCase().contains(normalizedAlbum);
+      if (!nameMatch) return false;
+      if (normalizedArtist != null) {
+        return album.artistName?.toLowerCase().contains(normalizedArtist) ??
+            false;
+      }
+      return true;
+    }, orElse: () => Album(id: '', name: '', artistName: ''));
+
+    if (matchingAlbum.id.isNotEmpty) {
+      await _playAlbumById(matchingAlbum.id);
+      return;
+    }
+
+    if (kDebugMode) {
+      print('AppState: No album found: $albumName');
+    }
+  }
+
+  /// Search for and play a playlist by name
+  Future<void> searchAndPlayPlaylist(String playlistName) async {
+    if (playlistName.isEmpty) return;
+
+    if (kDebugMode) {
+      print('AppState: Searching for playlist: $playlistName');
+    }
+
+    final normalizedName = playlistName.toLowerCase().trim();
+
+    // Find matching playlist
+    final matchingPlaylist = _playlists.firstWhere(
+      (playlist) => playlist.name.toLowerCase().contains(normalizedName),
+      orElse: () => Playlist(id: '', name: '', trackCount: 0),
+    );
+
+    if (matchingPlaylist.id.isNotEmpty) {
+      await _playPlaylistById(matchingPlaylist.id);
+      return;
+    }
+
+    if (kDebugMode) {
+      print('AppState: No playlist found: $playlistName');
+    }
+  }
+
+  /// Play favorites from voice command
+  Future<void> playFavoritesFromVoice({bool shuffle = false}) async {
+    if (kDebugMode) {
+      print('AppState: Playing favorites (shuffle: $shuffle)');
+    }
+
+    if (shuffle) {
+      await shuffleFavoriteTracks();
+    } else {
+      // Get favorites and play in order
+      List<Track> favoriteTracks = await _mediaServiceManager
+          .getStarredTracks();
+
+      if (favoriteTracks.isEmpty) {
+        favoriteTracks = _tracks.where((track) => track.isFavorite).toList();
+      }
+
+      if (favoriteTracks.isNotEmpty) {
+        await _audioHandler?.playPlaylist(favoriteTracks, 0);
+      } else {
+        if (kDebugMode) {
+          print('AppState: No favorite tracks to play');
+        }
+      }
+    }
+  }
+
+  /// Play all tracks from an artist
+  Future<void> playArtistTracks(Artist artist) async {
+    if (kDebugMode) {
+      print('AppState: Playing tracks from artist: ${artist.name}');
+    }
+
+    try {
+      // Get tracks from this artist
+      final artistTracks = _tracks
+          .where((track) => track.artistName == artist.name)
+          .toList();
+
+      if (artistTracks.isNotEmpty) {
+        await _audioHandler?.playPlaylist(artistTracks, 0);
+      } else {
+        if (kDebugMode) {
+          print('AppState: No local tracks found for artist: ${artist.name}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error playing artist tracks: $e');
+      }
+    }
+  }
+
+  /// Play an album by its ID (fetches tracks and plays)
+  Future<void> _playAlbumById(String albumId) async {
+    if (kDebugMode) {
+      print('AppState: Playing album by ID: $albumId');
+    }
+
+    try {
+      // Get tracks from this album from local cache
+      final albumTracks = _tracks
+          .where((track) => track.albumId == albumId)
+          .toList();
+
+      // Sort by track number
+      albumTracks.sort(
+        (a, b) => (a.trackNumber ?? 0).compareTo(b.trackNumber ?? 0),
+      );
+
+      if (albumTracks.isNotEmpty) {
+        await _audioHandler?.playPlaylist(albumTracks, 0);
+      } else {
+        if (kDebugMode) {
+          print('AppState: No tracks found for album: $albumId');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error playing album: $e');
+      }
+    }
+  }
+
+  /// Play a playlist by its ID (fetches tracks and plays)
+  Future<void> _playPlaylistById(String playlistId) async {
+    if (kDebugMode) {
+      print('AppState: Playing playlist by ID: $playlistId');
+    }
+
+    try {
+      // Fetch tracks from the playlist
+      final tracks = await _mediaServiceManager.getPlaylistTracks(playlistId);
+
+      if (tracks.isNotEmpty) {
+        await _audioHandler?.playPlaylist(tracks, 0);
+      } else {
+        if (kDebugMode) {
+          print('AppState: No tracks found for playlist: $playlistId');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppState: Error playing playlist: $e');
+      }
+    }
+  }
+
+  // ============================================================================
+  // END VOICE COMMAND HANDLING
+  // ============================================================================
 
   Future<void> _exitOfflineMode() async {
     if (kDebugMode) {

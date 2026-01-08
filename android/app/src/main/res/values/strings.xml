@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">Doudou</string>
+    
+    <!-- Google Assistant Shortcut labels -->
+    <string name="shortcut_shuffle_all">Shuffle All</string>
+    <string name="shortcut_shuffle_all_long">Shuffle all your music</string>
+    <string name="shortcut_favorites">Play Favorites</string>
+    <string name="shortcut_favorites_long">Play your favorite songs</string>
+    <string name="shortcut_resume">Resume Music</string>
+    <string name="shortcut_resume_long">Resume playing music</string>
+    
+    <!-- Synonyms for favorites playlist recognition -->
+    <string-array name="favorites_synonyms">
+        <item>favorites</item>
+        <item>favourites</item>
+        <item>my favorites</item>
+        <item>my favourites</item>
+        <item>liked songs</item>
+        <item>liked music</item>
+        <item>starred</item>
+        <item>my starred</item>
+        <item>favorite songs</item>
+        <item>favourite songs</item>
+        <item>loved songs</item>
+        <item>my loved songs</item>
+    </string-array>
+</resources>
