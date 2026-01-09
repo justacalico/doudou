@@ -85,7 +85,8 @@ class _DesktopLayoutState extends State<DesktopLayout>
   void _onExternalNavigation() {
     final newIndex = _navigationService.selectedPageIndex.value;
     if (newIndex != _currentIndex && newIndex < _pages.length) {
-      _navigateToPage(newIndex);
+      setState(() => _currentIndex = newIndex);
+      _pageController.jumpToPage(newIndex);
     }
   }
 
@@ -95,10 +96,12 @@ class _DesktopLayoutState extends State<DesktopLayout>
   }
 
   void _navigateToPage(int index) {
-    if (index == _currentIndex) return;
-    setState(() => _currentIndex = index);
-    _pageController.jumpToPage(index);
-    _navigationService.selectedPageIndex.value = index;
+    // Always clear detail pages when clicking sidebar, even if same page
+    _navigationService.selectPage(index);
+    if (index != _currentIndex) {
+      setState(() => _currentIndex = index);
+      _pageController.jumpToPage(index);
+    }
   }
 
   List<_NavItem> get _navItems => [
