@@ -30,6 +30,10 @@ dependencies:
   audio_session: ^0.2.2
   wakelock_plus: ^1.4.0
   
+  # Desktop system media controls (taskbar/system tray)
+  audio_service_mpris: ^0.2.0       # Linux MPRIS (D-Bus media controls)
+  audio_service_win: ^0.0.2         # Windows System Media Transport Controls
+  
   # State management
   provider: ^6.1.5
   

@@ -303,7 +303,7 @@ class VoiceCommandService {
         return VoiceCommand(type: VoiceCommandType.play, rawUri: uriString);
       }
 
-      final action = pathSegments.length > 0 ? pathSegments[0] : '';
+      final action = pathSegments.isNotEmpty ? pathSegments[0] : '';
       final query = uri.queryParameters;
 
       if (kDebugMode) {

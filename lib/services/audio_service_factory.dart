@@ -5,6 +5,13 @@ import 'audio/unified_audio_handler.dart';
 
 /// Simple audio service factory that creates the unified audio handler
 /// for all platforms (mobile, desktop, and web)
+/// 
+/// Platform-specific media control integration:
+/// - Android/iOS: AudioService with notifications
+/// - macOS: AudioService with Control Center integration
+/// - Linux: AudioService with MPRIS (via audio_service_mpris plugin)
+/// - Windows: AudioService with SMTC (via audio_service_win plugin)
+/// - Web: Direct handler (no system controls)
 class AudioServiceFactory {
   static AudioServiceFactory? _instance;
   static AudioServiceFactory get instance =>
@@ -65,11 +72,34 @@ class AudioServiceFactory {
             'AudioServiceFactory: Created UnifiedAudioHandler with AudioService for mobile',
           );
         }
+      } else if (defaultTargetPlatform == TargetPlatform.macOS ||
+                 defaultTargetPlatform == TargetPlatform.linux ||
+                 defaultTargetPlatform == TargetPlatform.windows) {
+        // Desktop platforms - use AudioService for system media controls
+        // macOS: Native Control Center integration
+        // Linux: MPRIS integration via audio_service_mpris plugin
+        // Windows: SMTC integration via audio_service_win plugin
+        _audioHandler = await audio_service.AudioService.init(
+          builder: () => UnifiedAudioHandler(mediaServiceManager),
+          config: audio_service.AudioServiceConfig(
+            androidNotificationChannelId: 'com.doudoubox.audio',
+            androidNotificationChannelName: 'Doudou Audio',
+            androidNotificationChannelDescription: 'Playing audio',
+            preloadArtwork: true,
+            fastForwardInterval: const Duration(seconds: 10),
+            rewindInterval: const Duration(seconds: 10),
+          ),
+        );
+        if (kDebugMode) {
+          print(
+            'AudioServiceFactory: Created UnifiedAudioHandler with AudioService for ${defaultTargetPlatform.name}',
+          );
+        }
       } else {
-        // Desktop platforms - create handler directly (no AudioService)
+        // Unknown platform - create handler directly
         _audioHandler = UnifiedAudioHandler(mediaServiceManager);
         if (kDebugMode) {
-          print('AudioServiceFactory: Created UnifiedAudioHandler for desktop');
+          print('AudioServiceFactory: Created UnifiedAudioHandler for unknown platform');
         }
       }
 
