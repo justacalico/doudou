@@ -260,6 +260,8 @@
   "reduceVolumeDifferences": "减少曲目之间的音量差异",
   "gaplessPlayback": "无缝播放",
   "seamlessTransitions": "队列中曲目之间无缝过渡",
+  "autoplay": "自动播放",
+  "autoplayDescription": "队列结束时自动播放相似音乐",
 
   "volume": "音量",
   "volumeNormalization": "音量标准化",

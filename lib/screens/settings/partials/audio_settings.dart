@@ -56,6 +56,15 @@ class AudioSettingsSection extends StatelessWidget {
                         appState.toggleGaplessPlayback(value);
                       },
                     ),
+                    _buildSwitchTile(
+                      icon: CupertinoIcons.sparkles,
+                      title: l10n.autoplay,
+                      subtitle: l10n.autoplayDescription,
+                      value: appState.autoplayEnabled,
+                      onChanged: (value) {
+                        appState.toggleAutoplay(value);
+                      },
+                    ),
                     Divider(
                       color: Colors.white.withOpacity(0.1),
                       height: 1,

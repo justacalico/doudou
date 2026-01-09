@@ -62,6 +62,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   bool _radioModeEnabled = false;
   Timer? _radioModeTimer;
 
+  // Autoplay mode - automatically queue similar tracks when queue ends
+  bool _autoplayEnabled = true;
+
   // === Mobile-specific state ===
   // Foreground service management
   int _foregroundServiceFailureCount = 0;
@@ -497,8 +500,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         await _performSkipToQueueItem(nextIndex);
       }
     } else {
-      _stateController.updateState(AudioPlayerState.completed);
-      _stateController.updateUserIntent(false);
+      // Queue ended - check if autoplay is enabled
+      if (_autoplayEnabled) {
+        await _handleAutoplayNext();
+      } else {
+        _stateController.updateState(AudioPlayerState.completed);
+        _stateController.updateUserIntent(false);
+      }
     }
   }
 
@@ -570,20 +578,119 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// Handle autoplay - fetch similar tracks when queue ends
+  Future<void> _handleAutoplayNext() async {
+    try {
+      final currentTrack = _stateController.currentTrack;
+      if (currentTrack == null) {
+        _stateController.updateState(AudioPlayerState.completed);
+        _stateController.updateUserIntent(false);
+        return;
+      }
+
+      if (kDebugMode) {
+        print('UnifiedAudioHandler: Autoplay - finding similar tracks');
+      }
+
+      final similarTracks = await _fetchSimilarTracks(currentTrack);
+
+      if (similarTracks.isNotEmpty) {
+        // Add similar tracks to queue
+        for (final track in similarTracks.take(10)) {
+          _queueManager.addToQueue(track);
+        }
+        if (kDebugMode) {
+          print('UnifiedAudioHandler: Autoplay - added ${similarTracks.take(10).length} similar tracks');
+        }
+        // Play the first similar track
+        await skipToNext();
+      } else {
+        if (kDebugMode) {
+          print('UnifiedAudioHandler: Autoplay - no similar tracks found');
+        }
+        _stateController.updateState(AudioPlayerState.completed);
+        _stateController.updateUserIntent(false);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('UnifiedAudioHandler: Autoplay failed: $e');
+      }
+      _stateController.updateState(AudioPlayerState.completed);
+      _stateController.updateUserIntent(false);
+    }
+  }
+
   Future<List<Track>> _fetchSimilarTracks(Track track) async {
     try {
-      final artistTracks = await _mediaServiceManager.getTracks(
-        parentId: track.artistName,
-        limit: 20,
-      );
-
       final currentQueue = _stateController.queue;
       final queueIds = currentQueue.map((t) => t.id).toSet();
+      final List<Track> similarTracks = [];
 
-      return artistTracks
-          .where((t) => t.id != track.id && !queueIds.contains(t.id))
-          .toList();
+      // Strategy 1: Get more tracks from the same artist (by artist name)
+      if (track.artistName != null && track.artistName!.isNotEmpty) {
+        try {
+          // Search for tracks by the same artist
+          final allTracks = await _mediaServiceManager.getTracks(
+            limit: 100,
+          );
+          final artistTracks = allTracks.where(
+            (t) => t.artistName == track.artistName && t.id != track.id && !queueIds.contains(t.id),
+          ).toList();
+          similarTracks.addAll(artistTracks.take(20));
+        } catch (e) {
+          if (kDebugMode) {
+            print('UnifiedAudioHandler: Failed to fetch artist tracks: $e');
+          }
+        }
+      }
+
+      // Strategy 2: Get more tracks from the same album
+      if (track.albumId != null && similarTracks.length < 10) {
+        try {
+          final albumTracks = await _mediaServiceManager.getTracks(
+            parentId: track.albumId,
+            limit: 30,
+          );
+          for (final t in albumTracks) {
+            if (t.id != track.id && !queueIds.contains(t.id) && !similarTracks.any((s) => s.id == t.id)) {
+              similarTracks.add(t);
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('UnifiedAudioHandler: Failed to fetch album tracks: $e');
+          }
+        }
+      }
+
+      // Strategy 3: If we still don't have enough, get random tracks
+      if (similarTracks.length < 5) {
+        try {
+          final randomTracks = await _mediaServiceManager.getTracks(
+            limit: 30,
+          );
+          // Shuffle to get variety
+          randomTracks.shuffle();
+          for (final t in randomTracks) {
+            if (t.id != track.id && !queueIds.contains(t.id) && !similarTracks.any((s) => s.id == t.id)) {
+              similarTracks.add(t);
+              if (similarTracks.length >= 15) break;
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('UnifiedAudioHandler: Failed to fetch random tracks: $e');
+          }
+        }
+      }
+
+      // Shuffle similar tracks for variety
+      similarTracks.shuffle();
+      return similarTracks;
     } catch (e) {
+      if (kDebugMode) {
+        print('UnifiedAudioHandler: _fetchSimilarTracks failed: $e');
+      }
       return [];
     }
   }
@@ -646,6 +753,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   bool get gaplessPlaybackEnabled => _stateController.gaplessPlaybackEnabled;
 
   bool get radioModeEnabled => _radioModeEnabled;
+
+  bool get autoplayEnabled => _autoplayEnabled;
 
   // === Playback Control Methods ===
 
@@ -1158,6 +1267,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   void disableRadioMode() {
     _radioModeEnabled = false;
     _stateController.updateRadioMode(false);
+  }
+
+  void setAutoplay(bool enabled) {
+    _autoplayEnabled = enabled;
+    if (kDebugMode) {
+      print('UnifiedAudioHandler: Autoplay ${enabled ? 'enabled' : 'disabled'}');
+    }
   }
 
   // === Mobile-specific Methods ===

@@ -457,6 +457,19 @@ class AudioServiceIntegration {
     }
   }
 
+  /// Set autoplay mode (automatically queue similar tracks when queue ends)
+  void setAutoplay(bool enabled) {
+    if (!_initialized || _audioHandler == null) return;
+
+    try {
+      _audioHandler!.setAutoplay(enabled);
+    } catch (e) {
+      if (kDebugMode) {
+        print('AudioServiceIntegration: Error setting autoplay: $e');
+      }
+    }
+  }
+
   // === Utility Methods ===
 
   /// Update media library (optional method for compatibility)

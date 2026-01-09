@@ -48,6 +48,7 @@ class AppState extends ChangeNotifier {
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _useDynamicIsle = true; // Enabled by default
+  bool _autoplayEnabled = true; // Enabled by default - adds similar music when queue ends
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
@@ -120,6 +121,7 @@ class AppState extends ChangeNotifier {
 
   bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
   bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
+  bool get autoplayEnabled => _autoplayEnabled;
   bool get useDynamicIsle => _useDynamicIsle;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
@@ -2618,6 +2620,19 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleAutoplay(bool enabled) async {
+    _autoplayEnabled = enabled;
+
+    // Update the audio handler with the new autoplay setting
+    _audioHandler?.setAutoplay(enabled);
+
+    // Save the setting to preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('autoplay_enabled', enabled);
+
+    notifyListeners();
+  }
+
   Future<void> toggleOledDarkMode(bool enabled) async {
     _oledDarkModeEnabled = enabled;
 
@@ -2718,12 +2733,17 @@ class AppState extends ChangeNotifier {
     _normalizeVolumeEnabled =
         prefs.getBool('normalize_volume_enabled') ?? false;
     _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
+    _autoplayEnabled =
+        prefs.getBool('autoplay_enabled') ?? true; // Enabled by default
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
     _loggingEnabled =
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
     _useDynamicIsle =
         prefs.getBool('use_dynamic_isle') ?? true; // Enabled by default
+
+    // Apply autoplay setting to audio handler
+    _audioHandler?.setAutoplay(_autoplayEnabled);
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';

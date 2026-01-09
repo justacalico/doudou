@@ -1377,6 +1377,16 @@
     "description": "Gapless playback setting description"
   },
 
+  "autoplay": "Autoplay",
+  "@autoplay": {
+    "description": "Autoplay setting label - automatically plays similar music when queue ends"
+  },
+
+  "autoplayDescription": "Automatically play similar music when the queue ends",
+  "@autoplayDescription": {
+    "description": "Autoplay setting description"
+  },
+
   "volume": "Volume",
   "@volume": {
     "description": "Volume settings section"
