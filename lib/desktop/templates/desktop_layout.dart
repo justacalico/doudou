@@ -262,95 +262,103 @@ class _Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Logo
-          Padding(
-            padding: const EdgeInsets.all(DesktopTheme.spacingLg),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    gradient: DesktopTheme.accentGradient,
-                    borderRadius: BorderRadius.circular(8),
+          // Scrollable content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Logo
+                  Padding(
+                    padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            gradient: DesktopTheme.accentGradient,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.music_note_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: DesktopTheme.spacingSm),
+                        const Text(
+                          'Doudou',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: DesktopTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.music_note_rounded,
-                    color: Colors.white,
-                    size: 18,
+
+                  // Main navigation
+                  ...navItems.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    return _SidebarItem(
+                      icon: item.icon,
+                      activeIcon: item.activeIcon,
+                      label: _getLocalizedLabel(l10n, index),
+                      isSelected: currentIndex == index,
+                      onTap: () => onNavTap(index),
+                    );
+                  }),
+
+                  const SizedBox(height: DesktopTheme.spacingMd),
+
+                  // Divider
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesktopTheme.spacingMd,
+                    ),
+                    child: Container(height: 1, color: DesktopTheme.glassBorder),
                   ),
-                ),
-                const SizedBox(width: DesktopTheme.spacingSm),
-                const Text(
-                  'Doudou',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: DesktopTheme.textPrimary,
+
+                  const SizedBox(height: DesktopTheme.spacingMd),
+
+                  // Library section header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesktopTheme.spacingLg,
+                      vertical: DesktopTheme.spacingSm,
+                    ),
+                    child: Text(
+                      l10n.library.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: DesktopTheme.textTertiary,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // Main navigation
-          ...navItems.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return _SidebarItem(
-              icon: item.icon,
-              activeIcon: item.activeIcon,
-              label: _getLocalizedLabel(l10n, index),
-              isSelected: currentIndex == index,
-              onTap: () => onNavTap(index),
-            );
-          }),
-
-          const SizedBox(height: DesktopTheme.spacingMd),
-
-          // Divider
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesktopTheme.spacingMd,
-            ),
-            child: Container(height: 1, color: DesktopTheme.glassBorder),
-          ),
-
-          const SizedBox(height: DesktopTheme.spacingMd),
-
-          // Library section header
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesktopTheme.spacingLg,
-              vertical: DesktopTheme.spacingSm,
-            ),
-            child: Text(
-              l10n.library.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: DesktopTheme.textTertiary,
-                letterSpacing: 1.2,
+                  // Library items
+                  ...libraryItems.asMap().entries.map((entry) {
+                    final index = entry.key + 3; // Offset for main nav items
+                    final item = entry.value;
+                    return _SidebarItem(
+                      icon: item.icon,
+                      activeIcon: item.activeIcon,
+                      label: _getLocalizedLibraryLabel(l10n, entry.key),
+                      isSelected: currentIndex == index,
+                      onTap: () => onNavTap(index),
+                    );
+                  }),
+                ],
               ),
             ),
           ),
 
-          // Library items
-          ...libraryItems.asMap().entries.map((entry) {
-            final index = entry.key + 3; // Offset for main nav items
-            final item = entry.value;
-            return _SidebarItem(
-              icon: item.icon,
-              activeIcon: item.activeIcon,
-              label: _getLocalizedLibraryLabel(l10n, entry.key),
-              isSelected: currentIndex == index,
-              onTap: () => onNavTap(index),
-            );
-          }),
-
-          const Spacer(),
-
-          // Settings
+          // Settings (always at bottom)
           _SidebarItem(
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
