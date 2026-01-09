@@ -507,6 +507,9 @@ class _PlayerBar extends StatelessWidget {
           builder: (context, mediaSnapshot) {
             final mediaItem = mediaSnapshot.data;
 
+            // Hide player bar when no track is playing
+            if (mediaItem == null) return const SizedBox.shrink();
+
             return StreamBuilder<PlaybackState>(
               stream: audioHandler.playbackState,
               builder: (context, playbackSnapshot) {
@@ -1531,7 +1534,11 @@ class _NowPlayingMain extends StatelessWidget {
           _NowPlayingProgress(audioHandler: audioHandler),
           const SizedBox(height: DesktopTheme.spacingLg),
           // Controls
-          _NowPlayingControls(appState: appState, audioHandler: audioHandler),
+          _NowPlayingControls(
+            appState: appState,
+            audioHandler: audioHandler,
+            mediaItem: mediaItem,
+          ),
           const SizedBox(height: DesktopTheme.spacingLg),
         ],
       ),
@@ -1630,15 +1637,19 @@ class _NowPlayingProgress extends StatelessWidget {
 class _NowPlayingControls extends StatelessWidget {
   final AppState appState;
   final dynamic audioHandler;
+  final MediaItem? mediaItem;
 
   const _NowPlayingControls({
     required this.appState,
     required this.audioHandler,
+    this.mediaItem,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final trackId = mediaItem?.id;
+    final isFavorite = trackId != null ? appState.isFavorite(trackId) : false;
 
     return StreamBuilder<PlaybackState>(
       stream: audioHandler?.playbackState,
@@ -1696,6 +1707,26 @@ class _NowPlayingControls extends StatelessWidget {
                     : RepeatMode.none;
                 audioHandler?.setRepeatMode(nextMode);
               },
+            ),
+            const SizedBox(width: DesktopTheme.spacingXl),
+            // Favorite
+            DesktopIconButton(
+              icon: isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              size: 24,
+              color: isFavorite ? const Color(0xFFEC4899) : null,
+              tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+              onPressed: trackId != null
+                  ? () {
+                      final track = appState.tracks
+                          .where((t) => t.id == trackId)
+                          .firstOrNull;
+                      if (track != null) {
+                        appState.toggleFavorite(track);
+                      }
+                    }
+                  : null,
             ),
           ],
         );
