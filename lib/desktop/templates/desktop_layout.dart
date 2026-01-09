@@ -598,7 +598,10 @@ class _PlayerBarContent extends StatelessWidget {
               child: Row(
                 children: [
                   // Left: Track info
-                  Expanded(flex: 1, child: _TrackInfo(mediaItem: mediaItem)),
+                  Expanded(
+                    flex: 1,
+                    child: _TrackInfo(mediaItem: mediaItem, appState: appState),
+                  ),
                   // Center: Playback controls
                   Expanded(
                     flex: 2,
@@ -754,14 +757,18 @@ class _ProgressBarState extends State<_ProgressBar> {
 /// Track info widget
 class _TrackInfo extends StatelessWidget {
   final MediaItem? mediaItem;
+  final AppState appState;
 
-  const _TrackInfo({required this.mediaItem});
+  const _TrackInfo({required this.mediaItem, required this.appState});
 
   @override
   Widget build(BuildContext context) {
     if (mediaItem == null) {
       return const SizedBox.shrink();
     }
+
+    final trackId = mediaItem!.id;
+    final isFavorite = appState.isFavorite(trackId);
 
     return Row(
       children: [
@@ -814,9 +821,17 @@ class _TrackInfo extends StatelessWidget {
         ),
         // Like button
         DesktopIconButton(
-          icon: Icons.favorite_border_rounded,
-          tooltip: 'Add to favorites',
-          onPressed: () {},
+          icon: isFavorite
+              ? Icons.favorite_rounded
+              : Icons.favorite_border_rounded,
+          color: isFavorite ? const Color(0xFFEC4899) : null,
+          tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+          onPressed: () {
+            final track = appState.tracks.where((t) => t.id == trackId).firstOrNull;
+            if (track != null) {
+              appState.toggleFavorite(track);
+            }
+          },
         ),
       ],
     );
