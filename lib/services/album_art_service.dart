@@ -5,7 +5,6 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
-import 'package:audiotags/audiotags.dart';
 
 /// Service for fetching album art from multiple sources
 /// Priority:
@@ -97,66 +96,24 @@ class AlbumArtService {
   }
   
   /// Get embedded artwork bytes directly (for tracks without saving to file)
+  /// Note: This is currently not supported due to audiotags compatibility issues
+  /// Consider using local image files or online sources instead
   Future<Uint8List?> getEmbeddedArtworkBytes(String filePath) async {
     if (_embeddedArtCache.containsKey(filePath)) {
       return _embeddedArtCache[filePath];
     }
     
-    try {
-      final tag = await AudioTags.read(filePath);
-      if (tag != null && tag.pictures.isNotEmpty) {
-        final picture = tag.pictures.first;
-        _embeddedArtCache[filePath] = picture.bytes;
-        return picture.bytes;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error reading embedded artwork from $filePath: $e');
-      }
-    }
-    
+    // Embedded artwork extraction is currently unavailable
+    // It will fallback to local files or online sources
     _embeddedArtCache[filePath] = null;
     return null;
   }
   
   /// Extract embedded artwork and save to a file
+  /// Note: This is currently disabled due to audiotags compatibility issues
   Future<String?> _getEmbeddedArtwork(String filePath) async {
-    try {
-      final tag = await AudioTags.read(filePath);
-      if (tag != null && tag.pictures.isNotEmpty) {
-        final picture = tag.pictures.first;
-        
-        // Determine file extension based on mime type
-        String extension = '.jpg';
-        if (picture.mimeType != null) {
-          final mimeStr = picture.mimeType.toString().toLowerCase();
-          if (mimeStr.contains('png')) {
-            extension = '.png';
-          } else if (mimeStr.contains('webp')) {
-            extension = '.webp';
-          }
-        }
-        
-        // Save to cache directory
-        final cacheDir = await _getArtworkCacheDirectory();
-        final hash = md5.convert(utf8.encode(filePath)).toString();
-        final artworkFile = File(path.join(cacheDir.path, 'embedded_$hash$extension'));
-        
-        if (!await artworkFile.exists()) {
-          await artworkFile.writeAsBytes(picture.bytes);
-          if (kDebugMode) {
-            print('AlbumArtService: Extracted embedded artwork to ${artworkFile.path}');
-          }
-        }
-        
-        return artworkFile.path;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error reading embedded artwork from $filePath: $e');
-      }
-    }
-    
+    // Embedded artwork extraction is currently unavailable
+    // It will fallback to local files or online sources
     return null;
   }
   
