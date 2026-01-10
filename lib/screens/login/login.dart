@@ -1552,20 +1552,26 @@ class _LoginScreenState extends State<LoginScreen>
         _quickConnectSecret!,
       );
 
-      if (success && mounted) {
-        // Update app state with the authenticated service
+      if (!context.mounted) return;
+      
+      if (success) {
+        // Update app state with the authenticated service - capture reference immediately after mounted check
+        // ignore: use_build_context_synchronously
         final appState = context.read<AppState>();
         await appState.loginWithQuickConnect(jellyfinService);
         
         await _triggerHapticFeedback(isSuccess: true);
         
+        if (!mounted) return;
         setState(() {
           _isQuickConnectActive = false;
           _quickConnectCode = null;
           _quickConnectSecret = null;
         });
-      } else if (mounted) {
+      } else {
         await _triggerHapticFeedback(isSuccess: false);
+        if (!mounted) return;
+        // ignore: use_build_context_synchronously
         final appState = context.read<AppState>();
         appState.setErrorMessage('Quick Connect authentication failed. Please try again.');
         _cancelQuickConnect();

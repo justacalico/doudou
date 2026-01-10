@@ -1042,6 +1042,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       
       final trackCount = (await localService.getTracks()).length;
       
+      if (!context.mounted) return;
       showCupertinoDialog(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(

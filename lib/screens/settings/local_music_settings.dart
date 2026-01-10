@@ -760,7 +760,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
                                 if (confirmed == true && mounted) {
                                   await service.clearArtworkCache();
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: const Text(
