@@ -17,6 +17,8 @@ import '../pages/tracks.dart';
 import '../pages/playlists.dart';
 import '../pages/downloads.dart';
 import '../pages/settings.dart';
+import '../pages/details/media_details.dart';
+import '../pages/details/artist_details.dart';
 import 'desktop_theme.dart';
 
 class DesktopLayout extends StatefulWidget {
@@ -846,8 +848,195 @@ class _TrackInfo extends StatelessWidget {
             }
           },
         ),
+        // More options button
+        PopupMenuButton<String>(
+          icon: Icon(
+            Icons.more_horiz_rounded,
+            color: DesktopTheme.textSecondary,
+            size: 20,
+          ),
+          tooltip: 'More options',
+          onSelected: (value) {
+            final track = appState.tracks.where((t) => t.id == trackId).firstOrNull;
+            if (track == null) return;
+            
+            switch (value) {
+              case 'addToQueue':
+                appState.addToQueue(track);
+                break;
+              case 'addToPlaylist':
+                DesktopLayout.showAddToPlaylistDialog(context, track);
+                break;
+              case 'showAlbum':
+                if (track.albumId != null) {
+                  final album = appState.albums.where((a) => a.id == track.albumId).firstOrNull;
+                  if (album != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => MediaDetailsPage.album(album: album),
+                      ),
+                    );
+                  }
+                }
+                break;
+              case 'showArtist':
+                if (track.artistName != null) {
+                  final artist = appState.artists.where((a) => a.name == track.artistName).firstOrNull;
+                  if (artist != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ArtistDetailsPage(artist: artist),
+                      ),
+                    );
+                  }
+                }
+                break;
+              case 'download':
+                _handleDownload(context, appState, track);
+                break;
+            }
+          },
+          itemBuilder: (context) {
+            final l10n = AppLocalizations.of(context);
+            final track = appState.tracks.where((t) => t.id == trackId).firstOrNull;
+            
+            // Get download status
+            IconData downloadIcon = Icons.download_rounded;
+            String downloadLabel = l10n.download;
+            if (track != null) {
+              final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
+              if (downloadStatus == DownloadStatus.downloaded) {
+                downloadIcon = Icons.download_done_rounded;
+                downloadLabel = 'Downloaded';
+              } else if (downloadStatus == DownloadStatus.downloading) {
+                downloadIcon = Icons.downloading_rounded;
+                downloadLabel = l10n.downloading;
+              }
+            }
+            
+            return [
+              PopupMenuItem(
+                value: 'addToQueue',
+                child: ListTile(
+                  leading: const Icon(Icons.queue_music_rounded),
+                  title: Text(l10n.addToQueue),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'addToPlaylist',
+                child: ListTile(
+                  leading: const Icon(Icons.playlist_add_rounded),
+                  title: Text(l10n.addToPlaylist),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'showAlbum',
+                child: ListTile(
+                  leading: const Icon(Icons.album_rounded),
+                  title: Text(l10n.showAlbum),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'showArtist',
+                child: ListTile(
+                  leading: const Icon(Icons.person_rounded),
+                  title: Text(l10n.showArtist),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'download',
+                child: ListTile(
+                  leading: Icon(downloadIcon),
+                  title: Text(downloadLabel),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ];
+          },
+        ),
       ],
     );
+  }
+
+  void _handleDownload(BuildContext context, AppState appState, Track track) {
+    final l10n = AppLocalizations.of(context);
+    final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
+    
+    switch (downloadStatus) {
+      case DownloadStatus.downloaded:
+        // Show option to delete
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Downloaded'),
+            content: Text('"${track.name}" is already downloaded.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.ok),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  appState.downloadService.deleteDownload(track.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.deleteDownload),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Text(l10n.deleteDownload),
+              ),
+            ],
+          ),
+        );
+        break;
+      case DownloadStatus.downloading:
+        // Show option to cancel
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(l10n.downloading),
+            content: Text('"${track.name}" is currently downloading.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.ok),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  appState.downloadService.cancelDownload(track.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.cancelDownload),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Text(l10n.cancelDownload),
+              ),
+            ],
+          ),
+        );
+        break;
+      case DownloadStatus.paused:
+      case DownloadStatus.failed:
+      case DownloadStatus.notDownloaded:
+        appState.downloadService.downloadTrack(track);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.downloadStarted}: ${track.name}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        break;
+    }
   }
 
   Widget _buildPlaceholder() {
