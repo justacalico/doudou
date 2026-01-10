@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../models/download_models.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 import 'desktop_layout.dart';
 
@@ -634,7 +634,7 @@ class _AppleTrackMenu extends StatelessWidget {
           track.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
         ),
         const PopupMenuDivider(),
-        _buildMenuItem(context, 'download', Icons.download_rounded, 'Download'),
+        _buildDownloadMenuItem(context),
         if (onRemove != null) ...[
           const PopupMenuDivider(),
           _buildMenuItem(
@@ -647,6 +647,30 @@ class _AppleTrackMenu extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  PopupMenuItem<String> _buildDownloadMenuItem(BuildContext context) {
+    final appState = context.read<AppState>();
+    final downloadService = appState.downloadService;
+    final isDownloaded = downloadService.isTrackDownloaded(track.id);
+    final status = downloadService.getDownloadStatus(track.id);
+    final isDownloading = status == DownloadStatus.downloading;
+
+    IconData icon;
+    String label;
+    
+    if (isDownloaded) {
+      icon = Icons.download_done_rounded;
+      label = 'Downloaded';
+    } else if (isDownloading) {
+      icon = Icons.downloading_rounded;
+      label = 'Downloading...';
+    } else {
+      icon = Icons.download_rounded;
+      label = 'Download';
+    }
+
+    return _buildMenuItem(context, 'download', icon, label);
   }
 
   PopupMenuItem<String> _buildMenuItem(
@@ -721,28 +745,86 @@ class _AppleTrackMenu extends StatelessWidget {
   }
 
   Future<void> _downloadTrack(BuildContext context, AppState appState) async {
-    try {
-      final streamUrl = appState.mediaServiceManager.getStreamUrl(track.id);
-      final uri = Uri.parse(streamUrl);
+    final downloadService = appState.downloadService;
+    final isDownloaded = downloadService.isTrackDownloaded(track.id);
+    final status = downloadService.getDownloadStatus(track.id);
 
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        if (context.mounted) {
-          _showSnackBar(
-            context,
-            'Opening download for "${track.name}" in browser',
-          );
-        }
-      } else {
-        if (context.mounted) {
-          _showSnackBar(context, 'Cannot open download URL', isError: true);
-        }
+    if (isDownloaded) {
+      // Show options for downloaded track
+      _showDownloadedOptions(context, appState);
+      return;
+    }
+
+    if (status == DownloadStatus.downloading) {
+      // Already downloading - show cancel option
+      _showDownloadingOptions(context, appState);
+      return;
+    }
+
+    // Start download
+    try {
+      await downloadService.downloadTrack(track);
+      if (context.mounted) {
+        _showSnackBar(context, 'Started downloading "${track.name}"');
       }
     } catch (e) {
       if (context.mounted) {
-        _showSnackBar(context, 'Failed to download: $e', isError: true);
+        _showSnackBar(context, 'Failed to start download: $e', isError: true);
       }
     }
+  }
+
+  void _showDownloadedOptions(BuildContext context, AppState appState) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Downloaded'),
+        content: Text('"${track.name}" is already downloaded.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.downloadService.deleteDownload(track.id);
+              _showSnackBar(context, 'Deleted download for "${track.name}"');
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete Download'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDownloadingOptions(BuildContext context, AppState appState) {
+    final progress = appState.downloadService.getDownloadProgress(track.id);
+    final progressPercent = (progress * 100).toInt();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Downloading'),
+        content: Text('"${track.name}" is downloading ($progressPercent%)'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.downloadService.cancelDownload(track.id);
+              _showSnackBar(context, 'Cancelled download for "${track.name}"');
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Cancel Download'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _toggleFavorite(BuildContext context, AppState appState) async {

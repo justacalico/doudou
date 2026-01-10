@@ -5,6 +5,7 @@ import 'package:audio_service/audio_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../models/download_models.dart';
 import '../../services/audio/unified_audio_handler.dart';
 import '../services/navigation_service.dart';
 import '../pages/home.dart';
@@ -2832,6 +2833,113 @@ class _TrackRowState extends State<_TrackRow> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  void _handleDownload(BuildContext context) async {
+    final appState = context.read<AppState>();
+    final downloadService = appState.downloadService;
+    final isDownloaded = downloadService.isTrackDownloaded(widget.track.id);
+    final status = downloadService.getDownloadStatus(widget.track.id);
+
+    if (isDownloaded) {
+      // Show options for downloaded track
+      _showDownloadedOptions(context, appState);
+      return;
+    }
+
+    if (status == DownloadStatus.downloading) {
+      // Already downloading - show cancel option
+      _showDownloadingOptions(context, appState);
+      return;
+    }
+
+    // Start download
+    try {
+      await downloadService.downloadTrack(widget.track);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Started downloading "${widget.track.name}"'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start download: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showDownloadedOptions(BuildContext context, AppState appState) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Downloaded'),
+        content: Text('"${widget.track.name}" is already downloaded.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.ok),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.downloadService.deleteDownload(widget.track.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Deleted download for "${widget.track.name}"'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(l10n.deleteDownload),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDownloadingOptions(BuildContext context, AppState appState) {
+    final l10n = AppLocalizations.of(context);
+    final progress = appState.downloadService.getDownloadProgress(widget.track.id);
+    final progressPercent = (progress * 100).toInt();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.downloading),
+        content: Text('"${widget.track.name}" is downloading ($progressPercent%)'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.ok),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.downloadService.cancelDownload(widget.track.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cancelled download for "${widget.track.name}"'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(l10n.cancelDownload),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
@@ -2972,10 +3080,31 @@ class _TrackRowState extends State<_TrackRow> {
                         context,
                         widget.track,
                       );
+                    } else if (value == 'download') {
+                      _handleDownload(context);
                     }
                   },
                   itemBuilder: (context) {
                     final l10n = AppLocalizations.of(context);
+                    final appState = context.read<AppState>();
+                    final downloadService = appState.downloadService;
+                    final isDownloaded = downloadService.isTrackDownloaded(widget.track.id);
+                    final status = downloadService.getDownloadStatus(widget.track.id);
+                    final isDownloading = status == DownloadStatus.downloading;
+
+                    IconData downloadIcon;
+                    String downloadLabel;
+                    if (isDownloaded) {
+                      downloadIcon = Icons.download_done_rounded;
+                      downloadLabel = 'Downloaded';
+                    } else if (isDownloading) {
+                      downloadIcon = Icons.downloading_rounded;
+                      downloadLabel = l10n.downloading;
+                    } else {
+                      downloadIcon = Icons.download_rounded;
+                      downloadLabel = l10n.download;
+                    }
+
                     return [
                       PopupMenuItem(
                         value: 'queue',
@@ -2994,6 +3123,16 @@ class _TrackRowState extends State<_TrackRow> {
                             const Icon(Icons.playlist_add_rounded, size: 20),
                             const SizedBox(width: 8),
                             Text(l10n.addToPlaylist),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'download',
+                        child: Row(
+                          children: [
+                            Icon(downloadIcon, size: 20),
+                            const SizedBox(width: 8),
+                            Text(downloadLabel),
                           ],
                         ),
                       ),
