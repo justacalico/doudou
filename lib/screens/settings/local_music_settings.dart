@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 import '../../widgets/apple_design/liquid_glass.dart';
@@ -11,14 +13,12 @@ import '../../services/players/local_music_service.dart';
 
 class LocalMusicSettingsScreen extends StatefulWidget {
   final bool isInitialSetup;
-  
-  const LocalMusicSettingsScreen({
-    super.key,
-    this.isInitialSetup = false,
-  });
+
+  const LocalMusicSettingsScreen({super.key, this.isInitialSetup = false});
 
   @override
-  State<LocalMusicSettingsScreen> createState() => _LocalMusicSettingsScreenState();
+  State<LocalMusicSettingsScreen> createState() =>
+      _LocalMusicSettingsScreenState();
 }
 
 class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
@@ -26,7 +26,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
   int _scannedFiles = 0;
   int _totalFiles = 0;
   String? _errorMessage;
-  
+
   LocalMusicService? get _localService {
     final appState = context.read<AppState>();
     return appState.mediaServiceManager.localMusicService;
@@ -40,7 +40,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
   Future<void> _initializeService() async {
     final appState = context.read<AppState>();
-    
+
     // Ensure the local music service is created
     var service = appState.mediaServiceManager.localMusicService;
     if (service == null) {
@@ -48,16 +48,92 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
       await appState.mediaServiceManager.setLocalMusicService();
       service = appState.mediaServiceManager.localMusicService;
     }
-    
+
     if (service != null && !service.isInitialized) {
       await service.initialize();
     }
-    
+
     if (mounted) setState(() {});
+  }
+
+  Future<bool> _requestStoragePermission() async {
+    // Only need permissions on Android
+    if (!Platform.isAndroid) return true;
+
+    // Check Android version for appropriate permission
+    PermissionStatus status;
+
+    // For Android 13+ (API 33), use audio permission
+    // For older versions, use storage permission
+    if (await Permission.audio.status.isDenied) {
+      status = await Permission.audio.request();
+      if (status.isGranted) return true;
+    }
+
+    // Try storage permission as fallback for older Android
+    if (await Permission.storage.status.isDenied) {
+      status = await Permission.storage.request();
+      if (status.isGranted) return true;
+    }
+
+    // Check if already granted
+    if (await Permission.audio.isGranted ||
+        await Permission.storage.isGranted) {
+      return true;
+    }
+
+    // If permanently denied, show settings dialog
+    if (await Permission.audio.isPermanentlyDenied ||
+        await Permission.storage.isPermanentlyDenied) {
+      if (mounted) {
+        final shouldOpenSettings = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('Permission Required'),
+            content: const Text(
+              'Storage permission is required to access your music files. '
+              'Please enable it in app settings.',
+            ),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldOpenSettings == true) {
+          await openAppSettings();
+        }
+      }
+      return false;
+    }
+
+    return false;
   }
 
   Future<void> _addDirectory() async {
     try {
+      // Request storage permission on Android first
+      if (Platform.isAndroid) {
+        final hasPermission = await _requestStoragePermission();
+        if (!hasPermission) {
+          if (mounted) {
+            setState(() {
+              _errorMessage =
+                  'Storage permission is required to access music folders';
+            });
+          }
+          return;
+        }
+      }
+
       String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
         dialogTitle: 'Select Music Folder',
         lockParentWindow: true,
@@ -65,9 +141,11 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
       if (selectedDirectory != null && mounted) {
         final appState = context.read<AppState>();
-        await appState.mediaServiceManager.addLocalMusicDirectory(selectedDirectory);
+        await appState.mediaServiceManager.addLocalMusicDirectory(
+          selectedDirectory,
+        );
         setState(() {});
-        
+
         // Show success snackbar
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +153,9 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
               content: Text('Added: $selectedDirectory'),
               backgroundColor: AppleColors.systemGreen,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
@@ -119,7 +199,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
   Future<void> _scanDirectories() async {
     if (_isScanning) return;
-    
+
     final service = _localService;
     if (service == null || service.musicDirectories.isEmpty) {
       setState(() {
@@ -152,18 +232,21 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
         setState(() {
           _isScanning = false;
         });
-        
+
         // Show completion message
-        final trackCount = service.isInitialized ? 
-          (await service.getTracks()).length : 0;
-        
+        final trackCount = service.isInitialized
+            ? (await service.getTracks()).length
+            : 0;
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Scan complete! Found $trackCount tracks'),
               backgroundColor: AppleColors.systemGreen,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
@@ -182,14 +265,15 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     if (kDebugMode) {
       print('LocalMusicSettings: Continue button pressed');
     }
-    
+
     final service = _localService;
     if (service == null) {
       if (kDebugMode) {
         print('LocalMusicSettings: Service is null!');
       }
       setState(() {
-        _errorMessage = 'Local music service not initialized. Please try again.';
+        _errorMessage =
+            'Local music service not initialized. Please try again.';
       });
       return;
     }
@@ -199,27 +283,28 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     if (kDebugMode) {
       print('LocalMusicSettings: Found ${tracks.length} tracks');
     }
-    
+
     if (tracks.isEmpty) {
       setState(() {
-        _errorMessage = 'No music found. Please add directories and scan for music.';
+        _errorMessage =
+            'No music found. Please add directories and scan for music.';
       });
       return;
     }
 
     if (!mounted) return;
-    
+
     final appState = context.read<AppState>();
     if (kDebugMode) {
       print('LocalMusicSettings: Calling loginWithLocalMusic...');
     }
-    
+
     final success = await appState.loginWithLocalMusic();
-    
+
     if (kDebugMode) {
       print('LocalMusicSettings: loginWithLocalMusic returned: $success');
     }
-    
+
     if (!success && mounted) {
       setState(() {
         _errorMessage = 'Failed to initialize local music mode';
@@ -271,7 +356,10 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [AppleColors.systemGreen, AppleColors.systemTeal],
+                                colors: [
+                                  AppleColors.systemGreen,
+                                  AppleColors.systemTeal,
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -315,28 +403,41 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
               if (_errorMessage != null)
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppleColors.systemRed.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppleColors.systemRed.withOpacity(0.5)),
+                      border: Border.all(
+                        color: AppleColors.systemRed.withOpacity(0.5),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(CupertinoIcons.exclamationmark_triangle, 
-                          color: AppleColors.systemRed, size: 20),
+                        const Icon(
+                          CupertinoIcons.exclamationmark_triangle,
+                          color: AppleColors.systemRed,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(color: AppleColors.systemRed),
+                            style: const TextStyle(
+                              color: AppleColors.systemRed,
+                            ),
                           ),
                         ),
                         GestureDetector(
                           onTap: () => setState(() => _errorMessage = null),
-                          child: const Icon(CupertinoIcons.xmark, 
-                            color: AppleColors.systemRed, size: 18),
+                          child: const Icon(
+                            CupertinoIcons.xmark,
+                            color: AppleColors.systemRed,
+                            size: 18,
+                          ),
                         ),
                       ],
                     ),
@@ -347,7 +448,10 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
               if (_isScanning)
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: _buildGlassCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -375,9 +479,13 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
-                                value: _totalFiles > 0 ? _scannedFiles / _totalFiles : null,
+                                value: _totalFiles > 0
+                                    ? _scannedFiles / _totalFiles
+                                    : null,
                                 backgroundColor: Colors.white.withOpacity(0.1),
-                                valueColor: const AlwaysStoppedAnimation(AppleColors.systemGreen),
+                                valueColor: const AlwaysStoppedAnimation(
+                                  AppleColors.systemGreen,
+                                ),
                               ),
                             ),
                           ],
@@ -391,7 +499,10 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
               // Music directories section
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   child: _buildGlassCard(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
@@ -418,15 +529,21 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [AppleColors.systemGreen, AppleColors.systemTeal],
+                                      colors: [
+                                        AppleColors.systemGreen,
+                                        AppleColors.systemTeal,
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(CupertinoIcons.plus, 
-                                        color: Colors.white, size: 16),
+                                      Icon(
+                                        CupertinoIcons.plus,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
                                       SizedBox(width: 6),
                                       Text(
                                         'Add Folder',
@@ -481,7 +598,9 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                               ),
                             )
                           else
-                            ...directories.map((dir) => _buildDirectoryTile(dir, isDark)),
+                            ...directories.map(
+                              (dir) => _buildDirectoryTile(dir, isDark),
+                            ),
                         ],
                       ),
                     ),
@@ -505,7 +624,10 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                       final artistCount = snapshot.data?[2]?.length ?? 0;
 
                       return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
                         child: _buildGlassCard(
                           child: Padding(
                             padding: const EdgeInsets.all(20),
@@ -565,7 +687,10 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
               if (service != null && service.isInitialized && !_isScanning)
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: _buildGlassCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -609,31 +734,42 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                                   context: context,
                                   builder: (ctx) => CupertinoAlertDialog(
                                     title: const Text('Clear Cache?'),
-                                    content: const Text('This will remove all cached online artwork. Your local album art files will not be affected.'),
+                                    content: const Text(
+                                      'This will remove all cached online artwork. Your local album art files will not be affected.',
+                                    ),
                                     actions: [
                                       CupertinoDialogAction(
                                         isDestructiveAction: true,
-                                        onPressed: () => Navigator.pop(ctx, true),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
                                         child: const Text('Clear'),
                                       ),
                                       CupertinoDialogAction(
                                         isDefaultAction: true,
-                                        onPressed: () => Navigator.pop(ctx, false),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, false),
                                         child: const Text('Cancel'),
                                       ),
                                     ],
                                   ),
                                 );
-                                
+
                                 if (confirmed == true && mounted) {
                                   await service.clearArtworkCache();
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: const Text('Artwork cache cleared'),
-                                        backgroundColor: AppleColors.systemGreen,
+                                        content: const Text(
+                                          'Artwork cache cleared',
+                                        ),
+                                        backgroundColor:
+                                            AppleColors.systemGreen,
                                         behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
                                       ),
                                     );
                                   }
@@ -661,9 +797,9 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
-                            color: _isScanning 
-                              ? Colors.white.withOpacity(0.1)
-                              : Colors.white.withOpacity(0.15),
+                            color: _isScanning
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.white.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: Colors.white.withOpacity(0.2),
@@ -674,18 +810,18 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                             children: [
                               Icon(
                                 CupertinoIcons.arrow_2_circlepath,
-                                color: _isScanning 
-                                  ? Colors.white.withOpacity(0.4)
-                                  : Colors.white,
+                                color: _isScanning
+                                    ? Colors.white.withOpacity(0.4)
+                                    : Colors.white,
                                 size: 20,
                               ),
                               const SizedBox(width: 10),
                               Text(
                                 _isScanning ? 'Scanning...' : 'Scan for Music',
                                 style: TextStyle(
-                                  color: _isScanning 
-                                    ? Colors.white.withOpacity(0.4)
-                                    : Colors.white,
+                                  color: _isScanning
+                                      ? Colors.white.withOpacity(0.4)
+                                      : Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -694,7 +830,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                           ),
                         ),
                       ),
-                      
+
                       if (widget.isInitialSetup) ...[
                         const SizedBox(height: 12),
                         // Continue button
@@ -705,12 +841,17 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [AppleColors.systemGreen, AppleColors.systemTeal],
+                                colors: [
+                                  AppleColors.systemGreen,
+                                  AppleColors.systemTeal,
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppleColors.systemGreen.withOpacity(0.3),
+                                  color: AppleColors.systemGreen.withOpacity(
+                                    0.3,
+                                  ),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -766,7 +907,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
   Widget _buildDirectoryTile(String dirPath, bool isDark) {
     // Get just the folder name for display
     final folderName = dirPath.split('/').last;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
@@ -833,7 +974,12 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -891,7 +1037,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildArtworkSettingTile(
     String title,
     String subtitle,
@@ -951,7 +1097,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildArtworkActionTile(
     String title,
     String subtitle,
@@ -975,11 +1121,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
                 color: color.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 20,
-              ),
+              child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(

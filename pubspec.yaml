@@ -1,7 +1,7 @@
 name: doudou
 description: "Play your music with ease and style."
 publish_to: 'none'
-version: 11.0.0
+version: 11.0.1
 
 environment:
   sdk: '^3.8.0'
@@ -75,6 +75,7 @@ dependencies:
   # File picker for local music
   file_picker: ^10.3.0
   device_info_plus: ^12.3.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
