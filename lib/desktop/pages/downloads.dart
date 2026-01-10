@@ -457,7 +457,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 200,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.75,
         crossAxisSpacing: DesktopTheme.spacingMd,
         mainAxisSpacing: DesktopTheme.spacingMd,
       ),
@@ -542,34 +542,33 @@ class _DownloadsPageState extends State<DownloadsPage> {
               ),
             ),
             // Album info
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(DesktopTheme.spacingSm),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      album.name,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: DesktopTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            Padding(
+              padding: const EdgeInsets.all(DesktopTheme.spacingSm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    album.name,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: DesktopTheme.textPrimary,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      album.artistName ?? 'Unknown Artist',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: DesktopTheme.textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    album.artistName ?? 'Unknown Artist',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: DesktopTheme.textSecondary,
                     ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ],
@@ -631,7 +630,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                     textAlign: TextAlign.right,
                   ),
                 ),
-                const SizedBox(width: 48), // Space for actions
+                const SizedBox(width: 64), // Space for actions (icon + menu button)
               ],
             ),
           ),
@@ -741,42 +740,39 @@ class _DownloadsPageState extends State<DownloadsPage> {
               ),
             ),
             // Downloaded indicator and delete button
-            SizedBox(
-              width: 48,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(
-                    Icons.download_done_rounded,
-                    size: 16,
-                    color: DesktopTheme.accentPrimary,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.download_done_rounded,
+                  size: 16,
+                  color: DesktopTheme.accentPrimary,
+                ),
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    size: 18,
+                    color: DesktopTheme.textSecondary,
                   ),
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert,
-                      size: 18,
-                      color: DesktopTheme.textSecondary,
-                    ),
-                    onSelected: (value) {
-                      if (value == 'delete') {
-                        _confirmDeleteDownload(context, track, appState);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Text('Delete Download'),
-                          ],
-                        ),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _confirmDeleteDownload(context, track, appState);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text('Delete Download'),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
