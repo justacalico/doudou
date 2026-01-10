@@ -1180,14 +1180,21 @@ class _PlayerExtras extends StatefulWidget {
 class _PlayerExtrasState extends State<_PlayerExtras> {
   bool _showVolume = false;
   double _volume = 1.0;
+  dynamic _volumeSubscription;
 
   @override
   void initState() {
     super.initState();
     _volume = widget.audioHandler?.volume ?? 1.0;
-    widget.audioHandler?.volumeStream?.listen((vol) {
+    _volumeSubscription = widget.audioHandler?.volumeStream?.listen((vol) {
       if (mounted) setState(() => _volume = vol);
     });
+  }
+
+  @override
+  void dispose() {
+    _volumeSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -1216,6 +1223,7 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
                     : Icons.volume_up_rounded,
                 onPressed: () {
                   final newVolume = _volume == 0 ? 1.0 : 0.0;
+                  setState(() => _volume = newVolume);
                   widget.audioHandler?.setVolume(newVolume);
                 },
               ),
@@ -1239,6 +1247,7 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
                         child: Slider(
                           value: _volume,
                           onChanged: (value) {
+                            setState(() => _volume = value);
                             widget.audioHandler?.setVolume(value);
                           },
                         ),
