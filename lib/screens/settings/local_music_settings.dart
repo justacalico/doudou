@@ -146,16 +146,20 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
         );
         setState(() {});
 
-        // Show success snackbar
+        // Show success dialog
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Added: $selectedDirectory'),
-              backgroundColor: AppleColors.systemGreen,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+          showCupertinoDialog(
+            context: context,
+            builder: (ctx) => CupertinoAlertDialog(
+              title: const Text('Folder Added'),
+              content: Text('Added: ${selectedDirectory.split('/').last}'),
+              actions: [
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
             ),
           );
         }
