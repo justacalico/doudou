@@ -7,6 +7,7 @@ import 'details/media_details.dart';
 import '../pages/details/artist_details.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
+import '../../models/download_models.dart';
 import '../../services/notification_service.dart';
 
 class TracksPage extends StatefulWidget {
@@ -581,6 +582,33 @@ class _TracksPageState extends State<TracksPage> {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
+            (() {
+              final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
+              final isDownloaded = downloadStatus == DownloadStatus.downloaded;
+              final isDownloading = downloadStatus == DownloadStatus.downloading;
+              
+              IconData downloadIcon;
+              String downloadLabel;
+              if (isDownloaded) {
+                downloadIcon = Icons.download_done_rounded;
+                downloadLabel = 'Downloaded';
+              } else if (isDownloading) {
+                downloadIcon = Icons.downloading_rounded;
+                downloadLabel = l10n.downloading;
+              } else {
+                downloadIcon = Icons.download_rounded;
+                downloadLabel = l10n.download;
+              }
+              
+              return PopupMenuItem(
+                value: 'download',
+                child: ListTile(
+                  leading: Icon(downloadIcon),
+                  title: Text(downloadLabel),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              );
+            })(),
           ],
           onSelected: (value) {
             switch (value) {
@@ -598,6 +626,9 @@ class _TracksPageState extends State<TracksPage> {
                 break;
               case 'showArtist':
                 _navigateToArtist(appState, track);
+                break;
+              case 'download':
+                _handleDownload(context, appState, track);
                 break;
             }
           },
@@ -684,6 +715,91 @@ class _TracksPageState extends State<TracksPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ArtistDetailsPage(artist: artist),
+      ),
+    );
+  }
+
+  void _handleDownload(BuildContext context, AppState appState, Track track) {
+    final l10n = AppLocalizations.of(context);
+    final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
+    
+    switch (downloadStatus) {
+      case DownloadStatus.downloaded:
+        _showDownloadedOptions(context, appState, track);
+        break;
+      case DownloadStatus.downloading:
+        _showDownloadingOptions(context, appState, track);
+        break;
+      case DownloadStatus.paused:
+      case DownloadStatus.failed:
+      case DownloadStatus.notDownloaded:
+        appState.downloadService.downloadTrack(track);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.downloadStarted}: ${track.name}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        break;
+    }
+  }
+
+  void _showDownloadedOptions(BuildContext context, AppState appState, Track track) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Downloaded'),
+        content: Text('"${track.name}" is already downloaded.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.ok),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.downloadService.deleteDownload(track.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.deleteDownload),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            child: Text(l10n.deleteDownload),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDownloadingOptions(BuildContext context, AppState appState, Track track) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.downloading),
+        content: Text('"${track.name}" is currently downloading.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.ok),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.downloadService.cancelDownload(track.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.cancelDownload),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            child: Text(l10n.cancelDownload),
+          ),
+        ],
       ),
     );
   }
