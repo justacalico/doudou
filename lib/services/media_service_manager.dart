@@ -284,6 +284,12 @@ class MediaServiceManager {
       return plexService.getDownloadUrl(trackId);
     }
     
+    if (_currentService is SubsonicService) {
+      final subsonicService = _currentService as SubsonicService;
+      // Navidrome/Subsonic has dedicated direct stream URL method
+      return subsonicService.getDirectStreamUrl(trackId);
+    }
+    
     // For other services, fallback to regular stream URL
     return _currentService!.getStreamUrl(trackId);
   }
@@ -304,6 +310,27 @@ class MediaServiceManager {
   String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
     if (_currentService == null) return '';
     return _currentService!.getImageUrl(itemId, type: type, width: width, height: height);
+  }
+
+  /// Get authentication headers for HTTP requests
+  /// For Jellyfin: returns auth headers
+  /// For Subsonic/Navidrome: returns empty (auth is in URL params)
+  /// For Plex: returns X-Plex-Token header
+  Future<Map<String, String>> getAuthHeaders() async {
+    if (_currentService == null) return {};
+    
+    if (_currentService is JellyfinServiceAdapter) {
+      final adapter = _currentService as JellyfinServiceAdapter;
+      return await adapter.getAuthHeaders();
+    }
+    
+    if (_currentService is PlexService) {
+      final plexService = _currentService as PlexService;
+      return plexService.getAuthHeaders();
+    }
+    
+    // Subsonic/Navidrome and other services use URL params for auth
+    return {};
   }
 
   /// Search content in the current service
@@ -623,6 +650,11 @@ class JellyfinServiceAdapter implements BaseMediaService {
   /// Get direct stream URL (no transcoding)
   String getDirectStreamUrl(String trackId) {
     return _jellyfinService.getDirectStreamUrl(trackId);
+  }
+
+  /// Get authentication headers for HTTP requests
+  Future<Map<String, String>> getAuthHeaders() async {
+    return await _jellyfinService.getAuthHeaders();
   }
 
   @override

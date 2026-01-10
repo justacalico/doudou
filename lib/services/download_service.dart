@@ -7,10 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/download_models.dart';
 import '../models/jellyfin_models.dart';
-import 'players/jellyfin_service.dart';
+import 'media_service_manager.dart';
 
 class DownloadService extends ChangeNotifier {
-  final JellyfinService _jellyfinService;
+  final MediaServiceManager _mediaServiceManager;
   final Map<String, DownloadTask> _downloadTasks = {};
   final Map<String, DownloadedTrack> _downloadedTracks = {};
   final List<String> _downloadQueue = [];
@@ -18,7 +18,7 @@ class DownloadService extends ChangeNotifier {
   final int _maxConcurrentDownloads = 3;
   int _activeDownloads = 0;
 
-  DownloadService(this._jellyfinService) {
+  DownloadService(this._mediaServiceManager) {
     _loadDownloadData();
   }
 
@@ -132,8 +132,21 @@ class DownloadService extends ChangeNotifier {
     }
 
     try {
-      // Get download URL from Jellyfin
-      final downloadUrl = _jellyfinService.getDownloadUrl(track.id);
+      // Get download URL from the current media service (supports Jellyfin, Subsonic/Navidrome, Plex, etc.)
+      final downloadUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
+      
+      if (downloadUrl.isEmpty) {
+        if (kDebugMode) {
+          print('ERROR: Got empty download URL for ${track.name}');
+          print('  - Server type: ${_mediaServiceManager.currentServerType}');
+          print('  - Current service: ${_mediaServiceManager.currentService?.runtimeType}');
+        }
+        return;
+      }
+      
+      if (kDebugMode) {
+        print('Download URL for ${track.name}: $downloadUrl');
+      }
       
       // Create downloads directory
       final appDir = await getApplicationDocumentsDirectory();
@@ -239,8 +252,8 @@ class DownloadService extends ChangeNotifier {
     try {
       final request = http.Request('GET', Uri.parse(task.downloadUrl));
       
-      // Add authentication headers
-      final headers = await _jellyfinService.getAuthHeaders();
+      // Add authentication headers (for Jellyfin/Plex; Subsonic has auth in URL)
+      final headers = await _mediaServiceManager.getAuthHeaders();
       request.headers.addAll(headers);
 
       final response = await request.send();
@@ -397,8 +410,8 @@ class DownloadService extends ChangeNotifier {
         return; // Already downloaded
       }
 
-      final imageUrl = _jellyfinService.getImageUrl(task.imageUrl!, width: 300, height: 300);
-      final headers = await _jellyfinService.getAuthHeaders();
+      final imageUrl = _mediaServiceManager.getImageUrl(task.imageUrl!, width: 300, height: 300);
+      final headers = await _mediaServiceManager.getAuthHeaders();
       
       final response = await http.get(Uri.parse(imageUrl), headers: headers);
       

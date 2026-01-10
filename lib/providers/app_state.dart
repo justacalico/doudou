@@ -138,7 +138,7 @@ class AppState extends ChangeNotifier {
     _mediaServiceManager = MediaServiceManager.withJellyfinService(
       _jellyfinService,
     );
-    _downloadService = DownloadService(_jellyfinService);
+    _downloadService = DownloadService(_mediaServiceManager);
     // Forward download service notifications to AppState listeners
     _downloadService.addListener(_onDownloadServiceChanged);
     _initializeApp();

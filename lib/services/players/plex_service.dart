@@ -655,6 +655,16 @@ class PlexService implements BaseMediaService {
     return getDownloadUrl(trackId);
   }
 
+  /// Get authentication headers for HTTP requests
+  /// For Plex, the token is typically in URL params, but some endpoints accept headers
+  Map<String, String> getAuthHeaders() {
+    if (_token == null) return {};
+    return {
+      'X-Plex-Token': _token!,
+      'Accept': 'application/json',
+    };
+  }
+
   /// Direct stream fallback using part ID (if you happen to have partId)
   String getDirectPartStreamUrl(String partId) {
     return getDirectPartUrl(partId);
