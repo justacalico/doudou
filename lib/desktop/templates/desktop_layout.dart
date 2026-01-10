@@ -14,6 +14,7 @@ import '../pages/albums.dart';
 import '../pages/artists.dart';
 import '../pages/tracks.dart';
 import '../pages/playlists.dart';
+import '../pages/downloads.dart';
 import '../pages/settings.dart';
 import 'desktop_theme.dart';
 
@@ -123,6 +124,11 @@ class _DesktopLayoutState extends State<DesktopLayout>
       Icons.queue_music_rounded,
       'Playlists',
     ),
+    _NavItem(
+      Icons.download_outlined,
+      Icons.download_rounded,
+      'Downloads',
+    ),
   ];
 
   List<Widget> get _pages => const [
@@ -133,6 +139,7 @@ class _DesktopLayoutState extends State<DesktopLayout>
     ArtistsPage(),
     TracksPage(),
     PlaylistsPage(),
+    DownloadsPage(),
     SettingsPage(),
   ];
 
@@ -181,7 +188,7 @@ class _DesktopLayoutState extends State<DesktopLayout>
                     navItems: _navItems,
                     libraryItems: _libraryItems,
                     onNavTap: _navigateToPage,
-                    onSettingsTap: () => _navigateToPage(7),
+                    onSettingsTap: () => _navigateToPage(8),
                   ),
                   // Page content
                   Expanded(
@@ -363,7 +370,7 @@ class _Sidebar extends StatelessWidget {
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
             label: l10n.settings,
-            isSelected: currentIndex == 7,
+            isSelected: currentIndex == 8,
             onTap: onSettingsTap,
           ),
 
@@ -396,6 +403,8 @@ class _Sidebar extends StatelessWidget {
         return l10n.songs;
       case 3:
         return l10n.playlists;
+      case 4:
+        return l10n.downloads;
       default:
         return '';
     }
