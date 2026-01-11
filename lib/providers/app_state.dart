@@ -44,7 +44,7 @@ class AppState extends ChangeNotifier {
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
-  bool _useDynamicIsle = true; // Enabled by default
+  bool _useDynamicIsle = false; // Disabled by default
   bool _autoplayEnabled =
       true; // Enabled by default - adds similar music when queue ends
 
