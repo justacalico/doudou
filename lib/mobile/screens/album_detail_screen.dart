@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show ColorScheme, Brightness;
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
@@ -18,11 +19,38 @@ class AlbumDetailScreen extends StatefulWidget {
 class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   List<Track>? _albumTracks;
   bool _isLoading = true;
+  Color? _dominantColor;
 
   @override
   void initState() {
     super.initState();
     _loadTracks();
+    _extractColors();
+  }
+
+  Future<void> _extractColors() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    if (widget.album.imageUrl != null) {
+      try {
+        final imageUrl = appState.getImageUrl(widget.album.imageUrl!, width: 100, height: 100);
+        final colorScheme = await ColorScheme.fromImageProvider(
+          provider: NetworkImage(imageUrl),
+          brightness: Brightness.dark,
+        );
+        if (mounted) {
+          setState(() {
+            _dominantColor = colorScheme.primary;
+          });
+        }
+      } catch (e) {
+        // Fallback to accent pink if color extraction fails
+        if (mounted) {
+          setState(() {
+            _dominantColor = AppTheme.accentPink;
+          });
+        }
+      }
+    }
   }
 
   Future<void> _loadTracks() async {
@@ -103,15 +131,19 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   Widget _buildGradientHeader(BuildContext context, AppState appState, List<Track> tracks) {
     final artworkSize = 160.0;
+    // Use a neutral gray until colors are extracted, then smoothly transition
+    final gradientColor = _dominantColor ?? const Color(0xFF2C2C2E);
     
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOut,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppTheme.accentPink.withOpacity(0.7),
-            AppTheme.accentPink.withOpacity(0.4),
+            gradientColor.withOpacity(0.8),
+            gradientColor.withOpacity(0.5),
             AppTheme.background(context),
           ],
           stops: const [0.0, 0.5, 1.0],
