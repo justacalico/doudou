@@ -67,9 +67,13 @@
 
 # Suppress warnings for missing classes that are optional
 -dontwarn javax.annotation.**
+-dontwarn javax.xml.stream.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+
+# Apache Tika (used for metadata extraction)
+-dontwarn org.apache.tika.**
 
 # Google Play Core (deferred components) - these are optional
 -dontwarn com.google.android.play.core.splitcompat.**
