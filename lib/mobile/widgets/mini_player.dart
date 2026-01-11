@@ -1,5 +1,5 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show LinearProgressIndicator;
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../theme/app_theme.dart';
@@ -7,7 +7,7 @@ import 'cached_artwork.dart';
 import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 
-/// Apple Music-style mini player that sits above the tab bar
+/// Modern mini player with frosted glass effect
 class MiniPlayer extends StatelessWidget {
   final VoidCallback? onTap;
 
@@ -31,63 +31,46 @@ class MiniPlayer extends StatelessWidget {
 
             return GestureDetector(
               onTap: onTap,
-              child: Container(
-                height: AppTheme.miniPlayerHeight,
-                decoration: BoxDecoration(
-                  color: AppTheme.elevated(context),
-                  border: Border(
-                    top: BorderSide(
-                      color: AppTheme.separator(context),
-                      width: 0.5,
-                    ),
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingM,
+                  vertical: AppTheme.spacingS,
                 ),
-                child: Column(
-                  children: [
-                    // Progress indicator
-                    StreamBuilder<Duration>(
-                      stream: appState.positionStream,
-                      builder: (context, positionSnapshot) {
-                        final currentTrack = audioHandler.currentTrack;
-                        final position = positionSnapshot.data ?? Duration.zero;
-                        final duration = currentTrack?.duration != null 
-                            ? Duration(milliseconds: currentTrack!.duration!)
-                            : Duration.zero;
-                        final progress = duration.inMilliseconds > 0
-                            ? position.inMilliseconds / duration.inMilliseconds
-                            : 0.0;
-
-                        return SizedBox(
-                          height: 2,
-                          child: LinearProgressIndicator(
-                            value: progress.clamp(0.0, 1.0),
-                            backgroundColor: AppTheme.separator(context),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              AppTheme.accentPink,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    // Player content
-                    Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                    child: Container(
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: CupertinoColors.white.withOpacity(0.1),
+                          width: 0.5,
+                        ),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppTheme.spacingM,
+                          vertical: AppTheme.spacingS,
                         ),
                         child: Row(
                           children: [
                             // Album art
-                            CachedArtwork(
-                              imageUrl: currentTrack.imageUrl != null
-                                  ? appState.getImageUrl(
-                                      currentTrack.imageUrl!,
-                                      width: 120,
-                                      height: 120,
-                                    )
-                                  : null,
-                              size: AppTheme.albumArtSmall,
-                              borderRadius: AppTheme.radiusS,
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: CachedArtwork(
+                                imageUrl: currentTrack.imageUrl != null
+                                    ? appState.getImageUrl(
+                                        currentTrack.imageUrl!,
+                                        width: 120,
+                                        height: 120,
+                                      )
+                                    : null,
+                                size: 48,
+                                borderRadius: 8,
+                              ),
                             ),
                             const SizedBox(width: AppTheme.spacingM),
                             // Track info
@@ -98,24 +81,26 @@ class MiniPlayer extends StatelessWidget {
                                 children: [
                                   Text(
                                     currentTrack.name,
-                                    style: TextStyle(
-                                      fontSize: AppTheme.fontSizeFootnote,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppTheme.textPrimary(context),
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: CupertinoColors.white,
+                                      decoration: TextDecoration.none,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  if (currentTrack.artistName != null)
-                                    Text(
-                                      currentTrack.artistName!,
-                                      style: TextStyle(
-                                        fontSize: AppTheme.fontSizeCaption,
-                                        color: AppTheme.textSecondary(context),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    currentTrack.artistName ?? 'Unknown Artist',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: CupertinoColors.white.withOpacity(0.6),
+                                      decoration: TextDecoration.none,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ],
                               ),
                             ),
@@ -126,7 +111,7 @@ class MiniPlayer extends StatelessWidget {
                                 final isPlaying = stateSnapshot.data?.playing ?? false;
 
                                 return CupertinoButton(
-                                  padding: const EdgeInsets.all(AppTheme.spacingS),
+                                  padding: const EdgeInsets.all(8),
                                   minSize: 0,
                                   onPressed: () {
                                     if (isPlaying) {
@@ -140,27 +125,27 @@ class MiniPlayer extends StatelessWidget {
                                         ? CupertinoIcons.pause_fill
                                         : CupertinoIcons.play_fill,
                                     size: 28,
-                                    color: AppTheme.textPrimary(context),
+                                    color: CupertinoColors.white,
                                   ),
                                 );
                               },
                             ),
                             // Next button
                             CupertinoButton(
-                              padding: const EdgeInsets.all(AppTheme.spacingS),
+                              padding: const EdgeInsets.all(8),
                               minSize: 0,
                               onPressed: () => audioHandler.skipToNext(),
-                              child: Icon(
+                              child: const Icon(
                                 CupertinoIcons.forward_fill,
                                 size: 24,
-                                color: AppTheme.textPrimary(context),
+                                color: CupertinoColors.white,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
