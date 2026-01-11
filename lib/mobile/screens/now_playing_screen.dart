@@ -365,7 +365,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 padding: EdgeInsets.zero,
                 onPressed: () => audioHandler.toggleShuffle(),
                 child: StreamBuilder<bool>(
-                  stream: audioHandler.shuffleModeEnabledStream,
+                  stream: audioHandler.shuffleEnabledStream,
                   builder: (context, snapshot) {
                     final isShuffling = snapshot.data ?? false;
                     return Icon(
