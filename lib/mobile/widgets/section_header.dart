@@ -33,6 +33,7 @@ class SectionHeader extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary(context),
               letterSpacing: -0.5,
+              decoration: TextDecoration.none,
             ),
           ),
           if (onSeeAll != null)
@@ -45,6 +46,7 @@ class SectionHeader extends StatelessWidget {
                 style: TextStyle(
                   fontSize: AppTheme.fontSizeBody,
                   color: AppTheme.accentPink,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ),
