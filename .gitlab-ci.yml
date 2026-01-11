@@ -120,7 +120,6 @@ build_release_aab:
     paths:
       - build/app/outputs/bundle/release/app-release.aab
     expire_in: never
-  timeout: 1h
 
 build_release_apk:
   stage: build
@@ -213,7 +212,6 @@ build_release_apk:
     paths:
       - build/app/outputs/flutter-apk/app-release.apk
     expire_in: never
-  timeout: 1h
 
 build_debug_apk:
   stage: build
@@ -272,7 +270,6 @@ build_debug_apk:
     paths:
       - build/app/outputs/flutter-apk/app-debug.apk
     expire_in: never
-  timeout: 1h
 
 build_release_linux:
   stage: build-linux
@@ -314,7 +311,6 @@ build_release_linux:
       - build/linux/x64/release/bundle/
       - doudou-*-linux-x64.zip
     expire_in: never
-  timeout: 1h
 
 build_linux_deb:
   stage: build-linux
@@ -351,7 +347,6 @@ build_linux_deb:
     paths:
       - artifacts/klit-linux-amd64.deb
     expire_in: never
-  timeout: 1h
 
 build_linux_appimage:
   stage: build-linux
@@ -398,4 +393,3 @@ build_linux_appimage:
     paths:
       - artifacts/klit-linux-x86_64.AppImage
     expire_in: never
-  timeout: 1h
