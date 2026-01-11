@@ -213,7 +213,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingL),
+        const Spacer(flex: 1),
 
         // Album artwork
         Container(
@@ -238,7 +238,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingXL),
+        const SizedBox(height: AppTheme.spacingL),
 
         // Track info centered (Apple Music style)
         Padding(
@@ -301,7 +301,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingL),
+        const SizedBox(height: AppTheme.spacingM),
 
         // Progress bar (full width)
         Padding(
@@ -372,7 +372,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: AppTheme.spacingL),
 
         // Controls
         Padding(
@@ -483,7 +483,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingXL),
+        const Spacer(flex: 2),
 
         // Bottom actions row (Apple Music style - minimal)
         Padding(
