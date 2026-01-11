@@ -38,39 +38,6 @@ class AudioSettingsSection extends StatelessWidget {
                   children: [
                     _buildSectionHeader(l10n.audioSettings),
 
-                    _buildSwitchTile(
-                      icon: CupertinoIcons.speaker_2,
-                      title: l10n.normalizeVolume,
-                      subtitle: l10n.reduceVolumeDifferences,
-                      value: appState.normalizeVolumeEnabled,
-                      onChanged: (value) {
-                        appState.toggleNormalizeVolume(value);
-                      },
-                    ),
-                    _buildSwitchTile(
-                      icon: CupertinoIcons.forward_end,
-                      title: l10n.gaplessPlayback,
-                      subtitle: l10n.seamlessTransitions,
-                      value: appState.gaplessPlaybackEnabled,
-                      onChanged: (value) {
-                        appState.toggleGaplessPlayback(value);
-                      },
-                    ),
-                    _buildSwitchTile(
-                      icon: CupertinoIcons.sparkles,
-                      title: l10n.autoplay,
-                      subtitle: l10n.autoplayDescription,
-                      value: appState.autoplayEnabled,
-                      onChanged: (value) {
-                        appState.toggleAutoplay(value);
-                      },
-                    ),
-                    Divider(
-                      color: Colors.white.withOpacity(0.1),
-                      height: 1,
-                      indent: 20,
-                      endIndent: 20,
-                    ),
                     _buildDownloadTile(
                       context: context,
                       icon: CupertinoIcons.cloud_download,
@@ -107,73 +74,6 @@ class AudioSettingsSection extends StatelessWidget {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: value
-                  ? const Color(0xFFEC4899).withOpacity(0.15)
-                  : const Color(0xFF8B5CF6).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: value
-                    ? const Color(0xFFEC4899).withOpacity(0.3)
-                    : const Color(0xFF8B5CF6).withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: value ? const Color(0xFFEC4899) : const Color(0xFF8B5CF6),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFFFFFFFF),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFFAAAAAA),
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          CupertinoSwitch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: const Color(0xFFEC4899),
-            trackColor: Colors.white.withOpacity(0.1),
-          ),
-        ],
       ),
     );
   }

@@ -317,26 +317,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Show quality options
                     },
                   ),
-                  SwitchListTile(
-                    title: const Text('Gapless Playback'),
-                    subtitle: const Text(
-                      'Seamless transitions between tracks',
-                    ),
-                    value: appState.gaplessPlaybackEnabled,
-                    onChanged: (value) {
-                      appState.toggleGaplessPlayback(value);
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Autoplay'),
-                    subtitle: const Text(
-                      'Automatically play similar music when the queue ends',
-                    ),
-                    value: appState.autoplayEnabled,
-                    onChanged: (value) {
-                      appState.toggleAutoplay(value);
-                    },
-                  ),
                 ],
               ),
             ),

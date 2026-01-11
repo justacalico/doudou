@@ -39,14 +39,10 @@ class AppState extends ChangeNotifier {
   List<Playlist> _playlists = [];
   List<Track> _recentTracks = [];
 
-  bool _normalizeVolumeEnabled = false;
-  bool _gaplessPlaybackEnabled = true;
   bool _oledDarkModeEnabled = true;
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _useDynamicIsle = false; // Disabled by default
-  bool _autoplayEnabled =
-      true; // Enabled by default - adds similar music when queue ends
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
@@ -117,9 +113,6 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  bool get normalizeVolumeEnabled => _normalizeVolumeEnabled;
-  bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
-  bool get autoplayEnabled => _autoplayEnabled;
   bool get useDynamicIsle => _useDynamicIsle;
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
@@ -328,7 +321,6 @@ class AppState extends ChangeNotifier {
                 await audioService.initialize(_mediaServiceManager);
                 _audioHandler = audioService;
 
-                _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
                 _setupAudioHandlerListeners();
               } catch (audioError) {
                 _audioHandler = null;
@@ -422,7 +414,6 @@ class AppState extends ChangeNotifier {
             await audioService.initialize(_mediaServiceManager);
             _audioHandler = audioService;
 
-            _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
             _setupAudioHandlerListeners();
             notifyListeners();
           } catch (audioError) {
@@ -546,7 +537,6 @@ class AppState extends ChangeNotifier {
           await audioService.initialize(_mediaServiceManager);
           _audioHandler = audioService;
 
-          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           _setupAudioHandlerListeners();
         } catch (e) {
           _audioHandler = null;
@@ -610,7 +600,6 @@ class AppState extends ChangeNotifier {
         await audioService.initialize(_mediaServiceManager);
         _audioHandler = audioService;
 
-        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
         _setupAudioHandlerListeners();
       } catch (e) {
         _audioHandler = null;
@@ -696,7 +685,6 @@ class AppState extends ChangeNotifier {
         final audioService = AudioServiceIntegration.instance;
         await audioService.initialize(_mediaServiceManager);
         _audioHandler = audioService;
-        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
         _setupAudioHandlerListeners();
       } catch (e) {
         _audioHandler = null;
@@ -791,7 +779,6 @@ class AppState extends ChangeNotifier {
           await audioService.initialize(_mediaServiceManager);
           _audioHandler = audioService;
 
-          _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
           _setupAudioHandlerListeners();
         } catch (e) {
           _audioHandler = null;
@@ -1765,44 +1752,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleNormalizeVolume(bool enabled) async {
-    _normalizeVolumeEnabled = enabled;
-
-    // Update the audio handler with the new normalize volume setting
-
-    // Save the setting to preferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('normalize_volume_enabled', enabled);
-
-    notifyListeners();
-  }
-
-  Future<void> toggleGaplessPlayback(bool enabled) async {
-    _gaplessPlaybackEnabled = enabled;
-
-    // Update the audio handler with the new gapless playback setting
-    _audioHandler?.setGaplessPlayback(enabled);
-
-    // Save the setting to preferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('gapless_playback_enabled', enabled);
-
-    notifyListeners();
-  }
-
-  Future<void> toggleAutoplay(bool enabled) async {
-    _autoplayEnabled = enabled;
-
-    // Update the audio handler with the new autoplay setting
-    _audioHandler?.setAutoplay(enabled);
-
-    // Save the setting to preferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('autoplay_enabled', enabled);
-
-    notifyListeners();
-  }
-
   Future<void> toggleOledDarkMode(bool enabled) async {
     _oledDarkModeEnabled = enabled;
 
@@ -1896,20 +1845,12 @@ class AppState extends ChangeNotifier {
   Future<void> _loadUserSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
-    _normalizeVolumeEnabled =
-        prefs.getBool('normalize_volume_enabled') ?? false;
-    _gaplessPlaybackEnabled = prefs.getBool('gapless_playback_enabled') ?? true;
-    _autoplayEnabled =
-        prefs.getBool('autoplay_enabled') ?? true; // Enabled by default
     _oledDarkModeEnabled = prefs.getBool('oled_dark_mode_enabled') ?? true;
     _showAlbumArtEnabled = prefs.getBool('show_album_art_enabled') ?? true;
     _loggingEnabled =
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
     _useDynamicIsle =
-        prefs.getBool('use_dynamic_isle') ?? true; // Enabled by default
-
-    // Apply autoplay setting to audio handler
-    _audioHandler?.setAutoplay(_autoplayEnabled);
+        prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';
@@ -2102,9 +2043,6 @@ class AppState extends ChangeNotifier {
         final audioService = AudioServiceIntegration.instance;
         await audioService.initialize(_mediaServiceManager);
         _audioHandler = audioService;
-
-        // Apply user settings to the audio handler
-        _audioHandler?.setGaplessPlayback(_gaplessPlaybackEnabled);
 
         // Set up listeners for automatic UI updates
         _setupAudioHandlerListeners();
