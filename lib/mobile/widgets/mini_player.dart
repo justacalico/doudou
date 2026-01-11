@@ -39,16 +39,12 @@ class MiniPlayer extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                     child: Container(
                       height: 64,
                       decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey.withOpacity(0.25),
+                        color: const Color(0xFF1C1C1E).withOpacity(0.7),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: CupertinoColors.white.withOpacity(0.1),
-                          width: 0.5,
-                        ),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(

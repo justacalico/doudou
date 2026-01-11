@@ -48,93 +48,101 @@ class _MobileAppShellState extends State<MobileAppShell> {
           builder: (context, snapshot) {
             final hasCurrentTrack = snapshot.data != null || 
                 appState.audioHandler?.currentTrack != null;
+            
+            // Calculate bottom padding for content
+            final bottomPadding = hasCurrentTrack ? 160.0 : 100.0;
 
             return CupertinoPageScaffold(
               backgroundColor: AppTheme.background(context),
-              child: Column(
+              child: Stack(
                 children: [
-                  // Main content area
-                  Expanded(
-                    child: IndexedStack(
-                      index: _currentIndex,
-                      children: _screens,
+                  // Main content area - extends behind mini player and navbar
+                  Positioned.fill(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: bottomPadding),
+                      child: IndexedStack(
+                        index: _currentIndex,
+                        children: _screens,
+                      ),
                     ),
                   ),
-                  // Mini player (shows above tab bar when playing)
-                  if (hasCurrentTrack)
-                    MiniPlayer(
-                      onTap: () => _openNowPlaying(context),
-                    ),
-                  // Tab bar with frosted glass
-                  Container(
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.transparent,
-                    ),
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.spacingM,
-                          vertical: AppTheme.spacingS,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                            child: Container(
-                              height: 70,
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.systemGrey.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: CupertinoColors.white.withOpacity(0.1),
-                                  width: 0.5,
+                  // Bottom bar area (mini player + navbar)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Mini player (shows above tab bar when playing)
+                        if (hasCurrentTrack)
+                          MiniPlayer(
+                            onTap: () => _openNowPlaying(context),
+                          ),
+                        // Tab bar with frosted glass
+                        SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.spacingM,
+                              vertical: AppTheme.spacingS,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                child: Container(
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1C1C1E).withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _buildTabItem(
+                                        context,
+                                        0,
+                                        CupertinoIcons.house,
+                                        CupertinoIcons.house_fill,
+                                        'Home',
+                                      ),
+                                      _buildTabItem(
+                                        context,
+                                        1,
+                                        CupertinoIcons.music_note_list,
+                                        CupertinoIcons.music_note_list,
+                                        'Library',
+                                      ),
+                                      _buildTabItem(
+                                        context,
+                                        2,
+                                        CupertinoIcons.arrow_down_circle,
+                                        CupertinoIcons.arrow_down_circle_fill,
+                                        'Downloads',
+                                      ),
+                                      _buildTabItem(
+                                        context,
+                                        3,
+                                        CupertinoIcons.search,
+                                        CupertinoIcons.search,
+                                        'Search',
+                                      ),
+                                      _buildTabItem(
+                                        context,
+                                        4,
+                                        CupertinoIcons.gear,
+                                        CupertinoIcons.gear_solid,
+                                        'Settings',
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildTabItem(
-                                    context,
-                                    0,
-                                    CupertinoIcons.house,
-                                    CupertinoIcons.house_fill,
-                                    'Home',
-                                  ),
-                                  _buildTabItem(
-                                    context,
-                                    1,
-                                    CupertinoIcons.music_note_list,
-                                    CupertinoIcons.music_note_list,
-                                    'Library',
-                                  ),
-                                  _buildTabItem(
-                                    context,
-                                    2,
-                                    CupertinoIcons.arrow_down_circle,
-                                    CupertinoIcons.arrow_down_circle_fill,
-                                    'Downloads',
-                                  ),
-                                  _buildTabItem(
-                                    context,
-                                    3,
-                                    CupertinoIcons.search,
-                                    CupertinoIcons.search,
-                                    'Search',
-                                  ),
-                                  _buildTabItem(
-                                    context,
-                                    4,
-                                    CupertinoIcons.gear,
-                                    CupertinoIcons.gear_solid,
-                                    'Settings',
-                                  ),
-                                ],
                               ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
