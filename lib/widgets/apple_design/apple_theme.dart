@@ -14,8 +14,8 @@ class AppleColors {
   
   static const Color labelPrimary = Color(0xFF000000);
   static const Color labelSecondary = Color(0xFF3C3C43);
-  static const Color labelTertiary = Color(0xFF3C3C4399);
-  static const Color labelQuaternary = Color(0xFF3C3C432E);
+  static const Color labelTertiary = Color(0xff3c3c4399);
+  static const Color labelQuaternary = Color(0xff3c3c432e);
   
   static const Color fillPrimary = Color(0x33787880);
   static const Color fillSecondary = Color(0x29787880);
@@ -37,8 +37,8 @@ class AppleColors {
   
   static const Color labelPrimaryDark = Color(0xFFFFFFFF);
   static const Color labelSecondaryDark = Color(0xFFEBEBF5);
-  static const Color labelTertiaryDark = Color(0xFFEBEBF54D);
-  static const Color labelQuaternaryDark = Color(0xFFEBEBF52E);
+  static const Color labelTertiaryDark = Color(0xffebebf54d);
+  static const Color labelQuaternaryDark = Color(0xffebebf52e);
   
   static const Color fillPrimaryDark = Color(0x5C787880);
   static const Color fillSecondaryDark = Color(0x52787880);

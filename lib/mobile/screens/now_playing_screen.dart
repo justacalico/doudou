@@ -187,6 +187,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                           letterSpacing: 0.5,
                           color: CupertinoColors.white.withOpacity(0.6),
                           fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.none,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 1,
@@ -253,6 +254,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                         fontSize: AppTheme.fontSizeTitle2,
                         fontWeight: FontWeight.bold,
                         color: CupertinoColors.white,
+                        decoration: TextDecoration.none,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -267,6 +269,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeTitle3,
                           color: AppTheme.accentPink,
+                          decoration: TextDecoration.none,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -334,13 +337,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                           style: TextStyle(
                             fontSize: AppTheme.fontSizeCaption,
                             color: CupertinoColors.white.withOpacity(0.6),
+                            decoration: TextDecoration.none,
                           ),
                         ),
                         Text(
-                          _formatDuration(duration),
+                          '-${_formatDuration(duration - position)}',
                           style: TextStyle(
                             fontSize: AppTheme.fontSizeCaption,
                             color: CupertinoColors.white.withOpacity(0.6),
+                            decoration: TextDecoration.none,
                           ),
                         ),
                       ],
@@ -465,20 +470,20 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 
         const SizedBox(height: AppTheme.spacingXL),
 
-        // Bottom actions (Apple Music style)
+        // Bottom actions row (Apple Music style - minimal)
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXXL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Lyrics (placeholder)
+              // Lyrics
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {},
                 child: Icon(
                   CupertinoIcons.text_quote,
-                  size: 22,
-                  color: CupertinoColors.white.withOpacity(0.6),
+                  size: 20,
+                  color: CupertinoColors.white.withOpacity(0.5),
                 ),
               ),
 
@@ -488,8 +493,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 onPressed: () {},
                 child: Icon(
                   CupertinoIcons.antenna_radiowaves_left_right,
-                  size: 22,
-                  color: CupertinoColors.white.withOpacity(0.6),
+                  size: 20,
+                  color: CupertinoColors.white.withOpacity(0.5),
                 ),
               ),
 
@@ -499,46 +504,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 onPressed: () => setState(() => _showQueue = true),
                 child: Icon(
                   CupertinoIcons.list_bullet,
-                  size: 22,
-                  color: CupertinoColors.white.withOpacity(0.6),
+                  size: 20,
+                  color: CupertinoColors.white.withOpacity(0.5),
                 ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingM),
-
-        // Volume slider (Apple Music style)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
-          child: Row(
-            children: [
-              Icon(
-                CupertinoIcons.speaker_fill,
-                size: 14,
-                color: CupertinoColors.white.withOpacity(0.5),
-              ),
-              Expanded(
-                child: CupertinoSlider(
-                  value: 0.7,
-                  onChanged: (value) {
-                    // Volume control would go here
-                  },
-                  activeColor: CupertinoColors.white.withOpacity(0.6),
-                  thumbColor: CupertinoColors.white,
-                ),
-              ),
-              Icon(
-                CupertinoIcons.speaker_3_fill,
-                size: 14,
-                color: CupertinoColors.white.withOpacity(0.5),
-              ),
-            ],
-          ),
-        ),
-
-        const Spacer(),
+        const SizedBox(height: AppTheme.spacingXL),
       ],
     );
   }
