@@ -12,7 +12,7 @@ import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../services/players/jellyfin_service.dart';
 import '../screens/login/login.dart';
-import '../mobile/screens/mobile_app_shell.dart'; // New Mobile UI
+import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
 import '../widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
@@ -285,7 +285,7 @@ class _ResponsiveHome extends StatelessWidget {
             if (isDesktop) {
               return const DesktopHomeLayout();
             } else {
-              // Use mobile UI (MobileAppShell with bottom navigation)
+              // Use mobile UI (HomeScreen with bottom navigation)
               // Wrap with Theme to fix ALL text styling (removes yellow underlines)
               // that occur when Cupertino widgets are used in MaterialApp
               final baseTheme = Theme.of(context);
@@ -300,7 +300,7 @@ class _ResponsiveHome extends StatelessWidget {
                 ),
                 child: const Material(
                   type: MaterialType.transparency,
-                  child: MobileAppShell(),
+                  child: HomeScreen(),
                 ),
               );
             }

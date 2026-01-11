@@ -13,8 +13,8 @@ import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/login/login.dart';
-import 'mobile/screens/mobile_app_shell.dart';
-import 'mobile/theme/app_theme.dart';
+import 'screens/partials/navbar/navbar.dart';
+import 'widgets/apple_design/apple_theme.dart';
 import 'desktop/main.dart' as desktop_main;
 
 void main() async {
@@ -108,32 +108,37 @@ class DoudouApp extends StatelessWidget {
                   primaryColor: appState.accentColor,
                   brightness: isDark ? Brightness.dark : Brightness.light,
                   scaffoldBackgroundColor: isDark
-                      ? AppTheme.backgroundDark
-                      : AppTheme.backgroundLight,
+                      ? AppleColors.backgroundPrimaryDark
+                      : AppleColors.backgroundPrimary,
                   barBackgroundColor: isDark
-                      ? AppTheme.surfaceDark.withOpacity(0.9)
-                      : AppTheme.surfaceLight.withOpacity(0.9),
+                      ? AppleColors.backgroundSecondaryDark.withValues(
+                          alpha: 0.9,
+                        )
+                      : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
                   textTheme: CupertinoTextThemeData(
                     primaryColor: appState.accentColor,
                     textStyle: TextStyle(
-                      fontSize: AppTheme.fontSizeBody,
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleBody,
                       color: isDark
-                          ? AppTheme.textPrimaryDark
-                          : AppTheme.textPrimaryLight,
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
                     ),
                     navTitleTextStyle: TextStyle(
-                      fontSize: AppTheme.fontSizeBody,
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleHeadline,
                       fontWeight: FontWeight.w600,
                       color: isDark
-                          ? AppTheme.textPrimaryDark
-                          : AppTheme.textPrimaryLight,
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
                     ),
                     navLargeTitleTextStyle: TextStyle(
-                      fontSize: AppTheme.fontSizeLargeTitle,
+                      fontFamily: AppleDesignSystem.fontFamily,
+                      fontSize: AppleDesignSystem.typeScaleLargeTitle,
                       fontWeight: FontWeight.bold,
                       color: isDark
-                          ? AppTheme.textPrimaryDark
-                          : AppTheme.textPrimaryLight,
+                          ? AppleColors.labelPrimaryDark
+                          : AppleColors.labelPrimary,
                     ),
                   ),
                 ),
@@ -158,10 +163,11 @@ class DoudouApp extends StatelessWidget {
                               Text(
                                 'Loading...',
                                 style: TextStyle(
-                                  fontSize: AppTheme.fontSizeBody,
+                                  fontFamily: AppleDesignSystem.fontFamily,
+                                  fontSize: AppleDesignSystem.typeScaleBody,
                                   color: isDark
-                                      ? AppTheme.textSecondaryDark
-                                      : AppTheme.textSecondaryLight,
+                                      ? AppleColors.labelSecondaryDark
+                                      : AppleColors.labelSecondary,
                                 ),
                               ),
                             ],
@@ -171,7 +177,7 @@ class DoudouApp extends StatelessWidget {
                     }
 
                     if (appState.isLoggedIn) {
-                      return const MobileAppShell();
+                      return const HomeScreen();
                     } else {
                       return const LoginScreen();
                     }

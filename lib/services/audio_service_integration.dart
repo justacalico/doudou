@@ -227,16 +227,6 @@ class AudioServiceIntegration {
     return _audioHandler!.currentTrackStream;
   }
 
-  Stream<bool>? get shuffleEnabledStream {
-    if (!_initialized || _audioHandler == null) return null;
-    return _audioHandler!.shuffleEnabledStream;
-  }
-
-  Stream<RepeatMode>? get repeatModeStream {
-    if (!_initialized || _audioHandler == null) return null;
-    return _audioHandler!.repeatModeStream;
-  }
-
   // === Property Getters ===
 
   /// Get user intended playing state
@@ -305,9 +295,6 @@ class AudioServiceIntegration {
     return _audioHandler!.queueTracks;
   }
 
-  /// Alias for queueTracks
-  List<Track> get queue => queueTracks;
-
   /// Get up next tracks
   List<Track> get upNext {
     if (!_initialized || _audioHandler == null) return [];
@@ -333,32 +320,6 @@ class AudioServiceIntegration {
         print('AudioServiceIntegration: Error setting repeat mode: $e');
       }
     }
-  }
-
-  /// Toggle repeat mode (none -> all -> one -> none)
-  void toggleRepeat() {
-    if (!_initialized || _audioHandler == null) return;
-
-    final current = _audioHandler!.repeatMode;
-    RepeatMode next;
-    switch (current) {
-      case RepeatMode.none:
-        next = RepeatMode.all;
-        break;
-      case RepeatMode.all:
-        next = RepeatMode.one;
-        break;
-      case RepeatMode.one:
-        next = RepeatMode.none;
-        break;
-    }
-    _audioHandler!.setRepeatModeValue(next);
-  }
-
-  /// Toggle shuffle mode
-  void toggleShuffle() {
-    if (!_initialized || _audioHandler == null) return;
-    _audioHandler!.toggleShuffle();
   }
 
   /// Set shuffle mode
