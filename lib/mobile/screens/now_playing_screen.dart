@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Material, Slider, SliderTheme, SliderThemeData, RoundSliderThumbShape, RoundSliderOverlayShape;
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../providers/app_state.dart';
@@ -212,7 +213,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: AppTheme.spacingL),
 
         // Album artwork
         Container(
@@ -237,18 +238,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingXXL),
+        const SizedBox(height: AppTheme.spacingXL),
 
-        // Track info with favorite button (Apple Music style)
+        // Track info centered (Apple Music style)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
                       currentTrack.name,
                       style: const TextStyle(
                         fontSize: AppTheme.fontSizeTitle2,
@@ -258,40 +259,42 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 2),
-                    GestureDetector(
-                      onTap: () {
-                        // Could navigate to artist
-                      },
-                      child: Text(
-                        currentTrack.artistName ?? 'Unknown Artist',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeTitle3,
-                          color: AppTheme.accentPink,
-                          decoration: TextDecoration.none,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingS),
+                  // Favorite button
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minSize: 0,
+                    onPressed: () => appState.toggleFavorite(currentTrack),
+                    child: Icon(
+                      currentTrack.isFavorite
+                          ? CupertinoIcons.star_fill
+                          : CupertinoIcons.star,
+                      size: 24,
+                      color: currentTrack.isFavorite
+                          ? AppTheme.accentPink
+                          : CupertinoColors.white.withOpacity(0.6),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppTheme.spacingM),
-              // Favorite button
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minSize: 0,
-                onPressed: () => appState.toggleFavorite(currentTrack),
-                child: Icon(
-                  currentTrack.isFavorite
-                      ? CupertinoIcons.star_fill
-                      : CupertinoIcons.star,
-                  size: 26,
-                  color: currentTrack.isFavorite
-                      ? AppTheme.accentPink
-                      : CupertinoColors.white.withOpacity(0.6),
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () {
+                  // Could navigate to artist
+                },
+                child: Text(
+                  currentTrack.artistName ?? 'Unknown Artist',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeTitle3,
+                    color: AppTheme.accentPink,
+                    decoration: TextDecoration.none,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -300,9 +303,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 
         const SizedBox(height: AppTheme.spacingL),
 
-        // Progress bar
+        // Progress bar (full width)
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM),
           child: StreamBuilder<Duration>(
             stream: appState.positionStream,
             builder: (context, positionSnapshot) {
@@ -316,16 +319,28 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 
               return Column(
                 children: [
-                  CupertinoSlider(
-                    value: progress.clamp(0.0, 1.0),
-                    onChanged: (value) {
-                      final newPosition = Duration(
-                        milliseconds: (value * duration.inMilliseconds).round(),
-                      );
-                      audioHandler.seek(newPosition);
-                    },
-                    activeColor: CupertinoColors.white,
-                    thumbColor: CupertinoColors.white,
+                  Material(
+                    color: CupertinoColors.transparent,
+                    child: SliderTheme(
+                      data: SliderThemeData(
+                        trackHeight: 4,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                        activeTrackColor: CupertinoColors.white,
+                        inactiveTrackColor: CupertinoColors.white.withOpacity(0.3),
+                        thumbColor: CupertinoColors.white,
+                        overlayColor: CupertinoColors.white.withOpacity(0.2),
+                      ),
+                      child: Slider(
+                        value: progress.clamp(0.0, 1.0),
+                        onChanged: (value) {
+                          final newPosition = Duration(
+                            milliseconds: (value * duration.inMilliseconds).round(),
+                          );
+                          audioHandler.seek(newPosition);
+                        },
+                      ),
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingS),
@@ -357,7 +372,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingL),
+        const Spacer(),
 
         // Controls
         Padding(
