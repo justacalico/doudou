@@ -4,9 +4,7 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/widgets.dart';
-import 'album_detail_screen.dart';
-import 'artist_detail_screen.dart';
-import 'playlist_detail_screen.dart';
+import 'detail_screen.dart';
 import 'all_albums_screen.dart';
 import 'all_artists_screen.dart';
 
@@ -197,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => AlbumDetailScreen(album: album),
+        builder: (context) => DetailScreen.album(album: album),
       ),
     );
   }
@@ -206,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => ArtistDetailScreen(artist: artist),
+        builder: (context) => DetailScreen.artist(artist: artist),
       ),
     );
   }
@@ -215,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => PlaylistDetailScreen(playlist: playlist),
+        builder: (context) => DetailScreen.playlist(playlist: playlist),
       ),
     );
   }

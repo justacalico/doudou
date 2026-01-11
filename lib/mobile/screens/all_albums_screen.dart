@@ -4,7 +4,7 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/widgets.dart';
-import 'album_detail_screen.dart';
+import 'detail_screen.dart';
 
 /// All albums screen with sorting options
 class AllAlbumsScreen extends StatefulWidget {
@@ -68,7 +68,7 @@ class _AllAlbumsScreenState extends State<AllAlbumsScreen> {
                   onAlbumTap: (album) => Navigator.push(
                     context,
                     CupertinoPageRoute(
-                      builder: (context) => AlbumDetailScreen(album: album),
+                      builder: (context) => DetailScreen.album(album: album),
                     ),
                   ),
                 ),

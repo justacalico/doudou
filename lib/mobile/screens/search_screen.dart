@@ -4,9 +4,7 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/widgets.dart';
-import 'album_detail_screen.dart';
-import 'artist_detail_screen.dart';
-import 'playlist_detail_screen.dart';
+import 'detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -254,7 +252,7 @@ class _SearchScreenState extends State<SearchScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => AlbumDetailScreen(album: album),
+        builder: (context) => DetailScreen.album(album: album),
       ),
     );
   }
@@ -263,7 +261,7 @@ class _SearchScreenState extends State<SearchScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => ArtistDetailScreen(artist: artist),
+        builder: (context) => DetailScreen.artist(artist: artist),
       ),
     );
   }
@@ -272,7 +270,7 @@ class _SearchScreenState extends State<SearchScreen> {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => PlaylistDetailScreen(playlist: playlist),
+        builder: (context) => DetailScreen.playlist(playlist: playlist),
       ),
     );
   }

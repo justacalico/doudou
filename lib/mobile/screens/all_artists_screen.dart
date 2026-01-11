@@ -4,7 +4,7 @@ import '../../providers/app_state.dart';
 import '../../models/jellyfin_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/widgets.dart';
-import 'artist_detail_screen.dart';
+import 'detail_screen.dart';
 
 /// All artists screen with search
 class AllArtistsScreen extends StatefulWidget {
@@ -67,7 +67,7 @@ class _AllArtistsScreenState extends State<AllArtistsScreen> {
                             onTap: () => Navigator.push(
                               context,
                               CupertinoPageRoute(
-                                builder: (context) => ArtistDetailScreen(artist: artist),
+                                builder: (context) => DetailScreen.artist(artist: artist),
                               ),
                             ),
                           ),
