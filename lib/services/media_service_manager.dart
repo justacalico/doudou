@@ -3,7 +3,6 @@ import 'base_service.dart';
 import 'players/jellyfin_service.dart';
 import 'players/plex_service.dart';
 import 'players/subsonic_service.dart';
-import 'players/swingmusic_service.dart';
 import 'players/local_music_service.dart';
 
 class MediaServiceManager {
@@ -42,9 +41,6 @@ class MediaServiceManager {
         break;
       case ServerType.subsonic:
         _currentService = SubsonicService();
-        break;
-      case ServerType.swingmusic:
-        _currentService = SwingMusicService();
         break;
       case ServerType.local:
         _sharedLocalMusicService ??= LocalMusicService();
@@ -383,12 +379,6 @@ class MediaServiceManager {
       case ServerType.local:
         // Local playlist creation not yet implemented
         break;
-      case ServerType.swingmusic:
-        if (_currentService is SwingMusicService) {
-          final swingService = _currentService as SwingMusicService;
-          return await swingService.createPlaylist(name);
-        }
-        break;
     }
     return null;
   }
@@ -416,12 +406,6 @@ class MediaServiceManager {
         break;
       case ServerType.local:
         // Local add to playlist not yet implemented
-        break;
-      case ServerType.swingmusic:
-        if (_currentService is SwingMusicService) {
-          final swingService = _currentService as SwingMusicService;
-          return await swingService.addToPlaylist(playlistId, trackId);
-        }
         break;
     }
     return false;
@@ -451,12 +435,6 @@ class MediaServiceManager {
       case ServerType.local:
         // Local rename playlist not yet implemented
         break;
-      case ServerType.swingmusic:
-        if (_currentService is SwingMusicService) {
-          final swingService = _currentService as SwingMusicService;
-          return await swingService.renamePlaylist(playlistId, newName);
-        }
-        break;
     }
     return false;
   }
@@ -481,12 +459,6 @@ class MediaServiceManager {
         break;
       case ServerType.local:
         // Local remove playlist not yet implemented
-        break;
-      case ServerType.swingmusic:
-        if (_currentService is SwingMusicService) {
-          final swingService = _currentService as SwingMusicService;
-          return await swingService.removePlaylist(playlistId);
-        }
         break;
     }
     return false;

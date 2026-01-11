@@ -29,8 +29,6 @@ class AccountInformationSection extends StatelessWidget {
               return 'Plex';
             case ServerType.subsonic:
               return 'Navidrome/Subsonic';
-            case ServerType.swingmusic:
-              return 'Swing Music';
             case ServerType.local:
               return 'Local Files';
           }
@@ -43,8 +41,6 @@ class AccountInformationSection extends StatelessWidget {
             return currentServer.userId?.substring(0, 8);
           } else if (serverType == ServerType.subsonic && currentServer is Map) {
             return currentServer['username'];
-          } else if (serverType == ServerType.swingmusic) {
-            return currentServer.username;
           } else if (serverType == ServerType.plex && currentServer is Map) {
             return currentServer['machineIdentifier']?.toString().substring(0, 8);
           }

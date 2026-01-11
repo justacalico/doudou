@@ -1855,8 +1855,6 @@ class _LoginScreenState extends State<LoginScreen>
         return 'http://your-plex-server:32400';
       case 'subsonic':
         return 'http://your-subsonic-server:4533';
-      case 'swingmusic':
-        return 'http://your-swingmusic-server:1970';
       case 'local':
         return ''; // Local doesn't need a server URL
       default:

@@ -1,6 +1,6 @@
 import '../models/jellyfin_models.dart';
 
-enum ServerType { jellyfin, plex, subsonic, swingmusic, local }
+enum ServerType { jellyfin, plex, subsonic, local }
 
 /// Base interface for all media server services
 abstract class BaseMediaService {

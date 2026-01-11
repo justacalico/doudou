@@ -213,9 +213,6 @@ class AppState extends ChangeNotifier {
           case 'subsonic':
             type = ServerType.subsonic;
             break;
-          case 'swingmusic':
-            type = ServerType.swingmusic;
-            break;
           default:
             type = ServerType.jellyfin;
         }
@@ -738,9 +735,6 @@ class AppState extends ChangeNotifier {
           break;
         case 'subsonic':
           type = ServerType.subsonic;
-          break;
-        case 'swingmusic':
-          type = ServerType.swingmusic;
           break;
         case 'local':
           type = ServerType.local;
