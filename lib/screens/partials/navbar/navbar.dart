@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
@@ -54,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _checkIfAndroidAuto() {
+  Future<void> _checkIfAndroidAuto() async {
     final size = MediaQuery.of(context).size;
     final aspectRatio = size.width / size.height;
 
@@ -62,6 +63,46 @@ class _HomeScreenState extends State<HomeScreen> {
       print(
         'Screen detection - Width: ${size.width}, Height: ${size.height}, Aspect Ratio: $aspectRatio',
       );
+    }
+
+    // Check if this is a Quest VR headset - never show Android Auto UI on Quest
+    bool isQuestDevice = false;
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      final manufacturer = androidInfo.manufacturer.toLowerCase();
+      final model = androidInfo.model.toLowerCase();
+      final brand = androidInfo.brand.toLowerCase();
+
+      // Quest headsets are made by Oculus/Meta
+      // Common identifiers: "oculus", "meta", "quest"
+      isQuestDevice =
+          manufacturer.contains('oculus') ||
+          manufacturer.contains('meta') ||
+          brand.contains('oculus') ||
+          brand.contains('meta') ||
+          model.contains('quest') ||
+          model.contains('pacific') || // Quest 1 codename
+          model.contains('hollywood') || // Quest 2 codename
+          model.contains('eureka'); // Quest 3 codename
+
+      if (kDebugMode) {
+        print(
+          'Device info - Manufacturer: ${androidInfo.manufacturer}, Model: ${androidInfo.model}, Brand: ${androidInfo.brand}, IsQuest: $isQuestDevice',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting device info: $e');
+      }
+    }
+
+    // If this is a Quest device, never enable Android Auto mode
+    if (isQuestDevice) {
+      if (kDebugMode) {
+        print('Quest VR headset detected - disabling Android Auto mode');
+      }
+      return;
     }
 
     // Android Auto screens are typically landscape and wide (around 2.5:1 to 3:1 ratio)
