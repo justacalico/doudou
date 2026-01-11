@@ -8,7 +8,7 @@ import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../artists/details/artist_detail.dart';
 import '../shared/detail_track_view.dart';
-import '../../../widgets/cached_image_widget.dart';
+import '../widgets/cached_image_widget.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});

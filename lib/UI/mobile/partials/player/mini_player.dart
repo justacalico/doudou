@@ -6,8 +6,8 @@ import 'dart:ui';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
 import '../../playing/now_playing.dart';
-import '../../../../widgets/cached_image_widget.dart';
-import '../../../../widgets/apple_design/apple_theme.dart';
+import '../../widgets/cached_image_widget.dart';
+import '../../widgets/apple_design/apple_theme.dart';
 
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});

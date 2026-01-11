@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../providers/app_state.dart';
-import '../../../widgets/apple_design/apple_theme.dart';
-import '../../../widgets/apple_design/liquid_glass.dart';
+import '../widgets/apple_design/apple_theme.dart';
+import '../widgets/apple_design/liquid_glass.dart';
 import '../../../services/players/local_music_service.dart';
 
 class LocalMusicSettingsScreen extends StatefulWidget {

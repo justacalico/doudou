@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
-import '../../../widgets/apple_design/apple_theme.dart';
+import '../../mobile/widgets/apple_design/apple_theme.dart';
 import 'desktop_layout.dart';
 
 class TrackListTemplate extends StatelessWidget {

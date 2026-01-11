@@ -14,7 +14,7 @@ import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
 import 'UI/mobile/login/login.dart';
 import 'UI/mobile/partials/navbar/navbar.dart';
-import 'widgets/apple_design/apple_theme.dart';
+import 'UI/mobile/widgets/apple_design/apple_theme.dart';
 import 'UI/desktop/main.dart' as desktop_main;
 
 void main() async {

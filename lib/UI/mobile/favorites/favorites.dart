@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
-import '../../../widgets/apple_design/liquid_glass.dart';
+import '../widgets/apple_design/liquid_glass.dart';
 import '../partials/tracks/track_list_item.dart';
 
 class FavoritesView extends StatelessWidget {

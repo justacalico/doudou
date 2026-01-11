@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
-import '../../../widgets/apple_design/liquid_glass.dart';
+import '../widgets/apple_design/liquid_glass.dart';
 import '../partials/tracks/track_list_item.dart';
 import '../partials/player/mini_player.dart';
 

@@ -4,10 +4,10 @@ import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
-import '../providers/app_state.dart';
-import '../models/jellyfin_models.dart';
-import '../services/audio/unified_audio_handler.dart';
-import '../UI/mobile/playing/now_playing.dart';
+import '../../../providers/app_state.dart';
+import '../../../models/jellyfin_models.dart';
+import '../../../services/audio/unified_audio_handler.dart';
+import '../playing/now_playing.dart';
 import 'apple_design/apple_theme.dart';
 
 class DynamicIsle extends StatefulWidget {

@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/app_state.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../widgets/apple_design/liquid_glass.dart';
+import '../widgets/apple_design/liquid_glass.dart';
 import '../artists/artists.dart';
 import '../shared/detail_track_view.dart';
 import '../songs/songs.dart';

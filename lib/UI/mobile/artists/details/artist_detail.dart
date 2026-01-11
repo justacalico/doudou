@@ -5,9 +5,9 @@ import 'package:provider/provider.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
 import '../../../../services/base_service.dart';
-import '../../../../widgets/apple_design/liquid_glass.dart';
+import '../../widgets/apple_design/liquid_glass.dart';
 import '../../partials/player/mini_player.dart';
-import '../../../../widgets/cached_image_widget.dart';
+import '../../widgets/cached_image_widget.dart';
 import '../../shared/detail_track_view.dart';
 
 class ArtistDetailScreen extends StatefulWidget {

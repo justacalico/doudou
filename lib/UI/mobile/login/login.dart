@@ -8,7 +8,7 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'dart:async';
 import '../../../providers/app_state.dart';
-import '../../../widgets/apple_design/apple_theme.dart';
+import '../widgets/apple_design/apple_theme.dart';
 import '../../../services/players/jellyfin_service.dart';
 import '../settings/local_music_settings.dart';
 

@@ -13,7 +13,7 @@ import '../../services/logging_service.dart';
 import '../../services/players/jellyfin_service.dart';
 import '../mobile/login/login.dart';
 import '../mobile/partials/navbar/navbar.dart';
-import '../../widgets/apple_design/apple_theme.dart';
+import '../mobile/widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
 

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../../widgets/apple_design/apple_theme.dart';
+import '../../mobile/widgets/apple_design/apple_theme.dart';
 import '../templates/page_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../services/logging_service.dart';

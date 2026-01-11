@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
-import '../../../widgets/apple_design/liquid_glass.dart';
+import '../widgets/apple_design/liquid_glass.dart';
 import '../shared/detail_track_view.dart';
 
 class HomeContent extends StatefulWidget {

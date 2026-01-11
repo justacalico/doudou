@@ -8,7 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/app_state.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../widgets/apple_design/liquid_glass.dart';
+import '../widgets/apple_design/liquid_glass.dart';
 import '../../../services/base_service.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';

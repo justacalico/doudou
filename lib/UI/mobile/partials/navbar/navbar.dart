@@ -12,9 +12,9 @@ import '../../settings/settings.dart';
 import '../../search/search.dart';
 import '../../downloads/downloads.dart';
 import '../player/mini_player.dart';
-import '../../../../widgets/isle.dart';
-import '../../../../widgets/apple_design/apple_theme.dart';
-import '../../../../widgets/apple_design/liquid_glass.dart';
+import '../../widgets/isle.dart';
+import '../../widgets/apple_design/apple_theme.dart';
+import '../../widgets/apple_design/liquid_glass.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
