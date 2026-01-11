@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Material, Slider, SliderTheme, SliderThemeData, RoundSliderThumbShape, RoundSliderOverlayShape;
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../providers/app_state.dart';
@@ -133,87 +132,58 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
   Widget _buildPlayerView(BuildContext context, AppState appState, Track currentTrack) {
     final audioHandler = appState.audioHandler!;
     final screenWidth = MediaQuery.of(context).size.width;
-    final artworkSize = screenWidth - 80;
+    final artworkSize = screenWidth - 100;
 
     return Column(
       children: [
-        // Drag indicator pill (Apple Music style)
-        const SizedBox(height: AppTheme.spacingS),
-        Center(
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: CupertinoColors.white.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(2.5),
-              ),
-            ),
-          ),
-        ),
-        
-        // Header row
+        // Header row with chevron and airplay
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppTheme.spacingM,
-            vertical: AppTheme.spacingXS,
+            vertical: AppTheme.spacingS,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Chevron down
-              CupertinoButton(
-                padding: const EdgeInsets.all(8),
-                minSize: 0,
-                onPressed: () => Navigator.pop(context),
-                child: Icon(
-                  CupertinoIcons.chevron_down,
-                  color: CupertinoColors.white.withOpacity(0.8),
-                  size: 22,
+              // Chevron down button
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ),
-              // Album name (or source)
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    // Could navigate to album
-                  },
-                  child: Column(
-                    children: [
-                      Text(
-                        currentTrack.albumName?.toUpperCase() ?? 'PLAYING FROM',
-                        style: TextStyle(
-                          fontSize: 10,
-                          letterSpacing: 0.5,
-                          color: CupertinoColors.white.withOpacity(0.6),
-                          fontWeight: FontWeight.w500,
-                          decoration: TextDecoration.none,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                child: CupertinoButton(
+                  padding: const EdgeInsets.all(10),
+                  minSize: 0,
+                  onPressed: () => Navigator.pop(context),
+                  child: Icon(
+                    CupertinoIcons.chevron_down,
+                    color: CupertinoColors.white.withOpacity(0.9),
+                    size: 20,
                   ),
                 ),
               ),
-              // More options
-              CupertinoButton(
-                padding: const EdgeInsets.all(8),
-                minSize: 0,
-                onPressed: () => _showTrackOptions(context, appState, currentTrack),
-                child: Icon(
-                  CupertinoIcons.ellipsis,
-                  color: CupertinoColors.white.withOpacity(0.8),
-                  size: 22,
+              // AirPlay button
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.all(10),
+                  minSize: 0,
+                  onPressed: () {},
+                  child: Icon(
+                    CupertinoIcons.antenna_radiowaves_left_right,
+                    color: CupertinoColors.white.withOpacity(0.9),
+                    size: 20,
+                  ),
                 ),
               ),
             ],
           ),
         ),
 
-        const Spacer(flex: 1),
+        const Spacer(flex: 2),
 
         // Album artwork
         Container(
@@ -238,74 +208,46 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingL),
+        const Spacer(flex: 2),
 
-        // Track info centered (Apple Music style)
+        // Track info centered
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      currentTrack.name,
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeTitle2,
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.white,
-                        decoration: TextDecoration.none,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.spacingS),
-                  // Favorite button
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    minSize: 0,
-                    onPressed: () => appState.toggleFavorite(currentTrack),
-                    child: Icon(
-                      currentTrack.isFavorite
-                          ? CupertinoIcons.star_fill
-                          : CupertinoIcons.star,
-                      size: 24,
-                      color: currentTrack.isFavorite
-                          ? AppTheme.accentPink
-                          : CupertinoColors.white.withOpacity(0.6),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  // Could navigate to artist
-                },
-                child: Text(
-                  currentTrack.artistName ?? 'Unknown Artist',
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeTitle3,
-                    color: AppTheme.accentPink,
-                    decoration: TextDecoration.none,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
+              Text(
+                currentTrack.name,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.white,
+                  decoration: TextDecoration.none,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                currentTrack.artistName ?? 'Unknown Artist',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: CupertinoColors.white.withOpacity(0.6),
+                  decoration: TextDecoration.none,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingM),
+        const SizedBox(height: AppTheme.spacingL),
 
         // Progress bar (full width)
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
           child: StreamBuilder<Duration>(
             stream: appState.positionStream,
             builder: (context, positionSnapshot) {
@@ -319,52 +261,74 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 
               return Column(
                 children: [
-                  Material(
-                    color: CupertinoColors.transparent,
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        trackHeight: 4,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                        activeTrackColor: CupertinoColors.white,
-                        inactiveTrackColor: CupertinoColors.white.withOpacity(0.3),
-                        thumbColor: CupertinoColors.white,
-                        overlayColor: CupertinoColors.white.withOpacity(0.2),
-                      ),
-                      child: Slider(
-                        value: progress.clamp(0.0, 1.0),
-                        onChanged: (value) {
-                          final newPosition = Duration(
-                            milliseconds: (value * duration.inMilliseconds).round(),
-                          );
-                          audioHandler.seek(newPosition);
-                        },
+                  // Custom thin progress bar
+                  GestureDetector(
+                    onHorizontalDragUpdate: (details) {
+                      final box = context.findRenderObject() as RenderBox;
+                      final localPosition = box.globalToLocal(details.globalPosition);
+                      final newProgress = (localPosition.dx / box.size.width).clamp(0.0, 1.0);
+                      final newPosition = Duration(
+                        milliseconds: (newProgress * duration.inMilliseconds).round(),
+                      );
+                      audioHandler.seek(newPosition);
+                    },
+                    onTapDown: (details) {
+                      final box = context.findRenderObject() as RenderBox;
+                      final localPosition = box.globalToLocal(details.globalPosition);
+                      final newProgress = (localPosition.dx / box.size.width).clamp(0.0, 1.0);
+                      final newPosition = Duration(
+                        milliseconds: (newProgress * duration.inMilliseconds).round(),
+                      );
+                      audioHandler.seek(newPosition);
+                    },
+                    child: Container(
+                      height: 20,
+                      alignment: Alignment.center,
+                      child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(2),
+                          color: CupertinoColors.white.withOpacity(0.2),
+                        ),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: progress.clamp(0.0, 1.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(2),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.accentPink,
+                                  AppTheme.accentPink.withOpacity(0.8),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingS),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _formatDuration(position),
-                          style: TextStyle(
-                            fontSize: AppTheme.fontSizeCaption,
-                            color: CupertinoColors.white.withOpacity(0.6),
-                            decoration: TextDecoration.none,
-                          ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatDuration(position),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: CupertinoColors.white.withOpacity(0.5),
+                          decoration: TextDecoration.none,
                         ),
-                        Text(
-                          '-${_formatDuration(duration - position)}',
-                          style: TextStyle(
-                            fontSize: AppTheme.fontSizeCaption,
-                            color: CupertinoColors.white.withOpacity(0.6),
-                            decoration: TextDecoration.none,
-                          ),
+                      ),
+                      Text(
+                        _formatDuration(duration),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: CupertinoColors.white.withOpacity(0.5),
+                          decoration: TextDecoration.none,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -376,27 +340,34 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 
         // Controls
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Shuffle
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => audioHandler.toggleShuffle(),
-                child: StreamBuilder<bool>(
-                  stream: audioHandler.shuffleEnabledStream,
-                  builder: (context, snapshot) {
-                    final isShuffling = snapshot.data ?? false;
-                    return Icon(
-                      CupertinoIcons.shuffle,
-                      size: 24,
-                      color: isShuffling
-                          ? AppTheme.accentPink
-                          : CupertinoColors.white.withOpacity(0.6),
-                    );
-                  },
-                ),
+              StreamBuilder<bool>(
+                stream: audioHandler.shuffleEnabledStream,
+                builder: (context, snapshot) {
+                  final isShuffling = snapshot.data ?? false;
+                  return CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => audioHandler.toggleShuffle(),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isShuffling ? AppTheme.accentPink.withOpacity(0.2) : CupertinoColors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        CupertinoIcons.shuffle,
+                        size: 24,
+                        color: isShuffling
+                            ? AppTheme.accentPink
+                            : CupertinoColors.white,
+                      ),
+                    ),
+                  );
+                },
               ),
 
               // Previous
@@ -405,7 +376,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 onPressed: () => audioHandler.skipToPrevious(),
                 child: const Icon(
                   CupertinoIcons.backward_fill,
-                  size: 36,
+                  size: 40,
                   color: CupertinoColors.white,
                 ),
               ),
@@ -425,18 +396,25 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       }
                     },
                     child: Container(
-                      width: 72,
-                      height: 72,
-                      decoration: const BoxDecoration(
-                        color: CupertinoColors.white,
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppTheme.accentPink,
+                            AppTheme.accentPink.withOpacity(0.7),
+                          ],
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isPlaying
                             ? CupertinoIcons.pause_fill
                             : CupertinoIcons.play_fill,
-                        size: 36,
-                        color: CupertinoColors.black,
+                        size: 32,
+                        color: CupertinoColors.white,
                       ),
                     ),
                   );
@@ -449,85 +427,122 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                 onPressed: () => audioHandler.skipToNext(),
                 child: const Icon(
                   CupertinoIcons.forward_fill,
-                  size: 36,
+                  size: 40,
                   color: CupertinoColors.white,
                 ),
               ),
 
               // Repeat
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => audioHandler.toggleRepeat(),
-                child: StreamBuilder<dynamic>(
-                  stream: audioHandler.repeatModeStream,
-                  builder: (context, snapshot) {
-                    final repeatMode = snapshot.data;
-                    IconData icon = CupertinoIcons.repeat;
-                    Color color = CupertinoColors.white.withOpacity(0.6);
-                    
-                    if (repeatMode != null) {
-                      final modeString = repeatMode.toString();
-                      if (modeString.contains('one')) {
-                        icon = CupertinoIcons.repeat_1;
-                        color = AppTheme.accentPink;
-                      } else if (modeString.contains('all')) {
-                        color = AppTheme.accentPink;
-                      }
+              StreamBuilder<dynamic>(
+                stream: audioHandler.repeatModeStream,
+                builder: (context, snapshot) {
+                  final repeatMode = snapshot.data;
+                  IconData icon = CupertinoIcons.repeat;
+                  bool isActive = false;
+                  
+                  if (repeatMode != null) {
+                    final modeString = repeatMode.toString();
+                    if (modeString.contains('one')) {
+                      icon = CupertinoIcons.repeat_1;
+                      isActive = true;
+                    } else if (modeString.contains('all')) {
+                      isActive = true;
                     }
-                    
-                    return Icon(icon, size: 24, color: color);
-                  },
-                ),
+                  }
+                  
+                  return CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => audioHandler.toggleRepeat(),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isActive ? AppTheme.accentPink.withOpacity(0.2) : CupertinoColors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 24,
+                        color: isActive ? AppTheme.accentPink : CupertinoColors.white,
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
         ),
 
-        const Spacer(flex: 2),
+        const Spacer(flex: 1),
 
-        // Bottom actions row (Apple Music style - minimal)
+        // Bottom bar with rounded container
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXXL),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Lyrics
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () {},
-                child: Icon(
-                  CupertinoIcons.text_quote,
-                  size: 20,
-                  color: CupertinoColors.white.withOpacity(0.5),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXL),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: CupertinoColors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Queue
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 0,
+                  onPressed: () => setState(() => _showQueue = true),
+                  child: Icon(
+                    CupertinoIcons.list_bullet,
+                    size: 22,
+                    color: CupertinoColors.white.withOpacity(0.7),
+                  ),
                 ),
-              ),
 
-              // AirPlay
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () {},
-                child: Icon(
-                  CupertinoIcons.antenna_radiowaves_left_right,
-                  size: 20,
-                  color: CupertinoColors.white.withOpacity(0.5),
+                // Favorite
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 0,
+                  onPressed: () => appState.toggleFavorite(currentTrack),
+                  child: Icon(
+                    currentTrack.isFavorite
+                        ? CupertinoIcons.heart_fill
+                        : CupertinoIcons.heart,
+                    size: 22,
+                    color: currentTrack.isFavorite
+                        ? AppTheme.accentPink
+                        : CupertinoColors.white.withOpacity(0.7),
+                  ),
                 ),
-              ),
 
-              // Queue
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => setState(() => _showQueue = true),
-                child: Icon(
-                  CupertinoIcons.list_bullet,
-                  size: 20,
-                  color: CupertinoColors.white.withOpacity(0.5),
+                // Lyrics
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 0,
+                  onPressed: () {},
+                  child: Icon(
+                    CupertinoIcons.text_quote,
+                    size: 22,
+                    color: CupertinoColors.white.withOpacity(0.7),
+                  ),
                 ),
-              ),
-            ],
+
+                // More options
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 0,
+                  onPressed: () => _showTrackOptions(context, appState, currentTrack),
+                  child: Icon(
+                    CupertinoIcons.ellipsis,
+                    size: 22,
+                    color: CupertinoColors.white.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingXL),
+        const SizedBox(height: AppTheme.spacingL),
       ],
     );
   }
