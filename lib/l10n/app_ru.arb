@@ -351,8 +351,6 @@
 
   "dynamicIslePlayer": "Динамический плеер",
   "useModernFloatingPlayer": "Использовать современный плавающий плеер",
-  "vrMode": "VR-режим",
-  "launchVRPlayer": "Запустить VR-плеер Google Cardboard",
   "cleanExpiredCache": "Очистить устаревший кэш",
   "removeOldCachedData": "Удалить старые кэшированные данные",
 

@@ -17,7 +17,6 @@ import 'partials/audio_settings.dart';
 import 'partials/language_settings.dart';
 import 'logs_viewer.dart';
 import 'local_music_settings.dart';
-import '../../cardboard/pages/vr_player.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -165,20 +164,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   onChanged: (value) =>
                                       appState.toggleDynamicIsle(value),
                                 ),
-                                // VR Mode button (mobile only)
-                                if (!kIsWeb &&
-                                    (defaultTargetPlatform ==
-                                            TargetPlatform.android ||
-                                        defaultTargetPlatform ==
-                                            TargetPlatform.iOS))
-                                  _buildSettingTile(
-                                    icon: CupertinoIcons.viewfinder,
-                                    title: AppLocalizations.of(context).vrMode,
-                                    subtitle: AppLocalizations.of(
-                                      context,
-                                    ).launchVRPlayer,
-                                    onTap: () => _launchVRMode(context),
-                                  ),
                               ],
                             ),
                           ),
@@ -787,15 +772,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trackColor: Colors.white.withOpacity(0.1),
           ),
         ],
-      ),
-    );
-  }
-
-  void _launchVRMode(BuildContext context) {
-    Navigator.of(context).push(
-      CupertinoPageRoute(
-        builder: (context) => const VRPlayerScreen(),
-        fullscreenDialog: true,
       ),
     );
   }

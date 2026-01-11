@@ -351,8 +351,6 @@
 
   "dynamicIslePlayer": "灵动岛播放器",
   "useModernFloatingPlayer": "使用现代浮动岛式播放器",
-  "vrMode": "VR模式",
-  "launchVRPlayer": "启动Google Cardboard VR播放器",
   "cleanExpiredCache": "清理过期缓存",
   "removeOldCachedData": "删除旧的缓存数据",
 

@@ -1802,16 +1802,6 @@
     "description": "Dynamic Isle player setting description"
   },
 
-  "vrMode": "VR Mode",
-  "@vrMode": {
-    "description": "VR mode setting label"
-  },
-
-  "launchVRPlayer": "Launch Google Cardboard VR player",
-  "@launchVRPlayer": {
-    "description": "VR mode setting description"
-  },
-
   "cleanExpiredCache": "Clean Expired Cache",
   "@cleanExpiredCache": {
     "description": "Clean expired cache button label"
