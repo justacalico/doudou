@@ -15,9 +15,41 @@ class AccountInformationSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
-        final server = appState.jellyfinService.currentServer;
+        final serverType = appState.mediaServiceManager.currentServerType;
+        final isLocalMusic = serverType == ServerType.local;
         final localService = appState.mediaServiceManager.localMusicService;
+        final currentServer = appState.mediaServiceManager.currentServer;
+
+        // Get server type display name
+        String getServerTypeName() {
+          switch (serverType) {
+            case ServerType.jellyfin:
+              return 'Jellyfin';
+            case ServerType.plex:
+              return 'Plex';
+            case ServerType.subsonic:
+              return 'Navidrome/Subsonic';
+            case ServerType.swingmusic:
+              return 'Swing Music';
+            case ServerType.local:
+              return 'Local Files';
+          }
+        }
+
+        // Get user info based on server type
+        String? getUserId() {
+          if (currentServer == null) return null;
+          if (serverType == ServerType.jellyfin) {
+            return currentServer.userId?.substring(0, 8);
+          } else if (serverType == ServerType.subsonic && currentServer is Map) {
+            return currentServer['username'];
+          } else if (serverType == ServerType.swingmusic) {
+            return currentServer.username;
+          } else if (serverType == ServerType.plex && currentServer is Map) {
+            return currentServer['machineIdentifier']?.toString().substring(0, 8);
+          }
+          return null;
+        }
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -59,18 +91,17 @@ class AccountInformationSection extends StatelessWidget {
                         title: l10n.connectionStatus,
                         subtitle: 'Active',
                       ),
-                    ] else if (server != null) ...[
-                      // Server Mode (Jellyfin, etc.)
+                    ] else if (currentServer != null) ...[
+                      // Server Mode (Jellyfin, Navidrome, Plex, etc.)
                       _buildInfoTile(
                         icon: CupertinoIcons.person_circle,
                         title: l10n.userId,
-                        subtitle:
-                            server.userId?.substring(0, 8) ?? l10n.notAvailable,
+                        subtitle: getUserId() ?? l10n.notAvailable,
                       ),
                       _buildInfoTile(
                         icon: CupertinoIcons.globe,
                         title: l10n.server,
-                        subtitle: l10n.connectedToJellyfin,
+                        subtitle: getServerTypeName(),
                       ),
                       _buildInfoTile(
                         icon: CupertinoIcons.checkmark_seal,
