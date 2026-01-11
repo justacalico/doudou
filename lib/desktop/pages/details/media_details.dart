@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -57,40 +56,10 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
 
     try {
       if (widget.mediaType == MediaType.playlist) {
-        // Load playlist tracks
         _tracks = await appState.getPlaylistTracks(widget.playlist!.id);
       } else {
-        // Load album tracks
-        if (kDebugMode) {
-          print('=== ALBUM TRACKS LOADING DEBUG ===');
-          print('Album: ${widget.album!.name}');
-          print('Album ID: ${widget.album!.id}');
-          print('AppState connected: ${appState.isLoggedIn}');
-          print('Current server type: ${appState.mediaServiceManager.currentServerType}');
-          print('Total tracks in AppState: ${appState.tracks.length}');
-          print('=== CALLING getAlbumTracks ===');
-        }
-        
         _tracks = await appState.getAlbumTracks(widget.album!.id);
         
-        if (kDebugMode) {
-          print('=== ALBUM TRACKS RESULT ===');
-          print('Loaded ${_tracks.length} tracks for album: ${widget.album!.name}');
-          if (_tracks.isNotEmpty) {
-            print('First track: ${_tracks.first.name}');
-            print('Sample track IDs: ${_tracks.take(3).map((t) => t.id).toList()}');
-          }
-          
-          // Also check if we can find tracks manually by filtering appState.tracks
-          final manualTracks = appState.tracks.where((track) => track.albumId == widget.album!.id).toList();
-          print('Manual filter found ${manualTracks.length} tracks with albumId: ${widget.album!.id}');
-          if (manualTracks.isNotEmpty) {
-            print('Manual track example: ${manualTracks.first.name}');
-          }
-          print('=== END ALBUM TRACKS DEBUG ===');
-        }
-        
-        // Sort by track number if available (already sorted by API, but just in case)
         _tracks.sort((a, b) {
           final aTrack = a.trackNumber ?? 999;
           final bTrack = b.trackNumber ?? 999;
@@ -98,28 +67,17 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         });
         
         if (_tracks.isEmpty) {
-          if (kDebugMode) {
-            print('WARNING: No tracks found for album: ${widget.album!.name} (ID: ${widget.album!.id})');
-            print('Trying fallback method...');
-            
-            // Try manual filtering as fallback
-            final fallbackTracks = appState.tracks.where((track) => 
-              track.albumId == widget.album!.id || 
-              track.albumName?.toLowerCase() == widget.album!.name.toLowerCase()
-            ).toList();
-            
-            if (fallbackTracks.isNotEmpty) {
-              print('Fallback found ${fallbackTracks.length} tracks!');
-              _tracks = fallbackTracks;
-            }
+          final fallbackTracks = appState.tracks.where((track) => 
+            track.albumId == widget.album!.id || 
+            track.albumName?.toLowerCase() == widget.album!.name.toLowerCase()
+          ).toList();
+          
+          if (fallbackTracks.isNotEmpty) {
+            _tracks = fallbackTracks;
           }
         }
       }
-    } catch (e) {
-      // Handle error
-      if (kDebugMode) {
-        print('Error loading ${widget.mediaType.name} tracks: $e');
-      }
+    } catch (_) {
       _tracks = [];
     } finally {
       if (mounted) {
@@ -207,34 +165,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                 // Play button
                 ElevatedButton.icon(
                   onPressed: _tracks.isNotEmpty ? () async {
-                    if (widget.mediaType == MediaType.album && kDebugMode) {
-                      if (kDebugMode) {
-                        print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON CLICKED ===');
-                      }
-                      if (kDebugMode) {
-                        print('${widget.mediaType.name}: $_title');
-                      }
-                      if (kDebugMode) {
-                        print('Track count: ${_tracks.length}');
-                      }
-                      if (kDebugMode) {
-                        print('First track: ${_tracks.isNotEmpty ? _tracks[0].name : "None"}');
-                      }
-                      if (_tracks.isNotEmpty) {
-                        if (kDebugMode) {
-                          print('First track ID: ${_tracks[0].id}');
-                        }
-                        if (kDebugMode) {
-                          print('First track duration: ${_tracks[0].duration}');
-                        }
-                      }
-                    }
                     await appState.playPlaylist(_tracks, 0);
-                    if (widget.mediaType == MediaType.album && kDebugMode) {
-                      if (kDebugMode) {
-                        print('=== ${widget.mediaType.name.toUpperCase()} PLAY BUTTON COMPLETED ===');
-                      }
-                    }
                   } : null,
                   icon: const Icon(Icons.play_arrow),
                   label: Text(isNarrow ? l10n.play : (widget.mediaType == MediaType.playlist ? l10n.playAll : l10n.playAlbum)),
@@ -672,29 +603,7 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
   Widget _buildTrackItem(ThemeData theme, AppState appState, Track track, int index, AppLocalizations l10n) {
     return InkWell(
       onTap: () async {
-        if (widget.mediaType == MediaType.album && kDebugMode) {
-          if (kDebugMode) {
-            print('=== TRACK CLICKED ===');
-          }
-          if (kDebugMode) {
-            print('Track: ${track.name}');
-          }
-          if (kDebugMode) {
-            print('Track ID: ${track.id}');
-          }
-          if (kDebugMode) {
-            print('Track number: ${index + 1}');
-          }
-          if (kDebugMode) {
-            print('Album: ${widget.album!.name}');
-          }
-        }
         await appState.playPlaylist(_tracks, index);
-        if (widget.mediaType == MediaType.album && kDebugMode) {
-          if (kDebugMode) {
-            print('=== TRACK CLICK COMPLETED ===');
-          }
-        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -908,9 +817,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     if (widget.mediaType != MediaType.album) return;
     
     if (widget.album!.artistName == null) {
-      if (kDebugMode) {
-        print('No artist name available for album: ${widget.album!.name}');
-      }
       return;
     }
 
@@ -926,9 +832,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
     );
 
     if (artist.id.isEmpty) {
-      if (kDebugMode) {
-        print('Artist not found in artists list: ${widget.album!.artistName}');
-      }
       // Show a message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -999,15 +902,9 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
           await Future.delayed(const Duration(milliseconds: 500));
         } else {
           failCount++;
-          if (kDebugMode) {
-            print('Cannot launch URL for track "${track.name}": $streamUrl');
-          }
         }
       } catch (e) {
         failCount++;
-        if (kDebugMode) {
-          print('Failed to download track "${track.name}": $e');
-        }
       }
     }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:audio_service/audio_service.dart' as audio_service;
 import 'media_service_manager.dart';
 import 'audio/unified_audio_handler.dart';
@@ -36,18 +36,9 @@ class AudioServiceFactory {
     if (_initialized) return;
 
     try {
-      if (kDebugMode) {
-        print(
-          'AudioServiceFactory: Initializing for platform ${defaultTargetPlatform.name}...',
-        );
-      }
-
       if (kIsWeb) {
         // Web platform - create handler directly (no AudioService)
         _audioHandler = UnifiedAudioHandler(mediaServiceManager);
-        if (kDebugMode) {
-          print('AudioServiceFactory: Created UnifiedAudioHandler for web');
-        }
       } else if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
         // Mobile platforms - use AudioService with UnifiedAudioHandler
@@ -67,11 +58,6 @@ class AudioServiceFactory {
             rewindInterval: const Duration(seconds: 10),
           ),
         );
-        if (kDebugMode) {
-          print(
-            'AudioServiceFactory: Created UnifiedAudioHandler with AudioService for mobile',
-          );
-        }
       } else if (defaultTargetPlatform == TargetPlatform.macOS ||
                  defaultTargetPlatform == TargetPlatform.linux ||
                  defaultTargetPlatform == TargetPlatform.windows) {
@@ -90,28 +76,13 @@ class AudioServiceFactory {
             rewindInterval: const Duration(seconds: 10),
           ),
         );
-        if (kDebugMode) {
-          print(
-            'AudioServiceFactory: Created UnifiedAudioHandler with AudioService for ${defaultTargetPlatform.name}',
-          );
-        }
       } else {
         // Unknown platform - create handler directly
         _audioHandler = UnifiedAudioHandler(mediaServiceManager);
-        if (kDebugMode) {
-          print('AudioServiceFactory: Created UnifiedAudioHandler for unknown platform');
-        }
       }
 
       _initialized = true;
-
-      if (kDebugMode) {
-        print('AudioServiceFactory: Initialized successfully');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceFactory: Failed to initialize: $e');
-      }
       rethrow;
     }
   }

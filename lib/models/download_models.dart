@@ -1,10 +1,4 @@
-enum DownloadStatus {
-  notDownloaded,
-  downloading,
-  downloaded,
-  failed,
-  paused,
-}
+enum DownloadStatus { notDownloaded, downloading, downloaded, failed, paused }
 
 class DownloadTask {
   final String id;
@@ -114,7 +108,9 @@ class DownloadTask {
       progress: json['progress']?.toDouble() ?? 0.0,
       totalBytes: json['totalBytes'],
       downloadedBytes: json['downloadedBytes'],
-      startTime: json['startTime'] != null ? DateTime.parse(json['startTime']) : null,
+      startTime: json['startTime'] != null
+          ? DateTime.parse(json['startTime'])
+          : null,
       endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
       errorMessage: json['errorMessage'],
     );

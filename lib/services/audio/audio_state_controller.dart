@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../models/jellyfin_models.dart';
 import 'unified_audio_handler.dart';
@@ -119,9 +118,6 @@ class AudioStateController {
         // Commands are processed as fast as possible
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error processing command queue: $e');
-      }
       updateError('Command processing failed: $e');
     } finally {
       _processingCommands = false;
@@ -146,9 +142,6 @@ class AudioStateController {
   void updateState(AudioPlayerState state) {
     if (_stateSubject.value != state) {
       _stateSubject.add(state);
-      if (kDebugMode) {
-        print('AudioState: State updated to $state');
-      }
     }
   }
   
@@ -165,11 +158,6 @@ class AudioStateController {
   void updateCurrentTrack(Track? track) {
     if (_currentTrackSubject.value?.id != track?.id) {
       _currentTrackSubject.add(track);
-      if (kDebugMode && track != null) {
-        if (kDebugMode) {
-          print('AudioState: Current track updated to ${track.name}');
-        }
-      }
     }
   }
   
@@ -177,9 +165,6 @@ class AudioStateController {
     _queueSubject.add(List.unmodifiable(queue));
     if (currentIndex != null) {
       _currentIndexSubject.add(currentIndex);
-    }
-    if (kDebugMode) {
-      print('AudioState: Queue updated with ${queue.length} tracks, index: $currentIndex');
     }
   }
   
@@ -248,11 +233,6 @@ class AudioStateController {
   
   void updateError(String? error) {
     _errorSubject.add(error);
-    if (error != null && kDebugMode) {
-      if (kDebugMode) {
-        print('AudioState: Error updated - $error');
-      }
-    }
   }
   
   void clearError() {

@@ -33,10 +33,7 @@ class DownloadButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: _getBackgroundColor(status),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _getBorderColor(status),
-                width: 1,
-              ),
+              border: Border.all(color: _getBorderColor(status), width: 1),
             ),
             child: SizedBox(
               width: size,
@@ -57,7 +54,7 @@ class DownloadButton extends StatelessWidget {
           color: color ?? const Color(0xFF8E8E93),
           size: size,
         );
-      
+
       case DownloadStatus.downloading:
         return Stack(
           alignment: Alignment.center,
@@ -81,21 +78,21 @@ class DownloadButton extends StatelessWidget {
             ),
           ],
         );
-      
+
       case DownloadStatus.downloaded:
         return Icon(
           CupertinoIcons.checkmark_circle_fill,
           color: const Color(0xFF00FF88),
           size: size,
         );
-      
+
       case DownloadStatus.failed:
         return Icon(
           CupertinoIcons.exclamationmark_triangle_fill,
           color: const Color(0xFFFF453A),
           size: size,
         );
-      
+
       case DownloadStatus.paused:
         return Icon(
           CupertinoIcons.pause_circle,
@@ -140,26 +137,29 @@ class DownloadButton extends StatelessWidget {
       case DownloadStatus.notDownloaded:
         downloadService.downloadTrack(track);
         break;
-      
+
       case DownloadStatus.downloading:
         _showDownloadOptions(context, downloadService);
         break;
-      
+
       case DownloadStatus.downloaded:
         _showDownloadedOptions(context, downloadService);
         break;
-      
+
       case DownloadStatus.failed:
         downloadService.downloadTrack(track); // Retry
         break;
-      
+
       case DownloadStatus.paused:
         downloadService.downloadTrack(track); // Resume
         break;
     }
   }
 
-  void _showDownloadOptions(BuildContext context, DownloadService downloadService) {
+  void _showDownloadOptions(
+    BuildContext context,
+    DownloadService downloadService,
+  ) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
@@ -182,7 +182,10 @@ class DownloadButton extends StatelessWidget {
     );
   }
 
-  void _showDownloadedOptions(BuildContext context, DownloadService downloadService) {
+  void _showDownloadedOptions(
+    BuildContext context,
+    DownloadService downloadService,
+  ) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
@@ -206,7 +209,10 @@ class DownloadButton extends StatelessWidget {
     );
   }
 
-  void _confirmDeleteDownload(BuildContext context, DownloadService downloadService) {
+  void _confirmDeleteDownload(
+    BuildContext context,
+    DownloadService downloadService,
+  ) {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(

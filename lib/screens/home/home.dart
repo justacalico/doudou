@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../l10n/app_localizations.dart';
@@ -22,8 +21,6 @@ class _HomeContentState extends State<HomeContent> {
   List<Album>? _madeForYouAlbums;
   List<Album>? _recommendedAlbums;
   List<Album>? _similarToFavoritesAlbums;
-
-  // Add debouncing for shuffle buttons to prevent audio bleeding
   DateTime? _lastShuffleAllTap;
   DateTime? _lastShuffleFavoritesTap;
 
@@ -244,9 +241,6 @@ class _HomeContentState extends State<HomeContent> {
                               if (_lastShuffleAllTap != null &&
                                   now.difference(_lastShuffleAllTap!) <
                                       const Duration(milliseconds: 1000)) {
-                                if (kDebugMode) {
-                                  print('Shuffle all button debounced');
-                                }
                                 return;
                               }
                               _lastShuffleAllTap = now;
@@ -265,9 +259,6 @@ class _HomeContentState extends State<HomeContent> {
                               if (_lastShuffleFavoritesTap != null &&
                                   now.difference(_lastShuffleFavoritesTap!) <
                                       const Duration(milliseconds: 1000)) {
-                                if (kDebugMode) {
-                                  print('Shuffle favorites button debounced');
-                                }
                                 return;
                               }
                               _lastShuffleFavoritesTap = now;

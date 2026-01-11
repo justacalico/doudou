@@ -29,9 +29,6 @@ class SwingMusicService implements BaseMediaService {
       (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
           (client) {
             client.badCertificateCallback = (cert, host, port) {
-              if (kDebugMode) {
-                print('Warning: Accepting bad certificate for $host:$port');
-              }
               return true;
             };
             return client;
@@ -54,12 +51,6 @@ class SwingMusicService implements BaseMediaService {
       // Swing Music API endpoint - note: some Flask servers need trailing slash
       final loginUrl = '$_serverUrl/auth/login';
 
-      if (kDebugMode) {
-        print(
-          'SwingMusic: Attempting login to $loginUrl with username: $identifier',
-        );
-      }
-
       // Swing Music uses JWT authentication
       // The API expects a JSON body with username and password
       // Disable redirect following to debug 405 issues
@@ -76,18 +67,10 @@ class SwingMusicService implements BaseMediaService {
         ),
       );
 
-      if (kDebugMode) {
-        print('SwingMusic: Login response status: ${response.statusCode}');
-        print('SwingMusic: Login response headers: ${response.headers}');
-      }
-
       // Handle redirect - Flask may redirect to URL with trailing slash
       if (response.statusCode == 307 || response.statusCode == 308) {
         final redirectUrl = response.headers['location']?.first;
         if (redirectUrl != null) {
-          if (kDebugMode) {
-            print('SwingMusic: Following redirect to $redirectUrl');
-          }
           final redirectResponse = await _dio.post(
             redirectUrl.startsWith('http')
                 ? redirectUrl
@@ -107,40 +90,20 @@ class SwingMusicService implements BaseMediaService {
             _accessToken = redirectResponse.data['accesstoken'];
             _refreshToken = redirectResponse.data['refreshtoken'];
             await _getUserInfo();
-            if (kDebugMode) {
-              print('SwingMusic: Authenticated as $_username (after redirect)');
-            }
             return true;
           }
         }
-      }
-
-      if (kDebugMode) {
-        print('SwingMusic: Login response data: ${response.data}');
-      }
-
-      if (response.statusCode == 200 && response.data != null) {
         _accessToken = response.data['accesstoken'];
         _refreshToken = response.data['refreshtoken'];
 
         // Get user info
         await _getUserInfo();
 
-        if (kDebugMode) {
-          print('SwingMusic: Authenticated as $_username');
-        }
         return true;
-      }
-
-      if (kDebugMode) {
-        print('SwingMusic: Login failed with status ${response.statusCode}');
       }
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic authentication error: $e');
-      }
       return false;
     }
   }
@@ -156,9 +119,7 @@ class SwingMusicService implements BaseMediaService {
         _userId = response.data['id'];
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error getting user info: $e');
-      }
+      // Error getting user info
     }
   }
 
@@ -216,9 +177,6 @@ class SwingMusicService implements BaseMediaService {
       }
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Token refresh failed: $e');
-      }
       return false;
     }
   }
@@ -254,9 +212,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching albums: $e');
-      }
       return [];
     }
   }
@@ -301,9 +256,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching artists: $e');
-      }
       return [];
     }
   }
@@ -361,9 +313,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching tracks: $e');
-      }
       return [];
     }
   }
@@ -407,9 +356,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching playlists: $e');
-      }
       return [];
     }
   }
@@ -438,9 +384,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching playlist tracks: $e');
-      }
       return [];
     }
   }
@@ -468,9 +411,6 @@ class SwingMusicService implements BaseMediaService {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error creating playlist: $e');
-      }
       return null;
     }
   }
@@ -486,9 +426,6 @@ class SwingMusicService implements BaseMediaService {
 
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error adding to playlist: $e');
-      }
       return false;
     }
   }
@@ -504,9 +441,6 @@ class SwingMusicService implements BaseMediaService {
 
       return response.statusCode == 200;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error renaming playlist: $e');
-      }
       return false;
     }
   }
@@ -521,9 +455,6 @@ class SwingMusicService implements BaseMediaService {
 
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error removing playlist: $e');
-      }
       return false;
     }
   }
@@ -619,9 +550,6 @@ class SwingMusicService implements BaseMediaService {
 
       return SearchResults();
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Search error: $e');
-      }
       return SearchResults();
     }
   }
@@ -660,9 +588,6 @@ class SwingMusicService implements BaseMediaService {
 
       return response.statusCode == 200;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Toggle favorite error: $e');
-      }
       return false;
     }
   }
@@ -694,9 +619,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching favorites: $e');
-      }
       return [];
     }
   }
@@ -722,9 +644,6 @@ class SwingMusicService implements BaseMediaService {
 
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching recently played: $e');
-      }
       return [];
     }
   }
@@ -742,9 +661,6 @@ class SwingMusicService implements BaseMediaService {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('SwingMusic: Error fetching artist details: $e');
-      }
       return null;
     }
   }

@@ -12,12 +12,11 @@ import '../providers/app_state.dart';
 import '../services/logging_service.dart';
 import '../services/players/jellyfin_service.dart';
 import '../screens/login/login.dart';
-import '../screens/partials/navbar/navbar.dart'; // Mobile HomeScreen
+import '../screens/partials/navbar/navbar.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
 
-/// Breakpoint for switching between mobile and desktop UI
 const double kDesktopBreakpoint = 768.0;
 
 void main() async {
@@ -25,107 +24,44 @@ void main() async {
   await runDesktopApp();
 }
 
-/// Separated function to run desktop app without reinitializing bindings
 Future<void> runDesktopApp() async {
   try {
-    if (kDebugMode) {
-      print('DEBUG: Starting runDesktopApp()');
-    }
-
-    // Initialize app version for Jellyfin service
     await JellyfinService.initializeVersion();
 
-    // Initialize logging service
     try {
-      if (kDebugMode) {
-        print('DEBUG: About to initialize logging service');
-      }
       await LoggingService().initialize();
-      if (kDebugMode) {
-        print('DEBUG: Logging service initialized, about to log system info');
-      }
       await _logSystemInfo('Desktop');
-      if (kDebugMode) {
-        print('DEBUG: System info logged successfully');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize logging service: $e');
-      }
-    }
+    } catch (_) {}
 
-    // Initialize sqflite for Linux/Windows/macOS
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.linux ||
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
-        if (kDebugMode) {
-          print('DEBUG: About to initialize sqflite database');
-        }
-        // Initialize the ffi database factory for desktop platforms
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
-        if (kDebugMode) {
-          print('DEBUG: Database initialized successfully');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Failed to initialize database: $e');
-        }
-      }
+      } catch (_) {}
     }
 
-    // Initialize MediaKit for Linux audio support
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
       try {
-        await _debugLinuxMpv();
         JustAudioMediaKit.ensureInitialized();
-      } catch (e) {
-        if (kDebugMode) {
-          print('Failed to initialize MediaKit: $e');
-        }
-      }
+      } catch (_) {}
     }
 
-    // Desktop-specific orientation settings (allow all orientations)
     if (!kIsWeb) {
       try {
-        if (kDebugMode) {
-          print('DEBUG: About to set orientation preferences');
-        }
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,
           DeviceOrientation.portraitDown,
           DeviceOrientation.landscapeLeft,
           DeviceOrientation.landscapeRight,
         ]);
-        if (kDebugMode) {
-          print('DEBUG: Orientation preferences set successfully');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Failed to set orientation preferences: $e');
-        }
-      }
+      } catch (_) {}
     }
 
-    if (kDebugMode) {
-      print('About to start DesktopDoudouApp...');
-    }
-
-    // Start the app with error boundary
     runApp(const DesktopDoudouApp());
-
-    if (kDebugMode) {
-      print('DesktopDoudouApp started successfully');
-    }
   } catch (e) {
-    if (kDebugMode) {
-      print('Failed to start desktop app: $e');
-      print('Stack trace: ${StackTrace.current}');
-    }
-    // Create a simple test app to verify Flutter works
     runApp(
       MaterialApp(
         title: 'Doudou Test',
@@ -160,12 +96,7 @@ Future<void> runDesktopApp() async {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    // Try again
-                    if (kDebugMode) {
-                      print('Retry button pressed');
-                    }
-                  },
+                  onPressed: () {},
                   child: const Text('This is a test - app is working'),
                 ),
               ],
@@ -182,23 +113,9 @@ class DesktopDoudouApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode) {
-      print('DesktopDoudouApp.build() called');
-    }
-
     try {
-      if (kDebugMode) {
-        print('Creating ChangeNotifierProvider...');
-      }
-
-      // Add error boundary and proper provider initialization
       return ChangeNotifierProvider(
-        create: (context) {
-          if (kDebugMode) {
-            print('Creating AppState...');
-          }
-          return AppState();
-        },
+        create: (context) => AppState(),
         child: _buildAppWithPlatformServices(
           Consumer<AppState>(
             builder: (context, appState, child) {
@@ -223,11 +140,6 @@ class DesktopDoudouApp extends StatelessWidget {
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in DesktopDoudouApp.build(): $e');
-      }
-
-      // Return a simple fallback widget
       return MaterialApp(
         title: 'Doudou Error',
         home: Scaffold(body: Center(child: Text('Error: ${e.toString()}'))),
@@ -235,20 +147,15 @@ class DesktopDoudouApp extends StatelessWidget {
     }
   }
 
-  /// Wraps the app with platform-specific services for desktop
   Widget _buildAppWithPlatformServices(Widget app) {
-    // On macOS, use AudioServiceWidget for background audio support (not available on web)
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
       return AudioServiceWidget(child: app);
     }
-
-    // On other platforms (including web), return the app directly
     return app;
   }
 }
 
 /// Responsive home widget that switches between mobile and desktop UI
-/// based on screen width
 class _ResponsiveHome extends StatelessWidget {
   const _ResponsiveHome();
 
@@ -256,7 +163,6 @@ class _ResponsiveHome extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        // Show loading screen while initializing
         if (!appState.isInitialized) {
           return const Scaffold(
             body: Center(
@@ -272,12 +178,10 @@ class _ResponsiveHome extends StatelessWidget {
           );
         }
 
-        // Show login screen if not logged in
         if (!appState.isLoggedIn) {
           return const LoginScreen();
         }
 
-        // Use LayoutBuilder to switch between mobile and desktop UI
         return LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= kDesktopBreakpoint;
@@ -285,9 +189,6 @@ class _ResponsiveHome extends StatelessWidget {
             if (isDesktop) {
               return const DesktopHomeLayout();
             } else {
-              // Use mobile UI (HomeScreen with bottom navigation)
-              // Wrap with Theme to fix ALL text styling (removes yellow underlines)
-              // that occur when Cupertino widgets are used in MaterialApp
               final baseTheme = Theme.of(context);
               return Theme(
                 data: baseTheme.copyWith(
@@ -335,9 +236,7 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 
   void _onNavigationChanged() {
-    setState(() {
-      // Trigger rebuild when navigation changes
-    });
+    setState(() {});
   }
 
   @override
@@ -356,7 +255,6 @@ class _DesktopHomeLayoutState extends State<DesktopHomeLayout> {
   }
 }
 
-/// Log comprehensive system information for debugging, especially Flatpak issues
 Future<void> _logSystemInfo(String context) async {
   final logger = LoggingService();
 
@@ -567,233 +465,5 @@ Future<void> _logSystemInfo(String context) async {
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
   } catch (e) {
     logger.error('Failed to log system info: $e', 'SystemInfo');
-  }
-}
-
-/// Debug MPV availability and configuration on Linux for audio playback
-Future<void> _debugLinuxMpv() async {
-  if (kIsWeb || defaultTargetPlatform != TargetPlatform.linux) return;
-
-  if (kDebugMode) {
-    print('');
-    print('╔══════════════════════════════════════════════════════════════╗');
-    print('║               LINUX MPV DEBUG OUTPUT                         ║');
-    print('╚══════════════════════════════════════════════════════════════╝');
-    print('');
-  }
-
-  // Check if mpv binary exists
-  if (kDebugMode) {
-    print('🔍 Checking MPV installation...');
-  }
-  try {
-    final whichResult = await Process.run('which', ['mpv']);
-    if (whichResult.exitCode == 0) {
-      final mpvPath = whichResult.stdout.toString().trim();
-      if (kDebugMode) {
-        print('  ✅ MPV found at: $mpvPath');
-      }
-
-      // Get MPV version
-      final versionResult = await Process.run('mpv', ['--version']);
-      if (versionResult.exitCode == 0) {
-        final versionLines = versionResult.stdout.toString().split('\n');
-        if (versionLines.isNotEmpty) {
-          if (kDebugMode) {
-            print('  ✅ MPV version: ${versionLines.first}');
-          }
-        }
-      }
-    } else {
-      if (kDebugMode) {
-        print('  ❌ MPV NOT FOUND! Audio playback will likely fail.');
-      }
-      if (kDebugMode) {
-        print('     Install with: sudo apt install mpv libmpv-dev');
-      }
-      if (kDebugMode) {
-        print('     Or: sudo dnf install mpv mpv-libs-devel');
-      }
-      if (kDebugMode) {
-        print('     Or: sudo pacman -S mpv');
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ❌ Error checking MPV: $e');
-    }
-  }
-
-  // Check for libmpv
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking libmpv library...');
-  }
-  try {
-    final ldconfigResult = await Process.run('ldconfig', ['-p']);
-    if (ldconfigResult.exitCode == 0) {
-      final output = ldconfigResult.stdout.toString();
-      final mpvLibs = output
-          .split('\n')
-          .where((line) => line.contains('libmpv'))
-          .toList();
-      if (mpvLibs.isNotEmpty) {
-        if (kDebugMode) {
-          print('  ✅ libmpv libraries found:');
-        }
-        for (final lib in mpvLibs) {
-          if (kDebugMode) {
-            print('     $lib');
-          }
-        }
-      } else {
-        if (kDebugMode) {
-          print('  ❌ libmpv NOT FOUND in ldconfig cache!');
-        }
-        if (kDebugMode) {
-          print('     Install with: sudo apt install libmpv-dev');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ⚠️  Could not check ldconfig: $e');
-    }
-  }
-
-  // Check LD_LIBRARY_PATH
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking LD_LIBRARY_PATH...');
-  }
-  final ldPath = Platform.environment['LD_LIBRARY_PATH'];
-  if (ldPath != null && ldPath.isNotEmpty) {
-    if (kDebugMode) {
-      print('  LD_LIBRARY_PATH: $ldPath');
-    }
-  } else {
-    if (kDebugMode) {
-      print('  LD_LIBRARY_PATH: (not set)');
-    }
-  }
-
-  // Check for common MPV library paths
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking common library paths for libmpv...');
-  }
-  final commonPaths = [
-    '/usr/lib/x86_64-linux-gnu/libmpv.so',
-    '/usr/lib64/libmpv.so',
-    '/usr/lib/libmpv.so',
-    '/usr/local/lib/libmpv.so',
-    '/app/lib/libmpv.so', // Flatpak
-  ];
-  for (final path in commonPaths) {
-    final file = File(path);
-    if (await file.exists()) {
-      if (kDebugMode) {
-        print('  ✅ Found: $path');
-      }
-    }
-  }
-
-  // Check if running in Flatpak
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking Flatpak environment...');
-  }
-  final flatpakId = Platform.environment['FLATPAK_ID'];
-  if (flatpakId != null) {
-    if (kDebugMode) {
-      print('  ⚠️  Running in Flatpak: $flatpakId');
-    }
-    if (kDebugMode) {
-      print('     MPV may need to be bundled or accessed via portal');
-    }
-  } else {
-    if (kDebugMode) {
-      print('  ✅ Not running in Flatpak');
-    }
-  }
-
-  // Try to test MPV audio output
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking MPV audio outputs...');
-  }
-  try {
-    final aoResult = await Process.run('mpv', ['--ao=help']);
-    if (aoResult.exitCode == 0) {
-      final output = aoResult.stdout.toString();
-      final lines = output
-          .split('\n')
-          .where((l) => l.trim().isNotEmpty)
-          .take(10);
-      if (kDebugMode) {
-        print('  Available audio outputs:');
-      }
-      for (final line in lines) {
-        if (kDebugMode) {
-          print('     $line');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ❌ Could not query MPV audio outputs: $e');
-    }
-  }
-
-  // Check PulseAudio/PipeWire status
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking audio server...');
-  }
-  try {
-    final paResult = await Process.run('pactl', ['info']);
-    if (paResult.exitCode == 0) {
-      final output = paResult.stdout.toString();
-      final serverName = output
-          .split('\n')
-          .firstWhere((l) => l.contains('Server Name:'), orElse: () => '');
-      if (serverName.isNotEmpty) {
-        if (kDebugMode) {
-          print('  ✅ $serverName');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ⚠️  Could not check PulseAudio/PipeWire: $e');
-    }
-  }
-
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('╔══════════════════════════════════════════════════════════════╗');
-  }
-  if (kDebugMode) {
-    print('║           END LINUX MPV DEBUG OUTPUT                         ║');
-  }
-  if (kDebugMode) {
-    print('╚══════════════════════════════════════════════════════════════╝');
-  }
-  if (kDebugMode) {
-    print('');
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -96,16 +95,6 @@ class LocalMusicService implements BaseMediaService {
     await _loadCachedData(prefs);
 
     _isInitialized = true;
-
-    if (kDebugMode) {
-      print(
-        'LocalMusicService initialized with ${_musicDirectories.length} directories',
-      );
-      print(
-        'Cached: ${_albums.length} albums, ${_artists.length} artists, ${_tracks.length} tracks',
-      );
-      print('Fetch online artwork: $_fetchOnlineArtwork');
-    }
   }
 
   /// Add a directory to scan for music
@@ -115,10 +104,6 @@ class LocalMusicService implements BaseMediaService {
       if (await dir.exists()) {
         _musicDirectories.add(directoryPath);
         await _saveDirectories();
-
-        if (kDebugMode) {
-          print('LocalMusicService: Added directory $directoryPath');
-        }
       } else {
         throw Exception('Directory does not exist: $directoryPath');
       }
@@ -135,13 +120,8 @@ class LocalMusicService implements BaseMediaService {
       (track) => track.id.startsWith(_generatePathHash(directoryPath)),
     );
 
-    // Rebuild albums and artists
     _rebuildCollections();
     await _saveCachedData();
-
-    if (kDebugMode) {
-      print('LocalMusicService: Removed directory $directoryPath');
-    }
   }
 
   /// Scan all directories for music files
@@ -169,10 +149,6 @@ class LocalMusicService implements BaseMediaService {
         }
       }
 
-      if (kDebugMode) {
-        print('LocalMusicService: Found $totalFiles audio files to scan');
-      }
-
       // Second pass: process files
       for (final dirPath in _musicDirectories) {
         final dir = Directory(dirPath);
@@ -188,10 +164,8 @@ class LocalMusicService implements BaseMediaService {
               try {
                 final track = await _createTrackFromFile(entity, dirPath);
                 newTracks.add(track);
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Error processing file ${entity.path}: $e');
-                }
+              } catch (_) {
+                // File processing failed
               }
             }
           }
@@ -204,13 +178,6 @@ class LocalMusicService implements BaseMediaService {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_lastScanKey, DateTime.now().toIso8601String());
-
-      if (kDebugMode) {
-        print(
-          'LocalMusicService: Scan complete. Found ${_tracks.length} tracks',
-        );
-        print('Built ${_albums.length} albums and ${_artists.length} artists');
-      }
     } finally {
       _isScanning = false;
     }
@@ -458,12 +425,8 @@ class LocalMusicService implements BaseMediaService {
         });
       }
 
-      // Load playlist data
       await _loadPlaylistData(prefs);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading cached data: $e');
-      }
+    } catch (_) {
       // Clear corrupted cache
       _tracks = [];
       _albums = [];
@@ -693,13 +656,6 @@ class LocalMusicService implements BaseMediaService {
       tracks = tracks.take(limit).toList();
     }
 
-    if (kDebugMode) {
-      final favCount = tracks.where((t) => t.isFavorite).length;
-      print(
-        'LocalMusicService.getTracks: Returning ${tracks.length} tracks, $favCount favorites',
-      );
-    }
-
     return tracks;
   }
 
@@ -748,10 +704,6 @@ class LocalMusicService implements BaseMediaService {
 
     await _savePlaylistData();
 
-    if (kDebugMode) {
-      print('LocalMusicService: Created playlist "$name" with ID $playlistId');
-    }
-
     return playlist;
   }
 
@@ -762,15 +714,10 @@ class LocalMusicService implements BaseMediaService {
     final index = _playlists.indexWhere((p) => p.id == playlistId);
     if (index < 0) return false;
 
-    final playlistName = _playlists[index].name;
     _playlists.removeAt(index);
     _playlistTracks.remove(playlistId);
 
     await _savePlaylistData();
-
-    if (kDebugMode) {
-      print('LocalMusicService: Deleted playlist "$playlistName"');
-    }
 
     return true;
   }
@@ -791,10 +738,6 @@ class LocalMusicService implements BaseMediaService {
     );
 
     await _savePlaylistData();
-
-    if (kDebugMode) {
-      print('LocalMusicService: Renamed playlist to "$newName"');
-    }
 
     return true;
   }
@@ -827,12 +770,6 @@ class LocalMusicService implements BaseMediaService {
       );
 
       await _savePlaylistData();
-
-      if (kDebugMode) {
-        print(
-          'LocalMusicService: Added track to playlist (${trackList.length} tracks)',
-        );
-      }
     }
 
     return true;
@@ -891,12 +828,6 @@ class LocalMusicService implements BaseMediaService {
 
     await _savePlaylistData();
 
-    if (kDebugMode) {
-      print(
-        'LocalMusicService: Removed track from playlist (${trackList.length} tracks remaining)',
-      );
-    }
-
     return true;
   }
 
@@ -923,10 +854,6 @@ class LocalMusicService implements BaseMediaService {
 
     await _savePlaylistData();
 
-    if (kDebugMode) {
-      print('LocalMusicService: Reordered track from $oldIndex to $newIndex');
-    }
-
     return true;
   }
 
@@ -948,10 +875,6 @@ class LocalMusicService implements BaseMediaService {
     );
 
     await _savePlaylistData();
-
-    if (kDebugMode) {
-      print('LocalMusicService: Cleared playlist "${playlist.name}"');
-    }
 
     return true;
   }
@@ -993,9 +916,7 @@ class LocalMusicService implements BaseMediaService {
         });
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading playlist data: $e');
-      }
+      // Error loading playlist data
       _playlists.clear();
       _playlistTracks.clear();
     }
@@ -1039,9 +960,6 @@ class LocalMusicService implements BaseMediaService {
       }
     }
 
-    if (kDebugMode) {
-      print('LocalMusicService: File not found for track ID $trackId');
-    }
     return '';
   }
 
@@ -1058,10 +976,8 @@ class LocalMusicService implements BaseMediaService {
           }
         }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error searching for file: $e');
-      }
+    } catch (_) {
+      // Error searching for file
     }
 
     return null;
@@ -1169,12 +1085,6 @@ class LocalMusicService implements BaseMediaService {
     // isFavorite is the CURRENT status - we need to toggle it
     final newFavoriteStatus = !isFavorite;
 
-    if (kDebugMode) {
-      print(
-        'LocalMusicService.toggleFavorite: itemId=$itemId, currentStatus=$isFavorite, newStatus=$newFavoriteStatus',
-      );
-    }
-
     // Find and update track favorite status
     final trackIndex = _tracks.indexWhere((t) => t.id == itemId);
     if (trackIndex >= 0) {
@@ -1193,15 +1103,9 @@ class LocalMusicService implements BaseMediaService {
       );
       await _saveCachedData();
 
-      if (kDebugMode) {
-        print('LocalMusicService: Track favorite status updated and saved');
-      }
       return true;
     }
 
-    if (kDebugMode) {
-      print('LocalMusicService: Track not found for itemId=$itemId');
-    }
     return false;
   }
 
@@ -1237,14 +1141,8 @@ class LocalMusicService implements BaseMediaService {
 
       // Also clear artwork cache
       await _albumArtService.clearCachedFiles();
-
-      if (kDebugMode) {
-        print('LocalMusicService: Cleared all persisted data');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('LocalMusicService: Error clearing persisted data: $e');
-      }
+    } catch (_) {
+      // Error clearing persisted data
     }
   }
 

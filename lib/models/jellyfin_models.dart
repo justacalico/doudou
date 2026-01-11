@@ -62,7 +62,8 @@ class Album {
       id: json['Id'],
       name: json['Name'],
       artistName: json['AlbumArtist'],
-      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+      imageUrl:
+          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
           ? json['Id'] // We'll construct the full URL in the service
           : null,
       year: json['ProductionYear'],
@@ -139,10 +140,12 @@ class Track {
       artistName: json['Artists']?.join(', '),
       albumId: json['AlbumId'],
       duration: json['RunTimeTicks'] != null
-          ? (json['RunTimeTicks'] / 10000).round() // Convert from ticks to milliseconds
+          ? (json['RunTimeTicks'] / 10000)
+                .round() // Convert from ticks to milliseconds
           : null,
       trackNumber: json['IndexNumber'],
-      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+      imageUrl:
+          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
           ? json['Id'] // We'll construct the full URL in the service
           : json['AlbumId'], // Fallback to album image
       isFavorite: json['UserData']?['IsFavorite'] ?? false,
@@ -160,10 +163,7 @@ class Track {
       'RunTimeTicks': duration != null ? duration! * 10000 : null,
       'IndexNumber': trackNumber,
       'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,
-      'UserData': {
-        'IsFavorite': isFavorite,
-        'PlayCount': playCount,
-      },
+      'UserData': {'IsFavorite': isFavorite, 'PlayCount': playCount},
     };
   }
 }
@@ -173,17 +173,14 @@ class Artist {
   final String name;
   final String? imageUrl;
 
-  Artist({
-    required this.id,
-    required this.name,
-    this.imageUrl,
-  });
+  Artist({required this.id, required this.name, this.imageUrl});
 
   factory Artist.fromJson(Map<String, dynamic> json) {
     return Artist(
       id: json['Id'],
       name: json['Name'],
-      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+      imageUrl:
+          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
           ? json['Id'] // We'll construct the full URL in the service
           : null,
     );
@@ -215,7 +212,8 @@ class Playlist {
     return Playlist(
       id: json['Id'],
       name: json['Name'],
-      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+      imageUrl:
+          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
           ? json['Id'] // We'll construct the full URL in the service
           : null,
       trackCount: json['ChildCount'] ?? 0,
@@ -250,7 +248,8 @@ class Library {
       id: json['Id'],
       name: json['Name'],
       collectionType: json['CollectionType'] ?? 'unknown',
-      imageUrl: json['ImageTags'] != null && json['ImageTags']['Primary'] != null
+      imageUrl:
+          json['ImageTags'] != null && json['ImageTags']['Primary'] != null
           ? json['Id'] // We'll construct the full URL in the service
           : null,
     );

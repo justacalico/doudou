@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Colors, Material, MaterialType;
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -107,17 +106,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
           }
         }
       } else if (widget.viewType == DetailViewType.playlist) {
-        if (kDebugMode) {
-          print('Loading tracks for playlist: ${widget.id}');
-        }
-
         loadedTracks = await appState.getPlaylistTracks(widget.id);
-
-        if (kDebugMode) {
-          print(
-            'Loaded ${loadedTracks.length} tracks for playlist: ${widget.name}',
-          );
-        }
       }
 
       setState(() {
@@ -125,10 +114,6 @@ class _DetailTrackViewState extends State<DetailTrackView> {
         isLoading = false;
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading ${widget.viewType.name} tracks: $e');
-      }
-
       setState(() {
         tracks = [];
         isLoading = false;

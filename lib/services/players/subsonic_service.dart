@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
@@ -30,9 +29,6 @@ class SubsonicService implements BaseMediaService {
       (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
           (client) {
             client.badCertificateCallback = (cert, host, port) {
-              if (kDebugMode) {
-                print('Warning: Accepting bad certificate for $host:$port');
-              }
               return true;
             };
             return client;
@@ -76,9 +72,6 @@ class SubsonicService implements BaseMediaService {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('Subsonic authentication error: $e');
-      }
       return false;
     }
   }
@@ -161,9 +154,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Subsonic libraries: $e');
-      }
       return [];
     }
   }
@@ -187,34 +177,19 @@ class SubsonicService implements BaseMediaService {
         queryParameters: params,
       );
 
-      if (kDebugMode) {
-        print('Subsonic getAlbums response: ${response.data}');
-      }
-
       // Safely navigate the response structure
       final subsonicResponse = response.data['subsonic-response'];
       if (subsonicResponse == null) {
-        if (kDebugMode) {
-          print('No subsonic-response in albums response');
-        }
         return [];
       }
 
       final albumList2 = subsonicResponse['albumList2'];
       if (albumList2 == null) {
-        if (kDebugMode) {
-          print('No albumList2 in subsonic response');
-        }
         return [];
       }
 
       final albums = albumList2['album'];
       if (albums == null) {
-        if (kDebugMode) {
-          print(
-            'No album array in albumList2 - this might be normal for empty results',
-          );
-        }
         return [];
       }
 
@@ -235,9 +210,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Subsonic albums: $e');
-      }
       return [];
     }
   }
@@ -260,17 +232,11 @@ class SubsonicService implements BaseMediaService {
       // Safely navigate the response structure
       final subsonicResponse = response.data['subsonic-response'];
       if (subsonicResponse == null) {
-        if (kDebugMode) {
-          print('No subsonic-response in artists response');
-        }
         return [];
       }
 
       final artists = subsonicResponse['artists'];
       if (artists == null) {
-        if (kDebugMode) {
-          print('No artists in subsonic response');
-        }
         return [];
       }
 
@@ -308,9 +274,6 @@ class SubsonicService implements BaseMediaService {
 
       return artistList;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Subsonic artists: $e');
-      }
       return [];
     }
   }
@@ -338,25 +301,16 @@ class SubsonicService implements BaseMediaService {
 
         final subsonicResponse = response.data['subsonic-response'];
         if (subsonicResponse == null) {
-          if (kDebugMode) {
-            print('No subsonic-response in album tracks response');
-          }
           return [];
         }
 
         final album = subsonicResponse['album'];
         if (album == null) {
-          if (kDebugMode) {
-            print('No album in subsonic response');
-          }
           return [];
         }
 
         final songs = album['song'];
         if (songs == null) {
-          if (kDebugMode) {
-            print('No songs in album - this might be normal for empty albums');
-          }
           return [];
         }
 
@@ -395,27 +349,16 @@ class SubsonicService implements BaseMediaService {
 
         final subsonicResponse = response.data['subsonic-response'];
         if (subsonicResponse == null) {
-          if (kDebugMode) {
-            print('No subsonic-response in random songs response');
-          }
           return [];
         }
 
         final randomSongs = subsonicResponse['randomSongs'];
         if (randomSongs == null) {
-          if (kDebugMode) {
-            print('No randomSongs in subsonic response');
-          }
           return [];
         }
 
         final songs = randomSongs['song'];
         if (songs == null) {
-          if (kDebugMode) {
-            print(
-              'No songs in randomSongs - this might be normal for empty results',
-            );
-          }
           return [];
         }
 
@@ -444,9 +387,6 @@ class SubsonicService implements BaseMediaService {
             .toList();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Subsonic tracks: $e');
-      }
       return [];
     }
   }
@@ -462,27 +402,16 @@ class SubsonicService implements BaseMediaService {
       // Safely navigate the response structure
       final subsonicResponse = response.data['subsonic-response'];
       if (subsonicResponse == null) {
-        if (kDebugMode) {
-          print('No subsonic-response in playlists response');
-        }
         return [];
       }
 
       final playlistsContainer = subsonicResponse['playlists'];
       if (playlistsContainer == null) {
-        if (kDebugMode) {
-          print('No playlists in subsonic response');
-        }
         return [];
       }
 
       final playlists = playlistsContainer['playlist'];
       if (playlists == null) {
-        if (kDebugMode) {
-          print(
-            'No playlist array in playlists - this might be normal for empty results',
-          );
-        }
         return [];
       }
 
@@ -502,9 +431,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Subsonic playlists: $e');
-      }
       return [];
     }
   }
@@ -523,27 +449,16 @@ class SubsonicService implements BaseMediaService {
       // Safely navigate the response structure
       final subsonicResponse = response.data['subsonic-response'];
       if (subsonicResponse == null) {
-        if (kDebugMode) {
-          print('No subsonic-response in playlist tracks response');
-        }
         return [];
       }
 
       final playlist = subsonicResponse['playlist'];
       if (playlist == null) {
-        if (kDebugMode) {
-          print('No playlist in subsonic response');
-        }
         return [];
       }
 
       final songs = playlist['entry'];
       if (songs == null) {
-        if (kDebugMode) {
-          print(
-            'No entry array in playlist - this might be normal for empty playlists',
-          );
-        }
         return [];
       }
 
@@ -571,9 +486,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Subsonic playlist tracks: $e');
-      }
       return [];
     }
   }
@@ -702,9 +614,6 @@ class SubsonicService implements BaseMediaService {
 
       return SearchResults(albums: albums, artists: artists, tracks: tracks);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error searching Subsonic: $e');
-      }
       return SearchResults();
     }
   }
@@ -759,14 +668,6 @@ class SubsonicService implements BaseMediaService {
       throw Exception('Server not configured');
     }
 
-    if (kDebugMode) {
-      print(
-        'SubsonicService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite',
-      );
-      print('Server URL: $_serverUrl');
-      print('Username: $_username');
-    }
-
     try {
       // Subsonic uses star/unstar endpoints for favorites
       final action = isFavorite ? 'unstar' : 'star';
@@ -774,18 +675,7 @@ class SubsonicService implements BaseMediaService {
       params['id'] = itemId;
       final url = '$_serverUrl/rest/$action';
 
-      if (kDebugMode) {
-        print('Making GET request to: $url');
-        print('Action: $action');
-        print('Params: $params');
-      }
-
       final response = await _dio.get(url, queryParameters: params);
-
-      if (kDebugMode) {
-        print('Subsonic response: ${response.statusCode}');
-        print('Response data: ${response.data}');
-      }
 
       // Check for success response in Subsonic format
       if (response.statusCode == 200) {
@@ -794,25 +684,12 @@ class SubsonicService implements BaseMediaService {
           final subsonicResponse = data['subsonic-response'];
           final success = subsonicResponse['status'] == 'ok';
 
-          if (kDebugMode) {
-            print(
-              'Subsonic status: ${subsonicResponse['status']}, success: $success',
-            );
-          }
-
           return success;
         }
       }
 
-      if (kDebugMode) {
-        print('Subsonic: No valid subsonic response found');
-      }
-
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error toggling favorite in Subsonic: $e');
-      }
       return false;
     }
   }
@@ -830,11 +707,6 @@ class SubsonicService implements BaseMediaService {
       // Check for successful response
       final subsonicResponse = response.data['subsonic-response'];
       if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
-        if (kDebugMode) {
-          print(
-            'Failed to create playlist in Subsonic: ${subsonicResponse?['error']}',
-          );
-        }
         return null;
       }
 
@@ -858,9 +730,6 @@ class SubsonicService implements BaseMediaService {
         trackCount: 0,
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error creating playlist in Subsonic: $e');
-      }
       return null;
     }
   }
@@ -880,9 +749,6 @@ class SubsonicService implements BaseMediaService {
       final subsonicResponse = response.data['subsonic-response'];
       return subsonicResponse != null && subsonicResponse['status'] == 'ok';
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding track to playlist in Subsonic: $e');
-      }
       return false;
     }
   }
@@ -902,9 +768,6 @@ class SubsonicService implements BaseMediaService {
       final subsonicResponse = response.data['subsonic-response'];
       return subsonicResponse != null && subsonicResponse['status'] == 'ok';
     } catch (e) {
-      if (kDebugMode) {
-        print('Error renaming playlist in Subsonic: $e');
-      }
       return false;
     }
   }
@@ -923,9 +786,6 @@ class SubsonicService implements BaseMediaService {
       final subsonicResponse = response.data['subsonic-response'];
       return subsonicResponse != null && subsonicResponse['status'] == 'ok';
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting playlist in Subsonic: $e');
-      }
       return false;
     }
   }
@@ -1004,25 +864,10 @@ class SubsonicService implements BaseMediaService {
         } else {
           offset += pageSize;
         }
-
-        if (kDebugMode) {
-          print(
-            'Subsonic getAllTracks: Fetched ${allTracks.length} tracks so far (offset: $offset)',
-          );
-        }
-      }
-
-      if (kDebugMode) {
-        print(
-          'Subsonic getAllTracks: Total ${allTracks.length} tracks fetched',
-        );
       }
 
       return allTracks;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting all Subsonic tracks: $e');
-      }
       return [];
     }
   }
@@ -1045,9 +890,6 @@ class SubsonicService implements BaseMediaService {
 
       final subsonicResponse = response.data['subsonic-response'];
       if (subsonicResponse == null || subsonicResponse['status'] != 'ok') {
-        if (kDebugMode) {
-          print('Subsonic getStarred2 failed: ${subsonicResponse?['error']}');
-        }
         return [];
       }
 
@@ -1083,9 +925,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting starred Subsonic tracks: $e');
-      }
       return [];
     }
   }
@@ -1138,9 +977,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting starred Subsonic albums: $e');
-      }
       return [];
     }
   }
@@ -1190,9 +1026,6 @@ class SubsonicService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting starred Subsonic artists: $e');
-      }
       return [];
     }
   }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -15,9 +14,9 @@ class PlaylistsPage extends StatefulWidget {
 
 class _PlaylistsPageState extends State<PlaylistsPage> {
   String _searchQuery = '';
-  String _sortBy = 'name'; // name, dateCreated, trackCount
+  String _sortBy = 'name';
   bool _isAscending = true;
-  String _filterBy = 'all'; // all, created, favorites
+  String _filterBy = 'all';
   
   final TextEditingController _searchController = TextEditingController();
 
@@ -36,35 +35,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = context.read<AppState>();
-      if (kDebugMode) {
-        print('=== PLAYLISTS DEBUG ===');
-      }
-      if (kDebugMode) {
-        print('Current playlists count: ${appState.playlists.length}');
-      }
-      if (kDebugMode) {
-        print('Is logged in: ${appState.isLoggedIn}');
-      }
-      if (kDebugMode) {
-        print('Current server type: ${appState.mediaServiceManager.currentServerType}');
-      }
       if (appState.playlists.isEmpty) {
-        if (kDebugMode) {
-          print('No playlists found, calling loadLibraryData()');
-        }
         appState.loadLibraryData();
-      } else {
-        if (kDebugMode) {
-          print('Playlists found:');
-        }
-        for (final playlist in appState.playlists.take(5)) {
-          if (kDebugMode) {
-            print('  - ${playlist.name} (${playlist.trackCount} tracks)');
-          }
-        }
-      }
-      if (kDebugMode) {
-        print('=== END PLAYLISTS DEBUG ===');
       }
     });
   }

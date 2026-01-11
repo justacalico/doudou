@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import 'package:just_audio/just_audio.dart';
 import 'audio_service_factory.dart';
@@ -27,9 +26,6 @@ class AudioServiceIntegration {
       _audioHandler = factory.audioHandler;
       _initialized = true;
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Failed to initialize: $e');
-      }
       rethrow;
     }
   }
@@ -37,9 +33,6 @@ class AudioServiceIntegration {
   /// Get the current audio handler
   UnifiedAudioHandler? get audioHandler {
     if (!_initialized) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Not initialized, returning null');
-      }
       return null;
     }
     return _audioHandler;
@@ -63,9 +56,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.playTrack(track);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error playing track: $e');
-      }
+      // Error playing track
     }
   }
 
@@ -76,9 +67,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.playPlaylist(tracks, startIndex);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error playing playlist: $e');
-      }
+      // Error playing playlist
     }
   }
 
@@ -89,9 +78,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.play();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error playing: $e');
-      }
+      // Error playing
     }
   }
 
@@ -102,9 +89,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.pause();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error pausing: $e');
-      }
+      // Error pausing
     }
   }
 
@@ -119,9 +104,7 @@ class AudioServiceIntegration {
         await _audioHandler!.play();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error toggling play/pause: $e');
-      }
+      // Error toggling play/pause
     }
   }
 
@@ -132,9 +115,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.skipToNext();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error skipping to next: $e');
-      }
+      // Error skipping to next
     }
   }
 
@@ -145,9 +126,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.skipToPrevious();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error skipping to previous: $e');
-      }
+      // Error skipping to previous
     }
   }
 
@@ -158,9 +137,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.seek(position);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error seeking: $e');
-      }
+      // Error seeking
     }
   }
 
@@ -171,9 +148,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.setVolume(volume);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error setting volume: $e');
-      }
+      // Error setting volume
     }
   }
 
@@ -184,9 +159,7 @@ class AudioServiceIntegration {
     try {
       await _audioHandler!.skipToQueueItem(index);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error skipping to queue item: $e');
-      }
+      // Error skipping to queue item
     }
   }
 
@@ -316,9 +289,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.setRepeatModeValue(mode);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error setting repeat mode: $e');
-      }
+      // Error setting repeat mode
     }
   }
 
@@ -333,9 +304,7 @@ class AudioServiceIntegration {
         _audioHandler!.toggleShuffle();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error setting shuffle mode: $e');
-      }
+      // Error setting shuffle mode
     }
   }
 
@@ -356,9 +325,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.setGaplessPlayback(enabled);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error setting gapless playback: $e');
-      }
+      // Error setting gapless playback
     }
   }
 
@@ -371,9 +338,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.addToQueue(track);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error adding to queue: $e');
-      }
+      // Error adding to queue
     }
   }
 
@@ -384,9 +349,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.addNext(track);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error adding next: $e');
-      }
+      // Error adding next
     }
   }
 
@@ -397,9 +360,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.removeFromQueue(index);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error removing from queue: $e');
-      }
+      // Error removing from queue
     }
   }
 
@@ -410,9 +371,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.clearQueue();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error clearing queue: $e');
-      }
+      // Error clearing queue
     }
   }
 
@@ -425,9 +384,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.toggleRadioMode();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error toggling radio mode: $e');
-      }
+      // Error toggling radio mode
     }
   }
 
@@ -438,9 +395,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.enableRadioMode();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error enabling radio mode: $e');
-      }
+      // Error enabling radio mode
     }
   }
 
@@ -451,9 +406,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.disableRadioMode();
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error disabling radio mode: $e');
-      }
+      // Error disabling radio mode
     }
   }
 
@@ -464,9 +417,7 @@ class AudioServiceIntegration {
     try {
       _audioHandler!.setAutoplay(enabled);
     } catch (e) {
-      if (kDebugMode) {
-        print('AudioServiceIntegration: Error setting autoplay: $e');
-      }
+      // Error setting autoplay
     }
   }
 
@@ -482,11 +433,6 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     // The unified handler doesn't need explicit media library updates
-    if (kDebugMode) {
-      print(
-        'AudioServiceIntegration: Media library updated with ${tracks.length} tracks',
-      );
-    }
   }
 
   /// Dispose resources

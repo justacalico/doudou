@@ -132,7 +132,6 @@ class _DynamicIsleState extends State<DynamicIsle>
       builder: (context, appState, child) {
         final currentTrack = appState.audioHandler?.currentTrack;
 
-        // Check if playing by looking at the audio handler's current state or user intent
         bool isPlaying = false;
         if (appState.audioHandler != null) {
           // Try to get the playing state from different sources
@@ -149,7 +148,6 @@ class _DynamicIsleState extends State<DynamicIsle>
           }
         }
 
-        // Hide when no track is playing
         if (currentTrack == null) {
           return const SizedBox.shrink();
         }
@@ -249,7 +247,6 @@ class _DynamicIsleState extends State<DynamicIsle>
       ),
       child: Row(
         children: [
-          // Album art (circular)
           Container(
             width: 28,
             height: 28,
@@ -282,7 +279,6 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           const SizedBox(width: AppleDesignSystem.spacing8),
 
-          // Track title (truncated)
           Expanded(
             child: Text(
               currentTrack.name,
@@ -300,7 +296,6 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           const SizedBox(width: AppleDesignSystem.spacing8),
 
-          // Play/pause button
           _AppleIsleButton(
             onTap: () async {
               await _triggerButtonHaptic();
@@ -317,7 +312,6 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           const SizedBox(width: AppleDesignSystem.spacing4 + 2),
 
-          // Skip button
           _AppleIsleButton(
             onTap: () async {
               await _triggerButtonHaptic();
@@ -346,7 +340,6 @@ class _DynamicIsleState extends State<DynamicIsle>
       padding: const EdgeInsets.all(AppleDesignSystem.spacing12),
       child: Row(
         children: [
-          // Album art
           Container(
             width: 66,
             height: 66,
@@ -385,13 +378,11 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           const SizedBox(width: AppleDesignSystem.spacing12),
 
-          // Track info and controls
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Track name
                 Text(
                   currentTrack.name,
                   style:
@@ -419,7 +410,6 @@ class _DynamicIsleState extends State<DynamicIsle>
 
                 const SizedBox(height: AppleDesignSystem.spacing8),
 
-                // Mini progress bar
                 Container(
                   height: 3,
                   decoration: BoxDecoration(
@@ -455,11 +445,9 @@ class _DynamicIsleState extends State<DynamicIsle>
 
           const SizedBox(width: AppleDesignSystem.spacing12),
 
-          // Control buttons
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Previous button
               _AppleIsleButton(
                 onTap: () async {
                   await _triggerButtonHaptic();
@@ -476,7 +464,6 @@ class _DynamicIsleState extends State<DynamicIsle>
 
               const SizedBox(width: AppleDesignSystem.spacing8),
 
-              // Play/pause button
               _AppleIsleButton(
                 onTap: () async {
                   await _triggerButtonHaptic();
@@ -495,7 +482,6 @@ class _DynamicIsleState extends State<DynamicIsle>
 
               const SizedBox(width: AppleDesignSystem.spacing8),
 
-              // Next button
               _AppleIsleButton(
                 onTap: () async {
                   await _triggerButtonHaptic();

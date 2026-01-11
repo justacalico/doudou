@@ -343,7 +343,6 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // Album Art with rounded corners
                     Container(
                       width: 52,
                       height: 52,
@@ -364,7 +363,6 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                     ),
                     const SizedBox(width: 14),
 
-                    // Track info
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,7 +397,6 @@ class LiquidGlassMiniPlayer extends StatelessWidget {
                       ),
                     ),
 
-                    // Controls
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -760,7 +757,6 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Album art with shadow
               Container(
                 width: widget.width,
                 height: widget.width,
@@ -781,7 +777,6 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
               ),
               const SizedBox(height: 10),
 
-              // Title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Text(
@@ -797,7 +792,6 @@ class _LiquidGlassAlbumCardState extends State<LiquidGlassAlbumCard>
                 ),
               ),
 
-              // Subtitle
               if (widget.subtitle != null) ...[
                 const SizedBox(height: 2),
                 Padding(

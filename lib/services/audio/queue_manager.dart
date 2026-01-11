@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import 'unified_audio_handler.dart';
 import 'audio_state_controller.dart';
@@ -24,27 +23,15 @@ class AudioQueueManager {
   
   /// Set a new queue and reset shuffle state
   void setQueue(List<Track> tracks, {int? startIndex}) {
-    if (kDebugMode) {
-      print('QueueManager: Setting queue with ${tracks.length} tracks, startIndex: $startIndex');
-    }
-    
     _originalQueue = List.from(tracks);
     _shuffledIndices = List.generate(tracks.length, (index) => index);
     _isShuffled = false;
     
     _stateController.updateQueue(tracks, currentIndex: startIndex);
-    
-    if (kDebugMode) {
-      print('QueueManager: Queue set successfully');
-    }
   }
   
   /// Add track to the end of the queue
   void addToQueue(Track track) {
-    if (kDebugMode) {
-      print('QueueManager: Adding track to queue: ${track.name}');
-    }
-    
     _originalQueue.add(track);
     
     if (_isShuffled) {
@@ -69,10 +56,6 @@ class AudioQueueManager {
   
   /// Add track as next in queue
   void addNext(Track track) {
-    if (kDebugMode) {
-      print('QueueManager: Adding track next: ${track.name}');
-    }
-    
     _originalQueue.add(track);
     _stateController.addTrackNext(track);
     
@@ -85,10 +68,6 @@ class AudioQueueManager {
   /// Remove track from queue by index
   void removeFromQueue(int index) {
     if (index < 0 || index >= _stateController.queue.length) return;
-    
-    if (kDebugMode) {
-      print('QueueManager: Removing track at index $index');
-    }
     
     final trackToRemove = _stateController.queue[index];
     
@@ -106,10 +85,6 @@ class AudioQueueManager {
   
   /// Reorder queue items
   void reorderQueue(int oldIndex, int newIndex) {
-    if (kDebugMode) {
-      print('QueueManager: Reordering queue from $oldIndex to $newIndex');
-    }
-    
     // Only allow reordering in non-shuffled mode
     if (!_isShuffled) {
       final track = _originalQueue.removeAt(oldIndex);
@@ -121,10 +96,6 @@ class AudioQueueManager {
   
   /// Clear the entire queue
   void clearQueue() {
-    if (kDebugMode) {
-      print('QueueManager: Clearing queue');
-    }
-    
     _originalQueue.clear();
     _shuffledIndices.clear();
     _isShuffled = false;
@@ -134,10 +105,6 @@ class AudioQueueManager {
   /// Enable shuffle mode
   void enableShuffle() {
     if (_isShuffled || _originalQueue.isEmpty) return;
-    
-    if (kDebugMode) {
-      print('QueueManager: Enabling shuffle mode');
-    }
     
     final currentTrack = _stateController.currentTrack;
     final currentIndex = _stateController.currentIndex;
@@ -160,19 +127,11 @@ class AudioQueueManager {
     _isShuffled = true;
     _stateController.updateQueue(shuffledQueue, currentIndex: currentTrack != null ? 0 : null);
     _stateController.updateShuffleEnabled(true);
-    
-    if (kDebugMode) {
-      print('QueueManager: Shuffle enabled, new queue length: ${shuffledQueue.length}');
-    }
   }
   
   /// Disable shuffle mode
   void disableShuffle() {
     if (!_isShuffled) return;
-    
-    if (kDebugMode) {
-      print('QueueManager: Disabling shuffle mode');
-    }
     
     final currentTrack = _stateController.currentTrack;
     int? newCurrentIndex;
@@ -187,10 +146,6 @@ class AudioQueueManager {
     _shuffledIndices = List.generate(_originalQueue.length, (index) => index);
     _stateController.updateQueue(_originalQueue, currentIndex: newCurrentIndex);
     _stateController.updateShuffleEnabled(false);
-    
-    if (kDebugMode) {
-      print('QueueManager: Shuffle disabled, restored original queue');
-    }
   }
   
   /// Toggle shuffle mode

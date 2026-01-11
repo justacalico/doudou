@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/jellyfin_models.dart';
 import 'base_service.dart';
 import 'players/jellyfin_service.dart';
@@ -31,7 +30,7 @@ class MediaServiceManager {
   /// Initialize service based on server type
   void initializeService(ServerType serverType) {
     _currentServerType = serverType;
-    
+
     switch (serverType) {
       case ServerType.jellyfin:
         // Use shared JellyfinService if available, otherwise create a new one
@@ -83,16 +82,26 @@ class MediaServiceManager {
   }
 
   /// Scan local music directories
-  Future<void> scanLocalMusicDirectories({Function(int, int)? onProgress}) async {
+  Future<void> scanLocalMusicDirectories({
+    Function(int, int)? onProgress,
+  }) async {
     if (_sharedLocalMusicService != null) {
       await _sharedLocalMusicService!.scanDirectories(onProgress: onProgress);
     }
   }
 
   /// Authenticate with the current service
-  Future<bool> authenticate(String serverUrl, String identifier, String credential) async {
+  Future<bool> authenticate(
+    String serverUrl,
+    String identifier,
+    String credential,
+  ) async {
     if (_currentService == null) return false;
-    return await _currentService!.authenticate(serverUrl, identifier, credential);
+    return await _currentService!.authenticate(
+      serverUrl,
+      identifier,
+      credential,
+    );
   }
 
   /// Set server URL for the current service
@@ -113,95 +122,74 @@ class MediaServiceManager {
   }
 
   /// Get albums from the current service
-  Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Album>> getAlbums({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (_currentService == null) return [];
-    return await _currentService!.getAlbums(libraryId: libraryId, limit: limit, startIndex: startIndex);
+    return await _currentService!.getAlbums(
+      libraryId: libraryId,
+      limit: limit,
+      startIndex: startIndex,
+    );
   }
 
   /// Get artists from the current service
-  Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Artist>> getArtists({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (_currentService == null) return [];
-    return await _currentService!.getArtists(libraryId: libraryId, limit: limit, startIndex: startIndex);
+    return await _currentService!.getArtists(
+      libraryId: libraryId,
+      limit: limit,
+      startIndex: startIndex,
+    );
   }
 
   /// Get tracks from the current service
-  Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
-    if (kDebugMode) {
-      print('MediaServiceManager.getTracks called:');
-      print('  - libraryId: $libraryId');
-      print('  - parentId: $parentId');
-      print('  - limit: $limit');
-      print('  - startIndex: $startIndex');
-      print('  - currentService: ${_currentService?.runtimeType}');
-      print('  - currentServerType: $currentServerType');
-    }
-    
+  Future<List<Track>> getTracks({
+    String? libraryId,
+    String? parentId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('MediaServiceManager: No current service available!');
-      }
       return [];
     }
-    
-    final tracks = await _currentService!.getTracks(libraryId: libraryId, parentId: parentId, limit: limit, startIndex: startIndex);
-    
-    if (kDebugMode) {
-      print('MediaServiceManager: Service returned ${tracks.length} tracks');
-      if (tracks.isNotEmpty) {
-        print('MediaServiceManager: First track: ${tracks.first.name}');
-      }
-    }
-    
+
+    final tracks = await _currentService!.getTracks(
+      libraryId: libraryId,
+      parentId: parentId,
+      limit: limit,
+      startIndex: startIndex,
+    );
+
     return tracks;
   }
 
   /// Get ALL tracks from the current service (with pagination for large libraries)
   /// This is useful for shuffle all functionality where you need the complete library
   Future<List<Track>> getAllTracks({int? maxTracks}) async {
-    if (kDebugMode) {
-      print('MediaServiceManager.getAllTracks called:');
-      print('  - maxTracks: $maxTracks');
-      print('  - currentService: ${_currentService?.runtimeType}');
-      print('  - currentServerType: $currentServerType');
-    }
-    
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('MediaServiceManager: No current service available!');
-      }
       return [];
     }
-    
+
     final tracks = await _currentService!.getAllTracks(maxTracks: maxTracks);
-    
-    if (kDebugMode) {
-      print('MediaServiceManager: getAllTracks returned ${tracks.length} tracks');
-    }
-    
+
     return tracks;
   }
 
   /// Get all starred/favorite tracks from the current service
   Future<List<Track>> getStarredTracks() async {
-    if (kDebugMode) {
-      print('MediaServiceManager.getStarredTracks called');
-      print('  - currentService: ${_currentService?.runtimeType}');
-      print('  - currentServerType: $currentServerType');
-    }
-    
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('MediaServiceManager: No current service available!');
-      }
       return [];
     }
-    
+
     final tracks = await _currentService!.getStarredTracks();
-    
-    if (kDebugMode) {
-      print('MediaServiceManager: getStarredTracks returned ${tracks.length} tracks');
-    }
-    
+
     return tracks;
   }
 
@@ -219,28 +207,12 @@ class MediaServiceManager {
 
   /// Get playlists from the current service
   Future<List<Playlist>> getPlaylists() async {
-    if (kDebugMode) {
-      print('MediaServiceManager.getPlaylists() called');
-      print('  - currentService: ${_currentService?.runtimeType}');
-      print('  - currentServerType: $currentServerType');
-    }
-    
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('MediaServiceManager: No current service available for getPlaylists!');
-      }
       return [];
     }
-    
+
     final playlists = await _currentService!.getPlaylists();
-    
-    if (kDebugMode) {
-      print('MediaServiceManager: Service returned ${playlists.length} playlists');
-      if (playlists.isNotEmpty) {
-        print('MediaServiceManager: First playlist: ${playlists.first.name} (${playlists.first.trackCount} tracks)');
-      }
-    }
-    
+
     return playlists;
   }
 
@@ -253,43 +225,37 @@ class MediaServiceManager {
   /// Get stream URL from the current service
   String getStreamUrl(String trackId, {int? bitrate}) {
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('ERROR: Current service is null!');
-      }
       return '';
     }
-    
+
     final streamUrl = _currentService!.getStreamUrl(trackId, bitrate: bitrate);
-    
+
     return streamUrl;
   }
 
   /// Get direct stream URL (no transcoding) from the current service
   String getDirectStreamUrl(String trackId) {
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('ERROR: Current service is null!');
-      }
       return '';
     }
-    
+
     if (_currentService is JellyfinServiceAdapter) {
       final jellyfinAdapter = _currentService as JellyfinServiceAdapter;
       return jellyfinAdapter.getDirectStreamUrl(trackId);
     }
-    
+
     if (_currentService is PlexService) {
       final plexService = _currentService as PlexService;
       // For Plex, use direct download URL as it's most reliable
       return plexService.getDownloadUrl(trackId);
     }
-    
+
     if (_currentService is SubsonicService) {
       final subsonicService = _currentService as SubsonicService;
       // Navidrome/Subsonic has dedicated direct stream URL method
       return subsonicService.getDirectStreamUrl(trackId);
     }
-    
+
     // For other services, fallback to regular stream URL
     return _currentService!.getStreamUrl(trackId);
   }
@@ -307,9 +273,19 @@ class MediaServiceManager {
   }
 
   /// Get image URL from the current service
-  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+  String getImageUrl(
+    String itemId, {
+    String type = 'Primary',
+    int? width,
+    int? height,
+  }) {
     if (_currentService == null) return '';
-    return _currentService!.getImageUrl(itemId, type: type, width: width, height: height);
+    return _currentService!.getImageUrl(
+      itemId,
+      type: type,
+      width: width,
+      height: height,
+    );
   }
 
   /// Get authentication headers for HTTP requests
@@ -318,25 +294,33 @@ class MediaServiceManager {
   /// For Plex: returns X-Plex-Token header
   Future<Map<String, String>> getAuthHeaders() async {
     if (_currentService == null) return {};
-    
+
     if (_currentService is JellyfinServiceAdapter) {
       final adapter = _currentService as JellyfinServiceAdapter;
       return await adapter.getAuthHeaders();
     }
-    
+
     if (_currentService is PlexService) {
       final plexService = _currentService as PlexService;
       return plexService.getAuthHeaders();
     }
-    
+
     // Subsonic/Navidrome and other services use URL params for auth
     return {};
   }
 
   /// Search content in the current service
-  Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
+  Future<SearchResults> search(
+    String query, {
+    List<String>? includeItemTypes,
+    int? limit,
+  }) async {
     if (_currentService == null) return SearchResults();
-    return await _currentService!.search(query, includeItemTypes: includeItemTypes, limit: limit);
+    return await _currentService!.search(
+      query,
+      includeItemTypes: includeItemTypes,
+      limit: limit,
+    );
   }
 
   /// Get server information from the current service
@@ -357,23 +341,12 @@ class MediaServiceManager {
 
   /// Toggle favorite status for a track
   Future<bool> toggleFavorite(String itemId, bool isFavorite) async {
-    if (kDebugMode) {
-      print('MediaServiceManager.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite, serverType=$_currentServerType');
-    }
-    
     if (_currentService == null) {
-      if (kDebugMode) {
-        print('MediaServiceManager.toggleFavorite: ERROR - No current service!');
-      }
       return false;
     }
-    
+
     final result = await _currentService!.toggleFavorite(itemId, isFavorite);
-    
-    if (kDebugMode) {
-      print('MediaServiceManager.toggleFavorite: Service returned $result');
-    }
-    
+
     return result;
   }
 
@@ -405,16 +378,10 @@ class MediaServiceManager {
         }
         break;
       case ServerType.plex:
-        // Plex playlist creation could be implemented here
-        if (kDebugMode) {
-          print('Plex playlist creation not yet implemented');
-        }
+        // Plex playlist creation not yet implemented
         break;
       case ServerType.local:
-        // Local playlist creation could be implemented here
-        if (kDebugMode) {
-          print('Local playlist creation not yet implemented');
-        }
+        // Local playlist creation not yet implemented
         break;
       case ServerType.swingmusic:
         if (_currentService is SwingMusicService) {
@@ -432,7 +399,10 @@ class MediaServiceManager {
       case ServerType.jellyfin:
         if (_currentService is JellyfinServiceAdapter) {
           final adapter = _currentService as JellyfinServiceAdapter;
-          return await adapter._jellyfinService.addToPlaylist(playlistId, trackId);
+          return await adapter._jellyfinService.addToPlaylist(
+            playlistId,
+            trackId,
+          );
         }
         break;
       case ServerType.subsonic:
@@ -442,16 +412,10 @@ class MediaServiceManager {
         }
         break;
       case ServerType.plex:
-        // Plex add to playlist could be implemented here
-        if (kDebugMode) {
-          print('Plex add to playlist not yet implemented');
-        }
+        // Plex add to playlist not yet implemented
         break;
       case ServerType.local:
-        // Local add to playlist could be implemented here
-        if (kDebugMode) {
-          print('Local add to playlist not yet implemented');
-        }
+        // Local add to playlist not yet implemented
         break;
       case ServerType.swingmusic:
         if (_currentService is SwingMusicService) {
@@ -469,7 +433,10 @@ class MediaServiceManager {
       case ServerType.jellyfin:
         if (_currentService is JellyfinServiceAdapter) {
           final adapter = _currentService as JellyfinServiceAdapter;
-          return await adapter._jellyfinService.renamePlaylist(playlistId, newName);
+          return await adapter._jellyfinService.renamePlaylist(
+            playlistId,
+            newName,
+          );
         }
         break;
       case ServerType.subsonic:
@@ -479,16 +446,10 @@ class MediaServiceManager {
         }
         break;
       case ServerType.plex:
-        // Plex rename playlist could be implemented here
-        if (kDebugMode) {
-          print('Plex rename playlist not yet implemented');
-        }
+        // Plex rename playlist not yet implemented
         break;
       case ServerType.local:
-        // Local rename playlist could be implemented here
-        if (kDebugMode) {
-          print('Local rename playlist not yet implemented');
-        }
+        // Local rename playlist not yet implemented
         break;
       case ServerType.swingmusic:
         if (_currentService is SwingMusicService) {
@@ -516,16 +477,10 @@ class MediaServiceManager {
         }
         break;
       case ServerType.plex:
-        // Plex remove playlist could be implemented here
-        if (kDebugMode) {
-          print('Plex remove playlist not yet implemented');
-        }
+        // Plex remove playlist not yet implemented
         break;
       case ServerType.local:
-        // Local remove playlist could be implemented here
-        if (kDebugMode) {
-          print('Local remove playlist not yet implemented');
-        }
+        // Local remove playlist not yet implemented
         break;
       case ServerType.swingmusic:
         if (_currentService is SwingMusicService) {
@@ -548,8 +503,16 @@ class JellyfinServiceAdapter implements BaseMediaService {
   ServerType get serverType => ServerType.jellyfin;
 
   @override
-  Future<bool> authenticate(String serverUrl, String identifier, String credential) async {
-    return await _jellyfinService.authenticate(serverUrl, identifier, credential);
+  Future<bool> authenticate(
+    String serverUrl,
+    String identifier,
+    String credential,
+  ) async {
+    return await _jellyfinService.authenticate(
+      serverUrl,
+      identifier,
+      credential,
+    );
   }
 
   @override
@@ -558,17 +521,13 @@ class JellyfinServiceAdapter implements BaseMediaService {
     final currentServer = _jellyfinService.currentServer;
     if (currentServer == null || currentServer.serverUrl != serverUrl) {
       // If the service is already authenticated, don't override the server config
-      if (currentServer?.accessToken != null && currentServer?.serverUrl == serverUrl) {
-        if (kDebugMode) {
-          print('JellyfinServiceAdapter.setServer: Server already authenticated, skipping override');
-        }
+      if (currentServer?.accessToken != null &&
+          currentServer?.serverUrl == serverUrl) {
         return;
       }
-      
+
       // Convert string URL to JellyfinServer object
-      final server = JellyfinServer(
-        serverUrl: serverUrl,
-      );
+      final server = JellyfinServer(serverUrl: serverUrl);
       _jellyfinService.setJellyfinServer(server);
     }
   }
@@ -582,29 +541,44 @@ class JellyfinServiceAdapter implements BaseMediaService {
   Future<List<Library>> getLibraries() async {
     // For now, return a default music library for Jellyfin
     // This should be implemented properly in JellyfinService later
-    return [
-      Library(id: 'music', name: 'Music', collectionType: 'music'),
-    ];
+    return [Library(id: 'music', name: 'Music', collectionType: 'music')];
   }
 
   @override
-  Future<List<Album>> getAlbums({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Album>> getAlbums({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     return await _jellyfinService.getAlbums();
   }
 
   @override
-  Future<List<Artist>> getArtists({String? libraryId, int? limit, int? startIndex}) async {
+  Future<List<Artist>> getArtists({
+    String? libraryId,
+    int? limit,
+    int? startIndex,
+  }) async {
     return await _jellyfinService.getArtists();
   }
 
   @override
-  Future<List<Track>> getTracks({String? libraryId, String? parentId, int? limit, int? startIndex}) async {
+  Future<List<Track>> getTracks({
+    String? libraryId,
+    String? parentId,
+    int? limit,
+    int? startIndex,
+  }) async {
     if (parentId != null) {
       // If parentId is provided, get album tracks
       return await _jellyfinService.getAlbumTracks(parentId);
     }
     // Otherwise get all tracks or library tracks
-    return await _jellyfinService.getTracks(libraryId: libraryId, limit: limit, startIndex: startIndex);
+    return await _jellyfinService.getTracks(
+      libraryId: libraryId,
+      limit: limit,
+      startIndex: startIndex,
+    );
   }
 
   @override
@@ -658,13 +632,26 @@ class JellyfinServiceAdapter implements BaseMediaService {
   }
 
   @override
-  String getImageUrl(String itemId, {String type = 'Primary', int? width, int? height}) {
+  String getImageUrl(
+    String itemId, {
+    String type = 'Primary',
+    int? width,
+    int? height,
+  }) {
     return _jellyfinService.getImageUrl(itemId, width: width, height: height);
   }
 
   @override
-  Future<SearchResults> search(String query, {List<String>? includeItemTypes, int? limit}) async {
-    return await _jellyfinService.search(query, includeItemTypes: includeItemTypes, limit: limit);
+  Future<SearchResults> search(
+    String query, {
+    List<String>? includeItemTypes,
+    int? limit,
+  }) async {
+    return await _jellyfinService.search(
+      query,
+      includeItemTypes: includeItemTypes,
+      limit: limit,
+    );
   }
 
   @override
@@ -679,8 +666,8 @@ class JellyfinServiceAdapter implements BaseMediaService {
   List<String> getAlternativeStreamUrls(String trackId) {
     // Return Jellyfin alternative stream URLs
     return [
-      _jellyfinService.getStreamUrl(trackId),          // Primary transcoded URL
-      _jellyfinService.getDirectStreamUrl(trackId),    // Direct stream
+      _jellyfinService.getStreamUrl(trackId), // Primary transcoded URL
+      _jellyfinService.getDirectStreamUrl(trackId), // Direct stream
       _jellyfinService.getUniversalStreamUrl(trackId), // Universal fallback
     ];
   }

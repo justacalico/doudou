@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:flutter/foundation.dart';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 
@@ -33,9 +32,6 @@ class PlexService implements BaseMediaService {
       (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
           (client) {
             client.badCertificateCallback = (cert, host, port) {
-              if (kDebugMode) {
-                print('Warning: Accepting bad certificate for $host:$port');
-              }
               return true;
             };
             return client;
@@ -68,18 +64,12 @@ class PlexService implements BaseMediaService {
           final part = media[0]['Part'];
           if (part != null && part.isNotEmpty) {
             final partKey = part[0]['key'];
-            if (kDebugMode) {
-              print('Found part key: $partKey for track: $trackId');
-            }
             return partKey?.toString();
           }
         }
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting track part key: $e');
-      }
       return null;
     }
   }
@@ -99,18 +89,12 @@ class PlexService implements BaseMediaService {
           final part = media[0]['Part'];
           if (part != null && part.isNotEmpty) {
             final partId = part[0]['id'];
-            if (kDebugMode) {
-              print('Found part ID: $partId for track: $trackId');
-            }
             return partId?.toString();
           }
         }
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting track part ID: $e');
-      }
       return null;
     }
   }
@@ -127,10 +111,6 @@ class PlexService implements BaseMediaService {
           : serverUrl;
       _token = credential; // For Plex, credential is the X-Plex-Token
 
-      if (kDebugMode) {
-        print('Plex: Attempting authentication to $_serverUrl with token');
-      }
-
       // Try to get server info using the root endpoint
       final response = await _dio.get(
         '$_serverUrl/',
@@ -138,37 +118,21 @@ class PlexService implements BaseMediaService {
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
-      if (kDebugMode) {
-        print('Plex auth response status: ${response.statusCode}');
-        print('Plex auth response data: ${response.data}');
-      }
-
       if (response.statusCode == 200) {
         // Try to parse the response data
         if (response.data is Map && response.data['MediaContainer'] != null) {
           _machineIdentifier =
               response.data['MediaContainer']['machineIdentifier'];
-          if (kDebugMode) {
-            print(
-              'Plex: Authentication successful. Machine ID: $_machineIdentifier',
-            );
-          }
           return true;
         } else if (response.data is String &&
             response.data.contains('MediaContainer')) {
           // If we get XML response, consider it successful for now
-          if (kDebugMode) {
-            print('Plex: Authentication successful (XML response)');
-          }
           return true;
         }
       }
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('Plex authentication error: $e');
-      }
       return false;
     }
   }
@@ -201,9 +165,6 @@ class PlexService implements BaseMediaService {
       }
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('Plex credential validation error: $e');
-      }
       return false;
     }
   }
@@ -231,9 +192,6 @@ class PlexService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Plex libraries: $e');
-      }
       return [];
     }
   }
@@ -321,9 +279,6 @@ class PlexService implements BaseMediaService {
 
       return allAlbums;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Plex albums: $e');
-      }
       return [];
     }
   }
@@ -402,9 +357,6 @@ class PlexService implements BaseMediaService {
 
       return allArtists;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Plex artists: $e');
-      }
       return [];
     }
   }
@@ -531,9 +483,6 @@ class PlexService implements BaseMediaService {
 
       return allTracks;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Plex tracks: $e');
-      }
       return [];
     }
   }
@@ -561,9 +510,6 @@ class PlexService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Plex playlists: $e');
-      }
       return [];
     }
   }
@@ -595,9 +541,6 @@ class PlexService implements BaseMediaService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting Plex playlist tracks: $e');
-      }
       return [];
     }
   }
@@ -613,23 +556,14 @@ class PlexService implements BaseMediaService {
     // Try to get metadata for better URLs
     final partKey = await _getTrackPartKey(trackId);
     if (partKey != null) {
-      if (kDebugMode) {
-        print('Plex: Using Method 1 - Direct stream with part key: $partKey');
-      }
       return getDirectStreamWithPartKey(partKey);
     }
 
     final partId = await _getTrackPartId(trackId);
     if (partId != null) {
-      if (kDebugMode) {
-        print('Plex: Using Method 3 - Direct file with part ID: $partId');
-      }
       return getDirectPartUrl(partId);
     }
 
-    if (kDebugMode) {
-      print('Plex: Falling back to Method 4 - Download URL');
-    }
     return getDownloadUrl(trackId);
   }
 
@@ -637,15 +571,9 @@ class PlexService implements BaseMediaService {
     final partId = await _getTrackPartId(trackId);
 
     if (partId != null) {
-      if (kDebugMode) {
-        print('Using direct file stream with part ID: $partId');
-      }
       return getDirectPartUrl(partId);
     }
 
-    if (kDebugMode) {
-      print('Part ID not found, using universal transcode');
-    }
     return getUniversalStreamUrl(trackId, bitrate: bitrate ?? 192);
   }
 
@@ -659,10 +587,7 @@ class PlexService implements BaseMediaService {
   /// For Plex, the token is typically in URL params, but some endpoints accept headers
   Map<String, String> getAuthHeaders() {
     if (_token == null) return {};
-    return {
-      'X-Plex-Token': _token!,
-      'Accept': 'application/json',
-    };
+    return {'X-Plex-Token': _token!, 'Accept': 'application/json'};
   }
 
   /// Direct stream fallback using part ID (if you happen to have partId)
@@ -733,32 +658,18 @@ class PlexService implements BaseMediaService {
 
     if (partKey != null) {
       urls.add(getDirectStreamWithPartKey(partKey));
-      if (kDebugMode) {
-        print(
-          'Plex: Adding Method 1 - Direct stream URL with part key: $partKey',
-        );
-      }
     }
 
     if (partId != null) {
       urls.add(getDirectPartUrl(partId));
-      if (kDebugMode) {
-        print('Plex: Adding Method 3 - Direct file URL with part ID: $partId');
-      }
     }
 
     urls.add(getDownloadUrl(trackId));
-    if (kDebugMode) {
-      print('Plex: Adding Method 4 - Download URL');
-    }
 
     urls.addAll([
       getUniversalStreamUrl(trackId, bitrate: 192),
       getUniversalStreamUrl(trackId, bitrate: 128),
     ]);
-    if (kDebugMode) {
-      print('Plex: Adding Method 2 - Universal transcode URLs');
-    }
 
     return urls;
   }
@@ -847,9 +758,6 @@ class PlexService implements BaseMediaService {
 
       return SearchResults(albums: albums, artists: artists, tracks: tracks);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error searching Plex: $e');
-      }
       return SearchResults();
     }
   }
@@ -922,22 +830,11 @@ class PlexService implements BaseMediaService {
       throw Exception('Server not configured');
     }
 
-    if (kDebugMode) {
-      print(
-        'PlexService.toggleFavorite: itemId=$itemId, isFavorite=$isFavorite',
-      );
-      print('Server URL: $_serverUrl');
-    }
-
     try {
       // Plex uses PUT method for toggling favorites
       // The endpoint is /library/metadata/{itemId}/favorite
       final method = isFavorite ? 'DELETE' : 'PUT';
       final url = '$_serverUrl/library/metadata/$itemId/favorite';
-
-      if (kDebugMode) {
-        print('Making $method request to: $url');
-      }
 
       final response = await _dio.request(
         url,
@@ -946,15 +843,8 @@ class PlexService implements BaseMediaService {
 
       final success = response.statusCode == 200;
 
-      if (kDebugMode) {
-        print('Plex response: ${response.statusCode}, success: $success');
-      }
-
       return success;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error toggling favorite in Plex: $e');
-      }
       return false;
     }
   }

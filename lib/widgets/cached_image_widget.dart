@@ -41,12 +41,11 @@ class CachedImageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget image;
-    
-    // Check if it's a local file path
+
     if (_isLocalFilePath(imageUrl)) {
       final filePath = _getFilePath(imageUrl);
       final file = File(filePath);
-      
+
       image = FutureBuilder<bool>(
         future: file.exists(),
         builder: (context, snapshot) {
@@ -71,8 +70,7 @@ class CachedImageWidget extends StatelessWidget {
               },
             );
           }
-          
-          // File doesn't exist or still loading
+
           return errorWidget ??
               Container(
                 width: width,
@@ -87,45 +85,41 @@ class CachedImageWidget extends StatelessWidget {
         },
       );
     } else {
-      // Network image
       image = CachedNetworkImage(
         imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
         cacheManager: ImageCacheManager.instance,
-        placeholder: (context, url) => 
-          placeholder ?? 
-          Container(
-            width: width,
-            height: height,
-            color: placeholderColor ?? const Color(0xFF2C2C2E),
-            child: const Center(
-              child: CupertinoActivityIndicator(
-                color: CupertinoColors.systemGrey,
+        placeholder: (context, url) =>
+            placeholder ??
+            Container(
+              width: width,
+              height: height,
+              color: placeholderColor ?? const Color(0xFF2C2C2E),
+              child: const Center(
+                child: CupertinoActivityIndicator(
+                  color: CupertinoColors.systemGrey,
+                ),
               ),
             ),
-          ),
-        errorWidget: (context, url, error) => 
-          errorWidget ??
-          Container(
-            width: width,
-            height: height,
-            color: const Color(0xFF2C2C2E),
-            child: const Icon(
-              CupertinoIcons.photo,
-              color: CupertinoColors.systemGrey,
-              size: 32,
+        errorWidget: (context, url, error) =>
+            errorWidget ??
+            Container(
+              width: width,
+              height: height,
+              color: const Color(0xFF2C2C2E),
+              child: const Icon(
+                CupertinoIcons.photo,
+                color: CupertinoColors.systemGrey,
+                size: 32,
+              ),
             ),
-          ),
       );
     }
 
     if (borderRadius != null) {
-      return ClipRRect(
-        borderRadius: borderRadius!,
-        child: image,
-      );
+      return ClipRRect(borderRadius: borderRadius!, child: image);
     }
 
     return image;
@@ -206,8 +200,8 @@ class ArtistImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = isCircular 
-        ? BorderRadius.circular(size / 2) 
+    final borderRadius = isCircular
+        ? BorderRadius.circular(size / 2)
         : BorderRadius.circular(8);
 
     if (imageUrl == null) {

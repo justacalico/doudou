@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../l10n/app_localizations.dart';
@@ -260,12 +259,7 @@ class PlaylistTile extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return GestureDetector(
-          onTap: () {
-            if (kDebugMode) {
-              print('Playlist tile tapped: ${playlist.name}');
-            }
-            onTap();
-          },
+          onTap: onTap,
           onLongPress: () => _showPlaylistOptions(context, appState),
           behavior: HitTestBehavior.opaque,
           child: Container(
@@ -558,13 +552,9 @@ class PlaylistTile extends StatelessWidget {
         }
       } catch (e) {
         failedCount++;
-        if (kDebugMode) {
-          print('Failed to start download for track ${track.name}: $e');
-        }
       }
     }
 
-    // Show completion message
     if (!context.mounted) return;
     String message;
     if (downloadedCount > 0) {
@@ -906,29 +896,15 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     final appState = context.read<AppState>();
 
     try {
-      if (kDebugMode) {
-        print('Loading tracks for playlist: ${widget.playlist.id}');
-      }
-
       final playlistTracks = await appState.getPlaylistTracks(
         widget.playlist.id,
       );
-
-      if (kDebugMode) {
-        print(
-          'Loaded ${playlistTracks.length} tracks for playlist: ${widget.playlist.name}',
-        );
-      }
 
       setState(() {
         tracks = playlistTracks;
         isLoading = false;
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading playlist tracks: $e');
-      }
-
       setState(() {
         tracks = [];
         isLoading = false;
@@ -1263,9 +1239,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         }
       } catch (e) {
         failedCount++;
-        if (kDebugMode) {
-          print('Failed to start download for track ${track.name}: $e');
-        }
       }
     }
 

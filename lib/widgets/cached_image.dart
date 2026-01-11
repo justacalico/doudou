@@ -39,12 +39,11 @@ class CachedImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget image;
-    
-    // Check if it's a local file path
+
     if (_isLocalFilePath(imageUrl)) {
       final filePath = _getFilePath(imageUrl);
       final file = File(filePath);
-      
+
       image = FutureBuilder<bool>(
         future: file.exists(),
         builder: (context, snapshot) {
@@ -55,69 +54,70 @@ class CachedImage extends StatelessWidget {
               height: height,
               fit: fit,
               errorBuilder: (context, error, stackTrace) {
-                return errorWidget ?? Container(
-                  width: width,
-                  height: height,
-                  color: const Color(0xFF1C1C1E),
-                  child: const Icon(
-                    CupertinoIcons.photo,
-                    color: CupertinoColors.systemGrey2,
-                    size: 32,
-                  ),
-                );
+                return errorWidget ??
+                    Container(
+                      width: width,
+                      height: height,
+                      color: const Color(0xFF1C1C1E),
+                      child: const Icon(
+                        CupertinoIcons.photo,
+                        color: CupertinoColors.systemGrey2,
+                        size: 32,
+                      ),
+                    );
               },
             );
           }
-          
-          // File doesn't exist or still loading
-          return errorWidget ?? Container(
-            width: width,
-            height: height,
-            color: const Color(0xFF1C1C1E),
-            child: const Icon(
-              CupertinoIcons.photo,
-              color: CupertinoColors.systemGrey2,
-              size: 32,
-            ),
-          );
+
+          return errorWidget ??
+              Container(
+                width: width,
+                height: height,
+                color: const Color(0xFF1C1C1E),
+                child: const Icon(
+                  CupertinoIcons.photo,
+                  color: CupertinoColors.systemGrey2,
+                  size: 32,
+                ),
+              );
         },
       );
     } else {
-      // Network image
       image = CachedNetworkImage(
         imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
         cacheManager: ImageCacheManager.instance,
-        placeholder: (context, url) => placeholder ?? Container(
-          width: width,
-          height: height,
-          color: const Color(0xFF1C1C1E),
-          child: const Center(
-            child: CupertinoActivityIndicator(
-              color: CupertinoColors.systemGrey,
+        placeholder: (context, url) =>
+            placeholder ??
+            Container(
+              width: width,
+              height: height,
+              color: const Color(0xFF1C1C1E),
+              child: const Center(
+                child: CupertinoActivityIndicator(
+                  color: CupertinoColors.systemGrey,
+                ),
+              ),
             ),
-          ),
-        ),
-        errorWidget: (context, url, error) => errorWidget ?? Container(
-          width: width,
-          height: height,
-          color: const Color(0xFF1C1C1E),
-          child: const Icon(
-            CupertinoIcons.photo,
-            color: CupertinoColors.systemGrey2,
-            size: 32,
-          ),
-        ),
+        errorWidget: (context, url, error) =>
+            errorWidget ??
+            Container(
+              width: width,
+              height: height,
+              color: const Color(0xFF1C1C1E),
+              child: const Icon(
+                CupertinoIcons.photo,
+                color: CupertinoColors.systemGrey2,
+                size: 32,
+              ),
+            ),
       );
     }
 
     if (borderRadius != null) {
-      image = ClipRRect(
-        borderRadius: borderRadius!,
-        child: image,
-      );
+      image = ClipRRect(borderRadius: borderRadius!, child: image);
     }
 
     return image;
@@ -165,11 +165,7 @@ class ArtistImage extends StatelessWidget {
   final String imageUrl;
   final double size;
 
-  const ArtistImage({
-    super.key,
-    required this.imageUrl,
-    required this.size,
-  });
+  const ArtistImage({super.key, required this.imageUrl, required this.size});
 
   @override
   Widget build(BuildContext context) {

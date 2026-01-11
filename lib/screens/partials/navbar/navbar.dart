@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -59,13 +58,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final size = MediaQuery.of(context).size;
     final aspectRatio = size.width / size.height;
 
-    if (kDebugMode) {
-      print(
-        'Screen detection - Width: ${size.width}, Height: ${size.height}, Aspect Ratio: $aspectRatio',
-      );
-    }
-
-    // Check if this is a Quest VR headset - never show Android Auto UI on Quest
     bool isQuestDevice = false;
     try {
       final deviceInfo = DeviceInfoPlugin();
@@ -74,90 +66,40 @@ class _HomeScreenState extends State<HomeScreen> {
       final model = androidInfo.model.toLowerCase();
       final brand = androidInfo.brand.toLowerCase();
 
-      // Quest headsets are made by Oculus/Meta
-      // Common identifiers: "oculus", "meta", "quest"
       isQuestDevice =
           manufacturer.contains('oculus') ||
           manufacturer.contains('meta') ||
           brand.contains('oculus') ||
           brand.contains('meta') ||
           model.contains('quest') ||
-          model.contains('pacific') || // Quest 1 codename
-          model.contains('hollywood') || // Quest 2 codename
-          model.contains('eureka'); // Quest 3 codename
-
-      if (kDebugMode) {
-        print(
-          'Device info - Manufacturer: ${androidInfo.manufacturer}, Model: ${androidInfo.model}, Brand: ${androidInfo.brand}, IsQuest: $isQuestDevice',
-        );
-      }
+          model.contains('pacific') ||
+          model.contains('hollywood') ||
+          model.contains('eureka');
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting device info: $e');
-      }
+      // Ignore device info errors
     }
 
-    // If this is a Quest device, never enable Android Auto mode
-    if (isQuestDevice) {
-      if (kDebugMode) {
-        print('Quest VR headset detected - disabling Android Auto mode');
-      }
-      return;
-    }
+    if (isQuestDevice) return;
 
-    // Android Auto screens are typically landscape and wide (around 2.5:1 to 3:1 ratio)
-    // Also check if we're running on Android with specific screen characteristics
-    // Lowered threshold for better detection
     if (aspectRatio > 1.5 && size.width > 600) {
       setState(() {
         _isAndroidAuto = true;
       });
-      if (kDebugMode) {
-        print('Android Auto mode detected!');
-      }
 
-      // Ensure proper data loading for Android Auto with multiple attempts
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final appState = Provider.of<AppState>(context, listen: false);
-
-        // Force reload library data for Android Auto to ensure fresh content
         if (appState.isLoggedIn) {
-          if (kDebugMode) {
-            print('Loading library data for Android Auto...');
-          }
-
           try {
             await appState.loadLibraryData();
-
-            // If still no data after first load, try again
             if (appState.albums.isEmpty || appState.tracks.isEmpty) {
-              if (kDebugMode) {
-                print('First load incomplete, retrying...');
-              }
               await Future.delayed(const Duration(seconds: 2));
               await appState.loadLibraryData();
             }
-
-            if (kDebugMode) {
-              print(
-                'Android Auto data loaded - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}',
-              );
-            }
           } catch (e) {
-            if (kDebugMode) {
-              print('Error loading data for Android Auto: $e');
-            }
-          }
-        } else {
-          if (kDebugMode) {
-            print('User not logged in for Android Auto');
+            // Ignore loading errors
           }
         }
       });
-    } else {
-      if (kDebugMode) {
-        print('Regular mobile mode detected');
-      }
     }
   }
 
@@ -209,140 +151,61 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshAndroidAutoData(AppState appState) async {
-    if (kDebugMode) {
-      print('Refreshing Android Auto data...');
-    }
-
-    // Show that refresh is in progress
     setState(() {});
 
     try {
-      if (!appState.isLoggedIn) {
-        if (kDebugMode) {
-          print('Cannot refresh - user not logged in');
-        }
-        // Try to handle the case where user needs to login
-        return;
-      }
+      if (!appState.isLoggedIn) return;
 
       await appState.loadLibraryData();
 
-      // Update AudioHandler with fresh data for Android Auto MediaBrowser
       final audioHandler = appState.audioHandler;
       if (audioHandler != null) {
         try {
-          // Update the media library in audio handler for MediaBrowser
           audioHandler.updateMediaLibrary(
             albums: appState.albums,
             artists: appState.artists,
             tracks: appState.tracks,
             playlists: appState.playlists,
           );
-
-          if (kDebugMode) {
-            print('Updated AudioHandler MediaBrowser with fresh library data');
-          }
         } catch (e) {
-          if (kDebugMode) {
-            print('Warning: Failed to update AudioHandler MediaBrowser: $e');
-          }
-          // Don't throw - this is not critical for the UI
+          // Non-critical error
         }
       }
-
-      // If still no data after load, show debug info
-      if (kDebugMode) {
-        print(
-          'After refresh - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Artists: ${appState.artists.length}, Playlists: ${appState.playlists.length}',
-        );
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error refreshing Android Auto data: $e');
-      }
-
-      // In a real app, you might want to show a user-visible error message
-      // For Android Auto, we need to be more resilient and not crash
-      // The UI will show the "No Content Available" message instead
+      // Handle silently
     }
 
-    // Force rebuild to show updated state
     setState(() {});
   }
 
   Widget _buildTabContent(int index, AppState appState) {
     final l10n = AppLocalizations.of(context);
     Widget content;
-    String title;
-    bool showNavBar = true;
 
     switch (index) {
       case 0:
         content = const HomeContent();
-        title = l10n.navHome;
-        showNavBar = false; // Home has custom header
         break;
       case 1:
         content = const LibraryContent();
-        title = l10n.navLibrary;
-        showNavBar = false; // Library has custom header
         break;
       case 2:
         content = const DownloadsScreen();
-        title = l10n.navDownloads;
-        showNavBar = false; // Downloads has custom header
         break;
       case 3:
         content = const SearchScreen();
-        title = l10n.navSearch;
-        showNavBar = false; // Search has custom header
         break;
       case 4:
         content = const SettingsScreen();
-        title = l10n.navSettings;
-        showNavBar = false; // Settings has custom header
         break;
       default:
         content = const HomeContent();
-        title = l10n.navHome;
-        showNavBar = false;
     }
 
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.black,
-      navigationBar: showNavBar
-          ? CupertinoNavigationBar(
-              middle: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(color: CupertinoColors.white),
-                  ),
-                  if (appState.isOfflineMode)
-                    Text(
-                      l10n.offlineMode,
-                      style: const TextStyle(
-                        color: CupertinoColors.systemOrange,
-                        fontSize: 12,
-                      ),
-                    ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF000000),
-              border: null,
-              trailing: appState.isOfflineMode
-                  ? const Icon(
-                      CupertinoIcons.wifi_slash,
-                      color: CupertinoColors.systemOrange,
-                      size: 20,
-                    )
-                  : null,
-            )
-          : null,
       child: Stack(
         children: [
-          // Offline banner
           if (appState.isOfflineMode)
             Positioned(
               top: 0,
@@ -386,23 +249,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          // Main content with offset for offline banner only - no bottom padding
           Positioned.fill(
             top: appState.isOfflineMode ? 40 : 0,
-            bottom:
-                0, // Let content extend to the bottom, overlays will handle spacing
+            bottom: 0,
             child: content,
           ),
-          // Only show mini player when Dynamic Isle is disabled, not on settings screen (index 4)
-          // Also hide on search screen (index 3) when keyboard is open
           if (!appState.useDynamicIsle &&
               index != 4 &&
               !(index == 3 && MediaQuery.of(context).viewInsets.bottom > 0))
             Positioned(
               left: 0,
               right: 0,
-              bottom:
-                  97, // Position mini player above glassmorphism nav bar (65px + 16px margin + 16px gap)
+              bottom: 97,
               child: const MiniPlayer(),
             ),
         ],
@@ -415,20 +273,6 @@ class _HomeScreenState extends State<HomeScreen> {
       color: const Color(0xFF000000),
       child: Column(
         children: [
-          // Debug indicator
-          if (kDebugMode)
-            Container(
-              padding: const EdgeInsets.all(8),
-              color: CupertinoColors.systemGreen,
-              child: Text(
-                'ANDROID AUTO MODE - Albums: ${appState.albums.length}, Tracks: ${appState.tracks.length}, Loading: ${appState.isLoading}',
-                style: const TextStyle(
-                  color: CupertinoColors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
           // Connection status indicator for Android Auto
           if (!appState.isLoading &&
               appState.albums.isEmpty &&
@@ -1114,32 +958,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _playAlbum(AppState appState, Album album) async {
-    if (kDebugMode) {
-      print('Android Auto: Starting album playback - ${album.name}');
-    }
-
     try {
       final tracks = await appState.getAlbumTracks(album.id);
       if (tracks.isNotEmpty) {
-        if (kDebugMode) {
-          print('Android Auto: Playing album with ${tracks.length} tracks');
-        }
         await appState.playPlaylist(tracks, 0);
-
-        if (kDebugMode) {
-          print('Android Auto: Album playback initiated successfully');
-        }
-      } else {
-        if (kDebugMode) {
-          print('Android Auto: Album ${album.name} has no tracks');
-        }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Android Auto: Error playing album ${album.name}: $e');
-      }
       // Don't throw - prevent crashes in Android Auto
-      // The UI will continue to work even if one album fails
     }
   }
 

@@ -37,12 +37,12 @@ class LoggingService {
   /// Initialize the logging service
   Future<void> initialize() async {
     if (_initialized) return;
-    
+
     try {
       // Load logging enabled setting
       final prefs = await SharedPreferences.getInstance();
       _loggingEnabled = prefs.getBool('logging_enabled') ?? false;
-      
+
       // Only initialize file logging on non-web platforms
       if (!kIsWeb) {
         final directory = await getApplicationDocumentsDirectory();
@@ -50,11 +50,11 @@ class LoggingService {
         if (!await logDir.exists()) {
           await logDir.create(recursive: true);
         }
-        
+
         final now = DateTime.now();
         final dateStr = _formatDate(now);
         _logFile = File('${logDir.path}/doudou_$dateStr.log');
-        
+
         // Rotate log if too large
         if (await _logFile!.exists()) {
           final fileSize = await _logFile!.length();
@@ -63,15 +63,15 @@ class LoggingService {
           }
         }
       }
-      
+
       _initialized = true;
       if (_loggingEnabled) {
-        log('INFO', 'Logging service initialized (logging enabled)${kIsWeb ? ' - web mode' : ''}');
+        log(
+          'INFO',
+          'Logging service initialized (logging enabled)${kIsWeb ? ' - web mode' : ''}',
+        );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to initialize logging service: $e');
-      }
       // Mark as initialized even if file logging failed (web compatibility)
       _initialized = true;
     }
@@ -93,24 +93,22 @@ class LoggingService {
     try {
       // Only rotate logs on non-web platforms
       if (kIsWeb || _logFile == null || !await _logFile!.exists()) return;
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final logDir = Directory('${directory.path}/logs');
       final now = DateTime.now();
       final timestamp = _formatTimestamp(now);
       final archivePath = '${logDir.path}/doudou_$timestamp.old.log';
-      
+
       await _logFile!.rename(archivePath);
-      
+
       final dateStr = _formatDate(now);
       _logFile = File('${logDir.path}/doudou_$dateStr.log');
-      
+
       // Clean up old logs (keep only last 5)
       await _cleanOldLogs(logDir);
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to rotate log: $e');
-      }
+      // Failed to rotate log
     }
   }
 
@@ -119,14 +117,17 @@ class LoggingService {
     try {
       // Only clean logs on non-web platforms
       if (kIsWeb) return;
-      
-      final files = logDir.listSync()
+
+      final files = logDir
+          .listSync()
           .whereType<File>()
           .where((f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'))
           .toList();
-      
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-      
+
+      files.sort(
+        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+      );
+
       // Keep only the 5 most recent log files
       if (files.length > 5) {
         for (var i = 5; i < files.length; i++) {
@@ -134,9 +135,7 @@ class LoggingService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to clean old logs: $e');
-      }
+      // Failed to clean old logs
     }
   }
 
@@ -144,25 +143,20 @@ class LoggingService {
   void log(String level, String message, [String? component]) {
     // Skip logging if not enabled
     if (!_loggingEnabled) return;
-    
+
     final now = DateTime.now();
     final timestamp = _formatFullTimestamp(now);
     final componentStr = component != null ? '[$component] ' : '';
     final logEntry = '$timestamp [$level] $componentStr$message';
-    
+
     // Add to memory logs
     _memoryLogs.add(logEntry);
     if (_memoryLogs.length > _maxMemoryLogs) {
       _memoryLogs.removeAt(0);
     }
-    
+
     // Write to file
     _writeToFile(logEntry);
-    
-    // Also print in debug mode
-    if (kDebugMode) {
-      print(logEntry);
-    }
   }
 
   /// Write log entry to file
@@ -171,7 +165,7 @@ class LoggingService {
       // Only write to file on non-web platforms
       if (!kIsWeb && _logFile != null) {
         await _logFile!.writeAsString('$logEntry\n', mode: FileMode.append);
-        
+
         // Check if we need to rotate
         final fileSize = await _logFile!.length();
         if (fileSize > _maxLogFileSize) {
@@ -180,17 +174,18 @@ class LoggingService {
       }
     } catch (e) {
       // Fail silently to not disrupt app functionality
-      if (kDebugMode) {
-        print('Failed to write log: $e');
-      }
     }
   }
 
   /// Convenience methods for different log levels
-  void info(String message, [String? component]) => log('INFO', message, component);
-  void warning(String message, [String? component]) => log('WARN', message, component);
-  void error(String message, [String? component]) => log('ERROR', message, component);
-  void debug(String message, [String? component]) => log('DEBUG', message, component);
+  void info(String message, [String? component]) =>
+      log('INFO', message, component);
+  void warning(String message, [String? component]) =>
+      log('WARN', message, component);
+  void error(String message, [String? component]) =>
+      log('ERROR', message, component);
+  void debug(String message, [String? component]) =>
+      log('DEBUG', message, component);
 
   /// Get all logs from memory
   List<String> getMemoryLogs() {
@@ -207,26 +202,26 @@ class LoggingService {
     try {
       // Return empty list on web platforms
       if (kIsWeb) return [];
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final logDir = Directory('${directory.path}/logs');
-      
+
       if (!await logDir.exists()) {
         return [];
       }
-      
-      final files = logDir.listSync()
+
+      final files = logDir
+          .listSync()
           .whereType<File>()
           .where((f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'))
           .toList();
-      
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-      
+
+      files.sort(
+        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+      );
+
       return files;
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to get log files: $e');
-      }
       return [];
     }
   }
@@ -246,22 +241,24 @@ class LoggingService {
     buffer.writeln('=== Doudou Application Logs ===');
     buffer.writeln('Exported: ${DateTime.now()}');
     buffer.writeln('App Version: [Will be filled by settings screen]');
-    
+
     if (!kIsWeb) {
-      buffer.writeln('Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}');
+      buffer.writeln(
+        'Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+      );
     } else {
       buffer.writeln('Platform: Web');
     }
     buffer.writeln('');
-    
+
     final files = await getAllLogFiles();
-    
+
     for (final file in files) {
       buffer.writeln('--- Log file: ${file.path.split('/').last} ---');
       buffer.writeln(await readLogFile(file));
       buffer.writeln('');
     }
-    
+
     // Include memory logs for web platforms or when no files available
     if (files.isEmpty && _memoryLogs.isNotEmpty) {
       buffer.writeln('--- Memory Logs ---');
@@ -270,11 +267,12 @@ class LoggingService {
       }
       buffer.writeln('');
     }
-    
-    if (buffer.length <= 100) { // Only headers were written
+
+    if (buffer.length <= 100) {
+      // Only headers were written
       buffer.writeln('No logs available');
     }
-    
+
     return buffer.toString();
   }
 
@@ -282,33 +280,34 @@ class LoggingService {
   Future<void> clearLogs() async {
     try {
       _memoryLogs.clear();
-      
+
       // Only clear file logs on non-web platforms
       if (!kIsWeb) {
         final directory = await getApplicationDocumentsDirectory();
         final logDir = Directory('${directory.path}/logs');
-        
+
         if (await logDir.exists()) {
-          final files = logDir.listSync()
+          final files = logDir
+              .listSync()
               .whereType<File>()
-              .where((f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'))
+              .where(
+                (f) => f.path.endsWith('.log') || f.path.endsWith('.old.log'),
+              )
               .toList();
-          
+
           for (final file in files) {
             await file.delete();
           }
         }
-        
+
         // Reinitialize to create a fresh log file
         _initialized = false;
         await initialize();
       }
-      
+
       info('Logs cleared by user');
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to clear logs: $e');
-      }
+      // Failed to clear logs
     }
   }
 
@@ -317,18 +316,20 @@ class LoggingService {
     try {
       final files = await getAllLogFiles();
       int totalSize = 0;
-      
+
       if (!kIsWeb) {
         for (final file in files) {
           totalSize += await file.length();
         }
       }
-      
+
       return {
         'file_count': files.length,
         'total_size': totalSize,
         'memory_logs': _memoryLogs.length,
-        'current_log_file': !kIsWeb ? _logFile?.path.split('/').last : 'memory_only',
+        'current_log_file': !kIsWeb
+            ? _logFile?.path.split('/').last
+            : 'memory_only',
         'platform': kIsWeb ? 'web' : 'native',
       };
     } catch (e) {

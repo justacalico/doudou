@@ -7,7 +7,7 @@ import '../widgets/vr_player_controls.dart';
 import '../widgets/vr_album_art.dart';
 
 /// VR Player Screen for Google Cardboard
-/// 
+///
 /// This screen provides a stereoscopic 3D view optimized for Google Cardboard.
 /// The UI is split into left and right eye views with appropriate spacing for VR headsets.
 class VRPlayerScreen extends StatefulWidget {
@@ -21,25 +21,21 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
   @override
   void initState() {
     super.initState();
-    // Set landscape orientation for VR mode
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    // Hide system UI for immersive experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
-    // Restore normal orientation
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    // Restore system UI
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
@@ -59,11 +55,9 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
 
               return Row(
                 children: [
-                  // Left Eye View
                   Expanded(
                     child: _buildEyeView(context, appState, isLeftEye: true),
                   ),
-                  // Right Eye View
                   Expanded(
                     child: _buildEyeView(context, appState, isLeftEye: false),
                   ),
@@ -76,7 +70,11 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
     );
   }
 
-  Widget _buildEyeView(BuildContext context, AppState appState, {required bool isLeftEye}) {
+  Widget _buildEyeView(
+    BuildContext context,
+    AppState appState, {
+    required bool isLeftEye,
+  }) {
     return StreamBuilder<MediaItem?>(
       stream: appState.mediaItem,
       builder: (context, snapshot) {
@@ -101,30 +99,21 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 1),
-              
-              // Album Art
-              VRAlbumArt(
-                imageUrl: mediaItem.artUri?.toString(),
-                size: 200,
-              ),
-              
+
+              VRAlbumArt(imageUrl: mediaItem.artUri?.toString(), size: 200),
+
               const SizedBox(height: 40),
-              
-              // Track Info from MediaItem
+
               _buildMediaItemInfo(mediaItem),
-              
+
               const Spacer(flex: 1),
-              
-              // Player Controls
-              VRPlayerControls(
-                appState: appState,
-              ),
-              
+
+              VRPlayerControls(appState: appState),
+
               const SizedBox(height: 60),
-              
-              // Exit VR button at bottom
+
               _buildExitButton(context),
-              
+
               const SizedBox(height: 20),
             ],
           ),
@@ -139,7 +128,6 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Track Title
           Text(
             mediaItem.title,
             style: const TextStyle(
@@ -151,10 +139,9 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           const SizedBox(height: 12),
-          
-          // Artist Name
+
           if (mediaItem.artist != null)
             Text(
               mediaItem.artist!,
@@ -167,10 +154,9 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          
+
           const SizedBox(height: 8),
-          
-          // Album Name
+
           if (mediaItem.album != null)
             Text(
               mediaItem.album!,
@@ -192,14 +178,8 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
     return Center(
       child: Row(
         children: [
-          // Left Eye
-          Expanded(
-            child: _buildNoTrackContent(),
-          ),
-          // Right Eye
-          Expanded(
-            child: _buildNoTrackContent(),
-          ),
+          Expanded(child: _buildNoTrackContent()),
+          Expanded(child: _buildNoTrackContent()),
         ],
       ),
     );
@@ -209,11 +189,7 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.music_off,
-          size: 80,
-          color: Colors.white.withOpacity(0.5),
-        ),
+        Icon(Icons.music_off, size: 80, color: Colors.white.withOpacity(0.5)),
         const SizedBox(height: 20),
         Text(
           'No track playing',
@@ -247,9 +223,7 @@ class _VRPlayerScreenState extends State<VRPlayerScreen> {
         backgroundColor: Colors.red.shade700,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
     );
   }

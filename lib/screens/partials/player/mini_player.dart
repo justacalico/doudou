@@ -43,11 +43,11 @@ class _MiniPlayerState extends State<MiniPlayer>
   Widget build(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = brightness == Brightness.dark;
-    
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final audioHandler = appState.audioHandler;
-        
+
         // Return empty widget if no audio handler
         if (audioHandler == null) {
           return const SizedBox.shrink();
@@ -58,23 +58,38 @@ class _MiniPlayerState extends State<MiniPlayer>
           stream: appState.currentTrackStream,
           builder: (context, currentTrackSnapshot) {
             // Get current track from the stream or fallback to direct access
-            final currentTrack = currentTrackSnapshot.data ?? audioHandler.currentTrack;
-            
+            final currentTrack =
+                currentTrackSnapshot.data ?? audioHandler.currentTrack;
+
             // Return empty widget if no track is playing
             if (currentTrack == null) {
               return const SizedBox.shrink();
             }
 
             // Determine if we're on a desktop platform
-            final isDesktop = !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux ||
-                                          defaultTargetPlatform == TargetPlatform.macOS ||
-                                          defaultTargetPlatform == TargetPlatform.windows) || kIsWeb;
-            
+            final isDesktop =
+                !kIsWeb &&
+                    (defaultTargetPlatform == TargetPlatform.linux ||
+                        defaultTargetPlatform == TargetPlatform.macOS ||
+                        defaultTargetPlatform == TargetPlatform.windows) ||
+                kIsWeb;
+
             if (isDesktop) {
-              return _buildDesktopMiniPlayer(context, appState, audioHandler, currentTrack);
+              return _buildDesktopMiniPlayer(
+                context,
+                appState,
+                audioHandler,
+                currentTrack,
+              );
             }
-            
-            return _buildMobileMiniPlayer(context, appState, audioHandler, currentTrack, isDark);
+
+            return _buildMobileMiniPlayer(
+              context,
+              appState,
+              audioHandler,
+              currentTrack,
+              isDark,
+            );
           },
         );
       },
@@ -82,9 +97,9 @@ class _MiniPlayerState extends State<MiniPlayer>
   }
 
   Widget _buildMobileMiniPlayer(
-    BuildContext context, 
-    AppState appState, 
-    dynamic audioHandler, 
+    BuildContext context,
+    AppState appState,
+    dynamic audioHandler,
     Track currentTrack,
     bool isDark,
   ) {
@@ -95,13 +110,15 @@ class _MiniPlayerState extends State<MiniPlayer>
       onTap: () => _navigateToNowPlaying(context),
       onHorizontalDragEnd: (details) {
         // Swipe left to skip to next track
-        if (details.primaryVelocity != null && details.primaryVelocity! < -200) {
+        if (details.primaryVelocity != null &&
+            details.primaryVelocity! < -200) {
           if (audioHandler.hasNext == true) {
             appState.skipToNext();
           }
         }
         // Swipe right to skip to previous track
-        else if (details.primaryVelocity != null && details.primaryVelocity! > 200) {
+        else if (details.primaryVelocity != null &&
+            details.primaryVelocity! > 200) {
           if (audioHandler.hasPrevious == true) {
             appState.skipToPrevious();
           }
@@ -109,10 +126,8 @@ class _MiniPlayerState extends State<MiniPlayer>
       },
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: ClipRRect(
@@ -124,11 +139,17 @@ class _MiniPlayerState extends State<MiniPlayer>
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(22),
                   // iOS 26 liquid glass effect
-                  color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000))
-                      .withOpacity(isDark ? 0.15 : 0.08),
+                  color:
+                      (isDark
+                              ? const Color(0xFFFFFFFF)
+                              : const Color(0xFF000000))
+                          .withOpacity(isDark ? 0.15 : 0.08),
                   border: Border.all(
-                    color: (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000))
-                        .withOpacity(0.12),
+                    color:
+                        (isDark
+                                ? const Color(0xFFFFFFFF)
+                                : const Color(0xFF000000))
+                            .withOpacity(0.12),
                     width: 0.5,
                   ),
                   boxShadow: [
@@ -140,7 +161,10 @@ class _MiniPlayerState extends State<MiniPlayer>
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       // Album Art with enhanced shadow
@@ -173,7 +197,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                         ),
                       ),
                       const SizedBox(width: 14),
-                      
+
                       // Track Info with enhanced typography
                       Expanded(
                         child: Column(
@@ -186,8 +210,8 @@ class _MiniPlayerState extends State<MiniPlayer>
                                 fontFamily: AppleDesignSystem.fontFamily,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: isDark 
-                                    ? const Color(0xFFFFFFFF) 
+                                color: isDark
+                                    ? const Color(0xFFFFFFFF)
                                     : const Color(0xFF000000),
                               ),
                               maxLines: 1,
@@ -200,10 +224,11 @@ class _MiniPlayerState extends State<MiniPlayer>
                                 style: TextStyle(
                                   fontFamily: AppleDesignSystem.fontFamily,
                                   fontSize: 13,
-                                  color: (isDark 
-                                      ? const Color(0xFFFFFFFF) 
-                                      : const Color(0xFF000000))
-                                      .withOpacity(0.6),
+                                  color:
+                                      (isDark
+                                              ? const Color(0xFFFFFFFF)
+                                              : const Color(0xFF000000))
+                                          .withOpacity(0.6),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -212,34 +237,33 @@ class _MiniPlayerState extends State<MiniPlayer>
                           ],
                         ),
                       ),
-                      
+
                       // Control Buttons with liquid glass style
                       StreamBuilder<PlayerState>(
                         stream: appState.playerStateStream,
                         builder: (context, snapshot) {
                           final isPlaying = snapshot.data?.playing == true;
-                          final processingState = snapshot.data?.processingState ?? ProcessingState.idle;
-                          
+                          final processingState =
+                              snapshot.data?.processingState ??
+                              ProcessingState.idle;
+
                           return Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // Play/Pause Button
                               _LiquidGlassControlButton(
-                                icon: isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-                                isLoading: processingState == ProcessingState.loading ||
-                                           processingState == ProcessingState.buffering,
-                                onTap: () {
-                                  if (kDebugMode) {
-                                    print('=== MINI PLAYER PLAY/PAUSE BUTTON TAPPED ===');
-                                    print('isPlaying: $isPlaying');
-                                    print('processingState: $processingState');
-                                    print('audioHandler.userIntendedPlaying: ${audioHandler.userIntendedPlaying}');
-                                  }
-                                  appState.playPause();
-                                },
+                                icon: isPlaying
+                                    ? CupertinoIcons.pause_fill
+                                    : CupertinoIcons.play_fill,
+                                isLoading:
+                                    processingState ==
+                                        ProcessingState.loading ||
+                                    processingState ==
+                                        ProcessingState.buffering,
+                                onTap: () => appState.playPause(),
                                 isDark: isDark,
                               ),
-                              const SizedBox(width: 4),
+                                const SizedBox(width: 4),
                               // Next Button
                               _LiquidGlassControlButton(
                                 icon: CupertinoIcons.forward_fill,
@@ -265,9 +289,9 @@ class _MiniPlayerState extends State<MiniPlayer>
   }
 
   Widget _buildDesktopMiniPlayer(
-    BuildContext context, 
-    AppState appState, 
-    dynamic audioHandler, 
+    BuildContext context,
+    AppState appState,
+    dynamic audioHandler,
     Track currentTrack,
   ) {
     return SizedBox(
@@ -279,13 +303,14 @@ class _MiniPlayerState extends State<MiniPlayer>
             sigmaY: AppleDesignSystem.blurThin,
           ),
           child: Container(
-            decoration: BoxDecoration(
-              color: AppleColors.glassDark,
-            ),
+            decoration: BoxDecoration(color: AppleColors.glassDark),
             child: GestureDetector(
               onTap: () => _navigateToNowPlaying(context),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     AlbumArtWidget(
@@ -300,7 +325,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     const SizedBox(width: 12),
-                    
+
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,13 +353,15 @@ class _MiniPlayerState extends State<MiniPlayer>
                         ],
                       ),
                     ),
-                    
+
                     StreamBuilder<PlayerState>(
                       stream: appState.playerStateStream,
                       builder: (context, snapshot) {
                         final isPlaying = snapshot.data?.playing == true;
-                        final processingState = snapshot.data?.processingState ?? ProcessingState.idle;
-                        
+                        final processingState =
+                            snapshot.data?.processingState ??
+                            ProcessingState.idle;
+
                         return Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -344,13 +371,18 @@ class _MiniPlayerState extends State<MiniPlayer>
                               child: SizedBox(
                                 width: 32,
                                 height: 32,
-                                child: processingState == ProcessingState.loading ||
-                                        processingState == ProcessingState.buffering
+                                child:
+                                    processingState ==
+                                            ProcessingState.loading ||
+                                        processingState ==
+                                            ProcessingState.buffering
                                     ? const CupertinoActivityIndicator(
                                         color: Color(0xFFFFFFFF),
                                       )
                                     : Icon(
-                                        isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                                        isPlaying
+                                            ? CupertinoIcons.pause_fill
+                                            : CupertinoIcons.play_fill,
                                         size: 24,
                                         color: const Color(0xFFFFFFFF),
                                       ),
@@ -365,7 +397,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                               child: Icon(
                                 CupertinoIcons.forward_fill,
                                 size: 24,
-                                color: audioHandler.hasNext == true 
+                                color: audioHandler.hasNext == true
                                     ? const Color(0xFFFFFFFF)
                                     : CupertinoColors.systemGrey2,
                               ),
@@ -388,7 +420,8 @@ class _MiniPlayerState extends State<MiniPlayer>
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const NowPlayingScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const NowPlayingScreen(),
         transitionDuration: const Duration(milliseconds: 300),
         reverseTransitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -396,9 +429,10 @@ class _MiniPlayerState extends State<MiniPlayer>
           const end = Offset.zero;
           const curve = Curves.easeInOut;
 
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
 
           return SlideTransition(
             position: animation.drive(tween),
@@ -426,7 +460,8 @@ class _LiquidGlassControlButton extends StatefulWidget {
   });
 
   @override
-  State<_LiquidGlassControlButton> createState() => _LiquidGlassControlButtonState();
+  State<_LiquidGlassControlButton> createState() =>
+      _LiquidGlassControlButtonState();
 }
 
 class _LiquidGlassControlButtonState extends State<_LiquidGlassControlButton>
@@ -441,9 +476,10 @@ class _LiquidGlassControlButtonState extends State<_LiquidGlassControlButton>
       duration: const Duration(milliseconds: 80),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.85).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.85,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -461,30 +497,29 @@ class _LiquidGlassControlButtonState extends State<_LiquidGlassControlButton>
       onTap: widget.disabled ? null : widget.onTap,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: SizedBox(
           width: 36,
           height: 36,
           child: Center(
             child: widget.isLoading
                 ? CupertinoActivityIndicator(
-                    color: widget.isDark 
-                        ? const Color(0xFFFFFFFF) 
+                    color: widget.isDark
+                        ? const Color(0xFFFFFFFF)
                         : const Color(0xFF000000),
                   )
                 : Icon(
                     widget.icon,
                     size: 24,
                     color: widget.disabled
-                        ? (widget.isDark 
-                            ? const Color(0xFFFFFFFF) 
-                            : const Color(0xFF000000)).withOpacity(0.3)
-                        : (widget.isDark 
-                            ? const Color(0xFFFFFFFF) 
-                            : const Color(0xFF000000)),
+                        ? (widget.isDark
+                                  ? const Color(0xFFFFFFFF)
+                                  : const Color(0xFF000000))
+                              .withOpacity(0.3)
+                        : (widget.isDark
+                              ? const Color(0xFFFFFFFF)
+                              : const Color(0xFF000000)),
                   ),
           ),
         ),

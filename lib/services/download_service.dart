@@ -24,7 +24,8 @@ class DownloadService extends ChangeNotifier {
 
   // Getters
   List<DownloadTask> get downloadTasks => _downloadTasks.values.toList();
-  Map<String, DownloadedTrack> get downloadedTracks => Map.unmodifiable(_downloadedTracks);
+  Map<String, DownloadedTrack> get downloadedTracks =>
+      Map.unmodifiable(_downloadedTracks);
   bool get isDownloading => _isDownloading;
   int get activeDownloads => _activeDownloads;
   int get queueLength => _downloadQueue.length;
@@ -74,80 +75,48 @@ class DownloadService extends ChangeNotifier {
 
   // Download a track
   Future<void> downloadTrack(Track track) async {
-    if (kDebugMode) {
-      print('downloadTrack called for: ${track.name}');
-    }
-    
     if (isTrackDownloaded(track.id)) {
-      if (kDebugMode) {
-        print('Track already downloaded: ${track.name}');
-      }
       return; // Already downloaded
     }
 
     // Check if already downloading (but allow retry for failed/paused downloads)
     final existingTask = _downloadTasks[track.id];
-    if (existingTask != null && existingTask.status == DownloadStatus.downloading) {
-      if (kDebugMode) {
-        print('Track already downloading: ${track.name}');
-      }
+    if (existingTask != null &&
+        existingTask.status == DownloadStatus.downloading) {
       return; // Already downloading
     }
 
     // If there's a failed or paused task, remove it first and clean up
-    if (existingTask != null && 
-        (existingTask.status == DownloadStatus.failed || existingTask.status == DownloadStatus.paused)) {
-      
-      if (kDebugMode) {
-        print('Retrying failed/paused download for: ${track.name}');
-        print('Old task status: ${existingTask.status}, path: ${existingTask.filePath}');
-      }
-      
+    if (existingTask != null &&
+        (existingTask.status == DownloadStatus.failed ||
+            existingTask.status == DownloadStatus.paused)) {
       // Clean up any partial file from the previous attempt
       final oldFile = File(existingTask.filePath);
       if (await oldFile.exists()) {
         try {
           await oldFile.delete();
-          if (kDebugMode) {
-            print('Cleaned up partial file for retry: ${existingTask.filePath}');
-          }
         } catch (e) {
-          if (kDebugMode) {
-            print('Failed to clean up partial file: $e');
-          }
+          // Failed to clean up partial file
         }
       }
-      
+
       // Remove the old task completely so we can create a fresh one
       _downloadTasks.remove(track.id);
       _downloadQueue.remove(track.id);
-      
+
       // Save state after cleanup
       await _saveDownloadData();
       notifyListeners();
-      
-      if (kDebugMode) {
-        print('Cleaned up old task, proceeding with fresh download');
-      }
     }
 
     try {
       // Get download URL from the current media service (supports Jellyfin, Subsonic/Navidrome, Plex, etc.)
       final downloadUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
-      
+
       if (downloadUrl.isEmpty) {
-        if (kDebugMode) {
-          print('ERROR: Got empty download URL for ${track.name}');
-          print('  - Server type: ${_mediaServiceManager.currentServerType}');
-          print('  - Current service: ${_mediaServiceManager.currentService?.runtimeType}');
-        }
         return;
       }
-      
-      if (kDebugMode) {
-        print('Download URL for ${track.name}: $downloadUrl');
-      }
-      
+
       // Create downloads directory
       final appDir = await getApplicationDocumentsDirectory();
       final downloadsDir = Directory('${appDir.path}/downloads');
@@ -175,17 +144,12 @@ class DownloadService extends ChangeNotifier {
 
       _downloadTasks[track.id] = task;
       _downloadQueue.add(track.id);
-      
-      if (kDebugMode) {
-        print('Created new download task for retry/fresh download: ${track.name}');
-      }
-      
+
       notifyListeners();
       await _saveDownloadData();
 
       // Start downloading if not at max concurrent downloads
       _processDownloadQueue();
-
     } catch (e) {
       debugPrint('Error starting download for ${track.name}: $e');
     }
@@ -199,10 +163,10 @@ class DownloadService extends ChangeNotifier {
 
     _isDownloading = true;
     _activeDownloads++;
-    
+
     final trackId = _downloadQueue.removeAt(0);
     final task = _downloadTasks[trackId];
-    
+
     if (task == null) {
       _activeDownloads--;
       _checkDownloadComplete();
@@ -215,23 +179,19 @@ class DownloadService extends ChangeNotifier {
       startTime: DateTime.now(),
     );
     notifyListeners();
-    
-    if (kDebugMode) {
-      print('Starting download for ${task.trackName}');
-    }
 
     try {
       await _downloadFile(task);
     } catch (e) {
       debugPrint('Download failed for ${task.trackName}: $e');
-      
+
       // Update task status to failed
       _downloadTasks[trackId] = task.copyWith(
         status: DownloadStatus.failed,
         errorMessage: e.toString(),
         endTime: DateTime.now(),
       );
-      
+
       // Notify listeners immediately when a download fails
       notifyListeners();
     }
@@ -248,21 +208,16 @@ class DownloadService extends ChangeNotifier {
   // Download individual file
   Future<void> _downloadFile(DownloadTask task) async {
     final file = File(task.filePath);
-    
+
     try {
       final request = http.Request('GET', Uri.parse(task.downloadUrl));
-      
+
       // Add authentication headers (for Jellyfin/Plex; Subsonic has auth in URL)
       final headers = await _mediaServiceManager.getAuthHeaders();
       request.headers.addAll(headers);
 
       final response = await request.send();
-      
-      if (kDebugMode) {
-        print('Download request for ${task.trackName}: Status ${response.statusCode}');
-        print('Content length: ${response.contentLength}');
-      }
-      
+
       if (response.statusCode == 200) {
         final totalBytes = response.contentLength ?? 0;
         int downloadedBytes = 0;
@@ -274,49 +229,43 @@ class DownloadService extends ChangeNotifier {
         );
 
         final sink = file.openWrite();
-        
+
         // Create a completer to handle the async completion properly
         final completer = Completer<void>();
-        
+
         response.stream.listen(
           (chunk) {
             sink.add(chunk);
             downloadedBytes += chunk.length;
-            
-            final progress = totalBytes > 0 ? downloadedBytes / totalBytes : 0.0;
-            
+
+            final progress = totalBytes > 0
+                ? downloadedBytes / totalBytes
+                : 0.0;
+
             // Update progress
             _downloadTasks[task.trackId] = task.copyWith(
               progress: progress,
               downloadedBytes: downloadedBytes,
             );
-            
+
             notifyListeners();
           },
           onDone: () async {
             try {
               await sink.close();
-              
-              if (kDebugMode) {
-                print('Stream completed for ${task.trackName}, processing completion...');
-              }
-              
+
               // Download completed successfully
               final fileSize = await file.length();
-              
-              if (kDebugMode) {
-                print('File size for ${task.trackName}: $fileSize bytes');
-              }
-              
+
               final downloadedTrack = DownloadedTrack(
                 trackId: task.trackId,
                 filePath: task.filePath,
                 downloadedAt: DateTime.now(),
                 fileSize: fileSize,
               );
-              
+
               _downloadedTracks[task.trackId] = downloadedTrack;
-              
+
               // Remove completed task from download tasks and queue since it's now in downloadedTracks
               _downloadTasks.remove(task.trackId);
               _downloadQueue.remove(task.trackId);
@@ -329,17 +278,15 @@ class DownloadService extends ChangeNotifier {
                   debugPrint('Failed to download album art: $e');
                 }
               }
-              
+
               notifyListeners();
               await _saveDownloadData();
-              
-              if (kDebugMode) {
-                print('Download completed successfully for ${task.trackName}');
-              }
-              
+
               completer.complete();
             } catch (e) {
-              debugPrint('Error in download completion for ${task.trackName}: $e');
+              debugPrint(
+                'Error in download completion for ${task.trackName}: $e',
+              );
               // Mark as failed if completion processing fails
               _downloadTasks[task.trackId] = task.copyWith(
                 status: DownloadStatus.failed,
@@ -354,35 +301,25 @@ class DownloadService extends ChangeNotifier {
           onError: (error) async {
             try {
               await sink.close();
-              
+
               // Delete partial file
               if (await file.exists()) {
                 await file.delete();
               }
-              
-              if (kDebugMode) {
-                print('Download stream error for ${task.trackName}: $error');
-              }
-              
+
               completer.completeError(error);
             } catch (e) {
               completer.completeError(e);
             }
           },
         );
-        
+
         // Wait for the download to complete
         await completer.future;
-        
       } else {
         throw Exception('HTTP ${response.statusCode}: Failed to download');
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Download failed for ${task.trackName}: $e');
-        print('Task ID: ${task.trackId}, URL: ${task.downloadUrl}');
-      }
-      
       // Delete partial file if it exists
       if (await file.exists()) {
         await file.delete();
@@ -410,14 +347,18 @@ class DownloadService extends ChangeNotifier {
         return; // Already downloaded
       }
 
-      final imageUrl = _mediaServiceManager.getImageUrl(task.imageUrl!, width: 300, height: 300);
+      final imageUrl = _mediaServiceManager.getImageUrl(
+        task.imageUrl!,
+        width: 300,
+        height: 300,
+      );
       final headers = await _mediaServiceManager.getAuthHeaders();
-      
+
       final response = await http.get(Uri.parse(imageUrl), headers: headers);
-      
+
       if (response.statusCode == 200) {
         await imageFile.writeAsBytes(response.bodyBytes);
-        
+
         // Update downloaded track with image path
         final downloadedTrack = _downloadedTracks[task.trackId];
         if (downloadedTrack != null) {
@@ -495,7 +436,7 @@ class DownloadService extends ChangeNotifier {
     int totalSize = 0;
     for (final track in _downloadedTracks.values) {
       totalSize += track.fileSize;
-      
+
       // Add image size if exists
       if (track.imagePath != null) {
         final imageFile = File(track.imagePath!);
@@ -527,18 +468,19 @@ class DownloadService extends ChangeNotifier {
   Future<void> _saveDownloadData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Save download tasks (only save incomplete tasks)
       final incompleteTasks = _downloadTasks.values
           .where((task) => task.status != DownloadStatus.downloaded)
           .toList();
       final tasksJson = incompleteTasks.map((task) => task.toJson()).toList();
       await prefs.setString('download_tasks', jsonEncode(tasksJson));
-      
+
       // Save downloaded tracks
-      final tracksJson = _downloadedTracks.values.map((track) => track.toJson()).toList();
+      final tracksJson = _downloadedTracks.values
+          .map((track) => track.toJson())
+          .toList();
       await prefs.setString('downloaded_tracks', jsonEncode(tracksJson));
-      
     } catch (e) {
       debugPrint('Error saving download data: $e');
     }
@@ -548,14 +490,14 @@ class DownloadService extends ChangeNotifier {
   Future<void> _loadDownloadData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Load download tasks
       final tasksJsonString = prefs.getString('download_tasks');
       if (tasksJsonString != null) {
         final tasksList = jsonDecode(tasksJsonString) as List;
         for (final taskJson in tasksList) {
           final task = DownloadTask.fromJson(taskJson);
-          
+
           // Reset any downloading tasks to failed (app was closed during download)
           // Skip any completed tasks that might be in storage
           if (task.status == DownloadStatus.downloaded) {
@@ -568,23 +510,19 @@ class DownloadService extends ChangeNotifier {
               endTime: DateTime.now(),
             );
             _downloadTasks[task.trackId] = failedTask;
-            
-            if (kDebugMode) {
-              print('Marked interrupted download as failed: ${task.trackName}');
-            }
           } else {
             _downloadTasks[task.trackId] = task;
           }
         }
       }
-      
+
       // Load downloaded tracks
       final tracksJsonString = prefs.getString('downloaded_tracks');
       if (tracksJsonString != null) {
         final tracksList = jsonDecode(tracksJsonString) as List;
         for (final trackJson in tracksList) {
           final track = DownloadedTrack.fromJson(trackJson);
-          
+
           // Verify file still exists
           final file = File(track.filePath);
           if (await file.exists()) {
@@ -592,7 +530,7 @@ class DownloadService extends ChangeNotifier {
           }
         }
       }
-      
+
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading download data: $e');

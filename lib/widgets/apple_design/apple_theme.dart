@@ -15,7 +15,7 @@ class AppleDesignSystem {
   // ============================================
   // TYPOGRAPHY - SF Pro Scale
   // ============================================
-  
+
   /// SF Pro Display/Text font family with fallback
   static const String fontFamily = '.SF Pro Display';
   static const List<String> fontFamilyFallback = [
@@ -51,7 +51,7 @@ class AppleDesignSystem {
   // ============================================
   // SPACING - 8pt Grid System
   // ============================================
-  
+
   static const double spacing2 = 2.0;
   static const double spacing4 = 4.0;
   static const double spacing8 = 8.0;
@@ -66,7 +66,7 @@ class AppleDesignSystem {
   // ============================================
   // CORNER RADIUS - Smooth Continuous Curves
   // ============================================
-  
+
   static const double radiusSmall = 8.0;
   static const double radiusMedium = 12.0;
   static const double radiusLarge = 16.0;
@@ -76,39 +76,42 @@ class AppleDesignSystem {
   // ============================================
   // BLUR & VIBRANCY - System Materials
   // ============================================
-  
+
   /// Ultra-thin material blur
   static const double blurUltraThin = 10.0;
+
   /// Thin material blur
   static const double blurThin = 20.0;
+
   /// Regular material blur
   static const double blurRegular = 30.0;
+
   /// Thick material blur
   static const double blurThick = 40.0;
-  
+
   /// Saturation for vibrancy effect
   static const double saturationDefault = 1.8;
 
   // ============================================
   // ANIMATION CURVES - Spring-based
   // ============================================
-  
+
   /// Standard spring curve (iOS default)
   static const Curve springCurve = Curves.easeOutCubic;
-  
+
   /// Interactive spring (for press states)
   static const Curve interactiveCurve = Cubic(0.4, 0.0, 0.2, 1.0);
-  
+
   /// Snappy spring (for quick animations)
   static const Curve snappyCurve = Cubic(0.2, 0.0, 0.0, 1.0);
-  
+
   /// Gentle spring (for subtle animations)
   static const Curve gentleCurve = Cubic(0.25, 0.1, 0.25, 1.0);
 
   // ============================================
   // ANIMATION DURATIONS
   // ============================================
-  
+
   static const Duration durationFast = Duration(milliseconds: 150);
   static const Duration durationNormal = Duration(milliseconds: 250);
   static const Duration durationMedium = Duration(milliseconds: 350);
@@ -117,20 +120,23 @@ class AppleDesignSystem {
   // ============================================
   // INTERACTIVE STATES
   // ============================================
-  
+
   /// Hover scale transform
   static const double hoverScale = 1.02;
+
   /// Press scale transform
   static const double pressScale = 0.98;
+
   /// Press opacity
   static const double pressOpacity = 0.7;
+
   /// Hover opacity
   static const double hoverOpacity = 0.9;
 
   // ============================================
   // SHADOWS - Depth System
   // ============================================
-  
+
   static List<BoxShadow> shadowSmall(Color shadowColor) => [
     BoxShadow(
       color: shadowColor.withOpacity(0.08),
@@ -307,7 +313,8 @@ class AppleTextStyles {
   AppleTextStyles._();
 
   static const String _fontFamily = AppleDesignSystem.fontFamily;
-  static const List<String> _fontFamilyFallback = AppleDesignSystem.fontFamilyFallback;
+  static const List<String> _fontFamilyFallback =
+      AppleDesignSystem.fontFamilyFallback;
 
   // Large Title - 34px Bold
   static TextStyle largeTitle({Color? color}) => TextStyle(
@@ -441,7 +448,7 @@ class AppleTheme {
   /// Creates a Light Theme following Apple HIG
   static ThemeData light({Color? accentColor}) {
     final primaryColor = accentColor ?? AppleColors.systemPurple;
-    
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -478,7 +485,9 @@ class AppleTheme {
         scrolledUnderElevation: 0,
         backgroundColor: AppleColors.backgroundPrimary.withOpacity(0.8),
         foregroundColor: AppleColors.labelPrimary,
-        titleTextStyle: AppleTextStyles.headline(color: AppleColors.labelPrimary),
+        titleTextStyle: AppleTextStyles.headline(
+          color: AppleColors.labelPrimary,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
@@ -488,12 +497,11 @@ class AppleTheme {
           AppleTextStyles.caption2(color: AppleColors.labelSecondary),
         ),
       ),
-      iconTheme: const IconThemeData(
-        color: AppleColors.labelPrimary,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: AppleColors.labelPrimary, size: 24),
       textTheme: TextTheme(
-        displayLarge: AppleTextStyles.largeTitle(color: AppleColors.labelPrimary),
+        displayLarge: AppleTextStyles.largeTitle(
+          color: AppleColors.labelPrimary,
+        ),
         displayMedium: AppleTextStyles.title1(color: AppleColors.labelPrimary),
         displaySmall: AppleTextStyles.title2(color: AppleColors.labelPrimary),
         headlineLarge: AppleTextStyles.title1(color: AppleColors.labelPrimary),
@@ -501,12 +509,18 @@ class AppleTheme {
         headlineSmall: AppleTextStyles.title3(color: AppleColors.labelPrimary),
         titleLarge: AppleTextStyles.headline(color: AppleColors.labelPrimary),
         titleMedium: AppleTextStyles.callout(color: AppleColors.labelPrimary),
-        titleSmall: AppleTextStyles.subheadline(color: AppleColors.labelPrimary),
+        titleSmall: AppleTextStyles.subheadline(
+          color: AppleColors.labelPrimary,
+        ),
         bodyLarge: AppleTextStyles.body(color: AppleColors.labelPrimary),
         bodyMedium: AppleTextStyles.callout(color: AppleColors.labelPrimary),
         bodySmall: AppleTextStyles.footnote(color: AppleColors.labelSecondary),
-        labelLarge: AppleTextStyles.subheadline(color: AppleColors.labelPrimary),
-        labelMedium: AppleTextStyles.footnote(color: AppleColors.labelSecondary),
+        labelLarge: AppleTextStyles.subheadline(
+          color: AppleColors.labelPrimary,
+        ),
+        labelMedium: AppleTextStyles.footnote(
+          color: AppleColors.labelSecondary,
+        ),
         labelSmall: AppleTextStyles.caption1(color: AppleColors.labelTertiary),
       ),
       dividerTheme: const DividerThemeData(
@@ -553,7 +567,7 @@ class AppleTheme {
   /// Creates a Dark Theme following Apple HIG
   static ThemeData dark({Color? accentColor}) {
     final primaryColor = accentColor ?? AppleColors.systemPurpleDark;
-    
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -590,7 +604,9 @@ class AppleTheme {
         scrolledUnderElevation: 0,
         backgroundColor: AppleColors.backgroundPrimaryDark.withOpacity(0.8),
         foregroundColor: AppleColors.labelPrimaryDark,
-        titleTextStyle: AppleTextStyles.headline(color: AppleColors.labelPrimaryDark),
+        titleTextStyle: AppleTextStyles.headline(
+          color: AppleColors.labelPrimaryDark,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
@@ -605,21 +621,49 @@ class AppleTheme {
         size: 24,
       ),
       textTheme: TextTheme(
-        displayLarge: AppleTextStyles.largeTitle(color: AppleColors.labelPrimaryDark),
-        displayMedium: AppleTextStyles.title1(color: AppleColors.labelPrimaryDark),
-        displaySmall: AppleTextStyles.title2(color: AppleColors.labelPrimaryDark),
-        headlineLarge: AppleTextStyles.title1(color: AppleColors.labelPrimaryDark),
-        headlineMedium: AppleTextStyles.title2(color: AppleColors.labelPrimaryDark),
-        headlineSmall: AppleTextStyles.title3(color: AppleColors.labelPrimaryDark),
-        titleLarge: AppleTextStyles.headline(color: AppleColors.labelPrimaryDark),
-        titleMedium: AppleTextStyles.callout(color: AppleColors.labelPrimaryDark),
-        titleSmall: AppleTextStyles.subheadline(color: AppleColors.labelPrimaryDark),
+        displayLarge: AppleTextStyles.largeTitle(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        displayMedium: AppleTextStyles.title1(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        displaySmall: AppleTextStyles.title2(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        headlineLarge: AppleTextStyles.title1(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        headlineMedium: AppleTextStyles.title2(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        headlineSmall: AppleTextStyles.title3(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        titleLarge: AppleTextStyles.headline(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        titleMedium: AppleTextStyles.callout(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        titleSmall: AppleTextStyles.subheadline(
+          color: AppleColors.labelPrimaryDark,
+        ),
         bodyLarge: AppleTextStyles.body(color: AppleColors.labelPrimaryDark),
-        bodyMedium: AppleTextStyles.callout(color: AppleColors.labelPrimaryDark),
-        bodySmall: AppleTextStyles.footnote(color: AppleColors.labelSecondaryDark),
-        labelLarge: AppleTextStyles.subheadline(color: AppleColors.labelPrimaryDark),
-        labelMedium: AppleTextStyles.footnote(color: AppleColors.labelSecondaryDark),
-        labelSmall: AppleTextStyles.caption1(color: AppleColors.labelTertiaryDark),
+        bodyMedium: AppleTextStyles.callout(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        bodySmall: AppleTextStyles.footnote(
+          color: AppleColors.labelSecondaryDark,
+        ),
+        labelLarge: AppleTextStyles.subheadline(
+          color: AppleColors.labelPrimaryDark,
+        ),
+        labelMedium: AppleTextStyles.footnote(
+          color: AppleColors.labelSecondaryDark,
+        ),
+        labelSmall: AppleTextStyles.caption1(
+          color: AppleColors.labelTertiaryDark,
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: AppleColors.separatorDark,
@@ -663,41 +707,47 @@ class AppleTheme {
   }
 
   /// Creates a Cupertino Theme for mobile
-  static CupertinoThemeData cupertino({Color? accentColor, Brightness brightness = Brightness.dark}) {
-    final primaryColor = accentColor ?? 
-      (brightness == Brightness.dark ? AppleColors.systemPurpleDark : AppleColors.systemPurple);
-    
+  static CupertinoThemeData cupertino({
+    Color? accentColor,
+    Brightness brightness = Brightness.dark,
+  }) {
+    final primaryColor =
+        accentColor ??
+        (brightness == Brightness.dark
+            ? AppleColors.systemPurpleDark
+            : AppleColors.systemPurple);
+
     return CupertinoThemeData(
       brightness: brightness,
       primaryColor: primaryColor,
       primaryContrastingColor: Colors.white,
-      barBackgroundColor: brightness == Brightness.dark 
-        ? AppleColors.backgroundSecondaryDark.withOpacity(0.8)
-        : AppleColors.backgroundPrimary.withOpacity(0.8),
-      scaffoldBackgroundColor: brightness == Brightness.dark 
-        ? AppleColors.backgroundPrimaryDark 
-        : AppleColors.backgroundPrimary,
+      barBackgroundColor: brightness == Brightness.dark
+          ? AppleColors.backgroundSecondaryDark.withOpacity(0.8)
+          : AppleColors.backgroundPrimary.withOpacity(0.8),
+      scaffoldBackgroundColor: brightness == Brightness.dark
+          ? AppleColors.backgroundPrimaryDark
+          : AppleColors.backgroundPrimary,
       textTheme: CupertinoTextThemeData(
         primaryColor: primaryColor,
         textStyle: AppleTextStyles.body(
-          color: brightness == Brightness.dark 
-            ? AppleColors.labelPrimaryDark 
-            : AppleColors.labelPrimary,
+          color: brightness == Brightness.dark
+              ? AppleColors.labelPrimaryDark
+              : AppleColors.labelPrimary,
         ),
         navLargeTitleTextStyle: AppleTextStyles.largeTitle(
-          color: brightness == Brightness.dark 
-            ? AppleColors.labelPrimaryDark 
-            : AppleColors.labelPrimary,
+          color: brightness == Brightness.dark
+              ? AppleColors.labelPrimaryDark
+              : AppleColors.labelPrimary,
         ),
         navTitleTextStyle: AppleTextStyles.headline(
-          color: brightness == Brightness.dark 
-            ? AppleColors.labelPrimaryDark 
-            : AppleColors.labelPrimary,
+          color: brightness == Brightness.dark
+              ? AppleColors.labelPrimaryDark
+              : AppleColors.labelPrimary,
         ),
         tabLabelTextStyle: AppleTextStyles.caption2(
-          color: brightness == Brightness.dark 
-            ? AppleColors.labelSecondaryDark 
-            : AppleColors.labelSecondary,
+          color: brightness == Brightness.dark
+              ? AppleColors.labelSecondaryDark
+              : AppleColors.labelSecondary,
         ),
       ),
     );
@@ -711,14 +761,26 @@ class AppleTheme {
 extension AppleColorExtension on BuildContext {
   /// Get adaptive colors based on brightness
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
-  
-  Color get applePrimary => isDarkMode ? AppleColors.systemPurpleDark : AppleColors.systemPurple;
-  Color get appleBackground => isDarkMode ? AppleColors.backgroundPrimaryDark : AppleColors.backgroundPrimary;
-  Color get appleSecondaryBackground => isDarkMode ? AppleColors.backgroundSecondaryDark : AppleColors.backgroundSecondary;
-  Color get appleSurface => isDarkMode ? AppleColors.elevatedPrimaryDark : AppleColors.backgroundTertiary;
-  Color get appleLabel => isDarkMode ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary;
-  Color get appleSecondaryLabel => isDarkMode ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary;
-  Color get appleSeparator => isDarkMode ? AppleColors.separatorDark : AppleColors.separator;
-  Color get appleGlass => isDarkMode ? AppleColors.glassDark : AppleColors.glassLight;
-  Color get appleGlassThin => isDarkMode ? AppleColors.glassDarkThin : AppleColors.glassLightThin;
+
+  Color get applePrimary =>
+      isDarkMode ? AppleColors.systemPurpleDark : AppleColors.systemPurple;
+  Color get appleBackground => isDarkMode
+      ? AppleColors.backgroundPrimaryDark
+      : AppleColors.backgroundPrimary;
+  Color get appleSecondaryBackground => isDarkMode
+      ? AppleColors.backgroundSecondaryDark
+      : AppleColors.backgroundSecondary;
+  Color get appleSurface => isDarkMode
+      ? AppleColors.elevatedPrimaryDark
+      : AppleColors.backgroundTertiary;
+  Color get appleLabel =>
+      isDarkMode ? AppleColors.labelPrimaryDark : AppleColors.labelPrimary;
+  Color get appleSecondaryLabel =>
+      isDarkMode ? AppleColors.labelSecondaryDark : AppleColors.labelSecondary;
+  Color get appleSeparator =>
+      isDarkMode ? AppleColors.separatorDark : AppleColors.separator;
+  Color get appleGlass =>
+      isDarkMode ? AppleColors.glassDark : AppleColors.glassLight;
+  Color get appleGlassThin =>
+      isDarkMode ? AppleColors.glassDarkThin : AppleColors.glassLightThin;
 }

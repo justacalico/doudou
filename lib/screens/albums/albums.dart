@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
@@ -84,10 +83,14 @@ class AlbumsTab extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF007AFF).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF007AFF,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: const Color(0xFF007AFF).withOpacity(0.2),
+                                    color: const Color(
+                                      0xFF007AFF,
+                                    ).withOpacity(0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -130,25 +133,21 @@ class AlbumsTab extends StatelessWidget {
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.8,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final album = appState.albums[index];
-                          return AlbumCard(album: album);
-                        },
-                        childCount: appState.albums.length,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.8,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final album = appState.albums[index];
+                        return AlbumCard(album: album);
+                      }, childCount: appState.albums.length),
                     ),
                   ),
                   // Add bottom padding for mini player
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             ),
@@ -157,28 +156,7 @@ class AlbumsTab extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: Consumer<AppState>(
-                  builder: (context, appState, child) {
-                    final audioHandler = appState.audioHandler;
-                    final currentTrack = audioHandler?.currentTrack;
-                    
-                    // Debug: Print whether we have a current track
-                    if (currentTrack != null) {
-                      if (kDebugMode) {
-                        print('Albums page: Current track detected: ${currentTrack.name}');
-                      }
-                    } else {
-                      if (kDebugMode) {
-                        print('Albums page: No current track');
-                      }
-                    }
-                    
-                    return const MiniPlayer();
-                  },
-                ),
-              ),
+              child: SafeArea(top: false, child: const MiniPlayer()),
             ),
           ],
         );
@@ -195,7 +173,7 @@ class AlbumCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.read<AppState>();
-    
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -209,10 +187,7 @@ class AlbumCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: const Color(0xFF000000), // Pure black background
-          border: Border.all(
-            color: const Color(0xFF1C1C1E),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFF1C1C1E), width: 1),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF000000).withOpacity(0.3),
@@ -252,7 +227,9 @@ class AlbumCard extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Container(
-                  color: const Color(0xFF000000), // Pure black background for text area
+                  color: const Color(
+                    0xFF000000,
+                  ), // Pure black background for text area
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

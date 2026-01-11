@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
@@ -744,14 +743,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         ),
                                         // Play/Pause button with gradient
                                         GestureDetector(
-                                          onTap: () {
-                                            if (kDebugMode) {
-                                              print(
-                                                '=== NOW PLAYING PLAY/PAUSE BUTTON TAPPED ===',
-                                              );
-                                            }
-                                            appState.playPause();
-                                          },
+                                          onTap: () => appState.playPause(),
                                           child: Container(
                                             width: 72,
                                             height: 72,

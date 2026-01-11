@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -266,15 +265,8 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
   }
 
   Future<void> _continueToApp() async {
-    if (kDebugMode) {
-      print('LocalMusicSettings: Continue button pressed');
-    }
-
     final service = _localService;
     if (service == null) {
-      if (kDebugMode) {
-        print('LocalMusicSettings: Service is null!');
-      }
       setState(() {
         _errorMessage =
             'Local music service not initialized. Please try again.';
@@ -282,11 +274,7 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
       return;
     }
 
-    // Check if we have any tracks
     final tracks = await service.getTracks();
-    if (kDebugMode) {
-      print('LocalMusicSettings: Found ${tracks.length} tracks');
-    }
 
     if (tracks.isEmpty) {
       setState(() {
@@ -299,22 +287,14 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
     if (!mounted) return;
 
     final appState = context.read<AppState>();
-    if (kDebugMode) {
-      print('LocalMusicSettings: Calling loginWithLocalMusic...');
-    }
 
     final success = await appState.loginWithLocalMusic();
-
-    if (kDebugMode) {
-      print('LocalMusicSettings: loginWithLocalMusic returned: $success');
-    }
 
     if (!success && mounted) {
       setState(() {
         _errorMessage = 'Failed to initialize local music mode';
       });
     }
-    // Navigation is handled by the main app when isLoggedIn changes
   }
 
   @override

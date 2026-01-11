@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 
 /// VR Album Art Widget
-/// 
+///
 /// Displays album artwork in a 3D-like format optimized for VR viewing
 class VRAlbumArt extends StatelessWidget {
   final String? imageUrl;
   final double size;
 
-  const VRAlbumArt({
-    super.key,
-    this.imageUrl,
-    this.size = 200,
-  });
+  const VRAlbumArt({super.key, this.imageUrl, this.size = 200});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +35,8 @@ class VRAlbumArt extends StatelessWidget {
             ? Image.network(
                 imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildPlaceholder(),
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return _buildPlaceholder();

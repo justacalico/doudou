@@ -252,7 +252,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
 
                   // Local Music Section (only show when using local music)
-                  if (appState.mediaServiceManager.currentServerType == ServerType.local)
+                  if (appState.mediaServiceManager.currentServerType ==
+                      ServerType.local)
                     SliverToBoxAdapter(
                       child: Container(
                         margin: const EdgeInsets.symmetric(
@@ -287,7 +288,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     onTap: () => Navigator.push(
                                       context,
                                       CupertinoPageRoute(
-                                        builder: (context) => const LocalMusicSettingsScreen(),
+                                        builder: (context) =>
+                                            const LocalMusicSettingsScreen(),
                                       ),
                                     ),
                                   ),
@@ -295,7 +297,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     icon: CupertinoIcons.arrow_2_circlepath,
                                     title: 'Rescan Library',
                                     subtitle: 'Scan directories for new music',
-                                    onTap: () => _rescanLocalMusic(context, appState),
+                                    onTap: () =>
+                                        _rescanLocalMusic(context, appState),
                                   ),
                                 ],
                               ),
@@ -1033,15 +1036,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       await appState.mediaServiceManager.scanLocalMusicDirectories();
-      
+
       // Reload library data
       await appState.loadLibraryData();
-      
+
       if (!context.mounted) return;
       Navigator.pop(context); // Close progress dialog
-      
+
       final trackCount = (await localService.getTracks()).length;
-      
+
       if (!context.mounted) return;
       showCupertinoDialog(
         context: context,
@@ -1142,9 +1145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
-      if (kDebugMode) {
-        print('Could not launch URL: $e');
-      }
+      // URL launch failed
     }
   }
 
@@ -1153,9 +1154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
-      if (kDebugMode) {
-        print('Could not launch URL: $e');
-      }
+      // URL launch failed
     }
   }
 

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
 
 class DesktopLyricsLine {
   final Duration time;
@@ -12,39 +11,36 @@ class DesktopLyricsLine {
     // Parse LRC format: [mm:ss.xx]lyrics text
     final timeRegex = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2})\](.*)');
     final match = timeRegex.firstMatch(line);
-    
+
     if (match != null) {
       final minutes = int.parse(match.group(1)!);
       final seconds = int.parse(match.group(2)!);
       final centiseconds = int.parse(match.group(3)!);
       final text = match.group(4)!.trim();
-      
+
       final duration = Duration(
         minutes: minutes,
         seconds: seconds,
         milliseconds: centiseconds * 10,
       );
-      
+
       return DesktopLyricsLine(time: duration, text: text);
     }
-    
+
     // Handle alternative format [mm:ss]lyrics text (without centiseconds)
     final altTimeRegex = RegExp(r'\[(\d{2}):(\d{2})\](.*)');
     final altMatch = altTimeRegex.firstMatch(line);
-    
+
     if (altMatch != null) {
       final minutes = int.parse(altMatch.group(1)!);
       final seconds = int.parse(altMatch.group(2)!);
       final text = altMatch.group(3)!.trim();
-      
-      final duration = Duration(
-        minutes: minutes,
-        seconds: seconds,
-      );
-      
+
+      final duration = Duration(minutes: minutes, seconds: seconds);
+
       return DesktopLyricsLine(time: duration, text: text);
     }
-    
+
     // If parsing fails, return empty line
     return DesktopLyricsLine(time: Duration.zero, text: '');
   }
@@ -66,7 +62,7 @@ class DesktopLyrics {
   factory DesktopLyrics.fromLrc(String lrcContent, {String source = 'LRCLib'}) {
     final lines = <DesktopLyricsLine>[];
     final lrcLines = lrcContent.split('\n');
-    
+
     for (final line in lrcLines) {
       if (line.trim().isNotEmpty && line.contains('[') && line.contains(']')) {
         final lyricLine = DesktopLyricsLine.fromLrc(line);
@@ -75,10 +71,10 @@ class DesktopLyrics {
         }
       }
     }
-    
+
     // Sort by time
     lines.sort((a, b) => a.time.compareTo(b.time));
-    
+
     return DesktopLyrics(
       syncedLines: lines,
       isTimeSynced: lines.isNotEmpty,
@@ -86,7 +82,10 @@ class DesktopLyrics {
     );
   }
 
-  factory DesktopLyrics.fromPlainText(String plainText, {String source = 'LRCLib'}) {
+  factory DesktopLyrics.fromPlainText(
+    String plainText, {
+    String source = 'LRCLib',
+  }) {
     return DesktopLyrics(
       syncedLines: [],
       plainText: plainText,
@@ -98,13 +97,13 @@ class DesktopLyrics {
   // Get the current line index based on playback position
   int getCurrentLineIndex(Duration position) {
     if (syncedLines.isEmpty) return -1;
-    
+
     for (int i = syncedLines.length - 1; i >= 0; i--) {
       if (position >= syncedLines[i].time) {
         return i;
       }
     }
-    
+
     return -1; // Before first line
   }
 }
@@ -112,7 +111,7 @@ class DesktopLyrics {
 class DesktopLyricsService {
   static const String _baseUrl = 'https://lrclib.net/api';
   static const Duration _requestTimeout = Duration(seconds: 15);
-  
+
   // Simple cache for lyrics to avoid repeated API calls
   static final Map<String, DesktopLyrics?> _cache = {};
   static const int _maxCacheSize = 50;
@@ -126,12 +125,9 @@ class DesktopLyricsService {
   }) async {
     // Create cache key
     final cacheKey = _createCacheKey(trackName, artistName, albumName);
-    
+
     // Check cache first
     if (_cache.containsKey(cacheKey)) {
-      if (kDebugMode) {
-        print('DesktopLyricsService: Cache hit for $cacheKey');
-      }
       return _cache[cacheKey];
     }
 
@@ -139,11 +135,8 @@ class DesktopLyricsService {
       // Clean up search parameters
       final cleanTrack = _cleanSearchString(trackName);
       final cleanArtist = _cleanSearchString(artistName);
-      
+
       if (cleanTrack.isEmpty || cleanArtist.isEmpty) {
-        if (kDebugMode) {
-          print('DesktopLyricsService: Invalid search parameters');
-        }
         return null;
       }
 
@@ -152,57 +145,47 @@ class DesktopLyricsService {
         'track_name': cleanTrack,
         'artist_name': cleanArtist,
       };
-      
+
       if (albumName != null && albumName.isNotEmpty) {
         queryParams['album_name'] = _cleanSearchString(albumName);
       }
-      
+
       if (durationSeconds != null && durationSeconds > 0) {
         queryParams['duration'] = durationSeconds.toString();
       }
 
-      final uri = Uri.parse('$_baseUrl/search').replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$_baseUrl/search',
+      ).replace(queryParameters: queryParams);
 
-      if (kDebugMode) {
-        print('DesktopLyricsService: Searching lyrics: $uri');
-      }
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'User-Agent': 'Doudou/1.0.0 (Desktop Music Player)',
-          'Accept': 'application/json',
-          'Accept-Encoding': 'gzip, deflate',
-        },
-      ).timeout(_requestTimeout);
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'User-Agent': 'Doudou/1.0.0 (Desktop Music Player)',
+              'Accept': 'application/json',
+              'Accept-Encoding': 'gzip, deflate',
+            },
+          )
+          .timeout(_requestTimeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> results = json.decode(response.body);
-        
+
         if (results.isNotEmpty) {
           // Find the best match
           final bestMatch = _findBestMatch(results, cleanTrack, cleanArtist);
-          
+
           if (bestMatch != null) {
             final lyrics = _extractLyricsFromResult(bestMatch);
             _addToCache(cacheKey, lyrics);
-            
-            if (kDebugMode) {
-              print('DesktopLyricsService: Found lyrics - Synced: ${lyrics?.isTimeSynced ?? false}');
-            }
-            
+
             return lyrics;
           }
         }
-      } else {
-        if (kDebugMode) {
-          print('DesktopLyricsService: API error ${response.statusCode}: ${response.reasonPhrase}');
-        }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('DesktopLyricsService: Error fetching lyrics: $e');
-      }
+      // Error fetching lyrics
     }
 
     // Cache null result to avoid repeated failed requests
@@ -215,7 +198,7 @@ class DesktopLyricsService {
     try {
       final syncedLyrics = result['syncedLyrics']?.toString();
       final plainLyrics = result['plainLyrics']?.toString();
-      
+
       // Prefer synced lyrics if available and valid
       if (syncedLyrics != null && syncedLyrics.trim().isNotEmpty) {
         final lyrics = DesktopLyrics.fromLrc(syncedLyrics);
@@ -223,17 +206,15 @@ class DesktopLyricsService {
           return lyrics;
         }
       }
-      
+
       // Fall back to plain lyrics
       if (plainLyrics != null && plainLyrics.trim().isNotEmpty) {
         return DesktopLyrics.fromPlainText(plainLyrics);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('DesktopLyricsService: Error extracting lyrics: $e');
-      }
+      // Error extracting lyrics
     }
-    
+
     return null;
   }
 
@@ -244,39 +225,45 @@ class DesktopLyricsService {
     String cleanArtist,
   ) {
     if (results.isEmpty) return null;
-    
+
     // Score each result based on similarity
     Map<String, dynamic>? bestMatch;
     double bestScore = 0.0;
-    
+
     for (final result in results) {
       try {
-        final resultTrack = _cleanSearchString(result['trackName']?.toString() ?? '');
-        final resultArtist = _cleanSearchString(result['artistName']?.toString() ?? '');
-        
+        final resultTrack = _cleanSearchString(
+          result['trackName']?.toString() ?? '',
+        );
+        final resultArtist = _cleanSearchString(
+          result['artistName']?.toString() ?? '',
+        );
+
         // Simple similarity scoring
         double score = 0.0;
-        
+
         // Track name similarity (weighted more heavily)
-        if (resultTrack.contains(cleanTrack) || cleanTrack.contains(resultTrack)) {
+        if (resultTrack.contains(cleanTrack) ||
+            cleanTrack.contains(resultTrack)) {
           score += 0.6;
         } else if (_calculateSimilarity(cleanTrack, resultTrack) > 0.7) {
           score += 0.4;
         }
-        
+
         // Artist name similarity
-        if (resultArtist.contains(cleanArtist) || cleanArtist.contains(resultArtist)) {
+        if (resultArtist.contains(cleanArtist) ||
+            cleanArtist.contains(resultArtist)) {
           score += 0.4;
         } else if (_calculateSimilarity(cleanArtist, resultArtist) > 0.7) {
           score += 0.2;
         }
-        
+
         // Prefer results with synced lyrics
         final syncedLyrics = result['syncedLyrics']?.toString();
         if (syncedLyrics != null && syncedLyrics.isNotEmpty) {
           score += 0.1;
         }
-        
+
         if (score > bestScore) {
           bestScore = score;
           bestMatch = result;
@@ -286,7 +273,7 @@ class DesktopLyricsService {
         continue;
       }
     }
-    
+
     // Only return if we have a reasonable match
     return bestScore > 0.5 ? bestMatch : results.first;
   }
@@ -295,12 +282,12 @@ class DesktopLyricsService {
   static double _calculateSimilarity(String a, String b) {
     if (a.isEmpty || b.isEmpty) return 0.0;
     if (a == b) return 1.0;
-    
+
     final longer = a.length > b.length ? a : b;
     final shorter = a.length > b.length ? b : a;
-    
+
     if (longer.isEmpty) return 1.0;
-    
+
     final editDistance = _levenshteinDistance(longer, shorter);
     return (longer.length - editDistance) / longer.length;
   }
@@ -337,10 +324,16 @@ class DesktopLyricsService {
   static String _cleanSearchString(String input) {
     return input
         .toLowerCase()
-        .replaceAll(RegExp(r'\s*\(.*?\)\s*'), '') // Remove content in parentheses
+        .replaceAll(
+          RegExp(r'\s*\(.*?\)\s*'),
+          '',
+        ) // Remove content in parentheses
         .replaceAll(RegExp(r'\s*\[.*?\]\s*'), '') // Remove content in brackets
         .replaceAll(RegExp(r'\s*-\s*.*$'), '') // Remove everything after dash
-        .replaceAll(RegExp(r'\s+'), ' ') // Replace multiple spaces with single space
+        .replaceAll(
+          RegExp(r'\s+'),
+          ' ',
+        ) // Replace multiple spaces with single space
         .replaceAll(RegExp(r'[^\w\s]'), '') // Remove special characters
         .trim();
   }
@@ -366,16 +359,10 @@ class DesktopLyricsService {
   /// Clear the cache
   static void clearCache() {
     _cache.clear();
-    if (kDebugMode) {
-      print('DesktopLyricsService: Cache cleared');
-    }
   }
 
   /// Get cache statistics
   static Map<String, int> getCacheStats() {
-    return {
-      'size': _cache.length,
-      'maxSize': _maxCacheSize,
-    };
+    return {'size': _cache.length, 'maxSize': _maxCacheSize};
   }
 }

@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import '../../models/jellyfin_models.dart';
 
 /// VR Track Info Widget
-/// 
+///
 /// Displays track information optimized for VR viewing with large, readable text
 class VRTrackInfo extends StatelessWidget {
   final Track track;
 
-  const VRTrackInfo({
-    super.key,
-    required this.track,
-  });
+  const VRTrackInfo({super.key, required this.track});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +16,6 @@ class VRTrackInfo extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Track Title
           Text(
             track.name,
             style: const TextStyle(
@@ -31,10 +27,9 @@ class VRTrackInfo extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           const SizedBox(height: 12),
-          
-          // Artist Name
+
           Text(
             track.artistName ?? 'Unknown Artist',
             style: TextStyle(
@@ -46,10 +41,9 @@ class VRTrackInfo extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           const SizedBox(height: 8),
-          
-          // Album Name
+
           if (track.albumName != null)
             Text(
               track.albumName!,

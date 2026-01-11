@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
@@ -204,9 +204,6 @@ class AlbumArtService {
       );
       
       if (searchResponse.statusCode != 200) {
-        if (kDebugMode) {
-          print('AlbumArtService: MusicBrainz search failed with ${searchResponse.statusCode}');
-        }
         return null;
       }
       
@@ -214,9 +211,6 @@ class AlbumArtService {
       final releases = searchData['releases'] as List?;
       
       if (releases == null || releases.isEmpty) {
-        if (kDebugMode) {
-          print('AlbumArtService: No MusicBrainz release found for "$albumName" by "$artistName"');
-        }
         return null;
       }
       
@@ -262,9 +256,7 @@ class AlbumArtService {
         return frontUrl;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error fetching from Cover Art Archive: $e');
-      }
+      // Error fetching from Cover Art Archive
     }
     
     return null;
@@ -303,9 +295,7 @@ class AlbumArtService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error fetching from Last.fm: $e');
-      }
+      // Error fetching from Last.fm
     }
     
     return null;
@@ -346,9 +336,6 @@ class AlbumArtService {
         // Only save if directory is writable
         try {
           await coverFile.writeAsBytes(response.bodyBytes);
-          if (kDebugMode) {
-            print('AlbumArtService: Downloaded artwork to ${coverFile.path}');
-          }
           return coverFile.path;
         } catch (e) {
           // If we can't write to album directory, save to cache
@@ -356,16 +343,11 @@ class AlbumArtService {
           final hash = md5.convert(utf8.encode('$artistName-$albumName')).toString();
           final cacheFile = File(path.join(cacheDir.path, 'online_$hash$extension'));
           await cacheFile.writeAsBytes(response.bodyBytes);
-          if (kDebugMode) {
-            print('AlbumArtService: Downloaded artwork to cache ${cacheFile.path}');
-          }
           return cacheFile.path;
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error downloading artwork from $url: $e');
-      }
+      // Error downloading artwork
     }
     
     return null;
@@ -423,9 +405,7 @@ class AlbumArtService {
       }
       clearCache();
     } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error clearing cache: $e');
-      }
+      // Error clearing cache
     }
   }
   
@@ -512,9 +492,7 @@ class AlbumArtService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('AlbumArtService: Error searching online artwork: $e');
-      }
+      // Error searching online artwork
     }
     
     return results;

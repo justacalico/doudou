@@ -101,10 +101,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Initialize audio system based on platform
   Future<void> _initializeAudio() async {
     try {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Initializing for ${_getPlatformName()}...');
-      }
-
       // Desktop: Initialize media_kit backend
       if (_isDesktop) {
         await _initializeDesktopBackend();
@@ -124,23 +120,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         _startForegroundServiceMonitor();
         _initializePowerManagement();
       }
-
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Initialized successfully');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Failed to initialize: $e');
-      }
       _stateController.updateError('Failed to initialize audio: $e');
     }
-  }
-
-  String _getPlatformName() {
-    if (kIsWeb) return 'web';
-    if (_isMobile) return defaultTargetPlatform.name;
-    if (_isDesktop) return defaultTargetPlatform.name;
-    return 'unknown';
   }
 
   /// Initialize desktop audio backend (media_kit)
@@ -148,22 +130,14 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       // Import and initialize media_kit conditionally
       // This is handled by just_audio_media_kit package
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Desktop backend initialized');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Desktop backend init failed: $e');
-      }
+      // Desktop backend initialization failed
     }
   }
 
   /// Initialize mobile audio session
   Future<void> _initializeMobileSession() async {
     // Audio session is automatically handled by audio_service package
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Mobile audio session ready');
-    }
   }
 
   /// Initialize power management (mobile only)
@@ -177,9 +151,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           await requestBatteryOptimizationExemption();
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('UnifiedAudioHandler: Power management init failed: $e');
-        }
+        // Power management initialization failed
       }
     });
   }
@@ -374,12 +346,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     _isRecreatingPlayer = true;
 
     try {
-      if (kDebugMode) {
-        print(
-          'UnifiedAudioHandler: Recreating player (generation ${_playerGeneration + 1})',
-        );
-      }
-
       _playerGeneration++;
 
       final oldPlayer = _player;
@@ -444,9 +410,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
                 if (_isMobile) await _attemptForegroundService();
                 await _player.play();
               } catch (e) {
-                if (kDebugMode) {
-                  print('UnifiedAudioHandler: Auto-continue failed: $e');
-                }
+                // Auto-continue failed
               }
             });
           }
@@ -478,10 +442,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   /// Handle track completion
   Future<void> _handleTrackCompletion() async {
     if (_disposed) return;
-
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Track completed');
-    }
 
     if (_isMobile) _cancelLoadingTimeout();
 
@@ -571,9 +531,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         await skipToNext();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Failed to fetch radio tracks: $e');
-      }
       await skipToNext();
     }
   }
@@ -588,10 +545,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         return;
       }
 
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Autoplay - finding similar tracks');
-      }
-
       final similarTracks = await _fetchSimilarTracks(currentTrack);
 
       if (similarTracks.isNotEmpty) {
@@ -599,22 +552,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         for (final track in similarTracks.take(10)) {
           _queueManager.addToQueue(track);
         }
-        if (kDebugMode) {
-          print('UnifiedAudioHandler: Autoplay - added ${similarTracks.take(10).length} similar tracks');
-        }
         // Play the first similar track
         await skipToNext();
       } else {
-        if (kDebugMode) {
-          print('UnifiedAudioHandler: Autoplay - no similar tracks found');
-        }
         _stateController.updateState(AudioPlayerState.completed);
         _stateController.updateUserIntent(false);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Autoplay failed: $e');
-      }
       _stateController.updateState(AudioPlayerState.completed);
       _stateController.updateUserIntent(false);
     }
@@ -638,9 +582,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
           ).toList();
           similarTracks.addAll(artistTracks.take(20));
         } catch (e) {
-          if (kDebugMode) {
-            print('UnifiedAudioHandler: Failed to fetch artist tracks: $e');
-          }
+          // Failed to fetch artist tracks
         }
       }
 
@@ -657,9 +599,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             }
           }
         } catch (e) {
-          if (kDebugMode) {
-            print('UnifiedAudioHandler: Failed to fetch album tracks: $e');
-          }
+          // Failed to fetch album tracks
         }
       }
 
@@ -678,9 +618,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             }
           }
         } catch (e) {
-          if (kDebugMode) {
-            print('UnifiedAudioHandler: Failed to fetch random tracks: $e');
-          }
+          // Failed to fetch random tracks
         }
       }
 
@@ -688,9 +626,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       similarTracks.shuffle();
       return similarTracks;
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: _fetchSimilarTracks failed: $e');
-      }
       return [];
     }
   }
@@ -760,10 +695,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> play() async {
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Play command received');
-    }
-
     _stateController.updateUserIntent(true);
     _stateController.updateState(AudioPlayerState.loading);
 
@@ -774,14 +705,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       }
 
       await _player.play();
-
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Play command completed');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Play failed: $e');
-      }
       _stateController.updateError('Play failed: $e');
       _stateController.updateUserIntent(false);
       _stateController.updateState(AudioPlayerState.error);
@@ -790,19 +714,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> pause() async {
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Pause command received');
-    }
-
     _stateController.updateUserIntent(false);
     _stateController.updateState(AudioPlayerState.paused);
 
     try {
       await _player.pause();
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Pause failed: $e');
-      }
       _stateController.updateError('Pause failed: $e');
     }
   }
@@ -810,19 +727,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   @override
   Future<void> stop() async {
     return _stateController.queueCommand(() async {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Stop command received');
-      }
-
       _stateController.updateUserIntent(false);
 
       try {
         await _player.stop();
         _stateController.updateState(AudioPlayerState.idle);
       } catch (e) {
-        if (kDebugMode) {
-          print('UnifiedAudioHandler: Stop failed: $e');
-        }
         _stateController.updateError('Stop failed: $e');
       }
     });
@@ -835,9 +745,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       await _player.seek(position);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Seek failed: $e');
-      }
       _stateController.updateError('Seek failed: $e');
     }
   }
@@ -849,9 +756,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       await _player.setSpeed(speed);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Set speed failed: $e');
-      }
       _stateController.updateError('Set speed failed: $e');
     }
   }
@@ -862,19 +766,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       await _player.setVolume(volume);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Set volume failed: $e');
-      }
       _stateController.updateError('Set volume failed: $e');
     }
   }
 
   /// Play a single track
   Future<void> playTrack(Track track) async {
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Playing single track: ${track.name}');
-    }
-
     _queueManager.setQueue([track], startIndex: 0);
     _stateController.updateCurrentTrack(track);
     _stateController.updateState(AudioPlayerState.loading);
@@ -887,9 +784,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       final streamUrl = await _getStreamUrl(track);
       await _loadAndPlayTrack(streamUrl);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Failed to play track: $e');
-      }
       _stateController.updateError('Failed to play track: $e');
       _stateController.updateState(AudioPlayerState.error);
     }
@@ -897,12 +791,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   /// Play a playlist
   Future<void> playPlaylist(List<Track> tracks, int startIndex) async {
-    if (kDebugMode) {
-      print(
-        'UnifiedAudioHandler: Playing playlist with ${tracks.length} tracks, starting at $startIndex',
-      );
-    }
-
     if (tracks.isEmpty) {
       _stateController.updateError('Cannot play empty playlist');
       return;
@@ -921,9 +809,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       await _playTrackAtIndex(validStartIndex);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Failed to play playlist: $e');
-      }
       _stateController.updateError('Failed to play playlist: $e');
       _stateController.updateState(AudioPlayerState.error);
     }
@@ -931,10 +816,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToNext() async {
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Skip to next requested');
-    }
-
     final nextIndex = _queueManager.getNextTrackIndex();
     if (nextIndex != null) {
       final queue = _stateController.queue;
@@ -954,10 +835,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Skip to previous requested');
-    }
-
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
       final queue = _stateController.queue;
@@ -977,10 +854,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Skip to queue item $index requested');
-    }
-
     final queue = _stateController.queue;
     if (index >= 0 && index < queue.length) {
       final track = queue[index];
@@ -1006,9 +879,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
       await _playTrackAtIndex(index);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Skip to index failed: $e');
-      }
       _stateController.updateError('Skip failed: $e');
       _stateController.updateState(AudioPlayerState.error);
     }
@@ -1057,10 +927,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   Future<void> _loadAndPlayTrack(String url) async {
     if (_disposed) return;
 
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Loading audio source: $url');
-    }
-
     _stateController.updateState(AudioPlayerState.loading);
     _stateController.updateUserIntent(true);
 
@@ -1093,9 +959,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
         await _player.play().timeout(const Duration(seconds: 3));
       } catch (e) {
-        if (kDebugMode) {
-          print('UnifiedAudioHandler: Load and play failed: $e');
-        }
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
         _stateController.updateError('Failed to load track: $e');
@@ -1118,9 +981,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         if (_isMobile) _cancelLoadingTimeout();
       } catch (e) {
         if (_isMobile) _cancelLoadingTimeout();
-        if (kDebugMode) {
-          print('UnifiedAudioHandler: Load and play failed: $e');
-        }
         _stateController.updateState(AudioPlayerState.error);
         _stateController.updateUserIntent(false);
         _stateController.updateError('Failed to load track: $e');
@@ -1271,9 +1131,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   void setAutoplay(bool enabled) {
     _autoplayEnabled = enabled;
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Autoplay ${enabled ? 'enabled' : 'disabled'}');
-    }
   }
 
   // === Mobile-specific Methods ===
@@ -1385,9 +1242,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       // Wake lock is handled by audio_service on mobile
       _wakeLockActive = true;
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Wake lock request failed: $e');
-      }
+      // Wake lock request failed
     }
   }
 
@@ -1397,9 +1252,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       _wakeLockActive = false;
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Wake lock release failed: $e');
-      }
+      // Wake lock release failed
     }
   }
 
@@ -1447,9 +1300,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         mediaItem.add(null);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Failed to update mediaItem: $e');
-      }
+      // Failed to update mediaItem
     }
   }
 
@@ -1463,9 +1314,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       );
       playbackState.add(state);
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Failed to update playbackState: $e');
-      }
+      // Failed to update playbackState
     }
   }
 
@@ -1635,11 +1484,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     try {
       await _batteryChannel.invokeMethod('requestBatteryOptimizationExemption');
     } catch (e) {
-      if (kDebugMode) {
-        print(
-          'UnifiedAudioHandler: Failed to request battery optimization exemption: $e',
-        );
-      }
+      // Failed to request battery optimization exemption
     }
   }
 
@@ -1666,10 +1511,6 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   Future<void> dispose() async {
     _disposed = true;
-
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Disposing...');
-    }
 
     // Cancel all subscriptions
     for (final subscription in _subscriptions) {
@@ -1703,16 +1544,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       await _player.stop();
       await _player.dispose();
     } catch (e) {
-      if (kDebugMode) {
-        print('UnifiedAudioHandler: Error disposing player: $e');
-      }
+      // Error disposing player
     }
 
     // Reset state
     _stateController.reset();
-
-    if (kDebugMode) {
-      print('UnifiedAudioHandler: Disposed');
-    }
   }
 }

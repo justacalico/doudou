@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -121,9 +120,7 @@ class _SearchScreenState extends State<SearchScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('recent_searches', _recentSearches);
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to save recent searches: $e');
-      }
+      // Failed to save recent searches
     }
   }
 
@@ -216,9 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('recent_searches');
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to clear recent searches: $e');
-      }
+      // Failed to clear recent searches
     }
   }
 

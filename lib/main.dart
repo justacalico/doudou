@@ -18,16 +18,12 @@ import 'widgets/apple_design/apple_theme.dart';
 import 'desktop/main.dart' as desktop_main;
 
 void main() async {
-  // Ensure Flutter bindings are initialized first
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Check if we're on a desktop or web platform
   if (_isDesktopOrWebPlatform()) {
-    // Delegate to desktop main, but don't reinitialize bindings
     return desktop_main.runDesktopApp();
   }
 
-  // Original mobile main logic
   _runMobileApp();
 }
 
@@ -40,38 +36,27 @@ bool _isDesktopOrWebPlatform() {
 
 void _runMobileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize app version for Jellyfin service
   await JellyfinService.initializeVersion();
 
-  // Initialize logging service
   try {
     await LoggingService().initialize();
     await _logSystemInfo('Mobile');
   } catch (e) {
-    if (kDebugMode) {
-      print('Failed to initialize logging service: $e');
-    }
+    // Logging initialization failed - continue without logging
   }
 
-  // Initialize sqflite for Linux/Windows/macOS
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    // Initialize the ffi database factory for desktop platforms
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
 
-  // Initialize MediaKit for Linux audio support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
-    await _debugLinuxMpv();
     JustAudioMediaKit.ensureInitialized();
   }
 
-  // Allow both orientations for Android Auto compatibility
-  // Android Auto requires landscape orientation support
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -92,7 +77,6 @@ class DoudouApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
       child: _buildAppWithPlatformServices(
-        // Wrap with VoiceCommandHandler for Google Assistant support (Android only)
         VoiceCommandHandler(
           child: Consumer<AppState>(
             builder: (context, appState, child) {
@@ -151,7 +135,6 @@ class DoudouApp extends StatelessWidget {
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: Builder(
                   builder: (context) {
-                    // Show loading screen while initializing
                     if (!appState.isInitialized) {
                       return CupertinoPageScaffold(
                         child: Center(
@@ -386,241 +369,5 @@ Future<void> _logSystemInfo(String context) async {
     logger.info('=== SYSTEM INFO END ===', 'SystemInfo');
   } catch (e) {
     logger.error('Failed to log system info: $e', 'SystemInfo');
-  }
-}
-
-/// Debug MPV availability and configuration on Linux for audio playback
-Future<void> _debugLinuxMpv() async {
-  if (kIsWeb || defaultTargetPlatform != TargetPlatform.linux) return;
-
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('╔══════════════════════════════════════════════════════════════╗');
-  }
-  if (kDebugMode) {
-    print('║               LINUX MPV DEBUG OUTPUT                         ║');
-  }
-  if (kDebugMode) {
-    print('╚══════════════════════════════════════════════════════════════╝');
-  }
-  if (kDebugMode) {
-    print('');
-  }
-
-  // Check if mpv binary exists
-  if (kDebugMode) {
-    print('🔍 Checking MPV installation...');
-  }
-  try {
-    final whichResult = await Process.run('which', ['mpv']);
-    if (whichResult.exitCode == 0) {
-      final mpvPath = whichResult.stdout.toString().trim();
-      if (kDebugMode) {
-        print('  ✅ MPV found at: $mpvPath');
-      }
-
-      // Get MPV version
-      final versionResult = await Process.run('mpv', ['--version']);
-      if (versionResult.exitCode == 0) {
-        final versionLines = versionResult.stdout.toString().split('\n');
-        if (versionLines.isNotEmpty) {
-          if (kDebugMode) {
-            print('  ✅ MPV version: ${versionLines.first}');
-          }
-        }
-      }
-    } else {
-      if (kDebugMode) {
-        print('  ❌ MPV NOT FOUND! Audio playback will likely fail.');
-      }
-      if (kDebugMode) {
-        print('     Install with: sudo apt install mpv libmpv-dev');
-      }
-      if (kDebugMode) {
-        print('     Or: sudo dnf install mpv mpv-libs-devel');
-      }
-      if (kDebugMode) {
-        print('     Or: sudo pacman -S mpv');
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ❌ Error checking MPV: $e');
-    }
-  }
-
-  // Check for libmpv
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking libmpv library...');
-  }
-  try {
-    final ldconfigResult = await Process.run('ldconfig', ['-p']);
-    if (ldconfigResult.exitCode == 0) {
-      final output = ldconfigResult.stdout.toString();
-      final mpvLibs = output
-          .split('\n')
-          .where((line) => line.contains('libmpv'))
-          .toList();
-      if (mpvLibs.isNotEmpty) {
-        if (kDebugMode) {
-          print('  ✅ libmpv libraries found:');
-        }
-        for (final lib in mpvLibs) {
-          if (kDebugMode) {
-            print('     $lib');
-          }
-        }
-      } else {
-        if (kDebugMode) {
-          print('  ❌ libmpv NOT FOUND in ldconfig cache!');
-        }
-        if (kDebugMode) {
-          print('     Install with: sudo apt install libmpv-dev');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ⚠️  Could not check ldconfig: $e');
-    }
-  }
-
-  // Check LD_LIBRARY_PATH
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking LD_LIBRARY_PATH...');
-  }
-  final ldPath = Platform.environment['LD_LIBRARY_PATH'];
-  if (ldPath != null && ldPath.isNotEmpty) {
-    if (kDebugMode) {
-      print('  LD_LIBRARY_PATH: $ldPath');
-    }
-  } else {
-    if (kDebugMode) {
-      print('  LD_LIBRARY_PATH: (not set)');
-    }
-  }
-
-  // Check for common MPV library paths
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking common library paths for libmpv...');
-  }
-  final commonPaths = [
-    '/usr/lib/x86_64-linux-gnu/libmpv.so',
-    '/usr/lib64/libmpv.so',
-    '/usr/lib/libmpv.so',
-    '/usr/local/lib/libmpv.so',
-    '/app/lib/libmpv.so', // Flatpak
-  ];
-  for (final path in commonPaths) {
-    final file = File(path);
-    if (await file.exists()) {
-      if (kDebugMode) {
-        print('  ✅ Found: $path');
-      }
-    }
-  }
-
-  // Check if running in Flatpak
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking Flatpak environment...');
-  }
-  final flatpakId = Platform.environment['FLATPAK_ID'];
-  if (flatpakId != null) {
-    if (kDebugMode) {
-      print('  ⚠️  Running in Flatpak: $flatpakId');
-    }
-    if (kDebugMode) {
-      print('     MPV may need to be bundled or accessed via portal');
-    }
-  } else {
-    if (kDebugMode) {
-      print('  ✅ Not running in Flatpak');
-    }
-  }
-
-  // Try to test MPV audio output
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking MPV audio outputs...');
-  }
-  try {
-    final aoResult = await Process.run('mpv', ['--ao=help']);
-    if (aoResult.exitCode == 0) {
-      final output = aoResult.stdout.toString();
-      final lines = output
-          .split('\n')
-          .where((l) => l.trim().isNotEmpty)
-          .take(10);
-      if (kDebugMode) {
-        print('  Available audio outputs:');
-      }
-      for (final line in lines) {
-        if (kDebugMode) {
-          print('     $line');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ❌ Could not query MPV audio outputs: $e');
-    }
-  }
-
-  // Check PulseAudio/PipeWire status
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('🔍 Checking audio server...');
-  }
-  try {
-    final paResult = await Process.run('pactl', ['info']);
-    if (paResult.exitCode == 0) {
-      final output = paResult.stdout.toString();
-      final serverName = output
-          .split('\n')
-          .firstWhere((l) => l.contains('Server Name:'), orElse: () => '');
-      if (serverName.isNotEmpty) {
-        if (kDebugMode) {
-          print('  ✅ $serverName');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('  ⚠️  Could not check PulseAudio/PipeWire: $e');
-    }
-  }
-
-  if (kDebugMode) {
-    print('');
-  }
-  if (kDebugMode) {
-    print('╔══════════════════════════════════════════════════════════════╗');
-  }
-  if (kDebugMode) {
-    print('║           END LINUX MPV DEBUG OUTPUT                         ║');
-  }
-  if (kDebugMode) {
-    print('╚══════════════════════════════════════════════════════════════╝');
-  }
-  if (kDebugMode) {
-    print('');
   }
 }

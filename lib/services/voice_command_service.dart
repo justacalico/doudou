@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Types of voice commands supported by Google Assistant
@@ -119,10 +118,6 @@ class VoiceCommandService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    if (kDebugMode) {
-      print('VoiceCommandService: Initializing...');
-    }
-
     // Set up method channel handler for incoming voice commands
     _channel.setMethodCallHandler(_handleMethodCall);
 
@@ -130,35 +125,20 @@ class VoiceCommandService {
     try {
       final initialUri = await _channel.invokeMethod<String>('getInitialUri');
       if (initialUri != null && initialUri.isNotEmpty) {
-        if (kDebugMode) {
-          print(
-            'VoiceCommandService: Initial URI from cold start: $initialUri',
-          );
-        }
         final command = parseUri(initialUri);
         if (command.type != VoiceCommandType.unknown) {
           _pendingCommand = command;
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('VoiceCommandService: Error getting initial URI: $e');
-      }
+      // Error getting initial URI
     }
 
     _isInitialized = true;
-
-    if (kDebugMode) {
-      print('VoiceCommandService: Initialized successfully');
-    }
   }
 
   /// Handle method calls from native side
   Future<dynamic> _handleMethodCall(MethodCall call) async {
-    if (kDebugMode) {
-      print('VoiceCommandService: Received method call: ${call.method}');
-    }
-
     switch (call.method) {
       case 'onVoiceCommand':
         final uri = call.arguments as String?;
@@ -175,19 +155,12 @@ class VoiceCommandService {
         return null;
 
       default:
-        if (kDebugMode) {
-          print('VoiceCommandService: Unknown method: ${call.method}');
-        }
         return null;
     }
   }
 
   /// Handle incoming URI from deep link
   void _handleUri(String uri) {
-    if (kDebugMode) {
-      print('VoiceCommandService: Handling URI: $uri');
-    }
-
     final command = parseUri(uri);
     if (command.type != VoiceCommandType.unknown) {
       _commandController.add(command);
@@ -196,10 +169,6 @@ class VoiceCommandService {
 
   /// Handle MEDIA_PLAY_FROM_SEARCH intent (from Android Auto / voice search)
   void _handleMediaPlayFromSearch(Map<dynamic, dynamic> args) {
-    if (kDebugMode) {
-      print('VoiceCommandService: Handling media play from search: $args');
-    }
-
     final query = args['query'] as String?;
     final mediaFocus = args['mediaFocus'] as String?;
     final artist = args['artist'] as String?;
@@ -272,27 +241,16 @@ class VoiceCommandService {
       );
     }
 
-    if (kDebugMode) {
-      print('VoiceCommandService: Created command from search: $command');
-    }
-
     _commandController.add(command);
   }
 
   /// Parse a URI into a VoiceCommand
   VoiceCommand parseUri(String uriString) {
-    if (kDebugMode) {
-      print('VoiceCommandService: Parsing URI: $uriString');
-    }
-
     try {
       final uri = Uri.parse(uriString);
 
       // Check if it's our doudou:// scheme
       if (uri.scheme != 'doudou') {
-        if (kDebugMode) {
-          print('VoiceCommandService: Unknown scheme: ${uri.scheme}');
-        }
         return VoiceCommand(type: VoiceCommandType.unknown, rawUri: uriString);
       }
 
@@ -305,10 +263,6 @@ class VoiceCommandService {
 
       final action = pathSegments.isNotEmpty ? pathSegments[0] : '';
       final query = uri.queryParameters;
-
-      if (kDebugMode) {
-        print('VoiceCommandService: Action: $action, Query params: $query');
-      }
 
       switch (action) {
         case 'play':
@@ -405,18 +359,12 @@ class VoiceCommandService {
           return VoiceCommand(type: VoiceCommandType.repeat, rawUri: uriString);
 
         default:
-          if (kDebugMode) {
-            print('VoiceCommandService: Unknown action: $action');
-          }
           return VoiceCommand(
             type: VoiceCommandType.unknown,
             rawUri: uriString,
           );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('VoiceCommandService: Error parsing URI: $e');
-      }
       return VoiceCommand(type: VoiceCommandType.unknown, rawUri: uriString);
     }
   }

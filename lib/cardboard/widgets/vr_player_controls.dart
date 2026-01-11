@@ -3,15 +3,12 @@ import 'package:audio_service/audio_service.dart';
 import '../../providers/app_state.dart';
 
 /// VR Player Controls Widget
-/// 
+///
 /// Provides playback controls optimized for VR viewing with large touch targets
 class VRPlayerControls extends StatefulWidget {
   final AppState appState;
 
-  const VRPlayerControls({
-    super.key,
-    required this.appState,
-  });
+  const VRPlayerControls({super.key, required this.appState});
 
   @override
   State<VRPlayerControls> createState() => _VRPlayerControlsState();
@@ -29,7 +26,6 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
   }
 
   void _setupStreams() {
-    // Listen to playback state
     widget.appState.playbackState?.listen((PlaybackState state) {
       if (mounted) {
         setState(() {
@@ -39,7 +35,6 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
       }
     });
 
-    // Listen to media item for duration
     widget.appState.mediaItem?.listen((MediaItem? item) {
       if (mounted && item != null) {
         setState(() {
@@ -48,7 +43,6 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
       }
     });
 
-    // Listen to position updates
     widget.appState.positionStream?.listen((Duration position) {
       if (mounted) {
         setState(() {
@@ -75,7 +69,6 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Progress bar
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
@@ -87,12 +80,14 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
                   thumbColor: Colors.white,
                   overlayColor: Colors.purple.withOpacity(0.3),
                   trackHeight: 4.0,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 8.0,
+                  ),
                 ),
                 child: Slider(
                   value: _position.inMilliseconds.toDouble(),
-                  max: _duration.inMilliseconds.toDouble() > 0 
-                      ? _duration.inMilliseconds.toDouble() 
+                  max: _duration.inMilliseconds.toDouble() > 0
+                      ? _duration.inMilliseconds.toDouble()
                       : 1.0,
                   onChanged: (value) {
                     widget.appState.audioHandler?.seek(
@@ -126,23 +121,20 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
             ],
           ),
         ),
-        
+
         const SizedBox(height: 30),
-        
-        // Control buttons
+
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Previous button
             _buildControlButton(
               icon: Icons.skip_previous,
               onPressed: () => widget.appState.audioHandler?.skipToPrevious(),
               size: 50,
             ),
-            
+
             const SizedBox(width: 40),
-            
-            // Play/Pause button (larger)
+
             _buildControlButton(
               icon: _isPlaying ? Icons.pause : Icons.play_arrow,
               onPressed: () {
@@ -155,10 +147,9 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
               size: 70,
               isPrimary: true,
             ),
-            
+
             const SizedBox(width: 40),
-            
-            // Next button
+
             _buildControlButton(
               icon: Icons.skip_next,
               onPressed: () => widget.appState.audioHandler?.skipToNext(),
@@ -189,8 +180,8 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
         color: isPrimary ? null : Colors.grey.shade900,
         boxShadow: [
           BoxShadow(
-            color: isPrimary 
-                ? Colors.purple.withOpacity(0.5) 
+            color: isPrimary
+                ? Colors.purple.withOpacity(0.5)
                 : Colors.black.withOpacity(0.5),
             blurRadius: isPrimary ? 20 : 10,
             spreadRadius: isPrimary ? 5 : 0,
@@ -206,11 +197,7 @@ class _VRPlayerControlsState extends State<VRPlayerControls> {
             width: size,
             height: size,
             alignment: Alignment.center,
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: size * 0.6,
-            ),
+            child: Icon(icon, color: Colors.white, size: size * 0.6),
           ),
         ),
       ),
