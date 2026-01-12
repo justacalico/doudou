@@ -10,13 +10,26 @@ import '../songs/songs.dart';
 import '../playlists/playlists.dart';
 import '../favorites/favorites.dart';
 
+// Cached blur filter to avoid recreation on each build
+final _libraryBlur10 = ImageFilter.blur(sigmaX: 10, sigmaY: 10);
+
 class LibraryContent extends StatelessWidget {
   const LibraryContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
+    return Selector<
+      AppState,
+      ({int albums, int artists, int tracks, int playlists, int favorites})
+    >(
+      selector: (_, state) => (
+        albums: state.albums.length,
+        artists: state.artists.length,
+        tracks: state.tracks.length,
+        playlists: state.playlists.length,
+        favorites: state.favoriteTracks.length,
+      ),
+      builder: (context, counts, child) {
         return CupertinoPageScaffold(
           backgroundColor: const Color(0xFF000000),
           child: Stack(
@@ -49,11 +62,16 @@ class LibraryContent extends StatelessWidget {
                                       gradient: const LinearGradient(
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
-                                        colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                                        colors: [
+                                          Color(0xFF8B5CF6),
+                                          Color(0xFFEC4899),
+                                        ],
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                                          color: const Color(
+                                            0xFF8B5CF6,
+                                          ).withOpacity(0.4),
                                           offset: const Offset(0, 4),
                                           blurRadius: 16,
                                         ),
@@ -68,19 +86,25 @@ class LibraryContent extends StatelessWidget {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          AppLocalizations.of(context).yourLibrary,
+                                          AppLocalizations.of(
+                                            context,
+                                          ).yourLibrary,
                                           style: TextStyle(
-                                            color: CupertinoColors.white.withOpacity(0.6),
+                                            color: CupertinoColors.white
+                                                .withOpacity(0.6),
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          AppLocalizations.of(context).musicCollection,
+                                          AppLocalizations.of(
+                                            context,
+                                          ).musicCollection,
                                           style: const TextStyle(
                                             color: CupertinoColors.white,
                                             fontSize: 26,
@@ -106,7 +130,7 @@ class LibraryContent extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: _buildStatItem(
-                                        '${appState.albums.length}',
+                                        '${counts.albums}',
                                         AppLocalizations.of(context).albums,
                                         CupertinoIcons.music_albums,
                                         const Color(0xFF8B5CF6),
@@ -115,11 +139,13 @@ class LibraryContent extends StatelessWidget {
                                     Container(
                                       width: 1,
                                       height: 40,
-                                      color: CupertinoColors.white.withOpacity(0.1),
+                                      color: CupertinoColors.white.withOpacity(
+                                        0.1,
+                                      ),
                                     ),
                                     Expanded(
                                       child: _buildStatItem(
-                                        '${appState.artists.length}',
+                                        '${counts.artists}',
                                         AppLocalizations.of(context).artists,
                                         CupertinoIcons.music_mic,
                                         const Color(0xFFEC4899),
@@ -128,11 +154,13 @@ class LibraryContent extends StatelessWidget {
                                     Container(
                                       width: 1,
                                       height: 40,
-                                      color: CupertinoColors.white.withOpacity(0.1),
+                                      color: CupertinoColors.white.withOpacity(
+                                        0.1,
+                                      ),
                                     ),
                                     Expanded(
                                       child: _buildStatItem(
-                                        '${appState.tracks.length}',
+                                        '${counts.tracks}',
                                         AppLocalizations.of(context).songs,
                                         CupertinoIcons.music_note,
                                         const Color(0xFF10B981),
@@ -172,24 +200,28 @@ class LibraryContent extends StatelessWidget {
                                   Expanded(
                                     child: _buildQuickAccessCard(
                                       context,
-                                      appState,
-                                      AppLocalizations.of(context).recentlyAdded,
+                                      AppLocalizations.of(
+                                        context,
+                                      ).recentlyAdded,
                                       AppLocalizations.of(context).latestAlbums,
                                       CupertinoIcons.clock,
                                       const Color(0xFF8B5CF6),
-                                      () => _navigateToSection(context, 'Albums'),
+                                      () =>
+                                          _navigateToSection(context, 'Albums'),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: _buildQuickAccessCard(
                                       context,
-                                      appState,
                                       AppLocalizations.of(context).favorites,
                                       AppLocalizations.of(context).likedSongs,
                                       CupertinoIcons.heart_fill,
                                       const Color(0xFFEC4899),
-                                      () => _navigateToSection(context, 'Favorites'),
+                                      () => _navigateToSection(
+                                        context,
+                                        'Favorites',
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -202,24 +234,28 @@ class LibraryContent extends StatelessWidget {
                                   Expanded(
                                     child: _buildQuickAccessCard(
                                       context,
-                                      appState,
                                       AppLocalizations.of(context).topArtists,
                                       AppLocalizations.of(context).mostPlayed,
                                       CupertinoIcons.music_mic,
                                       const Color(0xFF3B82F6),
-                                      () => _navigateToSection(context, 'Artists'),
+                                      () => _navigateToSection(
+                                        context,
+                                        'Artists',
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: _buildQuickAccessCard(
                                       context,
-                                      appState,
                                       AppLocalizations.of(context).playlists,
                                       AppLocalizations.of(context).customMixes,
                                       CupertinoIcons.music_note_list,
                                       const Color(0xFF10B981),
-                                      () => _navigateToSection(context, 'Playlists'),
+                                      () => _navigateToSection(
+                                        context,
+                                        'Playlists',
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -251,62 +287,74 @@ class LibraryContent extends StatelessWidget {
 
                               _buildEnhancedLibraryItem(
                                 context,
-                                appState,
                                 icon: CupertinoIcons.music_albums_fill,
                                 title: AppLocalizations.of(context).albums,
-                                subtitle: AppLocalizations.of(context).albumsCount(appState.albums.length),
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).albumsCount(counts.albums),
                                 color: const Color(0xFF8B5CF6),
-                                onTap: () => _navigateToSection(context, 'Albums'),
+                                onTap: () =>
+                                    _navigateToSection(context, 'Albums'),
                               ),
 
                               _buildEnhancedLibraryItem(
                                 context,
-                                appState,
                                 icon: CupertinoIcons.person_2_fill,
                                 title: AppLocalizations.of(context).artists,
-                                subtitle: AppLocalizations.of(context).artistsCount(appState.artists.length),
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).artistsCount(counts.artists),
                                 color: const Color(0xFFEC4899),
-                                onTap: () => _navigateToSection(context, 'Artists'),
+                                onTap: () =>
+                                    _navigateToSection(context, 'Artists'),
                               ),
 
                               _buildEnhancedLibraryItem(
                                 context,
-                                appState,
                                 icon: CupertinoIcons.music_note,
                                 title: AppLocalizations.of(context).songs,
-                                subtitle: AppLocalizations.of(context).tracksCount(appState.tracks.length),
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).tracksCount(counts.tracks),
                                 color: const Color(0xFF10B981),
-                                onTap: () => _navigateToSection(context, 'Songs'),
+                                onTap: () =>
+                                    _navigateToSection(context, 'Songs'),
                               ),
 
                               _buildEnhancedLibraryItem(
                                 context,
-                                appState,
                                 icon: CupertinoIcons.music_note_list,
                                 title: AppLocalizations.of(context).playlists,
-                                subtitle: AppLocalizations.of(context).playlistsCount(appState.playlists.length),
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).playlistsCount(counts.playlists),
                                 color: const Color(0xFF3B82F6),
-                                onTap: () => _navigateToSection(context, 'Playlists'),
+                                onTap: () =>
+                                    _navigateToSection(context, 'Playlists'),
                               ),
 
                               _buildEnhancedLibraryItem(
                                 context,
-                                appState,
                                 icon: CupertinoIcons.square_grid_2x2_fill,
                                 title: AppLocalizations.of(context).collections,
-                                subtitle: AppLocalizations.of(context).comingSoon,
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).comingSoon,
                                 color: const Color(0xFFF59E0B),
-                                onTap: () => _navigateToSection(context, 'Collections'),
+                                onTap: () =>
+                                    _navigateToSection(context, 'Collections'),
                               ),
 
                               _buildEnhancedLibraryItem(
                                 context,
-                                appState,
                                 icon: CupertinoIcons.tag_fill,
                                 title: AppLocalizations.of(context).genres,
-                                subtitle: AppLocalizations.of(context).comingSoon,
+                                subtitle: AppLocalizations.of(
+                                  context,
+                                ).comingSoon,
                                 color: const Color(0xFFEF4444),
-                                onTap: () => _navigateToSection(context, 'Genres'),
+                                onTap: () =>
+                                    _navigateToSection(context, 'Genres'),
                               ),
                             ],
                           ),
@@ -325,7 +373,12 @@ class LibraryContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String value, String label, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 22),
@@ -353,7 +406,6 @@ class LibraryContent extends StatelessWidget {
 
   Widget _buildQuickAccessCard(
     BuildContext context,
-    AppState appState,
     String title,
     String subtitle,
     IconData icon,
@@ -362,56 +414,58 @@ class LibraryContent extends StatelessWidget {
   ) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            height: 90,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: color.withOpacity(0.15),
-              border: Border.all(color: color.withOpacity(0.3), width: 0.5),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: _libraryBlur10,
+            child: Container(
+              height: 90,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: color.withOpacity(0.15),
+                border: Border.all(color: color.withOpacity(0.3), width: 0.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: color, size: 16),
                   ),
-                  child: Icon(icon, color: color, size: 16),
-                ),
-                const Spacer(),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.3,
-                    height: 1.1,
+                  const Spacer(),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                      height: 1.1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: CupertinoColors.white.withOpacity(0.5),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    height: 1.2,
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: CupertinoColors.white.withOpacity(0.5),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -420,8 +474,7 @@ class LibraryContent extends StatelessWidget {
   }
 
   Widget _buildEnhancedLibraryItem(
-    BuildContext context,
-    AppState appState, {
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -432,67 +485,75 @@ class LibraryContent extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTap: onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: CupertinoColors.white.withOpacity(0.08),
-                border: Border.all(
-                  color: CupertinoColors.white.withOpacity(0.1),
-                  width: 0.5,
+        child: RepaintBoundary(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: _libraryBlur10,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: CupertinoColors.white.withOpacity(0.08),
+                  border: Border.all(
+                    color: CupertinoColors.white.withOpacity(0.1),
+                    width: 0.5,
+                  ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [color.withOpacity(0.3), color.withOpacity(0.15)],
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            color.withOpacity(0.3),
+                            color.withOpacity(0.15),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: color.withOpacity(0.3),
+                          width: 0.5,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: color.withOpacity(0.3), width: 0.5),
+                      child: Icon(icon, color: color, size: 24),
                     ),
-                    child: Icon(icon, color: color, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: CupertinoColors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: CupertinoColors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            color: CupertinoColors.white.withOpacity(0.5),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: CupertinoColors.white.withOpacity(0.5),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Icon(
-                    CupertinoIcons.chevron_right,
-                    color: CupertinoColors.white.withOpacity(0.4),
-                    size: 18,
-                  ),
-                ],
+                    Icon(
+                      CupertinoIcons.chevron_right,
+                      color: CupertinoColors.white.withOpacity(0.4),
+                      size: 18,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

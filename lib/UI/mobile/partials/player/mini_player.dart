@@ -9,6 +9,9 @@ import '../../playing/now_playing.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 
+// Cached blur filter for mini player
+final _miniPlayerBlurFilter = ImageFilter.blur(sigmaX: 30, sigmaY: 30);
+
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
 
@@ -133,7 +136,7 @@ class _MiniPlayerState extends State<MiniPlayer>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(22),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              filter: _miniPlayerBlurFilter,
               child: Container(
                 height: 72,
                 decoration: BoxDecoration(

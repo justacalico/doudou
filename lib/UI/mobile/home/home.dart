@@ -195,10 +195,22 @@ class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        final allAlbums = List<Album>.from(appState.albums);
-        final favoriteTracks = List<Track>.from(appState.favoriteTracks);
+    return Selector<
+      AppState,
+      ({List<Album> albums, List<Track> favorites, bool isLoading})
+    >(
+      selector: (_, state) => (
+        albums: state.albums,
+        favorites: state.favoriteTracks,
+        isLoading: state.isLoading,
+      ),
+      shouldRebuild: (prev, next) =>
+          prev.albums.length != next.albums.length ||
+          prev.favorites.length != next.favorites.length ||
+          prev.isLoading != next.isLoading,
+      builder: (context, data, child) {
+        final allAlbums = data.albums;
+        final favoriteTracks = data.favorites;
         _initializeAlbumLists(allAlbums, favoriteTracks);
 
         final recentAlbums = _recommendedAlbums ?? allAlbums.take(6).toList();
@@ -244,7 +256,7 @@ class _HomeContentState extends State<HomeContent> {
                                 return;
                               }
                               _lastShuffleAllTap = now;
-                              await appState.shuffleAllTracks();
+                              await context.read<AppState>().shuffleAllTracks();
                             },
                             isPrimary: true,
                           ),
@@ -262,10 +274,11 @@ class _HomeContentState extends State<HomeContent> {
                                 return;
                               }
                               _lastShuffleFavoritesTap = now;
-                              final favoriteCount =
-                                  appState.favoriteTracks.length;
+                              final favoriteCount = data.favorites.length;
                               if (favoriteCount > 0) {
-                                await appState.shuffleFavoriteTracks();
+                                await context
+                                    .read<AppState>()
+                                    .shuffleFavoriteTracks();
                               } else {
                                 _showNoFavoritesDialog(context);
                               }
@@ -281,19 +294,19 @@ class _HomeContentState extends State<HomeContent> {
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                 // Now playing card with liquid glass
-                if (appState.audioHandler?.currentTrack != null)
+                if (context.read<AppState>().audioHandler?.currentTrack != null)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: _buildLiquidGlassNowPlayingCard(
                         context,
-                        appState,
+                        context.read<AppState>(),
                         l10n,
                       ),
                     ),
                   ),
 
-                if (appState.audioHandler?.currentTrack != null)
+                if (context.read<AppState>().audioHandler?.currentTrack != null)
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                 // Continue listening section
@@ -316,12 +329,14 @@ class _HomeContentState extends State<HomeContent> {
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: continueListeningAlbums.take(8).length,
+                        itemExtent: 196, // 180 + 16 margin
+                        cacheExtent: 400,
                         itemBuilder: (context, index) {
                           final album = continueListeningAlbums[index];
                           return _buildLiquidGlassAlbumCard(
                             context,
                             album,
-                            appState,
+                            context.read<AppState>(),
                             isLarge: true,
                           );
                         },
@@ -351,12 +366,14 @@ class _HomeContentState extends State<HomeContent> {
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: recentAlbums.take(10).length,
+                        itemExtent: 166, // 150 + 16 margin
+                        cacheExtent: 400,
                         itemBuilder: (context, index) {
                           final album = recentAlbums[index];
                           return _buildLiquidGlassAlbumCard(
                             context,
                             album,
-                            appState,
+                            context.read<AppState>(),
                             isLarge: false,
                           );
                         },
@@ -386,12 +403,14 @@ class _HomeContentState extends State<HomeContent> {
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: madeForYouAlbums.take(8).length,
+                        itemExtent: 166, // 150 + 16 margin
+                        cacheExtent: 400,
                         itemBuilder: (context, index) {
                           final album = madeForYouAlbums[index];
                           return _buildLiquidGlassAlbumCard(
                             context,
                             album,
-                            appState,
+                            context.read<AppState>(),
                             isLarge: false,
                           );
                         },
@@ -421,12 +440,14 @@ class _HomeContentState extends State<HomeContent> {
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: similarToFavoritesAlbums.take(8).length,
+                        itemExtent: 166, // 150 + 16 margin
+                        cacheExtent: 400,
                         itemBuilder: (context, index) {
                           final album = similarToFavoritesAlbums[index];
                           return _buildLiquidGlassAlbumCard(
                             context,
                             album,
-                            appState,
+                            context.read<AppState>(),
                             isLarge: false,
                           );
                         },

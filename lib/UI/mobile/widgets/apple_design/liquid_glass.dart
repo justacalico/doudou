@@ -6,6 +6,25 @@ import 'package:flutter/services.dart';
 import 'apple_theme.dart';
 
 // ============================================
+// CACHED IMAGE FILTERS (Performance optimization)
+// ============================================
+
+/// Pre-cached ImageFilter instances to avoid recreation on every build
+class _CachedBlurFilters {
+  static final Map<double, ImageFilter> _cache = {};
+  
+  static ImageFilter get(double sigma) {
+    return _cache.putIfAbsent(
+      sigma,
+      () => ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+    );
+  }
+  
+  // Common blur values pre-cached
+  static final blur30 = get(30);
+}
+
+// ============================================
 // LIQUID GLASS MATERIAL
 // ============================================
 
@@ -56,33 +75,35 @@ class LiquidGlassMaterial extends StatelessWidget {
               ),
             ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(borderRadius),
-              color: baseTint.withOpacity(tintOpacity),
-              border: showBorder
-                  ? Border.all(
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        borderOpacity,
-                      ),
-                      width: 0.5,
-                    )
-                  : null,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(isDark ? 0.08 : 0.5),
-                  Colors.white.withOpacity(isDark ? 0.03 : 0.2),
-                ],
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: BackdropFilter(
+            filter: _CachedBlurFilters.get(blur),
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(borderRadius),
+                color: baseTint.withOpacity(tintOpacity),
+                border: showBorder
+                    ? Border.all(
+                        color: (isDark ? Colors.white : Colors.black).withOpacity(
+                          borderOpacity,
+                        ),
+                        width: 0.5,
+                      )
+                    : null,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(isDark ? 0.08 : 0.5),
+                    Colors.white.withOpacity(isDark ? 0.03 : 0.2),
+                  ],
+                ),
               ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),
@@ -116,53 +137,55 @@ class LiquidGlassNavBar extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            height: 64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              color: (isDark ? Colors.white : Colors.black).withOpacity(
-                isDark ? 0.12 : 0.06,
-              ),
-              border: Border.all(
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.15),
-                width: 0.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 5),
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: _CachedBlurFilters.blur30,
+            child: Container(
+              height: 64,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                color: (isDark ? Colors.white : Colors.black).withOpacity(
+                  isDark ? 0.12 : 0.06,
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: items.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final isSelected = index == currentIndex;
-
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Trigger iOS-style haptic feedback on tap
-                      HapticFeedback.selectionClick();
-                      onTap(index);
-                    },
-                    behavior: HitTestBehavior.opaque,
-                    child: _NavBarItemWidget(
-                      item: item,
-                      isSelected: isSelected,
-                      accent: accent,
-                      isDark: isDark,
-                    ),
+                border: Border.all(
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.15),
+                  width: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 5),
                   ),
-                );
-              }).toList(),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isSelected = index == currentIndex;
+
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Trigger iOS-style haptic feedback on tap
+                        HapticFeedback.selectionClick();
+                        onTap(index);
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: _NavBarItemWidget(
+                        item: item,
+                        isSelected: isSelected,
+                        accent: accent,
+                        isDark: isDark,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ),

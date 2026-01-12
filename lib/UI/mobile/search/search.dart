@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors;
@@ -10,6 +11,12 @@ import '../artists/details/artist_detail.dart';
 import '../shared/detail_track_view.dart';
 import '../widgets/cached_image_widget.dart';
 
+// Cached blur filters to avoid recreation on each build
+final _searchBlur8 = ImageFilter.blur(sigmaX: 8, sigmaY: 8);
+final _searchBlur10 = ImageFilter.blur(sigmaX: 10, sigmaY: 10);
+final _searchBlur15 = ImageFilter.blur(sigmaX: 15, sigmaY: 15);
+final _searchBlur30 = ImageFilter.blur(sigmaX: 30, sigmaY: 30);
+
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
@@ -19,6 +26,9 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  // Debounce timer for search
+  Timer? _debounceTimer;
 
   // Search results by category
   List<Track> _trackResults = [];
@@ -48,6 +58,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -122,6 +133,14 @@ class _SearchScreenState extends State<SearchScreen> {
     } catch (e) {
       // Failed to save recent searches
     }
+  }
+
+  // Debounced search to avoid excessive calls during typing
+  void _onSearchChanged(String value, AppState appState) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _performSearch(value, appState);
+    });
   }
 
   void _performSearch(String query, AppState appState) async {
@@ -327,7 +346,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildLiquidGlassHeader(AppState appState) {
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        filter: _searchBlur30,
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           decoration: BoxDecoration(
@@ -465,7 +484,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(18),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: _searchBlur10,
                     child: CupertinoSearchTextField(
                       controller: _searchController,
                       placeholder: 'Search artists, albums, songs...',
@@ -480,7 +499,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                       backgroundColor: Colors.transparent,
-                      onChanged: (value) => _performSearch(value, appState),
+                      onChanged: (value) => _onSearchChanged(value, appState),
                       onSubmitted: (value) => _performSearch(value, appState),
                       autofocus: false,
                       padding: const EdgeInsets.symmetric(
@@ -728,7 +747,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  filter: _searchBlur15,
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -843,7 +862,7 @@ class _SearchScreenState extends State<SearchScreen> {
         // Liquid glass section header
         ClipRRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: _searchBlur10,
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               decoration: BoxDecoration(
@@ -934,7 +953,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter: _searchBlur10,
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
@@ -1230,7 +1249,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: _searchBlur10,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
               decoration: BoxDecoration(
@@ -1304,7 +1323,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: _searchBlur10,
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -1468,7 +1487,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: _searchBlur10,
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -1646,7 +1665,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            filter: _searchBlur8,
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

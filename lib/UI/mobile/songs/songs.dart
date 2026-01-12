@@ -12,29 +12,43 @@ class SongsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        if (appState.isLoading && appState.tracks.isEmpty) {
+    return Selector<AppState, ({List<Track> tracks, bool isLoading})>(
+      selector: (_, state) =>
+          (tracks: state.tracks, isLoading: state.isLoading),
+      shouldRebuild: (prev, next) =>
+          prev.isLoading != next.isLoading ||
+          prev.tracks.length != next.tracks.length,
+      builder: (context, data, child) {
+        if (data.isLoading && data.tracks.isEmpty) {
           return const Center(
             child: CupertinoActivityIndicator(color: CupertinoColors.white),
           );
         }
 
-        if (appState.tracks.isEmpty) {
+        if (data.tracks.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(CupertinoIcons.music_note, size: 64, color: CupertinoColors.systemGrey),
+                const Icon(
+                  CupertinoIcons.music_note,
+                  size: 64,
+                  color: CupertinoColors.systemGrey,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   l10n.noSongsFound,
-                  style: const TextStyle(fontSize: 18, color: CupertinoColors.systemGrey),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: CupertinoColors.systemGrey,
+                  ),
                 ),
               ],
             ),
           );
         }
+
+        final appState = context.read<AppState>();
 
         return Stack(
           children: [
@@ -58,17 +72,23 @@ class SongsView extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(CupertinoIcons.play_fill, size: 18),
+                                  const Icon(
+                                    CupertinoIcons.play_fill,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
                                     l10n.playAll,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ],
                               ),
                               onPressed: () {
-                                if (appState.tracks.isNotEmpty) {
-                                  appState.playPlaylist(appState.tracks, 0);
+                                if (data.tracks.isNotEmpty) {
+                                  appState.playPlaylist(data.tracks, 0);
                                 }
                               },
                             ),
@@ -82,17 +102,27 @@ class SongsView extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(CupertinoIcons.shuffle, color: CupertinoColors.white, size: 18),
+                                  const Icon(
+                                    CupertinoIcons.shuffle,
+                                    color: CupertinoColors.white,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
                                     l10n.shuffle,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: CupertinoColors.white,
+                                    ),
                                   ),
                                 ],
                               ),
                               onPressed: () {
-                                if (appState.tracks.isNotEmpty) {
-                                  final shuffledTracks = List<Track>.from(appState.tracks)..shuffle();
+                                if (data.tracks.isNotEmpty) {
+                                  final shuffledTracks = List<Track>.from(
+                                    data.tracks,
+                                  )..shuffle();
                                   appState.playPlaylist(shuffledTracks, 0);
                                 }
                               },
@@ -102,40 +132,31 @@ class SongsView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Songs list
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final track = appState.tracks[index];
-                        return TrackListItem(
-                          track: track,
-                          onTap: () {
-                            appState.playPlaylist(appState.tracks, index);
-                          },
-                          showAlbumArt: false,
-                          showTrackNumber: false,
-                          showDuration: true,
-                          showDownloadButton: true,
-                          showFavoriteButton: true,
-                        );
-                      },
-                      childCount: appState.tracks.length,
-                    ),
+                  // Songs list with fixed extent for better scroll performance
+                  SliverFixedExtentList(
+                    itemExtent: 72,
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final track = data.tracks[index];
+                      return TrackListItem(
+                        track: track,
+                        onTap: () {
+                          appState.playPlaylist(data.tracks, index);
+                        },
+                        showAlbumArt: false,
+                        showTrackNumber: false,
+                        showDuration: true,
+                        showDownloadButton: true,
+                        showFavoriteButton: true,
+                      );
+                    }, childCount: data.tracks.length),
                   ),
                   // Add some bottom padding for mini player
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             ),
             // Mini player at bottom
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: MiniPlayer(),
-            ),
+            const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer()),
           ],
         );
       },

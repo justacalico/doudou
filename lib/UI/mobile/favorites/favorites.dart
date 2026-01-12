@@ -8,6 +8,9 @@ import '../../../models/jellyfin_models.dart';
 import '../widgets/apple_design/liquid_glass.dart';
 import '../partials/tracks/track_list_item.dart';
 
+// Cached blur filter to avoid recreation on each build
+final _favoritesBlur20 = ImageFilter.blur(sigmaX: 20, sigmaY: 20);
+
 class FavoritesView extends StatelessWidget {
   final bool showDownloadedOnly;
 
@@ -74,7 +77,7 @@ class FavoritesView extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: _favoritesBlur20,
             child: Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
@@ -187,7 +190,7 @@ class FavoritesView extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            filter: _favoritesBlur20,
                             child: Container(
                               height: 50,
                               decoration: BoxDecoration(
@@ -238,7 +241,7 @@ class FavoritesView extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            filter: _favoritesBlur20,
                             child: Container(
                               height: 50,
                               decoration: BoxDecoration(
@@ -286,8 +289,9 @@ class FavoritesView extends StatelessWidget {
             ),
           ),
         ),
-        // Songs list
-        SliverList(
+        // Songs list with fixed extent for better scroll performance
+        SliverFixedExtentList(
+          itemExtent: 72,
           delegate: SliverChildBuilderDelegate((context, index) {
             final track = favoriteTracks[index];
             return TrackListItem(
@@ -311,7 +315,7 @@ class FavoritesView extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: _favoritesBlur20,
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
