@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../l10n/app_localizations.dart';
+import '../widgets/cached_image_widget.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
@@ -277,14 +277,14 @@ class PlaylistTile extends StatelessWidget {
                     width: 60,
                     height: 60,
                     child: playlist.imageUrl != null
-                        ? CachedNetworkImage(
+                        ? CachedImageWidget(
                             imageUrl: appState.getImageUrl(
                               playlist.imageUrl!,
                               width: 150,
                               height: 150,
                             ),
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
+                            placeholder: Container(
                               color: const Color(0xFF2C2C2E),
                               child: const Icon(
                                 CupertinoIcons.music_note_list,
@@ -292,7 +292,7 @@ class PlaylistTile extends StatelessWidget {
                                 size: 24,
                               ),
                             ),
-                            errorWidget: (context, url, error) => Container(
+                            errorWidget: Container(
                               color: const Color(0xFF2C2C2E),
                               child: const Icon(
                                 CupertinoIcons.music_note_list,
@@ -953,15 +953,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                             child: widget.playlist.imageUrl != null
                                 ? Consumer<AppState>(
                                     builder: (context, appState, child) {
-                                      return CachedNetworkImage(
+                                      return CachedImageWidget(
                                         imageUrl: appState.getImageUrl(
                                           widget.playlist.imageUrl!,
                                           width: 400,
                                           height: 400,
                                         ),
                                         fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Container(
+                                        placeholder: Container(
                                               color: const Color(0xFF2C2C2E),
                                               child: const Icon(
                                                 CupertinoIcons.music_note_list,
@@ -970,8 +969,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                                 size: 48,
                                               ),
                                             ),
-                                        errorWidget: (context, url, error) =>
-                                            Container(
+                                        errorWidget: Container(
                                               color: const Color(0xFF2C2C2E),
                                               child: const Icon(
                                                 CupertinoIcons.music_note_list,
@@ -1355,14 +1353,14 @@ class PlaylistTrackItem extends StatelessWidget {
                   child: track.imageUrl != null
                       ? Consumer<AppState>(
                           builder: (context, appState, child) {
-                            return CachedNetworkImage(
+                            return CachedImageWidget(
                               imageUrl: appState.getImageUrl(
                                 track.imageUrl!,
                                 width: 100,
                                 height: 100,
                               ),
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
+                              placeholder: Container(
                                 color: const Color(0xFF2C2C2E),
                                 child: const Icon(
                                   CupertinoIcons.music_note,
@@ -1370,7 +1368,7 @@ class PlaylistTrackItem extends StatelessWidget {
                                   size: 16,
                                 ),
                               ),
-                              errorWidget: (context, url, error) => Container(
+                              errorWidget: Container(
                                 color: const Color(0xFF2C2C2E),
                                 child: const Icon(
                                   CupertinoIcons.music_note,

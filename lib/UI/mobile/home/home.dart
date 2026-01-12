@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../widgets/apple_design/liquid_glass.dart';
+import '../widgets/cached_image_widget.dart';
 import '../shared/detail_track_view.dart';
 
 class HomeContent extends StatefulWidget {
@@ -538,14 +538,14 @@ class _HomeContentState extends State<HomeContent> {
                 height: 130,
                 color: CupertinoColors.systemGrey6.darkColor,
                 child: currentTrack.imageUrl != null
-                    ? CachedNetworkImage(
+                    ? CachedImageWidget(
                         imageUrl: appState.getImageUrl(
                           currentTrack.imageUrl!,
                           width: 300,
                           height: 300,
                         ),
                         fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => const Icon(
+                        errorWidget: const Icon(
                           CupertinoIcons.music_note,
                           size: 40,
                           color: CupertinoColors.systemGrey,
@@ -694,17 +694,17 @@ class _HomeContentState extends State<HomeContent> {
                     width: width,
                     color: CupertinoColors.systemGrey6.darkColor,
                     child: album.imageUrl != null
-                        ? CachedNetworkImage(
+                        ? CachedImageWidget(
                             imageUrl: appState.getImageUrl(
                               album.imageUrl!,
                               width: 400,
                               height: 400,
                             ),
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
+                            placeholder: const Center(
                               child: CupertinoActivityIndicator(),
                             ),
-                            errorWidget: (context, url, error) => const Icon(
+                            errorWidget: const Icon(
                               CupertinoIcons.music_albums,
                               size: 50,
                               color: CupertinoColors.systemGrey,

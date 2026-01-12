@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Material, MaterialType;
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
+import '../../widgets/cached_image_widget.dart';
 
 class TrackListItem extends StatelessWidget {
   final Track track;
@@ -216,14 +216,14 @@ class TrackListItem extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: track.imageUrl != null
-                      ? CachedNetworkImage(
+                      ? CachedImageWidget(
                           imageUrl: appState.getImageUrl(
                             track.imageUrl!,
                             width: 180,
                             height: 180,
                           ),
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
+                          placeholder: Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
@@ -237,7 +237,7 @@ class TrackListItem extends StatelessWidget {
                               size: 24,
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
+                          errorWidget: Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
@@ -445,14 +445,14 @@ class TrackListItem extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: track.imageUrl != null
-                      ? CachedNetworkImage(
+                      ? CachedImageWidget(
                           imageUrl: appState.getImageUrl(
                             track.imageUrl!,
                             width: 162,
                             height: 162,
                           ),
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
+                          placeholder: Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
@@ -466,7 +466,7 @@ class TrackListItem extends StatelessWidget {
                               size: 22,
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
+                          errorWidget: Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,

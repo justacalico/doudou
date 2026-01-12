@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
+import '../../widgets/cached_image_widget.dart';
 
 /// Shows the queue overlay with glass-morphism design
 void showQueueOverlay(BuildContext context) {
@@ -390,19 +390,19 @@ class _QueueOverlayState extends State<QueueOverlay>
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: track.imageUrl != null
-                  ? CachedNetworkImage(
+                  ? CachedImageWidget(
                       imageUrl: appState.getImageUrl(
                         track.imageUrl!,
                         width: 96,
                         height: 96,
                       ),
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(
+                      placeholder: const Center(
                         child: CupertinoActivityIndicator(
                           color: Colors.white38,
                         ),
                       ),
-                      errorWidget: (context, url, error) => const Icon(
+                      errorWidget: const Icon(
                         CupertinoIcons.music_note,
                         color: Colors.white38,
                         size: 24,

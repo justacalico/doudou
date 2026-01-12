@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Material, MaterialType;
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
+import '../widgets/cached_image_widget.dart';
 import '../widgets/apple_design/liquid_glass.dart';
 import '../partials/tracks/track_list_item.dart';
 import '../partials/player/mini_player.dart';
@@ -178,14 +178,14 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: widget.imageUrl != null
-                        ? CachedNetworkImage(
+                        ? CachedImageWidget(
                             imageUrl: appState.getImageUrl(
                               widget.imageUrl!,
                               width: 320,
                               height: 320,
                             ),
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
+                            placeholder: Container(
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
@@ -202,7 +202,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                                 color: CupertinoColors.white,
                               ),
                             ),
-                            errorWidget: (context, url, error) => Container(
+                            errorWidget: Container(
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [

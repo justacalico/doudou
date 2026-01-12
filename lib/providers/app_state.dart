@@ -104,6 +104,12 @@ class AppState extends ChangeNotifier {
       return itemId;
     }
 
+    // If itemId is a local file path (file:// URI or absolute path), return as-is
+    // This handles local music files with embedded or extracted album art
+    if (itemId.startsWith('file://') || itemId.startsWith('/')) {
+      return itemId;
+    }
+
     // Otherwise, construct the URL using the media service
     return _mediaServiceManager.getImageUrl(
       itemId,
