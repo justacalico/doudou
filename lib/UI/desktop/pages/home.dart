@@ -163,56 +163,30 @@ class _HomePageState extends State<HomePage> {
     AppState appState,
     AppLocalizations l10n,
   ) {
-    final theme = Theme.of(context);
-
     return Row(
       children: [
         Expanded(
           child: QuickAccessCard(
-            title: l10n.likedSongs,
+            title: 'Shuffle All',
+            subtitle: l10n.countSongs(appState.tracks.length),
+            icon: Icons.shuffle_rounded,
+            color: DesktopTheme.playButtonGreen,
+            onTap: () {
+              appState.shuffleAllTracks();
+            },
+          ),
+        ),
+        const SizedBox(width: DesktopTheme.spacingMd),
+        Expanded(
+          child: QuickAccessCard(
+            title: 'Shuffle Favorites',
             subtitle: l10n.countSongs(
               appState.tracks.where((t) => t.isFavorite).length,
             ),
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,
             onTap: () {
-              NavigationService().selectPage(5); // Tracks page (for now)
-            },
-          ),
-        ),
-        const SizedBox(width: DesktopTheme.spacingMd),
-        Expanded(
-          child: QuickAccessCard(
-            title: l10n.allAlbums,
-            subtitle: l10n.countAlbums(appState.albums.length),
-            icon: Icons.album_rounded,
-            color: theme.colorScheme.primary,
-            onTap: () {
-              NavigationService().selectPage(3); // Albums page
-            },
-          ),
-        ),
-        const SizedBox(width: DesktopTheme.spacingMd),
-        Expanded(
-          child: QuickAccessCard(
-            title: l10n.allArtists,
-            subtitle: l10n.countArtists(appState.artists.length),
-            icon: Icons.person_rounded,
-            color: DesktopTheme.shufflePurple,
-            onTap: () {
-              NavigationService().selectPage(4); // Artists page
-            },
-          ),
-        ),
-        const SizedBox(width: DesktopTheme.spacingMd),
-        Expanded(
-          child: QuickAccessCard(
-            title: 'Shuffle All',
-            subtitle: 'Play random songs',
-            icon: Icons.shuffle_rounded,
-            color: DesktopTheme.playButtonGreen,
-            onTap: () {
-              appState.shuffleAllTracks();
+              appState.shuffleFavoriteTracks();
             },
           ),
         ),
