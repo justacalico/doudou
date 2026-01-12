@@ -332,30 +332,6 @@ class LibraryContent extends StatelessWidget {
                                 onTap: () =>
                                     _navigateToSection(context, 'Playlists'),
                               ),
-
-                              _buildEnhancedLibraryItem(
-                                context,
-                                icon: CupertinoIcons.square_grid_2x2_fill,
-                                title: AppLocalizations.of(context).collections,
-                                subtitle: AppLocalizations.of(
-                                  context,
-                                ).comingSoon,
-                                color: const Color(0xFFF59E0B),
-                                onTap: () =>
-                                    _navigateToSection(context, 'Collections'),
-                              ),
-
-                              _buildEnhancedLibraryItem(
-                                context,
-                                icon: CupertinoIcons.tag_fill,
-                                title: AppLocalizations.of(context).genres,
-                                subtitle: AppLocalizations.of(
-                                  context,
-                                ).comingSoon,
-                                color: const Color(0xFFEF4444),
-                                onTap: () =>
-                                    _navigateToSection(context, 'Genres'),
-                              ),
                             ],
                           ),
                         ),
@@ -584,14 +560,6 @@ class LibraryContent extends StatelessWidget {
         page = _buildPlaylistsPage();
         title = l10n.playlists;
         break;
-      case 'Collections':
-        page = _buildCollectionsPage();
-        title = l10n.collections;
-        break;
-      case 'Genres':
-        page = _buildGenresPage();
-        title = l10n.genres;
-        break;
       case 'Favorites':
         page = _buildFavoritesPage();
         title = l10n.favorites;
@@ -770,62 +738,6 @@ class LibraryContent extends StatelessWidget {
 
   Widget _buildPlaylistsPage() {
     return const PlaylistsView();
-  }
-
-  Widget _buildCollectionsPage() {
-    return Builder(
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                CupertinoIcons.square_grid_2x2,
-                size: 64,
-                color: CupertinoColors.systemGrey,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.collectionsComingSoon,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: CupertinoColors.systemGrey,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGenresPage() {
-    return Builder(
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                CupertinoIcons.music_albums,
-                size: 64,
-                color: CupertinoColors.systemGrey,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.genresComingSoon,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: CupertinoColors.systemGrey,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildFavoritesPage() {
