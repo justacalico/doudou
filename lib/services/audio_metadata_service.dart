@@ -1,49 +1,44 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-// Conditionally import audiotags only on supported platforms
-import 'package:audiotags/audiotags.dart' as audiotags;
+import 'package:audio_metadata_reader/audio_metadata_reader.dart' as amr;
 
-/// Wrapper service for audio metadata reading.
-/// This provides a platform-safe way to read audio tags, since the audiotags
-/// package (which uses flutter_rust_bridge) has issues on iOS and macOS builds.
+/// Service for reading audio metadata from files.
+/// Uses audio_metadata_reader which is a pure Dart package that works on all platforms.
 class AudioMetadataService {
   static final AudioMetadataService _instance = AudioMetadataService._internal();
   factory AudioMetadataService() => _instance;
   AudioMetadataService._internal();
 
   /// Returns true if audio metadata reading is supported on this platform.
-  /// iOS and macOS are currently not supported due to flutter_rust_bridge build issues.
-  /// macOS universal builds fail because the static library lacks x86_64 symbols.
-  bool get isSupported => !Platform.isIOS && !Platform.isMacOS;
+  /// Now supported on all platforms since we use pure Dart.
+  bool get isSupported => true;
 
   /// Read audio tags from a file.
-  /// Returns null on iOS or if reading fails.
+  /// Returns null if reading fails.
   Future<AudioMetadata?> readMetadata(String filePath) async {
-    if (!isSupported) {
-      return null;
-    }
-
     try {
-      final tag = await audiotags.AudioTags.read(filePath);
-      if (tag == null) return null;
+      final file = File(filePath);
+      if (!await file.exists()) return null;
+
+      final metadata = amr.readMetadata(file, getImage: true);
 
       return AudioMetadata(
-        title: tag.title,
-        trackArtist: tag.trackArtist,
-        albumArtist: tag.albumArtist,
-        album: tag.album,
-        genre: tag.genre,
-        year: tag.year,
-        trackNumber: tag.trackNumber,
-        trackTotal: tag.trackTotal,
-        discNumber: tag.discNumber,
-        discTotal: tag.discTotal,
-        duration: tag.duration,
-        pictures: tag.pictures
+        title: metadata.title,
+        trackArtist: metadata.artist,
+        albumArtist: metadata.artist, // audio_metadata_reader doesn't have albumArtist, use artist
+        album: metadata.album,
+        genre: metadata.genres.isNotEmpty ? metadata.genres.first : null,
+        year: metadata.year?.year,
+        trackNumber: metadata.trackNumber,
+        trackTotal: metadata.trackTotal,
+        discNumber: metadata.discNumber,
+        discTotal: metadata.totalDisc,
+        duration: metadata.duration?.inSeconds,
+        pictures: metadata.pictures
             .map((p) => AudioPicture(
-                  bytes: Uint8List.fromList(p.bytes),
-                  mimeType: _convertMimeType(p.mimeType),
+                  bytes: p.bytes,
+                  mimeType: _convertMimeType(p.mimetype),
                 ))
             .toList(),
       );
@@ -53,21 +48,18 @@ class AudioMetadataService {
     }
   }
 
-  /// Convert audiotags MimeType to our simplified enum
-  AudioPictureMimeType? _convertMimeType(audiotags.MimeType? mimeType) {
+  /// Convert mime type string to our simplified enum
+  AudioPictureMimeType? _convertMimeType(String? mimeType) {
     if (mimeType == null) return null;
-    switch (mimeType) {
-      case audiotags.MimeType.png:
-        return AudioPictureMimeType.png;
-      case audiotags.MimeType.gif:
-        return AudioPictureMimeType.gif;
-      case audiotags.MimeType.bmp:
-        return AudioPictureMimeType.bmp;
-      case audiotags.MimeType.tiff:
-        return AudioPictureMimeType.tiff;
-      case audiotags.MimeType.jpeg:
-        return AudioPictureMimeType.jpeg;
+    final lower = mimeType.toLowerCase();
+    if (lower.contains('png')) return AudioPictureMimeType.png;
+    if (lower.contains('gif')) return AudioPictureMimeType.gif;
+    if (lower.contains('bmp')) return AudioPictureMimeType.bmp;
+    if (lower.contains('tiff')) return AudioPictureMimeType.tiff;
+    if (lower.contains('jpeg') || lower.contains('jpg')) {
+      return AudioPictureMimeType.jpeg;
     }
+    return AudioPictureMimeType.jpeg; // Default to jpeg for unknown
   }
 }
 

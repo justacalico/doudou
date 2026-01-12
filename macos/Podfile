@@ -31,9 +31,6 @@ target 'Runner' do
 
   flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
   
-  # Stub for audiotags missing flutter_rust_bridge symbols
-  pod 'AudiotagsStub', :path => 'Runner'
-  
   target 'RunnerTests' do
     inherit! :search_paths
   end
