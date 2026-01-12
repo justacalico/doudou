@@ -163,16 +163,19 @@ class JustAudioMediaKitExt {
 mixin WindowsAudioConfigMixin {
   /// Configure a media_kit Player to disable WASAPI exclusive mode
   Future<void> configureWindowsAudio(Player player) async {
-    if (!JustAudioMediaKitExt.shouldDisableExclusiveMode) return;
-    
-    try {
-      final platform = player.platform;
-      if (platform is NativePlayer) {
-        await platform.setProperty('audio-exclusive', 'no');
-        debugPrint('WindowsAudioConfigMixin: Disabled WASAPI exclusive mode');
+    // Only apply on Windows desktop platforms
+    if (!kIsWeb && Platform.isWindows) {
+      if (!JustAudioMediaKitExt.shouldDisableExclusiveMode) return;
+      
+      try {
+        final platform = player.platform;
+        if (platform is NativePlayer) {
+          await platform.setProperty('audio-exclusive', 'no');
+          debugPrint('WindowsAudioConfigMixin: Disabled WASAPI exclusive mode');
+        }
+      } catch (e) {
+        debugPrint('WindowsAudioConfigMixin: Failed to configure: $e');
       }
-    } catch (e) {
-      debugPrint('WindowsAudioConfigMixin: Failed to configure: $e');
     }
   }
 }
