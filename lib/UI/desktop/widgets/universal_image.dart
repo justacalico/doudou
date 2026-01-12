@@ -157,7 +157,7 @@ Widget buildSmartImage({
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, __, ___) => errorBuilder?.call() ?? Container(
+      errorBuilder: (_, _, _) => errorBuilder?.call() ?? Container(
         width: width,
         height: height,
         color: const Color(0xFF2C2C2E),
@@ -175,7 +175,7 @@ Widget buildSmartImage({
     width: width,
     height: height,
     fit: fit,
-    errorBuilder: (_, __, ___) => errorBuilder?.call() ?? Container(
+    errorBuilder: (_, _, _) => errorBuilder?.call() ?? Container(
       width: width,
       height: height,
       color: const Color(0xFF2C2C2E),

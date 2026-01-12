@@ -197,6 +197,7 @@ class LocalMusicService implements BaseMediaService {
     // Initialize with fallback values from filename/folder structure
     String trackName = fileName;
     String? artistName;
+    String? albumArtist; // For album grouping (different from track artist)
     String? albumName = parentDirName;
     int? trackNumber;
     int? durationMs;
@@ -209,10 +210,15 @@ class LocalMusicService implements BaseMediaService {
         if (tag.title != null && tag.title!.isNotEmpty) {
           trackName = tag.title!;
         }
+        // Track artist (for display)
         if (tag.trackArtist != null && tag.trackArtist!.isNotEmpty) {
           artistName = tag.trackArtist;
-        } else if (tag.albumArtist != null && tag.albumArtist!.isNotEmpty) {
-          artistName = tag.albumArtist;
+        }
+        // Album artist (for grouping - takes priority for album grouping)
+        if (tag.albumArtist != null && tag.albumArtist!.isNotEmpty) {
+          albumArtist = tag.albumArtist;
+          // Use album artist as fallback for track artist if not set
+          artistName ??= tag.albumArtist;
         }
         if (tag.album != null && tag.album!.isNotEmpty) {
           albumName = tag.album;
@@ -258,12 +264,17 @@ class LocalMusicService implements BaseMediaService {
         if (potentialArtist.isNotEmpty &&
             !_musicDirectories.contains(grandParentDir)) {
           artistName ??= potentialArtist;
+          albumArtist ??= potentialArtist;
         }
       }
     }
 
-    // Generate album ID based on album name and artist for better grouping
-    final albumId = _generatePathHash('${artistName ?? ''}_${albumName ?? parentDirName}');
+    // Generate album ID based on:
+    // 1. Album artist + album name (for proper album grouping with various artists)
+    // 2. Fall back to parent directory path (groups files in same folder as same album)
+    final albumId = albumArtist != null 
+        ? _generatePathHash('${albumArtist}_${albumName ?? parentDirName}')
+        : _generatePathHash(parentDir); // Use folder path for albums without album artist
 
     // Store the file path for later retrieval
     _trackIdToPath[trackId] = filePath;
@@ -344,19 +355,13 @@ class LocalMusicService implements BaseMediaService {
   /// Rebuild albums and artists from tracks
   void _rebuildCollections() {
     final albumsMap = <String, Album>{};
+    final albumTracksMap = <String, List<Track>>{}; // Track all artists per album
     final artistsMap = <String, Artist>{};
 
     for (final track in _tracks) {
-      // Build albums
+      // Build albums - collect all tracks per album
       if (track.albumId != null) {
-        if (!albumsMap.containsKey(track.albumId)) {
-          albumsMap[track.albumId!] = Album(
-            id: track.albumId!,
-            name: track.albumName ?? 'Unknown Album',
-            artistName: track.artistName,
-            imageUrl: track.imageUrl,
-          );
-        }
+        albumTracksMap.putIfAbsent(track.albumId!, () => []).add(track);
       }
 
       // Build artists
@@ -365,6 +370,35 @@ class LocalMusicService implements BaseMediaService {
       if (!artistsMap.containsKey(artistId)) {
         artistsMap[artistId] = Artist(id: artistId, name: artistName);
       }
+    }
+
+    // Build albums with proper artist attribution
+    for (final entry in albumTracksMap.entries) {
+      final albumId = entry.key;
+      final tracks = entry.value;
+      if (tracks.isEmpty) continue;
+
+      // Get unique artists for this album
+      final uniqueArtists = tracks.map((t) => t.artistName ?? 'Unknown Artist').toSet();
+      
+      // Determine album artist
+      String albumArtist;
+      if (uniqueArtists.length == 1) {
+        // Single artist album
+        albumArtist = uniqueArtists.first;
+      } else {
+        // Multiple artists - use "Various Artists"
+        albumArtist = 'Various Artists';
+      }
+
+      // Use the first track's data for album info
+      final firstTrack = tracks.first;
+      albumsMap[albumId] = Album(
+        id: albumId,
+        name: firstTrack.albumName ?? 'Unknown Album',
+        artistName: albumArtist,
+        imageUrl: firstTrack.imageUrl,
+      );
     }
 
     _albums = albumsMap.values.toList()
