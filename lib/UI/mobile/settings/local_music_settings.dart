@@ -290,7 +290,13 @@ class _LocalMusicSettingsScreenState extends State<LocalMusicSettingsScreen> {
 
     final success = await appState.loginWithLocalMusic();
 
-    if (!success && mounted) {
+    if (success && mounted) {
+      // Pop back to login screen, which will then show home since isLoggedIn is true
+      // Use canPop check since the widget tree may already be rebuilding
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    } else if (!success && mounted) {
       setState(() {
         _errorMessage = 'Failed to initialize local music mode';
       });
