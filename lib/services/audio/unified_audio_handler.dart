@@ -1454,6 +1454,21 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   }
 
   MediaItem _trackToMediaItem(Track track) {
+    // Get the image URL
+    final imageUrl = _mediaServiceManager.getImageUrl(
+      track.albumId ?? track.id,
+      width: 512,
+      height: 512,
+    );
+    
+    // Only use artUri if it's a valid HTTP/HTTPS URL
+    // file:// URIs cause errors with SMTC/flutter_cache_manager on Windows
+    Uri? artUri;
+    if (imageUrl.isNotEmpty && 
+        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+      artUri = Uri.tryParse(imageUrl);
+    }
+    
     return MediaItem(
       id: track.id,
       album: track.albumName ?? 'Unknown Album',
@@ -1462,13 +1477,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       duration: track.duration != null
           ? Duration(milliseconds: track.duration!)
           : null,
-      artUri: Uri.tryParse(
-        _mediaServiceManager.getImageUrl(
-          track.albumId ?? track.id,
-          width: 512,
-          height: 512,
-        ),
-      ),
+      artUri: artUri,
       playable: true,
       extras: {
         'trackId': track.id,

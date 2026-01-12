@@ -947,7 +947,7 @@ class LocalMusicService implements BaseMediaService {
     // First try to get the path from our cached map (fast lookup)
     final cachedPath = _trackIdToPath[trackId];
     if (cachedPath != null && File(cachedPath).existsSync()) {
-      return 'file://$cachedPath';
+      return _toFileUri(cachedPath);
     }
 
     // If not in cache, search through directories (slower but thorough)
@@ -956,11 +956,25 @@ class LocalMusicService implements BaseMediaService {
       if (foundPath != null) {
         // Cache the path for future lookups
         _trackIdToPath[trackId] = foundPath;
-        return 'file://$foundPath';
+        return _toFileUri(foundPath);
       }
     }
 
     return '';
+  }
+
+  /// Convert a file path to a proper file:// URI
+  /// On Windows, paths like C:\path need to become file:///C:/path
+  /// On Unix, paths like /path need to become file:///path
+  String _toFileUri(String filePath) {
+    if (Platform.isWindows) {
+      // Windows paths: C:\path -> file:///C:/path
+      final normalizedPath = filePath.replaceAll('\\', '/');
+      return 'file:///$normalizedPath';
+    } else {
+      // Unix paths: /path -> file:///path (which is file:// + /path)
+      return 'file://$filePath';
+    }
   }
 
   /// Find a file by its track ID
@@ -1007,8 +1021,8 @@ class LocalMusicService implements BaseMediaService {
       (a) => a.id == itemId,
       orElse: () => Album(id: '', name: ''),
     );
-    if (album.id.isNotEmpty && album.imageUrl != null) {
-      return 'file://${album.imageUrl}';
+    if (album.id.isNotEmpty && album.imageUrl != null && album.imageUrl!.isNotEmpty) {
+      return _toFileUri(album.imageUrl!);
     }
 
     // Check if it's a track
@@ -1016,13 +1030,18 @@ class LocalMusicService implements BaseMediaService {
       (t) => t.id == itemId,
       orElse: () => Track(id: '', name: ''),
     );
-    if (track.id.isNotEmpty && track.imageUrl != null) {
-      return 'file://${track.imageUrl}';
+    if (track.id.isNotEmpty && track.imageUrl != null && track.imageUrl!.isNotEmpty) {
+      return _toFileUri(track.imageUrl!);
     }
 
-    // If itemId is already a path, return it
-    if (itemId.startsWith('/') || itemId.startsWith('file://')) {
-      return itemId.startsWith('file://') ? itemId : 'file://$itemId';
+    // If itemId is already a path, convert it
+    if (itemId.startsWith('/') || (Platform.isWindows && itemId.contains(':'))) {
+      return _toFileUri(itemId);
+    }
+    
+    // Already a file:// URI
+    if (itemId.startsWith('file://')) {
+      return itemId;
     }
 
     return '';
