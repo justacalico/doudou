@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
+import 'package:audiotags/audiotags.dart';
 import 'dart:convert';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
@@ -193,47 +194,76 @@ class LocalMusicService implements BaseMediaService {
     // Generate unique ID based on file path
     final trackId = _generateFileId(filePath);
 
-    // Try to parse track info from filename and directory structure
-    // Common formats: "01 - Track Name.mp3" or "Artist - Track Name.mp3"
+    // Initialize with fallback values from filename/folder structure
     String trackName = fileName;
     String? artistName;
-    String? albumName;
+    String? albumName = parentDirName;
     int? trackNumber;
+    int? durationMs;
 
-    // Try to extract track number from filename
-    final trackNumberMatch = RegExp(
-      r'^(\d+)[\s._-]+(.+)$',
-    ).firstMatch(fileName);
-    if (trackNumberMatch != null) {
-      trackNumber = int.tryParse(trackNumberMatch.group(1)!);
-      trackName = trackNumberMatch.group(2)!.trim();
+    // Try to read ID3 tags from the audio file
+    try {
+      final tag = await AudioTags.read(filePath);
+      if (tag != null) {
+        // Use tag data if available, with fallbacks
+        if (tag.title != null && tag.title!.isNotEmpty) {
+          trackName = tag.title!;
+        }
+        if (tag.trackArtist != null && tag.trackArtist!.isNotEmpty) {
+          artistName = tag.trackArtist;
+        } else if (tag.albumArtist != null && tag.albumArtist!.isNotEmpty) {
+          artistName = tag.albumArtist;
+        }
+        if (tag.album != null && tag.album!.isNotEmpty) {
+          albumName = tag.album;
+        }
+        if (tag.trackNumber != null) {
+          trackNumber = tag.trackNumber;
+        }
+        if (tag.duration != null) {
+          durationMs = tag.duration;
+        }
+      }
+    } catch (e) {
+      // Failed to read tags, continue with filename-based extraction
     }
 
-    // Try to extract artist from "Artist - Track" format
-    final artistTrackMatch = RegExp(
-      r'^([^-]+)\s*-\s*(.+)$',
-    ).firstMatch(trackName);
-    if (artistTrackMatch != null) {
-      artistName = artistTrackMatch.group(1)!.trim();
-      trackName = artistTrackMatch.group(2)!.trim();
-    }
+    // Fallback: Try to parse track info from filename if no tags found
+    if (artistName == null) {
+      // Try to extract track number from filename
+      final trackNumberMatch = RegExp(
+        r'^(\d+)[\s._-]+(.+)$',
+      ).firstMatch(fileName);
+      if (trackNumberMatch != null) {
+        trackNumber ??= int.tryParse(trackNumberMatch.group(1)!);
+        if (trackName == fileName) {
+          trackName = trackNumberMatch.group(2)!.trim();
+        }
+      }
 
-    // Use parent directory as album name (common folder structure)
-    albumName = parentDirName;
+      // Try to extract artist from "Artist - Track" format
+      final artistTrackMatch = RegExp(
+        r'^([^-]+)\s*-\s*(.+)$',
+      ).firstMatch(trackName);
+      if (artistTrackMatch != null) {
+        artistName = artistTrackMatch.group(1)!.trim();
+        trackName = artistTrackMatch.group(2)!.trim();
+      }
 
-    // Try to detect artist from grandparent directory (Artist/Album/Track structure)
-    final grandParentDir = path.dirname(parentDir);
-    if (grandParentDir != baseDir) {
-      final potentialArtist = path.basename(grandParentDir);
-      // Don't use the base directory name as artist
-      if (potentialArtist.isNotEmpty &&
-          !_musicDirectories.contains(grandParentDir)) {
-        artistName ??= potentialArtist;
+      // Try to detect artist from grandparent directory (Artist/Album/Track structure)
+      final grandParentDir = path.dirname(parentDir);
+      if (grandParentDir != baseDir) {
+        final potentialArtist = path.basename(grandParentDir);
+        // Don't use the base directory name as artist
+        if (potentialArtist.isNotEmpty &&
+            !_musicDirectories.contains(grandParentDir)) {
+          artistName ??= potentialArtist;
+        }
       }
     }
 
-    // Generate album ID based on album folder path
-    final albumId = _generatePathHash(parentDir);
+    // Generate album ID based on album name and artist for better grouping
+    final albumId = _generatePathHash('${artistName ?? ''}_${albumName ?? parentDirName}');
 
     // Store the file path for later retrieval
     _trackIdToPath[trackId] = filePath;
@@ -241,7 +271,7 @@ class LocalMusicService implements BaseMediaService {
     // Get album art from multiple sources via AlbumArtService
     String? imageUrl = await _albumArtService.getAlbumArt(
       filePath: filePath,
-      albumName: albumName,
+      albumName: albumName ?? parentDirName,
       artistName: artistName ?? 'Unknown Artist',
       trackName: trackName,
       checkEmbedded: true,
@@ -258,7 +288,7 @@ class LocalMusicService implements BaseMediaService {
       albumName: albumName,
       artistName: artistName ?? 'Unknown Artist',
       albumId: albumId,
-      duration: null, // Would need metadata extraction for this
+      duration: durationMs,
       trackNumber: trackNumber,
       imageUrl: imageUrl,
       isFavorite: false,

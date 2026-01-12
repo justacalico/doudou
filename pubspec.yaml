@@ -76,6 +76,9 @@ dependencies:
   file_picker: ^10.3.0
   device_info_plus: ^12.3.0
   permission_handler: ^12.0.1
+  
+  # Audio metadata reading (ID3 tags)
+  audiotags: ^1.4.5
 
 dev_dependencies:
   flutter_test:
