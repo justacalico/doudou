@@ -43,7 +43,10 @@ Future<void> runDesktopApp() async {
       } catch (_) {}
     }
 
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
         JustAudioMediaKit.ensureInitialized();
       } catch (_) {}

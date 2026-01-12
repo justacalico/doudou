@@ -53,7 +53,10 @@ void _runMobileApp() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
     JustAudioMediaKit.ensureInitialized();
   }
 
