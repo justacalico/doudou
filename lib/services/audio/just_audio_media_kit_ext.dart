@@ -164,7 +164,12 @@ mixin WindowsAudioConfigMixin {
   /// Configure a media_kit Player to disable WASAPI exclusive mode
   Future<void> configureWindowsAudio(Player player) async {
     // Only apply on Windows desktop platforms
-    if (!kIsWeb && Platform.isWindows) {
+    // Use compile-time kIsWeb check to avoid web compiler errors
+    if (kIsWeb) {
+      return; // NativePlayer.setProperty doesn't exist in web stub
+    }
+    
+    if (Platform.isWindows) {
       if (!JustAudioMediaKitExt.shouldDisableExclusiveMode) return;
       
       try {
