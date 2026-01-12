@@ -27,24 +27,15 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
-# Fix for audiotags package iOS binary download bug (typo in podspec: `]d` instead of `]`)
-# Manually download the iOS xcframework before pod install
-audiotags_version = "1.4.5"
-audiotags_ios_path = File.expand_path("~/.pub-cache/hosted/pub.dev/audiotags-#{audiotags_version}/ios")
-audiotags_frameworks_path = "#{audiotags_ios_path}/Frameworks"
-audiotags_xcframework_path = "#{audiotags_frameworks_path}/audiotags.xcframework"
-
-unless File.exist?(audiotags_xcframework_path)
-  puts "Downloading audiotags iOS framework (working around podspec bug)..."
-  system("mkdir -p '#{audiotags_frameworks_path}'")
-  system("cd '#{audiotags_frameworks_path}' && curl -L 'https://github.com/erikas-taroza/audiotags/releases/download/v#{audiotags_version}/ios.zip' -o ios.zip && unzip -o ios.zip -d audiotags.xcframework")
-end
-
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  
+  # Stub for audiotags missing flutter_rust_bridge symbols
+  pod 'AudiotagsStub', :path => 'Runner'
+  
   target 'RunnerTests' do
     inherit! :search_paths
   end
