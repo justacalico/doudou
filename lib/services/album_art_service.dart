@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:audiotags/audiotags.dart';
 
 /// Service for fetching album art from multiple sources
 /// Priority:
@@ -96,24 +97,78 @@ class AlbumArtService {
   }
   
   /// Get embedded artwork bytes directly (for tracks without saving to file)
-  /// Note: This is currently not supported due to audiotags compatibility issues
-  /// Consider using local image files or online sources instead
   Future<Uint8List?> getEmbeddedArtworkBytes(String filePath) async {
     if (_embeddedArtCache.containsKey(filePath)) {
       return _embeddedArtCache[filePath];
     }
     
-    // Embedded artwork extraction is currently unavailable
-    // It will fallback to local files or online sources
+    try {
+      final tag = await AudioTags.read(filePath);
+      if (tag != null && tag.pictures.isNotEmpty) {
+        final picture = tag.pictures.first;
+        if (picture.bytes.isNotEmpty) {
+          final bytes = Uint8List.fromList(picture.bytes);
+          _embeddedArtCache[filePath] = bytes;
+          return bytes;
+        }
+      }
+    } catch (e) {
+      // Failed to extract embedded artwork
+    }
+    
     _embeddedArtCache[filePath] = null;
     return null;
   }
   
   /// Extract embedded artwork and save to a file
-  /// Note: This is currently disabled due to audiotags compatibility issues
   Future<String?> _getEmbeddedArtwork(String filePath) async {
-    // Embedded artwork extraction is currently unavailable
-    // It will fallback to local files or online sources
+    try {
+      final tag = await AudioTags.read(filePath);
+      if (tag != null && tag.pictures.isNotEmpty) {
+        final picture = tag.pictures.first;
+        if (picture.bytes.isNotEmpty) {
+          // Determine file extension from mime type
+          String extension = '.jpg';
+          if (picture.mimeType != null) {
+            switch (picture.mimeType!) {
+              case MimeType.png:
+                extension = '.png';
+              case MimeType.gif:
+                extension = '.gif';
+              case MimeType.bmp:
+                extension = '.bmp';
+              case MimeType.tiff:
+                extension = '.tiff';
+              case MimeType.jpeg:
+                extension = '.jpg';
+            }
+          }
+          
+          // Generate unique filename based on audio file path
+          final hash = md5.convert(utf8.encode(filePath)).toString().substring(0, 8);
+          final fileName = 'embedded_art_$hash$extension';
+          
+          // Save to app's cache directory
+          final cacheDir = await getApplicationCacheDirectory();
+          final artDir = Directory(path.join(cacheDir.path, 'embedded_artwork'));
+          if (!await artDir.exists()) {
+            await artDir.create(recursive: true);
+          }
+          
+          final artFile = File(path.join(artDir.path, fileName));
+          
+          // Only write if file doesn't exist
+          if (!await artFile.exists()) {
+            await artFile.writeAsBytes(picture.bytes);
+          }
+          
+          return artFile.path;
+        }
+      }
+    } catch (e) {
+      // Failed to extract embedded artwork
+    }
+    
     return null;
   }
   
