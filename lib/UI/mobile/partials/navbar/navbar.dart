@@ -6,6 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
+import '../../../../services/base_service.dart';
 import '../../home/home.dart';
 import '../../libary/library.dart';
 import '../../settings/settings.dart';
@@ -1782,11 +1783,30 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMobileLayout(AppState appState) {
     final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
 
     // Return loading indicator if localization is not ready yet
     if (l10n == null) {
       return const Center(child: CupertinoActivityIndicator());
     }
+
+    // Build tab contents based on local music mode
+    // For local music: Home, Library, Search, Settings (4 tabs)
+    // For server music: Home, Library, Downloads, Search, Settings (5 tabs)
+    final tabContents = isLocalMusic
+        ? <Widget>[
+            _buildTabContent(0, appState), // Home
+            _buildTabContent(1, appState), // Library
+            _buildTabContent(3, appState), // Search (index 3 in switch)
+            _buildTabContent(4, appState), // Settings (index 4 in switch)
+          ]
+        : <Widget>[
+            _buildTabContent(0, appState), // Home
+            _buildTabContent(1, appState), // Library
+            _buildTabContent(2, appState), // Downloads
+            _buildTabContent(3, appState), // Search
+            _buildTabContent(4, appState), // Settings
+          ];
 
     return Stack(
       children: [
@@ -1798,13 +1818,7 @@ class _HomeScreenState extends State<HomeScreen> {
           bottom: 0, // Content can extend to bottom, navbar overlays it
           child: IndexedStack(
             index: _tabController.index,
-            children: [
-              _buildTabContent(0, appState), // Home
-              _buildTabContent(1, appState), // Library
-              _buildTabContent(2, appState), // Downloads
-              _buildTabContent(3, appState), // Search
-              _buildTabContent(4, appState), // Settings
-            ],
+            children: tabContents,
           ),
         ),
 
@@ -1840,11 +1854,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 activeIcon: CupertinoIcons.music_note_list,
                 label: l10n.navLibrary,
               ),
-              LiquidGlassNavItem(
-                icon: CupertinoIcons.arrow_down_circle,
-                activeIcon: CupertinoIcons.arrow_down_circle_fill,
-                label: l10n.navDownloads,
-              ),
+              if (!isLocalMusic)
+                LiquidGlassNavItem(
+                  icon: CupertinoIcons.arrow_down_circle,
+                  activeIcon: CupertinoIcons.arrow_down_circle_fill,
+                  label: l10n.navDownloads,
+                ),
               LiquidGlassNavItem(
                 icon: CupertinoIcons.search,
                 activeIcon: CupertinoIcons.search,

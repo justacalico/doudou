@@ -7,6 +7,7 @@ import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
 import '../../../services/audio/unified_audio_handler.dart';
+import '../../../services/base_service.dart';
 import '../services/navigation_service.dart';
 import '../pages/home.dart';
 import '../pages/search.dart';
@@ -119,33 +120,51 @@ class _DesktopLayoutState extends State<DesktopLayout>
     ),
   ];
 
-  List<_NavItem> get _libraryItems => [
-    _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
-    _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
-    _NavItem(Icons.music_note_outlined, Icons.music_note_rounded, 'Tracks'),
-    _NavItem(
-      Icons.queue_music_outlined,
-      Icons.queue_music_rounded,
-      'Playlists',
-    ),
-    _NavItem(
-      Icons.download_outlined,
-      Icons.download_rounded,
-      'Downloads',
-    ),
-  ];
+  List<_NavItem> get _libraryItems {
+    final appState = context.read<AppState>();
+    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
+    
+    return [
+      _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
+      _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
+      _NavItem(Icons.music_note_outlined, Icons.music_note_rounded, 'Tracks'),
+      _NavItem(
+        Icons.queue_music_outlined,
+        Icons.queue_music_rounded,
+        'Playlists',
+      ),
+      if (!isLocalMusic)
+        _NavItem(
+          Icons.download_outlined,
+          Icons.download_rounded,
+          'Downloads',
+        ),
+    ];
+  }
 
-  List<Widget> get _pages => const [
-    HomePage(),
-    SearchPage(),
-    LibraryPage(),
-    AlbumsPage(),
-    ArtistsPage(),
-    TracksPage(),
-    PlaylistsPage(),
-    DownloadsPage(),
-    SettingsPage(),
-  ];
+  bool get _isLocalMusic {
+    final appState = context.read<AppState>();
+    return appState.mediaServiceManager.currentServerType == ServerType.local;
+  }
+
+  List<Widget> get _pages {
+    final pages = <Widget>[
+      const HomePage(),
+      const SearchPage(),
+      const LibraryPage(),
+      const AlbumsPage(),
+      const ArtistsPage(),
+      const TracksPage(),
+      const PlaylistsPage(),
+    ];
+    if (!_isLocalMusic) {
+      pages.add(const DownloadsPage());
+    }
+    pages.add(const SettingsPage());
+    return pages;
+  }
+
+  int get _settingsIndex => _isLocalMusic ? 7 : 8;
 
   Widget? _buildDetailPage() {
     final detailPage = _navigationService.currentDetailPage;
@@ -192,7 +211,8 @@ class _DesktopLayoutState extends State<DesktopLayout>
                     navItems: _navItems,
                     libraryItems: _libraryItems,
                     onNavTap: _navigateToPage,
-                    onSettingsTap: () => _navigateToPage(8),
+                    onSettingsTap: () => _navigateToPage(_settingsIndex),
+                    settingsIndex: _settingsIndex,
                   ),
                   // Page content
                   Expanded(
@@ -249,6 +269,7 @@ class _Sidebar extends StatelessWidget {
   final List<_NavItem> libraryItems;
   final ValueChanged<int> onNavTap;
   final VoidCallback onSettingsTap;
+  final int settingsIndex;
 
   const _Sidebar({
     required this.currentIndex,
@@ -256,6 +277,7 @@ class _Sidebar extends StatelessWidget {
     required this.libraryItems,
     required this.onNavTap,
     required this.onSettingsTap,
+    required this.settingsIndex,
   });
 
   @override
@@ -374,7 +396,7 @@ class _Sidebar extends StatelessWidget {
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
             label: l10n.settings,
-            isSelected: currentIndex == 8,
+            isSelected: currentIndex == settingsIndex,
             onTap: onSettingsTap,
           ),
 
