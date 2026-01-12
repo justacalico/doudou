@@ -291,7 +291,7 @@ class FavoritesView extends StatelessWidget {
         ),
         // Songs list with fixed extent for better scroll performance
         SliverFixedExtentList(
-          itemExtent: 72,
+          itemExtent: 96,
           delegate: SliverChildBuilderDelegate((context, index) {
             final track = favoriteTracks[index];
             return TrackListItem(

@@ -134,7 +134,7 @@ class SongsView extends StatelessWidget {
                   ),
                   // Songs list with fixed extent for better scroll performance
                   SliverFixedExtentList(
-                    itemExtent: 72,
+                    itemExtent: 82,
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final track = data.tracks[index];
                       return TrackListItem(

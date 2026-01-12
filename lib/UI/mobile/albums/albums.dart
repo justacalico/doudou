@@ -242,6 +242,7 @@ class AlbumCard extends StatelessWidget {
                           fontSize: 14,
                           color: Color(0xFFFFFFFF), // White text
                           height: 1.2,
+                          decoration: TextDecoration.none,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -254,6 +255,7 @@ class AlbumCard extends StatelessWidget {
                             color: Color(0xFF8E8E93),
                             fontSize: 12,
                             height: 1.2,
+                            decoration: TextDecoration.none,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -266,6 +268,7 @@ class AlbumCard extends StatelessWidget {
                           style: const TextStyle(
                             color: Color(0xFF8E8E93),
                             fontSize: 11,
+                            decoration: TextDecoration.none,
                           ),
                         ),
                       ],
