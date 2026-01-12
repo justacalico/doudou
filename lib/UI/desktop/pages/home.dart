@@ -79,7 +79,9 @@ class _HomePageState extends State<HomePage> {
                           title: l10n.recentlyAddedAlbums,
                           subtitle: l10n.yourNewestAdditions,
                           useGradient: true,
-                          onSeeAllPressed: () {},
+                          onSeeAllPressed: () {
+                            NavigationService().selectPage(3); // Albums page
+                          },
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _buildAlbumRow(context, appState, l10n),
@@ -92,7 +94,9 @@ class _HomePageState extends State<HomePage> {
                         SectionHeader(
                           title: l10n.yourArtists,
                           subtitle: l10n.browseByArtist,
-                          onSeeAllPressed: () {},
+                          onSeeAllPressed: () {
+                            NavigationService().selectPage(4); // Artists page
+                          },
                         ),
                         const SizedBox(height: DesktopTheme.spacingMd),
                         _buildArtistRow(context, appState, l10n),
@@ -172,7 +176,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icons.favorite_rounded,
             color: DesktopTheme.heartRed,
             onTap: () {
-              // Navigate to favorites
+              NavigationService().selectPage(5); // Tracks page (for now)
             },
           ),
         ),
@@ -184,7 +188,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icons.album_rounded,
             color: theme.colorScheme.primary,
             onTap: () {
-              // Navigate to albums
+              NavigationService().selectPage(3); // Albums page
             },
           ),
         ),
@@ -196,7 +200,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icons.person_rounded,
             color: DesktopTheme.shufflePurple,
             onTap: () {
-              // Navigate to artists
+              NavigationService().selectPage(4); // Artists page
             },
           ),
         ),
