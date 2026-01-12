@@ -65,6 +65,12 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   // Autoplay mode - automatically queue similar tracks when queue ends
   bool _autoplayEnabled = true;
 
+  // Smart back-to-start behavior
+  bool _smartBackToStartEnabled = false;
+  DateTime? _lastBackPress;
+  static const Duration _backPressInterval = Duration(seconds: 3);
+  static const double _backRestartThreshold = 0.20; // 20%
+
   // === Mobile-specific state ===
   // Foreground service management
   int _foregroundServiceFailureCount = 0;
@@ -835,6 +841,32 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    if (_smartBackToStartEnabled) {
+      final now = DateTime.now();
+      final lastPress = _lastBackPress;
+      final withinInterval =
+          lastPress != null && now.difference(lastPress) < _backPressInterval;
+
+      final duration = _player.duration;
+      final position = _player.position;
+      final hasDuration = duration != null && duration.inMilliseconds > 0;
+      final progress = hasDuration
+          ? position.inMilliseconds / duration.inMilliseconds
+          : 0.0;
+
+      // First press after threshold: restart track instead of previous
+      if (!withinInterval && progress > _backRestartThreshold) {
+        _lastBackPress = now;
+        await _player.seek(Duration.zero);
+        _stateController.updatePosition(Duration.zero);
+        _updatePlaybackStateStream();
+        return;
+      }
+
+      // Second press within interval or already near start -> go previous
+      _lastBackPress = now;
+    }
+
     final previousIndex = _queueManager.getPreviousTrackIndex();
     if (previousIndex != null) {
       final queue = _stateController.queue;
@@ -1131,6 +1163,10 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
   void setAutoplay(bool enabled) {
     _autoplayEnabled = enabled;
+  }
+
+  void setSmartBackToStartEnabled(bool enabled) {
+    _smartBackToStartEnabled = enabled;
   }
 
   // === Mobile-specific Methods ===

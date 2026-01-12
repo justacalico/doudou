@@ -38,6 +38,18 @@ class AudioSettingsSection extends StatelessWidget {
                   children: [
                     _buildSectionHeader(l10n.audioSettings),
 
+                    // Smart back-to-start toggle
+                    _buildSwitchTile(
+                      context: context,
+                      icon: CupertinoIcons.backward_end,
+                      title: 'Smart back button',
+                      subtitle:
+                          'First tap restarts track after 20%, second tap goes to previous',
+                      value: appState.smartBackToStartEnabled,
+                      onChanged: (enabled) =>
+                          appState.toggleSmartBackToStart(enabled),
+                    ),
+
                     _buildDownloadTile(
                       context: context,
                       icon: CupertinoIcons.cloud_download,
@@ -140,6 +152,68 @@ class AudioSettingsSection extends StatelessWidget {
                 color: Colors.white.withOpacity(0.5),
                 size: 16,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: () => onChanged(!value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B5CF6).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFFFFFFFF),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFFAAAAAA),
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            CupertinoSwitch(
+              value: value,
+              onChanged: onChanged,
             ),
           ],
         ),

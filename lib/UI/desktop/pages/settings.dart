@@ -317,6 +317,15 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Show quality options
                     },
                   ),
+                  SwitchListTile(
+                    title: const Text('Smart back button'),
+                    subtitle: const Text(
+                      'If past 20%: first back restarts, second back quickly goes to previous track',
+                    ),
+                    value: appState.smartBackToStartEnabled,
+                    onChanged: (value) =>
+                        appState.toggleSmartBackToStart(value),
+                  ),
                 ],
               ),
             ),

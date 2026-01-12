@@ -43,6 +43,7 @@ class AppState extends ChangeNotifier {
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _useDynamicIsle = false; // Disabled by default
+  bool _smartBackToStartEnabled = false;
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
@@ -123,6 +124,7 @@ class AppState extends ChangeNotifier {
   bool get oledDarkModeEnabled => _oledDarkModeEnabled;
   bool get showAlbumArtEnabled => _showAlbumArtEnabled;
   bool get loggingEnabled => _loggingEnabled;
+  bool get smartBackToStartEnabled => _smartBackToStartEnabled;
 
   // Theme getters
   ThemeMode get themeMode => _themeMode;
@@ -256,6 +258,10 @@ class AppState extends ChangeNotifier {
               final audioService = AudioServiceIntegration.instance;
               await audioService.initialize(_mediaServiceManager);
               _audioHandler = audioService;
+
+              // Apply persisted audio behavior toggles
+              audioService.audioHandler
+                  ?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
             } catch (audioError) {
               _audioHandler = null;
             }
@@ -1792,6 +1798,18 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleSmartBackToStart(bool enabled) async {
+    _smartBackToStartEnabled = enabled;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('smart_back_to_start_enabled', enabled);
+
+    // Forward to audio handler if available
+    _audioHandler?.audioHandler?.setSmartBackToStartEnabled(enabled);
+
+    notifyListeners();
+  }
+
   // Recent tracks management
   void _addToRecentTracks(Track track) {
     // Remove if already exists to avoid duplicates
@@ -1851,6 +1869,8 @@ class AppState extends ChangeNotifier {
         prefs.getBool('logging_enabled') ?? false; // Disabled by default
     _useDynamicIsle =
         prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
+    _smartBackToStartEnabled =
+      prefs.getBool('smart_back_to_start_enabled') ?? false;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';
