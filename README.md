@@ -108,41 +108,15 @@ flutter gen-l10n
 
 ### Build Commands
 
-Build targets are available via the Makefile:
-
-```bash
-# Show all available commands
-make help
-
-# Build for specific platforms
-make android          # Debug APK
-make android-release  # Release APK (unsigned)
-make android-signed   # Signed release APK
-make android-bundle   # App Bundle for Play Store
-make ios              # iOS IPA
-make windows          # Windows executable
-make macos            # macOS app
-make linux            # Linux tarball
-
-# Build multiple platforms
-make mobile           # Android + iOS
-make desktop          # Windows + macOS + Linux
-
-# Clean builds
-make clean            # Clean Flutter build directories
-make clean-all        # Clean all build artifacts
-```
-
-### Manual Flutter Build Commands
-
 ```bash
 # Android
-flutter build apk --debug
-flutter build apk --release
-flutter build appbundle --release
+flutter build apk --debug          # Debug APK
+flutter build apk --release        # Release APK
+flutter build appbundle --release  # App Bundle for Play Store
 
 # iOS
 flutter build ios --release
+flutter build ipa --release
 
 # Desktop
 flutter build windows --release
@@ -151,24 +125,9 @@ flutter build linux --release
 
 # Web
 flutter build web --release
-```
 
-### Android Signing Setup
-
-For signed Android builds:
-
-```bash
-# Generate a new keystore (one-time)
-make generate-keystore
-
-# Set environment variables
-export KEYSTORE_PASSWORD='your_password'
-export KEY_PASSWORD='your_key_password'
-export KEY_ALIAS='doudou'
-export KEYSTORE_PATH='key.jks'
-
-# Build signed APK
-make android-signed
+# Clean build artifacts
+flutter clean
 ```
 
 ## Support
