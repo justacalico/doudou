@@ -66,7 +66,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
   bool _autoplayEnabled = true;
 
   // Smart back-to-start behavior
-  bool _smartBackToStartEnabled = false;
+  bool _smartBackToStartEnabled = true;
   DateTime? _lastBackPress;
   static const Duration _backPressInterval = Duration(seconds: 3);
   static const double _backRestartThreshold = 0.20; // 20%

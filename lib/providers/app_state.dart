@@ -43,7 +43,7 @@ class AppState extends ChangeNotifier {
   bool _showAlbumArtEnabled = true;
   bool _loggingEnabled = false; // Disabled by default
   bool _useDynamicIsle = false; // Disabled by default
-  bool _smartBackToStartEnabled = false;
+  bool _smartBackToStartEnabled = true;
 
   // Debouncing for play/pause to prevent rapid-fire clicking deadlocks
   DateTime? _lastPlayPauseCommand;
@@ -1870,7 +1870,7 @@ class AppState extends ChangeNotifier {
     _useDynamicIsle =
         prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
     _smartBackToStartEnabled =
-      prefs.getBool('smart_back_to_start_enabled') ?? false;
+      prefs.getBool('smart_back_to_start_enabled') ?? true;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';
