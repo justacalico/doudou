@@ -11,6 +11,7 @@ import '../../../providers/app_state.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import '../../../services/players/jellyfin_service.dart';
 import '../settings/local_music_settings.dart';
+import '../partials/navbar/navbar.dart';
 
 // Auth method enum for Jellyfin
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
@@ -1802,7 +1803,13 @@ class _LoginScreenState extends State<LoginScreen>
       if (success && mounted) {
         // Success vibration
         await _triggerHapticFeedback(isSuccess: true);
-        // Navigation handled by main app
+        // Force navigation to home screen
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            CupertinoPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          );
+        }
       } else if (mounted) {
         // Error vibration
         await _triggerHapticFeedback(isSuccess: false);
