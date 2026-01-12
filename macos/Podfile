@@ -38,5 +38,13 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
+    
+    # Fix audiotags: build only for arm64 since the static library lacks x86_64 symbols
+    if target.name == 'audiotags'
+      target.build_configurations.each do |config|
+        config.build_settings['ARCHS'] = 'arm64'
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+      end
+    end
   end
 end

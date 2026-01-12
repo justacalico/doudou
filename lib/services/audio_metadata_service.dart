@@ -6,15 +6,16 @@ import 'package:audiotags/audiotags.dart' as audiotags;
 
 /// Wrapper service for audio metadata reading.
 /// This provides a platform-safe way to read audio tags, since the audiotags
-/// package (which uses flutter_rust_bridge) has issues on iOS builds.
+/// package (which uses flutter_rust_bridge) has issues on iOS and macOS builds.
 class AudioMetadataService {
   static final AudioMetadataService _instance = AudioMetadataService._internal();
   factory AudioMetadataService() => _instance;
   AudioMetadataService._internal();
 
   /// Returns true if audio metadata reading is supported on this platform.
-  /// iOS is currently not supported due to flutter_rust_bridge build issues.
-  bool get isSupported => !Platform.isIOS;
+  /// iOS and macOS are currently not supported due to flutter_rust_bridge build issues.
+  /// macOS universal builds fail because the static library lacks x86_64 symbols.
+  bool get isSupported => !Platform.isIOS && !Platform.isMacOS;
 
   /// Read audio tags from a file.
   /// Returns null on iOS or if reading fails.
