@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
-import 'package:audiotags/audiotags.dart';
 import 'dart:convert';
 import '../../models/jellyfin_models.dart';
 import '../base_service.dart';
 import '../album_art_service.dart';
+import '../audio_metadata_service.dart';
 
 /// Service for playing music from local filesystem directories
 class LocalMusicService implements BaseMediaService {
@@ -202,36 +202,39 @@ class LocalMusicService implements BaseMediaService {
     int? trackNumber;
     int? durationMs;
 
-    // Try to read ID3 tags from the audio file
-    try {
-      final tag = await AudioTags.read(filePath);
-      if (tag != null) {
-        // Use tag data if available, with fallbacks
-        if (tag.title != null && tag.title!.isNotEmpty) {
-          trackName = tag.title!;
+    // Try to read ID3 tags from the audio file (only on supported platforms)
+    final metadataService = AudioMetadataService();
+    if (metadataService.isSupported) {
+      try {
+        final tag = await metadataService.readMetadata(filePath);
+        if (tag != null) {
+          // Use tag data if available, with fallbacks
+          if (tag.title != null && tag.title!.isNotEmpty) {
+            trackName = tag.title!;
+          }
+          // Track artist (for display)
+          if (tag.trackArtist != null && tag.trackArtist!.isNotEmpty) {
+            artistName = tag.trackArtist;
+          }
+          // Album artist (for grouping - takes priority for album grouping)
+          if (tag.albumArtist != null && tag.albumArtist!.isNotEmpty) {
+            albumArtist = tag.albumArtist;
+            // Use album artist as fallback for track artist if not set
+            artistName ??= tag.albumArtist;
+          }
+          if (tag.album != null && tag.album!.isNotEmpty) {
+            albumName = tag.album;
+          }
+          if (tag.trackNumber != null) {
+            trackNumber = tag.trackNumber;
+          }
+          if (tag.duration != null) {
+            durationMs = tag.duration;
+          }
         }
-        // Track artist (for display)
-        if (tag.trackArtist != null && tag.trackArtist!.isNotEmpty) {
-          artistName = tag.trackArtist;
-        }
-        // Album artist (for grouping - takes priority for album grouping)
-        if (tag.albumArtist != null && tag.albumArtist!.isNotEmpty) {
-          albumArtist = tag.albumArtist;
-          // Use album artist as fallback for track artist if not set
-          artistName ??= tag.albumArtist;
-        }
-        if (tag.album != null && tag.album!.isNotEmpty) {
-          albumName = tag.album;
-        }
-        if (tag.trackNumber != null) {
-          trackNumber = tag.trackNumber;
-        }
-        if (tag.duration != null) {
-          durationMs = tag.duration;
-        }
+      } catch (e) {
+        // Failed to read tags, continue with filename-based extraction
       }
-    } catch (e) {
-      // Failed to read tags, continue with filename-based extraction
     }
 
     // Fallback: Try to parse track info from filename if no tags found

@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
-import 'package:audiotags/audiotags.dart';
+import 'audio_metadata_service.dart';
 
 /// Service for fetching album art from multiple sources
 /// Priority:
@@ -102,14 +102,20 @@ class AlbumArtService {
       return _embeddedArtCache[filePath];
     }
     
+    // Skip on unsupported platforms (iOS)
+    final metadataService = AudioMetadataService();
+    if (!metadataService.isSupported) {
+      _embeddedArtCache[filePath] = null;
+      return null;
+    }
+    
     try {
-      final tag = await AudioTags.read(filePath);
+      final tag = await metadataService.readMetadata(filePath);
       if (tag != null && tag.pictures.isNotEmpty) {
         final picture = tag.pictures.first;
         if (picture.bytes.isNotEmpty) {
-          final bytes = Uint8List.fromList(picture.bytes);
-          _embeddedArtCache[filePath] = bytes;
-          return bytes;
+          _embeddedArtCache[filePath] = picture.bytes;
+          return picture.bytes;
         }
       }
     } catch (e) {
@@ -122,27 +128,19 @@ class AlbumArtService {
   
   /// Extract embedded artwork and save to a file
   Future<String?> _getEmbeddedArtwork(String filePath) async {
+    // Skip on unsupported platforms (iOS)
+    final metadataService = AudioMetadataService();
+    if (!metadataService.isSupported) {
+      return null;
+    }
+    
     try {
-      final tag = await AudioTags.read(filePath);
+      final tag = await metadataService.readMetadata(filePath);
       if (tag != null && tag.pictures.isNotEmpty) {
         final picture = tag.pictures.first;
         if (picture.bytes.isNotEmpty) {
           // Determine file extension from mime type
-          String extension = '.jpg';
-          if (picture.mimeType != null) {
-            switch (picture.mimeType!) {
-              case MimeType.png:
-                extension = '.png';
-              case MimeType.gif:
-                extension = '.gif';
-              case MimeType.bmp:
-                extension = '.bmp';
-              case MimeType.tiff:
-                extension = '.tiff';
-              case MimeType.jpeg:
-                extension = '.jpg';
-            }
-          }
+          String extension = picture.mimeType?.extension ?? '.jpg';
           
           // Generate unique filename based on audio file path
           final hash = md5.convert(utf8.encode(filePath)).toString().substring(0, 8);
