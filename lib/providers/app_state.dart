@@ -735,10 +735,6 @@ class AppState extends ChangeNotifier {
     String identifier,
     String credential,
   ) async {
-    print('[AppState] loginWithServerType() called');
-    print('[AppState] serverType: $serverType');
-    print('[AppState] serverUrl: $serverUrl');
-    print('[AppState] identifier: $identifier');
     
     _setLoading(true);
     _clearError();
@@ -761,11 +757,9 @@ class AppState extends ChangeNotifier {
           type = ServerType.jellyfin;
           break;
       }
-      print('[AppState] Converted to ServerType: $type');
 
       // Initialize the appropriate service
       _mediaServiceManager.initializeService(type);
-      print('[AppState] Service initialized');
 
       // Ensure serverUrl has protocol for non-Plex and non-local services
       if (type != ServerType.plex &&
@@ -774,78 +768,53 @@ class AppState extends ChangeNotifier {
           !serverUrl.startsWith('https://')) {
         serverUrl = 'http://$serverUrl';
       }
-      print('[AppState] Final serverUrl: $serverUrl');
 
-      print('[AppState] Calling _mediaServiceManager.authenticate()...');
       final success = await _mediaServiceManager.authenticate(
         serverUrl,
         identifier,
         credential,
       );
-      print('[AppState] Authentication result: $success');
 
       if (success) {
-        print('[AppState] Setting _isLoggedIn = true');
         _isLoggedIn = true;
-        print('[AppState] _isLoggedIn is now: $_isLoggedIn');
 
         // Initialize cache service
-        print('[AppState] Initializing cache service...');
         await _cacheService.initialize();
-        print('[AppState] Cache service initialized');
 
         try {
-          print('[AppState] Initializing audio service...');
           final audioService = AudioServiceIntegration.instance;
           await audioService.initialize(_mediaServiceManager);
           _audioHandler = audioService;
-          print('[AppState] Audio service initialized');
 
           _setupAudioHandlerListeners();
-          print('[AppState] Audio handler listeners setup');
         } catch (e) {
-          print('[AppState] Audio service initialization failed: $e');
           _audioHandler = null;
         }
 
-        print('[AppState] Saving server type...');
         await _saveServerType(serverType);
-        print('[AppState] Saving server credentials...');
         await _saveServerCredentials(
           serverType,
           serverUrl,
           identifier,
           credential,
         );
-        print('[AppState] Saving server...');
         await _saveServer();
-        print('[AppState] Server saved');
 
         try {
-          print('[AppState] Loading library data...');
           await loadLibraryData();
-          print('[AppState] Library data loaded');
         } catch (e) {
-          print('[AppState] Exception during library loading: $e');
           // Exception during library loading
         }
 
-        print('[AppState] Setting loading to false...');
         _setLoading(false);
-        print('[AppState] Calling notifyListeners()...');
-        print('[AppState] Before notifyListeners - isLoggedIn: $_isLoggedIn, isLoading: $_isLoading, isInitialized: $_isInitialized');
         notifyListeners();
-        print('[AppState] notifyListeners() called, returning true');
         return true;
       } else {
-        print('[AppState] Authentication failed');
         _setError('Authentication failed. Please check your credentials.');
         _setLoading(false);
         return false;
       }
-    } catch (e, stackTrace) {
-      print('[AppState] Exception in loginWithServerType: $e');
-      print('[AppState] Stack trace: $stackTrace');
+    } catch (e) {
       
       String errorMessage = 'An unexpected error occurred. Please try again.';
 

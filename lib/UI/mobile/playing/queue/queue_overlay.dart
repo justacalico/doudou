@@ -70,112 +70,117 @@ class _QueueOverlayState extends State<QueueOverlay>
           opacity: _fadeAnimation.value,
           child: Transform.scale(
             scale: _scaleAnimation.value,
-            child: Center(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                height: MediaQuery.of(context).size.height * 0.8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.black.withOpacity(0.7),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      blurRadius: 30,
-                      offset: const Offset(0, 10),
+            child: Material(
+              color: Colors.transparent,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  height: MediaQuery.of(context).size.height * 0.8,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.black.withOpacity(0.7),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
                       ),
-                      child: Column(
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.white.withOpacity(0.1),
-                                  width: 1,
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.1),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            // Header
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.white.withOpacity(0.1),
+                                    width: 1,
+                                  ),
                                 ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Queue',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
+                              child: Row(
+                                children: [
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Queue',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            decoration: TextDecoration.none,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Playing from queue',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 16,
+                                        SizedBox(height: 4),
+                                        Text(
+                                          'Playing from queue',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 16,
+                                            decoration: TextDecoration.none,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    _animationController.reverse().then((_) {
-                                      Navigator.of(context).pop();
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: const Icon(
-                                      CupertinoIcons.xmark,
-                                      color: Colors.white,
-                                      size: 18,
+                                      ],
                                     ),
                                   ),
-                                ),
-                              ],
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () {
+                                      _animationController.reverse().then((_) {
+                                        Navigator.of(context).pop();
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: const Icon(
+                                        CupertinoIcons.xmark,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           
-                          // Queue content
-                          Expanded(
-                            child: Consumer<AppState>(
-                              builder: (context, appState, child) {
-                                return _buildQueueContent(appState);
-                              },
+                            // Queue content
+                            Expanded(
+                              child: Consumer<AppState>(
+                                builder: (context, appState, child) {
+                                  return _buildQueueContent(appState);
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -210,6 +215,7 @@ class _QueueOverlayState extends State<QueueOverlay>
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.white70,
+                decoration: TextDecoration.none,
               ),
             ),
           ],
@@ -267,6 +273,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                   color: Colors.white70,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.none,
                 ),
               ),
               const Spacer(),
@@ -284,6 +291,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                       color: Colors.red,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none,
                     ),
                   ),
                 ),
@@ -348,6 +356,7 @@ class _QueueOverlayState extends State<QueueOverlay>
               color: isActive ? Colors.red : Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              decoration: TextDecoration.none,
             ),
           ),
         ],
@@ -432,6 +441,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                     fontWeight: FontWeight.w500,
                     color: isCurrentTrack ? Colors.red : Colors.white,
                     fontSize: 16,
+                    decoration: TextDecoration.none,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -445,6 +455,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: 14,
+                    decoration: TextDecoration.none,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -459,6 +470,7 @@ class _QueueOverlayState extends State<QueueOverlay>
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: 12,
+                    decoration: TextDecoration.none,
                   ),
                 ),
               if (onRemove != null && !isCurrentTrack) ...[
