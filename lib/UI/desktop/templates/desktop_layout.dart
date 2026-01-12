@@ -19,6 +19,7 @@ import '../pages/downloads.dart';
 import '../pages/settings.dart';
 import '../pages/details/media_details.dart';
 import '../pages/details/artist_details.dart';
+import '../widgets/universal_image.dart';
 import 'desktop_theme.dart';
 
 class DesktopLayout extends StatefulWidget {
@@ -797,10 +798,10 @@ class _TrackInfo extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: mediaItem!.artUri != null
-              ? Image.network(
-                  mediaItem!.artUri.toString(),
+              ? buildSmartImage(
+                  imageUrl: mediaItem!.artUri.toString(),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildPlaceholder(),
+                  errorBuilder: () => _buildPlaceholder(),
                 )
               : _buildPlaceholder(),
         ),
@@ -1346,10 +1347,10 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
                   // Background with album art blur
                   if (mediaItem?.artUri != null)
                     Positioned.fill(
-                      child: Image.network(
-                        mediaItem!.artUri.toString(),
+                      child: buildSmartImage(
+                        imageUrl: mediaItem!.artUri.toString(),
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
+                        errorBuilder: () =>
                             Container(color: DesktopTheme.backgroundDeep),
                       ),
                     ),
@@ -1636,8 +1637,8 @@ class _NowPlayingMain extends StatelessWidget {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: mediaItem?.artUri != null
-                      ? Image.network(
-                          mediaItem!.artUri.toString(),
+                      ? buildSmartImage(
+                          imageUrl: mediaItem!.artUri.toString(),
                           fit: BoxFit.cover,
                         )
                       : Container(
@@ -2141,10 +2142,12 @@ class _QueueItemState extends State<_QueueItem> {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: widget.track.imageUrl != null
-                    ? Image.network(
-                        widget.track.imageUrl!,
+                    ? buildSmartImage(
+                        imageUrl: widget.track.imageUrl!,
+                        width: 40,
+                        height: 40,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
+                        errorBuilder: () => const Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
@@ -2392,10 +2395,12 @@ class _PlaylistItemState extends State<_PlaylistItem> {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: widget.playlist.imageUrl != null
-                    ? Image.network(
-                        widget.playlist.imageUrl!,
+                    ? buildSmartImage(
+                        imageUrl: widget.playlist.imageUrl!,
+                        width: 48,
+                        height: 48,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
+                        errorBuilder: () => const Icon(
                           Icons.queue_music_rounded,
                           size: 24,
                           color: DesktopTheme.textTertiary,
@@ -2809,10 +2814,10 @@ class _DetailHeader extends StatelessWidget {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: imageUrl != null
-                    ? Image.network(
-                        imageUrl!,
+                    ? buildSmartImage(
+                        imageUrl: imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _buildPlaceholder(),
+                        errorBuilder: () => _buildPlaceholder(),
                       )
                     : _buildPlaceholder(),
               ),
@@ -3195,10 +3200,12 @@ class _TrackRowState extends State<_TrackRow> {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: imageUrl != null
-                    ? Image.network(
-                        imageUrl,
+                    ? buildSmartImage(
+                        imageUrl: imageUrl,
+                        width: 40,
+                        height: 40,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
+                        errorBuilder: () => const Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
@@ -3445,10 +3452,10 @@ class _AlbumCardState extends State<_AlbumCard> {
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: widget.imageUrl != null
-                          ? Image.network(
-                              widget.imageUrl!,
+                          ? buildSmartImage(
+                              imageUrl: widget.imageUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Center(
+                              errorBuilder: () => const Center(
                                 child: Icon(
                                   Icons.album_rounded,
                                   size: 48,

@@ -5,6 +5,7 @@ import '../templates/page_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../services/navigation_service.dart';
+import '../widgets/universal_image.dart';
 
 class AlbumsPage extends StatefulWidget {
   const AlbumsPage({super.key});
@@ -510,14 +511,12 @@ class _AlbumsPageState extends State<AlbumsPage> {
                       color: theme.colorScheme.surfaceVariant,
                     ),
                     child: album.imageUrl != null
-                        ? Image.network(
-                            _getImageUrl(appState, album.imageUrl)!,
+                        ? buildSmartImage(
+                            imageUrl: _getImageUrl(appState, album.imageUrl)!,
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildAlbumPlaceholder(theme);
-                            },
+                            errorBuilder: () => _buildAlbumPlaceholder(theme),
                           )
                         : _buildAlbumPlaceholder(theme),
                   ),

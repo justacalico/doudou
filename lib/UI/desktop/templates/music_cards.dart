@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'desktop_theme.dart';
+import '../widgets/universal_image.dart';
 
 /// Modern glass-styled music card with hover effects and glow
 class MusicCard extends StatefulWidget {
@@ -93,12 +94,10 @@ class _MusicCardState extends State<MusicCard>
                         children: [
                           // Image or placeholder
                           widget.imageUrl != null
-                              ? Image.network(
-                                  widget.imageUrl!,
+                              ? buildSmartImage(
+                                  imageUrl: widget.imageUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildPlaceholder(theme);
-                                  },
+                                  errorBuilder: () => _buildPlaceholder(theme),
                                 )
                               : _buildPlaceholder(theme),
 
@@ -296,15 +295,15 @@ class _MusicListTileState extends State<MusicListTile> {
                               borderRadius: BorderRadius.circular(
                                 DesktopTheme.radiusSm,
                               ),
-                              child: Image.network(
-                                widget.imageUrl!,
+                              child: buildSmartImage(
+                                imageUrl: widget.imageUrl!,
+                                width: 48,
+                                height: 48,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.music_note_rounded,
-                                    color: DesktopTheme.textMuted,
-                                  );
-                                },
+                                errorBuilder: () => Icon(
+                                  Icons.music_note_rounded,
+                                  color: DesktopTheme.textMuted,
+                                ),
                               ),
                             )
                           : Icon(
@@ -434,20 +433,18 @@ class _FeaturedMusicCardState extends State<FeaturedMusicCard> {
               children: [
                 // Background image
                 widget.imageUrl != null
-                    ? Image.network(
-                        widget.imageUrl!,
+                    ? buildSmartImage(
+                        imageUrl: widget.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: DesktopTheme.accentGradientPurple,
-                              ),
+                        errorBuilder: () => Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: DesktopTheme.accentGradientPurple,
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       )
                     : Container(
                         decoration: BoxDecoration(

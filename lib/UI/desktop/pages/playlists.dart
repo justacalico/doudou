@@ -4,6 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import '../templates/page_template.dart';
 import '../../../providers/app_state.dart';
 import '../services/navigation_service.dart';
+import '../widgets/universal_image.dart';
 
 class PlaylistsPage extends StatefulWidget {
   const PlaylistsPage({super.key});
@@ -435,14 +436,12 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                       color: theme.colorScheme.surfaceVariant,
                     ),
                     child: playlist.imageUrl != null
-                        ? Image.network(
-                            _getImageUrl(appState, playlist.imageUrl)!,
+                        ? buildSmartImage(
+                            imageUrl: _getImageUrl(appState, playlist.imageUrl)!,
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildPlaylistPlaceholder(theme);
-                            },
+                            errorBuilder: () => _buildPlaylistPlaceholder(theme),
                           )
                         : _buildPlaylistPlaceholder(theme),
                   ),

@@ -5,6 +5,7 @@ import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
 import '../../mobile/widgets/apple_design/apple_theme.dart';
+import '../widgets/universal_image.dart';
 import 'desktop_layout.dart';
 
 class TrackListTemplate extends StatelessWidget {
@@ -448,20 +449,18 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                       AppleDesignSystem.radiusSmall,
                     ),
                     child: widget.track.imageUrl != null
-                        ? Image.network(
-                            appState.getImageUrl(widget.track.imageUrl!),
+                        ? buildSmartImage(
+                            imageUrl: appState.getImageUrl(widget.track.imageUrl!),
                             width: 40,
                             height: 40,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.music_note_rounded,
-                                size: 20,
-                                color: isDark
-                                    ? AppleColors.labelTertiaryDark
-                                    : AppleColors.labelTertiary,
-                              );
-                            },
+                            errorBuilder: () => Icon(
+                              Icons.music_note_rounded,
+                              size: 20,
+                              color: isDark
+                                  ? AppleColors.labelTertiaryDark
+                                  : AppleColors.labelTertiary,
+                            ),
                           )
                         : Icon(
                             Icons.music_note_rounded,
