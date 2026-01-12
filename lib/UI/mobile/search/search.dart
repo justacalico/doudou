@@ -139,11 +139,15 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onSearchChanged(String value, AppState appState) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      _performSearch(value, appState);
+      _performSearch(value, appState, addToRecent: false);
     });
   }
 
-  void _performSearch(String query, AppState appState) async {
+  void _performSearch(
+    String query,
+    AppState appState, {
+    bool addToRecent = false,
+  }) async {
     if (query.trim().isEmpty) {
       setState(() {
         _trackResults = [];
@@ -160,8 +164,9 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    // Add to recent searches when performing search
-    _addToRecentSearches(query);
+    if (addToRecent) {
+      _addToRecentSearches(query);
+    }
 
     setState(() {
       _isSearching = true;
@@ -499,8 +504,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                       backgroundColor: Colors.transparent,
-                      onChanged: (value) => _onSearchChanged(value, appState),
-                      onSubmitted: (value) => _performSearch(value, appState),
+                        onChanged: (value) => _onSearchChanged(value, appState),
+                        onSubmitted: (value) =>
+                          _performSearch(value, appState, addToRecent: true),
                       autofocus: false,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -948,7 +954,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: GestureDetector(
                   onTap: () {
                     _searchController.text = search;
-                    _performSearch(search, appState);
+                    _performSearch(search, appState, addToRecent: true);
                   },
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
