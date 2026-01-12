@@ -797,13 +797,7 @@ class _TrackInfo extends StatelessWidget {
             color: DesktopTheme.backgroundElevated,
           ),
           clipBehavior: Clip.antiAlias,
-          child: mediaItem!.artUri != null
-              ? buildSmartImage(
-                  imageUrl: mediaItem!.artUri.toString(),
-                  fit: BoxFit.cover,
-                  errorBuilder: () => _buildPlaceholder(),
-                )
-              : _buildPlaceholder(),
+          child: _buildAlbumArt(),
         ),
         const SizedBox(width: DesktopTheme.spacingMd),
         // Track details
@@ -1038,6 +1032,29 @@ class _TrackInfo extends StatelessWidget {
         );
         break;
     }
+  }
+
+  Widget _buildAlbumArt() {
+    // Try artUri first (HTTP/HTTPS URLs)
+    if (mediaItem!.artUri != null) {
+      return buildSmartImage(
+        imageUrl: mediaItem!.artUri.toString(),
+        fit: BoxFit.cover,
+        errorBuilder: () => _buildPlaceholder(),
+      );
+    }
+    
+    // Fall back to localImageUrl from extras (supports file:// URIs)
+    final localImageUrl = mediaItem!.extras?['localImageUrl'] as String?;
+    if (localImageUrl != null && localImageUrl.isNotEmpty) {
+      return buildSmartImage(
+        imageUrl: localImageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: () => _buildPlaceholder(),
+      );
+    }
+    
+    return _buildPlaceholder();
   }
 
   Widget _buildPlaceholder() {
@@ -1338,6 +1355,12 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
               position,
             );
 
+            // Get the best available image URL (artUri or localImageUrl from extras)
+            String? overlayImageUrl = mediaItem?.artUri?.toString();
+            if (overlayImageUrl == null || overlayImageUrl.isEmpty) {
+              overlayImageUrl = mediaItem?.extras?['localImageUrl'] as String?;
+            }
+
             // Easter egg: Flip everything horizontally during the backwards section
             // of "The Mind Electric" (before 2:50), then flip back to normal
             Widget content = Scaffold(
@@ -1345,10 +1368,10 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
               body: Stack(
                 children: [
                   // Background with album art blur
-                  if (mediaItem?.artUri != null)
+                  if (overlayImageUrl != null && overlayImageUrl.isNotEmpty)
                     Positioned.fill(
                       child: buildSmartImage(
-                        imageUrl: mediaItem!.artUri.toString(),
+                        imageUrl: overlayImageUrl,
                         fit: BoxFit.cover,
                         errorBuilder: () =>
                             Container(color: DesktopTheme.backgroundDeep),
@@ -1606,6 +1629,31 @@ class _NowPlayingMain extends StatelessWidget {
     }
   }
 
+  Widget _getAlbumArtWidget(MediaItem? mediaItem) {
+    // Try artUri first (HTTP/HTTPS URLs)
+    String? imageUrl = mediaItem?.artUri?.toString();
+    // Fall back to localImageUrl from extras (supports file:// URIs)
+    if (imageUrl == null || imageUrl.isEmpty) {
+      imageUrl = mediaItem?.extras?['localImageUrl'] as String?;
+    }
+    
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return buildSmartImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+      );
+    }
+    
+    return Container(
+      color: DesktopTheme.backgroundElevated,
+      child: const Icon(
+        Icons.music_note_rounded,
+        size: 100,
+        color: DesktopTheme.textTertiary,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -1636,19 +1684,7 @@ class _NowPlayingMain extends StatelessWidget {
                     ],
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: mediaItem?.artUri != null
-                      ? buildSmartImage(
-                          imageUrl: mediaItem!.artUri.toString(),
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          color: DesktopTheme.backgroundElevated,
-                          child: const Icon(
-                            Icons.music_note_rounded,
-                            size: 100,
-                            color: DesktopTheme.textTertiary,
-                          ),
-                        ),
+                  child: _getAlbumArtWidget(mediaItem),
                 ),
               ),
             ),

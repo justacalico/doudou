@@ -1483,6 +1483,7 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         'trackId': track.id,
         'albumId': track.albumId,
         'trackNumber': track.trackNumber,
+        'localImageUrl': imageUrl, // Store for UI display (supports file:// URIs)
       },
     );
   }
