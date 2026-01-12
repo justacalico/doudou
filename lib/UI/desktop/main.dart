@@ -5,12 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_state.dart';
 import '../../services/logging_service.dart';
 import '../../services/players/jellyfin_service.dart';
+import '../../services/audio/just_audio_media_kit_ext.dart';
 import '../mobile/login/login.dart';
 import '../mobile/partials/navbar/navbar.dart';
 import '../mobile/widgets/apple_design/apple_theme.dart';
@@ -49,7 +49,9 @@ Future<void> runDesktopApp() async {
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
-        JustAudioMediaKit.ensureInitialized();
+        // Use extended initialization with Windows audio fix
+        // This disables WASAPI exclusive mode on Windows to fix volume bypass bug
+        JustAudioMediaKitExt.ensureInitialized();
       } catch (_) {}
     }
 
