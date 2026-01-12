@@ -79,6 +79,98 @@ Jellyfin offers the best experience with full feature support and is completely 
 **Is the desktop version different?**
 Yes, desktop platforms have an enhanced interface optimized for larger screens and keyboard/mouse input.
 
+## Building from Source
+
+### Prerequisites
+
+- Flutter SDK 3.8.0 or higher
+- Dart SDK 3.8.0 or higher
+- Platform-specific tools (Xcode for iOS/macOS, Android SDK for Android, etc.)
+
+### Clone the Repository
+
+```bash
+git clone https://gitlab.com/Openlyst/doudou.git
+cd doudou
+```
+
+### Install Dependencies
+
+```bash
+flutter pub get
+```
+
+### Generate Localization Files
+
+```bash
+flutter gen-l10n
+```
+
+### Build Commands
+
+Build targets are available via the Makefile:
+
+```bash
+# Show all available commands
+make help
+
+# Build for specific platforms
+make android          # Debug APK
+make android-release  # Release APK (unsigned)
+make android-signed   # Signed release APK
+make android-bundle   # App Bundle for Play Store
+make ios              # iOS IPA
+make windows          # Windows executable
+make macos            # macOS app
+make linux            # Linux tarball
+
+# Build multiple platforms
+make mobile           # Android + iOS
+make desktop          # Windows + macOS + Linux
+
+# Clean builds
+make clean            # Clean Flutter build directories
+make clean-all        # Clean all build artifacts
+```
+
+### Manual Flutter Build Commands
+
+```bash
+# Android
+flutter build apk --debug
+flutter build apk --release
+flutter build appbundle --release
+
+# iOS
+flutter build ios --release
+
+# Desktop
+flutter build windows --release
+flutter build macos --release
+flutter build linux --release
+
+# Web
+flutter build web --release
+```
+
+### Android Signing Setup
+
+For signed Android builds:
+
+```bash
+# Generate a new keystore (one-time)
+make generate-keystore
+
+# Set environment variables
+export KEYSTORE_PASSWORD='your_password'
+export KEY_PASSWORD='your_key_password'
+export KEY_ALIAS='doudou'
+export KEYSTORE_PATH='key.jks'
+
+# Build signed APK
+make android-signed
+```
+
 ## Support
 
 - [Report a Bug](https://gitlab.com/Openlyst/doudou/issues)
