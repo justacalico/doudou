@@ -167,113 +167,81 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(height: 24),
 
-          // Startup section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.startup,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: [
+              SizedBox(
+                width: 520,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Playback & visuals',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SwitchListTile(
+                          title: const Text('Show album art'),
+                          subtitle: const Text(
+                            'Display artwork in lists and now playing views',
+                          ),
+                          value: appState.showAlbumArtEnabled,
+                          onChanged: appState.toggleShowAlbumArt,
+                        ),
+                        SwitchListTile(
+                          title: const Text('OLED dark mode'),
+                          subtitle: const Text('Pure black backgrounds'),
+                          value: appState.oledDarkModeEnabled,
+                          onChanged: appState.toggleOledDarkMode,
+                        ),
+                        SwitchListTile(
+                          title: const Text('Dynamic Isle player'),
+                          subtitle: const Text('Show the mini player island'),
+                          value: appState.useDynamicIsle,
+                          onChanged: appState.toggleDynamicIsle,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: Text(l10n.startWithSystem),
-                    subtitle: Text(l10n.launchOnStartup),
-                    value: false, // This would come from preferences
-                    onChanged: (value) {
-                      // Handle startup setting
-                    },
-                  ),
-                  SwitchListTile(
-                    title: Text(l10n.startMinimized),
-                    subtitle: Text(l10n.launchInTray),
-                    value: false,
-                    onChanged: (value) {
-                      // Handle minimize setting
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Library section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.library,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+              SizedBox(
+                width: 520,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Diagnostics',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SwitchListTile(
+                          title: const Text('Enable logging'),
+                          subtitle: const Text(
+                            'Writes playback and network logs for support',
+                          ),
+                          value: appState.loggingEnabled,
+                          onChanged: (value) async {
+                            await appState.toggleLogging(value);
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: Text(l10n.autoRefreshLibrary),
-                    subtitle: Text(l10n.autoCheckForMusic),
-                    value: true,
-                    onChanged: (value) {
-                      // Handle auto-refresh setting
-                    },
-                  ),
-                  ListTile(
-                    title: Text(l10n.defaultLibraryView),
-                    subtitle: const Text('Albums'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      // Show library view options
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Downloads section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Downloads',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    title: const Text('Download location'),
-                    subtitle: const Text('~/Music/Doudou'),
-                    trailing: const Icon(Icons.folder_open),
-                    onTap: () {
-                      // Open folder picker
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Download over cellular'),
-                    subtitle: const Text('Allow downloads on mobile data'),
-                    value: false,
-                    onChanged: (value) {
-                      // Handle cellular downloads setting
-                    },
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -294,115 +262,32 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-
-          // Playback section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Playback',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+          SizedBox(
+            width: 520,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Playback',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    title: const Text('Audio quality'),
-                    subtitle: const Text('High (320 kbps)'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      // Show quality options
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Smart back button'),
-                    subtitle: const Text(
-                      'If past 20%: first back restarts, second back quickly goes to previous track',
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: const Text('Smart back button'),
+                      subtitle: const Text(
+                        'If past 20%: first back restarts, second back quickly goes to previous track',
+                      ),
+                      value: appState.smartBackToStartEnabled,
+                      onChanged: (value) =>
+                          appState.toggleSmartBackToStart(value),
                     ),
-                    value: appState.smartBackToStartEnabled,
-                    onChanged: (value) =>
-                        appState.toggleSmartBackToStart(value),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Volume section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Volume',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('Volume normalization'),
-                    subtitle: const Text(
-                      'Keep consistent volume across tracks',
-                    ),
-                    value: true,
-                    onChanged: (value) {
-                      // Handle volume normalization
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Fade on pause/resume'),
-                    subtitle: const Text('Smooth volume transitions'),
-                    value: true,
-                    onChanged: (value) {
-                      // Handle fade setting
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Audio device section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Audio Device',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    title: const Text('Output device'),
-                    subtitle: const Text('System default'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      // Show device options
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Buffer size'),
-                    subtitle: const Text('Auto'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      // Show buffer options
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -426,157 +311,58 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-
-          // Theme section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.theme,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    title: Text(l10n.appTheme),
-                    subtitle: Text(_getThemeDisplayName(appState.themeMode)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      _showThemeDialog();
-                    },
-                  ),
-                  ListTile(
-                    title: Text(l10n.accentColor),
-                    subtitle: Text(_getColorDisplayName(appState.accentColor)),
-                    trailing: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: appState.accentColor,
-                        shape: BoxShape.circle,
+          SizedBox(
+            width: 520,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Look & language',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    onTap: () {
-                      _showColorDialog();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Layout section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.layout,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 12),
+                    ListTile(
+                      title: Text(l10n.appTheme),
+                      subtitle: Text(_getThemeDisplayName(appState.themeMode)),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        _showThemeDialog();
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: Text(l10n.compactMode),
-                    subtitle: Text(l10n.reduceSpacing),
-                    value: false,
-                    onChanged: (value) {
-                      // Handle compact mode
-                    },
-                  ),
-                  SwitchListTile(
-                    title: Text(l10n.showAlbumArtSidebar),
-                    subtitle: Text(l10n.displayCurrentArtwork),
-                    value: true,
-                    onChanged: (value) {
-                      // Handle sidebar artwork
-                    },
-                  ),
-                  ListTile(
-                    title: Text(l10n.gridSize),
-                    subtitle: Text(l10n.medium),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      // Show grid size options
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Language section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.language,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    ListTile(
+                      title: Text(l10n.accentColor),
+                      subtitle:
+                          Text(_getColorDisplayName(appState.accentColor)),
+                      trailing: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: appState.accentColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      onTap: () {
+                        _showColorDialog();
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    leading: const Icon(Icons.language),
-                    title: Text(l10n.selectLanguage),
-                    subtitle: Text(_getCurrentLanguageDisplayName(appState)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      _showLanguageDialog(appState);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Window section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.window,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    ListTile(
+                      leading: const Icon(Icons.language),
+                      title: Text(l10n.selectLanguage),
+                      subtitle: Text(
+                        _getCurrentLanguageDisplayName(appState),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        _showLanguageDialog(appState);
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: Text(l10n.closeToTray),
-                    subtitle: Text(l10n.keepRunningWhenClosed),
-                    value: true,
-                    onChanged: (value) {
-                      // Handle system tray setting
-                    },
-                  ),
-                  SwitchListTile(
-                    title: Text(l10n.showInTaskbar),
-                    subtitle: Text(l10n.displayInTaskbar),
-                    value: true,
-                    onChanged: (value) {
-                      // Handle taskbar setting
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
