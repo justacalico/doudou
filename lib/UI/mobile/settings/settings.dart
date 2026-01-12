@@ -9,6 +9,7 @@ import '../../../providers/app_state.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/apple_design/liquid_glass.dart';
 import '../../../services/base_service.dart';
+import '../../../services/update_service.dart';
 import '../login/login.dart';
 import 'partials/account_information.dart';
 import 'partials/audio_settings.dart';
@@ -27,6 +28,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _appVersion = '...';
   String _cacheSize = 'Calculating...';
+  bool _isCheckingUpdate = false;
 
   @override
   void initState() {
@@ -243,6 +245,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: AppLocalizations.of(context).appVersion,
                           subtitle: _appVersion,
                         ),
+                        _isCheckingUpdate
+                            ? const SettingsInfoTile(
+                                icon: CupertinoIcons.arrow_2_circlepath,
+                                title: 'Checking for updates...',
+                                subtitle: 'Please wait',
+                                color: Color(0xFF06B6D4),
+                              )
+                            : SettingsTile(
+                                icon: CupertinoIcons.arrow_down_circle,
+                                title: 'Check for Updates',
+                                subtitle: 'Check if a new version is available',
+                                onTap: () => _checkForUpdates(context),
+                                color: const Color(0xFF10B981),
+                              ),
                         SettingsTile(
                           icon: CupertinoIcons.doc_text,
                           title: AppLocalizations.of(context).licenses,
@@ -764,6 +780,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       // URL launch failed
     }
+  }
+
+  Future<void> _checkForUpdates(BuildContext context) async {
+    setState(() {
+      _isCheckingUpdate = true;
+    });
+
+    try {
+      final updateInfo = await UpdateService.checkForUpdate();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isCheckingUpdate = false;
+      });
+
+      if (updateInfo.updateAvailable) {
+        _showUpdateAvailableDialog(this.context, updateInfo);
+      } else {
+        _showUpToDateDialog(this.context, updateInfo.currentVersion);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isCheckingUpdate = false;
+      });
+
+      showCupertinoDialog(
+        context: this.context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Update Check Failed'),
+          content: const Text('Unable to check for updates. Please check your internet connection and try again.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _showUpdateAvailableDialog(BuildContext context, UpdateInfo updateInfo) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Update Available'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'A new version of Doudou is available!\n\n'
+              'Current: ${updateInfo.currentVersion}\n'
+              'Latest: ${updateInfo.latestVersion}'
+              '${updateInfo.releaseDate != null ? '\nReleased: ${updateInfo.releaseDate}' : ''}',
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Later'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('View Update'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              launchUrl(
+                Uri.parse('https://openlyst.ink/apps/doudou'),
+                mode: LaunchMode.externalApplication,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUpToDateDialog(BuildContext context, String currentVersion) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('You\'re Up to Date'),
+        content: Text('Doudou $currentVersion is the latest version.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _refreshLibraryData(

@@ -4,11 +4,13 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../mobile/widgets/apple_design/apple_theme.dart';
 import '../templates/page_template.dart';
 import '../../../providers/app_state.dart';
 import '../../../services/logging_service.dart';
 import '../../../services/base_service.dart';
+import '../../../services/update_service.dart';
 import '../../../l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -826,6 +828,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         textAlign: TextAlign.center,
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    _UpdateCheckButton(theme: theme),
                   ],
                 ),
               ),
@@ -2102,6 +2106,139 @@ class _AppleSettingsCategoryState extends State<_AppleSettingsCategory> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Update check button widget for desktop settings
+class _UpdateCheckButton extends StatefulWidget {
+  final ThemeData theme;
+
+  const _UpdateCheckButton({required this.theme});
+
+  @override
+  State<_UpdateCheckButton> createState() => _UpdateCheckButtonState();
+}
+
+class _UpdateCheckButtonState extends State<_UpdateCheckButton> {
+  bool _isChecking = false;
+
+  Future<void> _checkForUpdates() async {
+    setState(() {
+      _isChecking = true;
+    });
+
+    try {
+      final updateInfo = await UpdateService.checkForUpdate();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isChecking = false;
+      });
+
+      if (updateInfo.updateAvailable) {
+        _showUpdateAvailableDialog(updateInfo);
+      } else {
+        _showUpToDateDialog(updateInfo.currentVersion);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isChecking = false;
+      });
+
+      _showErrorDialog();
+    }
+  }
+
+  void _showUpdateAvailableDialog(UpdateInfo updateInfo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Available'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A new version of Doudou is available!\n\n'
+              'Current: ${updateInfo.currentVersion}\n'
+              'Latest: ${updateInfo.latestVersion}'
+              '${updateInfo.releaseDate != null ? '\nReleased: ${updateInfo.releaseDate}' : ''}',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              launchUrl(
+                Uri.parse('https://openlyst.ink/apps/doudou'),
+                mode: LaunchMode.externalApplication,
+              );
+            },
+            child: const Text('View Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUpToDateDialog(String currentVersion) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('You\'re Up to Date'),
+        content: Text('Doudou $currentVersion is the latest version.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Check Failed'),
+        content: const Text(
+          'Unable to check for updates. Please check your internet connection and try again.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: _isChecking ? null : _checkForUpdates,
+      icon: _isChecking
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.refresh),
+      label: Text(_isChecking ? 'Checking...' : 'Check for Updates'),
     );
   }
 }
