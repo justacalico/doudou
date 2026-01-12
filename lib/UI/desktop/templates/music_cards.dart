@@ -156,7 +156,7 @@ class _MusicCardState extends State<MusicCard>
                   width: widget.size,
                   child: Text(
                     widget.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: DesktopTheme.textPrimary,
@@ -609,7 +609,7 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                     const SizedBox(height: DesktopTheme.spacingMd),
                     Text(
                       widget.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: DesktopTheme.textPrimary,

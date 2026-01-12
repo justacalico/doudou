@@ -7,22 +7,61 @@ import 'package:flutter/material.dart';
 class DesktopTheme {
   DesktopTheme._();
 
+  static bool _isDark = true;
+
+  static void updateBrightness(Brightness brightness) {
+    _isDark = brightness == Brightness.dark;
+  }
+
   // ============================================
-  // COLOR PALETTE - Dark Mode Primary
+  // COLOR PALETTE - Dual Mode
   // ============================================
 
   /// Deep background colors
-  static const Color backgroundDeep = Color(0xFF0A0A0C);
-  static const Color backgroundPrimary = Color(0xFF0F0F12);
-  static const Color backgroundSecondary = Color(0xFF161619);
-  static const Color backgroundTertiary = Color(0xFF1E1E23);
-  static const Color backgroundElevated = Color(0xFF252529);
+  static const Color backgroundDeepDark = Color(0xFF0A0A0C);
+  static const Color backgroundDeepLight = Color(0xFFF5F6FA);
+  static Color get backgroundDeep =>
+      _isDark ? backgroundDeepDark : backgroundDeepLight;
+
+  static const Color backgroundPrimaryDark = Color(0xFF0F0F12);
+  static const Color backgroundPrimaryLight = Color(0xFFFFFFFF);
+  static Color get backgroundPrimary =>
+      _isDark ? backgroundPrimaryDark : backgroundPrimaryLight;
+
+  static const Color backgroundSecondaryDark = Color(0xFF161619);
+  static const Color backgroundSecondaryLight = Color(0xFFF0F1F5);
+  static Color get backgroundSecondary =>
+      _isDark ? backgroundSecondaryDark : backgroundSecondaryLight;
+
+  static const Color backgroundTertiaryDark = Color(0xFF1E1E23);
+  static const Color backgroundTertiaryLight = Color(0xFFE6E7EE);
+  static Color get backgroundTertiary =>
+      _isDark ? backgroundTertiaryDark : backgroundTertiaryLight;
+
+  static const Color backgroundElevatedDark = Color(0xFF252529);
+  static const Color backgroundElevatedLight = Color(0xFFEEF0F6);
+  static Color get backgroundElevated =>
+      _isDark ? backgroundElevatedDark : backgroundElevatedLight;
 
   /// Glass surface colors
-  static const Color glassSurface = Color(0xFF1A1A1E);
-  static const Color glassOverlay = Color(0x15FFFFFF);
-  static const Color glassBorder = Color(0x20FFFFFF);
-  static const Color glassHighlight = Color(0x08FFFFFF);
+  static const Color glassSurfaceDark = Color(0xFF1A1A1E);
+  static const Color glassSurfaceLight = Color(0xFFFFFFFF);
+  static Color get glassSurface =>
+      _isDark ? glassSurfaceDark : glassSurfaceLight;
+
+  static const Color glassOverlayDark = Color(0x15FFFFFF);
+  static const Color glassOverlayLight = Color(0x15000000);
+  static Color get glassOverlay =>
+      _isDark ? glassOverlayDark : glassOverlayLight;
+
+  static const Color glassBorderDark = Color(0x20FFFFFF);
+  static const Color glassBorderLight = Color(0x1A000000);
+  static Color get glassBorder => _isDark ? glassBorderDark : glassBorderLight;
+
+  static const Color glassHighlightDark = Color(0x08FFFFFF);
+  static const Color glassHighlightLight = Color(0x0D000000);
+  static Color get glassHighlight =>
+      _isDark ? glassHighlightDark : glassHighlightLight;
 
   /// Accent gradients
   static const List<Color> accentGradientPurple = [
@@ -39,10 +78,24 @@ class DesktopTheme {
   ];
 
   /// Text colors
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xB3FFFFFF);
-  static const Color textTertiary = Color(0x66FFFFFF);
-  static const Color textMuted = Color(0x33FFFFFF);
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textPrimaryLight = Color(0xFF0F0F12);
+  static Color get textPrimary =>
+      _isDark ? textPrimaryDark : textPrimaryLight;
+
+  static const Color textSecondaryDark = Color(0xB3FFFFFF);
+  static const Color textSecondaryLight = Color(0x990F0F12);
+  static Color get textSecondary =>
+      _isDark ? textSecondaryDark : textSecondaryLight;
+
+  static const Color textTertiaryDark = Color(0x66FFFFFF);
+  static const Color textTertiaryLight = Color(0x660F0F12);
+  static Color get textTertiary =>
+      _isDark ? textTertiaryDark : textTertiaryLight;
+
+  static const Color textMutedDark = Color(0x33FFFFFF);
+  static const Color textMutedLight = Color(0x330F0F12);
+  static Color get textMuted => _isDark ? textMutedDark : textMutedLight;
 
   /// Semantic colors
   static const Color success = Color(0xFF22C55E);

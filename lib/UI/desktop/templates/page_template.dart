@@ -62,7 +62,7 @@ class PageTemplate extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: DesktopTheme.textPrimary,
@@ -108,7 +108,7 @@ class PageTemplate extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: DesktopTheme.textPrimary,
@@ -229,7 +229,7 @@ class SectionHeader extends StatelessWidget {
                 else
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.3,

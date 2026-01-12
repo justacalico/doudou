@@ -286,7 +286,7 @@ class _Sidebar extends StatelessWidget {
 
     return Container(
       width: DesktopTheme.sidebarWidth,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: DesktopTheme.backgroundPrimary,
         border: Border(
           right: BorderSide(color: DesktopTheme.glassBorder, width: 1),
@@ -320,7 +320,7 @@ class _Sidebar extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: DesktopTheme.spacingSm),
-                        const Text(
+                        Text(
                           'Doudou',
                           style: TextStyle(
                             fontSize: 20,
@@ -607,7 +607,7 @@ class _PlayerBarContent extends StatelessWidget {
 
     return Container(
       height: DesktopTheme.playerBarHeight,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: DesktopTheme.backgroundSecondary,
         border: Border(
           top: BorderSide(color: DesktopTheme.glassBorder, width: 1),
@@ -830,7 +830,7 @@ class _TrackInfo extends StatelessWidget {
             children: [
               Text(
                 mediaItem!.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: DesktopTheme.textPrimary,
@@ -1082,7 +1082,7 @@ class _TrackInfo extends StatelessWidget {
   Widget _buildPlaceholder() {
     return Container(
       color: DesktopTheme.backgroundTertiary,
-      child: const Icon(
+      child: Icon(
         Icons.music_note_rounded,
         color: DesktopTheme.textTertiary,
         size: 24,
@@ -1191,7 +1191,7 @@ class _PlayPauseButtonState extends State<_PlayPauseButton> {
           height: 40,
           transform: Matrix4.identity()..scale(_isHovered ? 1.08 : 1.0),
           transformAlignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: DesktopTheme.textPrimary,
             shape: BoxShape.circle,
           ),
@@ -1514,7 +1514,7 @@ class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
                                               child: Text(
                                                 mediaItem?.album ??
                                                     l10n.unknownAlbum,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w500,
                                                   color:
@@ -1668,7 +1668,7 @@ class _NowPlayingMain extends StatelessWidget {
     
     return Container(
       color: DesktopTheme.backgroundElevated,
-      child: const Icon(
+      child: Icon(
         Icons.music_note_rounded,
         size: 100,
         color: DesktopTheme.textTertiary,
@@ -1715,7 +1715,7 @@ class _NowPlayingMain extends StatelessWidget {
           // Track info
           Text(
             mediaItem?.title ?? 'No track playing',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: DesktopTheme.textPrimary,
@@ -2030,7 +2030,7 @@ class _LargePlayButtonState extends State<_LargePlayButton> {
           height: 64,
           transform: Matrix4.identity()..scale(_isHovered ? 1.08 : 1.0),
           transformAlignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: DesktopTheme.textPrimary,
             shape: BoxShape.circle,
           ),
@@ -2205,13 +2205,13 @@ class _QueueItemState extends State<_QueueItem> {
                         width: 40,
                         height: 40,
                         fit: BoxFit.cover,
-                        errorBuilder: () => const Icon(
+                        errorBuilder: () => Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
                         ),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.music_note_rounded,
                         size: 20,
                         color: DesktopTheme.textTertiary,
@@ -2335,7 +2335,7 @@ class _AddToPlaylistDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       l10n.addToPlaylist,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: DesktopTheme.textPrimary,
@@ -2458,13 +2458,13 @@ class _PlaylistItemState extends State<_PlaylistItem> {
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
-                        errorBuilder: () => const Icon(
+                        errorBuilder: () => Icon(
                           Icons.queue_music_rounded,
                           size: 24,
                           color: DesktopTheme.textTertiary,
                         ),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.queue_music_rounded,
                         size: 24,
                         color: DesktopTheme.textTertiary,
@@ -2475,7 +2475,7 @@ class _PlaylistItemState extends State<_PlaylistItem> {
               Expanded(
                 child: Text(
                   widget.playlist.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: DesktopTheme.textPrimary,
@@ -2888,7 +2888,7 @@ class _DetailHeader extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: DesktopTheme.textPrimary,
@@ -3231,7 +3231,7 @@ class _TrackRowState extends State<_TrackRow> {
                 width: 40,
                 child: Center(
                   child: _isHovered
-                      ? const Icon(
+                      ? Icon(
                           Icons.play_arrow_rounded,
                           color: DesktopTheme.textPrimary,
                           size: 20,
@@ -3263,13 +3263,13 @@ class _TrackRowState extends State<_TrackRow> {
                         width: 40,
                         height: 40,
                         fit: BoxFit.cover,
-                        errorBuilder: () => const Icon(
+                        errorBuilder: () => Icon(
                           Icons.music_note_rounded,
                           size: 20,
                           color: DesktopTheme.textTertiary,
                         ),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.music_note_rounded,
                         size: 20,
                         color: DesktopTheme.textTertiary,
@@ -3282,7 +3282,7 @@ class _TrackRowState extends State<_TrackRow> {
                   children: [
                     Text(
                       widget.track.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: DesktopTheme.textPrimary,
@@ -3513,7 +3513,7 @@ class _AlbumCardState extends State<_AlbumCard> {
                           ? buildSmartImage(
                               imageUrl: widget.imageUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: () => const Center(
+                              errorBuilder: () => Center(
                                 child: Icon(
                                   Icons.album_rounded,
                                   size: 48,
@@ -3521,7 +3521,7 @@ class _AlbumCardState extends State<_AlbumCard> {
                                 ),
                               ),
                             )
-                          : const Center(
+                          : Center(
                               child: Icon(
                                 Icons.album_rounded,
                                 size: 48,
@@ -3561,7 +3561,7 @@ class _AlbumCardState extends State<_AlbumCard> {
               // Album name
               Text(
                 widget.album.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: DesktopTheme.textPrimary,

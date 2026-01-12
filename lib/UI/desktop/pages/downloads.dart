@@ -203,7 +203,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
           const SizedBox(height: 24),
           Text(
             l10n.noDownloadedMusic,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: DesktopTheme.textPrimary,
@@ -299,7 +299,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
         const SizedBox(width: DesktopTheme.spacingSm),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: DesktopTheme.textPrimary,
@@ -329,7 +329,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
             children: [
               _buildDownloadTaskItem(task, appState),
               if (!isLast)
-                const Divider(
+                Divider(
                   height: 1,
                   color: DesktopTheme.glassBorder,
                   indent: 72,
@@ -408,7 +408,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 children: [
                   Text(
                     task.trackName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: DesktopTheme.textPrimary,
@@ -550,7 +550,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 children: [
                   Text(
                     album.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: DesktopTheme.textPrimary,
@@ -634,7 +634,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
               ],
             ),
           ),
-          const Divider(height: 1, color: DesktopTheme.glassBorder),
+          Divider(height: 1, color: DesktopTheme.glassBorder),
           // Track rows
           ...tracks.asMap().entries.map((entry) {
             final index = entry.key;
@@ -645,7 +645,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
               children: [
                 _buildTrackRow(track, index, tracks, appState),
                 if (!isLast)
-                  const Divider(
+                  Divider(
                     height: 1,
                     color: DesktopTheme.glassBorder,
                     indent: 72,
@@ -693,7 +693,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 children: [
                   Text(
                     track.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: DesktopTheme.textPrimary,
@@ -823,7 +823,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: DesktopTheme.backgroundElevated,
-          child: const Icon(
+          child: Icon(
             Icons.album_rounded,
             size: 40,
             color: DesktopTheme.textTertiary,
@@ -833,7 +833,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     }
     return Container(
       color: DesktopTheme.backgroundElevated,
-      child: const Icon(
+      child: Icon(
         Icons.album_rounded,
         size: 40,
         color: DesktopTheme.textTertiary,
@@ -849,7 +849,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: DesktopTheme.backgroundElevated,
-          child: const Icon(
+          child: Icon(
             Icons.music_note_rounded,
             size: 20,
             color: DesktopTheme.textTertiary,
@@ -859,7 +859,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     }
     return Container(
       color: DesktopTheme.backgroundElevated,
-      child: const Icon(
+      child: Icon(
         Icons.music_note_rounded,
         size: 20,
         color: DesktopTheme.textTertiary,

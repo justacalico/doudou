@@ -16,6 +16,7 @@ import '../mobile/partials/navbar/navbar.dart';
 import '../mobile/widgets/apple_design/apple_theme.dart';
 import 'templates/desktop_layout.dart';
 import 'services/navigation_service.dart';
+import 'templates/desktop_theme.dart';
 
 const double kDesktopBreakpoint = 768.0;
 
@@ -122,6 +123,15 @@ class DesktopDoudouApp extends StatelessWidget {
         child: _buildAppWithPlatformServices(
           Consumer<AppState>(
             builder: (context, appState, child) {
+              final systemBrightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              final brightness = appState.themeMode == ThemeMode.dark
+                  ? Brightness.dark
+                  : appState.themeMode == ThemeMode.light
+                      ? Brightness.light
+                      : systemBrightness;
+              DesktopTheme.updateBrightness(brightness);
+
               return MaterialApp(
                 title: 'Doudou - Music Player',
                 theme: AppleTheme.light(accentColor: appState.accentColor),
