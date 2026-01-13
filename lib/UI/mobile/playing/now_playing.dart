@@ -461,8 +461,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                   screenWidth * 0.75)
                                               ? availableSize
                                               : screenWidth * 0.75;
-                                          // Distance between album art centers
-                                          final spacing = screenWidth * 0.85;
+                                          // Distance between album art centers - closer so side albums peek in
+                                          final spacing = albumArtSize * 0.85;
 
                                           return GestureDetector(
                                             onHorizontalDragUpdate: (details) {
