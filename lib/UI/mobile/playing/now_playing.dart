@@ -310,7 +310,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                               children: [
                                 const SizedBox(height: 20),
 
-                                // Album Art with liquid glass shadow
+                                // Album Art Carousel with prev/next previews
                                 Expanded(
                                   flex: 3,
                                   child: StreamBuilder<PlayerState>(
@@ -318,6 +318,21 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     builder: (context, snapshot) {
                                       final isPlaying =
                                           snapshot.data?.playing == true;
+                                      final queueTracks =
+                                          appState.audioHandler?.queueTracks ??
+                                          [];
+                                      final currentIndex =
+                                          appState.audioHandler?.currentIndex ??
+                                          0;
+
+                                      // Get previous and next tracks
+                                      final prevTrack = currentIndex > 0
+                                          ? queueTracks[currentIndex - 1]
+                                          : null;
+                                      final nextTrack =
+                                          currentIndex < queueTracks.length - 1
+                                          ? queueTracks[currentIndex + 1]
+                                          : null;
 
                                       return LayoutBuilder(
                                         builder: (context, constraints) {
@@ -328,121 +343,224 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                           ).size.width;
                                           final albumArtSize =
                                               (availableSize <
-                                                  screenWidth * 0.8)
+                                                  screenWidth * 0.75)
                                               ? availableSize
-                                              : screenWidth * 0.8;
+                                              : screenWidth * 0.75;
+                                          final sideArtSize = albumArtSize * 0.7;
+                                          final sideArtOffset = albumArtSize * 0.15;
 
-                                          return Center(
-                                            child: AnimatedScale(
-                                              scale: isPlaying ? 1.0 : 0.88,
-                                              duration: const Duration(
-                                                milliseconds: 400,
-                                              ),
-                                              curve: Curves.easeOutCubic,
-                                              child: Container(
-                                                width: albumArtSize,
-                                                height: albumArtSize,
-                                                constraints:
-                                                    const BoxConstraints(
-                                                      maxWidth: 350,
-                                                      maxHeight: 350,
+                                          return Stack(
+                                            alignment: Alignment.center,
+                                            clipBehavior: Clip.none,
+                                            children: [
+                                              // Previous track album art (left)
+                                              if (prevTrack != null)
+                                                Positioned(
+                                                  left: -sideArtOffset,
+                                                  child: GestureDetector(
+                                                    onTap: () =>
+                                                        appState.skipToPrevious(),
+                                                    child: Transform.scale(
+                                                      scale: 0.7,
+                                                      child: Opacity(
+                                                        opacity: 0.5,
+                                                        child: Container(
+                                                          width: sideArtSize,
+                                                          height: sideArtSize,
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                maxWidth: 245,
+                                                                maxHeight: 245,
+                                                              ),
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(20),
+                                                            child: AlbumArtWidget(
+                                                              imageUrl: prevTrack
+                                                                          .imageUrl !=
+                                                                      null
+                                                                  ? appState
+                                                                      .getImageUrl(
+                                                                        prevTrack
+                                                                            .imageUrl!,
+                                                                        width: 400,
+                                                                        height:
+                                                                            400,
+                                                                      )
+                                                                  : null,
+                                                              size: sideArtSize,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                        20,
+                                                                      ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
                                                     ),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(24),
-                                                  boxShadow: [
-                                                    // Liquid glass shadow effect
-                                                    BoxShadow(
-                                                      color:
-                                                          const Color(
+                                                  ),
+                                                ),
+
+                                              // Next track album art (right)
+                                              if (nextTrack != null)
+                                                Positioned(
+                                                  right: -sideArtOffset,
+                                                  child: GestureDetector(
+                                                    onTap: () =>
+                                                        appState.skipToNext(),
+                                                    child: Transform.scale(
+                                                      scale: 0.7,
+                                                      child: Opacity(
+                                                        opacity: 0.5,
+                                                        child: Container(
+                                                          width: sideArtSize,
+                                                          height: sideArtSize,
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                maxWidth: 245,
+                                                                maxHeight: 245,
+                                                              ),
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(20),
+                                                            child: AlbumArtWidget(
+                                                              imageUrl: nextTrack
+                                                                          .imageUrl !=
+                                                                      null
+                                                                  ? appState
+                                                                      .getImageUrl(
+                                                                        nextTrack
+                                                                            .imageUrl!,
+                                                                        width: 400,
+                                                                        height:
+                                                                            400,
+                                                                      )
+                                                                  : null,
+                                                              size: sideArtSize,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                        20,
+                                                                      ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                              // Current track album art (center)
+                                              Center(
+                                                child: AnimatedScale(
+                                                  scale: isPlaying ? 1.0 : 0.88,
+                                                  duration: const Duration(
+                                                    milliseconds: 400,
+                                                  ),
+                                                  curve: Curves.easeOutCubic,
+                                                  child: Container(
+                                                    width: albumArtSize,
+                                                    height: albumArtSize,
+                                                    constraints:
+                                                        const BoxConstraints(
+                                                          maxWidth: 350,
+                                                          maxHeight: 350,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              24),
+                                                      boxShadow: [
+                                                        // Liquid glass shadow effect
+                                                        BoxShadow(
+                                                          color: const Color(
                                                             0xFF8B5CF6,
                                                           ).withOpacity(
-                                                            isPlaying
-                                                                ? 0.3
-                                                                : 0.1,
+                                                            isPlaying ? 0.3 : 0.1,
                                                           ),
-                                                      blurRadius: 40,
-                                                      offset: const Offset(
-                                                        0,
-                                                        20,
-                                                      ),
-                                                      spreadRadius: isPlaying
-                                                          ? 5
-                                                          : 0,
-                                                    ),
-                                                    BoxShadow(
-                                                      color:
-                                                          const Color(
+                                                          blurRadius: 40,
+                                                          offset:
+                                                              const Offset(0, 20),
+                                                          spreadRadius:
+                                                              isPlaying ? 5 : 0,
+                                                        ),
+                                                        BoxShadow(
+                                                          color: const Color(
                                                             0xFFEC4899,
                                                           ).withOpacity(
                                                             isPlaying
                                                                 ? 0.2
                                                                 : 0.05,
                                                           ),
-                                                      blurRadius: 60,
-                                                      offset: const Offset(
-                                                        -10,
-                                                        30,
-                                                      ),
+                                                          blurRadius: 60,
+                                                          offset: const Offset(
+                                                              -10, 30),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(24),
-                                                  child: Stack(
-                                                    children: [
-                                                      AlbumArtWidget(
-                                                        imageUrl:
-                                                            currentTrack
-                                                                    .imageUrl !=
-                                                                null
-                                                            ? appState.getImageUrl(
-                                                                currentTrack
-                                                                    .imageUrl!,
-                                                                width: 800,
-                                                                height: 800,
-                                                              )
-                                                            : null,
-                                                        size: albumArtSize,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              24,
-                                                            ),
-                                                      ),
-                                                      // Subtle liquid glass overlay
-                                                      if (isPlaying)
-                                                        Positioned.fill(
-                                                          child: Container(
-                                                            decoration: BoxDecoration(
-                                                              gradient: LinearGradient(
-                                                                begin: Alignment
-                                                                    .topLeft,
-                                                                end: Alignment
-                                                                    .bottomRight,
-                                                                colors: [
-                                                                  CupertinoColors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                        0.1,
-                                                                      ),
-                                                                  Colors
-                                                                      .transparent,
-                                                                  CupertinoColors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                        0.05,
-                                                                      ),
-                                                                ],
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              24),
+                                                      child: Stack(
+                                                        children: [
+                                                          AlbumArtWidget(
+                                                            imageUrl: currentTrack
+                                                                        .imageUrl !=
+                                                                    null
+                                                                ? appState
+                                                                    .getImageUrl(
+                                                                      currentTrack
+                                                                          .imageUrl!,
+                                                                      width: 800,
+                                                                      height: 800,
+                                                                    )
+                                                                : null,
+                                                            size: albumArtSize,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(24),
+                                                          ),
+                                                          // Subtle liquid glass overlay
+                                                          if (isPlaying)
+                                                            Positioned.fill(
+                                                              child: Container(
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  gradient:
+                                                                      LinearGradient(
+                                                                    begin: Alignment
+                                                                        .topLeft,
+                                                                    end: Alignment
+                                                                        .bottomRight,
+                                                                    colors: [
+                                                                      CupertinoColors
+                                                                          .white
+                                                                          .withOpacity(
+                                                                            0.1,
+                                                                          ),
+                                                                      Colors
+                                                                          .transparent,
+                                                                      CupertinoColors
+                                                                          .white
+                                                                          .withOpacity(
+                                                                            0.05,
+                                                                          ),
+                                                                    ],
+                                                                  ),
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ),
-                                                    ],
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
+                                            ],
                                           );
                                         },
                                       );
