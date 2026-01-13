@@ -25,7 +25,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     with TickerProviderStateMixin {
   late AnimationController _favoriteAnimationController;
   late Animation<double> _favoriteScaleAnimation;
+  late AnimationController _skipAnimationController;
+  late AnimationController _snapBackController;
   double _dragOffset = 0.0;
+  double _snapBackStartOffset = 0.0;
+  double _animationStartOffset = 0.0; // Where animation starts from
+  double _currentSpacing = 0.0; // Store spacing for button animations
+  bool _isAnimatingSkip = false;
+  bool _isSnappingBack = false;
+  int _skipDirection = 0; // -1 for next, 1 for previous
   bool? _hasLyrics; // null = unknown, true = available, false = not available
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
 
@@ -42,12 +50,102 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         curve: Curves.elasticOut,
       ),
     );
+    _skipAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    _skipAnimationController.addListener(() {
+      if (_isAnimatingSkip) {
+        setState(() {
+          // Animate from 0 to full spacing in the skip direction
+        });
+      }
+    });
+    _snapBackController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _snapBackController.addListener(() {
+      if (_isSnappingBack) {
+        setState(() {
+          _dragOffset = _snapBackStartOffset * (1 - _snapBackController.value);
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _favoriteAnimationController.dispose();
+    _skipAnimationController.dispose();
+    _snapBackController.dispose();
     super.dispose();
+  }
+
+  // Snap back to center with animation
+  void _snapBack() {
+    if (_dragOffset == 0) return;
+    _isSnappingBack = true;
+    _snapBackStartOffset = _dragOffset;
+    _snapBackController.forward(from: 0).then((_) {
+      if (mounted) {
+        setState(() {
+          _dragOffset = 0;
+          _isSnappingBack = false;
+        });
+        _snapBackController.reset();
+      }
+    });
+  }
+
+  // Animate skip to next track
+  void _animateSkipToNext(AppState appState, double spacing) {
+    if (_isAnimatingSkip) return;
+    _isAnimatingSkip = true;
+    _skipDirection = -1;
+    _animationStartOffset = _dragOffset;
+
+    _skipAnimationController.forward(from: 0).then((_) {
+      // Change track first, then reset state in next frame to avoid visual jump
+      appState.skipToNext();
+      // Use a microtask to ensure track change is processed before resetting
+      Future.microtask(() {
+        if (mounted) {
+          setState(() {
+            _dragOffset = 0;
+            _isAnimatingSkip = false;
+            _skipDirection = 0;
+            _animationStartOffset = 0;
+          });
+          _skipAnimationController.reset();
+        }
+      });
+    });
+  }
+
+  // Animate skip to previous track
+  void _animateSkipToPrevious(AppState appState, double spacing) {
+    if (_isAnimatingSkip) return;
+    _isAnimatingSkip = true;
+    _skipDirection = 1;
+    _animationStartOffset = _dragOffset;
+
+    _skipAnimationController.forward(from: 0).then((_) {
+      // Change track first, then reset state in next frame to avoid visual jump
+      appState.skipToPrevious();
+      // Use a microtask to ensure track change is processed before resetting
+      Future.microtask(() {
+        if (mounted) {
+          setState(() {
+            _dragOffset = 0;
+            _isAnimatingSkip = false;
+            _skipDirection = 0;
+            _animationStartOffset = 0;
+          });
+          _skipAnimationController.reset();
+        }
+      });
+    });
   }
 
   // Build a carousel item with position-based scale and opacity
@@ -72,25 +170,22 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     final scale = 1.0 - (normalizedPosition.abs() * 0.3);
 
     // Opacity: 1.0 at center, 0.5 at sides
-    final opacity = 1.0 - (normalizedPosition.abs() * 0.5);
+    final opacity = (1.0 - (normalizedPosition.abs() * 0.5)).clamp(0.3, 1.0);
 
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
+    return Positioned(
       left: 0,
       right: 0,
+      top: 0,
+      bottom: 0,
       child: Center(
         child: Transform.translate(
           offset: Offset(position, 0),
           child: GestureDetector(
             onTap: onTap,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: opacity.clamp(0.3, 1.0),
-              child: AnimatedScale(
-                duration: const Duration(milliseconds: 200),
+            child: Opacity(
+              opacity: opacity,
+              child: Transform.scale(
                 scale: isCurrent && isPlaying ? scale : scale * 0.95,
-                curve: Curves.easeOutCubic,
                 child: Container(
                   width: albumArtSize,
                   height: albumArtSize,
@@ -463,6 +558,14 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               : screenWidth * 0.75;
                                           // Distance between album art centers - closer so side albums peek in
                                           final spacing = albumArtSize * 0.85;
+                                          // Store spacing for button animations
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                                if (_currentSpacing !=
+                                                    spacing) {
+                                                  _currentSpacing = spacing;
+                                                }
+                                              });
 
                                           return GestureDetector(
                                             onHorizontalDragUpdate: (details) {
@@ -489,67 +592,108 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                       _dragOffset <
                                                           -threshold) &&
                                                   nextTrack != null) {
-                                                appState.skipToNext();
-                                                setState(() => _dragOffset = 0);
+                                                _animateSkipToNext(
+                                                  appState,
+                                                  spacing,
+                                                );
                                               }
                                               // Swipe right (positive) = previous track
                                               else if ((velocity > 300 ||
                                                       _dragOffset >
                                                           threshold) &&
                                                   prevTrack != null) {
-                                                appState.skipToPrevious();
-                                                setState(() => _dragOffset = 0);
+                                                _animateSkipToPrevious(
+                                                  appState,
+                                                  spacing,
+                                                );
                                               }
                                               // Snap back with animation
                                               else {
-                                                setState(() => _dragOffset = 0);
+                                                _snapBack();
                                               }
                                             },
-                                            child: Stack(
-                                              alignment: Alignment.center,
-                                              clipBehavior: Clip.none,
-                                              children: [
-                                                // Previous track album art (left position)
-                                                if (prevTrack != null)
-                                                  _buildCarouselItem(
-                                                    appState: appState,
-                                                    track: prevTrack,
-                                                    basePosition: -spacing,
-                                                    dragOffset: _dragOffset,
-                                                    spacing: spacing,
-                                                    albumArtSize: albumArtSize,
-                                                    isPlaying: false,
-                                                    onTap: () => appState
-                                                        .skipToPrevious(),
-                                                  ),
+                                            child: AnimatedBuilder(
+                                              animation:
+                                                  _skipAnimationController,
+                                              builder: (context, child) {
+                                                // Calculate total offset including skip animation
+                                                double totalOffset;
+                                                if (_isAnimatingSkip) {
+                                                  // Animate from current position to target (spacing in skip direction)
+                                                  final targetOffset =
+                                                      _skipDirection * spacing;
+                                                  final progress = Curves
+                                                      .easeOutCubic
+                                                      .transform(
+                                                        _skipAnimationController
+                                                            .value,
+                                                      );
+                                                  // Lerp from start position to target
+                                                  totalOffset =
+                                                      _animationStartOffset +
+                                                      (targetOffset -
+                                                              _animationStartOffset) *
+                                                          progress;
+                                                } else {
+                                                  totalOffset = _dragOffset;
+                                                }
 
-                                                // Next track album art (right position)
-                                                if (nextTrack != null)
-                                                  _buildCarouselItem(
-                                                    appState: appState,
-                                                    track: nextTrack,
-                                                    basePosition: spacing,
-                                                    dragOffset: _dragOffset,
-                                                    spacing: spacing,
-                                                    albumArtSize: albumArtSize,
-                                                    isPlaying: false,
-                                                    onTap: () =>
-                                                        appState.skipToNext(),
-                                                  ),
+                                                return Stack(
+                                                  alignment: Alignment.center,
+                                                  clipBehavior: Clip.none,
+                                                  children: [
+                                                    // Previous track album art (left position)
+                                                    if (prevTrack != null)
+                                                      _buildCarouselItem(
+                                                        appState: appState,
+                                                        track: prevTrack,
+                                                        basePosition: -spacing,
+                                                        dragOffset: totalOffset,
+                                                        spacing: spacing,
+                                                        albumArtSize:
+                                                            albumArtSize,
+                                                        isPlaying: false,
+                                                        onTap: () =>
+                                                            _animateSkipToPrevious(
+                                                              appState,
+                                                              spacing,
+                                                            ),
+                                                      ),
 
-                                                // Current track album art (center)
-                                                _buildCarouselItem(
-                                                  appState: appState,
-                                                  track: currentTrack,
-                                                  basePosition: 0,
-                                                  dragOffset: _dragOffset,
-                                                  spacing: spacing,
-                                                  albumArtSize: albumArtSize,
-                                                  isPlaying: isPlaying,
-                                                  onTap: null,
-                                                  isCurrent: true,
-                                                ),
-                                              ],
+                                                    // Next track album art (right position)
+                                                    if (nextTrack != null)
+                                                      _buildCarouselItem(
+                                                        appState: appState,
+                                                        track: nextTrack,
+                                                        basePosition: spacing,
+                                                        dragOffset: totalOffset,
+                                                        spacing: spacing,
+                                                        albumArtSize:
+                                                            albumArtSize,
+                                                        isPlaying: false,
+                                                        onTap: () =>
+                                                            _animateSkipToNext(
+                                                              appState,
+                                                              spacing,
+                                                            ),
+                                                      ),
+
+                                                    // Current track album art (center)
+                                                    _buildCarouselItem(
+                                                      appState: appState,
+                                                      track: currentTrack,
+                                                      basePosition: 0,
+                                                      dragOffset: totalOffset,
+                                                      spacing: spacing,
+                                                      albumArtSize:
+                                                          albumArtSize,
+                                                      isPlaying: isPlaying,
+                                                      onTap: null,
+                                                      isCurrent: true,
+                                                    ),
+                                                  ],
+                                                );
+                                              },
                                             ),
                                           );
                                         },
@@ -836,7 +980,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         GestureDetector(
                                           onTap:
                                               audioHandler?.hasPrevious == true
-                                              ? () => appState.skipToPrevious()
+                                              ? () => _animateSkipToPrevious(
+                                                  appState,
+                                                  _currentSpacing,
+                                                )
                                               : null,
                                           child: Icon(
                                             CupertinoIcons.backward_fill,
@@ -904,7 +1051,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         // Next button
                                         GestureDetector(
                                           onTap: audioHandler?.hasNext == true
-                                              ? () => appState.skipToNext()
+                                              ? () => _animateSkipToNext(
+                                                  appState,
+                                                  _currentSpacing,
+                                                )
                                               : null,
                                           child: Icon(
                                             CupertinoIcons.forward_fill,
