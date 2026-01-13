@@ -349,10 +349,21 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                           final sideArtSize = albumArtSize * 0.7;
                                           final sideArtOffset = albumArtSize * 0.15;
 
-                                          return Stack(
-                                            alignment: Alignment.center,
-                                            clipBehavior: Clip.none,
-                                            children: [
+                                          return GestureDetector(
+                                            onHorizontalDragEnd: (details) {
+                                              final velocity = details.primaryVelocity ?? 0;
+                                              // Swipe left (negative velocity) = next track
+                                              // Swipe right (positive velocity) = previous track
+                                              if (velocity < -300 && nextTrack != null) {
+                                                appState.skipToNext();
+                                              } else if (velocity > 300 && prevTrack != null) {
+                                                appState.skipToPrevious();
+                                              }
+                                            },
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              clipBehavior: Clip.none,
+                                              children: [
                                               // Previous track album art (left)
                                               if (prevTrack != null)
                                                 Positioned(
@@ -561,6 +572,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                 ),
                                               ),
                                             ],
+                                          ),
                                           );
                                         },
                                       );
