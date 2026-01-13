@@ -25,6 +25,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     with TickerProviderStateMixin {
   late AnimationController _favoriteAnimationController;
   late Animation<double> _favoriteScaleAnimation;
+  double _dragOffset = 0.0;
   bool? _hasLyrics; // null = unknown, true = available, false = not available
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
 
@@ -47,6 +48,120 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   void dispose() {
     _favoriteAnimationController.dispose();
     super.dispose();
+  }
+
+  // Build a carousel item with position-based scale and opacity
+  Widget _buildCarouselItem({
+    required AppState appState,
+    required dynamic track,
+    required double basePosition,
+    required double dragOffset,
+    required double spacing,
+    required double albumArtSize,
+    required bool isPlaying,
+    VoidCallback? onTap,
+    bool isCurrent = false,
+  }) {
+    // Calculate position with drag offset
+    final position = basePosition + dragOffset;
+
+    // Normalize position to get a value from -1 to 1 (center is 0)
+    final normalizedPosition = (position / spacing).clamp(-1.5, 1.5);
+
+    // Scale: 1.0 at center, 0.7 at sides
+    final scale = 1.0 - (normalizedPosition.abs() * 0.3);
+
+    // Opacity: 1.0 at center, 0.5 at sides
+    final opacity = 1.0 - (normalizedPosition.abs() * 0.5);
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Transform.translate(
+          offset: Offset(position, 0),
+          child: GestureDetector(
+            onTap: onTap,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: opacity.clamp(0.3, 1.0),
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 200),
+                scale: isCurrent && isPlaying ? scale : scale * 0.95,
+                curve: Curves.easeOutCubic,
+                child: Container(
+                  width: albumArtSize,
+                  height: albumArtSize,
+                  constraints: const BoxConstraints(
+                    maxWidth: 350,
+                    maxHeight: 350,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: isCurrent
+                        ? [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF8B5CF6,
+                              ).withOpacity(isPlaying ? 0.3 : 0.1),
+                              blurRadius: 40,
+                              offset: const Offset(0, 20),
+                              spreadRadius: isPlaying ? 5 : 0,
+                            ),
+                            BoxShadow(
+                              color: const Color(
+                                0xFFEC4899,
+                              ).withOpacity(isPlaying ? 0.2 : 0.05),
+                              blurRadius: 60,
+                              offset: const Offset(-10, 30),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Stack(
+                      children: [
+                        AlbumArtWidget(
+                          imageUrl: track.imageUrl != null
+                              ? appState.getImageUrl(
+                                  track.imageUrl!,
+                                  width: 800,
+                                  height: 800,
+                                )
+                              : null,
+                          size: albumArtSize,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        // Subtle liquid glass overlay for current playing track
+                        if (isCurrent && isPlaying)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    CupertinoColors.white.withOpacity(0.1),
+                                    Colors.transparent,
+                                    CupertinoColors.white.withOpacity(0.05),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // Check if lyrics are available for the current track
@@ -310,7 +425,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                               children: [
                                 const SizedBox(height: 20),
 
-                                // Album Art Carousel with prev/next previews
+                                // Album Art Carousel with rotary animation
                                 Expanded(
                                   flex: 3,
                                   child: StreamBuilder<PlayerState>(
@@ -346,233 +461,96 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                   screenWidth * 0.75)
                                               ? availableSize
                                               : screenWidth * 0.75;
-                                          final sideArtSize = albumArtSize * 0.7;
-                                          final sideArtOffset = albumArtSize * 0.15;
+                                          // Distance between album art centers
+                                          final spacing = screenWidth * 0.85;
 
                                           return GestureDetector(
+                                            onHorizontalDragUpdate: (details) {
+                                              setState(() {
+                                                _dragOffset += details.delta.dx;
+                                                // Limit drag to one album art width
+                                                _dragOffset = _dragOffset.clamp(
+                                                  nextTrack != null
+                                                      ? -spacing
+                                                      : 0.0,
+                                                  prevTrack != null
+                                                      ? spacing
+                                                      : 0.0,
+                                                );
+                                              });
+                                            },
                                             onHorizontalDragEnd: (details) {
-                                              final velocity = details.primaryVelocity ?? 0;
-                                              // Swipe left (negative velocity) = next track
-                                              // Swipe right (positive velocity) = previous track
-                                              if (velocity < -300 && nextTrack != null) {
+                                              final velocity =
+                                                  details.primaryVelocity ?? 0;
+                                              final threshold = spacing * 0.3;
+
+                                              // Swipe left (negative) = next track
+                                              if ((velocity < -300 ||
+                                                      _dragOffset <
+                                                          -threshold) &&
+                                                  nextTrack != null) {
                                                 appState.skipToNext();
-                                              } else if (velocity > 300 && prevTrack != null) {
+                                                setState(() => _dragOffset = 0);
+                                              }
+                                              // Swipe right (positive) = previous track
+                                              else if ((velocity > 300 ||
+                                                      _dragOffset >
+                                                          threshold) &&
+                                                  prevTrack != null) {
                                                 appState.skipToPrevious();
+                                                setState(() => _dragOffset = 0);
+                                              }
+                                              // Snap back with animation
+                                              else {
+                                                setState(() => _dragOffset = 0);
                                               }
                                             },
                                             child: Stack(
                                               alignment: Alignment.center,
                                               clipBehavior: Clip.none,
                                               children: [
-                                              // Previous track album art (left)
-                                              if (prevTrack != null)
-                                                Positioned(
-                                                  left: -sideArtOffset,
-                                                  child: GestureDetector(
-                                                    onTap: () =>
-                                                        appState.skipToPrevious(),
-                                                    child: Transform.scale(
-                                                      scale: 0.7,
-                                                      child: Opacity(
-                                                        opacity: 0.5,
-                                                        child: Container(
-                                                          width: sideArtSize,
-                                                          height: sideArtSize,
-                                                          constraints:
-                                                              BoxConstraints(
-                                                                maxWidth: 245,
-                                                                maxHeight: 245,
-                                                              ),
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(20),
-                                                            child: AlbumArtWidget(
-                                                              imageUrl: prevTrack
-                                                                          .imageUrl !=
-                                                                      null
-                                                                  ? appState
-                                                                      .getImageUrl(
-                                                                        prevTrack
-                                                                            .imageUrl!,
-                                                                        width: 400,
-                                                                        height:
-                                                                            400,
-                                                                      )
-                                                                  : null,
-                                                              size: sideArtSize,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                        20,
-                                                                      ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
+                                                // Previous track album art (left position)
+                                                if (prevTrack != null)
+                                                  _buildCarouselItem(
+                                                    appState: appState,
+                                                    track: prevTrack,
+                                                    basePosition: -spacing,
+                                                    dragOffset: _dragOffset,
+                                                    spacing: spacing,
+                                                    albumArtSize: albumArtSize,
+                                                    isPlaying: false,
+                                                    onTap: () => appState
+                                                        .skipToPrevious(),
                                                   ),
-                                                ),
 
-                                              // Next track album art (right)
-                                              if (nextTrack != null)
-                                                Positioned(
-                                                  right: -sideArtOffset,
-                                                  child: GestureDetector(
+                                                // Next track album art (right position)
+                                                if (nextTrack != null)
+                                                  _buildCarouselItem(
+                                                    appState: appState,
+                                                    track: nextTrack,
+                                                    basePosition: spacing,
+                                                    dragOffset: _dragOffset,
+                                                    spacing: spacing,
+                                                    albumArtSize: albumArtSize,
+                                                    isPlaying: false,
                                                     onTap: () =>
                                                         appState.skipToNext(),
-                                                    child: Transform.scale(
-                                                      scale: 0.7,
-                                                      child: Opacity(
-                                                        opacity: 0.5,
-                                                        child: Container(
-                                                          width: sideArtSize,
-                                                          height: sideArtSize,
-                                                          constraints:
-                                                              BoxConstraints(
-                                                                maxWidth: 245,
-                                                                maxHeight: 245,
-                                                              ),
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(20),
-                                                            child: AlbumArtWidget(
-                                                              imageUrl: nextTrack
-                                                                          .imageUrl !=
-                                                                      null
-                                                                  ? appState
-                                                                      .getImageUrl(
-                                                                        nextTrack
-                                                                            .imageUrl!,
-                                                                        width: 400,
-                                                                        height:
-                                                                            400,
-                                                                      )
-                                                                  : null,
-                                                              size: sideArtSize,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                        20,
-                                                                      ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
                                                   ),
-                                                ),
 
-                                              // Current track album art (center)
-                                              Center(
-                                                child: AnimatedScale(
-                                                  scale: isPlaying ? 1.0 : 0.88,
-                                                  duration: const Duration(
-                                                    milliseconds: 400,
-                                                  ),
-                                                  curve: Curves.easeOutCubic,
-                                                  child: Container(
-                                                    width: albumArtSize,
-                                                    height: albumArtSize,
-                                                    constraints:
-                                                        const BoxConstraints(
-                                                          maxWidth: 350,
-                                                          maxHeight: 350,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              24),
-                                                      boxShadow: [
-                                                        // Liquid glass shadow effect
-                                                        BoxShadow(
-                                                          color: const Color(
-                                                            0xFF8B5CF6,
-                                                          ).withOpacity(
-                                                            isPlaying ? 0.3 : 0.1,
-                                                          ),
-                                                          blurRadius: 40,
-                                                          offset:
-                                                              const Offset(0, 20),
-                                                          spreadRadius:
-                                                              isPlaying ? 5 : 0,
-                                                        ),
-                                                        BoxShadow(
-                                                          color: const Color(
-                                                            0xFFEC4899,
-                                                          ).withOpacity(
-                                                            isPlaying
-                                                                ? 0.2
-                                                                : 0.05,
-                                                          ),
-                                                          blurRadius: 60,
-                                                          offset: const Offset(
-                                                              -10, 30),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              24),
-                                                      child: Stack(
-                                                        children: [
-                                                          AlbumArtWidget(
-                                                            imageUrl: currentTrack
-                                                                        .imageUrl !=
-                                                                    null
-                                                                ? appState
-                                                                    .getImageUrl(
-                                                                      currentTrack
-                                                                          .imageUrl!,
-                                                                      width: 800,
-                                                                      height: 800,
-                                                                    )
-                                                                : null,
-                                                            size: albumArtSize,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(24),
-                                                          ),
-                                                          // Subtle liquid glass overlay
-                                                          if (isPlaying)
-                                                            Positioned.fill(
-                                                              child: Container(
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  gradient:
-                                                                      LinearGradient(
-                                                                    begin: Alignment
-                                                                        .topLeft,
-                                                                    end: Alignment
-                                                                        .bottomRight,
-                                                                    colors: [
-                                                                      CupertinoColors
-                                                                          .white
-                                                                          .withOpacity(
-                                                                            0.1,
-                                                                          ),
-                                                                      Colors
-                                                                          .transparent,
-                                                                      CupertinoColors
-                                                                          .white
-                                                                          .withOpacity(
-                                                                            0.05,
-                                                                          ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
+                                                // Current track album art (center)
+                                                _buildCarouselItem(
+                                                  appState: appState,
+                                                  track: currentTrack,
+                                                  basePosition: 0,
+                                                  dragOffset: _dragOffset,
+                                                  spacing: spacing,
+                                                  albumArtSize: albumArtSize,
+                                                  isPlaying: isPlaying,
+                                                  onTap: null,
+                                                  isCurrent: true,
                                                 ),
-                                              ),
-                                            ],
-                                          ),
+                                              ],
+                                            ),
                                           );
                                         },
                                       );
