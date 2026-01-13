@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// DO NOT REMOVE THIS IMPORT - needed for localization
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -131,9 +133,9 @@ class DoudouApp extends StatelessWidget {
                 ),
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
-                  DefaultMaterialLocalizations.delegate,
-                  DefaultCupertinoLocalizations.delegate,
-                  DefaultWidgetsLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: Builder(
