@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:vibration/vibration.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import 'lyrics/lyrics_overlay.dart';
@@ -80,6 +82,19 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     _skipAnimationController.dispose();
     _snapBackController.dispose();
     super.dispose();
+  }
+
+  // Haptic feedback for favorite button
+  Future<void> _triggerFavoriteHaptic() async {
+    try {
+      HapticFeedback.mediumImpact();
+      bool? hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        await Vibration.vibrate(duration: 50);
+      }
+    } catch (e) {
+      // Silently fail if vibration is not supported
+    }
   }
 
   // Snap back to center with animation
@@ -1241,6 +1256,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                           // Favorite button
                                           GestureDetector(
                                             onTap: () async {
+                                              _triggerFavoriteHaptic();
                                               await _favoriteAnimationController
                                                   .forward();
                                               await _favoriteAnimationController
