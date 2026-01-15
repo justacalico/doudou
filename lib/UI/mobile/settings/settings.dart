@@ -765,7 +765,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showSupportDialog(BuildContext context) async {
-    final url = Uri.parse('https://communistparty.ie/en/');
+    final url = Uri.parse('https://openlyst.ink/support');
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
