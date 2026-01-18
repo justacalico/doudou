@@ -581,7 +581,7 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                 sigmaY: DesktopTheme.blurMedium,
               ),
               child: Container(
-                padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+                padding: const EdgeInsets.all(DesktopTheme.spacingMd),
                 decoration: BoxDecoration(
                   color: DesktopTheme.glassSurface.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
@@ -592,35 +592,70 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                     width: 1,
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
+                    // Icon container
+                    AnimatedContainer(
+                      duration: DesktopTheme.durationFast,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: widget.color.withOpacity(0.15),
+                        color: widget.color.withOpacity(
+                          _isHovering ? 0.2 : 0.12,
+                        ),
                         borderRadius: BorderRadius.circular(
                           DesktopTheme.radiusMd,
                         ),
+                        border: Border.all(
+                          color: widget.color.withOpacity(
+                            _isHovering ? 0.3 : 0.15,
+                          ),
+                          width: 1,
+                        ),
                       ),
-                      child: Icon(widget.icon, color: widget.color, size: 24),
-                    ),
-                    const SizedBox(height: DesktopTheme.spacingMd),
-                    Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: DesktopTheme.textPrimary,
+                      child: Center(
+                        child: AnimatedSwitcher(
+                          duration: DesktopTheme.durationFast,
+                          child: _isHovering
+                              ? Icon(
+                                  Icons.play_arrow_rounded,
+                                  key: const ValueKey('play'),
+                                  color: widget.color,
+                                  size: 28,
+                                )
+                              : Icon(
+                                  widget.icon,
+                                  key: const ValueKey('icon'),
+                                  color: widget.color,
+                                  size: 24,
+                                ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: DesktopTheme.textSecondary,
+                    const SizedBox(width: DesktopTheme.spacingMd),
+                    // Text content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: DesktopTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.subtitle,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: DesktopTheme.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
