@@ -8,6 +8,7 @@ import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
 import '../../../services/audio/unified_audio_handler.dart';
 import '../../../services/base_service.dart';
+import '../../../services/lyrics_service.dart';
 import '../services/navigation_service.dart';
 import '../pages/home.dart';
 import '../pages/search.dart';
@@ -122,8 +123,9 @@ class _DesktopLayoutState extends State<DesktopLayout>
 
   List<_NavItem> get _libraryItems {
     final appState = context.read<AppState>();
-    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
-    
+    final isLocalMusic =
+        appState.mediaServiceManager.currentServerType == ServerType.local;
+
     return [
       _NavItem(Icons.album_outlined, Icons.album_rounded, 'Albums'),
       _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Artists'),
@@ -134,11 +136,7 @@ class _DesktopLayoutState extends State<DesktopLayout>
         'Playlists',
       ),
       if (!isLocalMusic)
-        _NavItem(
-          Icons.download_outlined,
-          Icons.download_rounded,
-          'Downloads',
-        ),
+        _NavItem(Icons.download_outlined, Icons.download_rounded, 'Downloads'),
     ];
   }
 
@@ -352,7 +350,10 @@ class _Sidebar extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                       horizontal: DesktopTheme.spacingMd,
                     ),
-                    child: Container(height: 1, color: DesktopTheme.glassBorder),
+                    child: Container(
+                      height: 1,
+                      color: DesktopTheme.glassBorder,
+                    ),
                   ),
 
                   const SizedBox(height: DesktopTheme.spacingMd),
@@ -859,7 +860,9 @@ class _TrackInfo extends StatelessWidget {
           color: isFavorite ? const Color(0xFFEC4899) : null,
           tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
           onPressed: () {
-            final track = appState.tracks.where((t) => t.id == trackId).firstOrNull;
+            final track = appState.tracks
+                .where((t) => t.id == trackId)
+                .firstOrNull;
             if (track != null) {
               appState.toggleFavorite(track);
             }
@@ -874,9 +877,11 @@ class _TrackInfo extends StatelessWidget {
           ),
           tooltip: 'More options',
           onSelected: (value) {
-            final track = appState.tracks.where((t) => t.id == trackId).firstOrNull;
+            final track = appState.tracks
+                .where((t) => t.id == trackId)
+                .firstOrNull;
             if (track == null) return;
-            
+
             switch (value) {
               case 'addToQueue':
                 appState.addToQueue(track);
@@ -886,11 +891,14 @@ class _TrackInfo extends StatelessWidget {
                 break;
               case 'showAlbum':
                 if (track.albumId != null) {
-                  final album = appState.albums.where((a) => a.id == track.albumId).firstOrNull;
+                  final album = appState.albums
+                      .where((a) => a.id == track.albumId)
+                      .firstOrNull;
                   if (album != null) {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => MediaDetailsPage.album(album: album),
+                        builder: (context) =>
+                            MediaDetailsPage.album(album: album),
                       ),
                     );
                   }
@@ -898,7 +906,9 @@ class _TrackInfo extends StatelessWidget {
                 break;
               case 'showArtist':
                 if (track.artistName != null) {
-                  final artist = appState.artists.where((a) => a.name == track.artistName).firstOrNull;
+                  final artist = appState.artists
+                      .where((a) => a.name == track.artistName)
+                      .firstOrNull;
                   if (artist != null) {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -915,13 +925,17 @@ class _TrackInfo extends StatelessWidget {
           },
           itemBuilder: (context) {
             final l10n = AppLocalizations.of(context);
-            final track = appState.tracks.where((t) => t.id == trackId).firstOrNull;
-            
+            final track = appState.tracks
+                .where((t) => t.id == trackId)
+                .firstOrNull;
+
             // Get download status
             IconData downloadIcon = Icons.download_rounded;
             String downloadLabel = l10n.download;
             if (track != null) {
-              final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
+              final downloadStatus = appState.downloadService.getDownloadStatus(
+                track.id,
+              );
               if (downloadStatus == DownloadStatus.downloaded) {
                 downloadIcon = Icons.download_done_rounded;
                 downloadLabel = 'Downloaded';
@@ -930,7 +944,7 @@ class _TrackInfo extends StatelessWidget {
                 downloadLabel = l10n.downloading;
               }
             }
-            
+
             return [
               PopupMenuItem(
                 value: 'addToQueue',
@@ -982,7 +996,7 @@ class _TrackInfo extends StatelessWidget {
   void _handleDownload(BuildContext context, AppState appState, Track track) {
     final l10n = AppLocalizations.of(context);
     final downloadStatus = appState.downloadService.getDownloadStatus(track.id);
-    
+
     switch (downloadStatus) {
       case DownloadStatus.downloaded:
         // Show option to delete
@@ -1065,7 +1079,7 @@ class _TrackInfo extends StatelessWidget {
         errorBuilder: () => _buildPlaceholder(),
       );
     }
-    
+
     // Fall back to localImageUrl from extras (supports file:// URIs)
     final localImageUrl = mediaItem!.extras?['localImageUrl'] as String?;
     if (localImageUrl != null && localImageUrl.isNotEmpty) {
@@ -1075,7 +1089,7 @@ class _TrackInfo extends StatelessWidget {
         errorBuilder: () => _buildPlaceholder(),
       );
     }
-    
+
     return _buildPlaceholder();
   }
 
@@ -1658,14 +1672,11 @@ class _NowPlayingMain extends StatelessWidget {
     if (imageUrl == null || imageUrl.isEmpty) {
       imageUrl = mediaItem?.extras?['localImageUrl'] as String?;
     }
-    
+
     if (imageUrl != null && imageUrl.isNotEmpty) {
-      return buildSmartImage(
-        imageUrl: imageUrl,
-        fit: BoxFit.cover,
-      );
+      return buildSmartImage(imageUrl: imageUrl, fit: BoxFit.cover);
     }
-    
+
     return Container(
       color: DesktopTheme.backgroundElevated,
       child: Icon(
@@ -1983,7 +1994,9 @@ class _NowPlayingControls extends StatelessWidget {
                   : Icons.favorite_border_rounded,
               size: 24,
               color: isFavorite ? const Color(0xFFEC4899) : null,
-              tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+              tooltip: isFavorite
+                  ? 'Remove from favorites'
+                  : 'Add to favorites',
               onPressed: trackId != null
                   ? () {
                       final track = appState.tracks
@@ -2273,32 +2286,294 @@ class _QueueItemState extends State<_QueueItem> {
   }
 }
 
-/// Lyrics view placeholder
-class _LyricsView extends StatelessWidget {
+/// Lyrics view with synced lyrics support
+class _LyricsView extends StatefulWidget {
   final MediaItem? mediaItem;
 
   const _LyricsView({required this.mediaItem});
 
   @override
+  State<_LyricsView> createState() => _LyricsViewState();
+}
+
+class _LyricsViewState extends State<_LyricsView> {
+  LyricsResult? _lyricsResult;
+  bool _isLoading = false;
+  String? _currentTrackId;
+  int _currentLineIndex = -1;
+  final ScrollController _scrollController = ScrollController();
+  final List<GlobalKey> _lineKeys = [];
+  Duration _lastPosition = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLyricsIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_LyricsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.mediaItem?.id != oldWidget.mediaItem?.id) {
+      _loadLyricsIfNeeded();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _loadLyricsIfNeeded() {
+    final mediaItem = widget.mediaItem;
+    if (mediaItem == null) return;
+
+    final trackId = mediaItem.id;
+    if (trackId == _currentTrackId) return;
+
+    _currentTrackId = trackId;
+    _loadLyrics(mediaItem.title, mediaItem.artist ?? '');
+  }
+
+  Future<void> _loadLyrics(String trackName, String artistName) async {
+    if (trackName.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+      _lyricsResult = null;
+      _currentLineIndex = -1;
+      _lineKeys.clear();
+    });
+
+    try {
+      final result = await LyricsService.fetchLyrics(trackName, artistName);
+
+      if (mounted) {
+        setState(() {
+          _lyricsResult = result;
+          _isLoading = false;
+
+          if (result?.syncedLyrics != null) {
+            _lineKeys.clear();
+            for (int i = 0; i < result!.syncedLyrics!.length; i++) {
+              _lineKeys.add(GlobalKey());
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _lyricsResult = null;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _updateCurrentLine(Duration position) {
+    if (_lyricsResult?.syncedLyrics == null) return;
+
+    // Throttle updates
+    if ((position - _lastPosition).abs() < const Duration(milliseconds: 50)) {
+      return;
+    }
+    _lastPosition = position;
+
+    final lines = _lyricsResult!.syncedLyrics!;
+    int newLineIndex = -1;
+
+    for (int i = 0; i < lines.length; i++) {
+      if (position >= lines[i].timestamp) {
+        newLineIndex = i;
+      } else {
+        break;
+      }
+    }
+
+    if (newLineIndex != _currentLineIndex && newLineIndex >= 0) {
+      // Defer setState to avoid calling during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentLineIndex != newLineIndex) {
+          setState(() {
+            _currentLineIndex = newLineIndex;
+          });
+          _scrollToCurrentLine();
+        }
+      });
+    }
+  }
+
+  void _scrollToCurrentLine() {
+    if (_currentLineIndex < 0 ||
+        _currentLineIndex >= _lineKeys.length ||
+        !_scrollController.hasClients) {
+      return;
+    }
+
+    final key = _lineKeys[_currentLineIndex];
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.4,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+    if (_isLoading) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.lyrics_outlined,
-              size: 48,
-              color: DesktopTheme.textTertiary,
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: DesktopTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: DesktopTheme.spacingMd),
             Text(
-              'Lyrics not available',
-              style: TextStyle(fontSize: 14, color: DesktopTheme.textTertiary),
+              'Loading lyrics...',
+              style: TextStyle(fontSize: 13, color: DesktopTheme.textSecondary),
             ),
           ],
         ),
+      );
+    }
+
+    if (_lyricsResult == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lyrics_outlined,
+                size: 48,
+                color: DesktopTheme.textTertiary,
+              ),
+              const SizedBox(height: DesktopTheme.spacingMd),
+              Text(
+                'Lyrics not available',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: DesktopTheme.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_lyricsResult!.hasSyncedLyrics && _lyricsResult!.syncedLyrics != null) {
+      return _buildSyncedLyrics();
+    }
+
+    return _buildPlainLyrics();
+  }
+
+  Widget _buildSyncedLyrics() {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        // Check for track changes
+        final currentTrack = appState.audioHandler?.currentTrack;
+        if (currentTrack != null && currentTrack.id != _currentTrackId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _currentTrackId = currentTrack.id;
+              _loadLyrics(
+                currentTrack.name ?? '',
+                currentTrack.artistName ?? '',
+              );
+            }
+          });
+        }
+
+        return StreamBuilder<Duration>(
+          stream: appState.audioHandler?.positionStream,
+          builder: (context, snapshot) {
+            final position = snapshot.data ?? Duration.zero;
+            _updateCurrentLine(position);
+
+            return ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesktopTheme.spacingMd,
+                vertical: DesktopTheme.spacingXl,
+              ),
+              itemCount: _lyricsResult!.syncedLyrics!.length,
+              itemBuilder: (context, index) {
+                final line = _lyricsResult!.syncedLyrics![index];
+                final isCurrentLine = index == _currentLineIndex;
+                final isPastLine = index < _currentLineIndex;
+
+                return Container(
+                  key: _lineKeys[index],
+                  margin: EdgeInsets.symmetric(vertical: isCurrentLine ? 8 : 4),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: DesktopTheme.spacingMd,
+                      vertical: isCurrentLine ? 12 : 8,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        DesktopTheme.radiusSm,
+                      ),
+                      color: isCurrentLine
+                          ? DesktopTheme.accentPrimary.withOpacity(0.15)
+                          : Colors.transparent,
+                    ),
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      style: TextStyle(
+                        color: isCurrentLine
+                            ? DesktopTheme.textPrimary
+                            : isPastLine
+                            ? DesktopTheme.textTertiary
+                            : DesktopTheme.textSecondary,
+                        fontSize: isCurrentLine ? 15 : 13,
+                        fontWeight: isCurrentLine
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        height: 1.5,
+                      ),
+                      child: Text(line.text, textAlign: TextAlign.center),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPlainLyrics() {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+      child: SelectableText(
+        _lyricsResult?.plainLyrics ?? '',
+        style: TextStyle(
+          color: DesktopTheme.textSecondary,
+          fontSize: 13,
+          height: 1.8,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -3144,10 +3419,7 @@ class _TrackRowState extends State<_TrackRow> {
         title: const Text('Downloaded'),
         content: Text('"${widget.track.name}" is already downloaded.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.ok),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.ok)),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -3169,26 +3441,29 @@ class _TrackRowState extends State<_TrackRow> {
 
   void _showDownloadingOptions(BuildContext context, AppState appState) {
     final l10n = AppLocalizations.of(context);
-    final progress = appState.downloadService.getDownloadProgress(widget.track.id);
+    final progress = appState.downloadService.getDownloadProgress(
+      widget.track.id,
+    );
     final progressPercent = (progress * 100).toInt();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.downloading),
-        content: Text('"${widget.track.name}" is downloading ($progressPercent%)'),
+        content: Text(
+          '"${widget.track.name}" is downloading ($progressPercent%)',
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.ok),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.ok)),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               appState.downloadService.cancelDownload(widget.track.id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Cancelled download for "${widget.track.name}"'),
+                  content: Text(
+                    'Cancelled download for "${widget.track.name}"',
+                  ),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -3351,8 +3626,12 @@ class _TrackRowState extends State<_TrackRow> {
                     final l10n = AppLocalizations.of(context);
                     final appState = context.read<AppState>();
                     final downloadService = appState.downloadService;
-                    final isDownloaded = downloadService.isTrackDownloaded(widget.track.id);
-                    final status = downloadService.getDownloadStatus(widget.track.id);
+                    final isDownloaded = downloadService.isTrackDownloaded(
+                      widget.track.id,
+                    );
+                    final status = downloadService.getDownloadStatus(
+                      widget.track.id,
+                    );
                     final isDownloading = status == DownloadStatus.downloading;
 
                     IconData downloadIcon;
