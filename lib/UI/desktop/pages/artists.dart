@@ -17,7 +17,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
   String _sortBy = 'name'; // name, albumCount
   bool _isAscending = true;
   String _viewMode = 'grid'; // grid, list
-  
+
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -48,14 +48,14 @@ class _ArtistsPageState extends State<ArtistsPage> {
 
   List<dynamic> _getFilteredAndSortedArtists(AppState appState) {
     var artists = List.from(appState.artists);
-    
+
     // Filter by search query
     if (_searchQuery.isNotEmpty) {
       artists = artists.where((artist) {
         return artist.name.toLowerCase().contains(_searchQuery.toLowerCase());
       }).toList();
     }
-    
+
     // Sort artists
     artists.sort((a, b) {
       int comparison = 0;
@@ -65,33 +65,41 @@ class _ArtistsPageState extends State<ArtistsPage> {
           break;
         case 'albumCount':
           // Get album count for each artist by counting albums
-          final aAlbumCount = appState.albums.where((album) => album.artistName == a.name).length;
-          final bAlbumCount = appState.albums.where((album) => album.artistName == b.name).length;
+          final aAlbumCount = appState.albums
+              .where((album) => album.artistName == a.name)
+              .length;
+          final bAlbumCount = appState.albums
+              .where((album) => album.artistName == b.name)
+              .length;
           comparison = aAlbumCount.compareTo(bAlbumCount);
           break;
       }
       return _isAscending ? comparison : -comparison;
     });
-    
+
     return artists;
   }
 
   int _getArtistAlbumCount(AppState appState, String artistName) {
-    return appState.albums.where((album) => album.artistName == artistName).length;
+    return appState.albums
+        .where((album) => album.artistName == artistName)
+        .length;
   }
 
   int _getArtistTrackCount(AppState appState, String artistName) {
-    return appState.tracks.where((track) => track.artistName == artistName).length;
+    return appState.tracks
+        .where((track) => track.artistName == artistName)
+        .length;
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final filteredArtists = _getFilteredAndSortedArtists(appState);
-        
+
         return PageTemplate(
           title: l10n.artists,
           actions: [
@@ -127,7 +135,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
               ),
             ),
             const SizedBox(width: 16),
-            
+
             // View toggle buttons
             ToggleButtons(
               isSelected: [_viewMode == 'grid', _viewMode == 'list'],
@@ -142,15 +150,12 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   message: l10n.gridView,
                   child: const Icon(Icons.grid_view),
                 ),
-                Tooltip(
-                  message: l10n.listView,
-                  child: const Icon(Icons.list),
-                ),
+                Tooltip(message: l10n.listView, child: const Icon(Icons.list)),
               ],
             ),
-            
+
             const SizedBox(width: 16),
-            
+
             // Refresh button
             IconButton(
               onPressed: () => appState.loadLibraryData(),
@@ -162,9 +167,9 @@ class _ArtistsPageState extends State<ArtistsPage> {
             children: [
               // Filter and sort controls
               _buildFilterSortBar(appState, filteredArtists.length, l10n),
-              
+
               const SizedBox(height: 16),
-              
+
               // Content area
               Expanded(
                 child: appState.isLoading
@@ -179,10 +184,10 @@ class _ArtistsPageState extends State<ArtistsPage> {
                         ),
                       )
                     : filteredArtists.isEmpty
-                        ? _buildEmptyState(l10n)
-                        : _viewMode == 'grid'
-                            ? _buildArtistsGrid(appState, filteredArtists, l10n)
-                            : _buildArtistsList(appState, filteredArtists, l10n),
+                    ? _buildEmptyState(l10n)
+                    : _viewMode == 'grid'
+                    ? _buildArtistsGrid(appState, filteredArtists, l10n)
+                    : _buildArtistsList(appState, filteredArtists, l10n),
               ),
             ],
           ),
@@ -191,9 +196,13 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildFilterSortBar(AppState appState, int filteredCount, AppLocalizations l10n) {
+  Widget _buildFilterSortBar(
+    AppState appState,
+    int filteredCount,
+    AppLocalizations l10n,
+  ) {
     final theme = Theme.of(context);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -206,9 +215,9 @@ class _ArtistsPageState extends State<ArtistsPage> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            
+
             const SizedBox(width: 24),
-            
+
             // Sort dropdown
             Text(l10n.sortBy, style: theme.textTheme.bodyMedium),
             const SizedBox(width: 8),
@@ -223,12 +232,15 @@ class _ArtistsPageState extends State<ArtistsPage> {
               },
               items: [
                 DropdownMenuItem(value: 'name', child: Text(l10n.name)),
-                DropdownMenuItem(value: 'albumCount', child: Text(l10n.albumCountSort)),
+                DropdownMenuItem(
+                  value: 'albumCount',
+                  child: Text(l10n.albumCountSort),
+                ),
               ],
             ),
-            
+
             const SizedBox(width: 8),
-            
+
             // Sort direction toggle
             IconButton(
               onPressed: () {
@@ -236,27 +248,33 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   _isAscending = !_isAscending;
                 });
               },
-              icon: Icon(_isAscending ? Icons.arrow_upward : Icons.arrow_downward),
+              icon: Icon(
+                _isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              ),
               tooltip: _isAscending ? l10n.ascending : l10n.descending,
             ),
-            
+
             const Spacer(),
-            
+
             // Quick action buttons
             TextButton.icon(
-              onPressed: filteredCount > 0 ? () {
-                // Play all artists
-              } : null,
+              onPressed: filteredCount > 0
+                  ? () {
+                      // Play all artists
+                    }
+                  : null,
               icon: const Icon(Icons.play_arrow),
               label: Text(l10n.playAll),
             ),
-            
+
             const SizedBox(width: 8),
-            
+
             TextButton.icon(
-              onPressed: filteredCount > 0 ? () {
-                // Shuffle all artists
-              } : null,
+              onPressed: filteredCount > 0
+                  ? () {
+                      // Shuffle all artists
+                    }
+                  : null,
               icon: const Icon(Icons.shuffle),
               label: Text(l10n.shuffleAll),
             ),
@@ -278,7 +296,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            _searchQuery.isNotEmpty 
+            _searchQuery.isNotEmpty
                 ? l10n.noResultsFor(_searchQuery)
                 : l10n.noArtistsFound,
             style: Theme.of(context).textTheme.headlineSmall,
@@ -309,19 +327,26 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistsGrid(AppState appState, List<dynamic> artists, AppLocalizations l10n) {
+  Widget _buildArtistsGrid(
+    AppState appState,
+    List<dynamic> artists,
+    AppLocalizations l10n,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate responsive column count based on available width
         // Minimum card width of 150px, maximum of 200px
         final minCardWidth = 150.0;
-        final crossAxisCount = (constraints.maxWidth / minCardWidth).floor().clamp(2, 8);
-        
+        final crossAxisCount = (constraints.maxWidth / minCardWidth)
+            .floor()
+            .clamp(2, 8);
+
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            childAspectRatio: 0.75, // Better ratio for artist cards with circular images
+            childAspectRatio:
+                0.75, // Better ratio for artist cards with circular images
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
@@ -335,7 +360,11 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistsList(AppState appState, List<dynamic> artists, AppLocalizations l10n) {
+  Widget _buildArtistsList(
+    AppState appState,
+    List<dynamic> artists,
+    AppLocalizations l10n,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: artists.length,
@@ -346,12 +375,16 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistCard(AppState appState, dynamic artist, AppLocalizations l10n) {
+  Widget _buildArtistCard(
+    AppState appState,
+    dynamic artist,
+    AppLocalizations l10n,
+  ) {
     final theme = Theme.of(context);
     final albumCount = _getArtistAlbumCount(appState, artist.name);
     final trackCount = _getArtistTrackCount(appState, artist.name);
     final navigationService = NavigationService();
-    
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -364,60 +397,29 @@ class _ArtistsPageState extends State<ArtistsPage> {
             // Artist image
             Expanded(
               flex: 3,
-              child: Stack(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceVariant,
-                      shape: BoxShape.circle,
-                    ),
-                    child: artist.imageUrl != null
-                        ? ClipOval(
-                            child: Image.network(
-                              _getImageUrl(appState, artist.imageUrl)!,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildArtistPlaceholder(theme);
-                              },
-                            ),
-                          )
-                        : _buildArtistPlaceholder(theme),
-                  ),
-                  
-                  // Overlay with play button (appears on hover)
-                  Positioned.fill(
-                    child: Material(
-                      color: Colors.transparent,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: () {
-                          // Play artist
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.3),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.play_circle_filled,
-                              color: Colors.white,
-                              size: 48,
-                            ),
-                          ),
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceVariant,
+                  shape: BoxShape.circle,
+                ),
+                child: artist.imageUrl != null
+                    ? ClipOval(
+                        child: Image.network(
+                          _getImageUrl(appState, artist.imageUrl)!,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildArtistPlaceholder(theme);
+                          },
                         ),
-                      ),
-                    ),
-                  ),
-                ],
+                      )
+                    : _buildArtistPlaceholder(theme),
               ),
             ),
-            
+
             // Artist info
             Padding(
               padding: const EdgeInsets.all(8),
@@ -454,11 +456,15 @@ class _ArtistsPageState extends State<ArtistsPage> {
     );
   }
 
-  Widget _buildArtistListTile(AppState appState, dynamic artist, AppLocalizations l10n) {
+  Widget _buildArtistListTile(
+    AppState appState,
+    dynamic artist,
+    AppLocalizations l10n,
+  ) {
     final theme = Theme.of(context);
     final albumCount = _getArtistAlbumCount(appState, artist.name);
     final trackCount = _getArtistTrackCount(appState, artist.name);
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
