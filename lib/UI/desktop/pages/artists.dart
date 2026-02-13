@@ -46,6 +46,23 @@ class _ArtistsPageState extends State<ArtistsPage> {
     return appState.getImageUrl(imageId);
   }
 
+  bool _shouldUseArtistPlaceholder(dynamic artist) {
+    final artistName = (artist.name as String? ?? '').toLowerCase().trim();
+    final normalizedName = artistName
+        .replaceAll(RegExp(r'[\[\]\(\)\-_]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    const placeholderNames = {
+      'unknown',
+      'unknown artist',
+      'various',
+      'various artists',
+    };
+
+    return artist.imageUrl == null || placeholderNames.contains(normalizedName);
+  }
+
   List<dynamic> _getFilteredAndSortedArtists(AppState appState) {
     var artists = List.from(appState.artists);
 
@@ -404,7 +421,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   color: theme.colorScheme.surfaceVariant,
                   shape: BoxShape.circle,
                 ),
-                child: artist.imageUrl != null
+                child: !_shouldUseArtistPlaceholder(artist)
                     ? ClipOval(
                         child: Image.network(
                           _getImageUrl(appState, artist.imageUrl)!,
@@ -475,7 +492,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
             color: theme.colorScheme.surfaceVariant,
             shape: BoxShape.circle,
           ),
-          child: artist.imageUrl != null
+          child: !_shouldUseArtistPlaceholder(artist)
               ? ClipOval(
                   child: Image.network(
                     _getImageUrl(appState, artist.imageUrl)!,
@@ -557,6 +574,10 @@ class _ArtistsPageState extends State<ArtistsPage> {
   }
 
   Widget _buildArtistPlaceholder(ThemeData theme) {
+    final iconColor = theme.brightness == Brightness.dark
+        ? Colors.white70
+        : theme.colorScheme.onSurfaceVariant.withOpacity(0.7);
+
     return Container(
       width: double.infinity,
       height: double.infinity,
@@ -564,11 +585,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
         color: theme.colorScheme.surfaceVariant,
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        Icons.person,
-        size: 32,
-        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-      ),
+      child: Icon(Icons.account_circle_outlined, size: 36, color: iconColor),
     );
   }
 
