@@ -488,7 +488,8 @@ class _DetailTrackViewState extends State<DetailTrackView> {
       child: CupertinoPageScaffold(
         backgroundColor: Colors.transparent,
         navigationBar: CupertinoNavigationBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: const Color(0xFF1A1A24),
+          automaticBackgroundVisibility: false,
           border: null,
           middle: ClipRRect(
             borderRadius: BorderRadius.circular(8),
