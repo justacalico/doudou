@@ -73,6 +73,9 @@ class AudioQueueManager {
     if (index < 0 || index >= _stateController.queue.length) return;
 
     final trackToRemove = _stateController.queue[index];
+    final removedOriginalIndex = _originalQueue.indexWhere(
+      (track) => track.id == trackToRemove.id,
+    );
 
     // Remove from original queue
     _originalQueue.removeWhere((track) => track.id == trackToRemove.id);
@@ -81,8 +84,8 @@ class AudioQueueManager {
     _stateController.removeTrackFromQueue(index);
 
     // Update shuffled indices if needed
-    if (_isShuffled) {
-      _updateShuffledIndicesAfterRemoval(trackToRemove);
+    if (_isShuffled && removedOriginalIndex != -1) {
+      _updateShuffledIndicesAfterRemoval(removedOriginalIndex);
     }
   }
 
@@ -253,20 +256,14 @@ class AudioQueueManager {
   }
 
   /// Update shuffled indices after a track is removed
-  void _updateShuffledIndicesAfterRemoval(Track removedTrack) {
-    final removedOriginalIndex = _originalQueue.indexWhere(
-      (track) => track.id == removedTrack.id,
-    );
+  void _updateShuffledIndicesAfterRemoval(int removedOriginalIndex) {
+    // Remove the index from shuffled indices
+    _shuffledIndices.removeWhere((index) => index == removedOriginalIndex);
 
-    if (removedOriginalIndex != -1) {
-      // Remove the index from shuffled indices
-      _shuffledIndices.removeWhere((index) => index == removedOriginalIndex);
-
-      // Adjust remaining indices
-      for (int i = 0; i < _shuffledIndices.length; i++) {
-        if (_shuffledIndices[i] > removedOriginalIndex) {
-          _shuffledIndices[i]--;
-        }
+    // Adjust remaining indices
+    for (int i = 0; i < _shuffledIndices.length; i++) {
+      if (_shuffledIndices[i] > removedOriginalIndex) {
+        _shuffledIndices[i]--;
       }
     }
   }

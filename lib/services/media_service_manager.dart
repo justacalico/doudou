@@ -377,7 +377,10 @@ class MediaServiceManager {
         // Plex playlist creation not yet implemented
         break;
       case ServerType.local:
-        // Local playlist creation not yet implemented
+        if (_currentService is LocalMusicService) {
+          final localMusicService = _currentService as LocalMusicService;
+          return await localMusicService.createPlaylist(name);
+        }
         break;
     }
     return null;
@@ -405,7 +408,13 @@ class MediaServiceManager {
         // Plex add to playlist not yet implemented
         break;
       case ServerType.local:
-        // Local add to playlist not yet implemented
+        if (_currentService is LocalMusicService) {
+          final localMusicService = _currentService as LocalMusicService;
+          return await localMusicService.addTrackToPlaylist(
+            playlistId,
+            trackId,
+          );
+        }
         break;
     }
     return false;
@@ -476,7 +485,10 @@ class MediaServiceManager {
         // Plex rename playlist not yet implemented
         break;
       case ServerType.local:
-        // Local rename playlist not yet implemented
+        if (_currentService is LocalMusicService) {
+          final localMusicService = _currentService as LocalMusicService;
+          return await localMusicService.renamePlaylist(playlistId, newName);
+        }
         break;
     }
     return false;
@@ -501,7 +513,10 @@ class MediaServiceManager {
         // Plex remove playlist not yet implemented
         break;
       case ServerType.local:
-        // Local remove playlist not yet implemented
+        if (_currentService is LocalMusicService) {
+          final localMusicService = _currentService as LocalMusicService;
+          return await localMusicService.deletePlaylist(playlistId);
+        }
         break;
     }
     return false;

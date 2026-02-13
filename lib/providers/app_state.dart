@@ -24,6 +24,7 @@ class AppState extends ChangeNotifier {
   final CacheService _cacheService = CacheService.instance;
   late final DownloadService _downloadService;
   AudioServiceIntegration? _audioHandler;
+  final List<StreamSubscription<dynamic>> _audioHandlerSubscriptions = [];
 
   bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
 
@@ -149,6 +150,7 @@ class AppState extends ChangeNotifier {
 
   @override
   void dispose() {
+    _clearAudioHandlerListeners();
     _downloadService.removeListener(_onDownloadServiceChanged);
     super.dispose();
   }
@@ -171,25 +173,45 @@ class AppState extends ChangeNotifier {
   }
 
   void _setupAudioHandlerListeners() {
-    if (_audioHandler != null) {
-      // Listen to media item changes (track changes)
-      _audioHandler!.mediaItem?.listen((mediaItem) {
-        // Notify listeners when the current track changes
-        notifyListeners();
-      });
+    _clearAudioHandlerListeners();
+    if (_audioHandler == null) return;
 
-      // Listen to current track stream changes (more reliable)
-      _audioHandler!.currentTrackStream?.listen((track) {
-        // Notify listeners when the current track changes directly
-        notifyListeners();
-      });
-
-      // Listen to playback state changes (for playing/paused status)
-      _audioHandler!.playbackState?.listen((playbackState) {
-        // Notify listeners when playback state changes
-        notifyListeners();
-      });
+    // Listen to media item changes (track changes)
+    final mediaItemStream = _audioHandler!.mediaItem;
+    if (mediaItemStream != null) {
+      _audioHandlerSubscriptions.add(
+        mediaItemStream.listen((_) {
+          notifyListeners();
+        }),
+      );
     }
+
+    // Listen to current track stream changes (more reliable)
+    final currentTrackStream = _audioHandler!.currentTrackStream;
+    if (currentTrackStream != null) {
+      _audioHandlerSubscriptions.add(
+        currentTrackStream.listen((_) {
+          notifyListeners();
+        }),
+      );
+    }
+
+    // Listen to playback state changes (for playing/paused status)
+    final playbackStateStream = _audioHandler!.playbackState;
+    if (playbackStateStream != null) {
+      _audioHandlerSubscriptions.add(
+        playbackStateStream.listen((_) {
+          notifyListeners();
+        }),
+      );
+    }
+  }
+
+  void _clearAudioHandlerListeners() {
+    for (final subscription in _audioHandlerSubscriptions) {
+      subscription.cancel();
+    }
+    _audioHandlerSubscriptions.clear();
   }
 
   Future<void> _loadSavedServer() async {
