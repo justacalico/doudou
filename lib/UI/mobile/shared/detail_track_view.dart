@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' show Colors, Material, MaterialType;
 import 'package:provider/provider.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
+import '../../../services/album_art_color_service.dart';
 import '../widgets/cached_image_widget.dart';
 import '../widgets/apple_design/liquid_glass.dart';
 import '../partials/tracks/track_list_item.dart';
@@ -62,11 +63,24 @@ class _DetailTrackViewState extends State<DetailTrackView> {
   List<Track> tracks = [];
   bool isLoading = true;
   bool _isShuffled = false;
+  Color _artGlowColor = const Color(0xFF8B5CF6);
+  String? _lastGlowImageUrl;
 
   @override
   void initState() {
     super.initState();
     _loadTracks();
+    _updateArtGlowColor();
+  }
+
+  @override
+  void didUpdateWidget(covariant DetailTrackView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      _artGlowColor = const Color(0xFF8B5CF6);
+      _lastGlowImageUrl = null;
+      _updateArtGlowColor();
+    }
   }
 
   Future<void> _loadTracks() async {
@@ -147,6 +161,31 @@ class _DetailTrackViewState extends State<DetailTrackView> {
     });
   }
 
+  Future<void> _updateArtGlowColor() async {
+    if (widget.imageUrl == null) return;
+
+    final appState = context.read<AppState>();
+    final resolvedImageUrl = appState.getImageUrl(
+      widget.imageUrl!,
+      width: 320,
+      height: 320,
+    );
+
+    if (resolvedImageUrl.isEmpty || resolvedImageUrl == _lastGlowImageUrl) {
+      return;
+    }
+
+    _lastGlowImageUrl = resolvedImageUrl;
+    final dominantColor = await AlbumArtColorService.getDominantGlowColor(
+      resolvedImageUrl,
+    );
+    if (!mounted || dominantColor == null) return;
+
+    setState(() {
+      _artGlowColor = dominantColor;
+    });
+  }
+
   Future<void> _removeTrackFromPlaylist(int index, Track track) async {
     if (widget.viewType != DetailViewType.playlist) return;
 
@@ -219,7 +258,7 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                        color: _artGlowColor.withOpacity(0.42),
                         offset: const Offset(0, 8),
                         blurRadius: 24,
                       ),
