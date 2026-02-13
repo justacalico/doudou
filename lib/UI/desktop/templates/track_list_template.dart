@@ -362,6 +362,7 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         onSecondaryTapDown: (_) => _menuKey.currentState?.showButtonMenu(),
         child: AnimatedContainer(
