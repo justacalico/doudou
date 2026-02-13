@@ -2,10 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../l10n/l10n.dart';
-import '../../../providers/app_state.dart';
 import '../shell/adaptive_shell_content.dart';
 import '../shell/adaptive_shell_state.dart';
+
+const List<AppShellSection> _mobileNavSections = <AppShellSection>[
+  AppShellSection.home,
+  AppShellSection.tracks,
+  AppShellSection.downloads,
+  AppShellSection.favorites,
+  AppShellSection.settings,
+];
 
 class MobileLayout extends StatelessWidget {
   const MobileLayout({super.key, required this.isCupertino});
@@ -16,6 +22,10 @@ class MobileLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AdaptiveShellState>(
       builder: (context, shellState, _) {
+        final activeSection =
+            _mobileNavSections.contains(shellState.selectedSection)
+            ? shellState.selectedSection
+            : AppShellSection.home;
         final title = labelForSection(context, shellState.selectedSection);
 
         final body = PageStorage(
@@ -28,19 +38,13 @@ class MobileLayout extends StatelessWidget {
 
         if (isCupertino) {
           return CupertinoPageScaffold(
-            navigationBar: CupertinoNavigationBar(
-              middle: Text(title),
-              trailing: const SizedBox(
-                width: 74,
-                child: _ShuffleBarActions(isCupertino: true),
-              ),
-            ),
+            navigationBar: CupertinoNavigationBar(middle: Text(title)),
             child: Column(
               children: [
                 Expanded(child: body),
                 const NowPlayingBar(isCupertino: true),
                 _CupertinoNavBar(
-                  selectedSection: shellState.selectedSection,
+                  selectedSection: activeSection,
                   onSelected: shellState.selectSection,
                 ),
               ],
@@ -49,10 +53,7 @@ class MobileLayout extends StatelessWidget {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(title),
-            actions: const [_ShuffleBarActions(isCupertino: false)],
-          ),
+          appBar: AppBar(title: Text(title)),
           body: Column(
             children: [
               Expanded(child: body),
@@ -60,7 +61,7 @@ class MobileLayout extends StatelessWidget {
             ],
           ),
           bottomNavigationBar: _MaterialNavBar(
-            selectedSection: shellState.selectedSection,
+            selectedSection: activeSection,
             onSelected: shellState.selectSection,
           ),
         );
@@ -80,7 +81,7 @@ class _MaterialNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = AppShellSection.values;
+    final sections = _mobileNavSections;
     final currentIndex = sections.indexOf(selectedSection);
     final compact = MediaQuery.sizeOf(context).width < 560;
 
@@ -113,7 +114,7 @@ class _CupertinoNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = AppShellSection.values;
+    final sections = _mobileNavSections;
     final currentIndex = sections.indexOf(selectedSection);
     final compact = MediaQuery.sizeOf(context).width < 560;
 
@@ -128,55 +129,6 @@ class _CupertinoNavBar extends StatelessWidget {
             ),
           )
           .toList(),
-    );
-  }
-}
-
-class _ShuffleBarActions extends StatelessWidget {
-  const _ShuffleBarActions({required this.isCupertino});
-
-  final bool isCupertino;
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, _) {
-        if (isCupertino) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CupertinoButton(
-                minSize: 0,
-                padding: EdgeInsets.zero,
-                onPressed: appState.shuffleAllTracks,
-                child: const Icon(CupertinoIcons.shuffle, size: 20),
-              ),
-              CupertinoButton(
-                minSize: 0,
-                padding: EdgeInsets.zero,
-                onPressed: appState.shuffleFavoriteTracks,
-                child: const Icon(CupertinoIcons.heart, size: 20),
-              ),
-            ],
-          );
-        }
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: context.l10n.shuffleAll,
-              onPressed: appState.shuffleAllTracks,
-              icon: const Icon(Icons.shuffle_rounded),
-            ),
-            IconButton(
-              tooltip: context.l10n.shuffleFavorites,
-              onPressed: appState.shuffleFavoriteTracks,
-              icon: const Icon(Icons.favorite_rounded),
-            ),
-          ],
-        );
-      },
     );
   }
 }

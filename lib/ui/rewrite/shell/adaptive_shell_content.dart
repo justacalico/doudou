@@ -7,6 +7,7 @@ import '../../../models/download_models.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
 import 'adaptive_shell_state.dart';
+import 'media_detail_view.dart';
 
 String labelForSection(BuildContext context, AppShellSection section) {
   final l10n = context.l10n;
@@ -275,8 +276,8 @@ class _HomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, _) {
+    return Consumer2<AppState, AdaptiveShellState>(
+      builder: (context, appState, shellState, _) {
         final l10n = context.l10n;
 
         final tracks = appState.recentTracks.isNotEmpty
@@ -295,43 +296,75 @@ class _HomeSection extends StatelessWidget {
                   : l10n.libraryOverview,
             ),
             const SizedBox(height: 14),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _MetricCard(
-                  title: l10n.albums,
-                  value: l10n.albumsCount(appState.albums.length),
-                  icon: isCupertino
-                      ? CupertinoIcons.rectangle_stack_fill
-                      : Icons.album_rounded,
-                  isCupertino: isCupertino,
-                ),
-                _MetricCard(
-                  title: l10n.artists,
-                  value: l10n.artistsCount(appState.artists.length),
-                  icon: isCupertino
-                      ? CupertinoIcons.person_2_fill
-                      : Icons.people_alt_rounded,
-                  isCupertino: isCupertino,
-                ),
-                _MetricCard(
-                  title: l10n.navTracks,
-                  value: l10n.tracksCount(appState.tracks.length),
-                  icon: isCupertino
-                      ? CupertinoIcons.music_note_list
-                      : Icons.music_note_rounded,
-                  isCupertino: isCupertino,
-                ),
-                _MetricCard(
-                  title: l10n.playlists,
-                  value: l10n.playlistsCount(appState.playlists.length),
-                  icon: isCupertino
-                      ? CupertinoIcons.music_note
-                      : Icons.playlist_play_rounded,
-                  isCupertino: isCupertino,
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final columns = width > 1100
+                    ? 4
+                    : width > 760
+                    ? 3
+                    : 2;
+                final cardWidth = (width - ((columns - 1) * 12)) / columns;
+
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      child: _MetricCard(
+                        title: l10n.albums,
+                        value: l10n.albumsCount(appState.albums.length),
+                        icon: isCupertino
+                            ? CupertinoIcons.rectangle_stack_fill
+                            : Icons.album_rounded,
+                        isCupertino: isCupertino,
+                        onTap: () =>
+                            shellState.selectSection(AppShellSection.albums),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _MetricCard(
+                        title: l10n.artists,
+                        value: l10n.artistsCount(appState.artists.length),
+                        icon: isCupertino
+                            ? CupertinoIcons.person_2_fill
+                            : Icons.people_alt_rounded,
+                        isCupertino: isCupertino,
+                        onTap: () =>
+                            shellState.selectSection(AppShellSection.artists),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _MetricCard(
+                        title: l10n.navTracks,
+                        value: l10n.tracksCount(appState.tracks.length),
+                        icon: isCupertino
+                            ? CupertinoIcons.music_note_list
+                            : Icons.music_note_rounded,
+                        isCupertino: isCupertino,
+                        onTap: () =>
+                            shellState.selectSection(AppShellSection.tracks),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _MetricCard(
+                        title: l10n.playlists,
+                        value: l10n.playlistsCount(appState.playlists.length),
+                        icon: isCupertino
+                            ? CupertinoIcons.music_note
+                            : Icons.playlist_play_rounded,
+                        isCupertino: isCupertino,
+                        onTap: () =>
+                            shellState.selectSection(AppShellSection.playlists),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 18),
             _SectionTitle(
@@ -356,6 +389,18 @@ class _HomeSection extends StatelessWidget {
                   onQueue: () => appState.addToQueue(track),
                   onDownload: () =>
                       appState.downloadService.downloadTrack(track),
+                  onOpenAlbum: () => _openAlbumFromTrack(
+                    context,
+                    appState,
+                    track,
+                    isCupertino,
+                  ),
+                  onOpenArtist: () => _openArtistFromName(
+                    context,
+                    appState,
+                    track.artistName,
+                    isCupertino,
+                  ),
                 ),
               ),
           ],
@@ -433,6 +478,18 @@ class _TracksSection extends StatelessWidget {
                           onQueue: () => appState.addToQueue(track),
                           onDownload: () =>
                               appState.downloadService.downloadTrack(track),
+                          onOpenAlbum: () => _openAlbumFromTrack(
+                            context,
+                            appState,
+                            track,
+                            isCupertino,
+                          ),
+                          onOpenArtist: () => _openArtistFromName(
+                            context,
+                            appState,
+                            track.artistName,
+                            isCupertino,
+                          ),
                         );
                       },
                     ),
@@ -522,6 +579,11 @@ class _AlbumsSection extends StatelessWidget {
                       return _AlbumCard(
                         album: album,
                         isCupertino: isCupertino,
+                        onTap: () => openAlbumDetailView(
+                          context,
+                          album: album,
+                          isCupertino: isCupertino,
+                        ),
                         onPlay: () async {
                           final tracks = await appState.getAlbumTracks(
                             album.id,
@@ -603,6 +665,11 @@ class _ArtistsSection extends StatelessWidget {
                           title: artist.name,
                           subtitle: l10n.artists,
                           leading: _MediaArtwork(imageId: artist.imageUrl),
+                          onTap: () => openArtistDetailView(
+                            context,
+                            artist: artist,
+                            isCupertino: isCupertino,
+                          ),
                           trailing: _AdaptiveIconButton(
                             isCupertino: isCupertino,
                             onPressed: () => appState.playArtistTracks(artist),
@@ -687,6 +754,11 @@ class _PlaylistsSection extends StatelessWidget {
                             playlist.trackCount,
                           ),
                           leading: _MediaArtwork(imageId: playlist.imageUrl),
+                          onTap: () => openPlaylistDetailView(
+                            context,
+                            playlist: playlist,
+                            isCupertino: isCupertino,
+                          ),
                           trailing: _AdaptiveIconButton(
                             isCupertino: isCupertino,
                             onPressed: () async {
@@ -848,6 +920,18 @@ class _FavoritesSection extends StatelessWidget {
                   onQueue: () => appState.addToQueue(track),
                   onDownload: () =>
                       appState.downloadService.downloadTrack(track),
+                  onOpenAlbum: () => _openAlbumFromTrack(
+                    context,
+                    appState,
+                    track,
+                    isCupertino,
+                  ),
+                  onOpenArtist: () => _openArtistFromName(
+                    context,
+                    appState,
+                    track.artistName,
+                    isCupertino,
+                  ),
                 ),
               ),
           ],
@@ -1357,17 +1441,19 @@ class _MetricCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.isCupertino,
+    this.onTap,
   });
 
   final String title;
   final String value;
   final IconData icon;
   final bool isCupertino;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 160, maxWidth: 220),
+    final card = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 72),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: isCupertino
@@ -1407,6 +1493,12 @@ class _MetricCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap == null) {
+      return card;
+    }
+
+    return GestureDetector(onTap: onTap, child: card);
   }
 }
 
@@ -1480,6 +1572,33 @@ class _AdaptiveIconButton extends StatelessWidget {
   }
 }
 
+class _MetaLinkText extends StatelessWidget {
+  const _MetaLinkText({required this.text, this.onTap});
+
+  final String text;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = CupertinoTheme.of(context).primaryColor;
+    final mutedColor = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final style = TextStyle(
+      fontSize: 12,
+      color: onTap == null ? mutedColor : primaryColor,
+      fontWeight: onTap == null ? FontWeight.normal : FontWeight.w600,
+    );
+
+    if (onTap == null) {
+      return Text(text, style: style);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(text, style: style),
+    );
+  }
+}
+
 class _TrackTile extends StatelessWidget {
   const _TrackTile({
     required this.track,
@@ -1488,6 +1607,8 @@ class _TrackTile extends StatelessWidget {
     required this.onFavorite,
     required this.onQueue,
     required this.onDownload,
+    this.onOpenAlbum,
+    this.onOpenArtist,
   });
 
   final Track track;
@@ -1496,15 +1617,29 @@ class _TrackTile extends StatelessWidget {
   final Future<void> Function() onFavorite;
   final VoidCallback onQueue;
   final Future<void> Function() onDownload;
+  final VoidCallback? onOpenAlbum;
+  final VoidCallback? onOpenArtist;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final compactActions = MediaQuery.sizeOf(context).width < 700;
 
     return _AdaptiveTile(
       isCupertino: isCupertino,
       title: track.name,
-      subtitle: '${track.artistName ?? '-'} • ${_formatTrackDuration(track)}',
+      subtitleWidget: Wrap(
+        spacing: 4,
+        runSpacing: 2,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          _MetaLinkText(text: track.artistName ?? '-', onTap: onOpenArtist),
+          const Text('•'),
+          _MetaLinkText(text: track.albumName ?? '-', onTap: onOpenAlbum),
+          const Text('•'),
+          Text(_formatTrackDuration(track)),
+        ],
+      ),
       leading: _MediaArtwork(imageId: track.imageUrl ?? track.albumId),
       trailing: Wrap(
         spacing: 2,
@@ -1517,14 +1652,15 @@ class _TrackTile extends StatelessWidget {
                 ? CupertinoIcons.play_fill
                 : Icons.play_arrow_rounded,
           ),
-          _AdaptiveIconButton(
-            isCupertino: isCupertino,
-            tooltip: l10n.addToQueue,
-            onPressed: onQueue,
-            icon: isCupertino
-                ? CupertinoIcons.text_badge_plus
-                : Icons.queue_music_rounded,
-          ),
+          if (!compactActions)
+            _AdaptiveIconButton(
+              isCupertino: isCupertino,
+              tooltip: l10n.addToQueue,
+              onPressed: onQueue,
+              icon: isCupertino
+                  ? CupertinoIcons.text_badge_plus
+                  : Icons.queue_music_rounded,
+            ),
           _AdaptiveIconButton(
             isCupertino: isCupertino,
             tooltip: track.isFavorite
@@ -1539,14 +1675,15 @@ class _TrackTile extends StatelessWidget {
                       ? CupertinoIcons.heart
                       : Icons.favorite_border_rounded),
           ),
-          _AdaptiveIconButton(
-            isCupertino: isCupertino,
-            tooltip: l10n.download,
-            onPressed: onDownload,
-            icon: isCupertino
-                ? CupertinoIcons.arrow_down_circle
-                : Icons.download_rounded,
-          ),
+          if (!compactActions)
+            _AdaptiveIconButton(
+              isCupertino: isCupertino,
+              tooltip: l10n.download,
+              onPressed: onDownload,
+              icon: isCupertino
+                  ? CupertinoIcons.arrow_down_circle
+                  : Icons.download_rounded,
+            ),
         ],
       ),
     );
@@ -1557,82 +1694,87 @@ class _AlbumCard extends StatelessWidget {
   const _AlbumCard({
     required this.album,
     required this.isCupertino,
+    required this.onTap,
     required this.onPlay,
     required this.onFavorite,
   });
 
   final Album album;
   final bool isCupertino;
+  final VoidCallback onTap;
   final Future<void> Function() onPlay;
   final Future<void> Function() onFavorite;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: isCupertino
-            ? CupertinoColors.secondarySystemBackground.resolveFrom(context)
-            : Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: _MediaArtwork(
-                  imageId: album.imageUrl,
-                  fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: isCupertino
+              ? CupertinoColors.secondarySystemBackground.resolveFrom(context)
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: _MediaArtwork(
+                    imageId: album.imageUrl,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              album.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              album.artistName ?? '-',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                color: isCupertino
-                    ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              const SizedBox(height: 8),
+              Text(
+                album.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 2,
-              children: [
-                _AdaptiveIconButton(
-                  isCupertino: isCupertino,
-                  onPressed: onPlay,
-                  icon: isCupertino
-                      ? CupertinoIcons.play_fill
-                      : Icons.play_arrow_rounded,
+              Text(
+                album.artistName ?? '-',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isCupertino
+                      ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                _AdaptiveIconButton(
-                  isCupertino: isCupertino,
-                  onPressed: onFavorite,
-                  icon: album.isFavorite
-                      ? (isCupertino
-                            ? CupertinoIcons.heart_fill
-                            : Icons.favorite_rounded)
-                      : (isCupertino
-                            ? CupertinoIcons.heart
-                            : Icons.favorite_border_rounded),
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 2,
+                children: [
+                  _AdaptiveIconButton(
+                    isCupertino: isCupertino,
+                    onPressed: onPlay,
+                    icon: isCupertino
+                        ? CupertinoIcons.play_fill
+                        : Icons.play_arrow_rounded,
+                  ),
+                  _AdaptiveIconButton(
+                    isCupertino: isCupertino,
+                    onPressed: onFavorite,
+                    icon: album.isFavorite
+                        ? (isCupertino
+                              ? CupertinoIcons.heart_fill
+                              : Icons.favorite_rounded)
+                        : (isCupertino
+                              ? CupertinoIcons.heart
+                              : Icons.favorite_border_rounded),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1643,16 +1785,20 @@ class _AdaptiveTile extends StatelessWidget {
   const _AdaptiveTile({
     required this.isCupertino,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
+    this.subtitleWidget,
     this.leading,
     this.trailing,
+    this.onTap,
   });
 
   final bool isCupertino;
   final String title;
-  final String subtitle;
+  final String? subtitle;
+  final Widget? subtitleWidget;
   final Widget? leading;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1664,17 +1810,18 @@ class _AdaptiveTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                color: isCupertino
-                    ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+            subtitleWidget ??
+                Text(
+                  subtitle ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isCupertino
+                        ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
           ],
         );
 
@@ -1706,7 +1853,7 @@ class _AdaptiveTile extends StatelessWidget {
       },
     );
 
-    return Container(
+    final tile = Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: isCupertino
@@ -1716,6 +1863,12 @@ class _AdaptiveTile extends StatelessWidget {
       ),
       child: child,
     );
+
+    if (onTap == null) {
+      return tile;
+    }
+
+    return GestureDetector(onTap: onTap, child: tile);
   }
 }
 
@@ -2030,6 +2183,64 @@ class _ActionListTile extends StatelessWidget {
       title: Text(label, style: color == null ? null : TextStyle(color: color)),
       onTap: onTap,
     );
+  }
+}
+
+void _openAlbumFromTrack(
+  BuildContext context,
+  AppState appState,
+  Track track,
+  bool isCupertino,
+) {
+  Album? album;
+
+  if (track.albumId != null) {
+    for (final item in appState.albums) {
+      if (item.id == track.albumId) {
+        album = item;
+        break;
+      }
+    }
+  }
+
+  if (album == null && track.albumName != null) {
+    final target = track.albumName!.toLowerCase();
+    for (final item in appState.albums) {
+      if (item.name.toLowerCase() == target) {
+        album = item;
+        break;
+      }
+    }
+  }
+
+  if (album != null) {
+    openAlbumDetailView(context, album: album, isCupertino: isCupertino);
+  }
+}
+
+void _openArtistFromName(
+  BuildContext context,
+  AppState appState,
+  String? artistName,
+  bool isCupertino,
+) {
+  if (artistName == null || artistName.trim().isEmpty) {
+    return;
+  }
+
+  final query = artistName.trim().toLowerCase();
+  Artist? artist;
+
+  for (final item in appState.artists) {
+    final candidate = item.name.toLowerCase();
+    if (candidate == query || candidate.contains(query)) {
+      artist = item;
+      break;
+    }
+  }
+
+  if (artist != null) {
+    openArtistDetailView(context, artist: artist, isCupertino: isCupertino);
   }
 }
 
