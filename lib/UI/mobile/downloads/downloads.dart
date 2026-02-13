@@ -6,6 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
+import '../partials/tracks/track_list_item.dart';
 import '../widgets/cached_image_widget.dart';
 import '../widgets/apple_design/liquid_glass.dart';
 import '../shared/detail_track_view.dart';
@@ -876,148 +877,14 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   }
 
   Widget _buildTrackItem(Track track, AppState appState) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: () => _playTrack(track, appState),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.12),
-                    Colors.white.withOpacity(0.04),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Track artwork with glow
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8B5CF6).withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: track.imageUrl != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: CachedImageWidget(
-                              imageUrl: appState.getImageUrl(
-                                track.imageUrl!,
-                                width: 100,
-                                height: 100,
-                              ),
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorWidget: Container(
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF8B5CF6),
-                                      Color(0xFFEC4899),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.music_note,
-                                  color: CupertinoColors.white,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                          )
-                        : Container(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.music_note,
-                              color: CupertinoColors.white,
-                              size: 24,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          track.name,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          track.artistName ?? 'Unknown Artist',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.6),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Download indicator if downloaded
-                  if (appState.downloadService.isTrackDownloaded(track.id))
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        CupertinoIcons.checkmark_circle_fill,
-                        color: const Color(0xFF06B6D4),
-                        size: 20,
-                      ),
-                    ),
-
-                  // Chevron
-                  Icon(
-                    CupertinoIcons.chevron_right,
-                    color: Colors.white.withOpacity(0.4),
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return TrackListItem(
+      track: track,
+      onTap: () => _playTrack(track, appState),
+      showAlbumArt: true,
+      showTrackNumber: false,
+      showDuration: true,
+      showDownloadButton: false,
+      showFavoriteButton: true,
     );
   }
 

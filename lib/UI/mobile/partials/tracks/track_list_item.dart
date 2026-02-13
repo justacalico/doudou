@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Material, MaterialType;
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/app_state.dart';
 import '../../../../models/jellyfin_models.dart';
@@ -57,7 +58,7 @@ class TrackListItem extends StatelessWidget {
                 ),
               ),
               child: GestureDetector(
-                onLongPress: () => _showTrackContextMenu(context, appState),
+                onLongPress: () => _handleLongPress(context, appState),
                 child: _buildContent(context, appState),
               ),
             ),
@@ -65,6 +66,12 @@ class TrackListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleLongPress(BuildContext context, AppState appState) async {
+    await HapticFeedback.mediumImpact();
+    if (!context.mounted) return;
+    _showTrackContextMenu(context, appState);
   }
 
   void _showTrackContextMenu(BuildContext context, AppState appState) {
@@ -82,7 +89,8 @@ class TrackListItem extends StatelessWidget {
           return CupertinoActionSheet(
             actions: [
               // Only show download button if track is not already downloaded
-              if (!appState.downloadService.isTrackDownloaded(currentTrack.id))
+              if (showDownloadButton &&
+                  !appState.downloadService.isTrackDownloaded(currentTrack.id))
                 CupertinoActionSheetAction(
                   onPressed: () {
                     Navigator.pop(context);
@@ -146,33 +154,34 @@ class TrackListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              CupertinoActionSheetAction(
-                onPressed: () {
-                  Navigator.pop(context);
-                  appState.toggleFavorite(currentTrack);
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      currentTrack.isFavorite
-                          ? CupertinoIcons.heart_fill
-                          : CupertinoIcons.heart,
-                      size: 18,
-                      color: currentTrack.isFavorite
-                          ? const Color(0xFFEC4899)
-                          : const Color(0xFFEC4899),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      currentTrack.isFavorite
-                          ? 'Remove from Favorites'
-                          : 'Add to Favorites',
-                      style: const TextStyle(color: Color(0xFFEC4899)),
-                    ),
-                  ],
+              if (showFavoriteButton)
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    appState.toggleFavorite(currentTrack);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        currentTrack.isFavorite
+                            ? CupertinoIcons.heart_fill
+                            : CupertinoIcons.heart,
+                        size: 18,
+                        color: currentTrack.isFavorite
+                            ? const Color(0xFFEC4899)
+                            : const Color(0xFFEC4899),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        currentTrack.isFavorite
+                            ? 'Remove from Favorites'
+                            : 'Add to Favorites',
+                        style: const TextStyle(color: Color(0xFFEC4899)),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
             cancelButton: CupertinoActionSheetAction(
               onPressed: () => Navigator.pop(context),

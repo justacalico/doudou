@@ -8,11 +8,11 @@ import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../artists/details/artist_detail.dart';
+import '../partials/tracks/track_list_item.dart';
 import '../shared/detail_track_view.dart';
 import '../widgets/cached_image_widget.dart';
 
 // Cached blur filters to avoid recreation on each build
-final _searchBlur8 = ImageFilter.blur(sigmaX: 8, sigmaY: 8);
 final _searchBlur10 = ImageFilter.blur(sigmaX: 10, sigmaY: 10);
 final _searchBlur15 = ImageFilter.blur(sigmaX: 15, sigmaY: 15);
 final _searchBlur30 = ImageFilter.blur(sigmaX: 30, sigmaY: 30);
@@ -504,8 +504,8 @@ class _SearchScreenState extends State<SearchScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                       backgroundColor: Colors.transparent,
-                        onChanged: (value) => _onSearchChanged(value, appState),
-                        onSubmitted: (value) =>
+                      onChanged: (value) => _onSearchChanged(value, appState),
+                      onSubmitted: (value) =>
                           _performSearch(value, appState, addToRecent: true),
                       autofocus: false,
                       padding: const EdgeInsets.symmetric(
@@ -1664,175 +1664,14 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildUnifiedTrackItem(Track track, AppState appState) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: GestureDetector(
-        onTap: () => appState.playTrack(track),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: BackdropFilter(
-            filter: _searchBlur8,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.06),
-                    Colors.white.withOpacity(0.02),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 0.5,
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Track artwork with gradient glow
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFF06B6D4).withOpacity(0.8),
-                          const Color(0xFF8B5CF6).withOpacity(0.6),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF06B6D4).withOpacity(0.3),
-                          offset: const Offset(0, 3),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                        ),
-                      ],
-                    ),
-                    child: track.imageUrl != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: CachedImageWidget(
-                              imageUrl: appState.getImageUrl(
-                                track.imageUrl!,
-                                width: 100,
-                                height: 100,
-                              ),
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorWidget: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(0xFF06B6D4).withOpacity(0.8),
-                                      const Color(0xFF8B5CF6).withOpacity(0.6),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.music_note,
-                                  color: Color(0xFFFFFFFF),
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          )
-                        : const Icon(
-                            CupertinoIcons.music_note,
-                            color: Color(0xFFFFFFFF),
-                            size: 22,
-                          ),
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          track.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFFFFFFF),
-                            letterSpacing: -0.2,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          track.artistName ?? 'Unknown Artist',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.5),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Track actions
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (track.isFavorite)
-                        Container(
-                          margin: const EdgeInsets.only(right: 10),
-                          child: const Icon(
-                            CupertinoIcons.heart_fill,
-                            color: Color(0xFFFF453A),
-                            size: 16,
-                          ),
-                        ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              const Color(0xFF06B6D4).withOpacity(0.25),
-                              const Color(0xFF8B5CF6).withOpacity(0.15),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFF06B6D4).withOpacity(0.3),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [Color(0xFF06B6D4), Color(0xFF8B5CF6)],
-                          ).createShader(bounds),
-                          child: const Icon(
-                            CupertinoIcons.play_fill,
-                            color: Color(0xFFFFFFFF),
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return TrackListItem(
+      track: track,
+      onTap: () => appState.playTrack(track),
+      showAlbumArt: true,
+      showTrackNumber: false,
+      showDuration: true,
+      showDownloadButton: true,
+      showFavoriteButton: true,
     );
   }
 }

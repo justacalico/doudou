@@ -13,6 +13,7 @@ import '../../settings/settings.dart';
 import '../../search/search.dart';
 import '../../downloads/downloads.dart';
 import '../player/mini_player.dart';
+import '../tracks/track_list_item.dart';
 import '../../widgets/isle.dart';
 import '../../widgets/apple_design/apple_theme.dart';
 import '../../widgets/apple_design/liquid_glass.dart';
@@ -1378,96 +1379,14 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: favoriteTracks.length,
             itemBuilder: (context, index) {
               final track = favoriteTracks[index];
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1C1C1E),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: GestureDetector(
-                  onTap: () => _playFavoriteTrack(appState, track, index),
-                  child: Row(
-                    children: [
-                      // Album artwork
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2C2C2E),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: track.imageUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  appState.getImageUrl(
-                                    track.imageUrl!,
-                                    width: 100,
-                                    height: 100,
-                                  ),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Center(
-                                      child: Icon(
-                                        CupertinoIcons.music_note,
-                                        size: 20,
-                                        color: CupertinoColors.systemGrey,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              )
-                            : const Center(
-                                child: Icon(
-                                  CupertinoIcons.music_note,
-                                  size: 20,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      // Track info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              track.name,
-                              style: const TextStyle(
-                                color: CupertinoColors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            if (track.artistName != null)
-                              Text(
-                                track.artistName!,
-                                style: const TextStyle(
-                                  color: CupertinoColors.systemGrey2,
-                                  fontSize: 14,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
-                        ),
-                      ),
-
-                      // Heart icon
-                      const Icon(
-                        CupertinoIcons.heart_fill,
-                        color: CupertinoColors.systemRed,
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ),
+              return TrackListItem(
+                track: track,
+                onTap: () => _playFavoriteTrack(appState, track, index),
+                showAlbumArt: true,
+                showTrackNumber: false,
+                showDuration: true,
+                showDownloadButton: true,
+                showFavoriteButton: true,
               );
             },
           ),
@@ -1783,7 +1702,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMobileLayout(AppState appState) {
     final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final isLocalMusic = appState.mediaServiceManager.currentServerType == ServerType.local;
+    final isLocalMusic =
+        appState.mediaServiceManager.currentServerType == ServerType.local;
 
     // Return loading indicator if localization is not ready yet
     if (l10n == null) {

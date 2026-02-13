@@ -7,6 +7,7 @@ import '../../../../models/jellyfin_models.dart';
 import '../../../../services/base_service.dart';
 import '../../widgets/apple_design/liquid_glass.dart';
 import '../../partials/player/mini_player.dart';
+import '../../partials/tracks/track_list_item.dart';
 import '../../widgets/cached_image_widget.dart';
 import '../../shared/detail_track_view.dart';
 
@@ -824,7 +825,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   child: _buildEnhancedTrackItem(
                                     track,
                                     appState,
-                                    index,
                                   ),
                                 );
                               }, childCount: _artistTracks.length),
@@ -1074,8 +1074,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   // Enhanced track item
-  Widget _buildEnhancedTrackItem(Track track, AppState appState, int index) {
-    return GestureDetector(
+  Widget _buildEnhancedTrackItem(Track track, AppState appState) {
+    return TrackListItem(
+      track: track,
       onTap: () async {
         final trackIndex = _artistTracks.indexOf(track);
         if (trackIndex != -1) {
@@ -1084,171 +1085,11 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           await appState.playTrack(track);
         }
       },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFF1C1C1E).withOpacity(0.4),
-              const Color(0xFF2C2C2E).withOpacity(0.2),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF3C3C3E).withOpacity(0.15),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Track number
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.15),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  '${index + 1}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF8B5CF6),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 16),
-
-            // Track artwork
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF8B5CF6).withOpacity(0.3),
-                    const Color(0xFFEC4899).withOpacity(0.2),
-                  ],
-                ),
-              ),
-              child: track.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedImageWidget(
-                        imageUrl: appState.getImageUrl(
-                          track.imageUrl!,
-                          width: 96,
-                          height: 96,
-                        ),
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorWidget: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF8B5CF6).withOpacity(0.3),
-                                const Color(0xFFEC4899).withOpacity(0.2),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            CupertinoIcons.music_note,
-                            color: Color(0xFFFFFFFF),
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF8B5CF6).withOpacity(0.3),
-                            const Color(0xFFEC4899).withOpacity(0.2),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        CupertinoIcons.music_note,
-                        color: Color(0xFFFFFFFF),
-                        size: 20,
-                      ),
-                    ),
-            ),
-
-            const SizedBox(width: 16),
-
-            // Track info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    track.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFFFFFFF),
-                      letterSpacing: -0.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  if (track.albumName != null)
-                    Text(
-                      track.albumName!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.systemGrey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-
-            // Track actions
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (track.isFavorite)
-                  Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: const Icon(
-                      CupertinoIcons.heart_fill,
-                      color: Color(0xFFEC4899),
-                      size: 16,
-                    ),
-                  ),
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    CupertinoIcons.play_fill,
-                    color: Color(0xFF8B5CF6),
-                    size: 14,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      showAlbumArt: true,
+      showTrackNumber: false,
+      showDuration: true,
+      showDownloadButton: true,
+      showFavoriteButton: true,
     );
   }
 }

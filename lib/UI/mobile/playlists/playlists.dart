@@ -6,6 +6,7 @@ import '../widgets/cached_image_widget.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../partials/player/mini_player.dart';
+import '../partials/tracks/track_list_item.dart';
 import '../shared/detail_track_view.dart';
 
 class PlaylistsView extends StatelessWidget {
@@ -1187,10 +1188,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                       SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final track = tracks[index];
-                          return PlaylistTrackItem(
+                          return TrackListItem(
                             track: track,
-                            trackNumber: index + 1,
-                            onTap: () => _playTrack(track, index),
+                            onTap: () => _playTrack(index),
+                            showAlbumArt: true,
+                            showTrackNumber: false,
+                            showDuration: true,
+                            showDownloadButton: true,
+                            showFavoriteButton: true,
                           );
                         }, childCount: tracks.length),
                       ),
@@ -1332,14 +1337,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     );
   }
 
-  void _playTrack(Track track, int index) {
+  void _playTrack(int index) {
     final appState = context.read<AppState>();
     appState.playPlaylist(tracks, index);
   }
 
   void _playAllTracks() {
     if (tracks.isNotEmpty) {
-      _playTrack(tracks.first, 0);
+      _playTrack(0);
     }
   }
 
@@ -1349,149 +1354,5 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       final shuffledTracks = List<Track>.from(tracks)..shuffle();
       appState.playPlaylist(shuffledTracks, 0);
     }
-  }
-}
-
-class PlaylistTrackItem extends StatelessWidget {
-  final Track track;
-  final int trackNumber;
-  final VoidCallback onTap;
-
-  const PlaylistTrackItem({
-    super.key,
-    required this.track,
-    required this.trackNumber,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              // Track number
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2C2C2E),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Center(
-                  child: Text(
-                    trackNumber.toString(),
-                    style: const TextStyle(
-                      color: CupertinoColors.systemGrey,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Album artwork (small)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: track.imageUrl != null
-                      ? Consumer<AppState>(
-                          builder: (context, appState, child) {
-                            return CachedImageWidget(
-                              imageUrl: appState.getImageUrl(
-                                track.imageUrl!,
-                                width: 100,
-                                height: 100,
-                              ),
-                              fit: BoxFit.cover,
-                              placeholder: Container(
-                                color: const Color(0xFF2C2C2E),
-                                child: const Icon(
-                                  CupertinoIcons.music_note,
-                                  color: CupertinoColors.systemGrey,
-                                  size: 16,
-                                ),
-                              ),
-                              errorWidget: Container(
-                                color: const Color(0xFF2C2C2E),
-                                child: const Icon(
-                                  CupertinoIcons.music_note,
-                                  color: CupertinoColors.systemGrey,
-                                  size: 16,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: const Color(0xFF2C2C2E),
-                          child: const Icon(
-                            CupertinoIcons.music_note,
-                            color: CupertinoColors.systemGrey,
-                            size: 16,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Track info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      track.name,
-                      style: const TextStyle(
-                        color: CupertinoColors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (track.artistName != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        track.artistName!,
-                        style: const TextStyle(
-                          color: CupertinoColors.systemGrey,
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              // Duration
-              if (track.duration != null) ...[
-                Text(
-                  _formatDuration(Duration(milliseconds: track.duration!)),
-                  style: const TextStyle(
-                    color: CupertinoColors.systemGrey,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 }
