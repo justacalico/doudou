@@ -8,6 +8,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:vibration/vibration.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
+import '../../../services/album_art_color_service.dart';
 import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../widgets/cached_image_widget.dart';
@@ -38,6 +39,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
   int _skipDirection = 0; // -1 for next, 1 for previous
   bool? _hasLyrics; // null = unknown, true = available, false = not available
   String? _lastCheckedTrackId; // To avoid repeated checks for the same track
+  Color _albumGlowColor = const Color(0xFF8B5CF6);
+  String? _lastGlowTrackId;
 
   @override
   void initState() {
@@ -172,6 +175,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     required double spacing,
     required double albumArtSize,
     required bool isPlaying,
+    required Color glowColor,
     VoidCallback? onTap,
     bool isCurrent = false,
   }) {
@@ -186,6 +190,12 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
     // Opacity: 1.0 at center, 0.5 at sides
     final opacity = (1.0 - (normalizedPosition.abs() * 0.5)).clamp(0.3, 1.0);
+    final glowHsl = HSLColor.fromColor(glowColor);
+    final secondaryGlowColor = glowHsl
+        .withHue((glowHsl.hue + 24) % 360)
+        .withSaturation((glowHsl.saturation * 0.85).clamp(0.2, 1.0))
+        .withLightness((glowHsl.lightness * 0.9).clamp(0.18, 0.75))
+        .toColor();
 
     return Positioned(
       left: 0,
@@ -213,17 +223,17 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     boxShadow: isCurrent
                         ? [
                             BoxShadow(
-                              color: const Color(
-                                0xFF8B5CF6,
-                              ).withOpacity(isPlaying ? 0.3 : 0.1),
+                              color: glowColor.withOpacity(
+                                isPlaying ? 0.3 : 0.1,
+                              ),
                               blurRadius: 40,
                               offset: const Offset(0, 20),
                               spreadRadius: isPlaying ? 5 : 0,
                             ),
                             BoxShadow(
-                              color: const Color(
-                                0xFFEC4899,
-                              ).withOpacity(isPlaying ? 0.2 : 0.05),
+                              color: secondaryGlowColor.withOpacity(
+                                isPlaying ? 0.2 : 0.05,
+                              ),
                               blurRadius: 60,
                               offset: const Offset(-10, 30),
                             ),
@@ -306,6 +316,32 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     }
   }
 
+  Future<void> _updateAlbumGlowColor(AppState appState, Track track) async {
+    if (track.imageUrl == null) {
+      if (!mounted) return;
+      setState(() {
+        _albumGlowColor = const Color(0xFF8B5CF6);
+      });
+      return;
+    }
+
+    final resolvedImageUrl = appState.getImageUrl(
+      track.imageUrl!,
+      width: 800,
+      height: 800,
+    );
+    if (resolvedImageUrl.isEmpty) return;
+
+    final dominantColor = await AlbumArtColorService.getDominantGlowColor(
+      resolvedImageUrl,
+    );
+    if (!mounted || dominantColor == null) return;
+
+    setState(() {
+      _albumGlowColor = dominantColor;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -379,6 +415,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                   ),
                 ),
               );
+            }
+
+            if (_lastGlowTrackId != currentTrack.id) {
+              _lastGlowTrackId = currentTrack.id;
+              _updateAlbumGlowColor(appState, currentTrack);
             }
 
             return Scaffold(
@@ -668,6 +709,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                         albumArtSize:
                                                             albumArtSize,
                                                         isPlaying: false,
+                                                        glowColor:
+                                                            _albumGlowColor,
                                                         onTap: () =>
                                                             _animateSkipToPrevious(
                                                               appState,
@@ -686,6 +729,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                         albumArtSize:
                                                             albumArtSize,
                                                         isPlaying: false,
+                                                        glowColor:
+                                                            _albumGlowColor,
                                                         onTap: () =>
                                                             _animateSkipToNext(
                                                               appState,
@@ -703,6 +748,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                       albumArtSize:
                                                           albumArtSize,
                                                       isPlaying: isPlaying,
+                                                      glowColor:
+                                                          _albumGlowColor,
                                                       onTap: null,
                                                       isCurrent: true,
                                                     ),
