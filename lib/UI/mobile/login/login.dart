@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
@@ -8,6 +9,7 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'dart:async';
 import '../../../providers/app_state.dart';
+import '../../../l10n/app_localizations.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import '../../../services/players/jellyfin_service.dart';
 import '../settings/local_music_settings.dart';
@@ -35,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen>
   String _selectedServerType = 'jellyfin';
   bool _isPasswordVisible = false;
   JellyfinAuthMethod _jellyfinAuthMethod = JellyfinAuthMethod.account;
-  
+
   // Quick Connect state
   bool _isQuickConnectActive = false;
   String? _quickConnectCode;
@@ -88,6 +90,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 768;
     final brightness = MediaQuery.of(context).platformBrightness;
@@ -96,6 +99,14 @@ class _LoginScreenState extends State<LoginScreen>
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: Theme.of(context),
+      locale: appState.locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         backgroundColor: Colors.transparent,
         body: Stack(
@@ -746,7 +757,7 @@ class _LoginScreenState extends State<LoginScreen>
                   AppleColors.systemBlue,
                   isDark,
                 ),
-               
+
                 const SizedBox(width: 12),
                 _buildServerTypeCard(
                   'local',
@@ -822,7 +833,8 @@ class _LoginScreenState extends State<LoginScreen>
             Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (context) => const LocalMusicSettingsScreen(isInitialSetup: true),
+                builder: (context) =>
+                    const LocalMusicSettingsScreen(isInitialSetup: true),
               ),
             );
           }
@@ -920,7 +932,8 @@ class _LoginScreenState extends State<LoginScreen>
             Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (context) => const LocalMusicSettingsScreen(isInitialSetup: true),
+                builder: (context) =>
+                    const LocalMusicSettingsScreen(isInitialSetup: true),
               ),
             );
           }
@@ -1290,7 +1303,7 @@ class _LoginScreenState extends State<LoginScreen>
     required bool isDark,
   }) {
     final isSelected = _jellyfinAuthMethod == method;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -1499,13 +1512,15 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     final jellyfinService = JellyfinService();
-    
+
     // Check if Quick Connect is enabled
     final isEnabled = await jellyfinService.isQuickConnectEnabled(serverUrl);
     if (!isEnabled) {
       if (mounted) {
         final appState = context.read<AppState>();
-        appState.setErrorMessage('Quick Connect is not enabled on this server. Please enable it in the server settings or use another login method.');
+        appState.setErrorMessage(
+          'Quick Connect is not enabled on this server. Please enable it in the server settings or use another login method.',
+        );
       }
       return;
     }
@@ -1515,7 +1530,9 @@ class _LoginScreenState extends State<LoginScreen>
     if (result == null) {
       if (mounted) {
         final appState = context.read<AppState>();
-        appState.setErrorMessage('Failed to start Quick Connect. Please try again.');
+        appState.setErrorMessage(
+          'Failed to start Quick Connect. Please try again.',
+        );
       }
       return;
     }
@@ -1538,7 +1555,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     final serverUrl = _serverController.text.trim();
     final jellyfinService = JellyfinService();
-    
+
     final status = await jellyfinService.checkQuickConnectStatus(
       serverUrl,
       _quickConnectSecret!,
@@ -1546,7 +1563,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (status != null && status['authenticated'] == true) {
       _quickConnectPollTimer?.cancel();
-      
+
       // Complete authentication
       final success = await jellyfinService.authenticateWithQuickConnect(
         serverUrl,
@@ -1554,15 +1571,15 @@ class _LoginScreenState extends State<LoginScreen>
       );
 
       if (!context.mounted) return;
-      
+
       if (success) {
         // Update app state with the authenticated service - capture reference immediately after mounted check
         // ignore: use_build_context_synchronously
         final appState = context.read<AppState>();
         await appState.loginWithQuickConnect(jellyfinService);
-        
+
         await _triggerHapticFeedback(isSuccess: true);
-        
+
         if (!mounted) return;
         setState(() {
           _isQuickConnectActive = false;
@@ -1574,7 +1591,9 @@ class _LoginScreenState extends State<LoginScreen>
         if (!mounted) return;
         // ignore: use_build_context_synchronously
         final appState = context.read<AppState>();
-        appState.setErrorMessage('Quick Connect authentication failed. Please try again.');
+        appState.setErrorMessage(
+          'Quick Connect authentication failed. Please try again.',
+        );
         _cancelQuickConnect();
       }
     }
@@ -1760,13 +1779,13 @@ class _LoginScreenState extends State<LoginScreen>
   // Login and utility methods
   Future<void> _login() async {
     // Handle Quick Connect separately - it doesn't use the form validation
-    if (_selectedServerType == 'jellyfin' && 
+    if (_selectedServerType == 'jellyfin' &&
         _jellyfinAuthMethod == JellyfinAuthMethod.quickConnect) {
       await _triggerButtonPress();
       await _startQuickConnect();
       return;
     }
-    
+
     if (_formKey.currentState!.validate()) {
       // Trigger button press haptic feedback
       await _triggerButtonPress();
@@ -1783,8 +1802,8 @@ class _LoginScreenState extends State<LoginScreen>
           '',
           _plexTokenController.text,
         );
-      } else if (_selectedServerType == 'jellyfin' && 
-                 _jellyfinAuthMethod == JellyfinAuthMethod.apiKey) {
+      } else if (_selectedServerType == 'jellyfin' &&
+          _jellyfinAuthMethod == JellyfinAuthMethod.apiKey) {
         // Jellyfin API key auth
         success = await appState.loginWithApiKey(
           _serverController.text.trim(),

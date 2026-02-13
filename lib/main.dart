@@ -138,6 +138,7 @@ class DoudouApp extends StatelessWidget {
                   GlobalWidgetsLocalizations.delegate,
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
+                locale: appState.locale,
                 home: Builder(
                   builder: (context) {
                     if (!appState.isInitialized) {
