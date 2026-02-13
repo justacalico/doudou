@@ -348,6 +348,8 @@ class _AppleTrackListItem extends StatefulWidget {
 
 class _AppleTrackListItemState extends State<_AppleTrackListItem> {
   bool _isHovered = false;
+  final GlobalKey<PopupMenuButtonState<String>> _menuKey =
+      GlobalKey<PopupMenuButtonState<String>>();
 
   @override
   Widget build(BuildContext context) {
@@ -361,6 +363,7 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
+        onSecondaryTapDown: (_) => _menuKey.currentState?.showButtonMenu(),
         child: AnimatedContainer(
           duration: AppleDesignSystem.durationFast,
           curve: AppleDesignSystem.springCurve,
@@ -450,7 +453,9 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
                     ),
                     child: widget.track.imageUrl != null
                         ? buildSmartImage(
-                            imageUrl: appState.getImageUrl(widget.track.imageUrl!),
+                            imageUrl: appState.getImageUrl(
+                              widget.track.imageUrl!,
+                            ),
                             width: 40,
                             height: 40,
                             fit: BoxFit.cover,
@@ -549,6 +554,7 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
               // Actions menu
               const SizedBox(width: AppleDesignSystem.spacing8),
               _AppleTrackMenu(
+                menuKey: _menuKey,
                 track: widget.track,
                 index: widget.index,
                 tracks: widget.tracks,
@@ -570,12 +576,14 @@ class _AppleTrackListItemState extends State<_AppleTrackListItem> {
 }
 
 class _AppleTrackMenu extends StatelessWidget {
+  final GlobalKey<PopupMenuButtonState<String>>? menuKey;
   final Track track;
   final int index;
   final List<Track> tracks;
   final VoidCallback? onRemove;
 
   const _AppleTrackMenu({
+    this.menuKey,
     required this.track,
     required this.index,
     required this.tracks,
@@ -588,6 +596,7 @@ class _AppleTrackMenu extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return PopupMenuButton<String>(
+      key: menuKey,
       icon: Icon(
         Icons.more_horiz_rounded,
         size: 20,
@@ -657,7 +666,7 @@ class _AppleTrackMenu extends StatelessWidget {
 
     IconData icon;
     String label;
-    
+
     if (isDownloaded) {
       icon = Icons.download_done_rounded;
       label = 'Downloaded';

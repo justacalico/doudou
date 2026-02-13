@@ -61,6 +61,8 @@ class TrackListItem extends StatelessWidget {
               ),
               child: GestureDetector(
                 onLongPress: () => _handleLongPress(context, appState),
+                onSecondaryTapDown: (_) =>
+                    _showTrackContextMenu(context, appState),
                 child: _buildContent(context, appState),
               ),
             ),
