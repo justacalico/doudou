@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -113,7 +115,9 @@ class _CupertinoNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = _mobileNavSections;
     final currentIndex = sections.indexOf(selectedSection);
-    final surfaceColor = CupertinoColors.systemBackground.resolveFrom(context);
+    final surfaceColor = CupertinoColors.systemBackground
+        .resolveFrom(context)
+        .withValues(alpha: 0.68);
     final borderColor = CupertinoColors.separator.resolveFrom(context);
     final theme = CupertinoTheme.of(context);
 
@@ -135,20 +139,23 @@ class _CupertinoNavBar extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: CupertinoTheme(
-            data: theme.copyWith(barBackgroundColor: surfaceColor),
-            child: CupertinoTabBar(
-              backgroundColor: Colors.transparent,
-              currentIndex: currentIndex,
-              onTap: (index) => onSelected(sections[index]),
-              items: sections
-                  .map(
-                    (section) => BottomNavigationBarItem(
-                      icon: Icon(cupertinoIconForSection(section)),
-                      label: labelForSection(context, section),
-                    ),
-                  )
-                  .toList(),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: CupertinoTheme(
+              data: theme.copyWith(barBackgroundColor: surfaceColor),
+              child: CupertinoTabBar(
+                backgroundColor: Colors.transparent,
+                currentIndex: currentIndex,
+                onTap: (index) => onSelected(sections[index]),
+                items: sections
+                    .map(
+                      (section) => BottomNavigationBarItem(
+                        icon: Icon(cupertinoIconForSection(section)),
+                        label: labelForSection(context, section),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           ),
         ),

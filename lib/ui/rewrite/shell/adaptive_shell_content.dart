@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -1446,6 +1448,61 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
+class _CupertinoLiquidGlass extends StatelessWidget {
+  const _CupertinoLiquidGlass({
+    required this.child,
+    this.borderRadius = 14,
+    this.padding = EdgeInsets.zero,
+    this.margin = EdgeInsets.zero,
+    this.blur = 18,
+    this.opacity = 0.52,
+    this.borderOpacity = 0.24,
+  });
+
+  final Widget child;
+  final double borderRadius;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry margin;
+  final double blur;
+  final double opacity;
+  final double borderOpacity;
+
+  @override
+  Widget build(BuildContext context) {
+    final fillColor = CupertinoColors.systemBackground
+        .resolveFrom(context)
+        .withValues(alpha: opacity);
+
+    return Container(
+      margin: margin,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: CupertinoColors.white.withValues(alpha: borderOpacity),
+                width: 0.7,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: CupertinoColors.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Padding(padding: padding, child: child),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.title,
@@ -1463,46 +1520,48 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 72),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: isCupertino
-              ? CupertinoColors.secondarySystemBackground.resolveFrom(context)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
+    final content = Row(
+      children: [
+        Icon(icon, size: 24),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 24),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text(
-                      value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isCupertino
-                            ? CupertinoColors.secondaryLabel.resolveFrom(
-                                context,
-                              )
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isCupertino
+                      ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
           ),
         ),
-      ),
+      ],
+    );
+
+    final card = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 72),
+      child: isCupertino
+          ? _CupertinoLiquidGlass(
+              borderRadius: 14,
+              padding: const EdgeInsets.all(14),
+              blur: 16,
+              child: content,
+            )
+          : DecoratedBox(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Padding(padding: const EdgeInsets.all(14), child: content),
+            ),
     );
 
     if (onTap == null) {
@@ -1607,9 +1666,8 @@ class _AsyncActionButton extends StatelessWidget {
         : Icon(icon, size: 18);
 
     if (isCupertino) {
-      return CupertinoButton(
+      final button = CupertinoButton(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
         onPressed: onPressed == null
             ? null
             : () async {
@@ -1624,6 +1682,16 @@ class _AsyncActionButton extends StatelessWidget {
               child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           ],
+        ),
+      );
+
+      return Opacity(
+        opacity: onPressed == null ? 0.55 : 1,
+        child: _CupertinoLiquidGlass(
+          borderRadius: 12,
+          blur: 12,
+          padding: EdgeInsets.zero,
+          child: button,
         ),
       );
     }
@@ -1656,16 +1724,20 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isCupertino) {
-      return CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(width: 6),
-            Text(label),
-          ],
+      return _CupertinoLiquidGlass(
+        borderRadius: 12,
+        blur: 12,
+        child: CupertinoButton(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+          onPressed: onPressed,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 6),
+              Text(label),
+            ],
+          ),
         ),
       );
     }
@@ -1694,10 +1766,21 @@ class _AdaptiveIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isCupertino) {
-      return CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-        onPressed: onPressed,
-        child: Icon(icon, size: 20),
+      final iconColor = onPressed == null
+          ? CupertinoColors.inactiveGray.resolveFrom(context)
+          : null;
+
+      return _CupertinoLiquidGlass(
+        borderRadius: 999,
+        blur: 10,
+        opacity: 0.42,
+        borderOpacity: 0.2,
+        child: CupertinoButton(
+          minSize: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          onPressed: onPressed,
+          child: Icon(icon, size: 18, color: iconColor),
+        ),
       );
     }
 
@@ -1845,76 +1928,80 @@ class _AlbumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: isCupertino
-              ? CupertinoColors.secondarySystemBackground.resolveFrom(context)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final content = Padding(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: _MediaArtwork(imageId: album.imageUrl, fit: BoxFit.cover),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            album.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          Text(
+            album.artistName ?? '-',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              color: isCupertino
+                  ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 2,
             children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: _MediaArtwork(
-                    imageId: album.imageUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+              _AdaptiveIconButton(
+                isCupertino: isCupertino,
+                onPressed: onPlay,
+                icon: isCupertino
+                    ? CupertinoIcons.play_fill
+                    : Icons.play_arrow_rounded,
               ),
-              const SizedBox(height: 8),
-              Text(
-                album.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                album.artistName ?? '-',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isCupertino
-                      ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 2,
-                children: [
-                  _AdaptiveIconButton(
-                    isCupertino: isCupertino,
-                    onPressed: onPlay,
-                    icon: isCupertino
-                        ? CupertinoIcons.play_fill
-                        : Icons.play_arrow_rounded,
-                  ),
-                  _AdaptiveIconButton(
-                    isCupertino: isCupertino,
-                    onPressed: onFavorite,
-                    icon: album.isFavorite
-                        ? (isCupertino
-                              ? CupertinoIcons.heart_fill
-                              : Icons.favorite_rounded)
-                        : (isCupertino
-                              ? CupertinoIcons.heart
-                              : Icons.favorite_border_rounded),
-                  ),
-                ],
+              _AdaptiveIconButton(
+                isCupertino: isCupertino,
+                onPressed: onFavorite,
+                icon: album.isFavorite
+                    ? (isCupertino
+                          ? CupertinoIcons.heart_fill
+                          : Icons.favorite_rounded)
+                    : (isCupertino
+                          ? CupertinoIcons.heart
+                          : Icons.favorite_border_rounded),
               ),
             ],
           ),
-        ),
+        ],
       ),
+    );
+
+    return GestureDetector(
+      onTap: onTap,
+      child: isCupertino
+          ? _CupertinoLiquidGlass(
+              borderRadius: 12,
+              padding: EdgeInsets.zero,
+              blur: 16,
+              child: content,
+            )
+          : DecoratedBox(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: content,
+            ),
     );
   }
 }
@@ -1991,16 +2078,22 @@ class _AdaptiveTile extends StatelessWidget {
       },
     );
 
-    final tile = Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isCupertino
-            ? CupertinoColors.secondarySystemBackground.resolveFrom(context)
-            : Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: child,
-    );
+    final tile = isCupertino
+        ? _CupertinoLiquidGlass(
+            margin: const EdgeInsets.only(bottom: 8),
+            borderRadius: 12,
+            padding: EdgeInsets.zero,
+            blur: 16,
+            child: child,
+          )
+        : Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: child,
+          );
 
     if (onTap == null) {
       return tile;
@@ -2102,10 +2195,19 @@ class _SectionSearchFieldState extends State<_SectionSearchField> {
   @override
   Widget build(BuildContext context) {
     if (widget.isCupertino) {
-      return CupertinoSearchTextField(
-        controller: _controller,
-        placeholder: widget.hintText,
-        onChanged: widget.onChanged,
+      return _CupertinoLiquidGlass(
+        borderRadius: 12,
+        blur: 12,
+        opacity: 0.46,
+        borderOpacity: 0.2,
+        child: CupertinoSearchTextField(
+          controller: _controller,
+          placeholder: widget.hintText,
+          backgroundColor: CupertinoColors.systemBackground
+              .resolveFrom(context)
+              .withValues(alpha: 0.2),
+          onChanged: widget.onChanged,
+        ),
       );
     }
 
@@ -2173,11 +2275,18 @@ class _AdaptivePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isCupertino) {
+      return _CupertinoLiquidGlass(
+        borderRadius: 14,
+        padding: const EdgeInsets.all(12),
+        blur: 16,
+        child: child,
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
-        color: isCupertino
-            ? CupertinoColors.secondarySystemBackground.resolveFrom(context)
-            : Theme.of(context).colorScheme.surfaceContainer,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.all(12),
