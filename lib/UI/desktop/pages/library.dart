@@ -470,28 +470,10 @@ class _LibraryPageState extends State<LibraryPage> {
           ),
           const SizedBox(height: 16),
           if (genres.isEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.category_outlined,
-                      size: 48,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(l10n.noGenresFound, style: theme.textTheme.titleLarge),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.genresAppearHere,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _buildBrowseEmptyCard(
+              title: l10n.noGenresFound,
+              subtitle: l10n.genresAppearHere,
+              icon: _buildGenreShapesIcon(theme),
             )
           else
             GridView.builder(
@@ -577,27 +559,13 @@ class _LibraryPageState extends State<LibraryPage> {
           ),
           const SizedBox(height: 16),
           if (years.isEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 48,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(l10n.noYearInfo, style: theme.textTheme.titleLarge),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.yearInfoAppear,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+            _buildBrowseEmptyCard(
+              title: l10n.noYearInfo,
+              subtitle: l10n.yearInfoAppear,
+              icon: Icon(
+                Icons.calendar_month_outlined,
+                size: 52,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             )
           else
@@ -751,6 +719,82 @@ class _LibraryPageState extends State<LibraryPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBrowseEmptyCard({
+    required String title,
+    required String subtitle,
+    required Widget icon,
+  }) {
+    final theme = Theme.of(context);
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        width: 320,
+        constraints: const BoxConstraints(minHeight: 170),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.28),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.15),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon,
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenreShapesIcon(ThemeData theme) {
+    final color = theme.colorScheme.onSurfaceVariant;
+
+    return SizedBox(
+      width: 56,
+      height: 48,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: 0,
+            child: Icon(Icons.change_history_rounded, size: 20, color: color),
+          ),
+          Positioned(
+            left: 10,
+            bottom: 1,
+            child: Icon(Icons.crop_square_rounded, size: 19, color: color),
+          ),
+          Positioned(
+            right: 10,
+            bottom: 1,
+            child: Icon(Icons.circle_outlined, size: 18, color: color),
+          ),
+        ],
       ),
     );
   }
