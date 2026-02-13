@@ -1517,7 +1517,7 @@ class AppState extends ChangeNotifier {
       shuffledTracks.shuffle();
 
       await _audioHandler!.playPlaylist(shuffledTracks, 0);
-      _audioHandler!.shuffle(); // Enable shuffle mode
+      await _audioHandler!.shuffle(); // Enable shuffle mode
     } catch (e) {
       // Error in shuffleAllTracks
     } finally {
@@ -1560,7 +1560,7 @@ class AppState extends ChangeNotifier {
       shuffledFavorites.shuffle();
 
       await _audioHandler!.playPlaylist(shuffledFavorites, 0);
-      _audioHandler!.shuffle(); // Enable shuffle mode
+      await _audioHandler!.shuffle(); // Enable shuffle mode
     } catch (e) {
       // Error in shuffleFavoriteTracks
     } finally {
@@ -2218,7 +2218,7 @@ class AppState extends ChangeNotifier {
           break;
 
         case 'VoiceCommandType.shuffle':
-          _audioHandler?.shuffle();
+          await _audioHandler?.shuffle();
           break;
 
         case 'VoiceCommandType.repeat':

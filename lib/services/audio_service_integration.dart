@@ -298,11 +298,11 @@ class AudioServiceIntegration {
     if (!_initialized || _audioHandler == null) return;
 
     try {
-      if (enabled && !_audioHandler!.shuffleEnabled) {
-        _audioHandler!.toggleShuffle();
-      } else if (!enabled && _audioHandler!.shuffleEnabled) {
-        _audioHandler!.toggleShuffle();
-      }
+      await _audioHandler!.setShuffleMode(
+        enabled
+            ? audio_service.AudioServiceShuffleMode.all
+            : audio_service.AudioServiceShuffleMode.none,
+      );
     } catch (e) {
       // Error setting shuffle mode
     }

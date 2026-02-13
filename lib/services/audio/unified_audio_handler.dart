@@ -580,12 +580,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       if (track.artistName != null && track.artistName!.isNotEmpty) {
         try {
           // Search for tracks by the same artist
-          final allTracks = await _mediaServiceManager.getTracks(
-            limit: 100,
-          );
-          final artistTracks = allTracks.where(
-            (t) => t.artistName == track.artistName && t.id != track.id && !queueIds.contains(t.id),
-          ).toList();
+          final allTracks = await _mediaServiceManager.getTracks(limit: 100);
+          final artistTracks = allTracks
+              .where(
+                (t) =>
+                    t.artistName == track.artistName &&
+                    t.id != track.id &&
+                    !queueIds.contains(t.id),
+              )
+              .toList();
           similarTracks.addAll(artistTracks.take(20));
         } catch (e) {
           // Failed to fetch artist tracks
@@ -600,7 +603,9 @@ class UnifiedAudioHandler extends BaseAudioHandler {
             limit: 30,
           );
           for (final t in albumTracks) {
-            if (t.id != track.id && !queueIds.contains(t.id) && !similarTracks.any((s) => s.id == t.id)) {
+            if (t.id != track.id &&
+                !queueIds.contains(t.id) &&
+                !similarTracks.any((s) => s.id == t.id)) {
               similarTracks.add(t);
             }
           }
@@ -612,13 +617,13 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       // Strategy 3: If we still don't have enough, get random tracks
       if (similarTracks.length < 5) {
         try {
-          final randomTracks = await _mediaServiceManager.getTracks(
-            limit: 30,
-          );
+          final randomTracks = await _mediaServiceManager.getTracks(limit: 30);
           // Shuffle to get variety
           randomTracks.shuffle();
           for (final t in randomTracks) {
-            if (t.id != track.id && !queueIds.contains(t.id) && !similarTracks.any((s) => s.id == t.id)) {
+            if (t.id != track.id &&
+                !queueIds.contains(t.id) &&
+                !similarTracks.any((s) => s.id == t.id)) {
               similarTracks.add(t);
               if (similarTracks.length >= 15) break;
             }
@@ -1132,14 +1137,31 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         break;
     }
     _stateController.updateRepeatMode(ourMode);
+    _updatePlaybackStateStream();
   }
 
   void setRepeatModeValue(RepeatMode mode) {
     _stateController.updateRepeatMode(mode);
+    _updatePlaybackStateStream();
+  }
+
+  @override
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
+    final shouldEnable = shuffleMode != AudioServiceShuffleMode.none;
+    final isEnabled = _stateController.shuffleEnabled;
+
+    if (shouldEnable != isEnabled) {
+      _queueManager.toggleShuffle();
+    } else {
+      _stateController.updateShuffleEnabled(shouldEnable);
+    }
+
+    _updatePlaybackStateStream();
   }
 
   void toggleShuffle() {
     _queueManager.toggleShuffle();
+    _updatePlaybackStateStream();
   }
 
   void setGaplessPlayback(bool enabled) {
@@ -1496,15 +1518,15 @@ class UnifiedAudioHandler extends BaseAudioHandler {
       width: 512,
       height: 512,
     );
-    
+
     // Only use artUri if it's a valid HTTP/HTTPS URL
     // file:// URIs cause errors with SMTC/flutter_cache_manager on Windows
     Uri? artUri;
-    if (imageUrl.isNotEmpty && 
+    if (imageUrl.isNotEmpty &&
         (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
       artUri = Uri.tryParse(imageUrl);
     }
-    
+
     return MediaItem(
       id: track.id,
       album: track.albumName ?? 'Unknown Album',
@@ -1519,7 +1541,8 @@ class UnifiedAudioHandler extends BaseAudioHandler {
         'trackId': track.id,
         'albumId': track.albumId,
         'trackNumber': track.trackNumber,
-        'localImageUrl': imageUrl, // Store for UI display (supports file:// URIs)
+        'localImageUrl':
+            imageUrl, // Store for UI display (supports file:// URIs)
       },
     );
   }

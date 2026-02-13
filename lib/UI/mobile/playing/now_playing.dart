@@ -4,11 +4,11 @@ import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:vibration/vibration.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../services/album_art_color_service.dart';
+import '../../../services/audio/unified_audio_handler.dart' show RepeatMode;
 import 'lyrics/lyrics_overlay.dart';
 import 'queue/queue_overlay.dart';
 import '../widgets/cached_image_widget.dart';
@@ -1133,59 +1133,39 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                             final audioHandler =
                                                 appState.audioHandler;
                                             if (audioHandler != null) {
-                                              final currentState = audioHandler
-                                                  .playbackState
-                                                  .value;
                                               final currentMode =
-                                                  currentState.repeatMode;
+                                                  audioHandler.repeatMode ??
+                                                  RepeatMode.none;
 
                                               switch (currentMode) {
-                                                case AudioServiceRepeatMode
-                                                    .none:
+                                                case RepeatMode.none:
                                                   await audioHandler
                                                       .setRepeatMode(
-                                                        AudioServiceRepeatMode
-                                                            .all,
+                                                        RepeatMode.all,
                                                       );
                                                   break;
-                                                case AudioServiceRepeatMode.all:
+                                                case RepeatMode.all:
                                                   await audioHandler
                                                       .setRepeatMode(
-                                                        AudioServiceRepeatMode
-                                                            .one,
+                                                        RepeatMode.one,
                                                       );
                                                   break;
-                                                case AudioServiceRepeatMode.one:
+                                                case RepeatMode.one:
                                                   await audioHandler
                                                       .setRepeatMode(
-                                                        AudioServiceRepeatMode
-                                                            .none,
-                                                      );
-                                                  break;
-                                                case AudioServiceRepeatMode
-                                                    .group:
-                                                  await audioHandler
-                                                      .setRepeatMode(
-                                                        AudioServiceRepeatMode
-                                                            .none,
+                                                        RepeatMode.none,
                                                       );
                                                   break;
                                               }
                                             }
                                           },
-                                          child: StreamBuilder<AudioServiceRepeatMode>(
-                                            stream: audioHandler?.playbackState
-                                                .map(
-                                                  (state) => state.repeatMode,
-                                                )
-                                                .cast<AudioServiceRepeatMode>(),
-                                            builder: (context, snapshot) {
+                                          child: Builder(
+                                            builder: (context) {
                                               final repeatMode =
-                                                  snapshot.data ??
-                                                  AudioServiceRepeatMode.none;
+                                                  audioHandler?.repeatMode ??
+                                                  RepeatMode.none;
                                               final isActive =
-                                                  repeatMode !=
-                                                  AudioServiceRepeatMode.none;
+                                                  repeatMode != RepeatMode.none;
 
                                               return ClipRRect(
                                                 borderRadius:
@@ -1227,8 +1207,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                     ),
                                                     child: Icon(
                                                       repeatMode ==
-                                                              AudioServiceRepeatMode
-                                                                  .one
+                                                              RepeatMode.one
                                                           ? CupertinoIcons
                                                                 .repeat_1
                                                           : CupertinoIcons
