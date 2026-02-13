@@ -2906,9 +2906,14 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
       _tracks = appState.tracks
           .where((track) => track.artistName == widget.artist.name)
           .toList();
+
+      if (_albums.isEmpty) {
+        _selectedTab = 'songs';
+      }
     } catch (e) {
       _albums = [];
       _tracks = [];
+      _selectedTab = 'songs';
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -2936,8 +2941,9 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
               _DetailHeader(
                 onBack: widget.onBack,
                 title: widget.artist.name,
-                subtitle:
-                    '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}',
+                subtitle: _albums.isNotEmpty
+                    ? '${_albums.length} ${l10n.albums} • ${_tracks.length} ${l10n.songs}'
+                    : '${_tracks.length} ${l10n.songs}',
                 imageUrl: imageUrl,
                 isCircular: true,
                 onPlay: () => appState.playPlaylist(_tracks, 0),
@@ -2954,12 +2960,14 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
                 ),
                 child: Row(
                   children: [
-                    _TabChip(
-                      label: l10n.albums,
-                      isSelected: _selectedTab == 'albums',
-                      onTap: () => setState(() => _selectedTab = 'albums'),
-                    ),
-                    const SizedBox(width: DesktopTheme.spacingSm),
+                    if (_albums.isNotEmpty) ...[
+                      _TabChip(
+                        label: l10n.albums,
+                        isSelected: _selectedTab == 'albums',
+                        onTap: () => setState(() => _selectedTab = 'albums'),
+                      ),
+                      const SizedBox(width: DesktopTheme.spacingSm),
+                    ],
                     _TabChip(
                       label: l10n.songs,
                       isSelected: _selectedTab == 'songs',
@@ -2972,7 +2980,7 @@ class _ArtistDetailViewState extends State<_ArtistDetailView> {
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _selectedTab == 'albums'
+                    : _albums.isNotEmpty && _selectedTab == 'albums'
                     ? _AlbumGridView(
                         albums: _albums,
                         appState: appState,

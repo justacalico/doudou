@@ -82,14 +82,15 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   void _showArtistOptionsMenu(BuildContext context, AppState appState) {
+    final summary = _artistAlbums.isNotEmpty
+        ? '${_artistTracks.length} ${_artistTracks.length == 1 ? 'song' : 'songs'} • ${_artistAlbums.length} ${_artistAlbums.length == 1 ? 'album' : 'albums'}'
+        : '${_artistTracks.length} ${_artistTracks.length == 1 ? 'song' : 'songs'}';
+
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         title: Text(widget.artist.name, style: const TextStyle(fontSize: 16)),
-        message: Text(
-          '${_artistTracks.length} ${_artistTracks.length == 1 ? 'song' : 'songs'} • ${_artistAlbums.length} ${_artistAlbums.length == 1 ? 'album' : 'albums'}',
-          style: const TextStyle(fontSize: 14),
-        ),
+        message: Text(summary, style: const TextStyle(fontSize: 14)),
         actions: [
           // Download all tracks
           if (_artistTracks.isNotEmpty)
@@ -500,24 +501,27 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  _buildStatItem(
-                                                    '${_artistAlbums.length}',
-                                                    _artistAlbums.length == 1
-                                                        ? 'Album'
-                                                        : 'Albums',
-                                                    CupertinoIcons.music_albums,
-                                                    const Color(0xFF8B5CF6),
-                                                  ),
-                                                  Container(
-                                                    width: 1,
-                                                    height: 32,
-                                                    color: Colors.white
-                                                        .withOpacity(0.2),
-                                                    margin:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 20,
-                                                        ),
-                                                  ),
+                                                  if (_artistAlbums.isNotEmpty)
+                                                    _buildStatItem(
+                                                      '${_artistAlbums.length}',
+                                                      _artistAlbums.length == 1
+                                                          ? 'Album'
+                                                          : 'Albums',
+                                                      CupertinoIcons
+                                                          .music_albums,
+                                                      const Color(0xFF8B5CF6),
+                                                    ),
+                                                  if (_artistAlbums.isNotEmpty)
+                                                    Container(
+                                                      width: 1,
+                                                      height: 32,
+                                                      color: Colors.white
+                                                          .withOpacity(0.2),
+                                                      margin:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 20,
+                                                          ),
+                                                    ),
                                                   _buildStatItem(
                                                     '${_artistTracks.length}',
                                                     _artistTracks.length == 1
