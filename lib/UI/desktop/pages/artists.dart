@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
@@ -19,6 +22,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
   String _viewMode = 'grid'; // grid, list
 
   final TextEditingController _searchController = TextEditingController();
+  final Map<String, bool> _genericArtistImageCache = {};
+  final Map<String, Future<bool>> _genericArtistImageDetectionFutures = {};
 
   @override
   void initState() {
@@ -29,6 +34,8 @@ class _ArtistsPageState extends State<ArtistsPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _genericArtistImageCache.clear();
+    _genericArtistImageDetectionFutures.clear();
     super.dispose();
   }
 
@@ -46,7 +53,7 @@ class _ArtistsPageState extends State<ArtistsPage> {
     return appState.getImageUrl(imageId);
   }
 
-  bool _shouldUseArtistPlaceholder(dynamic artist) {
+  bool _shouldUseArtistPlaceholderByMetadata(dynamic artist) {
     final artistName = (artist.name as String? ?? '').toLowerCase().trim();
     final normalizedName = artistName
         .replaceAll(RegExp(r'[\[\]\(\)\-_]'), ' ')
@@ -61,6 +68,160 @@ class _ArtistsPageState extends State<ArtistsPage> {
     };
 
     return artist.imageUrl == null || placeholderNames.contains(normalizedName);
+  }
+
+  Future<ui.Image> _resolveUiImage(ImageProvider provider) {
+    final completer = Completer<ui.Image>();
+    final imageStream = provider.resolve(const ImageConfiguration());
+    late final ImageStreamListener listener;
+
+    listener = ImageStreamListener(
+      (ImageInfo imageInfo, bool synchronousCall) {
+        if (!completer.isCompleted) {
+          completer.complete(imageInfo.image);
+        }
+        imageStream.removeListener(listener);
+      },
+      onError: (Object error, StackTrace? stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
+        imageStream.removeListener(listener);
+      },
+    );
+
+    imageStream.addListener(listener);
+    return completer.future.timeout(const Duration(seconds: 5));
+  }
+
+  Future<bool> _isLikelyGenericArtistImage(ui.Image image) async {
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (byteData == null) return false;
+
+    final bytes = byteData.buffer.asUint8List();
+    final width = image.width;
+    final height = image.height;
+    final stepX = math.max(1, width ~/ 24);
+    final stepY = math.max(1, height ~/ 24);
+
+    int sampledPixels = 0;
+    int grayLikePixels = 0;
+    int alphaPixels = 0;
+    double meanLuminance = 0;
+    double m2 = 0;
+    final Set<int> colorBuckets = <int>{};
+
+    for (int y = 0; y < height; y += stepY) {
+      for (int x = 0; x < width; x += stepX) {
+        final index = (y * width + x) * 4;
+        final r = bytes[index];
+        final g = bytes[index + 1];
+        final b = bytes[index + 2];
+        final a = bytes[index + 3];
+
+        if (a < 16) {
+          continue;
+        }
+
+        alphaPixels++;
+        sampledPixels++;
+
+        final maxChannel = math.max(r, math.max(g, b));
+        final minChannel = math.min(r, math.min(g, b));
+        if (maxChannel - minChannel < 18) {
+          grayLikePixels++;
+        }
+
+        final bucket = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+        colorBuckets.add(bucket);
+
+        final luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        final delta = luminance - meanLuminance;
+        meanLuminance += delta / sampledPixels;
+        m2 += delta * (luminance - meanLuminance);
+      }
+    }
+
+    if (sampledPixels == 0 || alphaPixels == 0) {
+      return false;
+    }
+
+    final grayRatio = grayLikePixels / sampledPixels;
+    final luminanceVariance = sampledPixels > 1 ? m2 / (sampledPixels - 1) : 0;
+
+    // Generic fallback art from media servers is typically near-monochrome with low color diversity.
+    return grayRatio > 0.9 &&
+        colorBuckets.length <= 42 &&
+        luminanceVariance < 2600;
+  }
+
+  Future<bool> _detectAndCacheGenericArtistImage(String imageUrl) {
+    final cached = _genericArtistImageCache[imageUrl];
+    if (cached != null) {
+      return Future.value(cached);
+    }
+
+    return _genericArtistImageDetectionFutures.putIfAbsent(imageUrl, () async {
+      try {
+        final image = await _resolveUiImage(NetworkImage(imageUrl));
+        final isGeneric = await _isLikelyGenericArtistImage(image);
+        _genericArtistImageCache[imageUrl] = isGeneric;
+        return isGeneric;
+      } catch (_) {
+        _genericArtistImageCache[imageUrl] = false;
+        return false;
+      } finally {
+        _genericArtistImageDetectionFutures.remove(imageUrl);
+      }
+    });
+  }
+
+  Widget _buildArtistAvatar(
+    ThemeData theme,
+    AppState appState,
+    dynamic artist, {
+    required double width,
+    required double height,
+  }) {
+    if (_shouldUseArtistPlaceholderByMetadata(artist)) {
+      return _buildArtistPlaceholder(theme);
+    }
+
+    final imageUrl = _getImageUrl(appState, artist.imageUrl);
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return _buildArtistPlaceholder(theme);
+    }
+
+    final cachedDecision = _genericArtistImageCache[imageUrl];
+    if (cachedDecision == true) {
+      return _buildArtistPlaceholder(theme);
+    }
+
+    final image = ClipOval(
+      child: Image.network(
+        imageUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildArtistPlaceholder(theme);
+        },
+      ),
+    );
+
+    if (cachedDecision == false) {
+      return image;
+    }
+
+    return FutureBuilder<bool>(
+      future: _detectAndCacheGenericArtistImage(imageUrl),
+      builder: (context, snapshot) {
+        if (snapshot.data == true) {
+          return _buildArtistPlaceholder(theme);
+        }
+        return image;
+      },
+    );
   }
 
   List<dynamic> _getFilteredAndSortedArtists(AppState appState) {
@@ -421,19 +582,13 @@ class _ArtistsPageState extends State<ArtistsPage> {
                   color: theme.colorScheme.surfaceVariant,
                   shape: BoxShape.circle,
                 ),
-                child: !_shouldUseArtistPlaceholder(artist)
-                    ? ClipOval(
-                        child: Image.network(
-                          _getImageUrl(appState, artist.imageUrl)!,
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildArtistPlaceholder(theme);
-                          },
-                        ),
-                      )
-                    : _buildArtistPlaceholder(theme),
+                child: _buildArtistAvatar(
+                  theme,
+                  appState,
+                  artist,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
               ),
             ),
 
@@ -492,19 +647,13 @@ class _ArtistsPageState extends State<ArtistsPage> {
             color: theme.colorScheme.surfaceVariant,
             shape: BoxShape.circle,
           ),
-          child: !_shouldUseArtistPlaceholder(artist)
-              ? ClipOval(
-                  child: Image.network(
-                    _getImageUrl(appState, artist.imageUrl)!,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildArtistPlaceholder(theme);
-                    },
-                  ),
-                )
-              : _buildArtistPlaceholder(theme),
+          child: _buildArtistAvatar(
+            theme,
+            appState,
+            artist,
+            width: 56,
+            height: 56,
+          ),
         ),
         title: Text(
           artist.name,
