@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +6,9 @@ import '../../../l10n/l10n.dart';
 import '../../../providers/app_state.dart';
 
 class AdaptiveLoginView extends StatefulWidget {
-  const AdaptiveLoginView({super.key});
+  const AdaptiveLoginView({super.key, required this.isCupertino});
+
+  final bool isCupertino;
 
   @override
   State<AdaptiveLoginView> createState() => _AdaptiveLoginViewState();
@@ -21,8 +22,7 @@ class _AdaptiveLoginViewState extends State<AdaptiveLoginView> {
   String _serverType = 'jellyfin';
   bool _isSubmitting = false;
 
-  bool get _isCupertino =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  bool get _isCupertino => widget.isCupertino;
 
   @override
   void dispose() {

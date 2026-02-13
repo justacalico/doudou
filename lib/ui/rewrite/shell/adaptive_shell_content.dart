@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,9 +7,6 @@ import '../../../models/download_models.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../providers/app_state.dart';
 import 'adaptive_shell_state.dart';
-
-bool get isCupertinoPlatform =>
-    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
 String labelForSection(BuildContext context, AppShellSection section) {
   final l10n = context.l10n;
@@ -148,77 +144,77 @@ class NowPlayingBar extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      _MediaArtwork(
-                        imageId: currentTrack.imageUrl ?? currentTrack.albumId,
-                        size: 42,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              currentTrack.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final compact = constraints.maxWidth < 460;
+
+                      return Row(
+                        children: [
+                          _MediaArtwork(
+                            imageId:
+                                currentTrack.imageUrl ?? currentTrack.albumId,
+                            size: 42,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentTrack.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  currentTrack.artistName ?? '-',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isCupertino
+                                        ? CupertinoColors.secondaryLabel
+                                              .resolveFrom(context)
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Text(
-                              currentTrack.artistName ?? '-',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isCupertino
-                                    ? CupertinoColors.secondaryLabel
-                                          .resolveFrom(context)
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                              ),
+                          ),
+                          if (!compact)
+                            _AdaptiveIconButton(
+                              isCupertino: isCupertino,
+                              onPressed: canSkipPrevious
+                                  ? () => appState.skipToPrevious()
+                                  : null,
+                              icon: isCupertino
+                                  ? CupertinoIcons.backward_fill
+                                  : Icons.skip_previous_rounded,
                             ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: context.l10n.play,
-                        onPressed: canSkipPrevious
-                            ? () => appState.skipToPrevious()
-                            : null,
-                        icon: Icon(
-                          isCupertino
-                              ? CupertinoIcons.backward_fill
-                              : Icons.skip_previous_rounded,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: isPlaying
-                            ? context.l10n.pause
-                            : context.l10n.play,
-                        onPressed: appState.playPause,
-                        icon: Icon(
-                          isPlaying
-                              ? (isCupertino
-                                    ? CupertinoIcons.pause_fill
-                                    : Icons.pause_rounded)
-                              : (isCupertino
-                                    ? CupertinoIcons.play_fill
-                                    : Icons.play_arrow_rounded),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: context.l10n.playNext,
-                        onPressed: canSkipNext
-                            ? () => appState.skipToNext()
-                            : null,
-                        icon: Icon(
-                          isCupertino
-                              ? CupertinoIcons.forward_fill
-                              : Icons.skip_next_rounded,
-                        ),
-                      ),
-                    ],
+                          _AdaptiveIconButton(
+                            isCupertino: isCupertino,
+                            onPressed: appState.playPause,
+                            icon: isPlaying
+                                ? (isCupertino
+                                      ? CupertinoIcons.pause_fill
+                                      : Icons.pause_rounded)
+                                : (isCupertino
+                                      ? CupertinoIcons.play_fill
+                                      : Icons.play_arrow_rounded),
+                          ),
+                          _AdaptiveIconButton(
+                            isCupertino: isCupertino,
+                            onPressed: canSkipNext
+                                ? () => appState.skipToNext()
+                                : null,
+                            icon: isCupertino
+                                ? CupertinoIcons.forward_fill
+                                : Icons.skip_next_rounded,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   StreamBuilder<Duration>(
                     stream: appState.positionStream,
@@ -292,11 +288,11 @@ class _HomeSection extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _SectionTitle(
+              isCupertino: isCupertino,
               title: l10n.navHome,
               subtitle: appState.isOfflineMode
                   ? l10n.offlineModeDownloadsOnly
                   : l10n.libraryOverview,
-              trailing: _RefreshButton(isCupertino: isCupertino),
             ),
             const SizedBox(height: 14),
             Wrap(
@@ -338,7 +334,11 @@ class _HomeSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 18),
-            _SectionTitle(title: l10n.libraryRecent, subtitle: l10n.nowPlaying),
+            _SectionTitle(
+              isCupertino: isCupertino,
+              title: l10n.libraryRecent,
+              subtitle: l10n.nowPlaying,
+            ),
             const SizedBox(height: 10),
             if (tracks.isEmpty)
               _EmptyState(
@@ -393,12 +393,9 @@ class _TracksSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: _SectionTitle(
+                isCupertino: isCupertino,
                 title: l10n.navTracks,
                 subtitle: l10n.tracksCount(tracks.length),
-                trailing: _HeaderActionRow(
-                  isCupertino: isCupertino,
-                  onShuffleAll: appState.shuffleAllTracks,
-                ),
               ),
             ),
             Padding(
@@ -473,6 +470,7 @@ class _AlbumsSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: _SectionTitle(
+                isCupertino: isCupertino,
                 title: l10n.navAlbums,
                 subtitle: l10n.albumsCount(albums.length),
               ),
@@ -516,7 +514,7 @@ class _AlbumsSection extends StatelessWidget {
                       crossAxisCount: crossAxisCount,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.76,
+                      childAspectRatio: 0.66,
                     ),
                     itemCount: albums.length,
                     itemBuilder: (context, index) {
@@ -568,6 +566,7 @@ class _ArtistsSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: _SectionTitle(
+                isCupertino: isCupertino,
                 title: l10n.navArtists,
                 subtitle: l10n.artistsCount(artists.length),
               ),
@@ -604,13 +603,12 @@ class _ArtistsSection extends StatelessWidget {
                           title: artist.name,
                           subtitle: l10n.artists,
                           leading: _MediaArtwork(imageId: artist.imageUrl),
-                          trailing: IconButton(
+                          trailing: _AdaptiveIconButton(
+                            isCupertino: isCupertino,
                             onPressed: () => appState.playArtistTracks(artist),
-                            icon: Icon(
-                              isCupertino
-                                  ? CupertinoIcons.play_fill
-                                  : Icons.play_arrow_rounded,
-                            ),
+                            icon: isCupertino
+                                ? CupertinoIcons.play_fill
+                                : Icons.play_arrow_rounded,
                           ),
                         );
                       },
@@ -648,6 +646,7 @@ class _PlaylistsSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: _SectionTitle(
+                isCupertino: isCupertino,
                 title: l10n.navPlaylists,
                 subtitle: l10n.playlistsCount(playlists.length),
               ),
@@ -688,7 +687,8 @@ class _PlaylistsSection extends StatelessWidget {
                             playlist.trackCount,
                           ),
                           leading: _MediaArtwork(imageId: playlist.imageUrl),
-                          trailing: IconButton(
+                          trailing: _AdaptiveIconButton(
+                            isCupertino: isCupertino,
                             onPressed: () async {
                               final tracks = await appState.getPlaylistTracks(
                                 playlist.id,
@@ -697,11 +697,9 @@ class _PlaylistsSection extends StatelessWidget {
                                 await appState.playPlaylist(tracks, 0);
                               }
                             },
-                            icon: Icon(
-                              isCupertino
-                                  ? CupertinoIcons.play_fill
-                                  : Icons.play_arrow_rounded,
-                            ),
+                            icon: isCupertino
+                                ? CupertinoIcons.play_fill
+                                : Icons.play_arrow_rounded,
                           ),
                         );
                       },
@@ -736,6 +734,7 @@ class _DownloadsSection extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _SectionTitle(
+              isCupertino: isCupertino,
               title: l10n.navDownloads,
               subtitle:
                   '${downloaded.length} saved • ${tasks.where((task) => task.status == DownloadStatus.downloading).length} active',
@@ -751,6 +750,7 @@ class _DownloadsSection extends StatelessWidget {
             const SizedBox(height: 10),
             if (tasks.isNotEmpty) ...[
               _SectionTitle(
+                isCupertino: isCupertino,
                 title: l10n.loading,
                 subtitle: l10n.downloadsContinueInBackground,
               ),
@@ -761,20 +761,20 @@ class _DownloadsSection extends StatelessWidget {
                   title: task.trackName,
                   subtitle:
                       '${(task.progress * 100).toStringAsFixed(0)}% • ${task.status.name}',
-                  trailing: IconButton(
+                  trailing: _AdaptiveIconButton(
+                    isCupertino: isCupertino,
                     onPressed: () =>
                         downloadService.cancelDownload(task.trackId),
-                    icon: Icon(
-                      isCupertino
-                          ? CupertinoIcons.xmark_circle_fill
-                          : Icons.cancel_rounded,
-                    ),
+                    icon: isCupertino
+                        ? CupertinoIcons.xmark_circle_fill
+                        : Icons.cancel_rounded,
                   ),
                 ),
               ),
               const SizedBox(height: 12),
             ],
             _SectionTitle(
+              isCupertino: isCupertino,
               title: l10n.downloads,
               subtitle: '${downloaded.length} ${l10n.trackPlural}',
             ),
@@ -793,14 +793,13 @@ class _DownloadsSection extends StatelessWidget {
                   title: track?.name ?? downloadedTrack.trackId,
                   subtitle: track?.artistName ?? '-',
                   leading: _MediaArtwork(imageId: track?.imageUrl),
-                  trailing: IconButton(
+                  trailing: _AdaptiveIconButton(
+                    isCupertino: isCupertino,
                     onPressed: () =>
                         downloadService.deleteDownload(downloadedTrack.trackId),
-                    icon: Icon(
-                      isCupertino
-                          ? CupertinoIcons.trash
-                          : Icons.delete_outline_rounded,
-                    ),
+                    icon: isCupertino
+                        ? CupertinoIcons.trash
+                        : Icons.delete_outline_rounded,
                   ),
                 );
               }),
@@ -828,16 +827,9 @@ class _FavoritesSection extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _SectionTitle(
+              isCupertino: isCupertino,
               title: l10n.navFavorites,
               subtitle: l10n.tracksCount(favorites.length),
-              trailing: _ActionButton(
-                isCupertino: isCupertino,
-                onPressed: appState.shuffleFavoriteTracks,
-                icon: isCupertino
-                    ? CupertinoIcons.shuffle
-                    : Icons.shuffle_rounded,
-                label: l10n.shuffle,
-              ),
             ),
             const SizedBox(height: 8),
             if (favorites.isEmpty)
@@ -903,6 +895,7 @@ class _SettingsSectionState extends State<_SettingsSection> {
       builder: (context, appState, _) {
         final l10n = context.l10n;
         final themeMode = appState.themeMode;
+        final uiMode = appState.uiMode;
         final locale = appState.locale;
 
         final languageValue = locale == null
@@ -918,6 +911,7 @@ class _SettingsSectionState extends State<_SettingsSection> {
           padding: const EdgeInsets.all(16),
           children: [
             _SectionTitle(
+              isCupertino: widget.isCupertino,
               title: l10n.settings,
               subtitle: l10n.connectionStatus,
               trailing: _working
@@ -936,6 +930,20 @@ class _SettingsSectionState extends State<_SettingsSection> {
               child: Column(
                 children: [
                   _SettingRow(
+                    isCupertino: widget.isCupertino,
+                    label: 'UI style',
+                    control: _UiModeSelector(
+                      isCupertino: widget.isCupertino,
+                      value: uiMode,
+                      onChanged: (mode) {
+                        if (mode != null) {
+                          _runAction(() => appState.setUiMode(mode));
+                        }
+                      },
+                    ),
+                  ),
+                  _SettingRow(
+                    isCupertino: widget.isCupertino,
                     label: l10n.appTheme,
                     control: _ThemeSelector(
                       isCupertino: widget.isCupertino,
@@ -948,6 +956,7 @@ class _SettingsSectionState extends State<_SettingsSection> {
                     ),
                   ),
                   _SettingRow(
+                    isCupertino: widget.isCupertino,
                     label: l10n.language,
                     control: _LanguageSelector(
                       isCupertino: widget.isCupertino,
@@ -971,8 +980,10 @@ class _SettingsSectionState extends State<_SettingsSection> {
                     ),
                   ),
                   _SettingRow(
+                    isCupertino: widget.isCupertino,
                     label: l10n.accentColor,
                     control: _AccentSelector(
+                      isCupertino: widget.isCupertino,
                       selected: appState.accentColor,
                       onSelected: (color) {
                         _runAction(() => appState.setAccentColor(color));
@@ -1124,6 +1135,52 @@ class _ThemeSelector extends StatelessWidget {
   }
 }
 
+class _UiModeSelector extends StatelessWidget {
+  const _UiModeSelector({
+    required this.isCupertino,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool isCupertino;
+  final AppUiMode value;
+  final ValueChanged<AppUiMode?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isCupertino) {
+      return CupertinoSlidingSegmentedControl<AppUiMode>(
+        groupValue: value,
+        children: const {
+          AppUiMode.system: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('System'),
+          ),
+          AppUiMode.material: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('Material'),
+          ),
+          AppUiMode.cupertino: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('Cupertino'),
+          ),
+        },
+        onValueChanged: onChanged,
+      );
+    }
+
+    return DropdownButton<AppUiMode>(
+      value: value,
+      onChanged: onChanged,
+      items: const [
+        DropdownMenuItem(value: AppUiMode.system, child: Text('System')),
+        DropdownMenuItem(value: AppUiMode.material, child: Text('Material')),
+        DropdownMenuItem(value: AppUiMode.cupertino, child: Text('Cupertino')),
+      ],
+    );
+  }
+}
+
 class _LanguageSelector extends StatelessWidget {
   const _LanguageSelector({
     required this.isCupertino,
@@ -1173,8 +1230,13 @@ class _LanguageSelector extends StatelessWidget {
 }
 
 class _AccentSelector extends StatelessWidget {
-  const _AccentSelector({required this.selected, required this.onSelected});
+  const _AccentSelector({
+    required this.isCupertino,
+    required this.selected,
+    required this.onSelected,
+  });
 
+  final bool isCupertino;
   final Color selected;
   final ValueChanged<Color> onSelected;
 
@@ -1196,9 +1258,8 @@ class _AccentSelector extends StatelessWidget {
       children: colors.map((color) {
         final selectedColor = selected.toARGB32() == color.toARGB32();
 
-        return InkWell(
+        return GestureDetector(
           onTap: () => onSelected(color),
-          borderRadius: BorderRadius.circular(999),
           child: Container(
             width: 24,
             height: 24,
@@ -1207,7 +1268,9 @@ class _AccentSelector extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(
                 color: selectedColor
-                    ? Theme.of(context).colorScheme.onSurface
+                    ? (isCupertino
+                          ? CupertinoColors.label.resolveFrom(context)
+                          : Theme.of(context).colorScheme.onSurface)
                     : Colors.transparent,
                 width: 2,
               ),
@@ -1220,45 +1283,70 @@ class _AccentSelector extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, this.subtitle, this.trailing});
+  const _SectionTitle({
+    required this.isCupertino,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
 
+  final bool isCupertino;
   final String title;
   final String? subtitle;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (subtitle != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    subtitle!,
-                    style: TextStyle(
-                      color: isCupertinoPlatform
-                          ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 560;
+
+        final titleBlock = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            ),
+            if (subtitle != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  subtitle!,
+                  style: TextStyle(
+                    color: isCupertino
+                        ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
+              ),
+          ],
+        );
+
+        if (trailing == null) {
+          return titleBlock;
+        }
+
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleBlock,
+              const SizedBox(height: 8),
+              Align(alignment: Alignment.centerLeft, child: trailing!),
             ],
-          ),
-        ),
-        if (trailing != null) trailing!,
-      ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: titleBlock),
+            const SizedBox(width: 12),
+            Flexible(child: trailing!),
+          ],
+        );
+      },
     );
   }
 }
@@ -1322,46 +1410,6 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _RefreshButton extends StatelessWidget {
-  const _RefreshButton({required this.isCupertino});
-
-  final bool isCupertino;
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, _) {
-        return _ActionButton(
-          isCupertino: isCupertino,
-          onPressed: appState.refreshLibraryData,
-          icon: isCupertino ? CupertinoIcons.refresh : Icons.refresh_rounded,
-          label: context.l10n.refreshLibrary,
-        );
-      },
-    );
-  }
-}
-
-class _HeaderActionRow extends StatelessWidget {
-  const _HeaderActionRow({
-    required this.isCupertino,
-    required this.onShuffleAll,
-  });
-
-  final bool isCupertino;
-  final Future<void> Function() onShuffleAll;
-
-  @override
-  Widget build(BuildContext context) {
-    return _ActionButton(
-      isCupertino: isCupertino,
-      onPressed: onShuffleAll,
-      icon: isCupertino ? CupertinoIcons.shuffle : Icons.shuffle_rounded,
-      label: context.l10n.shuffleAll,
-    );
-  }
-}
-
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.isCupertino,
@@ -1400,6 +1448,38 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+class _AdaptiveIconButton extends StatelessWidget {
+  const _AdaptiveIconButton({
+    required this.isCupertino,
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+  });
+
+  final bool isCupertino;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isCupertino) {
+      return CupertinoButton(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+        onPressed: onPressed,
+        child: Icon(icon, size: 20),
+      );
+    }
+
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      visualDensity: VisualDensity.compact,
+      icon: Icon(icon),
+    );
+  }
+}
+
 class _TrackTile extends StatelessWidget {
   const _TrackTile({
     required this.track,
@@ -1429,45 +1509,43 @@ class _TrackTile extends StatelessWidget {
       trailing: Wrap(
         spacing: 2,
         children: [
-          IconButton(
+          _AdaptiveIconButton(
+            isCupertino: isCupertino,
             tooltip: l10n.play,
             onPressed: onPlay,
-            icon: Icon(
-              isCupertino ? CupertinoIcons.play_fill : Icons.play_arrow_rounded,
-            ),
+            icon: isCupertino
+                ? CupertinoIcons.play_fill
+                : Icons.play_arrow_rounded,
           ),
-          IconButton(
+          _AdaptiveIconButton(
+            isCupertino: isCupertino,
             tooltip: l10n.addToQueue,
             onPressed: onQueue,
-            icon: Icon(
-              isCupertino
-                  ? CupertinoIcons.text_badge_plus
-                  : Icons.queue_music_rounded,
-            ),
+            icon: isCupertino
+                ? CupertinoIcons.text_badge_plus
+                : Icons.queue_music_rounded,
           ),
-          IconButton(
+          _AdaptiveIconButton(
+            isCupertino: isCupertino,
             tooltip: track.isFavorite
                 ? l10n.removeFromFavorites
                 : l10n.addToFavorites,
             onPressed: onFavorite,
-            icon: Icon(
-              track.isFavorite
-                  ? (isCupertino
-                        ? CupertinoIcons.heart_fill
-                        : Icons.favorite_rounded)
-                  : (isCupertino
-                        ? CupertinoIcons.heart
-                        : Icons.favorite_border_rounded),
-            ),
+            icon: track.isFavorite
+                ? (isCupertino
+                      ? CupertinoIcons.heart_fill
+                      : Icons.favorite_rounded)
+                : (isCupertino
+                      ? CupertinoIcons.heart
+                      : Icons.favorite_border_rounded),
           ),
-          IconButton(
+          _AdaptiveIconButton(
+            isCupertino: isCupertino,
             tooltip: l10n.download,
             onPressed: onDownload,
-            icon: Icon(
-              isCupertino
-                  ? CupertinoIcons.arrow_down_circle
-                  : Icons.download_rounded,
-            ),
+            icon: isCupertino
+                ? CupertinoIcons.arrow_down_circle
+                : Icons.download_rounded,
           ),
         ],
       ),
@@ -1530,28 +1608,27 @@ class _AlbumCard extends StatelessWidget {
                     : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            const Spacer(),
-            Row(
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 2,
               children: [
-                IconButton(
+                _AdaptiveIconButton(
+                  isCupertino: isCupertino,
                   onPressed: onPlay,
-                  icon: Icon(
-                    isCupertino
-                        ? CupertinoIcons.play_fill
-                        : Icons.play_arrow_rounded,
-                  ),
+                  icon: isCupertino
+                      ? CupertinoIcons.play_fill
+                      : Icons.play_arrow_rounded,
                 ),
-                IconButton(
+                _AdaptiveIconButton(
+                  isCupertino: isCupertino,
                   onPressed: onFavorite,
-                  icon: Icon(
-                    album.isFavorite
-                        ? (isCupertino
-                              ? CupertinoIcons.heart_fill
-                              : Icons.favorite_rounded)
-                        : (isCupertino
-                              ? CupertinoIcons.heart
-                              : Icons.favorite_border_rounded),
-                  ),
+                  icon: album.isFavorite
+                      ? (isCupertino
+                            ? CupertinoIcons.heart_fill
+                            : Icons.favorite_rounded)
+                      : (isCupertino
+                            ? CupertinoIcons.heart
+                            : Icons.favorite_border_rounded),
                 ),
               ],
             ),
@@ -1579,33 +1656,54 @@ class _AdaptiveTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        children: [
-          if (leading != null) ...[leading!, const SizedBox(width: 10)],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isCupertino
-                        ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+    final child = LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 560 && trailing != null;
+
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: isCupertino
+                    ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        );
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (leading != null) ...[leading!, const SizedBox(width: 10)],
+                  Expanded(child: content),
+                  if (!compact && trailing != null) trailing!,
+                ],
+              ),
+              if (compact) ...[
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: trailing!,
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-          if (trailing != null) trailing!,
-        ],
-      ),
+        );
+      },
     );
 
     return Container(
@@ -1798,23 +1896,56 @@ class _AdaptivePanel extends StatelessWidget {
 }
 
 class _SettingRow extends StatelessWidget {
-  const _SettingRow({required this.label, required this.control});
+  const _SettingRow({
+    required this.isCupertino,
+    required this.label,
+    required this.control,
+  });
 
+  final bool isCupertino;
   final String label;
   final Widget control;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: Text(label)),
-          const SizedBox(width: 12),
-          Flexible(child: control),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 680;
+        if (compact) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label),
+                const SizedBox(height: 8),
+                Align(alignment: Alignment.centerLeft, child: control),
+              ],
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isCupertino
+                        ? CupertinoColors.label.resolveFrom(context)
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(child: control),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -1839,7 +1970,10 @@ class _SettingSwitch extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label)),
-          Switch.adaptive(value: value, onChanged: onChanged),
+          if (isCupertino)
+            CupertinoSwitch(value: value, onChanged: onChanged)
+          else
+            Switch(value: value, onChanged: onChanged),
         ],
       ),
     );
@@ -1868,6 +2002,26 @@ class _ActionListTile extends StatelessWidget {
               ? CupertinoColors.systemRed.resolveFrom(context)
               : Theme.of(context).colorScheme.error)
         : null;
+
+    if (isCupertino) {
+      return CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: onTap,
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                textAlign: TextAlign.left,
+                style: color == null ? null : TextStyle(color: color),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

@@ -18,6 +18,8 @@ import '../services/image_cache_manager.dart';
 import '../services/download_service.dart';
 import '../services/logging_service.dart';
 
+enum AppUiMode { system, material, cupertino }
+
 class AppState extends ChangeNotifier {
   final JellyfinService _jellyfinService = JellyfinService();
   late final MediaServiceManager _mediaServiceManager;
@@ -52,6 +54,7 @@ class AppState extends ChangeNotifier {
   // Theme settings
   ThemeMode _themeMode = ThemeMode.system;
   Color _accentColor = Colors.purple;
+  AppUiMode _uiMode = AppUiMode.system;
 
   // Locale settings
   Locale? _locale; // null means use system locale
@@ -129,6 +132,7 @@ class AppState extends ChangeNotifier {
   // Theme getters
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
+  AppUiMode get uiMode => _uiMode;
 
   // Locale getter
   Locale? get locale => _locale;
@@ -260,8 +264,9 @@ class AppState extends ChangeNotifier {
               _audioHandler = audioService;
 
               // Apply persisted audio behavior toggles
-              audioService.audioHandler
-                  ?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
+              audioService.audioHandler?.setSmartBackToStartEnabled(
+                _smartBackToStartEnabled,
+              );
             } catch (audioError) {
               _audioHandler = null;
             }
@@ -735,7 +740,6 @@ class AppState extends ChangeNotifier {
     String identifier,
     String credential,
   ) async {
-    
     _setLoading(true);
     _clearError();
 
@@ -815,7 +819,6 @@ class AppState extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      
       String errorMessage = 'An unexpected error occurred. Please try again.';
 
       if (e.toString().toLowerCase().contains('timeout')) {
@@ -1872,7 +1875,7 @@ class AppState extends ChangeNotifier {
     _useDynamicIsle =
         prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
     _smartBackToStartEnabled =
-      prefs.getBool('smart_back_to_start_enabled') ?? true;
+        prefs.getBool('smart_back_to_start_enabled') ?? true;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';
@@ -1881,6 +1884,9 @@ class AppState extends ChangeNotifier {
     final accentColorValue =
         prefs.getInt('accent_color') ?? Colors.purple.value;
     _accentColor = Color(accentColorValue);
+
+    final uiModeString = prefs.getString('ui_mode') ?? 'system';
+    _uiMode = _parseUiMode(uiModeString);
 
     // Load locale settings
     final localeCode = prefs.getString('locale');
@@ -1923,6 +1929,29 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  AppUiMode _parseUiMode(String value) {
+    switch (value) {
+      case 'material':
+        return AppUiMode.material;
+      case 'cupertino':
+        return AppUiMode.cupertino;
+      case 'system':
+      default:
+        return AppUiMode.system;
+    }
+  }
+
+  String _uiModeToString(AppUiMode mode) {
+    switch (mode) {
+      case AppUiMode.material:
+        return 'material';
+      case AppUiMode.cupertino:
+        return 'cupertino';
+      case AppUiMode.system:
+        return 'system';
+    }
+  }
+
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode != mode) {
       _themeMode = mode;
@@ -1937,6 +1966,15 @@ class AppState extends ChangeNotifier {
       _accentColor = color;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('accent_color', color.value);
+      notifyListeners();
+    }
+  }
+
+  Future<void> setUiMode(AppUiMode mode) async {
+    if (_uiMode != mode) {
+      _uiMode = mode;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('ui_mode', _uiModeToString(mode));
       notifyListeners();
     }
   }

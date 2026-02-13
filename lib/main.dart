@@ -71,9 +71,10 @@ class DoudouApp extends StatelessWidget {
         VoiceCommandHandler(
           child: Consumer<AppState>(
             builder: (context, appState, _) {
-              final app = _isCupertinoPlatform
-                  ? _buildCupertinoApp(appState)
-                  : _buildMaterialApp(appState);
+              final useCupertino = _useCupertinoForMode(appState.uiMode);
+              final app = useCupertino
+                  ? _buildCupertinoApp(appState, useCupertino)
+                  : _buildMaterialApp(appState, useCupertino);
               return app;
             },
           ),
@@ -82,7 +83,18 @@ class DoudouApp extends StatelessWidget {
     );
   }
 
-  Widget _buildMaterialApp(AppState appState) {
+  bool _useCupertinoForMode(AppUiMode mode) {
+    switch (mode) {
+      case AppUiMode.material:
+        return false;
+      case AppUiMode.cupertino:
+        return true;
+      case AppUiMode.system:
+        return _isCupertinoPlatform;
+    }
+  }
+
+  Widget _buildMaterialApp(AppState appState, bool useCupertino) {
     return MaterialApp(
       title: 'Doudou',
       debugShowCheckedModeBanner: false,
@@ -100,11 +112,11 @@ class DoudouApp extends StatelessWidget {
         colorSchemeSeed: appState.accentColor,
         brightness: Brightness.dark,
       ),
-      home: const _RootGate(),
+      home: _RootGate(useCupertino: useCupertino),
     );
   }
 
-  Widget _buildCupertinoApp(AppState appState) {
+  Widget _buildCupertinoApp(AppState appState, bool useCupertino) {
     final brightness = _effectiveBrightness(appState.themeMode);
 
     return CupertinoApp(
@@ -113,17 +125,11 @@ class DoudouApp extends StatelessWidget {
       locale: appState.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      builder: (context, child) {
-        return Material(
-          type: MaterialType.transparency,
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
       theme: CupertinoThemeData(
         brightness: brightness,
         primaryColor: appState.accentColor,
       ),
-      home: const _RootGate(),
+      home: _RootGate(useCupertino: useCupertino),
     );
   }
 
@@ -150,21 +156,23 @@ class DoudouApp extends StatelessWidget {
 }
 
 class _RootGate extends StatelessWidget {
-  const _RootGate();
+  const _RootGate({required this.useCupertino});
+
+  final bool useCupertino;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, _) {
         if (!appState.isInitialized) {
-          return _LoadingView(isCupertino: _isCupertinoPlatform);
+          return _LoadingView(isCupertino: useCupertino);
         }
 
         if (!appState.isLoggedIn) {
-          return const AdaptiveLoginView();
+          return AdaptiveLoginView(isCupertino: useCupertino);
         }
 
-        return const AdaptiveShell();
+        return AdaptiveShell(useCupertino: useCupertino);
       },
     );
   }

@@ -3,13 +3,14 @@ import 'package:provider/provider.dart';
 
 import '../layouts/desktop_layout.dart';
 import '../layouts/mobile_layout.dart';
-import 'adaptive_shell_content.dart';
 import 'adaptive_shell_state.dart';
 
 const double kDesktopBreakpoint = 920;
 
 class AdaptiveShell extends StatefulWidget {
-  const AdaptiveShell({super.key});
+  const AdaptiveShell({super.key, required this.useCupertino});
+
+  final bool useCupertino;
 
   @override
   State<AdaptiveShell> createState() => _AdaptiveShellState();
@@ -32,17 +33,15 @@ class _AdaptiveShellState extends State<AdaptiveShell> {
 
   @override
   Widget build(BuildContext context) {
-    final useCupertino = isCupertinoPlatform;
-
     return ChangeNotifierProvider<AdaptiveShellState>.value(
       value: _shellState,
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth >= kDesktopBreakpoint) {
-            return DesktopLayout(isCupertino: useCupertino);
+            return DesktopLayout(isCupertino: widget.useCupertino);
           }
 
-          return MobileLayout(isCupertino: useCupertino);
+          return MobileLayout(isCupertino: widget.useCupertino);
         },
       ),
     );
