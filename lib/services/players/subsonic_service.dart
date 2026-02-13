@@ -753,6 +753,28 @@ class SubsonicService implements BaseMediaService {
     }
   }
 
+  Future<bool> removeTrackFromPlaylist(
+    String playlistId,
+    int trackIndex,
+  ) async {
+    try {
+      final params = Map<String, dynamic>.from(_baseParams);
+      params['playlistId'] = playlistId;
+      params['songIndexToRemove'] = trackIndex.toString();
+
+      final response = await _dio.get(
+        '$_serverUrl/rest/updatePlaylist',
+        queryParameters: params,
+      );
+
+      // Check for successful response
+      final subsonicResponse = response.data['subsonic-response'];
+      return subsonicResponse != null && subsonicResponse['status'] == 'ok';
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<bool> renamePlaylist(String playlistId, String newName) async {
     try {
       final params = Map<String, dynamic>.from(_baseParams);

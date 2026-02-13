@@ -411,6 +411,49 @@ class MediaServiceManager {
     return false;
   }
 
+  Future<bool> removeTrackFromPlaylist(
+    String playlistId,
+    String trackId, {
+    String? playlistItemId,
+    int? trackIndex,
+  }) async {
+    // Dynamic dispatch based on service type
+    switch (_currentServerType) {
+      case ServerType.jellyfin:
+        if (_currentService is JellyfinServiceAdapter) {
+          final adapter = _currentService as JellyfinServiceAdapter;
+          return await adapter._jellyfinService.removeTrackFromPlaylist(
+            playlistId,
+            playlistItemId: playlistItemId,
+            trackId: trackId,
+          );
+        }
+        break;
+      case ServerType.subsonic:
+        if (_currentService is SubsonicService && trackIndex != null) {
+          final subsonicService = _currentService as SubsonicService;
+          return await subsonicService.removeTrackFromPlaylist(
+            playlistId,
+            trackIndex,
+          );
+        }
+        break;
+      case ServerType.local:
+        if (_currentService is LocalMusicService) {
+          final localMusicService = _currentService as LocalMusicService;
+          return await localMusicService.removeTrackFromPlaylist(
+            playlistId,
+            trackId,
+          );
+        }
+        break;
+      case ServerType.plex:
+        // Plex remove track from playlist not yet implemented
+        break;
+    }
+    return false;
+  }
+
   Future<bool> renamePlaylist(String playlistId, String newName) async {
     // Dynamic dispatch based on service type
     switch (_currentServerType) {

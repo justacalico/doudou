@@ -260,8 +260,9 @@ class AppState extends ChangeNotifier {
               _audioHandler = audioService;
 
               // Apply persisted audio behavior toggles
-              audioService.audioHandler
-                  ?.setSmartBackToStartEnabled(_smartBackToStartEnabled);
+              audioService.audioHandler?.setSmartBackToStartEnabled(
+                _smartBackToStartEnabled,
+              );
             } catch (audioError) {
               _audioHandler = null;
             }
@@ -735,7 +736,6 @@ class AppState extends ChangeNotifier {
     String identifier,
     String credential,
   ) async {
-    
     _setLoading(true);
     _clearError();
 
@@ -815,7 +815,6 @@ class AppState extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      
       String errorMessage = 'An unexpected error occurred. Please try again.';
 
       if (e.toString().toLowerCase().contains('timeout')) {
@@ -1696,6 +1695,65 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<bool> removeTrackFromPlaylist(
+    String playlistId,
+    Track track, {
+    int? trackIndex,
+    List<Track>? currentTracks,
+  }) async {
+    try {
+      final success = await _mediaServiceManager.removeTrackFromPlaylist(
+        playlistId,
+        track.id,
+        playlistItemId: track.playlistItemId,
+        trackIndex: trackIndex,
+      );
+
+      if (!success) return false;
+
+      final playlistIndex = _playlists.indexWhere((p) => p.id == playlistId);
+      if (playlistIndex != -1) {
+        final playlist = _playlists[playlistIndex];
+        _playlists[playlistIndex] = Playlist(
+          id: playlist.id,
+          name: playlist.name,
+          imageUrl: playlist.imageUrl,
+          trackCount: playlist.trackCount > 0 ? playlist.trackCount - 1 : 0,
+        );
+      }
+
+      if (currentTracks != null) {
+        final updatedTracks = List<Track>.from(currentTracks);
+        if (trackIndex != null &&
+            trackIndex >= 0 &&
+            trackIndex < updatedTracks.length) {
+          updatedTracks.removeAt(trackIndex);
+        } else if (track.playlistItemId != null) {
+          updatedTracks.removeWhere(
+            (t) => t.playlistItemId == track.playlistItemId,
+          );
+        } else {
+          final index = updatedTracks.indexWhere((t) => t.id == track.id);
+          if (index != -1) {
+            updatedTracks.removeAt(index);
+          }
+        }
+        await _cacheService.cachePlaylistTracks(playlistId, updatedTracks);
+      } else {
+        final refreshedTracks = await _mediaServiceManager.getPlaylistTracks(
+          playlistId,
+        );
+        await _cacheService.cachePlaylistTracks(playlistId, refreshedTracks);
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError('Failed to remove track from playlist: ${e.toString()}');
+      return false;
+    }
+  }
+
   Future<bool> renamePlaylist(String playlistId, String newName) async {
     try {
       final success = await _mediaServiceManager.renamePlaylist(
@@ -1872,7 +1930,7 @@ class AppState extends ChangeNotifier {
     _useDynamicIsle =
         prefs.getBool('use_dynamic_isle') ?? false; // Disabled by default
     _smartBackToStartEnabled =
-      prefs.getBool('smart_back_to_start_enabled') ?? true;
+        prefs.getBool('smart_back_to_start_enabled') ?? true;
 
     // Load theme settings
     final themeModeString = prefs.getString('theme_mode') ?? 'system';

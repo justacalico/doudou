@@ -113,6 +113,7 @@ class Track {
   final String? albumName;
   final String? artistName;
   final String? albumId;
+  final String? playlistItemId;
   final int? duration; // in milliseconds
   final int? trackNumber;
   final String? imageUrl;
@@ -125,6 +126,7 @@ class Track {
     this.albumName,
     this.artistName,
     this.albumId,
+    this.playlistItemId,
     this.duration,
     this.trackNumber,
     this.imageUrl,
@@ -139,6 +141,7 @@ class Track {
       albumName: json['Album'],
       artistName: json['Artists']?.join(', '),
       albumId: json['AlbumId'],
+      playlistItemId: json['PlaylistItemId'] ?? json['PlaylistItemID'],
       duration: json['RunTimeTicks'] != null
           ? (json['RunTimeTicks'] / 10000)
                 .round() // Convert from ticks to milliseconds
@@ -160,6 +163,7 @@ class Track {
       'Album': albumName,
       'Artists': artistName?.split(', '),
       'AlbumId': albumId,
+      'PlaylistItemId': playlistItemId,
       'RunTimeTicks': duration != null ? duration! * 10000 : null,
       'IndexNumber': trackNumber,
       'ImageTags': imageUrl != null ? {'Primary': imageUrl} : null,

@@ -16,6 +16,7 @@ class TrackListItem extends StatelessWidget {
   final bool showDuration;
   final bool showDownloadButton;
   final bool showFavoriteButton;
+  final VoidCallback? onRemoveFromPlaylist;
 
   const TrackListItem({
     super.key,
@@ -27,6 +28,7 @@ class TrackListItem extends StatelessWidget {
     this.showDuration = true,
     this.showDownloadButton = true,
     this.showFavoriteButton = true,
+    this.onRemoveFromPlaylist,
   });
 
   @override
@@ -154,6 +156,29 @@ class TrackListItem extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onRemoveFromPlaylist != null)
+                CupertinoActionSheetAction(
+                  isDestructiveAction: true,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    onRemoveFromPlaylist?.call();
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.minus_circle,
+                        size: 18,
+                        color: Color(0xFFEC4899),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Remove from Playlist',
+                        style: TextStyle(color: Color(0xFFEC4899)),
+                      ),
+                    ],
+                  ),
+                ),
               if (showFavoriteButton)
                 CupertinoActionSheetAction(
                   onPressed: () {

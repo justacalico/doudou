@@ -147,8 +147,58 @@ class _DetailTrackViewState extends State<DetailTrackView> {
     });
   }
 
+  Future<void> _removeTrackFromPlaylist(int index, Track track) async {
+    if (widget.viewType != DetailViewType.playlist) return;
+
+    final appState = context.read<AppState>();
+    final success = await appState.removeTrackFromPlaylist(
+      widget.id,
+      track,
+      trackIndex: index,
+      currentTracks: tracks,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      setState(() {
+        if (index >= 0 && index < tracks.length) {
+          tracks.removeAt(index);
+        } else {
+          final fallbackIndex = tracks.indexWhere(
+            (t) =>
+                (track.playlistItemId != null &&
+                    t.playlistItemId == track.playlistItemId) ||
+                t.id == track.id,
+          );
+          if (fallbackIndex != -1) {
+            tracks.removeAt(fallbackIndex);
+          }
+        }
+      });
+      return;
+    }
+
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Unable to remove track'),
+        content: Text('Failed to remove "${track.name}" from this playlist.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     final appState = context.read<AppState>();
+    final int? displayedTrackCount = widget.viewType == DetailViewType.playlist
+        ? (isLoading ? widget.trackCount : tracks.length)
+        : widget.trackCount;
 
     return Container(
       color: Colors.transparent,
@@ -280,12 +330,13 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                       ],
 
                       // Metadata
-                      if (widget.year != null || widget.trackCount != null) ...[
+                      if (widget.year != null ||
+                          displayedTrackCount != null) ...[
                         Text(
                           [
                             if (widget.year != null) widget.year!,
-                            if (widget.trackCount != null)
-                              '${widget.trackCount} tracks',
+                            if (displayedTrackCount != null)
+                              '$displayedTrackCount tracks',
                           ].join(' • '),
                           style: TextStyle(
                             fontSize: 14,
@@ -587,6 +638,10 @@ class _DetailTrackViewState extends State<DetailTrackView> {
                               widget.viewType == DetailViewType.playlist,
                           showTrackNumber:
                               widget.viewType == DetailViewType.album,
+                          onRemoveFromPlaylist:
+                              widget.viewType == DetailViewType.playlist
+                              ? () => _removeTrackFromPlaylist(index, track)
+                              : null,
                           onTap: () {
                             final appState = context.read<AppState>();
                             appState.playPlaylist(tracks, index);

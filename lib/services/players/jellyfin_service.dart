@@ -664,7 +664,7 @@ class JellyfinService implements BaseMediaService {
         queryParameters: {
           'UserId': _server!.userId,
           'Fields':
-              'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData',
+              'PrimaryImageAspectRatio,ImageTags,Artists,Album,AlbumId,IndexNumber,RunTimeTicks,UserData,PlaylistItemId',
           'SortBy': 'IndexNumber',
           'SortOrder': 'Ascending',
         },
@@ -855,6 +855,37 @@ class JellyfinService implements BaseMediaService {
           204; // Jellyfin returns 204 for successful additions
     } catch (e) {
       // Error adding track to playlist
+      return false;
+    }
+  }
+
+  Future<bool> removeTrackFromPlaylist(
+    String playlistId, {
+    String? playlistItemId,
+    String? trackId,
+  }) async {
+    if (_server == null) throw Exception('Server not configured');
+
+    try {
+      final queryParameters = <String, dynamic>{'UserId': _server!.userId};
+
+      if (playlistItemId != null && playlistItemId.isNotEmpty) {
+        queryParameters['EntryIds'] = playlistItemId;
+      } else if (trackId != null && trackId.isNotEmpty) {
+        // Fallback for services that may not return PlaylistItemId.
+        queryParameters['Ids'] = trackId;
+      } else {
+        return false;
+      }
+
+      final response = await _dio.delete(
+        '/Playlists/$playlistId/Items',
+        queryParameters: queryParameters,
+      );
+
+      return response.statusCode == 204 || response.statusCode == 200;
+    } catch (e) {
+      // Error removing track from playlist
       return false;
     }
   }
