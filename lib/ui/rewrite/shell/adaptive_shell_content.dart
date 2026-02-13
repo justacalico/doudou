@@ -279,6 +279,7 @@ class _HomeSection extends StatelessWidget {
     return Consumer2<AppState, AdaptiveShellState>(
       builder: (context, appState, shellState, _) {
         final l10n = context.l10n;
+        final isMobileLayout = MediaQuery.sizeOf(context).width < 920;
 
         final tracks = appState.recentTracks.isNotEmpty
             ? appState.recentTracks
@@ -295,6 +296,16 @@ class _HomeSection extends StatelessWidget {
                   ? l10n.offlineModeDownloadsOnly
                   : l10n.libraryOverview,
             ),
+            if (isMobileLayout) ...[
+              const SizedBox(height: 10),
+              _HomeShuffleActions(
+                isCupertino: isCupertino,
+                allLoading: appState.isLoadingAllTracks,
+                favoritesLoading: appState.isLoadingFavorites,
+                onShuffleAll: appState.shuffleAllTracks,
+                onShuffleFavorites: appState.shuffleFavoriteTracks,
+              ),
+            ],
             const SizedBox(height: 14),
             LayoutBuilder(
               builder: (context, constraints) {
@@ -1499,6 +1510,133 @@ class _MetricCard extends StatelessWidget {
     }
 
     return GestureDetector(onTap: onTap, child: card);
+  }
+}
+
+class _HomeShuffleActions extends StatelessWidget {
+  const _HomeShuffleActions({
+    required this.isCupertino,
+    required this.allLoading,
+    required this.favoritesLoading,
+    required this.onShuffleAll,
+    required this.onShuffleFavorites,
+  });
+
+  final bool isCupertino;
+  final bool allLoading;
+  final bool favoritesLoading;
+  final Future<void> Function() onShuffleAll;
+  final Future<void> Function() onShuffleFavorites;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final actionsLocked = allLoading || favoritesLoading;
+    final allIcon = isCupertino
+        ? CupertinoIcons.shuffle
+        : Icons.shuffle_rounded;
+    final favoritesIcon = isCupertino
+        ? CupertinoIcons.heart_fill
+        : Icons.favorite_rounded;
+
+    final shuffleAllButton = _AsyncActionButton(
+      isCupertino: isCupertino,
+      icon: allIcon,
+      label: l10n.shuffleAll,
+      loading: allLoading,
+      onPressed: actionsLocked ? null : onShuffleAll,
+    );
+    final shuffleFavoritesButton = _AsyncActionButton(
+      isCupertino: isCupertino,
+      icon: favoritesIcon,
+      label: l10n.shuffleFavorites,
+      loading: favoritesLoading,
+      onPressed: actionsLocked ? null : onShuffleFavorites,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 420) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              shuffleAllButton,
+              const SizedBox(height: 8),
+              shuffleFavoritesButton,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: shuffleAllButton),
+            const SizedBox(width: 8),
+            Expanded(child: shuffleFavoritesButton),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AsyncActionButton extends StatelessWidget {
+  const _AsyncActionButton({
+    required this.isCupertino,
+    required this.icon,
+    required this.label,
+    this.loading = false,
+    this.onPressed,
+  });
+
+  final bool isCupertino;
+  final IconData icon;
+  final String label;
+  final bool loading;
+  final Future<void> Function()? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonIcon = loading
+        ? (isCupertino
+              ? const CupertinoActivityIndicator(radius: 8)
+              : const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ))
+        : Icon(icon, size: 18);
+
+    if (isCupertino) {
+      return CupertinoButton(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        onPressed: onPressed == null
+            ? null
+            : () async {
+                await onPressed!();
+              },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            buttonIcon,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return FilledButton.tonalIcon(
+      onPressed: onPressed == null
+          ? null
+          : () async {
+              await onPressed!();
+            },
+      icon: buttonIcon,
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+    );
   }
 }
 

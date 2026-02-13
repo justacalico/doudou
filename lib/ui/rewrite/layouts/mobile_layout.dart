@@ -83,13 +83,10 @@ class _MaterialNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = _mobileNavSections;
     final currentIndex = sections.indexOf(selectedSection);
-    final compact = MediaQuery.sizeOf(context).width < 560;
 
     return NavigationBar(
       selectedIndex: currentIndex,
-      labelBehavior: compact
-          ? NavigationDestinationLabelBehavior.onlyShowSelected
-          : NavigationDestinationLabelBehavior.alwaysShow,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       onDestinationSelected: (index) => onSelected(sections[index]),
       destinations: sections
           .map(
@@ -116,19 +113,46 @@ class _CupertinoNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = _mobileNavSections;
     final currentIndex = sections.indexOf(selectedSection);
-    final compact = MediaQuery.sizeOf(context).width < 560;
+    final surfaceColor = CupertinoColors.systemBackground.resolveFrom(context);
+    final borderColor = CupertinoColors.separator.resolveFrom(context);
+    final theme = CupertinoTheme.of(context);
 
-    return CupertinoTabBar(
-      currentIndex: currentIndex,
-      onTap: (index) => onSelected(sections[index]),
-      items: sections
-          .map(
-            (section) => BottomNavigationBarItem(
-              icon: Icon(cupertinoIconForSection(section)),
-              label: compact ? '' : labelForSection(context, section),
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.black.withValues(alpha: 0.12),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
-          )
-          .toList(),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: CupertinoTheme(
+            data: theme.copyWith(barBackgroundColor: surfaceColor),
+            child: CupertinoTabBar(
+              backgroundColor: Colors.transparent,
+              currentIndex: currentIndex,
+              onTap: (index) => onSelected(sections[index]),
+              items: sections
+                  .map(
+                    (section) => BottomNavigationBarItem(
+                      icon: Icon(cupertinoIconForSection(section)),
+                      label: labelForSection(context, section),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
