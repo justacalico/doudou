@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/cached_image_widget.dart';
@@ -15,88 +16,112 @@ class PlaylistsView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        if (appState.isLoading && appState.playlists.isEmpty) {
-          return const Center(
-            child: CupertinoActivityIndicator(color: CupertinoColors.white),
-          );
-        }
+        return Material(
+          type: MaterialType.transparency,
+          child: DefaultTextStyle.merge(
+            style: const TextStyle(decoration: TextDecoration.none),
+            child: Builder(
+              builder: (context) {
+                if (appState.isLoading && appState.playlists.isEmpty) {
+                  return const Center(
+                    child: CupertinoActivityIndicator(
+                      color: CupertinoColors.white,
+                    ),
+                  );
+                }
 
-        if (appState.playlists.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  CupertinoIcons.music_note_list,
-                  size: 64,
-                  color: CupertinoColors.systemGrey,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.noPlaylistsFound,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: CupertinoColors.systemGrey,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Stack(
-          children: [
-            Container(
-              color: const Color(0xFF000000), // Dark background
-              child: CustomScrollView(
-                slivers: [
-                  CupertinoSliverRefreshControl(
-                    onRefresh: () => appState.loadLibraryData(),
-                  ),
-                  // Create playlist button
-                  SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.all(16),
-                      child: CupertinoButton.filled(
-                        onPressed: () =>
-                            _showCreatePlaylistDialog(context, appState),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(CupertinoIcons.add, size: 18),
-                            const SizedBox(width: 8),
-                            Text(l10n.createPlaylist),
-                          ],
+                if (appState.playlists.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.music_note_list,
+                          size: 64,
+                          color: CupertinoColors.systemGrey,
                         ),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.noPlaylistsFound,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return Stack(
+                  children: [
+                    Container(
+                      color: const Color(0xFF000000), // Dark background
+                      child: CustomScrollView(
+                        slivers: [
+                          CupertinoSliverRefreshControl(
+                            onRefresh: () => appState.loadLibraryData(),
+                          ),
+                          // Create playlist button
+                          SliverToBoxAdapter(
+                            child: Container(
+                              margin: const EdgeInsets.all(16),
+                              child: CupertinoButton.filled(
+                                onPressed: () => _showCreatePlaylistDialog(
+                                  context,
+                                  appState,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(CupertinoIcons.add, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(l10n.createPlaylist),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Playlists list
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final playlist = appState.playlists[index];
+                              return PlaylistTile(
+                                playlist: playlist,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) =>
+                                          DetailTrackView.playlist(playlist),
+                                    ),
+                                  );
+                                },
+                              );
+                            }, childCount: appState.playlists.length),
+                          ),
+                          // Add some bottom padding for mini player
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 100),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  // Playlists list
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final playlist = appState.playlists[index];
-                      return PlaylistTile(
-                        playlist: playlist,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) =>
-                                  DetailTrackView.playlist(playlist),
-                            ),
-                          );
-                        },
-                      );
-                    }, childCount: appState.playlists.length),
-                  ),
-                  // Add some bottom padding for mini player
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              ),
+                    // Mini player at bottom
+                    const Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: MiniPlayer(),
+                    ),
+                  ],
+                );
+              },
             ),
-            // Mini player at bottom
-            const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer()),
-          ],
+          ),
         );
       },
     );
@@ -323,6 +348,7 @@ class PlaylistTile extends StatelessWidget {
                           color: CupertinoColors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.none,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -333,6 +359,7 @@ class PlaylistTile extends StatelessWidget {
                         style: const TextStyle(
                           color: CupertinoColors.systemGrey,
                           fontSize: 14,
+                          decoration: TextDecoration.none,
                         ),
                       ),
                     ],
@@ -922,241 +949,265 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFF000000),
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(
-          widget.playlist.name,
-          style: const TextStyle(color: CupertinoColors.white),
-        ),
-        backgroundColor: const Color(0xFF1C1C1E),
-        border: null,
-      ),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                CupertinoSliverRefreshControl(onRefresh: _refreshTracks),
-                // Playlist header
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        // Playlist artwork
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: SizedBox(
-                            width: 200,
-                            height: 200,
-                            child: widget.playlist.imageUrl != null
-                                ? Consumer<AppState>(
-                                    builder: (context, appState, child) {
-                                      return CachedImageWidget(
-                                        imageUrl: appState.getImageUrl(
-                                          widget.playlist.imageUrl!,
-                                          width: 400,
-                                          height: 400,
+    return Material(
+      type: MaterialType.transparency,
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(decoration: TextDecoration.none),
+        child: CupertinoPageScaffold(
+          backgroundColor: const Color(0xFF000000),
+          navigationBar: CupertinoNavigationBar(
+            middle: Text(
+              widget.playlist.name,
+              style: const TextStyle(color: CupertinoColors.white),
+            ),
+            backgroundColor: const Color(0xFF1C1C1E),
+            border: null,
+          ),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
+                    CupertinoSliverRefreshControl(onRefresh: _refreshTracks),
+                    // Playlist header
+                    SliverToBoxAdapter(
+                      child: Container(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          children: [
+                            // Playlist artwork
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: SizedBox(
+                                width: 200,
+                                height: 200,
+                                child: widget.playlist.imageUrl != null
+                                    ? Consumer<AppState>(
+                                        builder: (context, appState, child) {
+                                          return CachedImageWidget(
+                                            imageUrl: appState.getImageUrl(
+                                              widget.playlist.imageUrl!,
+                                              width: 400,
+                                              height: 400,
+                                            ),
+                                            fit: BoxFit.cover,
+                                            placeholder: Container(
+                                              color: const Color(0xFF2C2C2E),
+                                              child: const Icon(
+                                                CupertinoIcons.music_note_list,
+                                                color:
+                                                    CupertinoColors.systemGrey,
+                                                size: 48,
+                                              ),
+                                            ),
+                                            errorWidget: Container(
+                                              color: const Color(0xFF2C2C2E),
+                                              child: const Icon(
+                                                CupertinoIcons.music_note_list,
+                                                color:
+                                                    CupertinoColors.systemGrey,
+                                                size: 48,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : Container(
+                                        color: const Color(0xFF2C2C2E),
+                                        child: const Icon(
+                                          CupertinoIcons.music_note_list,
+                                          color: CupertinoColors.systemGrey,
+                                          size: 48,
                                         ),
-                                        fit: BoxFit.cover,
-                                        placeholder: Container(
-                                              color: const Color(0xFF2C2C2E),
-                                              child: const Icon(
-                                                CupertinoIcons.music_note_list,
-                                                color:
-                                                    CupertinoColors.systemGrey,
-                                                size: 48,
-                                              ),
-                                            ),
-                                        errorWidget: Container(
-                                              color: const Color(0xFF2C2C2E),
-                                              child: const Icon(
-                                                CupertinoIcons.music_note_list,
-                                                color:
-                                                    CupertinoColors.systemGrey,
-                                                size: 48,
-                                              ),
-                                            ),
-                                      );
-                                    },
-                                  )
-                                : Container(
-                                    color: const Color(0xFF2C2C2E),
-                                    child: const Icon(
-                                      CupertinoIcons.music_note_list,
-                                      color: CupertinoColors.systemGrey,
-                                      size: 48,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        // Playlist name
-                        Text(
-                          widget.playlist.name,
-                          style: const TextStyle(
-                            color: CupertinoColors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        // Track count
-                        Text(
-                          '${widget.playlist.trackCount} ${widget.playlist.trackCount == 1 ? 'song' : 'songs'}',
-                          style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        // Play buttons
-                        if (tracks.isNotEmpty) ...[
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CupertinoButton.filled(
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(CupertinoIcons.play_fill, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('Play'),
-                                    ],
-                                  ),
-                                  onPressed: () => _playAllTracks(),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: CupertinoButton(
-                                  color: const Color(0xFF2C2C2E),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(CupertinoIcons.shuffle, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('Shuffle'),
-                                    ],
-                                  ),
-                                  onPressed: () => _shuffleAllTracks(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Check if all tracks are downloaded
-                          Consumer<AppState>(
-                            builder: (context, appState, child) {
-                              final bool allTracksDownloaded =
-                                  tracks.isNotEmpty &&
-                                  tracks.every(
-                                    (track) => appState.downloadService
-                                        .isTrackDownloaded(track.id),
-                                  );
-
-                              // Don't show download button if all tracks are already downloaded
-                              if (allTracksDownloaded) {
-                                return const SizedBox(height: 12);
-                              }
-
-                              return Column(
-                                children: [
-                                  const SizedBox(height: 12),
-                                  // Download button
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: CupertinoButton(
-                                      color:
-                                          CupertinoColors.systemGrey6.darkColor,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
                                       ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Row(
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Playlist name
+                            Text(
+                              widget.playlist.name,
+                              style: const TextStyle(
+                                color: CupertinoColors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            // Track count
+                            Text(
+                              '${widget.playlist.trackCount} ${widget.playlist.trackCount == 1 ? 'song' : 'songs'}',
+                              style: const TextStyle(
+                                color: CupertinoColors.systemGrey,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Play buttons
+                            if (tracks.isNotEmpty) ...[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: CupertinoButton.filled(
+                                      child: const Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
                                           Icon(
-                                            CupertinoIcons.cloud_download,
-                                            size: 20,
-                                            color: CupertinoColors.systemBlue,
+                                            CupertinoIcons.play_fill,
+                                            size: 18,
                                           ),
-                                          const SizedBox(width: 10),
-                                          const Text(
-                                            'Download Playlist',
-                                            style: TextStyle(
-                                              color: CupertinoColors.systemBlue,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
+                                          SizedBox(width: 8),
+                                          Text('Play'),
                                         ],
                                       ),
-                                      onPressed: () =>
-                                          _downloadPlaylistDetail(),
+                                      onPressed: () => _playAllTracks(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: CupertinoButton(
+                                      color: const Color(0xFF2C2C2E),
+                                      child: const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.shuffle,
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('Shuffle'),
+                                        ],
+                                      ),
+                                      onPressed: () => _shuffleAllTracks(),
                                     ),
                                   ),
                                 ],
-                              );
-                            },
-                          ),
-                        ],
-                      ],
+                              ),
+                              // Check if all tracks are downloaded
+                              Consumer<AppState>(
+                                builder: (context, appState, child) {
+                                  final bool allTracksDownloaded =
+                                      tracks.isNotEmpty &&
+                                      tracks.every(
+                                        (track) => appState.downloadService
+                                            .isTrackDownloaded(track.id),
+                                      );
+
+                                  // Don't show download button if all tracks are already downloaded
+                                  if (allTracksDownloaded) {
+                                    return const SizedBox(height: 12);
+                                  }
+
+                                  return Column(
+                                    children: [
+                                      const SizedBox(height: 12),
+                                      // Download button
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: CupertinoButton(
+                                          color: CupertinoColors
+                                              .systemGrey6
+                                              .darkColor,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                CupertinoIcons.cloud_download,
+                                                size: 20,
+                                                color:
+                                                    CupertinoColors.systemBlue,
+                                              ),
+                                              const SizedBox(width: 10),
+                                              const Text(
+                                                'Download Playlist',
+                                                style: TextStyle(
+                                                  color: CupertinoColors
+                                                      .systemBlue,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          onPressed: () =>
+                                              _downloadPlaylistDetail(),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    // Loading or tracks list
+                    if (isLoading)
+                      const SliverFillRemaining(
+                        child: Center(
+                          child: CupertinoActivityIndicator(
+                            color: CupertinoColors.white,
+                          ),
+                        ),
+                      )
+                    else if (tracks.isEmpty)
+                      const SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.music_note,
+                                size: 64,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'No tracks in this playlist',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final track = tracks[index];
+                          return PlaylistTrackItem(
+                            track: track,
+                            trackNumber: index + 1,
+                            onTap: () => _playTrack(track, index),
+                          );
+                        }, childCount: tracks.length),
+                      ),
+                    // Add some bottom padding for mini player
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
                 ),
-                // Loading or tracks list
-                if (isLoading)
-                  const SliverFillRemaining(
-                    child: Center(
-                      child: CupertinoActivityIndicator(
-                        color: CupertinoColors.white,
-                      ),
-                    ),
-                  )
-                else if (tracks.isEmpty)
-                  const SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.music_note,
-                            size: 64,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'No tracks in this playlist',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: CupertinoColors.systemGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final track = tracks[index];
-                      return PlaylistTrackItem(
-                        track: track,
-                        trackNumber: index + 1,
-                        onTap: () => _playTrack(track, index),
-                      );
-                    }, childCount: tracks.length),
-                  ),
-                // Add some bottom padding for mini player
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                // Mini player at bottom
+                const Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: MiniPlayer(),
+                ),
               ],
             ),
-            // Mini player at bottom
-            const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayer()),
-          ],
+          ),
         ),
       ),
     );
