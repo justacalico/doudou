@@ -524,48 +524,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     ),
                                   ),
                                 ),
-                                // Playback source indicator with liquid glass
-                                Consumer<AppState>(
-                                  builder: (context, appState, child) {
-                                    final isDownloaded = appState
-                                        .downloadService
-                                        .isTrackDownloaded(currentTrack.id);
-
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                          sigmaX: 10,
-                                          sigmaY: 10,
-                                        ),
-                                        child: Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: CupertinoColors.white
-                                                .withOpacity(0.15),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            border: Border.all(
-                                              color: CupertinoColors.white
-                                                  .withOpacity(0.2),
-                                              width: 0.5,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            isDownloaded
-                                                ? CupertinoIcons.floppy_disk
-                                                : CupertinoIcons
-                                                      .antenna_radiowaves_left_right,
-                                            color: CupertinoColors.white,
-                                            size: 20,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
                               ],
                             ),
                           ),
