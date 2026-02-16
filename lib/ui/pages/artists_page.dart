@@ -87,7 +87,9 @@ class _ArtistsPageState extends State<ArtistsPage> {
                       subtitle: l10n.artist,
                       imageUrl: imageUrl,
                       size: 180,
-                      onTap: () => NavigationService().navigateToArtist(artist),
+                      placeholderIcon: Icons.person_rounded,
+                      onTap: () =>
+                          NavigationService().navigateToArtist(artist),
                     );
                   },
                 ),

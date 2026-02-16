@@ -12,6 +12,8 @@ class MusicCard extends StatefulWidget {
   final Widget? trailing;
   final double size;
   final bool showPlayOverlay;
+  /// When set, used for the placeholder when [imageUrl] is null or fails to load (e.g. [Icons.person_rounded] for artists).
+  final IconData? placeholderIcon;
 
   const MusicCard({
     super.key,
@@ -22,6 +24,7 @@ class MusicCard extends StatefulWidget {
     this.trailing,
     this.size = 180,
     this.showPlayOverlay = true,
+    this.placeholderIcon,
   });
 
   @override
@@ -97,7 +100,8 @@ class _MusicCardState extends State<MusicCard>
                               ? buildSmartImage(
                                   imageUrl: widget.imageUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: () => _buildPlaceholder(theme),
+                                  errorBuilder: () =>
+                                      _buildPlaceholder(theme),
                                 )
                               : _buildPlaceholder(theme),
 
@@ -203,7 +207,7 @@ class _MusicCardState extends State<MusicCard>
       ),
       child: Center(
         child: Icon(
-          Icons.music_note_rounded,
+          widget.placeholderIcon ?? Icons.music_note_rounded,
           size: 48,
           color: DesktopTheme.textMuted,
         ),
