@@ -9,6 +9,9 @@ import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 import 'package:doudou/ui/templates/music_card.dart';
 
+/// Breakpoint: below this use 2-column responsive tiles on library overview.
+const double _kLibraryBreakpoint = 768.0;
+
 /// Library hub: quick links to Albums, Artists, Tracks, Playlists using shared templates.
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -60,35 +63,53 @@ class _LibraryPageState extends State<LibraryPage> {
                   subtitle: l10n.yourMusicCollection,
                 ),
                 const SizedBox(height: DesktopTheme.spacingMd),
-                Wrap(
-                  spacing: DesktopTheme.spacingMd,
-                  runSpacing: DesktopTheme.spacingMd,
-                  children: [
-                    _LibraryTile(
-                      icon: Icons.album_rounded,
-                      label: l10n.albums,
-                      count: appState.albums.length,
-                      onTap: () => NavigationService().selectPage(3),
-                    ),
-                    _LibraryTile(
-                      icon: Icons.person_rounded,
-                      label: l10n.artists,
-                      count: appState.artists.length,
-                      onTap: () => NavigationService().selectPage(4),
-                    ),
-                    _LibraryTile(
-                      icon: Icons.music_note_rounded,
-                      label: l10n.songs,
-                      count: appState.tracks.length,
-                      onTap: () => NavigationService().selectPage(5),
-                    ),
-                    _LibraryTile(
-                      icon: Icons.queue_music_rounded,
-                      label: l10n.playlists,
-                      count: appState.playlists.length,
-                      onTap: () => NavigationService().selectPage(6),
-                    ),
-                  ],
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow =
+                        constraints.maxWidth < _kLibraryBreakpoint;
+                    final spacing = DesktopTheme.spacingMd;
+                    final tileWidth = isNarrow
+                        ? (constraints.maxWidth - spacing) / 2
+                        : 160.0;
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        _LibraryTile(
+                          icon: Icons.album_rounded,
+                          label: l10n.albums,
+                          count: appState.albums.length,
+                          onTap: () =>
+                              NavigationService().selectPage(3),
+                          width: tileWidth,
+                        ),
+                        _LibraryTile(
+                          icon: Icons.person_rounded,
+                          label: l10n.artists,
+                          count: appState.artists.length,
+                          onTap: () =>
+                              NavigationService().selectPage(4),
+                          width: tileWidth,
+                        ),
+                        _LibraryTile(
+                          icon: Icons.music_note_rounded,
+                          label: l10n.songs,
+                          count: appState.tracks.length,
+                          onTap: () =>
+                              NavigationService().selectPage(5),
+                          width: tileWidth,
+                        ),
+                        _LibraryTile(
+                          icon: Icons.queue_music_rounded,
+                          label: l10n.playlists,
+                          count: appState.playlists.length,
+                          onTap: () =>
+                              NavigationService().selectPage(6),
+                          width: tileWidth,
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 if (appState.albums.isNotEmpty) ...[
                   const SizedBox(height: DesktopTheme.spacingXl),
@@ -138,12 +159,14 @@ class _LibraryTile extends StatelessWidget {
   final String label;
   final int count;
   final VoidCallback onTap;
+  final double width;
 
   const _LibraryTile({
     required this.icon,
     required this.label,
     required this.count,
     required this.onTap,
+    this.width = 160,
   });
 
   @override
@@ -154,8 +177,11 @@ class _LibraryTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
         child: Container(
-          width: 160,
-          padding: const EdgeInsets.all(DesktopTheme.spacingLg),
+          width: width,
+          padding: EdgeInsets.symmetric(
+            horizontal: DesktopTheme.spacingMd,
+            vertical: DesktopTheme.spacingLg,
+          ),
           decoration: BoxDecoration(
             color: DesktopTheme.backgroundSecondary,
             borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
