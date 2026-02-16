@@ -790,89 +790,107 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                     sliderValue = sliderValue.clamp(0.0, 1.0);
                                   }
 
+                                  void seekToPosition(Offset localPosition,
+                                      RenderBox box) {
+                                    final newValue = (localPosition.dx /
+                                            box.size.width)
+                                        .clamp(0.0, 1.0);
+                                    final newPosition = Duration(
+                                      milliseconds: (newValue *
+                                              duration.inMilliseconds)
+                                          .round(),
+                                    );
+                                    appState.seekTo(newPosition);
+                                  }
+
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 30,
                                     ),
                                     child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
-                                        // Liquid glass progress bar
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: BackdropFilter(
-                                            filter: ImageFilter.blur(
-                                              sigmaX: 5,
-                                              sigmaY: 5,
-                                            ),
-                                            child: Container(
-                                              height: 6,
-                                              decoration: BoxDecoration(
-                                                color: CupertinoColors.white
-                                                    .withOpacity(0.15),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: LayoutBuilder(
-                                                builder: (context, constraints) {
-                                                  return Stack(
-                                                    children: [
-                                                      Container(
-                                                        width:
-                                                            constraints
-                                                                .maxWidth *
-                                                            sliderValue,
-                                                        decoration: BoxDecoration(
-                                                          gradient:
-                                                              const LinearGradient(
-                                                                colors: [
-                                                                  Color(
-                                                                    0xFF8B5CF6,
-                                                                  ),
-                                                                  Color(
-                                                                    0xFFEC4899,
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                8,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        // Gesture detector for seeking
+                                        // Progress bar: single full-width track, fill left-to-right; large hit area
                                         GestureDetector(
-                                          onHorizontalDragUpdate: (details) {
-                                            final box =
-                                                context.findRenderObject()
-                                                    as RenderBox;
-                                            final localPosition =
-                                                details.localPosition;
-                                            final newValue =
-                                                (localPosition.dx /
-                                                        box.size.width)
-                                                    .clamp(0.0, 1.0);
-                                            final newPosition = Duration(
-                                              milliseconds:
-                                                  (newValue *
-                                                          duration
-                                                              .inMilliseconds)
-                                                      .round(),
-                                            );
-                                            appState.seekTo(newPosition);
+                                          behavior: HitTestBehavior.opaque,
+                                          onTapDown: (details) {
+                                            final box = context.findRenderObject()
+                                                as RenderBox;
+                                            seekToPosition(
+                                                details.localPosition, box);
                                           },
-                                          child: Container(
-                                            height: 20,
-                                            color: Colors.transparent,
+                                          onHorizontalDragUpdate: (details) {
+                                            final box = context.findRenderObject()
+                                                as RenderBox;
+                                            seekToPosition(
+                                                details.localPosition, box);
+                                          },
+                                          child: SizedBox(
+                                            height: 44,
+                                            child: Center(
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                      sigmaX: 5, sigmaY: 5),
+                                                  child: Container(
+                                                    height: 8,
+                                                    width: double.infinity,
+                                                    decoration: BoxDecoration(
+                                                      color: CupertinoColors
+                                                          .white
+                                                          .withOpacity(0.15),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
+                                                    ),
+                                                    child: LayoutBuilder(
+                                                      builder: (context,
+                                                          constraints) {
+                                                        return Stack(
+                                                          alignment:
+                                                              Alignment
+                                                                  .centerLeft,
+                                                          children: [
+                                                            // Filled portion: left to right only (single direction)
+                                                            SizedBox(
+                                                              width: constraints
+                                                                      .maxWidth *
+                                                                  sliderValue
+                                                                      .clamp(
+                                                                          0.0,
+                                                                          1.0),
+                                                              child: Container(
+                                                                decoration: BoxDecoration(
+                                                                  gradient: const LinearGradient(
+                                                                    begin: Alignment
+                                                                        .centerLeft,
+                                                                    end: Alignment
+                                                                        .centerRight,
+                                                                    colors: [
+                                                                      Color(
+                                                                          0xFF8B5CF6),
+                                                                      Color(
+                                                                          0xFFEC4899),
+                                                                    ],
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              6),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                         Padding(
