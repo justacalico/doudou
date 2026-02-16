@@ -569,11 +569,12 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: DesktopTheme.durationFast,
-          transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
-          transformAlignment: Alignment.center,
-          child: ClipRRect(
+        child: ClipRect(
+          child: AnimatedContainer(
+            duration: DesktopTheme.durationFast,
+            transform: Matrix4.identity()..scale(_isHovering ? 1.02 : 1.0),
+            transformAlignment: Alignment.center,
+            child: ClipRRect(
             borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
             child: BackdropFilter(
               filter: ImageFilter.blur(
@@ -663,6 +664,7 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
               ),
             ),
           ),
+        ),
         ),
       ),
     );
