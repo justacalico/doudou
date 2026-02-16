@@ -8,13 +8,13 @@ import 'package:audio_service/audio_service.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
-import 'package:doudou/UI/desktop/services/navigation_service.dart';
-import 'package:doudou/UI/desktop/templates/desktop_theme.dart';
-import 'package:doudou/UI/desktop/templates/desktop_layout.dart'
+import 'package:doudou/ui/desktop/services/navigation_service.dart';
+import 'package:doudou/ui/desktop/templates/desktop_theme.dart';
+import 'package:doudou/ui/desktop/templates/desktop_layout.dart'
     show DesktopLayout, DesktopPlayerBar;
-import 'package:doudou/UI/desktop/widgets/universal_image.dart'
+import 'package:doudou/ui/desktop/widgets/universal_image.dart'
     show buildSmartImage;
-import 'package:doudou/UI/mobile/playing/now_playing.dart'
+import 'package:doudou/ui/mobile/playing/now_playing.dart'
     show NowPlayingScreen;
 
 import 'package:doudou/ui/pages/home_page.dart';

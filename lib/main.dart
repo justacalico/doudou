@@ -13,9 +13,9 @@ import 'services/logging_service.dart';
 import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
-import 'UI/mobile/login/login.dart';
-import 'UI/mobile/widgets/apple_design/apple_theme.dart';
-import 'UI/desktop/templates/desktop_theme.dart';
+import 'ui/mobile/login/login.dart';
+import 'ui/mobile/widgets/apple_design/apple_theme.dart';
+import 'ui/desktop/templates/desktop_theme.dart';
 import 'ui/layout/app_shell.dart';
 
 void main() async {
