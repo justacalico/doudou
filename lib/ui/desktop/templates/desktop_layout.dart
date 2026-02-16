@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../providers/app_state.dart';
 import '../../../models/jellyfin_models.dart';
 import '../../../models/download_models.dart';
+import '../../../services/album_art_color_service.dart';
 import '../../../services/audio/unified_audio_handler.dart';
 import '../../../services/lyrics_service.dart';
 import '../services/navigation_service.dart';
@@ -885,6 +886,8 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTab = 0;
+  List<Color>? _gradientColors;
+  String? _lastOverlayImageUrl;
 
   @override
   void initState() {
@@ -893,6 +896,13 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
     _tabController.addListener(() {
       if (mounted) setState(() => _selectedTab = _tabController.index);
     });
+  }
+
+  Future<void> _updateGradientColors(String imageUrl) async {
+    final colors = await AlbumArtColorService.getGradientColors(imageUrl);
+    if (mounted && colors != null) {
+      setState(() => _gradientColors = colors);
+    }
   }
 
   @override
@@ -940,6 +950,37 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
             if (overlayImageUrl == null || overlayImageUrl.isEmpty) {
               overlayImageUrl = mediaItem?.extras?['localImageUrl'] as String?;
             }
+            if (overlayImageUrl != null &&
+                overlayImageUrl.isNotEmpty &&
+                overlayImageUrl != _lastOverlayImageUrl) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                if (overlayImageUrl != _lastOverlayImageUrl) {
+                  _lastOverlayImageUrl = overlayImageUrl;
+                  _updateGradientColors(overlayImageUrl!);
+                }
+              });
+            }
+            if (overlayImageUrl == null || overlayImageUrl.isEmpty) {
+              if (_lastOverlayImageUrl != null || _gradientColors != null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _gradientColors = null;
+                      _lastOverlayImageUrl = null;
+                    });
+                  }
+                });
+              }
+            }
+
+            final overlayGradientColors = _gradientColors != null
+                ? _gradientColors!
+                : [
+                    DesktopTheme.backgroundDeep.withOpacity(0.5),
+                    DesktopTheme.backgroundDeep.withOpacity(0.85),
+                    DesktopTheme.backgroundDeep.withOpacity(0.95),
+                  ];
 
             // Easter egg: Flip everything horizontally during the backwards section
             // of "The Mind Electric" (before 2:50), then flip back to normal
@@ -947,7 +988,7 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
               backgroundColor: Colors.transparent,
               body: Stack(
                 children: [
-                  // Background with album art blur
+                  // Background with album art
                   if (overlayImageUrl != null && overlayImageUrl.isNotEmpty)
                     Positioned.fill(
                       child: buildSmartImage(
@@ -957,18 +998,14 @@ class _NowPlayingOverlayState extends State<NowPlayingOverlay>
                             Container(color: DesktopTheme.backgroundDeep),
                       ),
                     ),
-                  // Dark overlay
+                  // Gradient overlay (album-art colors or fallback)
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            DesktopTheme.backgroundDeep.withOpacity(0.5),
-                            DesktopTheme.backgroundDeep.withOpacity(0.85),
-                            DesktopTheme.backgroundDeep.withOpacity(0.95),
-                          ],
+                          colors: overlayGradientColors,
                         ),
                       ),
                     ),

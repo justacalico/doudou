@@ -6,6 +6,39 @@ import 'image_cache_manager.dart';
 
 class AlbumArtColorService {
   static final Map<String, Color> _colorCache = <String, Color>{};
+  static final Map<String, List<Color>> _gradientCache = <String, List<Color>>{};
+
+  /// Returns 3 colors for a gradient (top to bottom) derived from album art,
+  /// darkened for use as an overlay background. Returns null on failure.
+  static Future<List<Color>?> getGradientColors(String imageUrl) async {
+    if (imageUrl.isEmpty) return null;
+
+    final cached = _gradientCache[imageUrl];
+    if (cached != null) return cached;
+
+    final dominant = await getDominantGlowColor(imageUrl);
+    if (dominant == null) return null;
+
+    final hsl = HSLColor.fromColor(dominant);
+    final h = hsl.hue;
+    final s = hsl.saturation;
+    final l = hsl.lightness;
+
+    // Darken and desaturate for overlay readability: top (slightly lighter) -> bottom (very dark)
+    final color1 = HSLColor.fromAHSL(1, h, (s * 0.7).clamp(0.15, 0.9),
+            (l * 0.35).clamp(0.08, 0.35))
+        .toColor();
+    final color2 = HSLColor.fromAHSL(1, h, (s * 0.5).clamp(0.1, 0.8),
+            (l * 0.18).clamp(0.05, 0.22))
+        .toColor();
+    final color3 = HSLColor.fromAHSL(1, h, (s * 0.35).clamp(0.05, 0.6),
+            (l * 0.08).clamp(0.03, 0.12))
+        .toColor();
+
+    final list = [color1, color2, color3];
+    _gradientCache[imageUrl] = list;
+    return list;
+  }
 
   static Future<Color?> getDominantGlowColor(String imageUrl) async {
     if (imageUrl.isEmpty) return null;
