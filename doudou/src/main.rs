@@ -1,4 +1,9 @@
 mod app;
+mod components;
+mod l10n;
+mod screens;
+mod state;
+mod tauri;
 
 use app::App;
 use dioxus::prelude::*;

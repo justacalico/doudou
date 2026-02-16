@@ -1,77 +1,75 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
-use serde::{Deserialize, Serialize};
-use wasm_bindgen::prelude::*;
+use crate::screens::{Home, Login, Settings};
+use crate::tauri;
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
-
-#[derive(Serialize, Deserialize)]
-struct GreetArgs<'a> {
-    name: &'a str,
-}
-
+#[component]
 pub fn App() -> Element {
-    let mut name = use_signal(|| String::new());
-    let mut greet_msg = use_signal(|| String::new());
+    let mut server = use_signal(|| None::<serde_json::Value>);
+    let mut loading = use_signal(|| true);
+    let mut refresh = use_signal(|| 0_u32);
+    let mut page = use_signal(|| "home");
 
-    let greet = move |_: FormEvent| async move {
-        if name.read().is_empty() {
-            return;
-        }
-
-        let name = name.read();
-        let args = serde_wasm_bindgen::to_value(&GreetArgs { name: &*name }).unwrap();
-        // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-        let new_msg = invoke("greet", args).await.as_string().unwrap();
-        greet_msg.set(new_msg);
-    };
+    use_effect(move || {
+        let _ = *refresh.read();
+        loading.set(true);
+        spawn(async move {
+            let result: Result<Option<serde_json::Value>, _> =
+                tauri::invoke_tauri("get_server", &()).await;
+            loading.set(false);
+            if let Ok(s) = result {
+                server.set(s);
+            }
+        });
+    });
 
     rsx! {
         link { rel: "stylesheet", href: "styles.css" }
-        main {
-            class: "container",
-            h1 { "Welcome to Tauri + Dioxus" }
-
-            div {
-                class: "row",
-                a {
-                    href: "https://tauri.app",
-                    target: "_blank",
-                    img {
-                        src: "/tauri.svg",
-                        class: "logo tauri",
-                         alt: "Tauri logo"
+        main { class: "app-root",
+            if *loading.read() && server.read().is_none() {
+                div { class: "app-loading",
+                    div { class: "spinner" }
+                    p { "Loading..." }
+                }
+            } else if server.read().is_some() {
+                div { class: "app-layout",
+                    aside { class: "sidebar",
+                        div { class: "sidebar-brand", "Doudou" }
+                        nav { class: "sidebar-nav",
+                            a {
+                                class: if *page.read() == "home" { "sidebar-link active" } else { "sidebar-link" },
+                                href: "#",
+                                onclick: move |_| page.set("home"),
+                                "Home"
+                            }
+                            a {
+                                class: if *page.read() == "settings" { "sidebar-link active" } else { "sidebar-link" },
+                                href: "#",
+                                onclick: move |_| page.set("settings"),
+                                "Settings"
+                            }
+                        }
+                    }
+                    div { class: "app-content",
+                        if *page.read() == "settings" {
+                            Settings {}
+                        } else {
+                            Home {}
+                        }
+                    }
+                    footer { class: "mini-player",
+                        crate::components::MiniPlayer {}
                     }
                 }
-                a {
-                    href: "https://dioxuslabs.com/",
-                    target: "_blank",
-                    img {
-                        src: "/dioxus.png",
-                        class: "logo dioxus",
-                        alt: "Dioxus logo"
+            } else {
+                Login {
+                    on_success: move |_| {
+                        let r = refresh.read().saturating_add(1);
+                        refresh.set(r);
                     }
                 }
             }
-            p { "Click on the Tauri and Dioxus logos to learn more." }
-
-            form {
-                class: "row",
-                onsubmit: greet,
-                input {
-                    id: "greet-input",
-                    placeholder: "Enter a name...",
-                    value: "{name}",
-                    oninput: move |event| name.set(event.value())
-                }
-                button { r#type: "submit", "Greet" }
-            }
-            p { "{greet_msg}" }
         }
     }
 }
