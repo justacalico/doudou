@@ -34,6 +34,32 @@ class DesktopLayout extends StatefulWidget {
     this.onNavigationChanged,
   });
 
+  /// Build detail overlay (album/artist/playlist) for use in responsive shell.
+  static Widget? buildDetailOverlay(
+    BuildContext context,
+    NavigationService navigationService,
+  ) {
+    final detailPage = navigationService.currentDetailPage;
+    if (detailPage == null) return null;
+    switch (detailPage.type) {
+      case DetailPageType.album:
+        return _AlbumDetailView(
+          album: detailPage.data as Album,
+          onBack: navigationService.goBack,
+        );
+      case DetailPageType.artist:
+        return _ArtistDetailView(
+          artist: detailPage.data as Artist,
+          onBack: navigationService.goBack,
+        );
+      case DetailPageType.playlist:
+        return _PlaylistDetailView(
+          playlist: detailPage.data as Playlist,
+          onBack: navigationService.goBack,
+        );
+    }
+  }
+
   /// Show add to playlist dialog
   static Future<void> showAddToPlaylistDialog(
     BuildContext context,

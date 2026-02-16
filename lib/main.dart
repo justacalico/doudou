@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 // DO NOT REMOVE THIS IMPORT - needed for localization
@@ -15,34 +14,22 @@ import 'services/players/jellyfin_service.dart';
 import 'services/voice_command_handler.dart';
 import 'l10n/app_localizations.dart';
 import 'UI/mobile/login/login.dart';
-import 'UI/mobile/partials/navbar/navbar.dart';
 import 'UI/mobile/widgets/apple_design/apple_theme.dart';
-import 'UI/desktop/main.dart' as desktop_main;
+import 'UI/desktop/templates/desktop_theme.dart';
+import 'ui/layout/app_shell.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  if (_isDesktopOrWebPlatform()) {
-    return desktop_main.runDesktopApp();
-  }
-
-  _runMobileApp();
+  await _runApp();
 }
 
-bool _isDesktopOrWebPlatform() {
-  return kIsWeb ||
-      defaultTargetPlatform == TargetPlatform.macOS ||
-      defaultTargetPlatform == TargetPlatform.windows ||
-      defaultTargetPlatform == TargetPlatform.linux;
-}
-
-void _runMobileApp() async {
+Future<void> _runApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   await JellyfinService.initializeVersion();
 
   try {
     await LoggingService().initialize();
-    await _logSystemInfo('Mobile');
+    await _logSystemInfo('App');
   } catch (e) {
     // Logging initialization failed - continue without logging
   }
@@ -85,52 +72,20 @@ class DoudouApp extends StatelessWidget {
         VoiceCommandHandler(
           child: Consumer<AppState>(
             builder: (context, appState, child) {
-              final isDark =
-                  appState.themeMode == ThemeMode.dark ||
-                  (appState.themeMode == ThemeMode.system &&
-                      MediaQuery.platformBrightnessOf(context) ==
-                          Brightness.dark);
+              final systemBrightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              final brightness = appState.themeMode == ThemeMode.dark
+                  ? Brightness.dark
+                  : appState.themeMode == ThemeMode.light
+                      ? Brightness.light
+                      : systemBrightness;
+              DesktopTheme.updateBrightness(brightness);
 
-              return CupertinoApp(
+              return MaterialApp(
                 title: 'Doudou - Jellyfin Music Player',
-                theme: CupertinoThemeData(
-                  primaryColor: appState.accentColor,
-                  brightness: isDark ? Brightness.dark : Brightness.light,
-                  scaffoldBackgroundColor: isDark
-                      ? AppleColors.backgroundPrimaryDark
-                      : AppleColors.backgroundPrimary,
-                  barBackgroundColor: isDark
-                      ? AppleColors.backgroundSecondaryDark.withValues(
-                          alpha: 0.9,
-                        )
-                      : AppleColors.backgroundSecondary.withValues(alpha: 0.9),
-                  textTheme: CupertinoTextThemeData(
-                    primaryColor: appState.accentColor,
-                    textStyle: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleBody,
-                      color: isDark
-                          ? AppleColors.labelPrimaryDark
-                          : AppleColors.labelPrimary,
-                    ),
-                    navTitleTextStyle: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleHeadline,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppleColors.labelPrimaryDark
-                          : AppleColors.labelPrimary,
-                    ),
-                    navLargeTitleTextStyle: TextStyle(
-                      fontFamily: AppleDesignSystem.fontFamily,
-                      fontSize: AppleDesignSystem.typeScaleLargeTitle,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppleColors.labelPrimaryDark
-                          : AppleColors.labelPrimary,
-                    ),
-                  ),
-                ),
+                theme: AppleTheme.light(accentColor: appState.accentColor),
+                darkTheme: AppleTheme.dark(accentColor: appState.accentColor),
+                themeMode: appState.themeMode,
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
@@ -142,23 +97,14 @@ class DoudouApp extends StatelessWidget {
                 home: Builder(
                   builder: (context) {
                     if (!appState.isInitialized) {
-                      return CupertinoPageScaffold(
-                        child: Center(
+                      return const Scaffold(
+                        body: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const CupertinoActivityIndicator(radius: 20),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Loading...',
-                                style: TextStyle(
-                                  fontFamily: AppleDesignSystem.fontFamily,
-                                  fontSize: AppleDesignSystem.typeScaleBody,
-                                  color: isDark
-                                      ? AppleColors.labelSecondaryDark
-                                      : AppleColors.labelSecondary,
-                                ),
-                              ),
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text('Loading...', style: TextStyle(fontSize: 16)),
                             ],
                           ),
                         ),
@@ -166,7 +112,7 @@ class DoudouApp extends StatelessWidget {
                     }
 
                     if (appState.isLoggedIn) {
-                      return const HomeScreen();
+                      return const AppShell();
                     } else {
                       return const LoginScreen();
                     }
