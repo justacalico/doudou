@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -516,55 +518,89 @@ class _MobileNavBar extends StatelessWidget {
             Icons.settings_rounded,
           ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: DesktopTheme.backgroundSecondary,
-        border: Border(
-          top: BorderSide(color: DesktopTheme.glassBorder, width: 1),
-        ),
-      ),
+    final isDark = theme.brightness == Brightness.dark;
+    const double barRadius = 28;
+    const double barHeight = 64;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(indices.length, (i) {
-              final idx = indices[i];
-              final selected = currentIndex == idx;
-              return InkWell(
-                onTap: () => onTap(idx),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+        child: RepaintBoundary(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(barRadius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: Container(
+                height: barHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(barRadius),
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withOpacity(isDark ? 0.12 : 0.06),
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withOpacity(0.15),
+                    width: 0.5,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        selected ? activeIcons[i] : icons[i],
-                        size: 24,
-                        color: selected
-                            ? theme.colorScheme.primary
-                            : DesktopTheme.textSecondary,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        labels[i],
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: selected
-                              ? theme.colorScheme.primary
-                              : DesktopTheme.textSecondary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(indices.length, (i) {
+                    final idx = indices[i];
+                    final selected = currentIndex == idx;
+                    return InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        onTap(idx);
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              selected ? activeIcons[i] : icons[i],
+                              size: 24,
+                              color: selected
+                                  ? theme.colorScheme.primary
+                                  : (isDark
+                                      ? Colors.white.withOpacity(0.6)
+                                      : Colors.black.withOpacity(0.5)),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              labels[i],
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight:
+                                    selected ? FontWeight.w600 : FontWeight.w500,
+                                color: selected
+                                    ? theme.colorScheme.primary
+                                    : (isDark
+                                        ? Colors.white.withOpacity(0.5)
+                                        : Colors.black.withOpacity(0.4)),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
-              );
-            }),
+              ),
+            ),
           ),
         ),
       ),
