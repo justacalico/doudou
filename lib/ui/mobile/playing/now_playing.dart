@@ -1306,26 +1306,22 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                               },
                                             ),
                                           ),
-                                          // Lyrics button
-                                          GestureDetector(
-                                            onTap: _hasLyrics == true
-                                                ? () {
-                                                    _showLyricsOverlay(
-                                                      context,
-                                                      currentTrack,
-                                                    );
-                                                  }
-                                                : null,
-                                            child: Icon(
-                                              CupertinoIcons.mic_fill,
-                                              color: _hasLyrics == true
-                                                  ? CupertinoColors.white
-                                                        .withOpacity(0.8)
-                                                  : CupertinoColors.white
-                                                        .withOpacity(0.3),
-                                              size: 22,
+                                          // Lyrics button (only when lyrics available)
+                                          if (_hasLyrics == true)
+                                            GestureDetector(
+                                              onTap: () {
+                                                _showLyricsOverlay(
+                                                  context,
+                                                  currentTrack,
+                                                );
+                                              },
+                                              child: Icon(
+                                                CupertinoIcons.mic_fill,
+                                                color: CupertinoColors.white
+                                                    .withOpacity(0.8),
+                                                size: 22,
+                                              ),
                                             ),
-                                          ),
                                           // More options button
                                           GestureDetector(
                                             onTap: () => _showMoreOptions(
