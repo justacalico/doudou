@@ -1000,10 +1000,21 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         GestureDetector(
                                           onTap:
                                               audioHandler?.hasPrevious == true
-                                              ? () => _animateSkipToPrevious(
-                                                  appState,
-                                                  _currentSpacing,
-                                                )
+                                              ? () async {
+                                                  final willRestart =
+                                                      await audioHandler
+                                                          .willBackRestartCurrentTrack();
+                                                  if (!mounted) return;
+                                                  if (willRestart) {
+                                                    await appState
+                                                        .skipToPrevious();
+                                                    return;
+                                                  }
+                                                  _animateSkipToPrevious(
+                                                    appState,
+                                                    _currentSpacing,
+                                                  );
+                                                }
                                               : null,
                                           child: Icon(
                                             CupertinoIcons.backward_fill,

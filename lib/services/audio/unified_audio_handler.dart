@@ -844,6 +844,22 @@ class UnifiedAudioHandler extends BaseAudioHandler {
     }
   }
 
+  /// True if the next back press will restart the current track (seek to 0) instead of going to previous. Used by UI to avoid playing skip animation when only restarting.
+  Future<bool> willBackRestartCurrentTrack() async {
+    if (!_smartBackToStartEnabled) return false;
+    final now = DateTime.now();
+    final lastPress = _lastBackPress;
+    final withinInterval =
+        lastPress != null && now.difference(lastPress) < _backPressInterval;
+    final duration = _player.duration;
+    final position = _player.position;
+    final hasDuration = duration != null && duration.inMilliseconds > 0;
+    final progress = hasDuration
+        ? position.inMilliseconds / duration.inMilliseconds
+        : 0.0;
+    return !withinInterval && progress > _backRestartThreshold;
+  }
+
   @override
   Future<void> skipToPrevious() async {
     if (_smartBackToStartEnabled) {

@@ -130,6 +130,16 @@ class AudioServiceIntegration {
     }
   }
 
+  /// True if the next back press will restart the current track (seek to 0). Use to avoid playing skip animation when only restarting.
+  Future<bool> willBackRestartCurrentTrack() async {
+    if (!_initialized || _audioHandler == null) return false;
+    try {
+      return await _audioHandler!.willBackRestartCurrentTrack();
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Seek to position
   Future<void> seek(Duration position) async {
     if (!_initialized || _audioHandler == null) return;
