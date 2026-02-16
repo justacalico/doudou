@@ -72,7 +72,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
               : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 200,
-                    childAspectRatio: 0.85,
+                    childAspectRatio: 0.78,
                     crossAxisSpacing: DesktopTheme.spacingMd,
                     mainAxisSpacing: DesktopTheme.spacingMd,
                   ),
