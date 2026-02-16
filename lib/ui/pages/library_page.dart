@@ -98,7 +98,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   ),
                   const SizedBox(height: DesktopTheme.spacingMd),
                   SizedBox(
-                    height: 200,
+                    height: 230,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: appState.albums.take(8).length,
