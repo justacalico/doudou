@@ -1241,7 +1241,7 @@ class _AboutSection extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(DesktopTheme.spacingLg),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('About Doudou', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
