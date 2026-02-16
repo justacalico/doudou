@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import {
+  getPlaybackState,
   nextSong,
   pause,
   playSong,
@@ -7,8 +8,10 @@ import {
   resume,
   seek,
   setVolume,
+  setRepeatMode,
+  setShuffle,
 } from "../lib/tauri-commands";
-import type { PlaybackState, Song } from "../types";
+import type { PlaybackState, RepeatMode, Song } from "../types";
 
 const defaultState: PlaybackState = {
   currentSong: null,
@@ -31,34 +34,63 @@ interface PlayerState extends PlaybackState {
   previous: () => Promise<void>;
   seekTo: (position: number) => Promise<void>;
   setPlayerVolume: (volume: number) => Promise<void>;
+  refresh: () => Promise<void>;
+  setRepeat: (mode: RepeatMode) => Promise<void>;
+  setShuffleMode: (enabled: boolean) => Promise<void>;
 }
 
 export const usePlayerStore = create<PlayerState>((set) => ({
   ...defaultState,
   play: async (sessionId, song) => {
     await playSong(sessionId, song.id);
-    set({ currentSong: song, isPlaying: true, duration: song.duration });
+    const state = await getPlaybackState();
+    set({
+      ...state,
+      currentSong: state.currentSong ?? song,
+    });
   },
   pausePlayback: async () => {
     await pause();
-    set({ isPlaying: false });
+    const state = await getPlaybackState();
+    set(state);
   },
   resumePlayback: async () => {
     await resume();
-    set({ isPlaying: true });
+    const state = await getPlaybackState();
+    set(state);
   },
   next: async () => {
     await nextSong();
+    const state = await getPlaybackState();
+    set(state);
   },
   previous: async () => {
     await previousSong();
+    const state = await getPlaybackState();
+    set(state);
   },
   seekTo: async (position) => {
     await seek(position);
-    set({ currentTime: position });
+    const state = await getPlaybackState();
+    set(state);
   },
   setPlayerVolume: async (volume) => {
     await setVolume(volume);
-    set({ volume });
+    const state = await getPlaybackState();
+    set(state);
+  },
+  refresh: async () => {
+    const state = await getPlaybackState();
+    set(state);
+  },
+  setRepeat: async (mode) => {
+    await setRepeatMode(mode);
+    const state = await getPlaybackState();
+    set(state);
+  },
+  setShuffleMode: async (enabled) => {
+    await setShuffle(enabled);
+    const state = await getPlaybackState();
+    set(state);
   },
 }));

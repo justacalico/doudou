@@ -1,6 +1,9 @@
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Session {
     pub id: String,
     pub server_id: String,
@@ -9,7 +12,33 @@ pub struct Session {
     pub user_id: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum RepeatMode {
+    #[serde(rename = "off")]
+    Off,
+    #[serde(rename = "one")]
+    One,
+    #[serde(rename = "all")]
+    All,
+}
+
+impl Default for RepeatMode {
+    fn default() -> Self {
+        Self::Off
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Library {
+    pub id: String,
+    pub name: String,
+    pub collection_type: String,
+    pub image_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Song {
     pub id: String,
     pub title: String,
@@ -31,6 +60,7 @@ pub struct Song {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Album {
     pub id: String,
     pub name: String,
@@ -45,6 +75,7 @@ pub struct Album {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Artist {
     pub id: String,
     pub name: String,
@@ -54,6 +85,7 @@ pub struct Artist {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Playlist {
     pub id: String,
     pub name: String,
@@ -65,6 +97,7 @@ pub struct Playlist {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     pub albums: Vec<Album>,
     pub artists: Vec<Artist>,
@@ -73,24 +106,43 @@ pub struct SearchResults {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AlbumDetail {
     pub album: Album,
     pub songs: Vec<Song>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueueItem {
     pub song: Song,
     pub queue_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Queue {
     pub items: Vec<QueueItem>,
     pub current_index: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaybackState {
+    pub current_song: Option<Song>,
+    pub is_playing: bool,
+    pub current_time: f64,
+    pub duration: f64,
+    pub volume: f64,
+    pub shuffle: bool,
+    pub repeat_mode: RepeatMode,
+    pub queue: Vec<QueueItem>,
+    pub current_queue_index: i32,
+    pub is_background: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Download {
     pub id: String,
     pub item_id: String,
@@ -103,6 +155,7 @@ pub struct Download {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Metadata {
     pub title: Option<String>,
     pub artist: Option<String>,
@@ -111,6 +164,7 @@ pub struct Metadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub theme: String,
     pub accent_color: String,
@@ -119,4 +173,17 @@ pub struct Settings {
     pub normalize_audio: bool,
     pub scrobbling_enabled: bool,
     pub download_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Server {
+    pub id: String,
+    pub r#type: String,
+    pub name: String,
+    pub url: String,
+    pub username: String,
+    pub user_id: Option<String>,
+    pub token: Option<String>,
+    pub is_active: bool,
 }

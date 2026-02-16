@@ -128,6 +128,30 @@ body,
   font-size: 0.75rem;
 }
 
+button,
+input,
+select {
+  border: 1px solid #2a3348;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #f5f7fa;
+  background: rgba(24, 28, 41, 0.9);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
 @media (max-width: 768px) {
   .content-shell {
     padding: 12px;

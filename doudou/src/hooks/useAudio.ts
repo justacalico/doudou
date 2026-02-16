@@ -14,5 +14,8 @@ export function useAudio() {
     previous: state.previous,
     seekTo: state.seekTo,
     setPlayerVolume: state.setPlayerVolume,
+    refresh: state.refresh,
+    setRepeat: state.setRepeat,
+    setShuffleMode: state.setShuffleMode,
   }));
 }

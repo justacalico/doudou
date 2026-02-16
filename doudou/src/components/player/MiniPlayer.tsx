@@ -10,6 +10,8 @@ export function MiniPlayer({ compact = false }: MiniPlayerProps) {
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const pausePlayback = usePlayerStore((state) => state.pausePlayback);
   const resumePlayback = usePlayerStore((state) => state.resumePlayback);
+  const next = usePlayerStore((state) => state.next);
+  const previous = usePlayerStore((state) => state.previous);
 
   return (
     <div className={compact ? "mobile-mini-player" : "mini-player"}>
@@ -18,9 +20,19 @@ export function MiniPlayer({ compact = false }: MiniPlayerProps) {
         {!compact && <small>{currentSong?.artistName ?? "Queue is empty"}</small>}
       </div>
       <div style={{ display: "flex", gap: 8 }}>
+        {!compact ? (
+          <button type="button" onClick={() => void previous()}>
+            Prev
+          </button>
+        ) : null}
         <button type="button" onClick={() => (isPlaying ? pausePlayback() : resumePlayback())}>
           {isPlaying ? "Pause" : "Play"}
         </button>
+        {!compact ? (
+          <button type="button" onClick={() => void next()}>
+            Next
+          </button>
+        ) : null}
         <Link className="nav-link" to="/now-playing">
           Open
         </Link>

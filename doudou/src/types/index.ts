@@ -63,11 +63,23 @@ export interface Playlist {
   serverId: string;
 }
 
+export interface Library {
+  id: string;
+  name: string;
+  collectionType: string;
+  imageUrl?: string;
+}
+
 export interface SearchResults {
   albums: Album[];
   artists: Artist[];
   songs: Song[];
   playlists: Playlist[];
+}
+
+export interface AlbumDetail {
+  album: Album;
+  songs: Song[];
 }
 
 export interface QueueItem {

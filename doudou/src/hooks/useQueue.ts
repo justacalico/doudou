@@ -5,5 +5,6 @@ export function useQueue() {
     items: state.items,
     enqueue: state.enqueue,
     resetQueue: state.resetQueue,
+    refreshQueue: state.refreshQueue,
   }));
 }

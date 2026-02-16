@@ -1,99 +1,265 @@
-use crate::models::{Album, AlbumDetail, Artist, SearchResults};
-use crate::models::{Playlist, Song};
+use tauri::State;
+
+use crate::models::{Album, AlbumDetail, Artist, Library, Playlist, SearchResults, Song};
+use crate::providers::jellyfin::JellyfinProvider;
+use crate::providers::local::LocalProvider;
+use crate::providers::plex::PlexProvider;
+use crate::providers::subsonic::SubsonicProvider;
+use crate::providers::ProviderKind;
+use crate::state::{AppState, ProviderSession};
+
+fn get_session(state: &AppState, session_id: &str) -> Result<ProviderSession, String> {
+    state
+        .sessions
+        .read()
+        .get(session_id)
+        .cloned()
+        .ok_or_else(|| "session not found".to_string())
+}
 
 #[tauri::command]
 pub async fn fetch_albums(
     session_id: String,
-    _sort: Option<String>,
-    _filter: Option<String>,
+    sort: Option<String>,
+    filter: Option<String>,
+    state: State<'_, AppState>,
 ) -> Result<Vec<Album>, String> {
-    let demo_album = Album {
-        id: "demo-album-1".to_string(),
-        name: "Porting Baseline".to_string(),
-        artist_id: "demo-artist-1".to_string(),
-        artist_name: "Doudou".to_string(),
-        year: Some(2026),
-        song_count: 1,
-        duration: 180.0,
-        genre: Some("Electronic".to_string()),
-        cover_art_url: None,
-        server_id: session_id,
-    };
-    Ok(vec![demo_album])
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.get_albums(&session, sort, filter).await,
+        ProviderKind::Jellyfin => JellyfinProvider::new().get_albums(&session).await,
+        ProviderKind::Plex => PlexProvider::new().get_albums(&session).await,
+        ProviderKind::Local => LocalProvider.get_albums(&session).await,
+    }
 }
 
 #[tauri::command]
-pub async fn fetch_artists(session_id: String) -> Result<Vec<Artist>, String> {
-    Ok(vec![Artist {
-        id: "demo-artist-1".to_string(),
-        name: "Doudou".to_string(),
-        album_count: 1,
-        cover_art_url: None,
-        server_id: session_id,
-    }])
+pub async fn fetch_artists(
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Artist>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.get_artists(&session).await,
+        ProviderKind::Jellyfin => JellyfinProvider::new().get_artists(&session).await,
+        ProviderKind::Plex => PlexProvider::new().get_artists(&session).await,
+        ProviderKind::Local => LocalProvider.get_artists(&session).await,
+    }
 }
 
 #[tauri::command]
 pub async fn fetch_album_details(
     session_id: String,
     album_id: String,
+    state: State<'_, AppState>,
 ) -> Result<AlbumDetail, String> {
-    let album = Album {
-        id: album_id,
-        name: "Porting Baseline".to_string(),
-        artist_id: "demo-artist-1".to_string(),
-        artist_name: "Doudou".to_string(),
-        year: Some(2026),
-        song_count: 1,
-        duration: 180.0,
-        genre: Some("Electronic".to_string()),
-        cover_art_url: None,
-        server_id: session_id.clone(),
-    };
-    let song = Song {
-        id: "demo-song-1".to_string(),
-        title: "Feature Parity (Work In Progress)".to_string(),
-        album_id: album.id.clone(),
-        album_name: album.name.clone(),
-        artist_id: "demo-artist-1".to_string(),
-        artist_name: "Doudou".to_string(),
-        duration: 180.0,
-        track_number: Some(1),
-        disc_number: Some(1),
-        year: Some(2026),
-        genre: Some("Electronic".to_string()),
-        cover_art_url: None,
-        stream_url: None,
-        is_favorite: false,
-        is_downloaded: false,
-        local_path: None,
-        server_id: session_id,
-    };
-    Ok(AlbumDetail {
-        album,
-        songs: vec![song],
-    })
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => {
+            let provider = SubsonicProvider::new()?;
+            let albums = provider.get_albums(&session, None, None).await?;
+            let album = albums
+                .into_iter()
+                .find(|album| album.id == album_id)
+                .ok_or_else(|| "album not found".to_string())?;
+            let songs = provider
+                .get_album_songs(&session, album.id.clone())
+                .await
+                .unwrap_or_default();
+            Ok(AlbumDetail { album, songs })
+        }
+        _ => Err("album details are not implemented for this provider".to_string()),
+    }
 }
 
 #[tauri::command]
-pub async fn fetch_playlists(session_id: String) -> Result<Vec<Playlist>, String> {
-    Ok(vec![Playlist {
-        id: "demo-playlist-1".to_string(),
-        name: "Queue Snapshot".to_string(),
-        song_count: 1,
-        duration: 180.0,
-        cover_art_url: None,
-        is_public: false,
-        server_id: session_id,
-    }])
+pub async fn fetch_playlists(
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Playlist>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.get_playlists(&session).await,
+        ProviderKind::Jellyfin => JellyfinProvider::new().get_playlists(&session).await,
+        ProviderKind::Plex => PlexProvider::new().get_playlists(&session).await,
+        ProviderKind::Local => LocalProvider.get_playlists(&session).await,
+    }
 }
 
 #[tauri::command]
-pub async fn search_library(_session_id: String, _query: String) -> Result<SearchResults, String> {
-    Ok(SearchResults {
-        albums: vec![],
-        artists: vec![],
-        songs: vec![],
-        playlists: vec![],
-    })
+pub async fn search_library(
+    session_id: String,
+    query: String,
+    state: State<'_, AppState>,
+) -> Result<SearchResults, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.search(&session, query).await,
+        ProviderKind::Jellyfin => JellyfinProvider::new().search(&session, query).await,
+        ProviderKind::Plex => PlexProvider::new().search(&session, query).await,
+        ProviderKind::Local => LocalProvider.search(&session, query).await,
+    }
+}
+
+#[tauri::command]
+pub async fn fetch_libraries(
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Library>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.get_libraries(&session).await,
+        ProviderKind::Local => Ok(vec![Library {
+            id: "local".to_string(),
+            name: "Local Library".to_string(),
+            collection_type: "music".to_string(),
+            image_url: None,
+        }]),
+        _ => Ok(vec![]),
+    }
+}
+
+#[tauri::command]
+pub async fn fetch_playlist_tracks(
+    session_id: String,
+    playlist_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Song>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?
+            .get_playlist_tracks(&session, playlist_id)
+            .await,
+        ProviderKind::Jellyfin => JellyfinProvider::new().get_tracks(&session).await,
+        ProviderKind::Plex => PlexProvider::new().get_tracks(&session).await,
+        ProviderKind::Local => Ok(vec![]),
+    }
+}
+
+#[tauri::command]
+pub async fn get_all_tracks(
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Song>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.get_all_tracks(&session).await,
+        ProviderKind::Jellyfin => JellyfinProvider::new().get_tracks(&session).await,
+        ProviderKind::Plex => PlexProvider::new().get_tracks(&session).await,
+        ProviderKind::Local => Ok(vec![]),
+    }
+}
+
+#[tauri::command]
+pub async fn get_starred_tracks(
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Song>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.get_starred_tracks(&session).await,
+        _ => Ok(vec![]),
+    }
+}
+
+#[tauri::command]
+pub async fn toggle_favorite(
+    session_id: String,
+    item_id: String,
+    is_favorite: bool,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => {
+            SubsonicProvider::new()?
+                .toggle_favorite(&session, item_id, is_favorite)
+                .await
+        }
+        _ => Ok(()),
+    }
+}
+
+#[tauri::command]
+pub async fn create_playlist(
+    session_id: String,
+    name: String,
+    state: State<'_, AppState>,
+) -> Result<Option<Playlist>, String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => SubsonicProvider::new()?.create_playlist(&session, name).await,
+        _ => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub async fn add_track_to_playlist(
+    session_id: String,
+    playlist_id: String,
+    track_id: String,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => {
+            SubsonicProvider::new()?
+                .add_to_playlist(&session, playlist_id, track_id)
+                .await
+        }
+        _ => Ok(()),
+    }
+}
+
+#[tauri::command]
+pub async fn remove_track_from_playlist(
+    session_id: String,
+    playlist_id: String,
+    track_index: usize,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => {
+            SubsonicProvider::new()?
+                .remove_track_from_playlist(&session, playlist_id, track_index)
+                .await
+        }
+        _ => Ok(()),
+    }
+}
+
+#[tauri::command]
+pub async fn rename_playlist(
+    session_id: String,
+    playlist_id: String,
+    new_name: String,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => {
+            SubsonicProvider::new()?
+                .rename_playlist(&session, playlist_id, new_name)
+                .await
+        }
+        _ => Ok(()),
+    }
+}
+
+#[tauri::command]
+pub async fn remove_playlist(
+    session_id: String,
+    playlist_id: String,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let session = get_session(&state, &session_id)?;
+    match ProviderKind::parse(&session.provider)? {
+        ProviderKind::Subsonic => {
+            SubsonicProvider::new()?
+                .remove_playlist(&session, playlist_id)
+                .await
+        }
+        _ => Ok(()),
+    }
 }

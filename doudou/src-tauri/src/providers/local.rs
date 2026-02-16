@@ -1,45 +1,56 @@
-use crate::models::{Album, Artist, Playlist, SearchResults, Session, Song};
-use crate::providers::{Credentials, MediaProvider, QueryParams};
+use uuid::Uuid;
 
-#[derive(Default)]
+use crate::local as local_service;
+use crate::models::{Album, Artist, Playlist, SearchResults, Song};
+use crate::state::ProviderSession;
+
 pub struct LocalProvider;
 
-impl MediaProvider for LocalProvider {
-    async fn authenticate(
+impl LocalProvider {
+    pub async fn authenticate(
         &self,
-        _server_url: String,
-        credentials: Credentials,
-    ) -> Result<Session, String> {
-        Ok(Session {
-            id: format!("local-{}", credentials.username),
-            server_id: "local".to_string(),
+        _server_url: &str,
+        username: &str,
+        _password: &str,
+    ) -> Result<ProviderSession, String> {
+        Ok(ProviderSession {
+            id: format!("local-{}", Uuid::new_v4()),
             provider: "local".to_string(),
+            server_url: "local://".to_string(),
+            username: username.to_string(),
             token: String::new(),
-            user_id: None,
+            salt: None,
         })
     }
 
-    async fn get_albums(
+    pub async fn scan_path(&self, path: &str) -> Result<Vec<Song>, String> {
+        let files = local_service::scan(path);
+        Ok(files
+            .iter()
+            .map(|file| {
+                let metadata = local_service::read_metadata(file);
+                local_service::song_from_file(file, &metadata)
+            })
+            .collect())
+    }
+
+    pub async fn get_albums(&self, _session: &ProviderSession) -> Result<Vec<Album>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn get_artists(&self, _session: &ProviderSession) -> Result<Vec<Artist>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn get_playlists(&self, _session: &ProviderSession) -> Result<Vec<Playlist>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn search(
         &self,
-        _session: &Session,
-        _params: QueryParams,
-    ) -> Result<Vec<Album>, String> {
-        Ok(vec![])
-    }
-
-    async fn get_artists(&self, _session: &Session) -> Result<Vec<Artist>, String> {
-        Ok(vec![])
-    }
-
-    async fn get_songs(&self, _session: &Session, _album_id: String) -> Result<Vec<Song>, String> {
-        Ok(vec![])
-    }
-
-    async fn get_playlists(&self, _session: &Session) -> Result<Vec<Playlist>, String> {
-        Ok(vec![])
-    }
-
-    async fn search(&self, _session: &Session, _query: String) -> Result<SearchResults, String> {
+        _session: &ProviderSession,
+        _query: String,
+    ) -> Result<SearchResults, String> {
         Ok(SearchResults {
             albums: vec![],
             artists: vec![],

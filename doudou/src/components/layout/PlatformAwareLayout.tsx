@@ -1,8 +1,14 @@
 import { ResponsiveLayout } from "./ResponsiveLayout";
 import { usePlatform } from "../../hooks/usePlatform";
+import { BackgroundPlayer } from "../player/BackgroundPlayer";
 
 export function PlatformAwareLayout() {
   const { isMobile } = usePlatform();
 
-  return <ResponsiveLayout isMobile={isMobile} />;
+  return (
+    <>
+      <BackgroundPlayer />
+      <ResponsiveLayout isMobile={isMobile} />
+    </>
+  );
 }

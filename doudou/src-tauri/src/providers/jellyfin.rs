@@ -1,44 +1,81 @@
-use crate::models::{Album, Artist, Playlist, SearchResults, Session, Song};
-use crate::providers::{Credentials, MediaProvider, QueryParams};
+use reqwest::Client;
+use uuid::Uuid;
 
-#[derive(Default)]
-pub struct JellyfinProvider;
+use crate::models::{Album, Artist, Playlist, SearchResults, Song};
+use crate::providers::ProviderAdapter;
+use crate::state::ProviderSession;
 
-impl MediaProvider for JellyfinProvider {
-    async fn authenticate(
+pub struct JellyfinProvider {
+    client: Client,
+}
+
+impl ProviderAdapter for JellyfinProvider {}
+
+impl JellyfinProvider {
+    pub fn new() -> Self {
+        Self {
+            client: Client::new(),
+        }
+    }
+
+    pub async fn authenticate(
         &self,
-        _server_url: String,
-        _credentials: Credentials,
-    ) -> Result<Session, String> {
-        Err("Jellyfin provider is not implemented yet".to_string())
+        server_url: &str,
+        username: &str,
+        password: &str,
+    ) -> Result<ProviderSession, String> {
+        let clean = Self::normalize_url(server_url);
+        let auth_url = format!("{clean}/Users/AuthenticateByName");
+        let response = self
+            .client
+            .post(auth_url)
+            .json(&serde_json::json!({
+                "Username": username,
+                "Pw": password
+            }))
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !response.status().is_success() {
+            return Err("jellyfin authentication failed".to_string());
+        }
+        Ok(ProviderSession {
+            id: format!("jellyfin-{}", Uuid::new_v4()),
+            provider: "jellyfin".to_string(),
+            server_url: clean,
+            username: username.to_string(),
+            token: String::new(),
+            salt: None,
+        })
     }
 
-    async fn get_albums(
+    pub async fn get_albums(&self, _session: &ProviderSession) -> Result<Vec<Album>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn get_artists(&self, _session: &ProviderSession) -> Result<Vec<Artist>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn get_playlists(&self, _session: &ProviderSession) -> Result<Vec<Playlist>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn search(
         &self,
-        _session: &Session,
-        _params: QueryParams,
-    ) -> Result<Vec<Album>, String> {
-        Ok(vec![])
-    }
-
-    async fn get_artists(&self, _session: &Session) -> Result<Vec<Artist>, String> {
-        Ok(vec![])
-    }
-
-    async fn get_songs(&self, _session: &Session, _album_id: String) -> Result<Vec<Song>, String> {
-        Ok(vec![])
-    }
-
-    async fn get_playlists(&self, _session: &Session) -> Result<Vec<Playlist>, String> {
-        Ok(vec![])
-    }
-
-    async fn search(&self, _session: &Session, _query: String) -> Result<SearchResults, String> {
+        _session: &ProviderSession,
+        _query: String,
+    ) -> Result<SearchResults, String> {
         Ok(SearchResults {
             albums: vec![],
             artists: vec![],
             songs: vec![],
             playlists: vec![],
         })
+    }
+
+    pub async fn get_tracks(&self, _session: &ProviderSession) -> Result<Vec<Song>, String> {
+        Ok(vec![])
     }
 }
