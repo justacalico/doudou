@@ -526,7 +526,7 @@ class _MobileNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 56,
+          height: 64,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(indices.length, (i) {
@@ -537,7 +537,7 @@ class _MobileNavBar extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 8,
+                    vertical: 6,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
