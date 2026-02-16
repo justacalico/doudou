@@ -1317,7 +1317,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                                   }
                                                 : null,
                                             child: Icon(
-                                              CupertinoIcons.text_quote,
+                                              CupertinoIcons.mic_fill,
                                               color: _hasLyrics == true
                                                   ? CupertinoColors.white
                                                         .withOpacity(0.8)
