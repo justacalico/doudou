@@ -10,7 +10,12 @@ import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
 import 'package:doudou/UI/desktop/services/navigation_service.dart';
 import 'package:doudou/UI/desktop/templates/desktop_theme.dart';
-import 'package:doudou/UI/desktop/templates/desktop_layout.dart' show DesktopLayout;
+import 'package:doudou/UI/desktop/templates/desktop_layout.dart'
+    show DesktopLayout, DesktopPlayerBar;
+import 'package:doudou/UI/desktop/widgets/universal_image.dart'
+    show buildSmartImage;
+import 'package:doudou/UI/mobile/playing/now_playing.dart'
+    show NowPlayingScreen;
 
 import 'package:doudou/ui/pages/home_page.dart';
 import 'package:doudou/ui/pages/search_page.dart';
@@ -178,7 +183,9 @@ class _AppShellState extends State<AppShell> {
                     ],
                   ),
                 ),
-                const _PlayerBar(),
+                isDesktop
+                    ? const DesktopPlayerBar()
+                    : const _MobilePlayerBar(),
               ],
             ),
             bottomNavigationBar: isDesktop
@@ -608,11 +615,15 @@ class _MobileNavBar extends StatelessWidget {
   }
 }
 
-class _PlayerBar extends StatelessWidget {
-  const _PlayerBar();
+/// Mobile playbar: old mini-player style (rounded liquid glass, album art, play/next).
+class _MobilePlayerBar extends StatelessWidget {
+  const _MobilePlayerBar();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Consumer<AppState>(
       builder: (context, appState, _) {
         final handler = appState.audioHandler;
@@ -620,79 +631,247 @@ class _PlayerBar extends StatelessWidget {
         return StreamBuilder<MediaItem?>(
           stream: handler.mediaItem,
           builder: (context, snap) {
-            if (snap.data == null) return const SizedBox.shrink();
+            final mediaItem = snap.data;
+            if (mediaItem == null) return const SizedBox.shrink();
             return StreamBuilder<PlaybackState>(
               stream: handler.playbackState,
               builder: (context, playSnap) {
                 final playing = playSnap.data?.playing ?? false;
-                return StreamBuilder<Duration>(
-                  stream: handler.positionStream,
-                  builder: (context, posSnap) {
-                    return StreamBuilder<Duration?>(
-                      stream: handler.durationStream,
-                      builder: (context, durSnap) {
-                        final pos = posSnap.data ?? Duration.zero;
-                        final dur = durSnap.data ?? Duration.zero;
-                        final progress = dur.inMilliseconds > 0
-                            ? pos.inMilliseconds / dur.inMilliseconds
-                            : 0.0;
-                        return Container(
-                          height: DesktopTheme.playerBarHeight,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) =>
+                            const NowPlayingScreen(),
+                        transitionDuration:
+                            const Duration(milliseconds: 300),
+                        reverseTransitionDuration:
+                            const Duration(milliseconds: 300),
+                        transitionsBuilder:
+                            (_, animation, __, child) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 1),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            )),
+                            child: child,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: 30, sigmaY: 30),
+                        child: Container(
+                          height: 72,
                           decoration: BoxDecoration(
-                            color: DesktopTheme.backgroundSecondary,
-                            border: Border(
-                              top: BorderSide(
-                                color: DesktopTheme.glassBorder,
-                                width: 1,
-                              ),
+                            borderRadius:
+                                BorderRadius.circular(22),
+                            color: (isDark
+                                    ? Colors.white
+                                    : Colors.black)
+                                .withOpacity(
+                                    isDark ? 0.15 : 0.08),
+                            border: Border.all(
+                              color: (isDark
+                                      ? Colors.white
+                                      : Colors.black)
+                                  .withOpacity(0.12),
+                              width: 0.5,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  playing
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  color: DesktopTheme.textPrimary,
-                                ),
-                                onPressed: () => appState.playPause(),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      snap.data!.title,
-                                      style: TextStyle(
-                                        color: DesktopTheme.textPrimary,
-                                        fontSize: 13,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    LinearProgressIndicator(
-                                      value: progress,
-                                      backgroundColor: DesktopTheme.glassBorder,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Theme.of(context).colorScheme.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.25),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    );
-                  },
+                          child: Padding(
+                            padding: const EdgeInsets
+                                .symmetric(
+                                horizontal: 14,
+                                vertical: 10),
+                            child: Row(
+                              children: [
+                                _albumArt(mediaItem),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment
+                                            .start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment
+                                            .center,
+                                    children: [
+                                      Text(
+                                        mediaItem.title,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight:
+                                              FontWeight.w600,
+                                          color: isDark
+                                              ? Colors
+                                                  .white
+                                              : Colors
+                                                  .black,
+                                        ),
+                                        maxLines: 1,
+                                        overflow:
+                                            TextOverflow
+                                                .ellipsis,
+                                      ),
+                                      const SizedBox(
+                                          height: 2),
+                                      Text(
+                                        mediaItem.artist ??
+                                            'Unknown Artist',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: (isDark
+                                                  ? Colors
+                                                      .white
+                                                  : Colors
+                                                      .black)
+                                              .withOpacity(0.6),
+                                        ),
+                                        maxLines: 1,
+                                        overflow:
+                                            TextOverflow
+                                                .ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize:
+                                      MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        playing
+                                            ? Icons
+                                                .pause_rounded
+                                            : Icons
+                                                .play_arrow_rounded,
+                                        color: theme
+                                            .colorScheme
+                                            .primary,
+                                        size: 28,
+                                      ),
+                                      onPressed: () =>
+                                          appState
+                                              .playPause(),
+                                      style: IconButton
+                                          .styleFrom(
+                                        minimumSize:
+                                            const Size(
+                                                40, 40),
+                                              ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons
+                                            .skip_next_rounded,
+                                        size: 24,
+                                        color: handler
+                                                .hasNext ==
+                                            true
+                                            ? (isDark
+                                                ? Colors
+                                                    .white
+                                                : Colors
+                                                    .black)
+                                            : Colors.grey,
+                                      ),
+                                      onPressed: handler
+                                              .hasNext ==
+                                          true
+                                          ? () => appState
+                                              .skipToNext()
+                                          : null,
+                                      style: IconButton
+                                          .styleFrom(
+                                        minimumSize:
+                                            const Size(
+                                                36, 36),
+                                              ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             );
           },
         );
       },
+    );
+  }
+
+  Widget _albumArt(MediaItem mediaItem) {
+    String? imageUrl = mediaItem.artUri?.toString();
+    if (imageUrl == null || imageUrl.isEmpty) {
+      imageUrl = mediaItem.extras?['localImageUrl'] as String?;
+    }
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        borderRadius:
+            BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black
+                .withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius:
+            BorderRadius.circular(12),
+        child: imageUrl != null &&
+                imageUrl.isNotEmpty
+            ? buildSmartImage(
+                imageUrl: imageUrl,
+                width: 52,
+                height: 52,
+                errorBuilder: () =>
+                    _placeholder(),
+              )
+            : _placeholder(),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      width: 52,
+      height: 52,
+      color: DesktopTheme.backgroundElevated,
+      child: Icon(
+        Icons.music_note_rounded,
+        color: DesktopTheme.textTertiary,
+        size: 24,
+      ),
     );
   }
 }

@@ -254,7 +254,7 @@ class _DesktopLayoutState extends State<DesktopLayout>
               ),
             ),
             // Bottom player bar
-            const _PlayerBar(),
+            const DesktopPlayerBar(),
           ],
         ),
       ),
@@ -553,9 +553,9 @@ class _SidebarItemState extends State<_SidebarItem> {
   }
 }
 
-/// Bottom player bar
-class _PlayerBar extends StatelessWidget {
-  const _PlayerBar();
+/// Bottom player bar (public for use in new UI app shell).
+class DesktopPlayerBar extends StatelessWidget {
+  const DesktopPlayerBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -716,7 +716,7 @@ class _PlayerBarContent extends StatelessWidget {
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
-            child: _NowPlayingOverlay(
+            child: NowPlayingOverlay(
               appState: appState,
               audioHandler: audioHandler,
             ),
@@ -1349,21 +1349,22 @@ class _PlayerExtrasState extends State<_PlayerExtras> {
   }
 }
 
-/// Now Playing overlay
-class _NowPlayingOverlay extends StatefulWidget {
+/// Now Playing overlay (public for use from app shell).
+class NowPlayingOverlay extends StatefulWidget {
   final AppState appState;
   final dynamic audioHandler;
 
-  const _NowPlayingOverlay({
+  const NowPlayingOverlay({
+    super.key,
     required this.appState,
     required this.audioHandler,
   });
 
   @override
-  State<_NowPlayingOverlay> createState() => _NowPlayingOverlayState();
+  State<NowPlayingOverlay> createState() => _NowPlayingOverlayState();
 }
 
-class _NowPlayingOverlayState extends State<_NowPlayingOverlay>
+class _NowPlayingOverlayState extends State<NowPlayingOverlay>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTab = 0;
