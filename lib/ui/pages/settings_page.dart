@@ -9,7 +9,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:doudou/l10n/app_localizations.dart';
 import 'package:doudou/providers/app_state.dart';
 import 'package:doudou/services/base_service.dart';
-import 'package:doudou/services/logging_service.dart';
 import 'package:doudou/services/update_service.dart';
 
 import 'package:doudou/ui/theme.dart';
@@ -104,8 +103,6 @@ class _SettingsPageState extends State<SettingsPage> {
           onSignOut: _showSignOutDialog,
           onClearCache: _showClearCacheDialog,
         );
-      case 'logs':
-        return _LogsSection();
       case 'about':
         return _AboutSection(appState: appState);
       default:
@@ -476,7 +473,6 @@ class _Sidebar extends StatelessWidget {
       {'id': 'audio', 'label': l10n.audioSettings.split(' ').first, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'label': l10n.appearanceSettings.split(' ').first, 'icon': Icons.palette_rounded},
       {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
-      {'id': 'logs', 'label': l10n.logsAndDiagnostics.split(' ').first, 'icon': Icons.description_rounded},
       {'id': 'about', 'label': l10n.aboutDoudou.split(' ').first, 'icon': Icons.info_rounded},
     ];
     final filtered = isLocalMusic
@@ -546,7 +542,6 @@ class _MobileCategorySelector extends StatelessWidget {
       {'id': 'audio', 'label': l10n.audioSettings, 'icon': Icons.volume_up_rounded},
       {'id': 'appearance', 'label': l10n.appearanceSettings, 'icon': Icons.palette_rounded},
       {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
-      {'id': 'logs', 'label': l10n.logsAndDiagnostics, 'icon': Icons.description_rounded},
       {'id': 'about', 'label': l10n.aboutDoudou, 'icon': Icons.info_rounded},
     ];
     if (isLocalMusic) return list.where((c) => c['id'] != 'server').toList();
@@ -695,27 +690,6 @@ class _GeneralSection extends StatelessWidget {
                             subtitle: const Text('Show the mini player island'),
                             value: appState.useDynamicIsle,
                             onChanged: appState.toggleDynamicIsle,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 520,
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Diagnostics', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 12),
-                          SwitchListTile(
-                            title: const Text('Enable logging'),
-                            subtitle: const Text('Writes playback and network logs for support'),
-                            value: appState.loggingEnabled,
-                            onChanged: (v) async => await appState.toggleLogging(v),
                           ),
                         ],
                       ),
@@ -1036,193 +1010,6 @@ class _ServerSection extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// --- Logs ---
-class _LogsSection extends StatefulWidget {
-  @override
-  State<_LogsSection> createState() => _LogsSectionState();
-}
-
-class _LogsSectionState extends State<_LogsSection> {
-  final LoggingService _logging = LoggingService();
-  List<String> _logs = [];
-  Map<String, dynamic> _stats = {};
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final logs = _logging.getMemoryLogs();
-      final stats = await _logging.getLogStats();
-      setState(() {
-        _logs = logs;
-        _stats = stats;
-        _loading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _logs = ['Error: $e'];
-        _loading = false;
-      });
-    }
-  }
-
-  String _fmtSize(int bytes) {
-    if (bytes > 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    if (bytes > 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '$bytes bytes';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(DesktopTheme.spacingLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Logs & Diagnostics', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            Card(
-              child: SwitchListTile(
-                title: const Text('Enable Logging'),
-                subtitle: const Text('Record app activity for troubleshooting.'),
-                value: context.watch<AppState>().loggingEnabled,
-                onChanged: (v) => context.read<AppState>().toggleLogging(v),
-                secondary: const Icon(Icons.bug_report),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Log Statistics', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(child: _statItem('Log Files', '${_stats['file_count'] ?? 0}', Icons.insert_drive_file, theme)),
-                        Expanded(child: _statItem('Total Size', _fmtSize(_stats['total_size'] as int? ?? 0), Icons.storage, theme)),
-                        Expanded(child: _statItem('Memory Logs', '${_stats['memory_logs'] ?? 0}', Icons.memory, theme)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    ElevatedButton.icon(icon: const Icon(Icons.refresh), label: const Text('Refresh'), onPressed: _load),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(icon: const Icon(Icons.download), label: const Text('Export Logs'), onPressed: () async {
-                      try {
-                        final text = await _logging.exportLogs();
-                        final f = File('${Platform.environment['HOME'] ?? '.'}/doudou_logs_export.txt');
-                        await f.writeAsString(text);
-                        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exported to ${f.path}')));
-                      } catch (e) {
-                        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
-                      }
-                    }),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.delete),
-                      label: const Text('Clear Logs'),
-                      style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.error, foregroundColor: theme.colorScheme.onError),
-                      onPressed: () async {
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Clear Logs'),
-                            content: const Text('Clear all logs? This cannot be undone.'),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Clear')),
-                            ],
-                          ),
-                        );
-                        if (ok == true) {
-                          await _logging.clearLogs();
-                          await _load();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Container(
-                height: 400,
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Recent Logs', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _loading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _logs.isEmpty
-                              ? Center(child: Text('No logs', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)))
-                              : ListView.builder(
-                                  itemCount: _logs.length,
-                                  itemBuilder: (context, i) {
-                                    final log = _logs[_logs.length - 1 - i];
-                                    Color c = theme.colorScheme.onSurface;
-                                    if (log.contains('[ERROR]')) c = theme.colorScheme.error;
-                                    else if (log.contains('[WARN]')) c = Colors.orange;
-                                    else if (log.contains('[INFO]')) c = theme.colorScheme.primary;
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                                      child: SelectableText(log, style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: c)),
-                                    );
-                                  },
-                                ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _statItem(String label, String value, IconData icon, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 24, color: theme.colorScheme.primary),
-          const SizedBox(height: 8),
-          Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        ],
       ),
     );
   }
