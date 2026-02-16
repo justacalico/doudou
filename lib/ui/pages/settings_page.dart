@@ -15,6 +15,9 @@ import 'package:doudou/services/update_service.dart';
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
 
+/// Breakpoint: below this width use single-column layout (dropdown) instead of sidebar.
+const double _kSettingsBreakpoint = 768.0;
+
 /// Settings page: all sections ported from UI/desktop/pages/settings.dart.
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -35,20 +38,38 @@ class _SettingsPageState extends State<SettingsPage> {
             appState.mediaServiceManager.currentServerType == ServerType.local;
         return PageTemplate(
           title: l10n.settings,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Sidebar(
-                selected: _category,
-                onSelect: (v) => setState(() => _category = v),
-                l10n: l10n,
-                isLocalMusic: isLocal,
-              ),
-              const SizedBox(width: DesktopTheme.spacingLg),
-              Expanded(
-                child: _buildContent(appState),
-              ),
-            ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final useSidebar = constraints.maxWidth >= _kSettingsBreakpoint;
+              if (useSidebar) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Sidebar(
+                      selected: _category,
+                      onSelect: (v) => setState(() => _category = v),
+                      l10n: l10n,
+                      isLocalMusic: isLocal,
+                    ),
+                    const SizedBox(width: DesktopTheme.spacingLg),
+                    Expanded(child: _buildContent(appState)),
+                  ],
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _MobileCategorySelector(
+                    selected: _category,
+                    onSelect: (v) => setState(() => _category = v),
+                    l10n: l10n,
+                    isLocalMusic: isLocal,
+                  ),
+                  const SizedBox(height: DesktopTheme.spacingMd),
+                  Expanded(child: _buildContent(appState)),
+                ],
+              );
+            },
           ),
         );
       },
@@ -500,6 +521,123 @@ class _Sidebar extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+// --- Mobile category selector (dropdown on small screens) ---
+class _MobileCategorySelector extends StatelessWidget {
+  final String selected;
+  final ValueChanged<String> onSelect;
+  final AppLocalizations l10n;
+  final bool isLocalMusic;
+
+  const _MobileCategorySelector({
+    required this.selected,
+    required this.onSelect,
+    required this.l10n,
+    required this.isLocalMusic,
+  });
+
+  List<Map<String, dynamic>> _categories(AppLocalizations l10n, bool isLocalMusic) {
+    final list = [
+      {'id': 'general', 'label': l10n.generalSettings, 'icon': Icons.settings_rounded},
+      {'id': 'audio', 'label': l10n.audioSettings, 'icon': Icons.volume_up_rounded},
+      {'id': 'appearance', 'label': l10n.appearanceSettings, 'icon': Icons.palette_rounded},
+      {'id': 'server', 'label': isLocalMusic ? 'Local' : l10n.server, 'icon': isLocalMusic ? Icons.folder_rounded : Icons.dns_rounded},
+      {'id': 'logs', 'label': l10n.logsAndDiagnostics, 'icon': Icons.description_rounded},
+      {'id': 'about', 'label': l10n.aboutDoudou, 'icon': Icons.info_rounded},
+    ];
+    if (isLocalMusic) return list.where((c) => c['id'] != 'server').toList();
+    return list;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final categories = _categories(l10n, isLocalMusic);
+    final current = categories.cast<Map<String, dynamic>>().firstWhere(
+          (c) => c['id'] == selected,
+          orElse: () => categories.first,
+        );
+    return Material(
+      color: DesktopTheme.backgroundSecondary,
+      borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+      child: InkWell(
+        onTap: () => _showPicker(context, theme, categories),
+        borderRadius: BorderRadius.circular(DesktopTheme.radiusSm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: DesktopTheme.spacingMd, vertical: DesktopTheme.spacingSm + 4),
+          child: Row(
+            children: [
+              Icon(current['icon'] as IconData, size: 22, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  current['label'] as String,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: DesktopTheme.textPrimary,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_drop_down, color: DesktopTheme.textSecondary, size: 28),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPicker(BuildContext context, ThemeData theme, List<Map<String, dynamic>> categories) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: DesktopTheme.backgroundSecondary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(DesktopTheme.radiusMd)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(DesktopTheme.spacingMd),
+              child: Text(
+                l10n.settings,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: DesktopTheme.textPrimary,
+                ),
+              ),
+            ),
+            ...categories.map((c) {
+              final id = c['id'] as String;
+              final isSelected = selected == id;
+              return ListTile(
+                leading: Icon(
+                  c['icon'] as IconData,
+                  size: 22,
+                  color: isSelected ? theme.colorScheme.primary : DesktopTheme.textSecondary,
+                ),
+                title: Text(
+                  c['label'] as String,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? theme.colorScheme.primary : DesktopTheme.textPrimary,
+                  ),
+                ),
+                trailing: isSelected ? Icon(Icons.check, size: 20, color: theme.colorScheme.primary) : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  onSelect(id);
+                },
+              );
+            }),
+            const SizedBox(height: DesktopTheme.spacingMd),
+          ],
+        ),
       ),
     );
   }
