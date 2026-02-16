@@ -13,7 +13,7 @@ import '../../../l10n/app_localizations.dart';
 import '../widgets/apple_design/apple_theme.dart';
 import '../../../services/players/jellyfin_service.dart';
 import '../settings/local_music_settings.dart';
-import '../partials/navbar/navbar.dart';
+import 'package:doudou/ui/layout/app_shell.dart';
 
 // Auth method enum for Jellyfin
 enum JellyfinAuthMethod { account, apiKey, quickConnect }
@@ -1825,7 +1825,7 @@ class _LoginScreenState extends State<LoginScreen>
         // Force navigation to home screen
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
-            CupertinoPageRoute(builder: (context) => const HomeScreen()),
+            CupertinoPageRoute(builder: (context) => const AppShell()),
             (route) => false,
           );
         }
