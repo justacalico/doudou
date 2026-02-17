@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:kib_debug_print/kib_debug_print.dart';
 
 import '../../models/jellyfin_models.dart';
@@ -16,7 +17,9 @@ class SoundCloudService implements BaseMediaService {
 
   /// Log so it always appears in terminal (print + kprint).
   static void _log(String msg, {bool isError = false}) {
-    print('[SoundCloud] $msg');
+    if (kDebugMode) {
+      print('[SoundCloud] $msg');
+    }
     if (isError) {
       kprint.err(msg);
     } else {
@@ -129,7 +132,9 @@ class SoundCloudService implements BaseMediaService {
       return false;
     } catch (e, st) {
       _log('token request threw: $e', isError: true);
-      print('[SoundCloud] $st');
+      if (kDebugMode) {
+        print('[SoundCloud] $st');
+      }
       kprint.err('[SoundCloud] $st');
       return false;
     }
