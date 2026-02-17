@@ -2882,15 +2882,16 @@ class _DetailHeader extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: DesktopTheme.spacingLg),
-                    // Action buttons
-                    Row(
+                    // Action buttons - use Wrap to handle overflow
+                    Wrap(
+                      spacing: DesktopTheme.spacingMd,
+                      runSpacing: DesktopTheme.spacingSm,
                       children: [
                         if (onPlay != null)
                           DesktopPlayButton(
                             isPlaying: false,
                             onPressed: onPlay!,
                           ),
-                        const SizedBox(width: DesktopTheme.spacingMd),
                         if (onShuffle != null)
                           DesktopGlassButton(
                             onPressed: onShuffle!,
@@ -2903,8 +2904,7 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                        if (onDownload != null) ...[
-                          const SizedBox(width: DesktopTheme.spacingMd),
+                        if (onDownload != null)
                           DesktopGlassButton(
                             onPressed: onDownload!,
                             child: Row(
@@ -2916,7 +2916,6 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],
