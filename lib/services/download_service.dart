@@ -144,7 +144,7 @@ class DownloadService extends ChangeNotifier {
       final downloadUrl = _mediaServiceManager.getDirectStreamUrl(track.id);
 
       if (downloadUrl.isEmpty) {
-        return;
+        throw Exception('Could not get download URL for track. Make sure you are connected to the server.');
       }
 
       // Create downloads directory

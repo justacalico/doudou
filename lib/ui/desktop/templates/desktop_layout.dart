@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
 import '../../../l10n/app_localizations.dart';
@@ -2990,22 +2991,30 @@ class _TrackRowState extends State<_TrackRow> {
 
     // Start download
     try {
+      // Verify track has required properties
+      if (widget.track.id.isEmpty) {
+        throw Exception('Track ID is empty');
+      }
+      
       await downloadService.downloadTrack(widget.track);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Started downloading "${widget.track.name}"'),
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
+      debugPrint('Download error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to start download: $e'),
+            content: Text('Failed to start download: ${e.toString()}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -3221,7 +3230,24 @@ class _TrackRowState extends State<_TrackRow> {
                         widget.track,
                       );
                     } else if (value == 'download') {
-                      _handleDownload(context);
+                      // Only handle download if not already downloaded or downloading
+                      final appState = context.read<AppState>();
+                      final downloadService = appState.downloadService;
+                      final isDownloaded = downloadService.isTrackDownloaded(
+                        widget.track.id,
+                      );
+                      final status = downloadService.getDownloadStatus(
+                        widget.track.id,
+                      );
+                      final isDownloading = status == DownloadStatus.downloading;
+                      
+                      if (!isDownloaded && !isDownloading) {
+                        _handleDownload(context);
+                      } else if (isDownloaded) {
+                        _showDownloadedOptions(context, appState);
+                      } else if (isDownloading) {
+                        _showDownloadingOptions(context, appState);
+                      }
                     }
                   },
                   itemBuilder: (context) {
@@ -3272,11 +3298,25 @@ class _TrackRowState extends State<_TrackRow> {
                       ),
                       PopupMenuItem(
                         value: 'download',
+                        enabled: !isDownloaded && !isDownloading,
                         child: Row(
                           children: [
-                            Icon(downloadIcon, size: 20),
+                            Icon(
+                              downloadIcon,
+                              size: 20,
+                              color: (isDownloaded || isDownloading)
+                                  ? DesktopTheme.textTertiary
+                                  : null,
+                            ),
                             const SizedBox(width: 8),
-                            Text(downloadLabel),
+                            Text(
+                              downloadLabel,
+                              style: TextStyle(
+                                color: (isDownloaded || isDownloading)
+                                    ? DesktopTheme.textTertiary
+                                    : null,
+                              ),
+                            ),
                           ],
                         ),
                       ),
