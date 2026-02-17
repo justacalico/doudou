@@ -17,7 +17,9 @@ class SoundCloudService implements BaseMediaService {
 
   /// Log so it always appears in terminal; kprint only in debug (release-safe).
   static void _log(String msg, {bool isError = false}) {
-    print('[SoundCloud] $msg');
+    if (kDebugMode) {
+      print('[SoundCloud] $msg');
+    }
     if (kDebugMode) {
       if (isError) {
         kprint.err(msg);
@@ -133,7 +135,9 @@ class SoundCloudService implements BaseMediaService {
       return false;
     } catch (e, st) {
       _log('token request threw: $e', isError: true);
-      print('[SoundCloud] $st');
+      if (kDebugMode) {
+        print('[SoundCloud] $st');
+      }
       if (kDebugMode) {
         kprint.err('[SoundCloud] $st');
       }
@@ -374,27 +378,38 @@ class SoundCloudService implements BaseMediaService {
     return '$url${sep}client_id=$_clientId';
   }
 
+  /// api.soundcloud.com/tracks/.../preview URLs do not work for playback; only CDN URLs do.
+  static bool _isUsableStreamUrl(String url) {
+    if (url.isEmpty) return false;
+    final lower = url.toLowerCase();
+    if (lower.contains('api.soundcloud.com/tracks') && lower.contains('/preview')) {
+      return false;
+    }
+    return lower.startsWith('http://') || lower.startsWith('https://');
+  }
+
   List<String> _collectStreamUrlsFromMap(Map<String, dynamic> data) {
     final urls = <String>[];
     // Progressive URLs first for best compatibility (e.g. media_kit/libmpv)
     if (data['stream_url'] != null && _clientId != null) {
       final streamUrl = data['stream_url'] as String;
-      urls.add(_urlWithClientId(streamUrl) ?? streamUrl);
+      final u = _urlWithClientId(streamUrl) ?? streamUrl;
+      if (_isUsableStreamUrl(u)) urls.add(u);
     }
     final httpMp3 = data['http_mp3_128_url'] as String?;
     if (httpMp3 != null && httpMp3.isNotEmpty) {
       final u = _urlWithClientId(httpMp3) ?? httpMp3;
-      if (!urls.contains(u)) urls.add(u);
+      if (_isUsableStreamUrl(u) && !urls.contains(u)) urls.add(u);
     }
     final hlsAac = data['hls_aac_160_url'] as String? ?? data['hls_aac_96_url'] as String?;
     if (hlsAac != null && hlsAac.isNotEmpty) {
       final u = _urlWithClientId(hlsAac) ?? hlsAac;
-      if (!urls.contains(u)) urls.add(u);
+      if (_isUsableStreamUrl(u) && !urls.contains(u)) urls.add(u);
     }
     final preview = data['preview_mp3_128_url'] as String?;
     if (preview != null && preview.isNotEmpty) {
       final u = _urlWithClientId(preview) ?? preview;
-      if (!urls.contains(u)) urls.add(u);
+      if (_isUsableStreamUrl(u) && !urls.contains(u)) urls.add(u);
     }
     return urls;
   }
@@ -416,13 +431,19 @@ class SoundCloudService implements BaseMediaService {
         if (urls.isNotEmpty) return urls;
       }
       // Fallback: dedicated streams endpoint (API: /tracks/{track_urn}/streams)
-      final streamsResponse = await _dio.get<Map<String, dynamic>>(
-        '/tracks/$numericId/streams',
-      );
-      final streamsData = streamsResponse.data;
-      if (streamsData != null) {
-        final urls = _collectStreamUrlsFromMap(streamsData);
-        if (urls.isNotEmpty) return urls;
+      for (final id in [numericId, if (trackId != numericId) trackId]) {
+        try {
+          final streamsResponse = await _dio.get<Map<String, dynamic>>(
+            '/tracks/$id/streams',
+          );
+          final streamsData = streamsResponse.data;
+          if (streamsData != null) {
+            final urls = _collectStreamUrlsFromMap(streamsData);
+            if (urls.isNotEmpty) return urls;
+          }
+        } catch (_) {
+          continue;
+        }
       }
       return [];
     } catch (e) {
