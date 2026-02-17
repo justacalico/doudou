@@ -651,6 +651,8 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                               fontWeight: FontWeight.w600,
                               color: DesktopTheme.textPrimary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -659,6 +661,8 @@ class _QuickAccessCardState extends State<QuickAccessCard> {
                               fontSize: 12,
                               color: DesktopTheme.textSecondary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),

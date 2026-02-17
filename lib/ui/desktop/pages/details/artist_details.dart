@@ -336,6 +336,8 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
             fontSize: isNarrow ? 24 : null,
           ),
           textAlign: isNarrow ? TextAlign.center : TextAlign.start,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
         ),
         const SizedBox(height: 16),
         isNarrow
@@ -360,9 +362,11 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                   ),
                 ],
               )
-            : Row(
+            : Wrap(
+                spacing: 16,
+                runSpacing: 8,
                 children: [
-                  if (hasAlbums) ...[
+                  if (hasAlbums)
                     Text(
                       l10n.countAlbums(_artistAlbums.length),
                       style: theme.textTheme.bodyLarge?.copyWith(
@@ -370,8 +374,6 @@ class _ArtistDetailsPageState extends State<ArtistDetailsPage> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                  ],
                   Text(
                     l10n.countSongs(_getTotalTracks()),
                     style: theme.textTheme.bodyLarge?.copyWith(

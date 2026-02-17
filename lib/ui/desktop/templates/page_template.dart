@@ -102,35 +102,41 @@ class PageTemplate extends StatelessWidget {
                     _ModernBackButton(onPressed: onBackPressed),
                     const SizedBox(width: DesktopTheme.spacingMd),
                   ],
-                  // Title with minimum width to prevent wrapping
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: DesktopTheme.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 4),
+                  // Title with Flexible to prevent overflow
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Text(
-                          subtitle!,
+                          title,
                           style: TextStyle(
-                            fontSize: 14,
-                            color: DesktopTheme.textSecondary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: DesktopTheme.textPrimary,
+                            letterSpacing: -0.5,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: DesktopTheme.textSecondary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                   const SizedBox(width: DesktopTheme.spacingMd),
                   if (actions != null) ...[
-                    Expanded(
+                    Flexible(
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(

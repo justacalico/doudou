@@ -261,6 +261,8 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
             color: DesktopTheme.textPrimary,
             fontWeight: FontWeight.w600,
           ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
         ),
       ),
       body: _loading
@@ -310,6 +312,8 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
                   : DesktopTheme.textPrimary.withValues(alpha: 0.5),
               fontWeight: isDownloaded ? FontWeight.w500 : FontWeight.normal,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           subtitle: min.artistName != null
               ? Text(
@@ -320,6 +324,8 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
                         : DesktopTheme.textSecondary.withValues(alpha: 0.5),
                     fontSize: 13,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 )
               : null,
           trailing: isDownloaded && track != null
@@ -383,6 +389,8 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
                   : DesktopTheme.textPrimary.withValues(alpha: 0.5),
               fontWeight: isDownloaded ? FontWeight.w500 : FontWeight.normal,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           subtitle: Text(
             track.artistName ?? l10n.unknownArtist,
@@ -392,6 +400,8 @@ class _DownloadAlbumDetailPageState extends State<_DownloadAlbumDetailPage> {
                   : DesktopTheme.textSecondary.withValues(alpha: 0.5),
               fontSize: 13,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           trailing: isDownloaded
               ? IconButton(

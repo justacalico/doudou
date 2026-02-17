@@ -400,6 +400,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                     style: theme.textTheme.headlineLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                   if (widget.mediaType == MediaType.album) ...[
                     const SizedBox(height: 8),
@@ -411,13 +413,17 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
                   const SizedBox(height: 16),
-                  Row(
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
                     children: [
-                      if (widget.mediaType == MediaType.album && widget.album!.year != null) ...[
+                      if (widget.mediaType == MediaType.album && widget.album!.year != null)
                         Text(
                           widget.album!.year.toString(),
                           style: theme.textTheme.bodyLarge?.copyWith(
@@ -425,8 +431,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                      ],
                       Text(
                         l10n.countSongs(_tracks.length),
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -434,7 +438,6 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 16),
                       Text(
                         _getTotalDuration(),
                         style: theme.textTheme.bodyMedium?.copyWith(
