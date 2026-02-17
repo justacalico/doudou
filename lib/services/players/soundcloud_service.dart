@@ -390,7 +390,6 @@ class SoundCloudService implements BaseMediaService {
 
   List<String> _collectStreamUrlsFromMap(Map<String, dynamic> data) {
     final urls = <String>[];
-    // Progressive URLs first for best compatibility (e.g. media_kit/libmpv)
     if (data['stream_url'] != null && _clientId != null) {
       final streamUrl = data['stream_url'] as String;
       final u = _urlWithClientId(streamUrl) ?? streamUrl;
@@ -414,13 +413,51 @@ class SoundCloudService implements BaseMediaService {
     return urls;
   }
 
+  /// Resolve api.soundcloud.com URL to final CDN URL by following redirects with auth.
+  Future<String?> _resolveApiUrlToCdn(String apiUrl) async {
+    try {
+      final r = await _dio.head<String>(
+        apiUrl,
+        options: Options(
+          followRedirects: true,
+          validateStatus: (s) => s != null && s < 500,
+        ),
+      );
+      final finalUrl = r.realUri.toString();
+      if (_isUsableStreamUrl(finalUrl)) return finalUrl;
+      if (r.statusCode == 405) {
+        final getR = await _dio.get<String>(
+          apiUrl,
+          options: Options(
+            followRedirects: true,
+            validateStatus: (s) => s != null && s < 500,
+            receiveDataWhenStatusError: false,
+            headers: {'Range': 'bytes=0-0'},
+          ),
+        );
+        final getFinal = getR.realUri.toString();
+        if (_isUsableStreamUrl(getFinal)) return getFinal;
+      }
+      return null;
+    } catch (e) {
+      _log('resolveApiUrlToCdn failed: $e', isError: true);
+      return null;
+    }
+  }
+
   @override
   Future<List<String>> getAlternativeStreamUrlsAsync(String trackId) async {
-    if (!await _ensureToken()) return [];
+    if (!await _ensureToken()) {
+      _log('playback: no token', isError: true);
+      return [];
+    }
     final numericId = _normalizeTrackId(trackId);
-    if (numericId.isEmpty) return [];
+    if (numericId.isEmpty) {
+      _log('playback: empty trackId after normalize', isError: true);
+      return [];
+    }
+    _log('playback: resolving stream for trackId=$trackId numericId=$numericId');
     try {
-      // GET track – response may include stream_url and/or transcoding URLs
       final response = await _dio.get<Map<String, dynamic>>(
         '/tracks/$numericId',
         queryParameters: {'access': 'playable'},
@@ -428,23 +465,63 @@ class SoundCloudService implements BaseMediaService {
       final data = response.data;
       if (data != null) {
         final urls = _collectStreamUrlsFromMap(data);
-        if (urls.isNotEmpty) return urls;
+        if (urls.isNotEmpty) {
+          _log('playback: got ${urls.length} CDN URL(s) from /tracks');
+          return urls;
+        }
+        final apiUrls = <String>[];
+        if (data['stream_url'] != null) {
+          final u = _urlWithClientId(data['stream_url'] as String) ?? data['stream_url'] as String;
+          if (u.isNotEmpty && u.toLowerCase().contains('api.soundcloud.com')) apiUrls.add(u);
+        }
+        for (final k in ['http_mp3_128_url', 'hls_aac_160_url', 'hls_aac_96_url']) {
+          if (data[k] != null) {
+            final u = _urlWithClientId(data[k] as String) ?? data[k] as String;
+            if (u.isNotEmpty && u.toLowerCase().contains('api.soundcloud.com') && !apiUrls.contains(u)) apiUrls.add(u);
+          }
+        }
+        for (final apiUrl in apiUrls) {
+          final cdn = await _resolveApiUrlToCdn(apiUrl);
+          if (cdn != null && cdn.isNotEmpty) {
+            _log('playback: resolved API URL to CDN');
+            return [cdn];
+          }
+        }
       }
-      // Fallback: dedicated streams endpoint (API: /tracks/{track_urn}/streams)
       for (final id in [numericId, if (trackId != numericId) trackId]) {
         try {
+          _log('playback: trying /tracks/$id/streams');
           final streamsResponse = await _dio.get<Map<String, dynamic>>(
             '/tracks/$id/streams',
           );
           final streamsData = streamsResponse.data;
           if (streamsData != null) {
             final urls = _collectStreamUrlsFromMap(streamsData);
-            if (urls.isNotEmpty) return urls;
+            if (urls.isNotEmpty) {
+              _log('playback: got ${urls.length} CDN URL(s) from /streams');
+              return urls;
+            }
+            final apiUrls = <String>[];
+            for (final k in ['stream_url', 'http_mp3_128_url', 'hls_aac_160_url', 'hls_aac_96_url']) {
+              if (streamsData[k] != null) {
+                final u = _urlWithClientId(streamsData[k] as String) ?? streamsData[k] as String;
+                if (u.isNotEmpty && u.toLowerCase().contains('api.soundcloud.com') && !apiUrls.contains(u)) apiUrls.add(u);
+              }
+            }
+            for (final apiUrl in apiUrls) {
+              final cdn = await _resolveApiUrlToCdn(apiUrl);
+              if (cdn != null && cdn.isNotEmpty) {
+                _log('playback: resolved /streams API URL to CDN');
+                return [cdn];
+              }
+            }
           }
-        } catch (_) {
+        } catch (e) {
+          _log('playback: /streams $id failed: $e', isError: true);
           continue;
         }
       }
+      _log('playback: no usable stream URL for track $numericId', isError: true);
       return [];
     } catch (e) {
       _log('getAlternativeStreamUrlsAsync failed: $e', isError: true);

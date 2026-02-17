@@ -1127,14 +1127,20 @@ class UnifiedAudioHandler extends BaseAudioHandler {
 
     // For providers that need async URL resolution (e.g. SoundCloud)
     final asyncUrls = await _mediaServiceManager.getAlternativeStreamUrlsAsync(track.id);
+    if (asyncUrls.isEmpty) {
+      debugPrint('[Playback] No stream URLs for track id=${track.id}');
+      return '';
+    }
     for (final url in asyncUrls) {
       if (url.isEmpty) continue;
       final lower = url.toLowerCase();
       if (lower.contains('api.soundcloud.com')) continue;
       if (lower.startsWith('http://') || lower.startsWith('https://')) {
+        debugPrint('[Playback] Using stream URL (length=${url.length}) for track id=${track.id}');
         return url;
       }
     }
+    debugPrint('[Playback] All ${asyncUrls.length} URL(s) rejected for track id=${track.id}');
     return '';
   }
 
