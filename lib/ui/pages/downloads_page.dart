@@ -7,9 +7,9 @@ import 'package:doudou/models/jellyfin_models.dart';
 
 import 'package:doudou/ui/theme.dart';
 import 'package:doudou/ui/templates/page_template.dart';
-import 'package:doudou/ui/templates/track_list.dart';
+import 'package:doudou/ui/templates/music_card.dart';
 
-/// Downloads page built from PageTemplate and TrackListTemplate.
+/// Downloads page built from PageTemplate and a grid of track cards.
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
 
@@ -65,15 +65,60 @@ class _DownloadsPageState extends State<DownloadsPage> {
               ),
             ),
           ],
-          child: TrackListTemplate(
-            tracks: downloadedTracks,
-            emptyStateTitle: l10n.downloads,
-            emptyStateMessage: l10n.downloadSongsToListenOffline,
-            showTrackNumber: true,
-            showArtist: true,
-            showAlbum: true,
-            showArtwork: true,
-          ),
+          child: downloadedTracks.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.download_outlined,
+                        size: 64,
+                        color: DesktopTheme.textMuted,
+                      ),
+                      const SizedBox(height: DesktopTheme.spacingMd),
+                      Text(
+                        l10n.downloads,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: DesktopTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: DesktopTheme.spacingSm),
+                      Text(
+                        l10n.downloadSongsToListenOffline,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: DesktopTheme.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 200,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: DesktopTheme.spacingMd,
+                    mainAxisSpacing: DesktopTheme.spacingMd,
+                  ),
+                  itemCount: downloadedTracks.length,
+                  itemBuilder: (context, index) {
+                    final track = downloadedTracks[index];
+                    final imageUrl = track.imageUrl != null
+                        ? appState.getImageUrl(track.imageUrl!)
+                        : null;
+                    return MusicCard(
+                      title: track.name,
+                      subtitle: track.artistName ?? track.albumName ?? l10n.unknownArtist,
+                      imageUrl: imageUrl,
+                      size: 180,
+                      placeholderIcon: Icons.music_note_rounded,
+                      onTap: () => appState.playPlaylist(downloadedTracks, index),
+                    );
+                  },
+                ),
         );
       },
     );
