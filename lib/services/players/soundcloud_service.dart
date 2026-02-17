@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:kib_debug_print/kib_debug_print.dart';
 
 import '../../models/jellyfin_models.dart';
@@ -459,16 +460,16 @@ class SoundCloudService implements BaseMediaService {
   }
 
   /// Resolve transcoding URL to final CDN stream URL.
-  /// SoundCloud API returns JSON { "url": "https://cdn..." } when you GET the transcoding URL with client_id (see sound-on-fire).
+  /// SoundCloud returns JSON { "url": "https://cdn..." } when you GET the transcoding URL.
+  /// Use client_id only (no OAuth): sound-on-fire uses plain GET with ?client_id=; OAuth causes 401 on transcoding endpoint.
   Future<String?> _resolveTranscodingUrlToCdn(String transcodingUrl) async {
     try {
-      final r = await _dio.get<Map<String, dynamic>>(
-        transcodingUrl,
-        options: Options(
-          validateStatus: (s) => s != null && s < 400,
-        ),
-      );
-      final data = r.data;
+      final response = await http.get(Uri.parse(transcodingUrl));
+      if (response.statusCode != 200) {
+        _log('resolveTranscodingUrlToCdn status ${response.statusCode}', isError: true);
+        return null;
+      }
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
       if (data == null) return null;
       final url = data['url'] as String?;
       if (url == null || url.isEmpty) return null;
