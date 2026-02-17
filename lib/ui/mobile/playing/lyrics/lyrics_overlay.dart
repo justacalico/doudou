@@ -363,16 +363,20 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                                       final displayArtistName = currentTrack?.artistName ?? _currentArtistName ?? 'Unknown Artist';
                                       
                                       return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Row(
                                             children: [
-                                              const Text(
-                                                'Lyrics',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.bold,
+                                              Flexible(
+                                                child: Text(
+                                                  'Lyrics',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               if (_lyricsResult?.hasSyncedLyrics == true) ...[
@@ -439,21 +443,24 @@ class _SyncedLyricsOverlayState extends State<SyncedLyricsOverlay>
                           // Lyrics content
                           Expanded(
                             child: _isLoading
-                                ? const Center(
+                                ? Center(
                                     child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        CupertinoActivityIndicator(
+                                        const CupertinoActivityIndicator(
                                           color: Colors.white,
                                           radius: 16,
                                         ),
-                                        SizedBox(height: 16),
+                                        const SizedBox(height: 16),
                                         Text(
                                           'Loading lyrics...',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ),
