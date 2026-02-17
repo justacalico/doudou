@@ -2892,17 +2892,17 @@ class _DetailHeader extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: DesktopTheme.spacingXl),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    Wrap(
+                      spacing: DesktopTheme.spacingMd,
+                      runSpacing: DesktopTheme.spacingSm,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        if (onPlay != null) ...[
+                        if (onPlay != null)
                           DesktopPlayButton(
                             isPlaying: false,
                             onPressed: onPlay!,
                             size: 52,
                           ),
-                          const SizedBox(width: DesktopTheme.spacingMd),
-                        ],
                         if (onShuffle != null)
                           DesktopGlassButton(
                             onPressed: onShuffle!,
@@ -2921,9 +2921,7 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                        if (onDownload != null) ...[
-                          if (onShuffle != null)
-                            const SizedBox(width: DesktopTheme.spacingSm),
+                        if (onDownload != null)
                           DesktopGlassButton(
                             onPressed: onDownload!,
                             padding: const EdgeInsets.symmetric(
@@ -2940,7 +2938,6 @@ class _DetailHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],
